@@ -3,6 +3,7 @@
 namespace Mews\Pos;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use SimpleXMLElement;
@@ -314,7 +315,7 @@ class EstPos implements PosInterface
      * Regular Payment
      *
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function makeRegularPayment()
     {
@@ -360,7 +361,7 @@ class EstPos implements PosInterface
      * Make 3D Payment
      *
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function make3DPayment()
     {
@@ -494,7 +495,7 @@ class EstPos implements PosInterface
      *
      * @param $contents
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function send($contents)
     {
@@ -538,7 +539,7 @@ class EstPos implements PosInterface
      * @param object $card
      * @return mixed
      * @throws UnsupportedPaymentModelException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function payment($card)
     {
@@ -568,7 +569,7 @@ class EstPos implements PosInterface
      * @param $order_id
      * @param null $amount
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function refund($order_id, $amount = null)
     {
@@ -613,7 +614,7 @@ class EstPos implements PosInterface
      *
      * @param $order_id
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function cancel($order_id)
     {
@@ -655,7 +656,7 @@ class EstPos implements PosInterface
      *
      * @param $order_id
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function status($order_id)
     {
@@ -703,7 +704,7 @@ class EstPos implements PosInterface
      *
      * @param $order_id
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function history($order_id)
     {

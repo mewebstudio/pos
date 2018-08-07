@@ -2,6 +2,7 @@
 
 namespace Mews\Pos;
 
+use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 
@@ -38,7 +39,7 @@ interface PosInterface
      * Regular Payment
      *
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function makeRegularPayment();
 
@@ -46,7 +47,7 @@ interface PosInterface
      * Make 3D Payment
      *
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function make3DPayment();
 
@@ -62,7 +63,7 @@ interface PosInterface
      *
      * @param $contents
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function send($contents);
 
@@ -81,7 +82,7 @@ interface PosInterface
      * @param object $card
      * @return mixed
      * @throws UnsupportedPaymentModelException
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function payment($card);
 
@@ -91,7 +92,7 @@ interface PosInterface
      * @param $order_id
      * @param null $amount
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function refund($order_id, $amount = null);
 
@@ -100,7 +101,7 @@ interface PosInterface
      *
      * @param $order_id
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function cancel($order_id);
 
@@ -109,7 +110,7 @@ interface PosInterface
      *
      * @param $order_id
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function status($order_id);
 
@@ -118,7 +119,7 @@ interface PosInterface
      *
      * @param $order_id
      * @return $this
-     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws GuzzleException
      */
     public function history($order_id);
 }
