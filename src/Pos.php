@@ -91,9 +91,10 @@ class Pos
      * Prepare Order
      *
      * @param array $order
+     * @param array [] $card
      * @return Pos
      */
-    public function prepare(array $order)
+    public function prepare(array $order, array $card = [])
     {
         // Installment
         $installment = 0;
@@ -113,8 +114,11 @@ class Pos
             'currency'      => $currency,
         ]);
 
+        // Card
+        $this->card = $card ? (object) $card : null;
+
         // Prepare Order
-        $this->bank->prepare($this->order);
+        $this->bank->prepare($this->order, $this->card);
 
         return $this;
     }

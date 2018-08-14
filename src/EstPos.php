@@ -516,10 +516,11 @@ class EstPos implements PosInterface
      * Prepare Order
      *
      * @param object $order
+     * @param object null $card
      * @return mixed
      * @throws UnsupportedTransactionTypeException
      */
-    public function prepare($order)
+    public function prepare($order, $card = null)
     {
         $this->type = $this->types['pay'];
         if (isset($order->transaction)) {
@@ -531,6 +532,53 @@ class EstPos implements PosInterface
         }
 
         $this->order = $order;
+        $this->card = $card;
+    }
+
+    /**
+     * Get 3d Form Data
+     *
+     * @return array
+     */
+    public function get3DFormData()
+    {
+        $this->order->hash = $this->create3DHash();
+
+        $inputs = [
+            'cardType'                          => $this->card->type,
+            'pan'                               => $this->card->number,
+            'Ecom_Payment_Card_ExpDate_Month'   => $this->card->month,
+            'Ecom_Payment_Card_ExpDate_Year'    => $this->card->year,
+            'cv2'                               => $this->card->cvv,
+            'firmaadi'                          => $this->order->name,
+            'Email'                             => $this->order->email,
+            'clientid'                          => $this->account->client_id,
+            'amount'                            => $this->order->amount,
+            'oid'                               => $this->order->id,
+            'okUrl'                             => $this->order->ok_url,
+            'failUrl'                           => $this->order->fail_url,
+            'rnd'                               => $this->order->rand,
+            'hash'                              => $this->order->hash,
+            'storetype'                         => $this->account->model,
+            'lang'                              => $this->order->lang,
+            'currency'                          => $this->order->currency,
+        ];
+
+        if ($this->account->model == '3d_pay') {
+            $inputs = array_merge($inputs, [
+                'islemtipi' => $this->order->transaction_type,
+                'taksit'    => $this->order->installment,
+            ]);
+        }
+
+        return [
+            'gateway'   => $this->gateway,
+            'ok_url'    => $this->order->ok_url,
+            'fail_url'  => $this->order->fail_url,
+            'rand'      => $this->order->rand,
+            'hash'      => $this->order->hash,
+            'inputs'    => $inputs,
+        ];
     }
 
     /**
