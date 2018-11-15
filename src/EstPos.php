@@ -64,6 +64,13 @@ class EstPos implements PosInterface
     ];
 
     /**
+     * Currencies
+     *
+     * @var array
+     */
+    public $currencies = [];
+
+    /**
      * Transaction Type
      *
      * @var string
@@ -124,12 +131,13 @@ class EstPos implements PosInterface
      *
      * @param array $config
      * @param array $account
-     * @return $this
+     * @param array $currencies
      */
-    public function __construct($config, $account)
+    public function __construct($config, $account, array $currencies)
     {
         $this->config = $config;
         $this->account = $account;
+        $this->currencies = $currencies;
 
         $this->url = isset($this->config['urls'][$this->account->env]) ?
             $this->config['urls'][$this->account->env] :
@@ -150,33 +158,32 @@ class EstPos implements PosInterface
     protected function createRegularPaymentXML()
     {
         $nodes = [
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'Type'      => $this->type,
-            'IPAddress' => $this->order->ip,
-            'Email'     => $this->order->email,
-            'OrderId'   => $this->order->id,
-            'UserId'    => isset($this->order->user_id) ? $this->order->user_id : null,
-            'Total'     => $this->order->amount,
-            'Currency'  => $this->order->currency,
-            'Taksit'    => $this->order->installment,
-            'CardType'  => isset($this->card->type) ? $this->card->type : null,
-            'Number'    => $this->card->number,
-            'Expires'   => $this->card->month . '/' . $this->card->year,
-            'Cvv2Val'   => $this->card->cvv,
-            'Mode'      => 'P',
-            'GroupId'   => '',
-            'TransId'   => '',
+            'CC5Request'    => [
+                'Name'      => $this->account->username,
+                'Password'  => $this->account->password,
+                'ClientId'  => $this->account->client_id,
+                'Type'      => $this->type,
+                'IPAddress' => $this->order->ip,
+                'Email'     => $this->order->email,
+                'OrderId'   => $this->order->id,
+                'UserId'    => isset($this->order->user_id) ? $this->order->user_id : null,
+                'Total'     => $this->order->amount,
+                'Currency'  => $this->order->currency,
+                'Taksit'    => $this->order->installment,
+                'CardType'  => isset($this->card->type) ? $this->card->type : null,
+                'Number'    => $this->card->number,
+                'Expires'   => $this->card->month . '/' . $this->card->year,
+                'Cvv2Val'   => $this->card->cvv,
+                'Mode'      => 'P',
+                'GroupId'   => '',
+                'TransId'   => '',
+                'BillTo'                    => [
+                    'Name'   => $this->order->name ? $this->order->name : null,
+                ]
+            ]
         ];
 
-        if ($this->order->name) {
-            $nodes['BillTo'] = [
-                'Name'   => $this->order->name,
-            ];
-        }
-
-        return $this->createXML($nodes);
+        return $this->createXML($nodes, 'ISO-8859-9');
     }
 
     /**
@@ -187,14 +194,16 @@ class EstPos implements PosInterface
     protected function createRegularPostXML()
     {
         $nodes = [
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'Type'      => $this->types[$this->order->transaction],
-            'OrderId'   => $this->order->id,
+            'CC5Request'    => [
+                'Name'      => $this->account->username,
+                'Password'  => $this->account->password,
+                'ClientId'  => $this->account->client_id,
+                'Type'      => $this->types[$this->order->transaction],
+                'OrderId'   => $this->order->id,
+            ]
         ];
 
-        return $this->createXML($nodes);
+        return $this->createXML($nodes, 'ISO-8859-9');
     }
 
     /**
@@ -204,27 +213,29 @@ class EstPos implements PosInterface
     protected function create3DPaymentXML()
     {
         $nodes = [
-            'Name'                      => $this->account->username,
-            'Password'                  => $this->account->password,
-            'ClientId'                  => $this->account->client_id,
-            'Type'                      => $this->type,
-            'IPAddress'                 => $this->order->ip,
-            'Email'                     => $this->order->email,
-            'OrderId'                   => $this->order->id,
-            'UserId'                    => isset($this->order->user_id) ? $this->order->user_id : null,
-            'Total'                     => $this->order->amount,
-            'Currency'                  => $this->order->currency,
-            'Taksit'                    => $this->order->installment,
-            'Number'                    => $this->request->get('md'),
-            'Expires'                   => '',
-            'Cvv2Val'                   => '',
-            'PayerTxnId'                => $this->request->get('xid'),
-            'PayerSecurityLevel'        => $this->request->get('eci'),
-            'PayerAuthenticationCode'   => $this->request->get('cavv'),
-            'CardholderPresentCode'     => '13',
-            'Mode'                      => 'P',
-            'GroupId'                   => '',
-            'TransId'                   => '',
+            'CC5Request'    => [
+                'Name'                      => $this->account->username,
+                'Password'                  => $this->account->password,
+                'ClientId'                  => $this->account->client_id,
+                'Type'                      => $this->type,
+                'IPAddress'                 => $this->order->ip,
+                'Email'                     => $this->order->email,
+                'OrderId'                   => $this->order->id,
+                'UserId'                    => isset($this->order->user_id) ? $this->order->user_id : null,
+                'Total'                     => $this->order->amount,
+                'Currency'                  => $this->order->currency,
+                'Taksit'                    => $this->order->installment,
+                'Number'                    => $this->request->get('md'),
+                'Expires'                   => '',
+                'Cvv2Val'                   => '',
+                'PayerTxnId'                => $this->request->get('xid'),
+                'PayerSecurityLevel'        => $this->request->get('eci'),
+                'PayerAuthenticationCode'   => $this->request->get('cavv'),
+                'CardholderPresentCode'     => '13',
+                'Mode'                      => 'P',
+                'GroupId'                   => '',
+                'TransId'                   => '',
+            ]
         ];
 
         if ($this->order->name) {
@@ -233,7 +244,7 @@ class EstPos implements PosInterface
             ];
         }
 
-        return $this->createXML($nodes);
+        return $this->createXML($nodes, 'ISO-8859-9');
     }
 
     /**
@@ -268,9 +279,9 @@ class EstPos implements PosInterface
         $hash_str = '';
 
         if ($this->account->model == '3d') {
-            $hash_str = $this->account->client_id . $this->order->id . $this->order->amount . $this->order->ok_url . $this->order->fail_url . $this->order->rand . $this->account->store_key;
+            $hash_str = $this->account->client_id . $this->order->id . $this->order->amount . $this->order->success_url . $this->order->fail_url . $this->order->rand . $this->account->store_key;
         } elseif ($this->account->model == '3d_pay') {
-            $hash_str = $this->account->client_id . $this->order->id . $this->order->amount . $this->order->ok_url . $this->order->fail_url . $this->order->transaction_type . $this->order->installment . $this->order->rand . $this->account->store_key;
+            $hash_str = $this->account->client_id . $this->order->id . $this->order->amount . $this->order->success_url . $this->order->fail_url . $this->type . $this->order->installment . $this->order->rand . $this->account->store_key;
         }
 
         return base64_encode(pack('H*', sha1($hash_str)));
@@ -293,7 +304,7 @@ class EstPos implements PosInterface
             $index2 = strpos($hash_params, ':', $index1);
             $value = $this->request->get(substr($hash_params, $index1, $index2 - $index1));
 
-            if($value == null) $value = '';
+            if ($value == null) $value = '';
 
             $params_val = $params_val . $value;
 
@@ -453,11 +464,12 @@ class EstPos implements PosInterface
         }
 
         $this->response = (object) [
-            'id'                    => (string) $this->request->get('oid'),
+            'id'                    => (string) $this->request->get('AuthCode'),
             'trans_id'              => (string) $this->request->get('TransId'),
             'auth_code'             => (string) $this->request->get('AuthCode'),
             'host_ref_num'          => (string) $this->request->get('HostRefNum'),
             'response'              => (string) $this->request->get('Response'),
+            'order_id'              => (string) $this->request->get('oid'),
             'transaction_type'      => $this->type,
             'transaction'           => $this->order->transaction,
             'transaction_security'  => $transaction_security,
@@ -488,6 +500,68 @@ class EstPos implements PosInterface
         ];
 
         return $this;
+    }
+
+    /**
+     * Get 3d Form Data
+     *
+     * @return array
+     */
+    public function get3DFormData()
+    {
+        $data = [];
+
+        if ($this->order) {
+            $this->order->hash = $this->create3DHash();
+
+            var_dump($this->card);
+            $card_type = null;
+            if (isset($this->card->type)) {
+                if ($this->card->type == 'visa') {
+                    $card_type = '1';
+                } elseif ($this->card->type == 'master') {
+                    $card_type = '2';
+                }
+            }
+
+            $inputs = [
+                'clientid'                          => $this->account->client_id,
+                'storetype'                         => $this->account->model,
+                'hash'                              => $this->order->hash,
+                'cardType'                          => $card_type,
+                'pan'                               => $this->card->number,
+                'Ecom_Payment_Card_ExpDate_Month'   => $this->card->month,
+                'Ecom_Payment_Card_ExpDate_Year'    => $this->card->year,
+                'cv2'                               => $this->card->cvv,
+                'firmaadi'                          => $this->order->name,
+                'Email'                             => $this->order->email,
+                'amount'                            => $this->order->amount,
+                'oid'                               => $this->order->id,
+                'okUrl'                             => $this->order->success_url,
+                'failUrl'                           => $this->order->fail_url,
+                'rnd'                               => $this->order->rand,
+                'lang'                              => $this->order->lang,
+                'currency'                          => $this->order->currency,
+            ];
+
+            if ($this->account->model == '3d_pay') {
+                $inputs = array_merge($inputs, [
+                    'islemtipi' => $this->type,
+                    'taksit'    => $this->order->installment,
+                ]);
+            }
+
+            $data = [
+                'gateway'       => $this->gateway,
+                'success_url'   => $this->order->success_url,
+                'fail_url'      => $this->order->fail_url,
+                'rand'          => $this->order->rand,
+                'hash'          => $this->order->hash,
+                'inputs'        => $inputs,
+            ];
+        }
+
+        return $data;
     }
 
     /**
@@ -536,52 +610,6 @@ class EstPos implements PosInterface
     }
 
     /**
-     * Get 3d Form Data
-     *
-     * @return array
-     */
-    public function get3DFormData()
-    {
-        $this->order->hash = $this->create3DHash();
-
-        $inputs = [
-            'cardType'                          => $this->card->type,
-            'pan'                               => $this->card->number,
-            'Ecom_Payment_Card_ExpDate_Month'   => $this->card->month,
-            'Ecom_Payment_Card_ExpDate_Year'    => $this->card->year,
-            'cv2'                               => $this->card->cvv,
-            'firmaadi'                          => $this->order->name,
-            'Email'                             => $this->order->email,
-            'clientid'                          => $this->account->client_id,
-            'amount'                            => $this->order->amount,
-            'oid'                               => $this->order->id,
-            'okUrl'                             => $this->order->ok_url,
-            'failUrl'                           => $this->order->fail_url,
-            'rnd'                               => $this->order->rand,
-            'hash'                              => $this->order->hash,
-            'storetype'                         => $this->account->model,
-            'lang'                              => $this->order->lang,
-            'currency'                          => $this->order->currency,
-        ];
-
-        if ($this->account->model == '3d_pay') {
-            $inputs = array_merge($inputs, [
-                'islemtipi' => $this->order->transaction_type,
-                'taksit'    => $this->order->installment,
-            ]);
-        }
-
-        return [
-            'gateway'   => $this->gateway,
-            'ok_url'    => $this->order->ok_url,
-            'fail_url'  => $this->order->fail_url,
-            'rand'      => $this->order->rand,
-            'hash'      => $this->order->hash,
-            'inputs'    => $inputs,
-        ];
-    }
-
-    /**
      * Make Payment
      *
      * @param object $card
@@ -614,24 +642,25 @@ class EstPos implements PosInterface
     /**
      * Refund Order
      *
-     * @param $order_id
-     * @param null $amount
+     * @param array $meta
      * @return $this
      * @throws GuzzleException
      */
-    public function refund($order_id, $amount = null)
+    public function refund(array $meta)
     {
         $nodes = [
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'OrderId'   => $order_id,
-            'Type'      => 'Credit',
+            'CC5Request'    => [
+                'Name'      => $this->account->username,
+                'Password'  => $this->account->password,
+                'ClientId'  => $this->account->client_id,
+                'OrderId'   => $meta['order_id'],
+                'Type'      => 'Credit',
+            ]
         ];
 
-        if ($amount) $nodes['Total'] = $amount;
+        if ($meta['amount']) $nodes['Total'] = $meta['amount'];
 
-        $xml = $this->createXML($nodes);
+        $xml = $this->createXML($nodes, 'ISO-8859-9');
         $this->send($xml);
 
         $status = 'declined';
@@ -660,19 +689,21 @@ class EstPos implements PosInterface
     /**
      * Cancel Order
      *
-     * @param $order_id
+     * @param array $meta
      * @return $this
      * @throws GuzzleException
      */
-    public function cancel($order_id)
+    public function cancel(array $meta)
     {
         $xml = $this->createXML([
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'OrderId'   => $order_id,
-            'Type'      => 'Void',
-        ]);
+            'CC5Request'    => [
+                'Name'      => $this->account->username,
+                'Password'  => $this->account->password,
+                'ClientId'  => $this->account->client_id,
+                'OrderId'   => $meta['order_id'],
+                'Type'      => 'Void',
+            ]
+        ], 'ISO-8859-9');
 
         $this->send($xml);
 
@@ -702,21 +733,23 @@ class EstPos implements PosInterface
     /**
      * Order Status
      *
-     * @param $order_id
+     * @param array $meta
      * @return $this
      * @throws GuzzleException
      */
-    public function status($order_id)
+    public function status(array $meta)
     {
         $xml = $this->createXML([
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'OrderId'   => $order_id,
-            'Extra'     => [
-                'ORDERSTATUS'   => 'QUERY',
-            ],
-        ]);
+            'CC5Request'    => [
+                'Name'      => $this->account->username,
+                'Password'  => $this->account->password,
+                'ClientId'  => $this->account->client_id,
+                'OrderId'   => $meta['order_id'],
+                'Extra'     => [
+                    'ORDERSTATUS'   => 'QUERY',
+                ],
+            ]
+        ], 'ISO-8859-9');
 
         $this->send($xml);
 
@@ -725,21 +758,26 @@ class EstPos implements PosInterface
             $status = 'approved';
         }
 
+        $first_amount = isset($this->data->Extra->ORIG_TRANS_AMT) ? $this->printData($this->data->Extra->ORIG_TRANS_AMT) : null;
+        $capture_amount = isset($this->data->Extra->CAPTURE_AMT) ? $this->printData($this->data->Extra->CAPTURE_AMT) : null;
+        $capture = $first_amount == $capture_amount ? true : false;
+
         $this->response = (object) [
-            'order_id'          => isset($this->data->OrderId) ? $this->data->OrderId : null,
-            'response'          => isset($this->data->Response) ? $this->data->Response : null,
-            'proc_return_code'  => isset($this->data->ProcReturnCode) ? $this->data->ProcReturnCode : null,
-            'trans_id'          => isset($this->data->TransId) ? $this->data->TransId : null,
-            'error_message'     => isset($this->data->ErrMsg) ? $this->data->ErrMsg : null,
-            'host_ref_num'      => isset($this->data->Extra->HOST_REF_NUM) ? $this->data->Extra->HOST_REF_NUM : null,
-            'order_status'      => isset($this->data->Extra->ORDERSTATUS) ? $this->data->Extra->ORDERSTATUS : null,
-            'process_type'      => isset($this->data->Extra->CHARGE_TYPE_CD) ? $this->data->Extra->CHARGE_TYPE_CD : null,
-            'pan'               => isset($this->data->Extra->PAN) ? $this->data->Extra->PAN : null,
-            'num_code'          => isset($this->data->Extra->NUMCODE) ? $this->data->Extra->NUMCODE : null,
-            'first_amount'      => isset($this->data->Extra->ORIG_TRANS_AMT) ? $this->data->Extra->ORIG_TRANS_AMT : null,
-            'capture_amount'    => isset($this->data->Extra->CAPTURE_AMT) ? $this->data->Extra->CAPTURE_AMT : null,
+            'order_id'          => isset($this->data->OrderId) ? $this->printData($this->data->OrderId) : null,
+            'response'          => isset($this->data->Response) ? $this->printData($this->data->Response) : null,
+            'proc_return_code'  => isset($this->data->ProcReturnCode) ? $this->printData($this->data->ProcReturnCode) : null,
+            'trans_id'          => isset($this->data->TransId) ? $this->printData($this->data->TransId) : null,
+            'error_message'     => isset($this->data->ErrMsg) ? $this->printData($this->data->ErrMsg) : null,
+            'host_ref_num'      => isset($this->data->Extra->HOST_REF_NUM) ? $this->printData($this->data->Extra->HOST_REF_NUM) : null,
+            'order_status'      => isset($this->data->Extra->ORDERSTATUS) ? $this->printData($this->data->Extra->ORDERSTATUS) : null,
+            'process_type'      => isset($this->data->Extra->CHARGE_TYPE_CD) ? $this->printData($this->data->Extra->CHARGE_TYPE_CD) : null,
+            'pan'               => isset($this->data->Extra->PAN) ? $this->printData($this->data->Extra->PAN) : null,
+            'num_code'          => isset($this->data->Extra->NUMCODE) ? $this->printData($this->data->Extra->NUMCODE) : null,
+            'first_amount'      => $first_amount,
+            'capture_amount'    => $capture_amount,
             'status'            => $status,
             'status_detail'     => $this->getStatusDetail(),
+            'capture'           => $capture,
             'all'               => $this->data,
             'xml'               => $xml,
         ];
@@ -750,21 +788,23 @@ class EstPos implements PosInterface
     /**
      * Order History
      *
-     * @param $order_id
+     * @param array $meta
      * @return $this
      * @throws GuzzleException
      */
-    public function history($order_id)
+    public function history(array $meta)
     {
         $xml = $this->createXML([
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'OrderId'   => $order_id,
-            'Extra'     => [
-                'ORDERHISTORY'   => 'QUERY',
-            ],
-        ]);
+            'CC5Request'    => [
+                'Name'      => $this->account->username,
+                'Password'  => $this->account->password,
+                'ClientId'  => $this->account->client_id,
+                'OrderId'   => $meta['order_id'],
+                'Extra'     => [
+                    'ORDERHISTORY'   => 'QUERY',
+                ],
+            ]
+        ], 'ISO-8859-9');
 
         $this->send($xml);
 

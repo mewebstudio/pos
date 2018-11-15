@@ -12,7 +12,7 @@ $ip = $request->getClientIp();
 $account = [
     'bank'          => 'akbank',
     'model'         => 'regular',
-    'client_id'     => '100200000',
+    'client_id'     => '100100000',
     'username'      => 'mewsapi',
     'password'      => 'ME12345.',
     'env'           => 'test',
@@ -31,7 +31,7 @@ try {
 }
 
 $order = [
-    'id'            => '2018080532DD',
+    'id'            => '201810297189',
     'transaction'   => 'post',
 ];
 
@@ -48,8 +48,8 @@ $dump = get_object_vars($response);
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $response->proc_return_code == '00' ? 'success' : 'danger'; ?>">
-        <?php echo $response->proc_return_code == '00' ? 'Post Auth Order is successful!' : 'Post Auth Order is not successful!'; ?>
+    <h3 class="text-center text-<?php echo $pos->isSuccess() == '00' ? 'success' : 'danger'; ?>">
+        <?php echo $pos->isSuccess() == '00' ? 'Post Auth Order is successful!' : 'Post Auth Order is not successful!'; ?>
     </h3>
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>

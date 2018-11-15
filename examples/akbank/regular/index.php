@@ -9,6 +9,10 @@ require '../../template/_header.php';
 <form method="post" action="<?php echo $gateway; ?>" role="form">
     <div class="row">
         <div class="form-group col-sm-12">
+            <label for="name">Card Holder Number</label>
+            <input type="text" name="name" id="name" class="form-control input-lg" placeholder="Card Holder Number">
+        </div>
+        <div class="form-group col-sm-12">
             <label for="number">Card Number</label>
             <input type="text" name="number" id="number" class="form-control input-lg" placeholder="Credit card number">
         </div>

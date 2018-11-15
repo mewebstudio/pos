@@ -9,6 +9,9 @@ if ($request->getMethod() !== 'POST') {
     exit();
 }
 
+$order = $_SESSION['order'];
+
+$pos->prepare($order);
 $payment = $pos->payment();
 $response = $payment->response;
 
@@ -52,7 +55,7 @@ $dump = get_object_vars($response);
     <hr>
     <dl class="row">
         <dt class="col-sm-3">Order ID:</dt>
-        <dd class="col-sm-9"><?php echo $response->id; ?></dd>
+        <dd class="col-sm-9"><?php echo $response->order_id ? $response->order_id : '-'; ?></dd>
     </dl>
     <hr>
     <dl class="row">

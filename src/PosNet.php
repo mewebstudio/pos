@@ -37,19 +37,28 @@ class PosNet implements PosInterface
      * @var array
      */
     public $codes = [
+        '0'     => 'declined',
+        '1'     => 'approved',
+        '2'     => 'declined',
         '00'    => 'approved',
-        '01'    => 'bank_call',
-        '02'    => 'bank_call',
-        '05'    => 'reject',
-        '09'    => 'try_again',
-        '12'    => 'invalid_transaction',
-        '28'    => 'reject',
-        '51'    => 'insufficient_balance',
-        '54'    => 'expired_card',
-        '57'    => 'does_not_allow_card_holder',
-        '62'    => 'restricted_card',
-        '77'    => 'request_rejected',
-        '99'    => 'general_error',
+        '0001'  => 'bank_call',
+        '0005'  => 'reject',
+        '0007'  => 'bank_call',
+        '0012'  => 'reject',
+        '0014'  => 'reject',
+        '0030'  => 'bank_call',
+        '0041'  => 'reject',
+        '0043'  => 'reject',
+        '0051'  => 'reject',
+        '0053'  => 'bank_call',
+        '0054'  => 'reject',
+        '0057'  => 'reject',
+        '0058'  => 'reject',
+        '0062'  => 'reject',
+        '0065'  => 'reject',
+        '0091'  => 'bank_call',
+        '0123'  => 'transaction_not_found',
+        '0444'  => 'bank_call',
     ];
 
     /**
@@ -58,9 +67,29 @@ class PosNet implements PosInterface
      * @var array
      */
     public $types = [
-        'pay'   => 'Auth',
-        'pre'   => 'PreAuth',
-        'post'  => 'PostAuth',
+        'pay'   => 'Sale',
+        'pre'   => 'Auth',
+        'post'  => 'Capt',
+    ];
+
+    /**
+     * Currencies
+     *
+     * @var array
+     */
+    public $currencies = [];
+
+    /**
+     * Fixed Currencies
+     * @var array
+     */
+    protected $_currencies = [
+        'TRY'   => 'TL',
+        'USD'   => 'US',
+        'EUR'   => 'EU',
+        'GBP'   => 'GB',
+        'JPY'   => 'JP',
+        'RUB'   => 'RU',
     ];
 
     /**
@@ -120,16 +149,29 @@ class PosNet implements PosInterface
     protected $config = [];
 
     /**
-     * EstPos constructor.
+     * @var PosNetCrypt|null
+     */
+    public $crypt;
+
+    /**
+     * PosNet constructor.
      *
      * @param array $config
      * @param array $account
-     * @return $this
+     * @param array $currencies
      */
-    public function __construct($config, $account)
+    public function __construct($config, $account, array $currencies)
     {
+        $request = Request::createFromGlobals();
+        $this->request = $request->request;
+
+        $this->crypt = function_exists('mcrypt_encrypt') ?
+            new PosNetCrypt :
+            null;
+
         $this->config = $config;
         $this->account = $account;
+        $this->currencies = $currencies;
 
         $this->url = isset($this->config['urls'][$this->account->env]) ?
             $this->config['urls'][$this->account->env] :
@@ -143,40 +185,83 @@ class PosNet implements PosInterface
     }
 
     /**
+     * Get currency
+     *
+     * @return int|string
+     */
+    protected function getCurrency() {
+        $search = array_search($this->order->currency, $this->currencies);
+        $currency = $this->order->currency;
+        if ($search) {
+            $currency = $this->_currencies[$search];
+        }
+
+        return $currency;
+    }
+
+    /**
+     * Get amount
+     *
+     * @return int
+     */
+    protected function getAmount()
+    {
+        return (int) str_replace('.', '', number_format($this->order->amount, 2, '.', ''));
+    }
+
+    /**
+     * Get orderId
+     *
+     * @param int $pad_length
+     * @return string
+     */
+    protected function getOrderId(int $pad_length = 24)
+    {
+        return (string) str_pad($this->order->id, $pad_length, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Get Installment
+     *
+     * @return int|string
+     */
+    protected function getInstallment()
+    {
+        $installment = (int) $this->order->installment;
+        if (!$this->order->installment) {
+            $installment = '00';
+        }
+
+        return $installment;
+    }
+
+    /**
      * Create Regular Payment XML
      *
      * @return string
      */
     protected function createRegularPaymentXML()
     {
+        $transaction = strtolower($this->type);
+
         $nodes = [
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'Type'      => $this->type,
-            'IPAddress' => $this->order->ip,
-            'Email'     => $this->order->email,
-            'OrderId'   => $this->order->id,
-            'UserId'    => isset($this->order->user_id) ? $this->order->user_id : null,
-            'Total'     => $this->order->amount,
-            'Currency'  => $this->order->currency,
-            'Taksit'    => $this->order->installment,
-            'CardType'  => isset($this->card->type) ? $this->card->type : null,
-            'Number'    => $this->card->number,
-            'Expires'   => $this->card->month . '/' . $this->card->year,
-            'Cvv2Val'   => $this->card->cvv,
-            'Mode'      => 'P',
-            'GroupId'   => '',
-            'TransId'   => '',
+            'posnetRequest'   => [
+                'mid'               => $this->account->client_id,
+                'tid'               => $this->account->terminal_id,
+                'tranDateRequired'  => '1',
+                $transaction  => [
+                    'orderID'       => $this->getOrderId(),
+                    'installment'   => $this->getInstallment(),
+                    'amount'        => $this->getAmount(),
+                    'currencyCode'  => $this->getCurrency(),
+                    'ccno'          => $this->card->number,
+                    'expDate'       => $this->card->year . $this->card->month,
+                    'cvc'           => $this->card->cvv,
+                ],
+            ]
         ];
 
-        if ($this->order->name) {
-            $nodes['BillTo'] = [
-                'Name'   => $this->order->name,
-            ];
-        }
-
-        return $this->createXML($nodes);
+        return $this->createXML($nodes, $encoding = 'ISO-8859-9');
     }
 
     /**
@@ -187,11 +272,17 @@ class PosNet implements PosInterface
     protected function createRegularPostXML()
     {
         $nodes = [
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'Type'      => $this->types[$this->order->transaction],
-            'OrderId'   => $this->order->id,
+            'posnetRequest'   => [
+                'mid'               => $this->account->client_id,
+                'tid'               => $this->account->terminal_id,
+                'tranDateRequired'  => '1',
+                'capt'  => [
+                    'hostLogKey'    => $this->order->host_ref_num,
+                    'amount'        => $this->getAmount(),
+                    'currencyCode'  => $this->getCurrency(),
+                    'installment'   => $this->order->installment ? $this->getInstallment() : null
+                ],
+            ]
         ];
 
         return $this->createXML($nodes);
@@ -204,36 +295,18 @@ class PosNet implements PosInterface
     protected function create3DPaymentXML()
     {
         $nodes = [
-            'Name'                      => $this->account->username,
-            'Password'                  => $this->account->password,
-            'ClientId'                  => $this->account->client_id,
-            'Type'                      => $this->type,
-            'IPAddress'                 => $this->order->ip,
-            'Email'                     => $this->order->email,
-            'OrderId'                   => $this->order->id,
-            'UserId'                    => isset($this->order->user_id) ? $this->order->user_id : null,
-            'Total'                     => $this->order->amount,
-            'Currency'                  => $this->order->currency,
-            'Taksit'                    => $this->order->installment,
-            'Number'                    => $this->request->get('md'),
-            'Expires'                   => '',
-            'Cvv2Val'                   => '',
-            'PayerTxnId'                => $this->request->get('xid'),
-            'PayerSecurityLevel'        => $this->request->get('eci'),
-            'PayerAuthenticationCode'   => $this->request->get('cavv'),
-            'CardholderPresentCode'     => '13',
-            'Mode'                      => 'P',
-            'GroupId'                   => '',
-            'TransId'                   => '',
+            'posnetRequest' => [
+                'mid'   => $this->account->client_id,
+                'tid'   => $this->account->terminal_id,
+                'oosResolveMerchantData'    => [
+                    'bankData'      => $this->request->get('BankPacket'),
+                    'merchantData'  => $this->request->get('MerchantPacket'),
+                    'sign'          => $this->request->get('Sign'),
+                ],
+            ]
         ];
 
-        if ($this->order->name) {
-            $nodes['BillTo'] = [
-                'Name'   => $this->order->name,
-            ];
-        }
-
-        return $this->createXML($nodes);
+        return $this->createXML($nodes, 'ISO-8859-9');
     }
 
     /**
@@ -243,7 +316,7 @@ class PosNet implements PosInterface
      */
     protected function getProcReturnCode()
     {
-        return isset($this->data->ProcReturnCode) ? (string) $this->data->ProcReturnCode : null;
+        return (string) $this->data->approved == '1' ? '00'  : $this->data->approved;
     }
 
     /**
@@ -253,62 +326,59 @@ class PosNet implements PosInterface
      */
     protected function getStatusDetail()
     {
-        $proc_return_code =  $this->getProcReturnCode();
+        $proc_return_code = $this->getProcReturnCode();
 
-        return $proc_return_code ? (isset($this->codes[$proc_return_code]) ? (string) $this->codes[$proc_return_code] : null) : null;
+        return isset($this->codes[$proc_return_code]) ? (string) $this->codes[$proc_return_code] : null;
     }
 
     /**
-     * Create 3D Hash
+     * Get card exp date
      *
      * @return string
      */
-    public function create3DHash()
+    protected function getCardExpDate()
     {
-        $hash_str = '';
+        $year = (string) str_pad($this->card->year, 2, '0', STR_PAD_LEFT);
+        $month = (string) str_pad($this->card->month, 2, '0', STR_PAD_LEFT);
 
-        if ($this->account->model == '3d') {
-            $hash_str = $this->account->client_id . $this->order->id . $this->order->amount . $this->order->ok_url . $this->order->fail_url . $this->order->rand . $this->account->store_key;
-        } elseif ($this->account->model == '3d_pay') {
-            $hash_str = $this->account->client_id . $this->order->id . $this->order->amount . $this->order->ok_url . $this->order->fail_url . $this->order->transaction_type . $this->order->installment . $this->order->rand . $this->account->store_key;
-        }
-
-        return base64_encode(pack('H*', sha1($hash_str)));
+        return (string) $year . $month;
     }
 
     /**
-     * Check 3D Hash
+     * Get OOS transaction data
      *
-     * @return bool
+     * @return object
+     * @throws GuzzleException
      */
-    public function check3DHash()
+    public function getOosTransactionData()
     {
-        $hash_params = $this->request->get('HASHPARAMS');
-        $hash_params_val = $this->request->get('HASHPARAMSVAL');
-        $hash_param = $this->request->get('HASH');
-        $params_val = '';
-        $index1 = 0;
-
-        while ($index1 < strlen($hash_params)) {
-            $index2 = strpos($hash_params, ':', $index1);
-            $value = $this->request->get(substr($hash_params, $index1, $index2 - $index1));
-
-            if($value == null) $value = '';
-
-            $params_val = $params_val . $value;
-
-            $index1 = $index2 + 1;
+        $name = isset($this->card->name) ? $this->card->name : null;
+        if (!$name) {
+            $name = isset($this->order->name) ? $this->order->name : null;
         }
 
-        $hash_val = $params_val . $this->account->store_key;
-        $hash = base64_encode(pack('H*', sha1($hash_val)));
+        $contents = $this->createXML([
+            'posnetRequest' => [
+                'mid'   => $this->account->client_id,
+                'tid'   => $this->account->terminal_id,
+                'oosRequestData' => [
+                    'posnetid'          => $this->account->posnet_id,
+                    'ccno'              => $this->card->number,
+                    'expDate'           => $this->getCardExpDate(),
+                    'cvc'               => $this->card->cvv,
+                    'amount'            => $this->getAmount(),
+                    'currencyCode'      => $this->getCurrency(),
+                    'installment'       => $this->getInstallment(),
+                    'XID'               => $this->getOrderId(20),
+                    'cardHolderName'    => $name,
+                    'tranType'          => $this->type,
+                ]
+            ],
+        ]);
 
-        $return = false;
-        if ($hash_params && !($params_val != $hash_params_val || $hash_param != $hash)) {
-            $return = true;
-        }
+        $this->send($contents);
 
-        return $return;
+        return $this->data;
     }
 
     /**
@@ -329,32 +399,98 @@ class PosNet implements PosInterface
         $this->send($contents);
 
         $status = 'declined';
-        if ($this->getProcReturnCode() == '00') {
+        $code = '1';
+        $proc_return_code = '01';
+        $obj = isset($this->data) ? $this->data : null;
+        $error_code = isset($obj->respCode) ? $obj->respCode : null;
+        $error_message = isset($obj->respText) ? $obj->respText : null;
+
+        if ($this->getProcReturnCode() == '00' && $obj && !$error_code) {
             $status = 'approved';
+            $code = isset($obj->approved) ? $obj->approved : null;
+            $proc_return_code = $this->getProcReturnCode();
         }
 
         $this->response = (object) [
-            'id'                => isset($this->data->AuthCode) ? $this->printData($this->data->AuthCode) : null,
-            'order_id'          => isset($this->data->OrderId) ? $this->printData($this->data->OrderId) : null,
-            'group_id'          => isset($this->data->GroupId) ? $this->printData($this->data->GroupId) : null,
-            'trans_id'          => isset($this->data->TransId) ? $this->printData($this->data->TransId) : null,
-            'response'          => isset($this->data->Response) ? $this->printData($this->data->Response) : null,
+            'id'                => isset($obj->authCode) ? $this->printData($obj->authCode) : null,
+            'order_id'          => $this->order->id,
+            'fixed_order_id'    => $this->getOrderId(),
+            'group_id'          => isset($obj->groupID) ? $this->printData($obj->Order->groupID) : null,
+            'trans_id'          => isset($obj->authCode) ? $this->printData($obj->authCode) : null,
+            'response'          => $this->getStatusDetail(),
             'transaction_type'  => $this->type,
             'transaction'       => $this->order->transaction,
-            'auth_code'         => isset($this->data->AuthCode) ? $this->printData($this->data->AuthCode) : null,
-            'host_ref_num'      => isset($this->data->HostRefNum) ? $this->printData($this->data->HostRefNum) : null,
-            'proc_return_code'  => isset($this->data->ProcReturnCode) ? $this->printData($this->data->ProcReturnCode) : null,
-            'code'              => isset($this->data->ProcReturnCode) ? $this->printData($this->data->ProcReturnCode) : null,
+            'auth_code'         => isset($obj->authCode) ? $this->printData($obj->authCode) : null,
+            'host_ref_num'      => isset($obj->hostlogkey) ? $this->printData($obj->hostlogkey) : null,
+            'ret_ref_num'       => isset($obj->hostlogkey) ? $this->printData($obj->hostlogkey) : null,
+            'proc_return_code'  => $proc_return_code,
+            'code'              => $code,
             'status'            => $status,
             'status_detail'     => $this->getStatusDetail(),
-            'error_code'        => isset($this->data->Extra->ERRORCODE) ? $this->printData($this->data->Extra->ERRORCODE) : null,
-            'error_message'     => isset($this->data->Extra->ERRORCODE) ? $this->printData($this->data->ErrMsg) : null,
-            'extra'             => isset($this->data->Extra) ? $this->data->Extra : null,
+            'error_code'        => $error_code,
+            'error_message'     => $error_message,
+            'extra'             => null,
             'all'               => $this->data,
             'original'          => $this->data,
         ];
 
         return $this;
+    }
+
+    /**
+     * Get host name
+     *
+     * @param $url
+     * @return string
+     */
+    public function getHostName($url)
+    {
+        $parse = parse_url($url);
+
+        return $parse['host'];
+    }
+
+    /**
+     * Check 3D Hash
+     *
+     * @return bool
+     */
+    protected function check3DHash()
+    {
+        $check = false;
+
+        if ($this->crypt instanceof PosNetCrypt) {
+            $decrypted_data = $this->crypt->decrypt($this->request->get('MerchantPacket'), $this->account->store_key);
+            $this->crypt->deInit();
+
+            $decrypted_data_array = explode(';', $decrypted_data);
+
+            $original_data = array_map('strval', [
+                $this->account->client_id,
+                $this->account->terminal_id,
+                $this->getAmount(),
+                $this->getInstallment(),
+                $this->getOrderId(20),
+                $this->getHostName($this->url),
+            ]);
+
+            $decrypted_data_list = array_map('strval', [
+                $decrypted_data_array[0],
+                $decrypted_data_array[1],
+                $decrypted_data_array[2],
+                $decrypted_data_array[3],
+                $decrypted_data_array[4],
+                $this->getHostName($decrypted_data_array[7]),
+            ]);
+
+            if ($original_data == $decrypted_data_list) {
+                $check = true;
+            }
+        } else {
+            $check = false;
+        }
+
+        return $check;
     }
 
     /**
@@ -365,28 +501,29 @@ class PosNet implements PosInterface
      */
     public function make3DPayment()
     {
-        $this->request = Request::createFromGlobals();
-
         $status = 'declined';
+        $transaction_security = 'MPI fallback';
+
         if ($this->check3DHash()) {
             $contents = $this->create3DPaymentXML();
             $this->send($contents);
         }
 
-        $transaction_security = 'MPI fallback';
         if ($this->getProcReturnCode() == '00') {
-            if ($this->request->get('mdStatus') == '1') {
+            if ($this->data->oosResolveMerchantDataResponse->mdStatus == '1') {
                 $transaction_security = 'Full 3D Secure';
-            } elseif (in_array($this->request->get('mdStatus'), [2, 3, 4])) {
+                $status = 'approved';
+            } elseif (in_array($this->data->oosResolveMerchantDataResponse->mdStatus, [2, 3, 4])) {
                 $transaction_security = 'Half 3D Secure';
+                $status = 'approved';
             }
-
-            $status = 'approved';
         }
+
+        $this->response = (object) $this->data;
 
         $this->response = (object) [
             'id'                    => isset($this->data->AuthCode) ? $this->printData($this->data->AuthCode) : null,
-            'order_id'              => isset($this->data->OrderId) ? $this->printData($this->data->OrderId) : null,
+            'order_id'              => isset($this->order->id) ? $this->printData($this->order->id) : null,
             'group_id'              => isset($this->data->GroupId) ? $this->printData($this->data->GroupId) : null,
             'trans_id'              => isset($this->data->TransId) ? $this->printData($this->data->TransId) : null,
             'response'              => isset($this->data->Response) ? $this->printData($this->data->Response) : null,
@@ -401,26 +538,15 @@ class PosNet implements PosInterface
             'status_detail'         => $this->getStatusDetail(),
             'error_code'            => isset($this->data->Extra->ERRORCODE) ? $this->printData($this->data->Extra->ERRORCODE) : null,
             'error_message'         => isset($this->data->Extra->ERRORCODE) ? $this->printData($this->data->ErrMsg) : null,
-            'md_status'             => $this->request->get('mdStatus'),
-            'hash'                  => (string) $this->request->get('HASH'),
-            'rand'                  => (string) $this->request->get('rnd'),
-            'hash_params'           => (string) $this->request->get('HASHPARAMS'),
-            'hash_params_val'       => (string) $this->request->get('HASHPARAMSVAL'),
-            'masked_number'         => (string) $this->request->get('maskedCreditCard'),
-            'month'                 => (string) $this->request->get('Ecom_Payment_Card_ExpDate_Month'),
-            'year'                  => (string) $this->request->get('Ecom_Payment_Card_ExpDate_Year'),
-            'amount'                => (string) $this->request->get('amount'),
-            'currency'              => (string) $this->request->get('currency'),
-            'tx_status'             => (string) $this->request->get('txstatus'),
-            'eci'                   => (string) $this->request->get('eci'),
-            'cavv'                  => (string) $this->request->get('cavv'),
-            'xid'                   => (string) $this->request->get('xid'),
-            'md_error_message'      => (string) $this->request->get('mdErrorMsg'),
-            'name'                  => (string) $this->request->get('firmaadi'),
-            'email'                 => (string) $this->request->get('Email'),
-            'extra'                 => isset($this->data->Extra) ? $this->data->Extra : null,
+            'md_status'             => isset($this->data->oosResolveMerchantDataResponse->mdStatus) ? $this->printData($this->data->oosResolveMerchantDataResponse->mdStatus) : null,
+            'hash'                  => [
+                'merchant_packet'    => $this->request->get('MerchantPacket'),
+                'bank_packet'        => $this->request->get('BankPacket'),
+                'sign'               => $this->request->get('Sign'),
+            ],
+            'xid'                   => isset($this->data->oosResolveMerchantDataResponse->xid) ? $this->data->oosResolveMerchantDataResponse->xid : null,
+            'md_error_message'      => isset($this->data->oosResolveMerchantDataResponse->mdErrorMessage) ? $this->data->oosResolveMerchantDataResponse->mdErrorMessage : null,
             'all'                   => $this->data,
-            '3d_all'                => $this->request->request->all(),
         ];
 
         return $this;
@@ -491,6 +617,35 @@ class PosNet implements PosInterface
     }
 
     /**
+     * Get 3d Form Data
+     *
+     * @return array
+     * @throws GuzzleException
+     */
+    public function get3DFormData()
+    {
+        $data = [];
+
+        if ($this->card && $this->order) {
+            $data = $this->getOosTransactionData();
+
+            $data = [
+                'posnetData'         => $data->oosRequestDataResponse->data1,
+                'posnetData2'        => $data->oosRequestDataResponse->data2,
+                'mid'                => $this->account->client_id,
+                'posnetID'           => $this->account->posnet_id,
+                'digest'             => $data->oosRequestDataResponse->sign,
+                'vftCode'            => isset($this->account->promotion_code) ? $this->account->promotion_code : null,
+                'merchantReturnURL'  => $this->order->success_url,
+                'url'                => '',
+                'lang'               => $this->order->lang,
+            ];
+        }
+
+        return $data;
+    }
+
+    /**
      * Send contents to WebService
      *
      * @param $contents
@@ -501,8 +656,13 @@ class PosNet implements PosInterface
     {
         $client = new Client();
 
+        $headers = [
+            'Content-Type' => 'application/x-www-form-urlencoded'
+        ];
+
         $response = $client->request('POST', $this->url, [
-            'body'  => $contents
+            'headers'   => $headers,
+            'body'      => "xmldata=" . $contents,
         ]);
 
         $xml = new SimpleXMLElement($response->getBody());
@@ -536,52 +696,6 @@ class PosNet implements PosInterface
     }
 
     /**
-     * Get 3d Form Data
-     *
-     * @return array
-     */
-    public function get3DFormData()
-    {
-        $this->order->hash = $this->create3DHash();
-
-        $inputs = [
-            'cardType'                          => $this->card->type,
-            'pan'                               => $this->card->number,
-            'Ecom_Payment_Card_ExpDate_Month'   => $this->card->month,
-            'Ecom_Payment_Card_ExpDate_Year'    => $this->card->year,
-            'cv2'                               => $this->card->cvv,
-            'firmaadi'                          => $this->order->name,
-            'Email'                             => $this->order->email,
-            'clientid'                          => $this->account->client_id,
-            'amount'                            => $this->order->amount,
-            'oid'                               => $this->order->id,
-            'okUrl'                             => $this->order->ok_url,
-            'failUrl'                           => $this->order->fail_url,
-            'rnd'                               => $this->order->rand,
-            'hash'                              => $this->order->hash,
-            'storetype'                         => $this->account->model,
-            'lang'                              => $this->order->lang,
-            'currency'                          => $this->order->currency,
-        ];
-
-        if ($this->account->model == '3d_pay') {
-            $inputs = array_merge($inputs, [
-                'islemtipi' => $this->order->transaction_type,
-                'taksit'    => $this->order->installment,
-            ]);
-        }
-
-        return [
-            'gateway'   => $this->gateway,
-            'ok_url'    => $this->order->ok_url,
-            'fail_url'  => $this->order->fail_url,
-            'rand'      => $this->order->rand,
-            'hash'      => $this->order->hash,
-            'inputs'    => $inputs,
-        ];
-    }
-
-    /**
      * Make Payment
      *
      * @param object $card
@@ -612,137 +726,282 @@ class PosNet implements PosInterface
     }
 
     /**
-     * Refund Order
+     * Refund or Cancel Order
      *
-     * @param $order_id
-     * @param null $amount
+     * @param array $meta
+     * @param string $type
      * @return $this
      * @throws GuzzleException
      */
-    public function refund($order_id, $amount = null)
+    protected function refundOrCancel(array $meta, $type = 'cancel')
     {
-        $nodes = [
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'OrderId'   => $order_id,
-            'Type'      => 'Credit',
+        $this->order = (object) [
+            'id'            => $meta['order_id'],
+            'host_ref_num'  => isset($meta['host_ref_num']) ? $meta['host_ref_num'] : null,
+            'auth_code'     => isset($meta['auth_code']) ? $meta['auth_code'] : null,
+            'amount'        => isset($meta['amount']) ? $meta['amount'] : null,
+            'currency'      => isset($meta['currency']) ? $this->_currencies[$meta['currency']] : null,
         ];
 
-        if ($amount) $nodes['Total'] = $amount;
+        $nodes = [
+            'mid'               => $this->account->client_id,
+            'tid'               => $this->account->terminal_id,
+            'tranDateRequired'  => '1',
+        ];
 
-        $xml = $this->createXML($nodes);
+        if ($type == 'refund') {
+            $return = [
+                'amount'        => $this->getAmount(),
+                'currencyCode'  => $this->getCurrency(),
+                'orderID'       => $this->getOrderId(),
+            ];
+
+            if ($this->order->host_ref_num) {
+                $return['hostLogKey'] = $this->order->host_ref_num;
+                unset($return['orderID']);
+            }
+
+            $append = [
+                'return' => $return,
+            ];
+        } else {
+            $reverse = [
+                'transaction'   => 'pointUsage',
+                'orderID'       => $this->getOrderId(),
+                'authCode'      => $this->order->auth_code,
+            ];
+
+            if ($this->order->host_ref_num) {
+                $reverse = [
+                    'transaction'   => 'pointUsage',
+                    'hostLogKey'    => $this->order->host_ref_num,
+                    'authCode'      => $this->order->auth_code,
+                ];
+            }
+
+            $append = [
+                'reverse' => $reverse,
+            ];
+        }
+
+        $nodes = array_merge($nodes, $append);
+
+        $xml = $this->createXML([
+            'posnetRequest' => $nodes
+        ]);
+
         $this->send($xml);
 
         $status = 'declined';
-        if ($this->getProcReturnCode() == '00') {
+        $code = '1';
+        $proc_return_code = '01';
+        $obj = isset($this->data) ? $this->data : null;
+        $error_code = isset($obj->respCode) ? $obj->respCode : null;
+        $error_message = null;
+
+        if ($this->getProcReturnCode() == '00' && $obj && !$error_code) {
             $status = 'approved';
+            $code = isset($obj->approved) ? $obj->approved : null;
+            $proc_return_code = $this->getProcReturnCode();
         }
 
-        $this->response = (object) [
-            'order_id'          => isset($this->data->OrderId) ? $this->data->OrderId : null,
-            'group_id'          => isset($this->data->GroupId) ? $this->data->GroupId : null,
-            'response'          => isset($this->data->Response) ? $this->data->Response : null,
-            'auth_code'         => isset($this->data->AuthCode) ? $this->data->AuthCode : null,
-            'host_ref_num'      => isset($this->data->HostRefNum) ? $this->data->HostRefNum : null,
-            'proc_return_code'  => isset($this->data->ProcReturnCode) ? $this->data->ProcReturnCode : null,
-            'trans_id'          => isset($this->data->TransId) ? $this->data->TransId : null,
-            'error_code'        => isset($this->data->Extra->ERRORCODE) ? $this->data->Extra->ERRORCODE : null,
-            'error_message'     => isset($this->data->ErrMsg) ? $this->data->ErrMsg : null,
+        $error_message = isset($obj->respText) ? $obj->respText : null;
+
+        $transaction = null;
+        $transaction_type = null;
+        $state = isset($obj->state) ? $obj->state : null;
+        if ($state == 'Sale') {
+            $transaction = 'pay';
+            $transaction_type = $this->types[$transaction];
+        } elseif ($state == 'Authorization') {
+            $transaction = 'pre';
+            $transaction_type = $this->types[$transaction];
+        } elseif ($state == 'Capture') {
+            $transaction = 'post';
+            $transaction_type = $this->types[$transaction];
+        }
+
+        $data = [
+            'id'                => isset($obj->transaction->authCode) ? $this->printData($obj->transaction->authCode) : null,
+            'order_id'          => isset($this->order->id) ? $this->printData($this->order->id) : null,
+            'fixed_order_id'    => isset($obj->transaction->orderID) ? $this->printData($obj->transaction->orderID) : null,
+            'group_id'          => isset($obj->transaction->groupID) ? $this->printData($obj->transaction->groupID) : null,
+            'trans_id'          => isset($obj->transaction->authCode) ? $this->printData($obj->transaction->authCode) : null,
+            'response'          => $this->getStatusDetail(),
+            'auth_code'         => isset($obj->transaction->authCode) ? $this->printData($obj->transaction->authCode) : null,
+            'host_ref_num'      => isset($obj->transaction->authCode) ? $this->printData($obj->transaction->authCode) : null,
+            'ret_ref_num'       => isset($obj->transaction->authCode) ? $this->printData($obj->transaction->authCode) : null,
+            'transaction'       => $transaction,
+            'transaction_type'  => $transaction_type,
+            'state'             => $state,
+            'date'              => isset($obj->transaction->tranDate) ? $this->printData($obj->transaction->tranDate) : null,
+            'proc_return_code'  => $proc_return_code,
+            'code'              => $code,
             'status'            => $status,
             'status_detail'     => $this->getStatusDetail(),
+            'error_code'        => $error_code,
+            'error_message'     => $error_message,
+            'extra'             => null,
             'all'               => $this->data,
+            'original'          => $this->data,
         ];
 
+        $this->response = (object) $data;
+
         return $this;
+    }
+
+    /**
+     * Refund Order
+     *
+     * @param $meta
+     * @return $this
+     * @throws GuzzleException
+     */
+    public function refund(array $meta)
+    {
+        return $this->refundOrCancel($meta, 'refund');
     }
 
     /**
      * Cancel Order
      *
-     * @param $order_id
+     * @param array $meta
      * @return $this
      * @throws GuzzleException
      */
-    public function cancel($order_id)
+    public function cancel(array $meta)
     {
-        $xml = $this->createXML([
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'OrderId'   => $order_id,
-            'Type'      => 'Void',
-        ]);
-
-        $this->send($xml);
-
-        $status = 'declined';
-        if ($this->getProcReturnCode() == '00') {
-            $status = 'approved';
-        }
-
-        $this->response = (object) [
-            'order_id'          => isset($this->data->OrderId) ? $this->data->OrderId : null,
-            'group_id'          => isset($this->data->GroupId) ? $this->data->GroupId : null,
-            'response'          => isset($this->data->Response) ? $this->data->Response : null,
-            'auth_code'         => isset($this->data->AuthCode) ? $this->data->AuthCode : null,
-            'host_ref_num'      => isset($this->data->HostRefNum) ? $this->data->HostRefNum : null,
-            'proc_return_code'  => isset($this->data->ProcReturnCode) ? $this->data->ProcReturnCode : null,
-            'trans_id'          => isset($this->data->TransId) ? $this->data->TransId : null,
-            'error_code'        => isset($this->data->Extra->ERRORCODE) ? $this->data->Extra->ERRORCODE : null,
-            'error_message'     => isset($this->data->ErrMsg) ? $this->data->ErrMsg : null,
-            'status'            => $status,
-            'status_detail'     => $this->getStatusDetail(),
-            'all'               => $this->data,
-        ];
-
-        return $this;
+        return $this->refundOrCancel($meta, 'cancel');
     }
 
     /**
      * Order Status
      *
-     * @param $order_id
+     * @param array $meta
+     * @param bool $history
      * @return $this
      * @throws GuzzleException
      */
-    public function status($order_id)
+    public function status(array $meta, $history = false)
     {
+        $this->order = (object) [
+            'id' => isset($meta['order_id']) ? $meta['order_id'] : null,
+        ];
+
         $xml = $this->createXML([
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'OrderId'   => $order_id,
-            'Extra'     => [
-                'ORDERSTATUS'   => 'QUERY',
-            ],
+            'posnetRequest'   => [
+                'mid'   => $this->account->client_id,
+                'tid'   => $this->account->terminal_id,
+                'agreement' => [
+                    'orderID'   => $this->getOrderId(),
+                ],
+            ]
         ]);
 
         $this->send($xml);
 
         $status = 'declined';
-        if ($this->getProcReturnCode() == '00') {
+        $code = '1';
+        $proc_return_code = '01';
+        $obj = isset($this->data->transactions) ? $this->data->transactions : null;
+        $error_code = isset($this->data->respCode) ? $this->data->respCode : null;
+        $error_message = null;
+
+        if ($this->getProcReturnCode() == '00' && $obj && !$error_code) {
             $status = 'approved';
+            $code = isset($obj->approved) ? $obj->approved : null;
+            $proc_return_code = $this->getProcReturnCode();
         }
 
-        $this->response = (object) [
-            'order_id'          => isset($this->data->OrderId) ? $this->data->OrderId : null,
-            'response'          => isset($this->data->Response) ? $this->data->Response : null,
-            'proc_return_code'  => isset($this->data->ProcReturnCode) ? $this->data->ProcReturnCode : null,
-            'trans_id'          => isset($this->data->TransId) ? $this->data->TransId : null,
-            'error_message'     => isset($this->data->ErrMsg) ? $this->data->ErrMsg : null,
-            'host_ref_num'      => isset($this->data->Extra->HOST_REF_NUM) ? $this->data->Extra->HOST_REF_NUM : null,
-            'order_status'      => isset($this->data->Extra->ORDERSTATUS) ? $this->data->Extra->ORDERSTATUS : null,
-            'process_type'      => isset($this->data->Extra->CHARGE_TYPE_CD) ? $this->data->Extra->CHARGE_TYPE_CD : null,
-            'pan'               => isset($this->data->Extra->PAN) ? $this->data->Extra->PAN : null,
-            'num_code'          => isset($this->data->Extra->NUMCODE) ? $this->data->Extra->NUMCODE : null,
-            'first_amount'      => isset($this->data->Extra->ORIG_TRANS_AMT) ? $this->data->Extra->ORIG_TRANS_AMT : null,
-            'capture_amount'    => isset($this->data->Extra->CAPTURE_AMT) ? $this->data->Extra->CAPTURE_AMT : null,
+        $error_message = isset($this->data->respText) ? $this->data->respText : null;
+
+        $transaction = null;
+        $transaction_type = null;
+
+        $state = null;
+        $auth_code = null;
+        $refunds = [];
+        if (isset($this->data->transactions->transaction)) {
+            $state = isset($this->data->transactions->transaction->state) ?
+                $this->data->transactions->transaction->state :
+                null;
+
+            $auth_code = isset($obj->transaction->authCode) ? $this->printData($obj->transaction->authCode) : null;
+
+            if (is_array($this->data->transactions->transaction) && count($this->data->transactions->transaction)) {
+                $state = $this->data->transactions->transaction[0]->state;
+                $auth_code = $this->data->transactions->transaction[0]->authCode;
+
+                if (count($this->data->transactions->transaction) > 1 && $history) {
+                    $_currencies = array_flip($this->_currencies);
+
+                    foreach ($this->data->transactions->transaction as $key => $_transaction) {
+                        if ($key > 0) {
+                            $currency = isset($_currencies[$_transaction->currencyCode]) ?
+                                (string) $_currencies[$_transaction->currencyCode] :
+                                $_transaction->currencyCode;
+                            $refunds[] = [
+                                'amount'    => (double) $_transaction->amount,
+                                'currency'  => $currency,
+                                'auth_code' => $_transaction->authCode,
+                                'date'      => $_transaction->tranDate,
+                            ];
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($state == 'Sale') {
+            $transaction = 'pay';
+            $state = $transaction;
+            $transaction_type = $this->types[$transaction];
+        } elseif ($state == 'Authorization') {
+            $transaction = 'pre';
+            $state = $transaction;
+            $transaction_type = $this->types[$transaction];
+        } elseif ($state == 'Capture') {
+            $transaction = 'post';
+            $state = $transaction;
+            $transaction_type = $this->types[$transaction];
+        } elseif ($state == 'Bonus_Reverse') {
+            $state = 'cancel';
+        } else {
+            $state = 'mixed';
+        }
+
+        $data = [
+            'id'                => $auth_code,
+            'order_id'          => isset($this->order->id) ? $this->printData($this->order->id) : null,
+            'fixed_order_id'    => $this->getOrderId(),
+            'group_id'          => isset($obj->transaction->groupID) ? $this->printData($obj->transaction->groupID) : null,
+            'trans_id'          => $auth_code,
+            'response'          => $this->getStatusDetail(),
+            'auth_code'         => $auth_code,
+            'host_ref_num'      => null,
+            'ret_ref_num'       => null,
+            'transaction'       => $transaction,
+            'transaction_type'  => $transaction_type,
+            'state'             => $state,
+            'date'              => isset($obj->transaction->tranDate) ? $this->printData($obj->transaction->tranDate) : null,
+            'refunds'           => $refunds,
+            'proc_return_code'  => $proc_return_code,
+            'code'              => $code,
             'status'            => $status,
             'status_detail'     => $this->getStatusDetail(),
+            'error_code'        => $error_code,
+            'error_message'     => $error_message,
+            'extra'             => null,
             'all'               => $this->data,
-            'xml'               => $xml,
+            'original'          => $this->data,
         ];
+
+        if (!$history) {
+            unset($data['refunds']);
+        }
+
+        $this->response = (object) $data;
 
         return $this;
     }
@@ -750,42 +1009,12 @@ class PosNet implements PosInterface
     /**
      * Order History
      *
-     * @param $order_id
+     * @param array $meta
      * @return $this
      * @throws GuzzleException
      */
-    public function history($order_id)
+    public function history(array $meta)
     {
-        $xml = $this->createXML([
-            'Name'      => $this->account->username,
-            'Password'  => $this->account->password,
-            'ClientId'  => $this->account->client_id,
-            'OrderId'   => $order_id,
-            'Extra'     => [
-                'ORDERHISTORY'   => 'QUERY',
-            ],
-        ]);
-
-        $this->send($xml);
-
-        $status = 'declined';
-        if ($this->getProcReturnCode() == '00') {
-            $status = 'approved';
-        }
-
-        $this->response = (object) [
-            'order_id'          => isset($this->data->OrderId) ? $this->printData($this->data->OrderId) : null,
-            'response'          => isset($this->data->Response) ? $this->printData($this->data->Response) : null,
-            'proc_return_code'  => isset($this->data->ProcReturnCode) ? $this->printData($this->data->ProcReturnCode) : null,
-            'error_message'     => isset($this->data->ErrMsg) ? $this->printData($this->data->ErrMsg) : null,
-            'num_code'          => isset($this->data->Extra->NUMCODE) ? $this->printData($this->data->Extra->NUMCODE) : null,
-            'trans_count'       => isset($this->data->Extra->TRXCOUNT) ? $this->printData($this->data->Extra->TRXCOUNT) : null,
-            'status'            => $status,
-            'status_detail'     => $this->getStatusDetail(),
-            'all'               => $this->data,
-            'xml'               => $xml,
-        ];
-
-        return $this;
+        return $this->status($meta, true);
     }
 }

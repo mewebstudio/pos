@@ -7,7 +7,9 @@ $template_title = 'Order Status';
 require '../../template/_header.php';
 
 // Query Order
-$query= $pos->bank->status('2018080532DD');
+$query= $pos->bank->status([
+    'order_id'  => '201810297189'
+]);
 
 $response = $query->response;
 $dump = get_object_vars($response);

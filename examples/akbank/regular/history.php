@@ -7,7 +7,9 @@ $template_title = 'History Order';
 require '../../template/_header.php';
 
 // History Order
-$query= $pos->bank->history('2018080532DD');
+$query= $pos->bank->history([
+    'order_id'  => '201810297189',
+]);
 
 $response = $query->response;
 $dump = get_object_vars($response);

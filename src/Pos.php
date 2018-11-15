@@ -2,6 +2,7 @@
 
 namespace Mews\Pos;
 
+use Exception;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
 
@@ -84,7 +85,7 @@ class Pos
         if ( ! $class) throw new BankClassNullException();
 
         // Create Bank Class Object
-        $this->bank = new $class($this->config['banks'][$this->account->bank], $this->account);
+        $this->bank = new $class($this->config['banks'][$this->account->bank], $this->account, $this->config['currencies']);
     }
 
     /**
@@ -104,7 +105,7 @@ class Pos
 
         // Currency
         $currency = null;
-        if ($order['transaction'] != 'post') {
+        if (isset($order['currency'])) {
             $currency = (int) $this->config['currencies'][$order['currency']];
         }
 
@@ -143,5 +144,51 @@ class Pos
 
         // Make Payment
         return $this->bank->payment($this->card);
+    }
+
+    /**
+     * Get gateway URL
+     *
+     * @return string|null
+     */
+    public function getGatewayUrl()
+    {
+        return isset($this->bank->gateway) ? $this->bank->gateway : 'null';
+    }
+
+    /**
+     * Get 3d Form Data
+     *
+     * @return array
+     */
+    public function get3dFormData()
+    {
+        $data = [];
+
+        try {
+            $data = $this->bank->get3dFormData();
+        } catch (Exception $e) {}
+
+        return $data;
+    }
+
+    /**
+     * Is success
+     *
+     * @return bool
+     */
+    public function isSuccess()
+    {
+        return $this->bank->isSuccess();
+    }
+
+    /**
+     * Is error
+     *
+     * @return bool
+     */
+    public function isError()
+    {
+        return $this->bank->isError();
     }
 }

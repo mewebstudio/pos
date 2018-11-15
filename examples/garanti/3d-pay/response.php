@@ -9,45 +9,24 @@ if ($request->getMethod() !== 'POST') {
     exit();
 }
 
-$order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
-$amount = (double) 100;
-
-$order = [
-    'id'            => $order_id,
-    'name'          => 'John Doe', // optional
-    'email'         => 'mail@customer.com', // optional
-    'user_id'       => '12', // optional
-    'amount'        => $amount,
-    'installment'   => '0',
-    'currency'      => 'TRY',
-    'ip'            => $ip,
-    'transaction'   => 'pay', // pay => S, pre => preauth
-];
+$order = $_SESSION['order'];
 
 $pos->prepare($order);
-
-$card = [
-    'number'    => $request->get('number'),
-    'month'     => $request->get('month'),
-    'year'      => $request->get('year'),
-    'cvv'       => $request->get('cvv'),
-];
-
-$payment = $pos->payment($card);
-
+$payment = $pos->payment();
 $response = $payment->response;
 
 $dump = get_object_vars($response);
 ?>
 
 <div class="result">
+    <pre><?php print_r($_POST) ?></pre>
     <h3 class="text-center text-<?php echo $payment->isSuccess() ? 'success' : 'danger'; ?>">
-        <?php echo $payment->isSuccess() ? 'Payment is successful!' : 'Payment is not successful!'; ?>
+        <?php echo $payment->isSuccess() ? 'Payment is successful!' : 'Payment is not successful'; ?>
     </h3>
     <hr>
     <dl class="row">
         <dt class="col-sm-3">Response:</dt>
-        <dd class="col-sm-9"><?php echo $response->response; ?></dd>
+        <dd class="col-sm-9"><?php echo $response->response ? $response->response : '-'; ?></dd>
     </dl>
     <hr>
     <dl class="row">
@@ -66,13 +45,18 @@ $dump = get_object_vars($response);
     </dl>
     <hr>
     <dl class="row">
-        <dt class="col-sm-3">Order ID:</dt>
-        <dd class="col-sm-9"><?php echo $response->order_id ? $response->order_id : '-'; ?></dd>
+        <dt class="col-sm-3">Transaction Security:</dt>
+        <dd class="col-sm-9"><?php echo $response->transaction_security; ?></dd>
     </dl>
     <hr>
     <dl class="row">
-        <dt class="col-sm-3">Group ID:</dt>
-        <dd class="col-sm-9"><?php echo $response->group_id ? $response->group_id : '-'; ?></dd>
+        <dt class="col-sm-3">Hash:</dt>
+        <dd class="col-sm-9"><?php echo $response->hash; ?></dd>
+    </dl>
+    <hr>
+    <dl class="row">
+        <dt class="col-sm-3">Order ID:</dt>
+        <dd class="col-sm-9"><?php echo $response->order_id ? $response->order_id : '-'; ?></dd>
     </dl>
     <hr>
     <dl class="row">
@@ -86,18 +70,13 @@ $dump = get_object_vars($response);
     </dl>
     <hr>
     <dl class="row">
-        <dt class="col-sm-3">RetrefNum:</dt>
-        <dd class="col-sm-9"><?php echo $response->ret_ref_num ? $response->ret_ref_num : '-'; ?></dd>
-    </dl>
-    <hr>
-    <dl class="row">
-        <dt class="col-sm-3">HashData:</dt>
-        <dd class="col-sm-9"><?php echo $response->hash_data ? $response->hash_data : '-'; ?></dd>
-    </dl>
-    <hr>
-    <dl class="row">
         <dt class="col-sm-3">ProcReturnCode:</dt>
-        <dd class="col-sm-9"><?php echo $response->code; ?></dd>
+        <dd class="col-sm-9"><?php echo $response->code ? $response->code : '-'; ?></dd>
+    </dl>
+    <hr>
+    <dl class="row">
+        <dt class="col-sm-3">mdStatus:</dt>
+        <dd class="col-sm-9"><?php echo $response->md_status ? $response->md_status : '-'; ?></dd>
     </dl>
     <hr>
     <dl class="row">
@@ -108,6 +87,11 @@ $dump = get_object_vars($response);
     <dl class="row">
         <dt class="col-sm-3">Error Message:</dt>
         <dd class="col-sm-9"><?php echo $response->error_message ? $response->error_message : '-'; ?></dd>
+    </dl>
+    <hr>
+    <dl class="row">
+        <dt class="col-sm-3">Md Error Message:</dt>
+        <dd class="col-sm-9"><?php echo $response->md_error_message ? $response->md_error_message : '-'; ?></dd>
     </dl>
     <hr>
     <dl class="row">

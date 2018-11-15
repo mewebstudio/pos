@@ -12,9 +12,9 @@ $ip = $request->getClientIp();
 $account = [
     'bank'          => 'akbank',
     'model'         => 'regular',
-    'client_id'     => 'xxx',
-    'username'      => 'xxx',
-    'password'      => 'xxx.',
+    'client_id'     => 'XXXXXXX',
+    'username'      => 'XXXXXXX',
+    'password'      => 'XXXXXXX',
     'env'           => 'test',
 ];
 

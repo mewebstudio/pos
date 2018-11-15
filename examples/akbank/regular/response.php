@@ -21,14 +21,10 @@ $order = [
     'installment'   => '0',
     'currency'      => 'TRY',
     'ip'            => $ip,
-    'transaction'   => 'pay', // pay => Auth, pre PreAuth
+    'transaction'   => 'pre', // pay => Auth, pre PreAuth
 ];
 
-try {
-    $pos->prepare($order);
-} catch (\Mews\Pos\Exceptions\UnsupportedTransactionTypeException $e) {
-    var_dump($e->getCode(), $e->getMessage());
-}
+$pos->prepare($order);
 
 $card = [
     'number'    => $request->get('number'),
@@ -38,15 +34,14 @@ $card = [
 ];
 
 $payment = $pos->payment($card);
-
 $response = $payment->response;
 
 $dump = get_object_vars($response);
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $response->code == '00' ? 'success' : 'danger'; ?>">
-        <?php echo $response->code == '00' ? 'Payment is successful!' : 'Payment is not successful!'; ?>
+    <h3 class="text-center text-<?php echo $pos->isSuccess() ? 'success' : 'danger'; ?>">
+        <?php echo $pos->isSuccess() ? 'Payment is successful!' : 'Payment is not successful!'; ?>
     </h3>
     <hr>
     <dl class="row">

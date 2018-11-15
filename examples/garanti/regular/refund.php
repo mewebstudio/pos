@@ -8,10 +8,10 @@ require '../../template/_header.php';
 
 // Refund Order
 $refund = $pos->bank->refund([
-    'order_id'      => '20181023581A',
+    'order_id'      => '201811142A0A',
     'ip'            => $ip,
     'email'         => 'mail@customer.com',
-    'ref_ret_num'   => '829603332515',
+    'ref_ret_num'   => '831803586333',
     'amount'        => 1,
     'currency'      => 'TRY',
 ]);

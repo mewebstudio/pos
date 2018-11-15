@@ -13,11 +13,10 @@ $ip = $request->getClientIp();
 
 $account = [
     'bank'              => 'garanti',
-    'model'             => '3s',
+    'model'             => '3d',
     'client_id'         => '7000679',
     'terminal_id'       => '30691298',
     'username'          => 'PROVAUT',
-    'terminal_username' => 'PROVOOS',
     'password'          => '123qweASD/',
     'store_key'         => '12345678',
     'env'               => 'test',

@@ -8,7 +8,7 @@ require '../../template/_header.php';
 
 // History Order
 $query= $pos->bank->history([
-    'order_id'  => '20181023069E',
+    'order_id'  => '2018111377EF',
     'currency'  => 'TRY',
     'ip'        => $ip,
 ]);

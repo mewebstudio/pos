@@ -7,15 +7,17 @@ $template_title = 'Cancel Order';
 require '../../template/_header.php';
 
 // Cancel Order
-$cancel = $pos->bank->cancel('unique-order-id');
+$cancel = $pos->bank->cancel([
+    'order_id'  => '20181029A3C1',
+]);
 
 $response = $cancel->response;
 $dump = get_object_vars($response);
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $response->proc_return_code == '00' ? 'success' : 'danger'; ?>">
-        <?php echo $response->proc_return_code == '00' ? 'Cancel Order is successful!' : 'Cancel Order is not successful!'; ?>
+    <h3 class="text-center text-<?php echo $pos->isSuccess() ? 'success' : 'danger'; ?>">
+        <?php echo $pos->isSuccess() ? 'Cancel Order is successful!' : 'Cancel Order is not successful!'; ?>
     </h3>
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>

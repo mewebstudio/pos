@@ -17,23 +17,26 @@ interface PosInterface
      *
      * @param object $config
      * @param object $account
-     * @return $this
+     * @param array $currencies
      */
-    public function __construct($config, $account);
+    public function __construct($config, $account, array $currencies);
 
     /**
-     * Create 3D Hash
+     * Create XML DOM Document
      *
-     * @return string
+     * @param array $nodes
+     * @param string $encoding
+     * @return string the XML, or false if an error occurred.
      */
-    public function create3DHash();
+    public function createXML(array $nodes, $encoding = 'UTF-8');
 
     /**
-     * Check 3D Hash
+     * Print Data
      *
-     * @return bool
+     * @param $data
+     * @return null|string
      */
-    public function check3DHash();
+    public function printData($data);
 
     /**
      * Regular Payment
@@ -89,37 +92,50 @@ interface PosInterface
     /**
      * Refund Order
      *
-     * @param $order_id
-     * @param null $amount
+     * @param array $meta
      * @return $this
      * @throws GuzzleException
      */
-    public function refund($order_id, $amount = null);
+    public function refund(array $meta);
 
     /**
      * Cancel Order
      *
-     * @param $order_id
+     * @param array $meta
      * @return $this
      * @throws GuzzleException
      */
-    public function cancel($order_id);
+    public function cancel(array $meta);
 
     /**
      * Order Status
      *
-     * @param $order_id
+     * @param array $meta
      * @return $this
      * @throws GuzzleException
      */
-    public function status($order_id);
+    public function status(array $meta);
 
     /**
      * Order History
      *
-     * @param $order_id
+     * @param array $meta
      * @return $this
      * @throws GuzzleException
      */
-    public function history($order_id);
+    public function history(array $meta);
+
+    /**
+     * Is success
+     *
+     * @return bool
+     */
+    public function isSuccess();
+
+    /**
+     * Is error
+     *
+     * @return bool
+     */
+    public function isError();
 }

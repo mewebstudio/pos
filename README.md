@@ -1,8 +1,11 @@
 # Türk bankaları için sanal pos paketi (PHP)
 
-Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir. Şu an için EST altyapısı kullanan bankalar desteklenmektedir.
+Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
+EST altyapısı tam olarak test edilmiş ve kullanıma hazırdır.
+Garanti Ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
+YapıKredi Posnet sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
 
-> Şu an elimde sadece Akbank test API ve kullanıcı bilgileri olduğu için, diğer EST altyapısı kullanan banklarda test yapamadım.
+> EST altyapısında olan Akbank ve Ziraat bankası test edilmiştir.
 
 ### Özellikler
   - Standart E-Commerce modeliyle ödeme (model => regular)
@@ -89,15 +92,20 @@ $card = [
 ];
 
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri gönderiliyor
-try {
-    $pos->prepare($order);
-} catch (\Mews\Pos\Exceptions\UnsupportedTransactionTypeException $e) {
-    var_dump($e->getCode(), $e->getMessage());
-    exit();
-}
+$pos->prepare($order);
 
 // Ödeme tamamlanıyor
 $payment = $pos->payment($card);
+
+// Ödeme başarılı mı?
+$payment->isSuccess();
+//veya
+$pos->isSuccess();
+
+// Ödeme başarısız mı?
+$payment->isError();
+//veya
+$pos->isError();
 
 // Sonuç çıktısı
 var_dump($payment->response);
@@ -171,7 +179,6 @@ $pos = new \Mews\Pos\Pos($account, $yeni_ayarlar);
 
 ### Yol Haritası
   - Dökümantasyon hazırlanacak
-  - EST harici altyapılar için de geliştirme yapılacak
   - UnitTest yazılacak -> Bu hiçbir zaman olmayabilir, birisi el atarsa sevinirim :)
 
 > Değerli yorum, öneri ve katkılarınızı bekliyorum.

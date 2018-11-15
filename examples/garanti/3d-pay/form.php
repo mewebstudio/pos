@@ -17,6 +17,9 @@ $instalment = '0';
 $success_url = $base_url . 'response.php';
 $fail_url = $base_url . 'response.php';
 
+$transaction = 'pay'; // pay => Auth, pre PreAuth
+$transaction_type = $pos->bank->types[$transaction];
+
 $rand = microtime();
 
 $order = [
@@ -29,7 +32,7 @@ $order = [
     'ip'                => $ip,
     'success_url'       => $success_url,
     'fail_url'          => $fail_url,
-    'transaction'       => 'pay', // pay => Auth, pre PreAuth,
+    'transaction'       => $transaction,
     'lang'              => 'tr',
     'rand'              => $rand,
 ];
@@ -56,6 +59,7 @@ $form_data = $pos->get3dFormData();
     <?php endforeach; ?>
     <div class="text-center">Redirecting...</div>
     <hr>
+    <pre><?php print_r($form_data) ?></pre>
     <div class="form-group text-center">
         <button type="submit" class="btn btn-lg btn-block btn-success">Submit</button>
     </div>

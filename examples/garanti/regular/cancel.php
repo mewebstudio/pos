@@ -8,10 +8,10 @@ require '../../template/_header.php';
 
 // Cancel Order
 $cancel = $pos->bank->cancel([
-    'order_id'      => '20181023069E',
+    'order_id'      => '20181114DF2C',
     'ip'            => $ip,
     'email'         => 'mail@customer.com',
-    'ref_ret_num'   => '829603332867',
+    'ref_ret_num'   => '831803579226',
     'amount'        => 1,
     'currency'      => 'TRY',
 ]);

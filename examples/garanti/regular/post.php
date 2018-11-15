@@ -32,10 +32,10 @@ try {
 }
 
 $order = [
-    'id'            => '2018102377C1',
+    'id'            => '201810231553',
     'transaction'   => 'post',
     'amount'        => '1',
-    'ref_ret_num'   => '829603332757',
+    'ref_ret_num'   => '829603332856',
     'ip'            => $ip,
 ];
 
