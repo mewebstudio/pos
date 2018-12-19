@@ -8,7 +8,7 @@ require '../../template/_header.php';
 
 // Query Order
 $query= $pos->bank->status([
-    'order_id'  => '2018111377EF',
+    'order_id'  => '201812195CF2',
     'currency'  => 'TRY',
     'ip'        => $ip
 ]);

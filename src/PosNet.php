@@ -429,6 +429,7 @@ class PosNet implements PosInterface
             'status_detail'     => $this->getStatusDetail(),
             'error_code'        => $error_code,
             'error_message'     => $error_message,
+            'campaign_url'      => null,
             'extra'             => null,
             'all'               => $this->data,
             'original'          => $this->data,
@@ -546,6 +547,7 @@ class PosNet implements PosInterface
             ],
             'xid'                   => isset($this->data->oosResolveMerchantDataResponse->xid) ? $this->data->oosResolveMerchantDataResponse->xid : null,
             'md_error_message'      => isset($this->data->oosResolveMerchantDataResponse->mdErrorMessage) ? $this->data->oosResolveMerchantDataResponse->mdErrorMessage : null,
+            'campaign_url'          => null,
             'all'                   => $this->data,
         ];
 
@@ -609,6 +611,7 @@ class PosNet implements PosInterface
             'md_error_message'      => (string) $this->request->get('mdErrorMsg'),
             'name'                  => (string) $this->request->get('firmaadi'),
             'email'                 => (string) $this->request->get('Email'),
+            'campaign_url'          => null,
             'extra'                 => $this->request->get('Extra'),
             'all'                   => $this->request->request->all(),
         ];

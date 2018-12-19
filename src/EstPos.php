@@ -360,6 +360,7 @@ class EstPos implements PosInterface
             'status_detail'     => $this->getStatusDetail(),
             'error_code'        => isset($this->data->Extra->ERRORCODE) ? $this->printData($this->data->Extra->ERRORCODE) : null,
             'error_message'     => isset($this->data->Extra->ERRORCODE) ? $this->printData($this->data->ErrMsg) : null,
+            'campaign_url'      => null,
             'extra'             => isset($this->data->Extra) ? $this->data->Extra : null,
             'all'               => $this->data,
             'original'          => $this->data,
@@ -428,6 +429,7 @@ class EstPos implements PosInterface
             'xid'                   => (string) $this->request->get('xid'),
             'md_error_message'      => (string) $this->request->get('mdErrorMsg'),
             'name'                  => (string) $this->request->get('firmaadi'),
+            'campaign_url'          => null,
             'email'                 => (string) $this->request->get('Email'),
             'extra'                 => isset($this->data->Extra) ? $this->data->Extra : null,
             'all'                   => $this->data,
@@ -495,6 +497,7 @@ class EstPos implements PosInterface
             'md_error_message'      => (string) $this->request->get('mdErrorMsg'),
             'name'                  => (string) $this->request->get('firmaadi'),
             'email'                 => (string) $this->request->get('Email'),
+            'campaign_url'          => null,
             'extra'                 => $this->request->get('Extra'),
             'all'                   => $this->request->request->all(),
         ];

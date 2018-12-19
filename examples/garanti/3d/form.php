@@ -11,7 +11,7 @@ if ($request->getMethod() !== 'POST') {
 
 $order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
 
-$amount = (double) 320;
+$amount = (double) 1;
 $instalment = '0';
 
 $success_url = $base_url . 'response.php';
