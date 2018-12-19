@@ -663,7 +663,7 @@ class GarantiPos implements PosInterface
         $hash_data = $this->make3dHashData($security_data);
 
         $inputs = [
-            'secure3dsecuritylevel' => $this->account->model == '3d_pay' ? '3D_Pay' : '3D',
+            'secure3dsecuritylevel' => $this->account->model == '3d_pay' ? '3D_PAY' : '3D',
             'mode'                  => $this->mode,
             'apiversion'            => $this->version,
             'terminalprovuserid'    => $this->account->username,

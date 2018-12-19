@@ -15,7 +15,6 @@ $account = [
     'client_id'         => '7000679',
     'terminal_id'       => '30691298',
     'username'          => 'PROVAUT',
-    'terminal_username' => 'PROVOOS',
     'password'          => '123qweASD/',
     'refund_username'   => 'PROVRFN',
     'refund_password'   => '123qweASD/',

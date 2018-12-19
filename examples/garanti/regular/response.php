@@ -10,7 +10,7 @@ if ($request->getMethod() !== 'POST') {
 }
 
 $order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
-$amount = (double) 100;
+$amount = (double) 1;
 
 $order = [
     'id'            => $order_id,
@@ -18,7 +18,7 @@ $order = [
     'email'         => 'mail@customer.com', // optional
     'user_id'       => '12', // optional
     'amount'        => $amount,
-    'installment'   => '0',
+    'installment'   => '1',
     'currency'      => 'TRY',
     'ip'            => $ip,
     'transaction'   => 'pay', // pay => S, pre => preauth
