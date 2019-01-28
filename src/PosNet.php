@@ -518,6 +518,22 @@ class PosNet implements PosInterface
                 $transaction_security = 'Half 3D Secure';
                 $status = 'approved';
             }
+
+            $nodes = [
+                'posnetRequest'   => [
+                    'mid'   => $this->account->client_id,
+                    'tid'   => $this->account->terminal_id,
+                    'oosTranData' => [
+                        'bankData'      => $this->request->get('BankPacket'),
+                        'merchantData'  => $this->request->get('MerchantPacket'),
+                        'sign'          => $this->request->get('Sign'),
+                        'wpAmount'      => $this->data->oosResolveMerchantDataResponse->amount,
+                    ],
+                ]
+            ];
+
+            $contents = $this->createXML($nodes, $encoding = 'ISO-8859-9');
+            $this->send($contents);
         }
 
         $this->response = (object) $this->data;
@@ -561,60 +577,7 @@ class PosNet implements PosInterface
      */
     public function make3DPayPayment()
     {
-        $this->request = Request::createFromGlobals();
-
-        $status = 'declined';
-
-        if ($this->check3DHash() && (string) $this->request->get('ProcReturnCode') == '00') {
-            if (in_array($this->request->get('mdStatus'), [1, 2, 3, 4])) {
-                $status = 'approved';
-            }
-        }
-
-        $transaction_security = 'MPI fallback';
-        if ($status == 'approved') {
-            if ($this->request->get('mdStatus') == '1') {
-                $transaction_security = 'Full 3D Secure';
-            } elseif (in_array($this->request->get('mdStatus'), [2, 3, 4])) {
-                $transaction_security = 'Half 3D Secure';
-            }
-        }
-
-        $this->response = (object) [
-            'id'                    => (string) $this->request->get('oid'),
-            'trans_id'              => (string) $this->request->get('TransId'),
-            'auth_code'             => (string) $this->request->get('AuthCode'),
-            'host_ref_num'          => (string) $this->request->get('HostRefNum'),
-            'response'              => (string) $this->request->get('Response'),
-            'transaction_type'      => $this->type,
-            'transaction'           => $this->order->transaction,
-            'transaction_security'  => $transaction_security,
-            'code'                  => (string) $this->request->get('ProcReturnCode'),
-            'md_status'             => $this->request->get('mdStatus'),
-            'status'                => $status,
-            'status_detail'         => isset($this->codes[$this->request->get('ProcReturnCode')]) ? (string) $this->request->get('ProcReturnCode') : null,
-            'hash'                  => (string) $this->request->get('HASH'),
-            'rand'                  => (string) $this->request->get('rnd'),
-            'hash_params'           => (string) $this->request->get('HASHPARAMS'),
-            'hash_params_val'       => (string) $this->request->get('HASHPARAMSVAL'),
-            'masked_number'         => (string) $this->request->get('maskedCreditCard'),
-            'month'                 => (string) $this->request->get('Ecom_Payment_Card_ExpDate_Month'),
-            'year'                  => (string) $this->request->get('Ecom_Payment_Card_ExpDate_Year'),
-            'amount'                => (string) $this->request->get('amount'),
-            'currency'              => (string) $this->request->get('currency'),
-            'tx_status'             => (string) $this->request->get('txstatus'),
-            'eci'                   => (string) $this->request->get('eci'),
-            'cavv'                  => (string) $this->request->get('cavv'),
-            'xid'                   => (string) $this->request->get('xid'),
-            'error_code'            => (string) $this->request->get('ErrCode'),
-            'error_message'         => (string) $this->request->get('ErrMsg'),
-            'md_error_message'      => (string) $this->request->get('mdErrorMsg'),
-            'name'                  => (string) $this->request->get('firmaadi'),
-            'email'                 => (string) $this->request->get('Email'),
-            'campaign_url'          => null,
-            'extra'                 => $this->request->get('Extra'),
-            'all'                   => $this->request->request->all(),
-        ];
+        $this->make3DPayPayment();
 
         return $this;
     }
@@ -627,12 +590,13 @@ class PosNet implements PosInterface
      */
     public function get3DFormData()
     {
-        $data = [];
+        $inputs = [];
+        $data = null;
 
         if ($this->card && $this->order) {
             $data = $this->getOosTransactionData();
 
-            $data = [
+            $inputs = [
                 'posnetData'         => $data->oosRequestDataResponse->data1,
                 'posnetData2'        => $data->oosRequestDataResponse->data2,
                 'mid'                => $this->account->client_id,
@@ -645,7 +609,14 @@ class PosNet implements PosInterface
             ];
         }
 
-        return $data;
+        return [
+            'gateway'       => $this->gateway,
+            'success_url'   => $this->order->success_url,
+            'fail_url'      => $this->order->fail_url,
+            'rand'          => $data->oosRequestDataResponse->sign,
+            'hash'          => $data->oosRequestDataResponse->data1,
+            'inputs'        => $inputs,
+        ];
     }
 
     /**

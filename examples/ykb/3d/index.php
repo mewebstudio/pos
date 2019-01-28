@@ -5,7 +5,7 @@ require '_config.php';
 require '../../template/_header.php';
 
 $order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
-$amount = (double) 100;
+$amount = (double) 1;
 $instalment = '0';
 
 $order = [

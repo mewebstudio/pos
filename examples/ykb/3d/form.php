@@ -32,13 +32,14 @@ $card = [
 ];
 
 $pos->prepare($order, $card);
-$oos_data = $pos->bank->get3DFormData();
+
+$form_data = $pos->get3dFormData();
 ?>
 
 <span class="text-muted text-center">Redirecting...</span>
-<form method="post" action="<?php echo $pos->bank->gateway; ?>" class="redirect-form" role="form">
-    <?php foreach ($oos_data as $key => $value): ?>
-    <input type="hidden" name="<?php echo $key; ?>" value="<?php echo $value; ?>">
+<form method="post" action="<?php echo $form_data['gateway']; ?>" class="redirect-form" role="form">
+    <?php foreach ($form_data['inputs'] as $key => $value): ?>
+        <input type="hidden" name="<?php echo $key; ?>" value="<?php echo $value; ?>">
     <?php endforeach; ?>
     <hr>
     <button class="btn btn-success" type="submit">Submit</button>
