@@ -18,6 +18,11 @@ class EstPos implements PosInterface
     use PosHelpersTrait;
 
     /**
+     * @const string
+     */
+    public const NAME = 'EstPos';
+
+    /**
      * API URL
      *
      * @var string

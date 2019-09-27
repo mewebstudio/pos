@@ -18,6 +18,11 @@ class PosNet implements PosInterface
     use PosHelpersTrait;
 
     /**
+     * @const string
+     */
+    public const NAME = 'PosNet';
+
+    /**
      * API URL
      *
      * @var string

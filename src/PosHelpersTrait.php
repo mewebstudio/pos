@@ -11,6 +11,20 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
 trait PosHelpersTrait
 {
     /**
+     * API URL
+     *
+     * @var string
+     */
+    public $url;
+
+    /**
+     * 3D Pay Gateway URL
+     *
+     * @var string
+     */
+    public $gateway;
+
+    /**
      * Create XML DOM Document
      *
      * @param array $nodes

@@ -18,6 +18,11 @@ class GarantiPos implements PosInterface
     use PosHelpersTrait;
 
     /**
+     * @const string
+     */
+    public const NAME = 'GarantiPos';
+
+    /**
      * API URL
      *
      * @var string
