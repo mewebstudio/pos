@@ -20,7 +20,7 @@ class GarantiPos implements PosInterface
     /**
      * @const string
      */
-    public const NAME = 'GarantiPos';
+    public const NAME = 'GarantiPay';
 
     /**
      * API URL
