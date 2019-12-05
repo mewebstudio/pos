@@ -410,7 +410,7 @@ class PosNet implements PosInterface
         $error_code = isset($obj->respCode) ? $obj->respCode : null;
         $error_message = isset($obj->respText) ? $obj->respText : null;
 
-        if ($this->getProcReturnCode() == '00' && $obj && !$error_code) {
+        if ($this->getProcReturnCode() == '00' && $this->getStatusDetail() == 'approved' && $obj && !$error_code) {
             $status = 'approved';
             $code = isset($obj->approved) ? $obj->approved : null;
             $proc_return_code = $this->getProcReturnCode();
@@ -515,7 +515,7 @@ class PosNet implements PosInterface
             $this->send($contents);
         }
 
-        if ($this->getProcReturnCode() == '00') {
+        if ($this->getProcReturnCode() == '00' && $this->getStatusDetail() == 'approved' && $this->getStatusDetail() == 'approved') {
             if ($this->data->oosResolveMerchantDataResponse->mdStatus == '1') {
                 $transaction_security = 'Full 3D Secure';
                 $status = 'approved';
