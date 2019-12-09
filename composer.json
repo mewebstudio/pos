@@ -16,7 +16,7 @@
         "ext-json": "*",
         "ext-mcrypt": "*",
         "ext-SimpleXML": "*",
-        "guzzlehttp/guzzle": "^6.3.3",
+        "guzzlehttp/guzzle": "6.3.3",
         "symfony/http-foundation": "^4.1",
         "symfony/serializer": "^4.1"
     },
