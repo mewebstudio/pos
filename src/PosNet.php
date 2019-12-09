@@ -515,7 +515,7 @@ class PosNet implements PosInterface
             $this->send($contents);
         }
 
-        if ($this->getProcReturnCode() == '00' && $this->getStatusDetail() == 'approved' && $this->getStatusDetail() == 'approved') {
+        if ($this->getProcReturnCode() == '00' && $this->getStatusDetail() == 'approved') {
             if ($this->data->oosResolveMerchantDataResponse->mdStatus == '1') {
                 $transaction_security = 'Full 3D Secure';
                 $status = 'approved';
@@ -525,7 +525,7 @@ class PosNet implements PosInterface
             }
 
             $nodes = [
-                'posnetRequest'   => [
+                'posnetRequest' => [
                     'mid'   => $this->account->client_id,
                     'tid'   => $this->account->terminal_id,
                     'oosTranData' => [
@@ -542,6 +542,10 @@ class PosNet implements PosInterface
         }
 
         $this->response = (object) $this->data;
+
+        if ($this->data->approved != 1) {
+            $status = 'declined';
+        }
 
         $this->response = (object) [
             'id'                    => isset($this->data->AuthCode) ? $this->printData($this->data->AuthCode) : null,
