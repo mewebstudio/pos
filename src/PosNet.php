@@ -465,7 +465,6 @@ class PosNet implements PosInterface
 
         if ($this->crypt instanceof PosNetCrypt) {
             $decrypted_data = $this->crypt->decrypt($this->request->get('MerchantPacket'), $this->account->store_key);
-            $this->crypt->deInit();
 
             $decrypted_data_array = explode(';', $decrypted_data);
 

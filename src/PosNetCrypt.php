@@ -116,7 +116,6 @@ class PosNetCrypt
 
         // Remove Padded Data
         return $decrypted_data;
-        return $this->removePaddedData($decrypted_data);
     }
 
     /**
