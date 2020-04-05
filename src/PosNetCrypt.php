@@ -36,9 +36,9 @@ class PosNetCrypt
     public function __construct ()
     {
         srand((double) microtime() * 10000000);
-        $this->block = @mcrypt_get_block_size(MCRYPT_TripleDES, MCRYPT_MODE_CBC);
-        $this->td = @mcrypt_module_open(MCRYPT_TripleDES, '', MCRYPT_MODE_CBC, '');
-        $this->ks = @mcrypt_enc_get_key_size($this->td);
+        $this->algo = 'des-ede3-cbc';
+        $this->block = 8;
+        $this->ks = 24;
         $this->error = '';
     }
 
@@ -75,14 +75,8 @@ class PosNetCrypt
         // Create IV
         $iv = $this->createIV();
 
-        // PKCS Padding
-        $data = $this->doPadding($data);
-
-        // Initialize
-        @mcrypt_generic_init($this->td, $this->detKey($key), $iv);
-
         // Encrypt Data
-        $encrypted_data = @mcrypt_generic($this->td, $data);
+        $encrypted_data = openssl_encrypt($data, $this->algo, $this->detKey($key), OPENSSL_RAW_DATA, $iv);
 
         // Add IV and Convert to HEX
         $hex_encrypted_data = strtoupper(bin2hex($iv)).strtoupper(bin2hex($encrypted_data));
@@ -117,13 +111,11 @@ class PosNetCrypt
             return '';
         }
 
-        // Initialize
-        @mcrypt_generic_init($this->td, $this->detKey($key), $iv);
-
         // Decrypt Data
-        $decrypted_data = @mdecrypt_generic($this->td, $encrypted_data);
+        $decrypted_data = openssl_decrypt($encrypted_data, $this->algo, $this->detKey($key), OPENSSL_RAW_DATA, $iv);
 
         // Remove Padded Data
+        return $decrypted_data;
         return $this->removePaddedData($decrypted_data);
     }
 
@@ -135,39 +127,6 @@ class PosNetCrypt
     {
         $deskey = substr(strtoupper(md5($key)), 0, $this->ks);
         return $deskey;
-    }
-
-    /**
-     * @param $data
-     * @return string
-     */
-    public function doPadding($data)
-    {
-        $len = strlen($data);
-        $padding = $this->block - ($len % $this->block);
-        $data .= str_repeat(chr($padding), $padding);
-
-        return $data;
-    }
-
-    /**
-     * @param $data
-     * @return bool|string
-     */
-    public function removePaddedData($data)
-    {
-        $packing = ord($data { strlen($data) - 1 });
-
-        if ($packing and ($packing < $this->block)) {
-            for($P = strlen($data) - 1; $P >= strlen($data) - $packing; $P--) {
-                if (ord($data { $P } ) != $packing) {
-                    $packing = 0;
-                }
-            }
-        }
-
-        $data = substr($data, 0, strlen($data) - $packing);
-        return $data;
     }
 
     /**
@@ -195,14 +154,5 @@ class PosNetCrypt
         $crc_calc = strtoupper($hex_crc);
 
         return strcmp($crc_calc, $crc) == 0 ? true : false;
-    }
-
-    /**
-     *
-     */
-    public function deInit()
-    {
-        @mcrypt_generic_deinit($this->td);
-        @mcrypt_module_close($this->td);
     }
 }

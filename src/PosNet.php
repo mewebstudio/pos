@@ -170,9 +170,7 @@ class PosNet implements PosInterface
         $request = Request::createFromGlobals();
         $this->request = $request->request;
 
-        $this->crypt = function_exists('mcrypt_encrypt') ?
-            new PosNetCrypt :
-            null;
+        $this->crypt = new PosNetCrypt();
 
         $this->config = $config;
         $this->account = $account;
@@ -220,7 +218,7 @@ class PosNet implements PosInterface
      * @param int $pad_length
      * @return string
      */
-    protected function getOrderId(int $pad_length = 24)
+    protected function getOrderId($pad_length = 24)
     {
         return (string) str_pad($this->order->id, $pad_length, '0', STR_PAD_LEFT);
     }
