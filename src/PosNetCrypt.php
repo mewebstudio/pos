@@ -9,26 +9,25 @@ namespace Mews\Pos;
 class PosNetCrypt
 {
     /**
-     * @var resource
+     * @var string
      */
-    public $td;
+    private $algo;
 
     /**
      * @var int
      */
-    public $ks;
+    private $ks;
 
     /**
      * @var int
      */
-    public $block;
+    private $block;
 
     /**
-     * Error message for http connection
      *
      * @access private
      */
-    public $error;
+    private $error;
 
     /**
      * PosNetCrypt constructor.
@@ -94,27 +93,25 @@ class PosNetCrypt
      */
     public function decrypt($data, $key) {
 
-        if (strlen($data) < 16 + 8) return false;
+        $parsed_data = $this->parseEncryptedData($data);
 
-        // Get IV
-        $iv = pack("H*", substr($data, 0, 16));
-
-        // Get Encrypted Data
-        $encrypted_data = pack("H*", substr($data, 16, strlen($data)-16-8));
-
-        // Get CRC
-        $crc = substr($data, -8);
+        if (!$parsed_data) return false;
 
         // Check CRC
-        if (!$this->checkCrc(substr($data, 0, strlen($data)-8), $crc)) {
-            $this->error = "CRC is not valid! ($crc)";
-            return '';
+        if (!$this->checkCrc($parsed_data['crc_data'], $parsed_data['crc'])) {
+            $this->error = "CRC is not valid! (" . $parsed_data['crc'] . ")";
+            return FALSE;
         }
+
+        // Get IV
+        $iv = pack("H*", $parsed_data['iv']);
+
+        // Get Encrypted Data
+        $encrypted_data = pack("H*", $parsed_data['payload']);
 
         // Decrypt Data
         $decrypted_data = openssl_decrypt($encrypted_data, $this->algo, $this->detKey($key), OPENSSL_RAW_DATA, $iv);
 
-        // Remove Padded Data
         return $decrypted_data;
     }
 
@@ -153,5 +150,21 @@ class PosNetCrypt
         $crc_calc = strtoupper($hex_crc);
 
         return strcmp($crc_calc, $crc) == 0 ? true : false;
+    }
+
+    /**
+     * @param string $data
+     * @return array|bool
+     */
+    private function parseEncryptedData(string $data){
+
+        if (strlen($data) < 16 + 8) return false;
+
+        return [
+            'crc' => substr($data, -8),
+            'crc_data' => substr($data, 0, strlen($data)-8),
+            'iv' => substr($data, 0, 16),
+            'payload' => substr($data, 16, strlen($data)-16-8)
+        ];
     }
 }
