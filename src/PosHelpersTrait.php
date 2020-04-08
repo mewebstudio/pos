@@ -35,12 +35,12 @@ trait PosHelpersTrait
     public function createXML(array $nodes, $encoding = 'UTF-8')
     {
         $rootNodeName = array_keys($nodes)[0];
-        $encoder = new XmlEncoder($rootNodeName);
+        $encoder = new XmlEncoder();
 
         $xml = $encoder->encode($nodes[$rootNodeName], 'xml', [
-            'xml_encoding' => $encoding
+            XmlEncoder::ROOT_NODE_NAME => $rootNodeName,
+            XmlEncoder::ENCODING  => $encoding
         ]);
-
         return $xml;
     }
 
