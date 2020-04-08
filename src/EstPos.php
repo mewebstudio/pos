@@ -294,26 +294,22 @@ class EstPos implements PosInterface
     /**
      * Check 3D Hash
      *
+     * @param array $data
      * @return bool
      */
-    public function check3DHash()
+    public function check3DHash($data)
     {
-        $hash_params = $this->request->get('HASHPARAMS');
-        $hash_params_val = $this->request->get('HASHPARAMSVAL');
-        $hash_param = $this->request->get('HASH');
+        $hash_params = $data['HASHPARAMS'];
+        $hash_params_val = $data['HASHPARAMSVAL'];
+        $hash_param = $data['HASH'];
         $params_val = '';
-        $index1 = 0;
 
-        while ($index1 < strlen($hash_params)) {
-            $index2 = strpos($hash_params, ':', $index1);
-            $value = $this->request->get(substr($hash_params, $index1, $index2 - $index1));
-
-            if ($value == null) $value = '';
-
-            $params_val = $params_val . $value;
-
-            $index1 = $index2 + 1;
-        }
+        $hashparams_arr = explode(':', $hash_params);
+        foreach ($hashparams_arr as $value) {
+			if(!empty($value) && isset($data[$value])){
+				$params_val = $params_val . $data[$value];
+			}
+		}
 
         $hash_val = $params_val . $this->account->store_key;
         $hash = base64_encode(pack('H*', sha1($hash_val)));
@@ -384,7 +380,7 @@ class EstPos implements PosInterface
         $this->request = Request::createFromGlobals();
 
         $status = 'declined';
-        if ($this->check3DHash()) {
+        if ($this->check3DHash($this->request->request->all())) {
             $contents = $this->create3DPaymentXML();
             $this->send($contents);
         }
@@ -454,7 +450,7 @@ class EstPos implements PosInterface
 
         $status = 'declined';
 
-        if ($this->check3DHash() && (string)$this->request->get('ProcReturnCode') == '00') {
+        if ($this->check3DHash($this->request->request->all()) && (string)$this->request->get('ProcReturnCode') == '00') {
             if (in_array($this->request->get('mdStatus'), [1, 2, 3, 4])) {
                 $status = 'approved';
             }

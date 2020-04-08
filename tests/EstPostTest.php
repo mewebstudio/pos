@@ -26,7 +26,7 @@ class EstPostTest extends TestCase
             'client_id' => 'XXXXXXX',
             'username' => 'XXXXXXX',
             'password' => 'XXXXXXX',
-            'store_key' => 'XXXXXXX',
+            'store_key' => 'VnM5WZ3sGrPusmWP',
             'env' => 'test',
         ];
 
@@ -73,7 +73,8 @@ class EstPostTest extends TestCase
         $this->assertEquals($this->order, $this->estpos->getOrder());
     }
 
-    public function testGetCardCode(){
+    public function testGetCardCode()
+    {
         $card = $this->card;
 
         $card->type = '1';
@@ -100,25 +101,49 @@ class EstPostTest extends TestCase
             'rand' => $this->order->rand,
             'hash' => $this->estpos->create3DHash(),
             'inputs' => [
-                'clientid'                          => $this->account->client_id,
-                'storetype'                         => $this->account->model,
-                'hash'                              => $this->estpos->create3DHash(),
-                'cardType'                          => $this->estpos->getCardCode(),
-                'pan'                               => $this->card->number,
-                'Ecom_Payment_Card_ExpDate_Month'   => $this->card->month,
-                'Ecom_Payment_Card_ExpDate_Year'    => $this->card->year,
-                'cv2'                               => $this->card->cvv,
-                'firmaadi'                          => $this->order->name,
-                'Email'                             => $this->order->email,
-                'amount'                            => $this->order->amount,
-                'oid'                               => $this->order->id,
-                'okUrl'                             => $this->order->success_url,
-                'failUrl'                           => $this->order->fail_url,
-                'rnd'                               => $this->order->rand,
-                'lang'                              => $this->order->lang,
-                'currency'                          => $this->order->currency,
+                'clientid' => $this->account->client_id,
+                'storetype' => $this->account->model,
+                'hash' => $this->estpos->create3DHash(),
+                'cardType' => $this->estpos->getCardCode(),
+                'pan' => $this->card->number,
+                'Ecom_Payment_Card_ExpDate_Month' => $this->card->month,
+                'Ecom_Payment_Card_ExpDate_Year' => $this->card->year,
+                'cv2' => $this->card->cvv,
+                'firmaadi' => $this->order->name,
+                'Email' => $this->order->email,
+                'amount' => $this->order->amount,
+                'oid' => $this->order->id,
+                'okUrl' => $this->order->success_url,
+                'failUrl' => $this->order->fail_url,
+                'rnd' => $this->order->rand,
+                'lang' => $this->order->lang,
+                'currency' => $this->order->currency,
             ]
         ];
         $this->assertEquals($form, $this->estpos->get3DFormData());
+    }
+
+    public function testCheck3DHash()
+    {
+        $data = [
+            "md" => "478719:0373D10CFD8BDED34FA0546D27D5BE76F8BA4A947D1EC499102AE97B880EB1B9:4242:##400902568",
+            "cavv" => "BwAQAhIYRwEAABWGABhHEE6v5IU=",
+            "AuthCode" => "",
+            "oid" => "880",
+            "mdStatus" => "4",
+            "eci" => "06",
+            "clientid" => "400902568",
+            "rnd" => "hDx50d0cq7u1vbpWQMae",
+            "ProcReturnCode" => "N7",
+            "Response" => "Declined",
+            "HASH" => "D+B5fFWXEWFqVSkwotyuTPUW800=",
+            "HASHPARAMS" => "clientid:oid:AuthCode:ProcReturnCode:Response:mdStatus:cavv:eci:md:rnd:",
+            "HASHPARAMSVAL" => "400902568880N7Declined4BwAQAhIYRwEAABWGABhHEE6v5IU=06478719:0373D10CFD8BDED34FA0546D27D5BE76F8BA4A947D1EC499102AE97B880EB1B9:4242:##400902568hDx50d0cq7u1vbpWQMae"
+        ];
+
+        $this->assertTrue($this->estpos->check3DHash($data));
+
+        $data['mdStatus'] = '';
+        $this->assertFalse($this->estpos->check3DHash($data));
     }
 }
