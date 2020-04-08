@@ -304,6 +304,7 @@ class PosNet implements PosInterface
                     'bankData'      => $this->request->get('BankPacket'),
                     'merchantData'  => $this->request->get('MerchantPacket'),
                     'sign'          => $this->request->get('Sign'),
+                    'mac'            => $this->create3DHash()
                 ],
             ]
         ];
@@ -510,6 +511,8 @@ class PosNet implements PosInterface
             $this->send($contents);
         }
 
+        if(!$this->verifyResponseMAC($this->data->oosResolveMerchantDataResponse)) goto end;
+
         if ($this->getProcReturnCode() == '00' && $this->getStatusDetail() == 'approved') {
             if ($this->data->oosResolveMerchantDataResponse->mdStatus == '1') {
                 $transaction_security = 'Full 3D Secure';
@@ -527,7 +530,8 @@ class PosNet implements PosInterface
                         'bankData'      => $this->request->get('BankPacket'),
                         'merchantData'  => $this->request->get('MerchantPacket'),
                         'sign'          => $this->request->get('Sign'),
-                        'wpAmount'      => $this->data->oosResolveMerchantDataResponse->amount,
+                        'wpAmount'      => 0,
+                        'mac' => $this->create3DHash()
                     ],
                 ]
             ];
@@ -542,6 +546,7 @@ class PosNet implements PosInterface
             $status = 'declined';
         }
 
+        end:
         $this->response = (object) [
             'id'                    => isset($this->data->authCode) ? $this->printData($this->data->authCode) : null,
             'order_id'              => isset($this->order->id) ? $this->printData($this->order->id) : null,
@@ -1023,5 +1028,52 @@ class PosNet implements PosInterface
      */
     public function getCard(){
         return $this->card;
+    }
+
+    /**
+     * Hash string
+     *
+     * @return string
+     */
+    public function hashString(string $str)
+    {
+        return base64_encode(hash('sha256',$str,true));
+    }
+
+    /**
+     * Create 3D Hash (MAC)
+     *
+     * @return string
+     */
+    public function create3DHash()
+    {
+        $hash_str = '';
+
+        $firstHash = $this->hashString($this->account->store_key . ";" . $this->account->terminal_id);
+
+        if ($this->account->model == '3d' || $this->account->model == '3d_pay') {
+            $hash_str = $this->hashString($this->getOrderId() . ";" . $this->getAmount() . ";" . $this->order->currency . ";" . $this->account->client_id . ";" . $firstHash);
+        }
+
+        return $hash_str;
+    }
+
+    /**
+     * verifies the if request came from bank
+     *
+     * @param mixed $data oosResolveMerchantDataResponse
+     * @return boolean
+     */
+    public function verifyResponseMAC($data)
+    {
+        $hash_str = '';
+
+        $firstHash = $this->hashString($this->account->store_key . ";" . $this->account->terminal_id);
+
+        if ($this->account->model == '3d' || $this->account->model == '3d_pay') {
+            $hash_str = $this->hashString($data->mdStatus . ";" . $this->getOrderId() . ";" . $this->getAmount() . ";" . $this->order->currency . ";" . $this->account->client_id . ";" . $firstHash);
+        }
+
+        return $hash_str == $data->mac;
     }
 }
