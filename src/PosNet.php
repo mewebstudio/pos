@@ -6,7 +6,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
-use SimpleXMLElement;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -645,9 +644,7 @@ class PosNet implements PosInterface
             'body'      => "xmldata=" . $contents,
         ]);
 
-        $xml = new SimpleXMLElement($response->getBody());
-
-        $this->data = (object) json_decode(json_encode($xml));
+        $this->data = $this->XMLStringToObject($response->getBody());
 
         return $this;
     }
@@ -996,5 +993,40 @@ class PosNet implements PosInterface
     public function history(array $meta)
     {
         return $this->status($meta, true);
+    }
+
+    /**
+     * @return array
+     */
+    public function getConfig(){
+        return $this->config;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAccount(){
+        return $this->account;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCurrencies(){
+        return $this->currencies;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOrder(){
+        return $this->order;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCard(){
+        return $this->card;
     }
 }
