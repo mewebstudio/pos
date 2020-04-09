@@ -108,7 +108,14 @@ return [
                     'production'    => 'https://www.posnet.ykb.com/3DSWebService/YKBPaymentService',
                     'test'          => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
                 ],
-            ]
+            ],
+			'order' => [
+			    'id_total_length' => 24,
+				'id_length' => 20,
+				'id_3d_prefix' => 'TDSC',
+                'id_3d_pay_prefix' => '', //?
+                'id_regular_prefix' => '' //?
+			]
         ],
         'garanti' => [
             'name'  => 'Garanti',
