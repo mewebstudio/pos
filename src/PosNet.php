@@ -643,7 +643,7 @@ class PosNet implements PosInterface
             'body'      => "xmldata=" . $contents,
         ]);
 
-        $this->data = $this->XMLStringToObject($response->getBody());
+        $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
         return $this;
     }

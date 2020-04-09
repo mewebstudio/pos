@@ -572,7 +572,7 @@ class EstPos implements PosInterface
             'body' => $contents
         ]);
 
-        $this->data = $this->XMLStringToObject($response->getBody());
+        $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
         return $this;
     }

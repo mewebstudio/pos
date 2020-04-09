@@ -90,10 +90,10 @@ trait PosHelpersTrait
      * @param string data
      * @return object
      */
-    public function XMLStringToObject(string $data)
+    public function XMLStringToObject($data)
     {
-        $xml = new SimpleXMLElement($data);
-
+        $encoder = new XmlEncoder();
+        $xml = $encoder->decode($data, 'xml');
         return (object)json_decode(json_encode($xml));
     }
 }
