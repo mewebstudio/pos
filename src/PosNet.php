@@ -441,19 +441,6 @@ class PosNet implements PosInterface
     }
 
     /**
-     * Get host name
-     *
-     * @param $url
-     * @return string
-     */
-    public function getHostName($url)
-    {
-        $parse = parse_url($url);
-
-        return $parse['host'];
-    }
-
-    /**
      * Check 3D Hash
      *
      * @return bool
@@ -472,8 +459,7 @@ class PosNet implements PosInterface
                 $this->account->terminal_id,
                 $this->getAmount(),
                 $this->getInstallment(),
-                $this->getOrderId(),
-                $this->getHostName($this->url),
+                $this->getOrderId()
             ]);
 
             $decrypted_data_list = array_map('strval', [
@@ -481,8 +467,7 @@ class PosNet implements PosInterface
                 $decrypted_data_array[1],
                 $decrypted_data_array[2],
                 $decrypted_data_array[3],
-                $decrypted_data_array[4],
-                $this->getHostName($decrypted_data_array[7]),
+                $decrypted_data_array[4]
             ]);
 
             if ($original_data == $decrypted_data_list) {
@@ -509,9 +494,17 @@ class PosNet implements PosInterface
         if ($this->check3DHash()) {
             $contents = $this->create3DPaymentXML();
             $this->send($contents);
+        }else{
+            goto end;
         }
 
-        if(!$this->verifyResponseMAC($this->data->oosResolveMerchantDataResponse)) goto end;
+        if($this->getProcReturnCode() != '00'){
+        	goto end;
+		}
+
+        if(!$this->verifyResponseMAC($this->data->oosResolveMerchantDataResponse)) {
+            goto end;
+        }
 
         if ($this->getProcReturnCode() == '00' && $this->getStatusDetail() == 'approved') {
             if ($this->data->oosResolveMerchantDataResponse->mdStatus == '1') {
