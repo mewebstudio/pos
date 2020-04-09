@@ -1045,7 +1045,7 @@ class PosNet implements PosInterface
         $firstHash = $this->hashString($this->account->store_key . ";" . $this->account->terminal_id);
 
         if ($this->account->model == '3d' || $this->account->model == '3d_pay') {
-            $hash_str = $this->hashString($this->getOrderId() . ";" . $this->getAmount() . ";" . $this->order->currency . ";" . $this->account->client_id . ";" . $firstHash);
+            $hash_str = $this->hashString($this->getOrderId() . ";" . $this->getAmount() . ";" . $this->getCurrency() . ";" . $this->account->client_id . ";" . $firstHash);
         }
 
         return $hash_str;
@@ -1064,7 +1064,7 @@ class PosNet implements PosInterface
         $firstHash = $this->hashString($this->account->store_key . ";" . $this->account->terminal_id);
 
         if ($this->account->model == '3d' || $this->account->model == '3d_pay') {
-            $hash_str = $this->hashString($data->mdStatus . ";" . $this->getOrderId() . ";" . $this->getAmount() . ";" . $this->order->currency . ";" . $this->account->client_id . ";" . $firstHash);
+            $hash_str = $this->hashString($data->mdStatus . ";" . $this->getOrderId() . ";" . $this->getAmount() . ";" . $this->getCurrency() . ";" . $this->account->client_id . ";" . $firstHash);
         }
 
         return $hash_str == $data->mac;
