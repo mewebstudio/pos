@@ -599,8 +599,7 @@ class PosNet implements PosInterface
      */
     public function make3DPayPayment()
     {
-        $this->make3DPayPayment();
-
+        //TODO
         return $this;
     }
 
@@ -967,7 +966,7 @@ class PosNet implements PosInterface
             'trans_id'          => $auth_code,
             'response'          => $this->getStatusDetail(),
             'auth_code'         => $auth_code,
-            'host_ref_num'      => null,
+            'host_ref_num'      => isset($obj->transaction->hostLogKey) ? $this->printData($obj->transaction->hostLogKey) : null,
             'ret_ref_num'       => null,
             'transaction'       => $transaction,
             'transaction_type'  => $transaction_type,
