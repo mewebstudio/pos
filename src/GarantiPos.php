@@ -470,7 +470,7 @@ class GarantiPos implements PosInterface
             $hash_str = $this->account->client_id . $this->order->id . $this->order->amount . $this->order->success_url . $this->order->fail_url . $this->order->transaction_type . $this->order->installment . $this->order->rand . $this->account->store_key;
         }
 
-        return base64_encode(pack('H*', sha1($hash_str)));
+        return base64_encode(sha1($hash_str, true));
     }
 
     /**

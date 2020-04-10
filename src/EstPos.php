@@ -288,7 +288,7 @@ class EstPos implements PosInterface
             $hash_str = $this->account->client_id . $this->order->id . $this->order->amount . $this->order->success_url . $this->order->fail_url . $this->type . $this->order->installment . $this->order->rand . $this->account->store_key;
         }
 
-        return base64_encode(pack('H*', sha1($hash_str)));
+        return base64_encode(sha1($hash_str, true));
     }
 
     /**
@@ -312,7 +312,7 @@ class EstPos implements PosInterface
 		}
 
         $hash_val = $params_val . $this->account->store_key;
-        $hash = base64_encode(pack('H*', sha1($hash_val)));
+        $hash = base64_encode(sha1($hash_val, true));
 
         $return = false;
         if ($hash_params && !($params_val != $hash_params_val || $hash_param != $hash)) {
