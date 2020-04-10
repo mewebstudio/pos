@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+        bootstrap="vendor/autoload.php"
+        backupGlobals="false"
+        backupStaticAttributes="false"
+        colors="true"
+        convertErrorsToExceptions="true"
+        convertNoticesToExceptions="true"
+        convertWarningsToExceptions="true"
+        processIsolation="false"
+        stopOnFailure="false">
+
+    <testsuite name="Integration">
+        <directory>tests</directory>
+    </testsuite>
+
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src</directory>
+            <exclude>
+                <directory>vendor</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+</phpunit>

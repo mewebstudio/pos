@@ -62,6 +62,18 @@ return [
                 ],
             ]
         ],
+        'teb'    => [
+            'name'  => 'TEB',
+            'class' => Mews\Pos\EstPos::class,
+            'urls'  => [
+                'production'    => 'https://sanalpos.teb.com.tr/fim/api',
+                'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+                'gateway'       => [
+                    'production'    => 'https://sanalpos.teb.com.tr/fim/est3Dgate',
+                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                ],
+            ]
+        ],
         'isbank'    => [
             'name'  => 'İşbank',
             'class' => Mews\Pos\EstPos::class,
@@ -90,13 +102,20 @@ return [
             'name'  => 'Yapıkredi',
             'class' => Mews\Pos\PosNet::class,
             'urls'  => [
-                'production'    => 'https://posnet.yapikredi.com.tr/PosnetWebService/XML',
+                'production'    => 'https://www.posnet.ykb.com/PosnetWebService/XML',
                 'test'          => 'https://setmpos.ykb.com/PosnetWebService/XML',
                 'gateway'       => [
-                    'production'    => 'https://posnet.ykb.com/3DSWebService/YKBPaymentService',
+                    'production'    => 'https://www.posnet.ykb.com/3DSWebService/YKBPaymentService',
                     'test'          => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
                 ],
-            ]
+            ],
+			'order' => [
+			    'id_total_length' => 24,
+				'id_length' => 20,
+				'id_3d_prefix' => 'TDSC',
+                'id_3d_pay_prefix' => '', //?
+                'id_regular_prefix' => '' //?
+			]
         ],
         'garanti' => [
             'name'  => 'Garanti',
@@ -109,7 +128,7 @@ return [
                     'test'          => 'https://sanalposprovtest.garanti.com.tr/servlet/gt3dengine',
                 ],
             ]
-        ],
+        ]
     ],
 
 ];

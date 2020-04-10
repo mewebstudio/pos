@@ -3,6 +3,7 @@
 namespace Mews\Pos;
 
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use SimpleXMLElement;
 
 /**
  * Trait PosHelpersTrait
@@ -34,12 +35,12 @@ trait PosHelpersTrait
     public function createXML(array $nodes, $encoding = 'UTF-8')
     {
         $rootNodeName = array_keys($nodes)[0];
-        $encoder = new XmlEncoder($rootNodeName);
+        $encoder = new XmlEncoder();
 
         $xml = $encoder->encode($nodes[$rootNodeName], 'xml', [
-            'xml_encoding'  => $encoding
+            XmlEncoder::ROOT_NODE_NAME => $rootNodeName,
+            XmlEncoder::ENCODING  => $encoding
         ]);
-
         return $xml;
     }
 
@@ -51,11 +52,11 @@ trait PosHelpersTrait
      */
     public function printData($data)
     {
-        if ((is_object($data) || is_array($data)) && !count((array) $data)) {
+        if ((is_object($data) || is_array($data)) && !count((array)$data)) {
             $data = null;
         }
 
-        return (string) $data;
+        return (string)$data;
     }
 
     /**
@@ -81,5 +82,18 @@ trait PosHelpersTrait
     public function isError()
     {
         return !$this->isSuccess();
+    }
+
+    /**
+     * Converts XML string to object
+     *
+     * @param string data
+     * @return object
+     */
+    public function XMLStringToObject($data)
+    {
+        $encoder = new XmlEncoder();
+        $xml = $encoder->decode($data, 'xml');
+        return (object)json_decode(json_encode($xml));
     }
 }

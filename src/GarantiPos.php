@@ -6,7 +6,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
-use SimpleXMLElement;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -257,7 +256,7 @@ class GarantiPos implements PosInterface
      * @param double $amount
      * @return int
      */
-    protected function amountFormat($amount)
+    public function amountFormat($amount)
     {
         return (int) str_replace('.', '', number_format($amount, 2, '.', ''));
     }
@@ -471,7 +470,7 @@ class GarantiPos implements PosInterface
             $hash_str = $this->account->client_id . $this->order->id . $this->order->amount . $this->order->success_url . $this->order->fail_url . $this->order->transaction_type . $this->order->installment . $this->order->rand . $this->account->store_key;
         }
 
-        return base64_encode(pack('H*', sha1($hash_str)));
+        return base64_encode(sha1($hash_str, true));
     }
 
     /**
@@ -719,9 +718,7 @@ class GarantiPos implements PosInterface
             'body'  => $contents
         ]);
 
-        $xml = new SimpleXMLElement($response->getBody());
-
-        $this->data = (object) json_decode(json_encode($xml));
+        $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
         return $this;
     }
@@ -1010,5 +1007,45 @@ class GarantiPos implements PosInterface
     public function history(array $meta)
     {
         return $this->statusOrHistory($meta, 'orderhistoryinq');
+    }
+
+    /**
+     * @return array
+     */
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAccount()
+    {
+        return $this->account;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCurrencies()
+    {
+        return $this->currencies;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOrder()
+    {
+        return $this->order;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCard()
+    {
+        return $this->card;
     }
 }

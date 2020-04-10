@@ -157,6 +157,41 @@ class Pos
     }
 
     /**
+     * @return array
+     */
+    public function getConfig(){
+        return $this->bank->getConfig();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getAccount(){
+        return $this->bank->getAccount();
+    }
+
+    /**
+     * @return array
+     */
+    public function getCurrencies(){
+        return $this->bank->getCurrencies();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getOrder(){
+        return $this->bank->getOrder();
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getCard(){
+        return $this->bank->getCard();
+    }
+
+    /**
      * Get 3d Form Data
      *
      * @return array
