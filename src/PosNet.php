@@ -532,7 +532,10 @@ class PosNet implements PosInterface
                 $transaction_security = 'Half 3D Secure';
                 $status = 'approved';
             }
-
+		
+	    //if 3D Authentication is failed
+            if($status != 'approved') goto end;
+		
             $nodes = [
                 'posnetRequest' => [
                     'mid'   => $this->account->client_id,
@@ -550,8 +553,6 @@ class PosNet implements PosInterface
             $contents = $this->createXML($nodes, $encoding = 'ISO-8859-9');
             $this->send($contents);
         }
-
-        $this->response = (object) $this->data;
 
         if ($this->data->approved != 1) {
             $status = 'declined';
