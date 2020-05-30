@@ -649,7 +649,7 @@ class EstPos implements PosInterface
             ]
         ];
 
-        if ($meta['amount']) $nodes['Total'] = $meta['amount'];
+        if ($meta['amount']) $nodes["CC5Request"]['Total'] = $meta['amount'];
 
         $xml = $this->createXML($nodes, 'ISO-8859-9');
         $this->send($xml);
