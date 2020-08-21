@@ -20,6 +20,7 @@ YapıKredi Posnet sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim
   - PHP >= 7.1.3
   - ext-dom
   - ext-json
+  - ext-openssl
   - ext-SimpleXML
 
 ### Kurulum
