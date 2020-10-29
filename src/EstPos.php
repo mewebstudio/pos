@@ -4,6 +4,7 @@ namespace Mews\Pos;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\Entity\Card\CreditCardEstPos;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Symfony\Component\HttpFoundation\Request;
@@ -96,9 +97,7 @@ class EstPos implements PosInterface
     protected $order = [];
 
     /**
-     * Credit Card
-     *
-     * @var object
+     * @var CreditCardEstPos|null
      */
     protected $card;
 
@@ -174,10 +173,10 @@ class EstPos implements PosInterface
                 'Total' => $this->order->amount,
                 'Currency' => $this->order->currency,
                 'Taksit' => $this->order->installment,
-                'CardType' => isset($this->card->type) ? $this->card->type : null,
-                'Number' => $this->card->number,
-                'Expires' => $this->card->month . '/' . $this->card->year,
-                'Cvv2Val' => $this->card->cvv,
+                'CardType' => $this->card->getType(),
+                'Number' => $this->card->getNumber(),
+                'Expires' => $this->card->getExpirationDate(),
+                'Cvv2Val' => $this->card->getCvv(),
                 'Mode' => 'P',
                 'GroupId' => '',
                 'TransId' => '',
@@ -521,11 +520,11 @@ class EstPos implements PosInterface
                 'clientid' => $this->account->client_id,
                 'storetype' => $this->account->model,
                 'hash' => $this->order->hash,
-                'cardType' => $this->getCardCode(),
-                'pan' => $this->card->number,
-                'Ecom_Payment_Card_ExpDate_Month' => $this->card->month,
-                'Ecom_Payment_Card_ExpDate_Year' => $this->card->year,
-                'cv2' => $this->card->cvv,
+                'cardType' => $this->card->getCardCode(),
+                'pan' => $this->card->getNumber(),
+                'Ecom_Payment_Card_ExpDate_Month' => $this->card->getExpireMonth(),
+                'Ecom_Payment_Card_ExpDate_Year' => $this->card->getExpireYear(),
+                'cv2' => $this->card->getCvv(),
                 'firmaadi' => $this->order->name,
                 'Email' => $this->order->email,
                 'amount' => $this->order->amount,
@@ -580,9 +579,11 @@ class EstPos implements PosInterface
     /**
      * Prepare Order
      *
-     * @param object $order
-     * @param object null $card
+     * @param object                $order
+     * @param CreditCardEstPos|null $card
+     *
      * @return mixed
+     *
      * @throws UnsupportedTransactionTypeException
      */
     public function prepare($order, $card = null)
@@ -603,8 +604,10 @@ class EstPos implements PosInterface
     /**
      * Make Payment
      *
-     * @param object $card
+     * @param  CreditCardEstPos $card
+     *
      * @return mixed
+     *
      * @throws UnsupportedPaymentModelException
      * @throws GuzzleException
      */
@@ -853,28 +856,11 @@ class EstPos implements PosInterface
     }
 
     /**
-     * @return mixed
+     * @return CreditCardEstPos|null
      */
     public function getCard()
     {
         return $this->card;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getCardCode()
-    {
-        $card_type = null;
-        if (isset($this->card->type)) {
-            if ($this->card->type == 'visa') {
-                $card_type = '1';
-            } elseif ($this->card->type == 'master') {
-                $card_type = '2';
-            }elseif($this->card->type == '1' || $this->card->type == '2'){
-                $card_type = $this->card->type;
-            }
-        }
-        return $card_type;
-    }
 }

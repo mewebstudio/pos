@@ -85,12 +85,7 @@ $order = [
 ];
 
 // Kredi kartı bilgieri
-$card = [
-    'number'        => 'XXXXXXXXXXXXXXXX', // Kredi kartı numarası
-    'month'         => 'XX', // SKT ay
-    'year'          => 'XX', // SKT yıl, son iki hane
-    'cvv'           => 'XXX', // Güvenlik kodu, son üç hane
-];
+$card = new \Mews\Pos\Entity\Card\CreditCardPos('1111222233334444', '20', '01', '000');
 
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri gönderiliyor
 $pos->prepare($order);

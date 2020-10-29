@@ -36,14 +36,14 @@ $order = [
 
 $_SESSION['order'] = $order;
 
-$card = [
-    'name'      => $request->get('name'),
-    'type'      => $request->get('type'),
-    'number'    => $request->get('number'),
-    'month'     => $request->get('month'),
-    'year'      => $request->get('year'),
-    'cvv'       => $request->get('cvv'),
-];
+$card = new \Mews\Pos\Entity\Card\CreditCardEstPos(
+    $request->get('number'),
+    $request->get('year'),
+    $request->get('month'),
+    $request->get('cvv'),
+    $request->get('name'),
+    $request->get('type')
+);
 
 $pos->prepare($order, $card);
 

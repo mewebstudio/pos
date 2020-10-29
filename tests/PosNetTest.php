@@ -1,10 +1,10 @@
 <?php
 
 namespace Mews\Pos\Tests;
+
+use Mews\Pos\Entity\Card\CreditCardPosNet;
 use Mews\Pos\PosNet;
 use PHPUnit\Framework\TestCase;
-
-
 
 class PosNetTest extends TestCase
 {
@@ -12,6 +12,9 @@ class PosNetTest extends TestCase
     private $posnet;
     private $config;
 
+    /**
+     * @var CreditCardPosNet
+     */
     private $card;
     private $order;
 
@@ -30,14 +33,7 @@ class PosNetTest extends TestCase
             'model' => '3d'
         ];
 
-        $this->card = (object)[
-            'number' => '5555444433332222',
-            'year' => '21',
-            'month' => '12',
-            'cvv' => '122',
-            'name' => 'ahmet',
-            'type' => 'visa'
-        ];
+        $this->card = new CreditCardPosNet('5555444433332222', '21', '12', '122', 'ahmet');
 
         $this->order = (object)[
             'id' => 'YKB_TST_190620093100_024',

@@ -2,15 +2,19 @@
 
 namespace Mews\Pos\Tests;
 
+use Mews\Pos\Entity\Card\CreditCardGarantiPos;
 use Mews\Pos\GarantiPos;
 use PHPUnit\Framework\TestCase;
-
 
 class GarantiPosTest extends TestCase
 {
     private $account;
     private $garantiPos;
     private $config;
+
+    /**
+     * @var CreditCardGarantiPos
+     */
     private $card;
     private $order;
 
@@ -31,14 +35,7 @@ class GarantiPosTest extends TestCase
             'env' => 'test',
         ];
 
-        $this->card = (object)[
-            'number' => '5555444433332222',
-            'year' => '21',
-            'month' => '12',
-            'cvv' => '122',
-            'name' => 'ahmet',
-            'type' => 'visa'
-        ];
+        $this->card = new CreditCardGarantiPos('5555444433332222', '21', '12', '122');
 
         $this->order = (object)[
             'id' => 'order222',

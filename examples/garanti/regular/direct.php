@@ -17,19 +17,13 @@ $order = [
     'transaction'   => 'pay', // pay => Auth, pre PreAuth
 ];
 
-$card = [
-    'number'        => '4282209027132016',
-    'month'         => '05',
-    'year'          => '20',
-    'cvv'           => '165',
-];
-
 try {
     $pos->prepare($order);
 } catch (\Mews\Pos\Exceptions\UnsupportedTransactionTypeException $e) {
     var_dump($e->getCode(), $e->getMessage());
 }
 
+$card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos('4282209027132016', '20', '05', '165');
 $payment = $pos->payment($card);
 
 var_dump($payment->response);

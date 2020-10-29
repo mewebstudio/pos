@@ -4,13 +4,13 @@ namespace Mews\Pos;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\Entity\Card\CreditCardPosNet;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Class PosNet
- * @package Mews\Pos
  */
 class PosNet implements PosInterface
 {
@@ -118,9 +118,7 @@ class PosNet implements PosInterface
     protected $order = [];
 
     /**
-     * Credit Card
-     *
-     * @var object
+     * @var CreditCardPosNet|null
      */
     protected $card;
 
@@ -274,9 +272,9 @@ class PosNet implements PosInterface
                     'installment'   => $this->getInstallment(),
                     'amount'        => $this->getAmount(),
                     'currencyCode'  => $this->getCurrency(),
-                    'ccno'          => $this->card->number,
-                    'expDate'       => $this->card->year . $this->card->month,
-                    'cvc'           => $this->card->cvv,
+                    'ccno'          => $this->card->getNumber(),
+                    'expDate'       => $this->card->getExpirationDate(),
+                    'cvc'           => $this->card->getCvv(),
                 ],
             ]
         ];
@@ -353,29 +351,16 @@ class PosNet implements PosInterface
     }
 
     /**
-     * Get card exp date
-     *
-     * @return string
-     */
-    protected function getCardExpDate()
-    {
-        $year = (string) str_pad($this->card->year, 2, '0', STR_PAD_LEFT);
-        $month = (string) str_pad($this->card->month, 2, '0', STR_PAD_LEFT);
-
-        return (string) $year . $month;
-    }
-
-    /**
      * Get OOS transaction data
      *
      * @return object
+     *
      * @throws GuzzleException
      */
     public function getOosTransactionData()
     {
-        $name = isset($this->card->name) ? $this->card->name : null;
-        if (!$name) {
-            $name = isset($this->order->name) ? $this->order->name : null;
+        if (null === $this->card->getHolderName() && isset($this->order->name)) {
+            $this->card->setHolderName($this->order->name);
         }
 
         $contents = $this->createXML([
@@ -384,16 +369,16 @@ class PosNet implements PosInterface
                 'tid'   => $this->account->terminal_id,
                 'oosRequestData' => [
                     'posnetid'          => $this->account->posnet_id,
-                    'ccno'              => $this->card->number,
-                    'expDate'           => $this->getCardExpDate(),
-                    'cvc'               => $this->card->cvv,
+                    'ccno'              => $this->card->getNumber(),
+                    'expDate'           => $this->card->getExpirationDate(),
+                    'cvc'               => $this->card->getCvv(),
                     'amount'            => $this->getAmount(),
                     'currencyCode'      => $this->getCurrency(),
                     'installment'       => $this->getInstallment(),
                     'XID'               => $this->getOrderId(),
-                    'cardHolderName'    => $name,
+                    'cardHolderName'    => $this->card->getHolderName(),
                     'tranType'          => $this->type,
-                ]
+                ],
             ],
         ]);
 
@@ -532,10 +517,10 @@ class PosNet implements PosInterface
                 $transaction_security = 'Half 3D Secure';
                 $status = 'approved';
             }
-		
+
 	    //if 3D Authentication is failed
             if($status != 'approved') goto end;
-		
+
             $nodes = [
                 'posnetRequest' => [
                     'mid'   => $this->account->client_id,
@@ -669,9 +654,9 @@ class PosNet implements PosInterface
     /**
      * Prepare Order
      *
-     * @param object $order
-     * @param object null $card
-     * @return mixed
+     * @param object                $order
+     * @param CreditCardPosNet|null $card
+     *
      * @throws UnsupportedTransactionTypeException
      */
     public function prepare($order, $card = null)
@@ -686,14 +671,16 @@ class PosNet implements PosInterface
         }
 
         $this->order = $order;
-        $this->card = $card;
+            $this->card = $card;
     }
 
     /**
      * Make Payment
      *
-     * @param object $card
+     * @param CreditCardPosNet $card
+     *
      * @return mixed
+     *
      * @throws UnsupportedPaymentModelException
      * @throws GuzzleException
      */
@@ -1035,7 +1022,7 @@ class PosNet implements PosInterface
     }
 
     /**
-     * @return mixed
+     * @return CreditCardPosNet|null
      */
     public function getCard(){
         return $this->card;

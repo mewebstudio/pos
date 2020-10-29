@@ -26,12 +26,12 @@ $order = [
 
 $pos->prepare($order);
 
-$card = [
-    'number'    => $request->get('number'),
-    'month'     => $request->get('month'),
-    'year'      => $request->get('year'),
-    'cvv'       => $request->get('cvv'),
-];
+$card = new \Mews\Pos\Entity\Card\CreditCardEstPos(
+    $request->get('number'),
+    $request->get('year'),
+    $request->get('month'),
+    $request->get('cvv')
+);
 
 $payment = $pos->payment($card);
 $response = $payment->response;

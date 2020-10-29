@@ -3,12 +3,13 @@
 namespace Mews\Pos;
 
 use Exception;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardPos;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
 
 /**
  * Class Pos
- * @package Mews\Pos
  */
 class Pos
 {
@@ -34,9 +35,7 @@ class Pos
     protected $order;
 
     /**
-     * Credit Card
-     *
-     * @var object
+     * @var CreditCardPos
      */
     protected $card;
 
@@ -91,11 +90,12 @@ class Pos
     /**
      * Prepare Order
      *
-     * @param array $order
-     * @param array [] $card
+     * @param array                   $order
+     * @param AbstractCreditCard|null $card
+     *
      * @return Pos
      */
-    public function prepare(array $order, array $card = [])
+    public function prepare(array $order, $card = null)
     {
         // Installment
         $installment = 0;
@@ -116,7 +116,7 @@ class Pos
         ]);
 
         // Card
-        $this->card = $card ? (object) $card : null;
+        $this->card = $card;
 
         // Prepare Order
         $this->bank->prepare($this->order, $this->card);
@@ -127,20 +127,13 @@ class Pos
     /**
      * Make Payment
      *
-     * @param array [] $card
+     * @param AbstractCreditCard $card
+     *
      * @return mixed
      */
-    public function payment(array $card = [])
+    public function payment($card)
     {
-        // Credit Card
-        if ($card) {
-            $card = array_merge($card, [
-                'month'     => str_pad((int) $card['month'], 2, 0, STR_PAD_LEFT),
-                'year'      => str_pad((int) $card['year'], 2, 0, STR_PAD_LEFT),
-            ]);
-        }
-
-        $this->card = (object) $card;
+        $this->card = $card;
 
         // Make Payment
         return $this->bank->payment($this->card);
@@ -185,9 +178,10 @@ class Pos
     }
 
     /**
-     * @return mixed
+     * @return AbstractCreditCard
      */
-    public function getCard(){
+    public function getCard()
+    {
         return $this->bank->getCard();
     }
 

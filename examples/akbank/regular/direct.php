@@ -17,12 +17,7 @@ $order = [
     'transaction'   => 'pay', // pay => Auth, pre PreAuth
 ];
 
-$card = [
-    'number'        => '4355084355084358',
-    'month'         => '12',
-    'year'          => '18',
-    'cvv'           => '000',
-];
+$card = new \Mews\Pos\Entity\Card\CreditCardEstPos('4355084355084358', '20', '12', '000');
 
 try {
     $pos->prepare($order);

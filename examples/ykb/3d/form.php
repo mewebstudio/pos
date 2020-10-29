@@ -22,14 +22,14 @@ $order = [
 
 $_SESSION['order'] = $order;
 
-$card = [
-    'type'      => $_POST['type'],
-    'name'      => $_POST['name'],
-    'number'    => $_POST['number'],
-    'month'     => $_POST['month'],
-    'year'      => $_POST['year'],
-    'cvv'       => $_POST['cvv'],
-];
+$card = new \Mews\Pos\Entity\Card\CreditCardPosNet(
+    $request->get('number'),
+    $request->get('year'),
+    $request->get('month'),
+    $request->get('cvv'),
+    $request->get('name'),
+    $request->get('type')
+);
 
 $pos->prepare($order, $card);
 
