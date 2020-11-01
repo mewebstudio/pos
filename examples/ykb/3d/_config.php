@@ -5,7 +5,7 @@ session_start();
 require '../../../vendor/autoload.php';
 
 $host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
-$path = '/pos/examples/ykb/3d/';
+$path = '/ykb/3d/';
 $base_url = $host_url . $path;
 
 $success_url = $base_url . 'response.php';

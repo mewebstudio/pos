@@ -1,0 +1,24 @@
+# Use image which contains apache with php
+FROM php:7.4.10-apache
+
+RUN apt-get update && apt-get upgrade -y
+
+# Install packages needed to install php extensions
+RUN apt-get install git zlib1g-dev libxml2-dev libzip-dev zip unzip -y
+
+# Install PHP extensions
+RUN docker-php-ext-install zip intl pdo opcache
+
+# Install REDIS extensions
+RUN pecl install redis && docker-php-ext-enable redis
+
+# Install XDEBUG
+RUN pecl install xdebug-2.9.6 && docker-php-ext-enable xdebug
+
+# Install composer command
+RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
+
+#install nano text editor
+RUN apt-get install nano
+
+WORKDIR /var/www

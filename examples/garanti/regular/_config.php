@@ -3,7 +3,7 @@
 require '../../../vendor/autoload.php';
 
 $host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
-$path = '/pos/examples/garanti/regular/';
+$path = '/garanti/regular/';
 $base_url = $host_url . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
