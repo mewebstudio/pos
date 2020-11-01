@@ -131,7 +131,7 @@ class Pos
      *
      * @return mixed
      */
-    public function payment($card)
+    public function payment($card = null)
     {
         $this->card = $card;
 
