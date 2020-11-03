@@ -22,9 +22,9 @@ $card = new \Mews\Pos\Entity\Card\CreditCardEstPos('4355084355084358', '20', '12
 try {
     $pos->prepare($order);
 } catch (\Mews\Pos\Exceptions\UnsupportedTransactionTypeException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 }
 
 $payment = $pos->payment($card);
 
-var_dump($payment->getResponse());
+dump($payment->getResponse());

@@ -17,7 +17,6 @@ $refund = $pos->bank->refund([
 ]);
 
 $response = $refund->getResponse();
-$dump = get_object_vars($response);
 ?>
 
 <div class="result">
@@ -27,7 +26,7 @@ $dump = get_object_vars($response);
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>
         <dd class="col-sm-12">
-            <pre><?php print_r($dump); ?></pre>
+            <pre><?php dump($response); ?></pre>
         </dd>
     </dl>
     <hr>

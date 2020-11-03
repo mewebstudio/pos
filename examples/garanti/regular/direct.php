@@ -20,10 +20,10 @@ $order = [
 try {
     $pos->prepare($order);
 } catch (\Mews\Pos\Exceptions\UnsupportedTransactionTypeException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 }
 
 $card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos('4282209027132016', '20', '05', '165');
 $payment = $pos->payment($card);
 
-var_dump($payment->getResponse());
+dump($payment->getResponse());

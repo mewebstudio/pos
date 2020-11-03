@@ -59,7 +59,7 @@ $form_data = $pos->get3dFormData();
     <?php endforeach; ?>
     <div class="text-center">Redirecting...</div>
     <hr>
-    <pre><?php print_r($form_data) ?></pre>
+    <pre><?php dump($form_data) ?></pre>
     <div class="form-group text-center">
         <button type="submit" class="btn btn-lg btn-block btn-success">Submit</button>
     </div>
