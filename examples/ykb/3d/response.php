@@ -9,7 +9,7 @@ if ($request->getMethod() !== 'POST') {
     exit();
 }
 
-$order = $_SESSION['order'];
+$order = (array) json_decode($redis->lPop($orderId));
 
 $pos->prepare($order);
 $payment = $pos->payment();

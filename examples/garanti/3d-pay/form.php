@@ -9,7 +9,7 @@ if ($request->getMethod() !== 'POST') {
     exit();
 }
 
-$order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
+$orderId = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
 
 $amount = (double) 1;
 $instalment = '0';
@@ -23,7 +23,7 @@ $transaction_type = $pos->bank->types[$transaction];
 $rand = microtime();
 
 $order = [
-    'id'                => $order_id,
+    'id'                => $orderId,
     'email'             => 'mail@customer.com', // optional
     'name'              => 'John Doe', // optional
     'amount'            => $amount,
@@ -37,7 +37,7 @@ $order = [
     'rand'              => $rand,
 ];
 
-$_SESSION['order'] = $order;
+$redis->lPush($orderId, json_encode($order));
 
 $card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos(
     $request->get('number'),

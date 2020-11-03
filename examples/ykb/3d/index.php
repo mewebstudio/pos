@@ -4,12 +4,12 @@ require '_config.php';
 
 require '../../template/_header.php';
 
-$order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
+$orderId = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
 $amount = (double) 1;
 $instalment = '0';
 
 $order = [
-    'id'                => $order_id,
+    'id'                => $orderId,
     'amount'            => $amount,
     'installment'       => $instalment,
     'currency'          => 'TRY',

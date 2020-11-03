@@ -2,11 +2,11 @@
 
 require '_config.php';
 
-$order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
+$orderId = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
 $amount = (double) 100;
 
 $order = [
-    'id'            => $order_id,
+    'id'            => $orderId,
     'name'          => 'John Doe', // optional
     'email'         => 'mail@customer.com', // optional
     'user_id'       => '12', // optional

@@ -9,7 +9,7 @@ if ($request->getMethod() !== 'POST') {
     exit();
 }
 
-$order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
+$orderId = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
 
 $amount = (double) 320;
 $instalment = '0';
@@ -20,7 +20,7 @@ $fail_url = $baseUrl . 'response.php';
 $rand = microtime();
 
 $order = [
-    'id'                => $order_id,
+    'id'                => $orderId,
     'email'             => 'mail@customer.com', // optional
     'name'              => 'John Doe', // optional
     'amount'            => $amount,
@@ -34,7 +34,7 @@ $order = [
     'rand'              => $rand,
 ];
 
-$_SESSION['order'] = $order;
+$redis->lPush($orderId, json_encode($order));
 
 $card = new \Mews\Pos\Entity\Card\CreditCardEstPos(
     $request->get('number'),
