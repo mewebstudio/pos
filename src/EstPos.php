@@ -120,7 +120,7 @@ class EstPos implements PosInterface
      *
      * @var mixed
      */
-    public $response;
+    protected $response;
 
     /**
      * Configuration
@@ -270,6 +270,14 @@ class EstPos implements PosInterface
         $proc_return_code = $this->getProcReturnCode();
 
         return $proc_return_code ? (isset($this->codes[$proc_return_code]) ? (string)$this->codes[$proc_return_code] : null) : null;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getResponse()
+    {
+        return $this->response;
     }
 
     /**

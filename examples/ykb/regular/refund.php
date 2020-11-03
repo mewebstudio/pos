@@ -13,7 +13,7 @@ $refund = $pos->bank->refund([
     'currency'      => 'TRY',
 ]);
 
-$response = $refund->response;
+$response = $refund->getResponse();
 $dump = get_object_vars($response);
 ?>
 

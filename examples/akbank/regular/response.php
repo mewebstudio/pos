@@ -34,7 +34,7 @@ $card = new \Mews\Pos\Entity\Card\CreditCardEstPos(
 );
 
 $payment = $pos->payment($card);
-$response = $payment->response;
+$response = $payment->getResponse();
 
 $dump = get_object_vars($response);
 ?>

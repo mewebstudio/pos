@@ -27,4 +27,4 @@ try {
 
 $payment = $pos->payment($card);
 
-var_dump($payment->response);
+var_dump($payment->getResponse());

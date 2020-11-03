@@ -13,7 +13,7 @@ $query= $pos->bank->history([
     'ip'        => $ip,
 ]);
 
-$response = $query->response;
+$response = $query->getResponse();
 $dump = get_object_vars($response);
 ?>
 

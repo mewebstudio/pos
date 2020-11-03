@@ -141,7 +141,7 @@ class PosNet implements PosInterface
      *
      * @var mixed
      */
-    public $response;
+    protected $response;
 
     /**
      * Configuration
@@ -348,6 +348,14 @@ class PosNet implements PosInterface
         $proc_return_code = $this->getProcReturnCode();
 
         return isset($this->codes[$proc_return_code]) ? (string) $this->codes[$proc_return_code] : null;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getResponse()
+    {
+        return $this->response;
     }
 
     /**

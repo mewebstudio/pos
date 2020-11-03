@@ -12,7 +12,7 @@ $refund = $pos->bank->refund([
     'amount'    => '100',
 ]);
 
-$response = $refund->response;
+$response = $refund->getResponse();
 $dump = get_object_vars($response);
 ?>
 

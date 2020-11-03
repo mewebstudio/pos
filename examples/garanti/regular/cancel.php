@@ -16,7 +16,7 @@ $cancel = $pos->bank->cancel([
     'currency'      => 'TRY',
 ]);
 
-$response = $cancel->response;
+$response = $cancel->getResponse();
 $dump = get_object_vars($response);
 ?>
 

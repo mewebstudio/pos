@@ -11,7 +11,7 @@ $query= $pos->bank->status([
     'order_id'  => '201810297189'
 ]);
 
-$response = $query->response;
+$response = $query->getResponse();
 $dump = get_object_vars($response);
 ?>
 

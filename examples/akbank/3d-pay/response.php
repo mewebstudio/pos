@@ -13,7 +13,7 @@ $order = $_SESSION['order'];
 
 $pos->prepare($order);
 $payment = $pos->payment();
-$response = $payment->response;
+$response = $payment->getResponse();
 
 $dump = get_object_vars($response);
 ?>

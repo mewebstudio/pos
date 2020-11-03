@@ -26,4 +26,4 @@ try {
 $card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos('4282209027132016', '20', '05', '165');
 $payment = $pos->payment($card);
 
-var_dump($payment->response);
+var_dump($payment->getResponse());

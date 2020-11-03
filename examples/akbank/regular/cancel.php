@@ -11,7 +11,7 @@ $cancel = $pos->bank->cancel([
     'order_id'  => '20181029A3C1',
 ]);
 
-$response = $cancel->response;
+$response = $cancel->getResponse();
 $dump = get_object_vars($response);
 ?>
 

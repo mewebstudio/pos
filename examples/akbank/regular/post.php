@@ -43,7 +43,7 @@ try {
 
 $payment = $pos->payment();
 
-$response = $payment->response;
+$response = $payment->getResponse();
 $dump = get_object_vars($response);
 ?>
 

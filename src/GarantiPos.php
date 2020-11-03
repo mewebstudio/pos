@@ -120,7 +120,7 @@ class GarantiPos implements PosInterface
      *
      * @var mixed
      */
-    public $response;
+    protected $response;
 
     /**
      * Configuration
@@ -247,6 +247,14 @@ class GarantiPos implements PosInterface
         ];
 
         return strtoupper(sha1(implode('', $map)));
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getResponse()
+    {
+        return $this->response;
     }
 
     /**
