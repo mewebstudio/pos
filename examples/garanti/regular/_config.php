@@ -1,10 +1,9 @@
 <?php
 
-require '../../../vendor/autoload.php';
+require '../../_main_config.php';
 
-$host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
 $path = '/pos/examples/garanti/regular/';
-$base_url = $host_url . $path;
+$baseUrl = $hostUrl . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
@@ -29,6 +28,6 @@ try {
     dump($e->getCode(), $e->getMessage());
 }
 
-$gateway = $base_url . 'response.php';
+$gateway = $baseUrl . 'response.php';
 
-$template_title = 'Regular Payment';
+$templateTitle = 'Regular Payment';

@@ -1,12 +1,9 @@
 <?php
 
-session_start();
+require '../../_main_config.php';
 
-require '../../../vendor/autoload.php';
-
-$host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
 $path = '/pos/examples/garanti/3d-pay/';
-$base_url = $host_url . $path;
+$baseUrl = $hostUrl . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
@@ -30,4 +27,4 @@ try {
     dump($e->getCode(), $e->getMessage());
 }
 
-$template_title = '3D Pay Model Payment';
+$templateTitle = '3D Pay Model Payment';

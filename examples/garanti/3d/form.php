@@ -5,7 +5,7 @@ require '_config.php';
 require '../../template/_header.php';
 
 if ($request->getMethod() !== 'POST') {
-    echo new \Symfony\Component\HttpFoundation\RedirectResponse($base_url);
+    echo new \Symfony\Component\HttpFoundation\RedirectResponse($baseUrl);
     exit();
 }
 
@@ -14,8 +14,8 @@ $order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
 $amount = (double) 1;
 $instalment = '0';
 
-$success_url = $base_url . 'response.php';
-$fail_url = $base_url . 'response.php';
+$success_url = $baseUrl . 'response.php';
+$fail_url = $baseUrl . 'response.php';
 
 $rand = microtime();
 

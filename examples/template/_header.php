@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title><?php echo $template_title; ?></title>
+    <title><?php echo $templateTitle; ?></title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
@@ -12,5 +12,5 @@
 
 <div id="wrapper">
     <div class="container" style="max-width: 640px;">
-        <h2 class="text-center"><?php echo $template_title; ?></h2>
+        <h2 class="text-center"><?php echo $templateTitle; ?></h2>
         <hr>

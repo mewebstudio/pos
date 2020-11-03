@@ -2,7 +2,7 @@
 
 require '_config.php';
 
-$template_title = 'Cancel Order';
+$templateTitle = 'Cancel Order';
 
 require '../../template/_header.php';
 

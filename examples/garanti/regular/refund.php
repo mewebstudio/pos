@@ -2,7 +2,7 @@
 
 require '_config.php';
 
-$template_title = 'Refund Order';
+$templateTitle = 'Refund Order';
 
 require '../../template/_header.php';
 

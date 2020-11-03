@@ -1,15 +1,12 @@
 <?php
 
-session_start();
+require '../../_main_config.php';
 
-require '../../../vendor/autoload.php';
-
-$host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
 $path = '/pos/examples/ykb/3d/';
-$base_url = $host_url . $path;
+$baseUrl = $hostUrl . $path;
 
-$success_url = $base_url . 'response.php';
-$fail_url = $base_url . 'response.php';
+$success_url = $baseUrl . 'response.php';
+$fail_url = $baseUrl . 'response.php';
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
@@ -35,4 +32,4 @@ try {
     dump($e->getCode(), $e->getMessage());
 }
 
-$template_title = '3D Model Payment';
+$templateTitle = '3D Model Payment';

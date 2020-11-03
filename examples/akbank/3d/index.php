@@ -4,7 +4,7 @@ require '_config.php';
 
 require '../../template/_header.php';
 
-$url = $base_url . 'form.php';
+$url = $baseUrl . 'form.php';
 ?>
 
 <form method="post" action="<?php echo $url; ?>" role="form">

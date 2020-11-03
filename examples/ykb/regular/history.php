@@ -2,7 +2,7 @@
 
 require '_config.php';
 
-$template_title = 'History Order';
+$templateTitle = 'History Order';
 
 require '../../template/_header.php';
 
