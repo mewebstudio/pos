@@ -173,6 +173,13 @@ $pos = new \Mews\Pos\Pos($account, $yeni_ayarlar);
 ### Örnek Kodlar
 `./pos/examples` dizini içerisinde.
 
+### Docker ile test ortamı
+Makinenizde Docker kurulu olmasi gerekiyor. 
+Projenin root klasöründe `docker-compose up` komutu çalıştırmanız yeterli.
+**Note**: localhost port 80 boş olması gerekiyor. 
+Sorunsuz çalışması durumda kod örneklerine http://localhost/akbank/3d/index.php şekilde erişebilirsiniz.
+http://localhost/ URL projenin `examples` klasörünün içine bakar.
+
 ### Yol Haritası
   - Dökümantasyon hazırlanacak
   - UnitTest yazılacak -> Bu hiçbir zaman olmayabilir, birisi el atarsa sevinirim :)

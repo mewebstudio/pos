@@ -2,7 +2,7 @@
 
 require '../../_main_config.php';
 
-$path = '/pos/examples/ykb/3d/';
+$path = '/ykb/3d/';
 $baseUrl = $hostUrl . $path;
 
 $success_url = $baseUrl . 'response.php';

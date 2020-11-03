@@ -2,7 +2,7 @@
 
 require '../../_main_config.php';
 
-$path = '/pos/examples/akbank/3d-pay/';
+$path = '/akbank/3d-pay/';
 $baseUrl = $hostUrl . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();

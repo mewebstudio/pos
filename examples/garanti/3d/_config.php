@@ -2,7 +2,7 @@
 
 require '../../_main_config.php';
 
-$path = '/pos/examples/garanti/3d/';
+$path = '/garanti/3d/';
 $baseUrl = $hostUrl . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
