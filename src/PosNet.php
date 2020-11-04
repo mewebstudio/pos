@@ -14,7 +14,9 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PosNet implements PosInterface
 {
-    use PosHelpersTrait;
+    use PosHelpersTrait {
+        createXML as traitCreateXML;
+    }
 
     /**
      * @const string
@@ -185,6 +187,14 @@ class PosNet implements PosInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function createXML(array $data, $encoding = 'ISO-8859-9'): string
+    {
+        return $this->traitCreateXML(['posnetRequest' => $data], $encoding);
+    }
+
+    /**
      * Get currency
      *
      * @return int|string
@@ -262,24 +272,22 @@ class PosNet implements PosInterface
     {
         $transaction = strtolower($this->type);
 
-        $nodes = [
-            'posnetRequest'   => [
-                'mid'               => $this->account->client_id,
-                'tid'               => $this->account->terminal_id,
-                'tranDateRequired'  => '1',
-                $transaction  => [
-                    'orderID'       => $this->getOrderId(),
-                    'installment'   => $this->getInstallment(),
-                    'amount'        => $this->getAmount(),
-                    'currencyCode'  => $this->getCurrency(),
-                    'ccno'          => $this->card->getNumber(),
-                    'expDate'       => $this->card->getExpirationDate(),
-                    'cvc'           => $this->card->getCvv(),
-                ],
-            ]
+        $requestData = [
+            'mid'               => $this->account->client_id,
+            'tid'               => $this->account->terminal_id,
+            'tranDateRequired'  => '1',
+            $transaction  => [
+                'orderID'       => $this->getOrderId(),
+                'installment'   => $this->getInstallment(),
+                'amount'        => $this->getAmount(),
+                'currencyCode'  => $this->getCurrency(),
+                'ccno'          => $this->card->getNumber(),
+                'expDate'       => $this->card->getExpirationDate(),
+                'cvc'           => $this->card->getCvv(),
+            ],
         ];
 
-        return $this->createXML($nodes, $encoding = 'ISO-8859-9');
+        return $this->createXML($requestData);
     }
 
     /**
@@ -289,21 +297,19 @@ class PosNet implements PosInterface
      */
     protected function createRegularPostXML()
     {
-        $nodes = [
-            'posnetRequest'   => [
-                'mid'               => $this->account->client_id,
-                'tid'               => $this->account->terminal_id,
-                'tranDateRequired'  => '1',
-                'capt'  => [
-                    'hostLogKey'    => $this->order->host_ref_num,
-                    'amount'        => $this->getAmount(),
-                    'currencyCode'  => $this->getCurrency(),
-                    'installment'   => $this->order->installment ? $this->getInstallment() : null
-                ],
-            ]
+        $requestData = [
+            'mid'               => $this->account->client_id,
+            'tid'               => $this->account->terminal_id,
+            'tranDateRequired'  => '1',
+            'capt'  => [
+                'hostLogKey'    => $this->order->host_ref_num,
+                'amount'        => $this->getAmount(),
+                'currencyCode'  => $this->getCurrency(),
+                'installment'   => $this->order->installment ? $this->getInstallment() : null
+            ],
         ];
 
-        return $this->createXML($nodes);
+        return $this->createXML($requestData);
     }
 
     /**
@@ -312,20 +318,18 @@ class PosNet implements PosInterface
      */
     protected function create3DPaymentXML()
     {
-        $nodes = [
-            'posnetRequest' => [
-                'mid'   => $this->account->client_id,
-                'tid'   => $this->account->terminal_id,
-                'oosResolveMerchantData'    => [
-                    'bankData'      => $this->request->get('BankPacket'),
-                    'merchantData'  => $this->request->get('MerchantPacket'),
-                    'sign'          => $this->request->get('Sign'),
-                    'mac'            => $this->create3DHash()
-                ],
-            ]
+        $requestData = [
+            'mid'   => $this->account->client_id,
+            'tid'   => $this->account->terminal_id,
+            'oosResolveMerchantData'    => [
+                'bankData'      => $this->request->get('BankPacket'),
+                'merchantData'  => $this->request->get('MerchantPacket'),
+                'sign'          => $this->request->get('Sign'),
+                'mac'            => $this->create3DHash()
+            ],
         ];
 
-        return $this->createXML($nodes, 'ISO-8859-9');
+        return $this->createXML($requestData);
     }
 
     /**
@@ -371,26 +375,25 @@ class PosNet implements PosInterface
             $this->card->setHolderName($this->order->name);
         }
 
-        $contents = $this->createXML([
-            'posnetRequest' => [
-                'mid'   => $this->account->client_id,
-                'tid'   => $this->account->terminal_id,
-                'oosRequestData' => [
-                    'posnetid'          => $this->account->posnet_id,
-                    'ccno'              => $this->card->getNumber(),
-                    'expDate'           => $this->card->getExpirationDate(),
-                    'cvc'               => $this->card->getCvv(),
-                    'amount'            => $this->getAmount(),
-                    'currencyCode'      => $this->getCurrency(),
-                    'installment'       => $this->getInstallment(),
-                    'XID'               => $this->getOrderId(),
-                    'cardHolderName'    => $this->card->getHolderName(),
-                    'tranType'          => $this->type,
-                ],
+        $requestData = [
+            'mid'   => $this->account->client_id,
+            'tid'   => $this->account->terminal_id,
+            'oosRequestData' => [
+                'posnetid'          => $this->account->posnet_id,
+                'ccno'              => $this->card->getNumber(),
+                'expDate'           => $this->card->getExpirationDate(),
+                'cvc'               => $this->card->getCvv(),
+                'amount'            => $this->getAmount(),
+                'currencyCode'      => $this->getCurrency(),
+                'installment'       => $this->getInstallment(),
+                'XID'               => $this->getOrderId(),
+                'cardHolderName'    => $this->card->getHolderName(),
+                'tranType'          => $this->type,
             ],
-        ]);
+        ];
+        $xml = $this->createXML($requestData);
 
-        $this->send($contents);
+        $this->send($xml);
 
         return $this->data;
     }
@@ -529,21 +532,19 @@ class PosNet implements PosInterface
 	    //if 3D Authentication is failed
             if($status != 'approved') goto end;
 
-            $nodes = [
-                'posnetRequest' => [
-                    'mid'   => $this->account->client_id,
-                    'tid'   => $this->account->terminal_id,
-                    'oosTranData' => [
-                        'bankData'      => $this->request->get('BankPacket'),
-                        'merchantData'  => $this->request->get('MerchantPacket'),
-                        'sign'          => $this->request->get('Sign'),
-                        'wpAmount'      => 0,
-                        'mac' => $this->create3DHash()
-                    ],
-                ]
+            $requestData = [
+                'mid'   => $this->account->client_id,
+                'tid'   => $this->account->terminal_id,
+                'oosTranData' => [
+                    'bankData'      => $this->request->get('BankPacket'),
+                    'merchantData'  => $this->request->get('MerchantPacket'),
+                    'sign'          => $this->request->get('Sign'),
+                    'wpAmount'      => 0,
+                    'mac' => $this->create3DHash()
+                ],
             ];
 
-            $contents = $this->createXML($nodes, $encoding = 'ISO-8859-9');
+            $contents = $this->createXML($requestData);
             $this->send($contents);
         }
 
@@ -773,11 +774,9 @@ class PosNet implements PosInterface
             ];
         }
 
-        $nodes = array_merge($nodes, $append);
+        $requestData = array_merge($nodes, $append);
 
-        $xml = $this->createXML([
-            'posnetRequest' => $nodes
-        ]);
+        $xml = $this->createXML($requestData);
 
         $this->send($xml);
 
@@ -875,15 +874,14 @@ class PosNet implements PosInterface
             'id' => isset($meta['order_id']) ? $meta['order_id'] : null,
         ];
 
-        $xml = $this->createXML([
-            'posnetRequest'   => [
-                'mid'   => $this->account->client_id,
-                'tid'   => $this->account->terminal_id,
-                'agreement' => [
-                    'orderID'   => $this->getPrefixedOrderId(),
-                ],
-            ]
-        ]);
+        $requestData = [
+            'mid'   => $this->account->client_id,
+            'tid'   => $this->account->terminal_id,
+            'agreement' => [
+                'orderID'   => $this->getPrefixedOrderId(),
+            ],
+        ];
+        $xml = $this->createXML($requestData);
 
         $this->send($xml);
 

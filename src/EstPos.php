@@ -15,7 +15,9 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class EstPos implements PosInterface
 {
-    use PosHelpersTrait;
+    use PosHelpersTrait {
+        createXML as traitCreateXML;
+    }
 
     /**
      * @const string
@@ -154,39 +156,45 @@ class EstPos implements PosInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function createXML(array $data, $encoding = 'ISO-8859-9'): string
+    {
+        return $this->traitCreateXML(['CC5Request' => $data], $encoding);
+    }
+
+    /**
      * Create Regular Payment XML
      *
      * @return string
      */
     protected function createRegularPaymentXML()
     {
-        $nodes = [
-            'CC5Request' => [
-                'Name' => $this->account->username,
-                'Password' => $this->account->password,
-                'ClientId' => $this->account->client_id,
-                'Type' => $this->type,
-                'IPAddress' => $this->order->ip,
-                'Email' => $this->order->email,
-                'OrderId' => $this->order->id,
-                'UserId' => isset($this->order->user_id) ? $this->order->user_id : null,
-                'Total' => $this->order->amount,
-                'Currency' => $this->order->currency,
-                'Taksit' => $this->order->installment,
-                'CardType' => $this->card->getType(),
-                'Number' => $this->card->getNumber(),
-                'Expires' => $this->card->getExpirationDate(),
-                'Cvv2Val' => $this->card->getCvv(),
-                'Mode' => 'P',
-                'GroupId' => '',
-                'TransId' => '',
-                'BillTo' => [
-                    'Name' => $this->order->name ? $this->order->name : null,
-                ]
-            ]
+        $requestData = [
+            'Name' => $this->account->username,
+            'Password' => $this->account->password,
+            'ClientId' => $this->account->client_id,
+            'Type' => $this->type,
+            'IPAddress' => $this->order->ip,
+            'Email' => $this->order->email,
+            'OrderId' => $this->order->id,
+            'UserId' => isset($this->order->user_id) ? $this->order->user_id : null,
+            'Total' => $this->order->amount,
+            'Currency' => $this->order->currency,
+            'Taksit' => $this->order->installment,
+            'CardType' => $this->card->getType(),
+            'Number' => $this->card->getNumber(),
+            'Expires' => $this->card->getExpirationDate(),
+            'Cvv2Val' => $this->card->getCvv(),
+            'Mode' => 'P',
+            'GroupId' => '',
+            'TransId' => '',
+            'BillTo' => [
+                'Name' => $this->order->name ? $this->order->name : null,
+            ],
         ];
 
-        return $this->createXML($nodes, 'ISO-8859-9');
+        return $this->createXML($requestData);
     }
 
     /**
@@ -196,17 +204,15 @@ class EstPos implements PosInterface
      */
     protected function createRegularPostXML()
     {
-        $nodes = [
-            'CC5Request' => [
-                'Name' => $this->account->username,
-                'Password' => $this->account->password,
-                'ClientId' => $this->account->client_id,
-                'Type' => $this->types[$this->order->transaction],
-                'OrderId' => $this->order->id,
-            ]
+        $requestData = [
+            'Name' => $this->account->username,
+            'Password' => $this->account->password,
+            'ClientId' => $this->account->client_id,
+            'Type' => $this->types[$this->order->transaction],
+            'OrderId' => $this->order->id,
         ];
 
-        return $this->createXML($nodes, 'ISO-8859-9');
+        return $this->createXML($requestData);
     }
 
     /**
@@ -215,39 +221,37 @@ class EstPos implements PosInterface
      */
     protected function create3DPaymentXML()
     {
-        $nodes = [
-            'CC5Request' => [
-                'Name' => $this->account->username,
-                'Password' => $this->account->password,
-                'ClientId' => $this->account->client_id,
-                'Type' => $this->type,
-                'IPAddress' => $this->order->ip,
-                'Email' => $this->order->email,
-                'OrderId' => $this->order->id,
-                'UserId' => isset($this->order->user_id) ? $this->order->user_id : null,
-                'Total' => $this->order->amount,
-                'Currency' => $this->order->currency,
-                'Taksit' => $this->order->installment,
-                'Number' => $this->request->get('md'),
-                'Expires' => '',
-                'Cvv2Val' => '',
-                'PayerTxnId' => $this->request->get('xid'),
-                'PayerSecurityLevel' => $this->request->get('eci'),
-                'PayerAuthenticationCode' => $this->request->get('cavv'),
-                'CardholderPresentCode' => '13',
-                'Mode' => 'P',
-                'GroupId' => '',
-                'TransId' => '',
-            ]
+        $requestData = [
+            'Name' => $this->account->username,
+            'Password' => $this->account->password,
+            'ClientId' => $this->account->client_id,
+            'Type' => $this->type,
+            'IPAddress' => $this->order->ip,
+            'Email' => $this->order->email,
+            'OrderId' => $this->order->id,
+            'UserId' => isset($this->order->user_id) ? $this->order->user_id : null,
+            'Total' => $this->order->amount,
+            'Currency' => $this->order->currency,
+            'Taksit' => $this->order->installment,
+            'Number' => $this->request->get('md'),
+            'Expires' => '',
+            'Cvv2Val' => '',
+            'PayerTxnId' => $this->request->get('xid'),
+            'PayerSecurityLevel' => $this->request->get('eci'),
+            'PayerAuthenticationCode' => $this->request->get('cavv'),
+            'CardholderPresentCode' => '13',
+            'Mode' => 'P',
+            'GroupId' => '',
+            'TransId' => '',
         ];
 
         if ($this->order->name) {
-            $nodes['BillTo'] = [
+            $requestData['BillTo'] = [
                 'Name' => $this->order->name,
             ];
         }
 
-        return $this->createXML($nodes, 'ISO-8859-9');
+        return $this->createXML($requestData);
     }
 
     /**
@@ -650,19 +654,19 @@ class EstPos implements PosInterface
      */
     public function refund(array $meta)
     {
-        $nodes = [
-            'CC5Request' => [
-                'Name' => $this->account->username,
-                'Password' => $this->account->password,
-                'ClientId' => $this->account->client_id,
-                'OrderId' => $meta['order_id'],
-                'Type' => 'Credit',
-            ]
+        $requestData = [
+            'Name' => $this->account->username,
+            'Password' => $this->account->password,
+            'ClientId' => $this->account->client_id,
+            'OrderId' => $meta['order_id'],
+            'Type' => 'Credit',
         ];
 
-        if ($meta['amount']) $nodes['Total'] = $meta['amount'];
+        if ($meta['amount']) {
+            $requestData['Total'] = $meta['amount'];
+        }
 
-        $xml = $this->createXML($nodes, 'ISO-8859-9');
+        $xml = $this->createXML($requestData);
         $this->send($xml);
 
         $status = 'declined';
@@ -697,15 +701,14 @@ class EstPos implements PosInterface
      */
     public function cancel(array $meta)
     {
-        $xml = $this->createXML([
-            'CC5Request' => [
-                'Name' => $this->account->username,
-                'Password' => $this->account->password,
-                'ClientId' => $this->account->client_id,
-                'OrderId' => $meta['order_id'],
-                'Type' => 'Void',
-            ]
-        ], 'ISO-8859-9');
+        $requestData = [
+            'Name' => $this->account->username,
+            'Password' => $this->account->password,
+            'ClientId' => $this->account->client_id,
+            'OrderId' => $meta['order_id'],
+            'Type' => 'Void',
+        ];
+        $xml = $this->createXML($requestData);
 
         $this->send($xml);
 
@@ -741,17 +744,16 @@ class EstPos implements PosInterface
      */
     public function status(array $meta)
     {
-        $xml = $this->createXML([
-            'CC5Request' => [
-                'Name' => $this->account->username,
-                'Password' => $this->account->password,
-                'ClientId' => $this->account->client_id,
-                'OrderId' => $meta['order_id'],
-                'Extra' => [
-                    'ORDERSTATUS' => 'QUERY',
-                ],
-            ]
-        ], 'ISO-8859-9');
+        $requestData = [
+            'Name' => $this->account->username,
+            'Password' => $this->account->password,
+            'ClientId' => $this->account->client_id,
+            'OrderId' => $meta['order_id'],
+            'Extra' => [
+                'ORDERSTATUS' => 'QUERY',
+            ],
+        ];
+        $xml = $this->createXML($requestData);
 
         $this->send($xml);
 
@@ -796,17 +798,16 @@ class EstPos implements PosInterface
      */
     public function history(array $meta)
     {
-        $xml = $this->createXML([
-            'CC5Request' => [
-                'Name' => $this->account->username,
-                'Password' => $this->account->password,
-                'ClientId' => $this->account->client_id,
-                'OrderId' => $meta['order_id'],
-                'Extra' => [
-                    'ORDERHISTORY' => 'QUERY',
-                ],
-            ]
-        ], 'ISO-8859-9');
+        $requestData = [
+            'Name' => $this->account->username,
+            'Password' => $this->account->password,
+            'ClientId' => $this->account->client_id,
+            'OrderId' => $meta['order_id'],
+            'Extra' => [
+                'ORDERHISTORY' => 'QUERY',
+            ],
+        ];
+        $xml = $this->createXML($requestData);
 
         $this->send($xml);
 
