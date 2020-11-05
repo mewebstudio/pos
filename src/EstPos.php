@@ -377,7 +377,6 @@ class EstPos implements PosInterface
             'campaign_url' => null,
             'extra' => isset($this->data->Extra) ? $this->data->Extra : null,
             'all' => $this->data,
-            'original' => $this->data,
         ];
 
         return $this;

@@ -529,7 +529,6 @@ class GarantiPos implements PosInterface
             'campaign_url'      => isset($this->data->Transaction->CampaignChooseLink) ? $this->printData($this->data->Transaction->CampaignChooseLink) : null,
             'extra'             => isset($this->data->Extra) ? $this->data->Extra : null,
             'all'               => $this->data,
-            'original'          => $this->data,
         ];
 
         return $this;
@@ -981,7 +980,6 @@ class GarantiPos implements PosInterface
             'error_message'     => isset($this->data->Transaction->Response->ErrorMsg) ? $this->printData($this->data->Transaction->Response->ErrorMsg) : null,
             'extra'             => isset($this->data->Extra) ? $this->data->Extra : null,
             'all'               => $this->data,
-            'original'          => $this->data,
         ];
 
         if ($type == 'orderhistoryinq') {

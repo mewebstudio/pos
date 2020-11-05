@@ -451,7 +451,6 @@ class PosNet implements PosInterface
             'campaign_url'      => null,
             'extra'             => null,
             'all'               => $this->data,
-            'original'          => $this->data,
         ];
 
         return $this;
@@ -831,7 +830,6 @@ class PosNet implements PosInterface
             'error_message'     => !empty($obj->respText) ? $this->printData($obj->respText) : null,
             'extra'             => null,
             'all'               => $this->data,
-            'original'          => $this->data,
         ];
 
         $this->response = (object) $data;
@@ -978,7 +976,6 @@ class PosNet implements PosInterface
             'error_message'     => !empty($this->data->respText) ? $this->printData($this->data->respText) : null,
             'extra'             => null,
             'all'               => $this->data,
-            'original'          => $this->data,
         ];
 
         if (!$history) {
