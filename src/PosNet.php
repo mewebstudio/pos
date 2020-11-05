@@ -18,6 +18,9 @@ class PosNet implements PosInterface
         createXML as traitCreateXML;
     }
 
+    const LANG_TR = 'tr';
+    const LANG_EN = 'en';
+
     /**
      * @const string
      */
@@ -621,7 +624,7 @@ class PosNet implements PosInterface
                 'vftCode'            => isset($this->account->promotion_code) ? $this->account->promotion_code : null,
                 'merchantReturnURL'  => $this->order->success_url,
                 'url'                => '',
-                'lang'               => $this->order->lang,
+                'lang'               => $this->getLang(),
             ];
         }
 
@@ -1079,5 +1082,22 @@ class PosNet implements PosInterface
         }
 
         return $hash_str == $data->mac;
+    }
+
+    /**
+     * bank returns error messages for specified language value
+     * usually accepted values are tr,en
+     * @return string
+     */
+    private function getLang()
+    {
+        if ($this->order && isset($this->order->lang)) {
+            return $this->order->lang;
+        }
+        if (isset($this->account->lang)) {
+            return $this->account->lang;
+        }
+
+        return self::LANG_TR;
     }
 }

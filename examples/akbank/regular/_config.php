@@ -15,6 +15,7 @@ $account = [
     'username'      => 'XXXXXXX',
     'password'      => 'XXXXXXX',
     'env'           => 'test',
+    'lang'          => \Mews\Pos\EstPos::LANG_TR
 ];
 
 try {

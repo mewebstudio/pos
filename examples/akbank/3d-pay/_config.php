@@ -14,6 +14,7 @@ $account = [
     'client_id'     => 'XXXXXXX',
     'store_key'     => 'XXXXXXX',
     'env'           => 'test',
+    'lang'          => \Mews\Pos\EstPos::LANG_TR
 ];
 
 try {

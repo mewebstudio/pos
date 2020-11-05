@@ -30,7 +30,7 @@ $order = [
     'success_url'       => $success_url,
     'fail_url'          => $fail_url,
     'transaction'       => 'pay', // pay => Auth, pre PreAuth,
-    'lang'              => 'tr',
+    'lang'              => \Mews\Pos\GarantiPos::LANG_TR,
     'rand'              => $rand,
 ];
 

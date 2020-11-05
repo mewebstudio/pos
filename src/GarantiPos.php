@@ -19,6 +19,8 @@ class GarantiPos implements PosInterface
         createXML as traitCreateXML;
     }
 
+    const LANG_TR = 'tr';
+    const LANG_EN = 'en';
     /**
      * @const string
      */
@@ -1055,5 +1057,22 @@ class GarantiPos implements PosInterface
     public function getCard()
     {
         return $this->card;
+    }
+
+    /**
+     * bank returns error messages for specified language value
+     * usually accepted values are tr,en
+     * @return string
+     */
+    private function getLang()
+    {
+        if ($this->order && isset($this->order->lang)) {
+            return $this->order->lang;
+        }
+        if (isset($this->account->lang)) {
+            return $this->account->lang;
+        }
+
+        return self::LANG_TR;
     }
 }

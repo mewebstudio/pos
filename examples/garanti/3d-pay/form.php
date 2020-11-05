@@ -33,7 +33,7 @@ $order = [
     'success_url'       => $success_url,
     'fail_url'          => $fail_url,
     'transaction'       => $transaction,
-    'lang'              => 'tr',
+    'lang'              => \Mews\Pos\GarantiPos::LANG_TR,
     'rand'              => $rand,
 ];
 

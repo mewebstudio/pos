@@ -16,7 +16,7 @@ $order = [
     'success_url'       => $success_url,
     'fail_url'          => $fail_url,
     'transaction'       => 'pay', // pay => Sale, pre Auth
-    'lang'              => 'tr',
+    'lang'              => \Mews\Pos\PosNet::LANG_TR,
 ];
 ?>
 

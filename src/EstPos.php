@@ -19,6 +19,9 @@ class EstPos implements PosInterface
         createXML as traitCreateXML;
     }
 
+    const LANG_TR = 'tr';
+    const LANG_EN = 'en';
+
     /**
      * @const string
      */
@@ -544,7 +547,7 @@ class EstPos implements PosInterface
                 'okUrl' => $this->order->success_url,
                 'failUrl' => $this->order->fail_url,
                 'rnd' => $this->order->rand,
-                'lang' => $this->order->lang,
+                'lang' => $this->getLang(),
                 'currency' => $this->order->currency,
             ];
 
@@ -872,4 +875,20 @@ class EstPos implements PosInterface
         return $this->card;
     }
 
+    /**
+     * bank returns error messages for specified language value
+     * usually accepted values are tr,en
+     * @return string
+     */
+    private function getLang()
+    {
+        if ($this->order && isset($this->order->lang)) {
+            return $this->order->lang;
+        }
+        if (isset($this->account->lang)) {
+            return $this->account->lang;
+        }
+
+        return self::LANG_TR;
+    }
 }
