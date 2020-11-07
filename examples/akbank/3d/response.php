@@ -17,8 +17,8 @@ $response = $payment->getResponse();
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $response->status == 'approved' ? 'success' : 'danger'; ?>">
-        <?php echo $response->status == 'approved' ? 'Payment is successful!' : 'Payment is not successful'; ?>
+    <h3 class="text-center text-<?php echo $pos->isSuccess() ? 'success' : 'danger'; ?>">
+        <?php echo $pos->isSuccess() ? 'Payment is successful!' : 'Payment is not successful'; ?>
     </h3>
     <hr>
     <dl class="row">
