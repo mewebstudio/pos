@@ -34,7 +34,7 @@ $order = [
     'rand'              => $rand,
 ];
 
-$redis->lPush($orderId, json_encode($order));
+$redis->lPush('order', json_encode($order));
 
 $card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos(
     $request->get('number'),

@@ -20,7 +20,7 @@ $order = [
     'lang'          => $_POST['lang'],
 ];
 
-$redis->lPush($orderId, json_encode($order));
+$redis->lPush('order', json_encode($order));
 
 $card = new \Mews\Pos\Entity\Card\CreditCardPosNet(
     $request->get('number'),
