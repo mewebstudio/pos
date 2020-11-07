@@ -26,6 +26,13 @@ trait PosHelpersTrait
     public $gateway;
 
     /**
+     * 3D Pay Host Gateway URL
+     *
+     * @var string
+     */
+    protected $gateway3DHost;
+
+    /**
      * Create XML DOM Document
      *
      * @param array $nodes
@@ -66,12 +73,11 @@ trait PosHelpersTrait
      */
     public function isSuccess()
     {
-        $success = false;
-        if (isset($this->response) && $this->response->status == 'approved') {
-            $success = true;
+        if (isset($this->response) && 'approved' === $this->response->status) {
+            return true;
         }
 
-        return $success;
+        return false;
     }
 
     /**

@@ -129,7 +129,7 @@ class Pos
      *
      * @param AbstractCreditCard $card
      *
-     * @return mixed
+     * @return PosInterface
      */
     public function payment($card = null)
     {
