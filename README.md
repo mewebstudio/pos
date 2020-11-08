@@ -8,7 +8,7 @@ YapıKredi Posnet sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` 
 
 Finansbank'ın PayFor sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
 
-> EST altyapısında olan Akbank ve Ziraat bankası test edilmiştir.
+> EST altyapısında olan Akbank, TEB ve Ziraat bankası test edilmiştir.
 
 ### Özellikler
   - Standart E-Commerce modeliyle ödeme (model => regular)

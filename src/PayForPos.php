@@ -234,7 +234,6 @@ class PayForPos implements PosInterface
 
     /**
      * Make 3D Payment
-     * TODO 3d authorization basarili durumda procreturncode v033 donuyor.
      * @return $this
      *
      * @throws GuzzleException
@@ -245,6 +244,7 @@ class PayForPos implements PosInterface
 
         //if customer 3d verification passed finish payment
         if ($this->check3DHash($request->request->all()) && '1' === $request->get('3DStatus')) {
+            //valid ProcReturnCode is V033 in case of success 3D Authentication
             $contents = $this->create3DPaymentXML($request->request->all());
             $this->send($contents);
         }
@@ -282,10 +282,9 @@ class PayForPos implements PosInterface
      * Refund Order
      * refund amount should be exactly the same with order amount.
      * otherwise operation will be rejected
-     * TODO:
-     * Bu hatayı "Bu işlem geri alınamaz, lüften asıl işlemi iptal edin." alıyorsanız,
-     * sebebi ödemeyi aynı gün içinde iade etmek istiyorsanız CANCEL işlemi kullanılmalıdır,
-     * Refund işlemi en az 1 gün geçmiş işlemler için kullanabilirsiniz.
+     *
+     * Warning: You can not use refund for purchases made at the same date.
+     * Instead, you need to use cancel.
      *
      * @param array $meta
      *
