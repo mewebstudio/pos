@@ -85,7 +85,7 @@ $order = [
 ];
 
 // Kredi kartı bilgieri
-$card = new \Mews\Pos\Entity\Card\CreditCardPos('1111222233334444', '20', '01', '000');
+$card = new \Mews\Pos\Entity\Card\CreditCardEstPos('1111222233334444', '20', '01', '000');
 
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri gönderiliyor
 $pos->prepare($order);

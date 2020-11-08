@@ -2,7 +2,8 @@
 
 namespace Mews\Pos\Tests;
 
-use Mews\Pos\Entity\Card\CreditCardPos;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardPosNet;
 use Mews\Pos\Pos;
 use Mews\Pos\PosHelpersTrait;
 use Mews\Pos\PosNet;
@@ -17,7 +18,7 @@ class PosTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCardPos
+     * @var AbstractCreditCard
      */
     private $card;
     private $order;
@@ -37,7 +38,7 @@ class PosTest extends TestCase
             'store_key' => '10,10,10,10,10,10,10,10'
         ];
 
-        $this->card = new CreditCardPos('5555444433332222', '21', '12', '122', 'ahmet', 'visa');
+        $this->card = new CreditCardPosNet('5555444433332222', '21', '12', '122', 'ahmet', 'visa');
 
         $this->order = [
             'id' => 'order222',
