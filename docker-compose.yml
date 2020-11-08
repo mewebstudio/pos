@@ -1,11 +1,8 @@
 version: "3.2"
-##extra notes
-# When mapping ports in the HOST:CONTAINER format, you may experience erroneous results when using a container port lower than 60, because YAML parses numbers in the format xx:yy as a base-60 value. For this reason, we recommend always explicitly specifying your port mappings as strings.
 
 services:
   web:
     build:
-      #location of the Dockerfile
       context: ""
       #need to specify Dockerfile name if it is other than "Dockerfile"
       dockerfile: ./.docker/Dockerfile-web
@@ -19,5 +16,3 @@ services:
   redis:
     image: redis:alpine3.12
     container_name: pos_redis
-#    ports:
-#      - "6379:6379"

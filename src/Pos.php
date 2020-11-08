@@ -4,7 +4,6 @@ namespace Mews\Pos;
 
 use Exception;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCardPos;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
 
@@ -35,7 +34,7 @@ class Pos
     protected $order;
 
     /**
-     * @var CreditCardPos
+     * @var AbstractCreditCard
      */
     protected $card;
 
@@ -183,6 +182,14 @@ class Pos
     public function getCard()
     {
         return $this->bank->getCard();
+    }
+
+    /**
+     * @return string
+     */
+    public function get3DHash()
+    {
+        return $this->bank->create3DHash();
     }
 
     /**
