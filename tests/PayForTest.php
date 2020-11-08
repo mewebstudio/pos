@@ -39,14 +39,6 @@ class PayForTest extends TestCase
             'store_key'     => '12345678', //MerchantPass only needed for 3D payment
             'env'           => 'test',
             'lang'          => PayForPos::LANG_EN,
-            'customData'    => (object) [
-                /**
-                 * 0 : İşlemin E-commerce olduğunu ifade eder.
-                 * 1 : İşlemin MO TO olduğunu ifade ede
-                 */
-                'moto' => '0',
-                'mbrId' => 5, //Kurum Kodu
-            ],
         ];
 
         $this->card = new CreditCardPayFor('5555444433332222', '22', '01', '123', 'ahmet');
@@ -95,7 +87,7 @@ class PayForTest extends TestCase
         $form = [
             'gateway' => $this->config['banks'][$this->account->bank]['urls']['gateway'][$this->account->env],
             'inputs' => [
-                'MbrId' => $this->account->customData->mbrId,
+                'MbrId' => PayForPos::MBR_ID,
                 'MerchantID' => $this->account->client_id,
                 'UserCode' => $this->account->username,
                 'OrderId' => $this->order->id,

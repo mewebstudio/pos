@@ -17,14 +17,6 @@ $account = [
     'store_key'     => '12345678', //MerchantPass only needed for 3D payment
     'env'           => 'test',
     'lang'          => \Mews\Pos\PayForPos::LANG_EN,
-    'customData'    => (object) [
-        /**
-         * 0 : İşlemin E-commerce olduğunu ifade eder.
-         * 1 : İşlemin MO TO olduğunu ifade ede
-         */
-        'moto' => '0',
-        'mbrId' => 5, //Kurum Kodu
-    ]
 ];
 
 try {

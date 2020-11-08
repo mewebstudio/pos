@@ -16,14 +16,6 @@ $account = [
     'password'      => 'UcBN0',
     'env'           => 'test',
     'lang'          => \Mews\Pos\PayForPos::LANG_EN,
-    'customData'    => (object) [
-        /**
-         * 0 : İşlemin E-commerce olduğunu ifade eder.
-         * 1 : İşlemin MO TO olduğunu ifade ede
-         */
-        'moto' => '0',
-        'mbrId' => 5, //Kurum Kodu
-    ]
 ];
 
 try {

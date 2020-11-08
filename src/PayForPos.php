@@ -26,6 +26,23 @@ class PayForPos implements PosInterface
     const LANG_EN = 'en';
 
     /**
+     * Kurum kodudur. (Banka tarafından verilir)
+     */
+    const MBR_ID = '5';
+
+    /**
+     * MOTO (Mail Order Telephone Order) 0 for false, 1 for true
+     */
+    const MOTO = '0';
+
+    /**
+     * Raw Response Data
+     *
+     * @var object
+     */
+    protected $data;
+
+    /**
      * Response Codes
      *
      * @var array
@@ -99,12 +116,6 @@ class PayForPos implements PosInterface
      */
     private $response;
 
-    /**
-     * Raw Response Data
-     *
-     * @var object
-     */
-    protected $data;
 
     public function __construct($config, $account, array $currencies)
     {
@@ -470,7 +481,7 @@ class PayForPos implements PosInterface
      */
     public function create3DHash()
     {
-        $hashStr = $this->account->customData->mbrId . $this->order->id
+        $hashStr = self::MBR_ID . $this->order->id
             . $this->order->amount . $this->order->success_url
             . $this->order->fail_url . $this->type
             . $this->order->installment . $this->order->rand
@@ -746,11 +757,11 @@ class PayForPos implements PosInterface
     protected function createRegularPaymentXML()
     {
         $requestData = [
-            'MbrId' => $this->account->customData->mbrId,
+            'MbrId' => self::MBR_ID,
             'MerchantId' => $this->account->client_id,
             'UserCode' => $this->account->username,
             'UserPass' => $this->account->password,
-            'MOTO' => $this->account->customData->moto,
+            'MOTO' => self::MOTO,
             'OrderId' => $this->order->id,
             'SecureType' => 'NonSecure',
             'TxnType' => $this->type,
@@ -775,11 +786,11 @@ class PayForPos implements PosInterface
     protected function createRegularPostXML()
     {
         $requestData = [
-            'MbrId' => $this->account->customData->mbrId,
+            'MbrId' => self::MBR_ID,
             'MerchantId' => $this->account->client_id,
             'UserCode' => $this->account->username,
             'UserPass' => $this->account->password,
-            'MOTO' => $this->account->customData->moto,
+            'MOTO' => self::MOTO,
             'OrgOrderId' => $this->order->id,
             'SecureType' => 'NonSecure',
             'TxnType' => $this->type,
@@ -822,7 +833,7 @@ class PayForPos implements PosInterface
     protected function createOrderStatusXML()
     {
         $requestData = [
-            'MbrId' => $this->account->customData->mbrId,
+            'MbrId' => self::MBR_ID,
             'MerchantId' => $this->account->client_id,
             'UserCode' => $this->account->username,
             'UserPass' => $this->account->password,
@@ -843,7 +854,7 @@ class PayForPos implements PosInterface
     protected function createRefundXML()
     {
         $requestData = [
-            'MbrId' => $this->account->customData->mbrId,
+            'MbrId' => self::MBR_ID,
             'MerchantId' => $this->account->client_id,
             'UserCode' => $this->account->username,
             'UserPass' => $this->account->password,
@@ -866,7 +877,7 @@ class PayForPos implements PosInterface
     protected function createCancelXML()
     {
         $requestData = [
-            'MbrId' => $this->account->customData->mbrId,
+            'MbrId' => self::MBR_ID,
             'MerchantId' => $this->account->client_id,
             'UserCode' => $this->account->username,
             'UserPass' => $this->account->password,
@@ -891,7 +902,7 @@ class PayForPos implements PosInterface
     protected function createHistoryXML($customQueryData)
     {
         $requestData = [
-            'MbrId' => $this->account->customData->mbrId,
+            'MbrId' => self::MBR_ID,
             'MerchantId' => $this->account->client_id,
             'UserCode' => $this->account->username,
             'UserPass' => $this->account->password,
@@ -918,7 +929,7 @@ class PayForPos implements PosInterface
     protected function getCommon3DFormData($withCrediCard = false)
     {
         $inputs = [
-            'MbrId' => $this->account->customData->mbrId,
+            'MbrId' => self::MBR_ID,
             'MerchantID' => $this->account->client_id,
             'UserCode' => $this->account->username,
             'OrderId' => $this->order->id,
