@@ -3,9 +3,9 @@
 namespace Mews\Pos\Entity\Card;
 
 /**
- * Class CreditCardEstPos
+ * Class CreditCardPayFor
  */
-class CreditCardPos extends AbstractCreditCard
+class CreditCardPayFor extends AbstractCreditCard
 {
     /**
      * @inheritDoc

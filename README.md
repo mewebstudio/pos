@@ -1,9 +1,12 @@
 # Türk bankaları için sanal pos paketi (PHP)
 
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
-EST altyapısı tam olarak test edilmiş ve kullanıma hazırdır.
-Garanti Ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
-YapıKredi Posnet sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
+
+EST altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Garanti Ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
+
+YapıKredi Posnet sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` işlemleri test edilmedi. 
+
+Finansbank'ın PayFor sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
 
 > EST altyapısında olan Akbank ve Ziraat bankası test edilmiştir.
 
@@ -37,7 +40,7 @@ $ composer require mews/pos
 require './vendor/autoload.php';
 
 $host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
-$path = '/pos-test/';
+$path = '/';
 $base_url = $host_url . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
@@ -57,10 +60,10 @@ $account = [
 try {
     $pos = new \Mews\Pos\Pos($account);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
     exit();
 } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
     exit();
 }
 ```
@@ -104,7 +107,7 @@ $payment->isError();
 $pos->isError();
 
 // Sonuç çıktısı
-var_dump($payment->response);
+dump($payment->getResponse());
 
 ````
 
