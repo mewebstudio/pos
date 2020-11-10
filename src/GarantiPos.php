@@ -4,6 +4,7 @@ namespace Mews\Pos;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\Entity\Card\CreditCardGarantiPos;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Symfony\Component\HttpFoundation\Request;
@@ -14,8 +15,12 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class GarantiPos implements PosInterface
 {
-    use PosHelpersTrait;
+    use PosHelpersTrait {
+        createXML as traitCreateXML;
+    }
 
+    const LANG_TR = 'tr';
+    const LANG_EN = 'en';
     /**
      * @const string
      */
@@ -96,9 +101,7 @@ class GarantiPos implements PosInterface
     protected $order = [];
 
     /**
-     * Credit Card
-     *
-     * @var object
+     * @var CreditCardGarantiPos
      */
     protected $card;
 
@@ -121,7 +124,7 @@ class GarantiPos implements PosInterface
      *
      * @var mixed
      */
-    public $response;
+    protected $response;
 
     /**
      * Configuration
@@ -175,6 +178,14 @@ class GarantiPos implements PosInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function createXML(array $data, $encoding = 'UTF-8'): string
+    {
+        return $this->traitCreateXML(['GVPSRequest' => $data], $encoding);
+    }
+
+    /**
      * Make Security Data
      *
      * @param bool $refund
@@ -201,7 +212,7 @@ class GarantiPos implements PosInterface
         $map = [
             $this->order->id,
             $this->account->terminal_id,
-            isset($this->card->number) ? $this->card->number : null,
+            isset($this->card) ? $this->card->getNumber() : null,
             $this->amountFormat($this->order->amount),
             $security_data,
         ];
@@ -251,6 +262,14 @@ class GarantiPos implements PosInterface
     }
 
     /**
+     * @return mixed
+     */
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
+    /**
      * Amount Formatter
      *
      * @param double $amount
@@ -271,58 +290,56 @@ class GarantiPos implements PosInterface
         $security_data = $this->makeSecurityData();
         $hash_data = $this->makeHashData($security_data);
 
-        $nodes = [
-            'GVPSRequest'   => [
-                'Mode'              => $this->mode,
-                'Version'           => 'v0.01',
-                'Terminal'          => [
-                    'ProvUserID'    => $this->account->username,
-                    'UserID'        => $this->account->username,
-                    'HashData'      => $hash_data,
-                    'ID'            => $this->account->terminal_id,
-                    'MerchantID'    => $this->account->client_id,
-                ],
-                'Customer'          => [
-                    'IPAddress'     => $this->order->ip,
-                    'EmailAddress'  => $this->order->email,
-                ],
-                'Card'              => [
-                    'Number'        => $this->card->number,
-                    'ExpireDate'    => $this->card->month . $this->card->year,
-                    'CVV2'          => $this->card->cvv,
-                ],
-                'Order'             => [
-                    'OrderID'       => $this->order->id,
-                    'GroupID'       => '',
-                    'AddressList'   => [
-                        'Address'   => [
-                            'Type'          => 'S',
-                            'Name'          => $this->order->name,
-                            'LastName'      => '',
-                            'Company'       => '',
-                            'Text'          => '',
-                            'District'      => '',
-                            'City'          => '',
-                            'PostalCode'    => '',
-                            'Country'       => '',
-                            'PhoneNumber'   => '',
-                        ],
+        $requestData = [
+            'Mode'              => $this->mode,
+            'Version'           => 'v0.01',
+            'Terminal'          => [
+                'ProvUserID'    => $this->account->username,
+                'UserID'        => $this->account->username,
+                'HashData'      => $hash_data,
+                'ID'            => $this->account->terminal_id,
+                'MerchantID'    => $this->account->client_id,
+            ],
+            'Customer'          => [
+                'IPAddress'     => $this->order->ip,
+                'EmailAddress'  => $this->order->email,
+            ],
+            'Card'              => [
+                'Number'        => $this->card->getNumber(),
+                'ExpireDate'    => $this->card->getExpirationDate(),
+                'CVV2'          => $this->card->getCvv(),
+            ],
+            'Order'             => [
+                'OrderID'       => $this->order->id,
+                'GroupID'       => '',
+                'AddressList'   => [
+                    'Address'   => [
+                        'Type'          => 'S',
+                        'Name'          => $this->order->name,
+                        'LastName'      => '',
+                        'Company'       => '',
+                        'Text'          => '',
+                        'District'      => '',
+                        'City'          => '',
+                        'PostalCode'    => '',
+                        'Country'       => '',
+                        'PhoneNumber'   => '',
                     ],
                 ],
-                'Transaction'       => [
-                    'Type'                  => $this->type,
-                    'InstallmentCnt'        => $this->order->installment > 1 ? $this->order->installment : '',
-                    'Amount'                => $this->amountFormat($this->order->amount),
-                    'CurrencyCode'          => $this->order->currency,
-                    'CardholderPresentCode' => '0',
-                    'MotoInd'               => 'N',
-                    'Description'           => '',
-                    'OriginalRetrefNum'     => '',
-                ],
-            ]
+            ],
+            'Transaction'       => [
+                'Type'                  => $this->type,
+                'InstallmentCnt'        => $this->order->installment > 1 ? $this->order->installment : '',
+                'Amount'                => $this->amountFormat($this->order->amount),
+                'CurrencyCode'          => $this->order->currency,
+                'CardholderPresentCode' => '0',
+                'MotoInd'               => 'N',
+                'Description'           => '',
+                'OriginalRetrefNum'     => '',
+            ],
         ];
 
-        return $this->createXML($nodes);
+        return $this->createXML($requestData);
     }
 
     /**
@@ -335,34 +352,32 @@ class GarantiPos implements PosInterface
         $security_data = $this->makeSecurityData();
         $hash_data = $this->makeHashData($security_data);
 
-        $nodes = [
-            'GVPSRequest'   => [
-                'Mode'      => $this->mode,
-                'Version'   => 'v0.1',
-                'Terminal'  => [
-                    'ProvUserID'    => $this->account->username,
-                    'UserID'        => $this->account->username,
-                    'HashData'      => $hash_data,
-                    'ID'            => $this->account->terminal_id,
-                    'MerchantID'    => $this->account->client_id,
-                ],
-                'Customer'          => [
-                    'IPAddress'     => $this->order->ip,
-                    'EmailAddress'  => isset($this->order->email) ? $this->order->email : null,
-                ],
-                'Order' => [
-                    'OrderID'   => $this->order->id,
-                ],
-                'Transaction'   => [
-                    'Type'              => $this->types[$this->order->transaction],
-                    'Amount'            => $this->amountFormat($this->order->amount),
-                    'CurrencyCode'      => $this->order->currency,
-                    'OriginalRetrefNum' => $this->order->ref_ret_num,
-                ],
-            ]
+        $requestData = [
+            'Mode'      => $this->mode,
+            'Version'   => 'v0.1',
+            'Terminal'  => [
+                'ProvUserID'    => $this->account->username,
+                'UserID'        => $this->account->username,
+                'HashData'      => $hash_data,
+                'ID'            => $this->account->terminal_id,
+                'MerchantID'    => $this->account->client_id,
+            ],
+            'Customer'          => [
+                'IPAddress'     => $this->order->ip,
+                'EmailAddress'  => isset($this->order->email) ? $this->order->email : null,
+            ],
+            'Order' => [
+                'OrderID'   => $this->order->id,
+            ],
+            'Transaction'   => [
+                'Type'              => $this->types[$this->order->transaction],
+                'Amount'            => $this->amountFormat($this->order->amount),
+                'CurrencyCode'      => $this->order->currency,
+                'OriginalRetrefNum' => $this->order->ref_ret_num,
+            ],
         ];
 
-        return $this->createXML($nodes);
+        return $this->createXML($requestData);
     }
 
     /**
@@ -374,63 +389,61 @@ class GarantiPos implements PosInterface
         $security_data = $this->makeSecurityData();
         $hash_data = $this->makeHashData($security_data);
 
-        $nodes = [
-            'GVPSRequest'   => [
-                'Mode'              => $this->mode,
-                'Version'           => $this->version,
-                'ChannelCode'       => '',
-                'Terminal'          => [
-                    'ProvUserID'    => $this->account->username,
-                    'UserID'        => $this->account->username,
-                    'HashData'      => $hash_data,
-                    'ID'            => $this->account->terminal_id,
-                    'MerchantID'    => $this->account->client_id,
-                ],
-                'Customer'          => [
-                    'IPAddress'     => $this->request->get('customeripaddress'),
-                    'EmailAddress'  => $this->request->get('customeremailaddress'),
-                ],
-                'Card'              => [
-                    'Number'        => '',
-                    'ExpireDate'    => '',
-                    'CVV2'          => '',
-                ],
-                'Order'             => [
-                    'OrderID'       => $this->request->get('orderid'),
-                    'GroupID'       => '',
-                    'AddressList'   => [
-                        'Address'   => [
-                            'Type'          => 'B',
-                            'Name'          => $this->order->name,
-                            'LastName'      => '',
-                            'Company'       => '',
-                            'Text'          => '',
-                            'District'      => '',
-                            'City'          => '',
-                            'PostalCode'    => '',
-                            'Country'       => '',
-                            'PhoneNumber'   => '',
-                        ],
+        $requestData = [
+            'Mode'              => $this->mode,
+            'Version'           => $this->version,
+            'ChannelCode'       => '',
+            'Terminal'          => [
+                'ProvUserID'    => $this->account->username,
+                'UserID'        => $this->account->username,
+                'HashData'      => $hash_data,
+                'ID'            => $this->account->terminal_id,
+                'MerchantID'    => $this->account->client_id,
+            ],
+            'Customer'          => [
+                'IPAddress'     => $this->request->get('customeripaddress'),
+                'EmailAddress'  => $this->request->get('customeremailaddress'),
+            ],
+            'Card'              => [
+                'Number'        => '',
+                'ExpireDate'    => '',
+                'CVV2'          => '',
+            ],
+            'Order'             => [
+                'OrderID'       => $this->request->get('orderid'),
+                'GroupID'       => '',
+                'AddressList'   => [
+                    'Address'   => [
+                        'Type'          => 'B',
+                        'Name'          => $this->order->name,
+                        'LastName'      => '',
+                        'Company'       => '',
+                        'Text'          => '',
+                        'District'      => '',
+                        'City'          => '',
+                        'PostalCode'    => '',
+                        'Country'       => '',
+                        'PhoneNumber'   => '',
                     ],
                 ],
-                'Transaction'       => [
-                    'Type'                  => $this->request->get('txntype'),
-                    'InstallmentCnt'        => $this->order->installment ? $this->order->installment : '',
-                    'Amount'                => $this->request->get('txnamount'),
-                    'CurrencyCode'          => $this->request->get('txncurrencycode'),
-                    'CardholderPresentCode' => '13',
-                    'MotoInd'               => 'N',
-                    'Secure3D'              => [
-                        'AuthenticationCode'    => $this->request->get('cavv'),
-                        'SecurityLevel'         => $this->request->get('eci'),
-                        'TxnID'                 => $this->request->get('xid'),
-                        'Md'                    => $this->request->get('md'),
-                    ],
+            ],
+            'Transaction'       => [
+                'Type'                  => $this->request->get('txntype'),
+                'InstallmentCnt'        => $this->order->installment ? $this->order->installment : '',
+                'Amount'                => $this->request->get('txnamount'),
+                'CurrencyCode'          => $this->request->get('txncurrencycode'),
+                'CardholderPresentCode' => '13',
+                'MotoInd'               => 'N',
+                'Secure3D'              => [
+                    'AuthenticationCode'    => $this->request->get('cavv'),
+                    'SecurityLevel'         => $this->request->get('eci'),
+                    'TxnID'                 => $this->request->get('xid'),
+                    'Md'                    => $this->request->get('md'),
                 ],
             ]
         ];
 
-        return $this->createXML($nodes);
+        return $this->createXML($requestData);
     }
 
     /**
@@ -516,7 +529,6 @@ class GarantiPos implements PosInterface
             'campaign_url'      => isset($this->data->Transaction->CampaignChooseLink) ? $this->printData($this->data->Transaction->CampaignChooseLink) : null,
             'extra'             => isset($this->data->Extra) ? $this->data->Extra : null,
             'all'               => $this->data,
-            'original'          => $this->data,
         ];
 
         return $this;
@@ -686,10 +698,10 @@ class GarantiPos implements PosInterface
             'errorurl'              => $this->order->fail_url,
             'customeremailaddress'  => isset($this->order->email) ? $this->order->email : null,
             'customeripaddress'     => $this->order->ip,
-            'cardnumber'            => $this->card->number,
-            'cardexpiredatemonth'   => $this->card->month,
-            'cardexpiredateyear'    => $this->card->year,
-            'cardcvv2'              => $this->card->cvv,
+            'cardnumber'            => $this->card->getNumber(),
+            'cardexpiredatemonth'   => $this->card->getExpireMonth(),
+            'cardexpiredateyear'    => $this->card->getExpireYear(),
+            'cardcvv2'              => $this->card->getCvv(),
             'secure3dhash'          => $hash_data,
         ];
 
@@ -726,9 +738,11 @@ class GarantiPos implements PosInterface
     /**
      * Prepare Order
      *
-     * @param object $order
-     * @param object null $card
+     * @param object                    $order
+     * @param CreditCardGarantiPos|null $card
+     *
      * @return mixed
+     *
      * @throws UnsupportedTransactionTypeException
      */
     public function prepare($order, $card = null)
@@ -744,17 +758,15 @@ class GarantiPos implements PosInterface
 
         $this->order = $order;
         $this->card = $card;
-
-        if ($this->card) {
-            $this->card->month = str_pad($this->card->month, 2, '0', STR_PAD_LEFT);
-        }
     }
 
     /**
      * Make Payment
      *
-     * @param object $card
+     * @param CreditCardGarantiPos $card
+     *
      * @return mixed
+     *
      * @throws UnsupportedPaymentModelException
      * @throws GuzzleException
      */
@@ -800,39 +812,37 @@ class GarantiPos implements PosInterface
 
         $currency = (int) $this->currencies[$meta['currency']];
 
-        $nodes = [
-            'GVPSRequest'   => [
-                'Mode'          => $this->mode,
-                'Version'       => $this->version,
-                'ChannelCode'   => '',
-                'Terminal'      => [
-                    'ProvUserID'    => $this->account->refund_username,
-                    'UserID'        => $this->account->refund_username,
-                    'HashData'      => $hash_data,
-                    'ID'            => $this->account->terminal_id,
-                    'MerchantID'    => $this->account->client_id,
-                ],
-                'Customer'      => [
-                    'IPAddress'     => isset($meta['ip']) ? $meta['ip'] : null,
-                    'EmailAddress'  => isset($meta['email']) ? $meta['email'] : null,
-                ],
-                'Order'         => [
-                    'OrderID'   => $this->order->id,
-                    'GroupID'   => '',
-                ],
-                'Transaction'   => [
-                    'Type'                  => $type,
-                    'InstallmentCnt'        => '',
-                    'Amount'                => $this->amountFormat($this->order->amount),
-                    'CurrencyCode'          => $currency,
-                    'CardholderPresentCode' => '0',
-                    'MotoInd'               => 'N',
-                    'OriginalRetrefNum'     => $meta['ref_ret_num'],
-                ],
-            ]
+        $requestData = [
+            'Mode'          => $this->mode,
+            'Version'       => $this->version,
+            'ChannelCode'   => '',
+            'Terminal'      => [
+                'ProvUserID'    => $this->account->refund_username,
+                'UserID'        => $this->account->refund_username,
+                'HashData'      => $hash_data,
+                'ID'            => $this->account->terminal_id,
+                'MerchantID'    => $this->account->client_id,
+            ],
+            'Customer'      => [
+                'IPAddress'     => isset($meta['ip']) ? $meta['ip'] : null,
+                'EmailAddress'  => isset($meta['email']) ? $meta['email'] : null,
+            ],
+            'Order'         => [
+                'OrderID'   => $this->order->id,
+                'GroupID'   => '',
+            ],
+            'Transaction'   => [
+                'Type'                  => $type,
+                'InstallmentCnt'        => '',
+                'Amount'                => $this->amountFormat($this->order->amount),
+                'CurrencyCode'          => $currency,
+                'CardholderPresentCode' => '0',
+                'MotoInd'               => 'N',
+                'OriginalRetrefNum'     => $meta['ref_ret_num'],
+            ],
         ];
 
-        $xml = $this->createXML($nodes);
+        $xml = $this->createXML($requestData);
         $this->send($xml);
 
         $status = 'declined';
@@ -910,41 +920,40 @@ class GarantiPos implements PosInterface
         $security_data = $this->makeSecurityData();
         $hash_data = $this->makeHashData($security_data);
 
-        $xml = $this->createXML([
-            'GVPSRequest'   => [
-                'Mode'          => $this->mode,
-                'Version'       => 'v0.01',
-                'ChannelCode'   => '',
-                'Terminal'      => [
-                    'ProvUserID'    => $this->account->username,
-                    'UserID'        => $this->account->username,
-                    'HashData'      => $hash_data,
-                    'ID'            => $this->account->terminal_id,
-                    'MerchantID'    => $this->account->client_id,
-                ],
-                'Customer'      => [
-                    'IPAddress'     => isset($meta['ip']) ? $meta['ip'] : null,
-                    'EmailAddress'  => isset($meta['email']) ? $meta['email'] : null,
-                ],
-                'Order'         => [
-                    'OrderID'   => $this->order->id,
-                    'GroupID'   => '',
-                ],
-                'Card'  => [
-                    'Number'        => '',
-                    'ExpireDate'    => '',
-                    'CVV2'          => '',
-                ],
-                'Transaction'   => [
-                    'Type'                  => $type,
-                    'InstallmentCnt'        => '',
-                    'Amount'                => $this->order->amount ? $this->amountFormat($this->order->amount) : null,
-                    'CurrencyCode'          => $this->order->currency,
-                    'CardholderPresentCode' => '0',
-                    'MotoInd'               => 'N',
-                ],
-            ]
-        ]);
+        $requestData = [
+            'Mode'          => $this->mode,
+            'Version'       => 'v0.01',
+            'ChannelCode'   => '',
+            'Terminal'      => [
+                'ProvUserID'    => $this->account->username,
+                'UserID'        => $this->account->username,
+                'HashData'      => $hash_data,
+                'ID'            => $this->account->terminal_id,
+                'MerchantID'    => $this->account->client_id,
+            ],
+            'Customer'      => [
+                'IPAddress'     => isset($meta['ip']) ? $meta['ip'] : null,
+                'EmailAddress'  => isset($meta['email']) ? $meta['email'] : null,
+            ],
+            'Order'         => [
+                'OrderID'   => $this->order->id,
+                'GroupID'   => '',
+            ],
+            'Card'  => [
+                'Number'        => '',
+                'ExpireDate'    => '',
+                'CVV2'          => '',
+            ],
+            'Transaction'   => [
+                'Type'                  => $type,
+                'InstallmentCnt'        => '',
+                'Amount'                => $this->order->amount ? $this->amountFormat($this->order->amount) : null,
+                'CurrencyCode'          => $this->order->currency,
+                'CardholderPresentCode' => '0',
+                'MotoInd'               => 'N',
+            ],
+        ];
+        $xml = $this->createXML($requestData);
 
         $this->send($xml);
 
@@ -971,7 +980,6 @@ class GarantiPos implements PosInterface
             'error_message'     => isset($this->data->Transaction->Response->ErrorMsg) ? $this->printData($this->data->Transaction->Response->ErrorMsg) : null,
             'extra'             => isset($this->data->Extra) ? $this->data->Extra : null,
             'all'               => $this->data,
-            'original'          => $this->data,
         ];
 
         if ($type == 'orderhistoryinq') {
@@ -1042,10 +1050,27 @@ class GarantiPos implements PosInterface
     }
 
     /**
-     * @return mixed
+     * @return CreditCardGarantiPos|null
      */
     public function getCard()
     {
         return $this->card;
+    }
+
+    /**
+     * bank returns error messages for specified language value
+     * usually accepted values are tr,en
+     * @return string
+     */
+    private function getLang()
+    {
+        if ($this->order && isset($this->order->lang)) {
+            return $this->order->lang;
+        }
+        if (isset($this->account->lang)) {
+            return $this->account->lang;
+        }
+
+        return self::LANG_TR;
     }
 }

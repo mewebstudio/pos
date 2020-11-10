@@ -1,10 +1,9 @@
 <?php
 
-require '../../../vendor/autoload.php';
+require '../../_main_config.php';
 
-$host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
-$path = '/pos/examples/ykb/regular/';
-$base_url = $host_url . $path;
+$path = '/ykb/regular/';
+$baseUrl = $hostUrl . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
@@ -18,16 +17,16 @@ $account = [
     'env'           => 'test',
 ];
 
-$template_title = 'Post Auth Order';
+$templateTitle = 'Post Auth Order';
 
 require '../../template/_header.php';
 
 try {
     $pos = new \Mews\Pos\Pos($account);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 }
 
 $order = [
@@ -42,13 +41,12 @@ $order = [
 try {
     $pos->prepare($order);
 } catch (\Mews\Pos\Exceptions\UnsupportedTransactionTypeException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 }
 
 $payment = $pos->payment();
 
-$response = $payment->response;
-$dump = get_object_vars($response);
+$response = $payment->getResponse();
 ?>
 
 <div class="result">
@@ -58,7 +56,7 @@ $dump = get_object_vars($response);
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>
         <dd class="col-sm-12">
-            <pre><?php print_r($dump); ?></pre>
+            <pre><?php dump($response); ?></pre>
         </dd>
     </dl>
     <hr>

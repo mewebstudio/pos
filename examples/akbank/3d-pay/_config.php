@@ -1,12 +1,9 @@
 <?php
 
-session_start();
+require '../../_main_config.php';
 
-require '../../../vendor/autoload.php';
-
-$host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
-$path = '/pos/examples/akbank/3d-pay/';
-$base_url = $host_url . $path;
+$path = '/akbank/3d-pay/';
+$baseUrl = $hostUrl . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
@@ -17,14 +14,15 @@ $account = [
     'client_id'     => 'XXXXXXX',
     'store_key'     => 'XXXXXXX',
     'env'           => 'test',
+    'lang'          => \Mews\Pos\EstPos::LANG_TR
 ];
 
 try {
     $pos = new \Mews\Pos\Pos($account);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 }
 
-$template_title = '3D Pay Model Payment';
+$templateTitle = '3D Pay Model Payment';

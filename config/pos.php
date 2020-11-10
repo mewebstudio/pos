@@ -128,6 +128,22 @@ return [
                     'test'          => 'https://sanalposprovtest.garanti.com.tr/servlet/gt3dengine',
                 ],
             ]
+        ],
+        'qnbfinansbank-payfor' => [
+            'name'  => 'QNBFinansbank-PayFor',
+            'class' => Mews\Pos\PayForPos::class,
+            'urls'  => [
+                'production'    => 'https://vpos.qnbfinansbank.com/Gateway/XMLGate.aspx',
+                'test'          => 'https://vpostest.qnbfinansbank.com/Gateway/XmlGate.aspx',
+                'gateway'       => [
+                    'production'    => 'https://vpos.qnbfinansbank.com/Gateway/Default.aspx',
+                    'test'          => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
+                ],
+                'gateway_3d_host'       => [
+                    'production'    => 'https://vpos.qnbfinansbank.com/Gateway/3DHost.aspx',
+                    'test'          => 'https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx',
+                ],
+            ]
         ]
     ],
 

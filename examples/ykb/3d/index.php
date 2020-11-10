@@ -4,19 +4,19 @@ require '_config.php';
 
 require '../../template/_header.php';
 
-$order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
+$orderId = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
 $amount = (double) 1;
 $instalment = '0';
 
 $order = [
-    'id'                => $order_id,
+    'id'                => $orderId,
     'amount'            => $amount,
     'installment'       => $instalment,
     'currency'          => 'TRY',
     'success_url'       => $success_url,
     'fail_url'          => $fail_url,
     'transaction'       => 'pay', // pay => Sale, pre Auth
-    'lang'              => 'tr',
+    'lang'              => \Mews\Pos\PosNet::LANG_TR,
 ];
 ?>
 

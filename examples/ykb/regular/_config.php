@@ -1,10 +1,9 @@
 <?php
 
-require '../../../vendor/autoload.php';
+require '../../_main_config.php';
 
-$host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
-$path = '/pos/examples/ykb/regular/';
-$base_url = $host_url . $path;
+$path = '/ykb/regular/';
+$baseUrl = $hostUrl . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
@@ -21,11 +20,11 @@ $account = [
 try {
     $pos = new \Mews\Pos\Pos($account);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 }
 
-$gateway = $base_url . 'response.php';
+$gateway = $baseUrl . 'response.php';
 
-$template_title = 'Regular Payment';
+$templateTitle = 'Regular Payment';

@@ -5,17 +5,17 @@ require '_config.php';
 require '../../template/_header.php';
 
 if ($request->getMethod() !== 'POST') {
-    echo new \Symfony\Component\HttpFoundation\RedirectResponse($base_url);
+    echo new \Symfony\Component\HttpFoundation\RedirectResponse($baseUrl);
     exit();
 }
 
-$order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
+$orderId = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
 
 $amount = (double) 1;
 $instalment = '0';
 
-$success_url = $base_url . 'response.php';
-$fail_url = $base_url . 'response.php';
+$success_url = $baseUrl . 'response.php';
+$fail_url = $baseUrl . 'response.php';
 
 $transaction = 'pay'; // pay => Auth, pre PreAuth
 $transaction_type = $pos->bank->types[$transaction];
@@ -23,7 +23,7 @@ $transaction_type = $pos->bank->types[$transaction];
 $rand = microtime();
 
 $order = [
-    'id'                => $order_id,
+    'id'                => $orderId,
     'email'             => 'mail@customer.com', // optional
     'name'              => 'John Doe', // optional
     'amount'            => $amount,
@@ -33,20 +33,20 @@ $order = [
     'success_url'       => $success_url,
     'fail_url'          => $fail_url,
     'transaction'       => $transaction,
-    'lang'              => 'tr',
+    'lang'              => \Mews\Pos\GarantiPos::LANG_TR,
     'rand'              => $rand,
 ];
 
-$_SESSION['order'] = $order;
+$redis->lPush('order', json_encode($order));
 
-$card = [
-    'name'      => $request->get('name'),
-    'type'      => $request->get('type'),
-    'number'    => $request->get('number'),
-    'month'     => $request->get('month'),
-    'year'      => $request->get('year'),
-    'cvv'       => $request->get('cvv'),
-];
+$card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos(
+    $request->get('number'),
+    $request->get('year'),
+    $request->get('month'),
+    $request->get('cvv'),
+    $request->get('name'),
+    $request->get('type')
+);
 
 $pos->prepare($order, $card);
 
@@ -59,7 +59,7 @@ $form_data = $pos->get3dFormData();
     <?php endforeach; ?>
     <div class="text-center">Redirecting...</div>
     <hr>
-    <pre><?php print_r($form_data) ?></pre>
+    <pre><?php dump($form_data) ?></pre>
     <div class="form-group text-center">
         <button type="submit" class="btn btn-lg btn-block btn-success">Submit</button>
     </div>

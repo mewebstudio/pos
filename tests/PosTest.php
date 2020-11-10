@@ -1,12 +1,13 @@
 <?php
 
 namespace Mews\Pos\Tests;
+
+use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardPosNet;
 use Mews\Pos\Pos;
 use Mews\Pos\PosHelpersTrait;
 use Mews\Pos\PosNet;
 use PHPUnit\Framework\TestCase;
-
-
 
 class PosTest extends TestCase
 {
@@ -16,6 +17,9 @@ class PosTest extends TestCase
     private $pos;
     private $config;
 
+    /**
+     * @var AbstractCreditCard
+     */
     private $card;
     private $order;
 
@@ -34,14 +38,7 @@ class PosTest extends TestCase
             'store_key' => '10,10,10,10,10,10,10,10'
         ];
 
-        $this->card = [
-            'number' => '5555444433332222',
-            'year' => '21',
-            'month' => '12',
-            'cvv' => '122',
-            'name' => 'ahmet',
-            'type' => 'visa'
-        ];
+        $this->card = new CreditCardPosNet('5555444433332222', '21', '12', '122', 'ahmet', 'visa');
 
         $this->order = [
             'id' => 'order222',
@@ -81,10 +78,8 @@ class PosTest extends TestCase
 
     public function testPrepare()
     {
-
         $this->pos->prepare($this->order, $this->card);
-        $this->assertEquals((object)$this->card, $this->pos->getCard());
-        //$this->assertEquals((object)$order, $this->pos->getOrder());
+        $this->assertEquals($this->card, $this->pos->getCard());
     }
 
     public function testGetGatewayUrl()

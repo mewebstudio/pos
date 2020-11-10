@@ -3,12 +3,12 @@
 namespace Mews\Pos;
 
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 
 /**
  * Interface PosInterface
- * @package Mews\Pos
  */
 interface PosInterface
 {
@@ -82,8 +82,10 @@ interface PosInterface
     /**
      * Make Payment
      *
-     * @param object $card
+     * @param AbstractCreditCard $card
+     *
      * @return mixed
+     *
      * @throws UnsupportedPaymentModelException
      * @throws GuzzleException
      */

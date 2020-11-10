@@ -1,0 +1,18 @@
+version: "3.2"
+
+services:
+  web:
+    build:
+      context: ""
+      #need to specify Dockerfile name if it is other than "Dockerfile"
+      dockerfile: ./.docker/Dockerfile-web
+    container_name: pos_web
+    volumes:
+      - ./:/var/www/
+      - ./.docker/virtualhost.conf:/etc/apache2/sites-available/000-default.conf
+      - ./.docker/php-xdebug.ini:/usr/local/etc/php/php.ini
+    ports:
+      - "80:80"
+  redis:
+    image: redis:alpine3.12
+    container_name: pos_redis

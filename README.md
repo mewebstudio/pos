@@ -1,11 +1,14 @@
 # Türk bankaları için sanal pos paketi (PHP)
 
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
-EST altyapısı tam olarak test edilmiş ve kullanıma hazırdır.
-Garanti Ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
-YapıKredi Posnet sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
 
-> EST altyapısında olan Akbank ve Ziraat bankası test edilmiştir.
+EST altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Garanti Ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
+
+YapıKredi Posnet sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` işlemleri test edilmedi. 
+
+Finansbank'ın PayFor sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
+
+> EST altyapısında olan Akbank, TEB ve Ziraat bankası test edilmiştir.
 
 ### Özellikler
   - Standart E-Commerce modeliyle ödeme (model => regular)
@@ -37,7 +40,7 @@ $ composer require mews/pos
 require './vendor/autoload.php';
 
 $host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
-$path = '/pos-test/';
+$path = '/';
 $base_url = $host_url . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
@@ -57,10 +60,10 @@ $account = [
 try {
     $pos = new \Mews\Pos\Pos($account);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
     exit();
 } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
     exit();
 }
 ```
@@ -85,12 +88,7 @@ $order = [
 ];
 
 // Kredi kartı bilgieri
-$card = [
-    'number'        => 'XXXXXXXXXXXXXXXX', // Kredi kartı numarası
-    'month'         => 'XX', // SKT ay
-    'year'          => 'XX', // SKT yıl, son iki hane
-    'cvv'           => 'XXX', // Güvenlik kodu, son üç hane
-];
+$card = new \Mews\Pos\Entity\Card\CreditCardEstPos('1111222233334444', '20', '01', '000');
 
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri gönderiliyor
 $pos->prepare($order);
@@ -109,7 +107,7 @@ $payment->isError();
 $pos->isError();
 
 // Sonuç çıktısı
-var_dump($payment->response);
+dump($payment->getResponse());
 
 ````
 
@@ -177,6 +175,13 @@ $pos = new \Mews\Pos\Pos($account, $yeni_ayarlar);
 
 ### Örnek Kodlar
 `./pos/examples` dizini içerisinde.
+
+### Docker ile test ortamı
+Makinenizde Docker kurulu olmasi gerekiyor. 
+Projenin root klasöründe `docker-compose up` komutu çalıştırmanız yeterli.
+**Note**: localhost port 80 boş olması gerekiyor. 
+Sorunsuz çalışması durumda kod örneklerine http://localhost/akbank/3d/index.php şekilde erişebilirsiniz.
+http://localhost/ URL projenin `examples` klasörünün içine bakar.
 
 ### Yol Haritası
   - Dökümantasyon hazırlanacak

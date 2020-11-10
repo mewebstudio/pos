@@ -2,15 +2,19 @@
 
 namespace Mews\Pos\Tests;
 
+use Mews\Pos\Entity\Card\CreditCardEstPos;
 use Mews\Pos\EstPos;
 use PHPUnit\Framework\TestCase;
-
 
 class EstPostTest extends TestCase
 {
     private $account;
     private $estpos;
     private $config;
+
+    /**
+     * @var CreditCardEstPos
+     */
     private $card;
     private $order;
 
@@ -30,14 +34,7 @@ class EstPostTest extends TestCase
             'env' => 'test',
         ];
 
-        $this->card = (object)[
-            'number' => '5555444433332222',
-            'year' => '21',
-            'month' => '12',
-            'cvv' => '122',
-            'name' => 'ahmet',
-            'type' => 'visa'
-        ];
+        $this->card = new CreditCardEstPos('5555444433332222', '21', '12', '122', 'ahmet', 'visa');
 
         $this->order = (object)[
             'id' => 'order222',
@@ -73,23 +70,6 @@ class EstPostTest extends TestCase
         $this->assertEquals($this->order, $this->estpos->getOrder());
     }
 
-    public function testGetCardCode()
-    {
-        $card = $this->card;
-
-        $card->type = '1';
-        $this->estpos->prepare($this->order, $card);
-        $this->assertEquals($card->type, $this->estpos->getCardCode());
-
-        $card->type = 'visa';
-        $this->estpos->prepare($this->order, $card);
-        $this->assertNotNull($this->estpos->getCardCode());
-
-        $card->type = 'master';
-        $this->estpos->prepare($this->order, $card);
-        $this->assertNotNull($this->estpos->getCardCode());
-    }
-
     public function testGet3DFormData()
     {
         $this->estpos->prepare($this->order, $this->card);
@@ -104,11 +84,11 @@ class EstPostTest extends TestCase
                 'clientid' => $this->account->client_id,
                 'storetype' => $this->account->model,
                 'hash' => $this->estpos->create3DHash(),
-                'cardType' => $this->estpos->getCardCode(),
-                'pan' => $this->card->number,
-                'Ecom_Payment_Card_ExpDate_Month' => $this->card->month,
-                'Ecom_Payment_Card_ExpDate_Year' => $this->card->year,
-                'cv2' => $this->card->cvv,
+                'cardType' => $this->card->getCardCode(),
+                'pan' => $this->card->getNumber(),
+                'Ecom_Payment_Card_ExpDate_Month' => $this->card->getExpireMonth(),
+                'Ecom_Payment_Card_ExpDate_Year' => $this->card->getExpireYear(),
+                'cv2' => $this->card->getCvv(),
                 'firmaadi' => $this->order->name,
                 'Email' => $this->order->email,
                 'amount' => $this->order->amount,

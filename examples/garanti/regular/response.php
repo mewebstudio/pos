@@ -5,15 +5,15 @@ require '_config.php';
 require '../../template/_header.php';
 
 if ($request->getMethod() !== 'POST') {
-    echo new \Symfony\Component\HttpFoundation\RedirectResponse($base_url);
+    echo new \Symfony\Component\HttpFoundation\RedirectResponse($baseUrl);
     exit();
 }
 
-$order_id = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
+$orderId = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
 $amount = (double) 1;
 
 $order = [
-    'id'            => $order_id,
+    'id'            => $orderId,
     'name'          => 'John Doe', // optional
     'email'         => 'mail@customer.com', // optional
     'user_id'       => '12', // optional
@@ -26,18 +26,16 @@ $order = [
 
 $pos->prepare($order);
 
-$card = [
-    'number'    => $request->get('number'),
-    'month'     => $request->get('month'),
-    'year'      => $request->get('year'),
-    'cvv'       => $request->get('cvv'),
-];
+$card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos(
+    $request->get('number'),
+    $request->get('year'),
+    $request->get('month'),
+    $request->get('cvv')
+);
 
 $payment = $pos->payment($card);
 
-$response = $payment->response;
-
-$dump = get_object_vars($response);
+$response = $payment->getResponse();
 ?>
 
 <div class="result">
@@ -113,7 +111,7 @@ $dump = get_object_vars($response);
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>
         <dd class="col-sm-12">
-            <pre><?php print_r($dump); ?></pre>
+            <pre><?php dump($response); ?></pre>
         </dd>
     </dl>
     <hr>

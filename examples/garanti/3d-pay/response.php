@@ -5,21 +5,20 @@ require '_config.php';
 require '../../template/_header.php';
 
 if ($request->getMethod() !== 'POST') {
-    echo new \Symfony\Component\HttpFoundation\RedirectResponse($base_url);
+    echo new \Symfony\Component\HttpFoundation\RedirectResponse($baseUrl);
     exit();
 }
 
-$order = $_SESSION['order'];
+$order = (array) json_decode($redis->lPop('order'));
 
 $pos->prepare($order);
 $payment = $pos->payment();
-$response = $payment->response;
+$response = $payment->getResponse();
 
-$dump = get_object_vars($response);
 ?>
 
 <div class="result">
-    <pre><?php print_r($_POST) ?></pre>
+    <pre><?php dump($_POST) ?></pre>
     <h3 class="text-center text-<?php echo $payment->isSuccess() ? 'success' : 'danger'; ?>">
         <?php echo $payment->isSuccess() ? 'Payment is successful!' : 'Payment is not successful'; ?>
     </h3>
@@ -97,7 +96,7 @@ $dump = get_object_vars($response);
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>
         <dd class="col-sm-12">
-            <pre><?php print_r($dump); ?></pre>
+            <pre><?php dump($response); ?></pre>
         </dd>
     </dl>
     <hr>

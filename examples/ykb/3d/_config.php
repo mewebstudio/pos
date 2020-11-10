@@ -1,15 +1,12 @@
 <?php
 
-session_start();
+require '../../_main_config.php';
 
-require '../../../vendor/autoload.php';
+$path = '/ykb/3d/';
+$baseUrl = $hostUrl . $path;
 
-$host_url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http') . "://$_SERVER[HTTP_HOST]";
-$path = '/pos/examples/ykb/3d/';
-$base_url = $host_url . $path;
-
-$success_url = $base_url . 'response.php';
-$fail_url = $base_url . 'response.php';
+$success_url = $baseUrl . 'response.php';
+$fail_url = $baseUrl . 'response.php';
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
@@ -30,9 +27,9 @@ $account = [
 try {
     $pos = new \Mews\Pos\Pos($account);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
-    var_dump($e->getCode(), $e->getMessage());
+    dump($e->getCode(), $e->getMessage());
 }
 
-$template_title = '3D Model Payment';
+$templateTitle = '3D Model Payment';

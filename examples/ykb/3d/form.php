@@ -5,7 +5,7 @@ require '_config.php';
 require '../../template/_header.php';
 
 if ($request->getMethod() !== 'POST') {
-    echo new \Symfony\Component\HttpFoundation\RedirectResponse($base_url);
+    echo new \Symfony\Component\HttpFoundation\RedirectResponse($baseUrl);
     exit();
 }
 
@@ -20,16 +20,16 @@ $order = [
     'lang'          => $_POST['lang'],
 ];
 
-$_SESSION['order'] = $order;
+$redis->lPush('order', json_encode($order));
 
-$card = [
-    'type'      => $_POST['type'],
-    'name'      => $_POST['name'],
-    'number'    => $_POST['number'],
-    'month'     => $_POST['month'],
-    'year'      => $_POST['year'],
-    'cvv'       => $_POST['cvv'],
-];
+$card = new \Mews\Pos\Entity\Card\CreditCardPosNet(
+    $request->get('number'),
+    $request->get('year'),
+    $request->get('month'),
+    $request->get('cvv'),
+    $request->get('name'),
+    $request->get('type')
+);
 
 $pos->prepare($order, $card);
 

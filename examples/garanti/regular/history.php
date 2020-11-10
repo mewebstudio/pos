@@ -2,7 +2,7 @@
 
 require '_config.php';
 
-$template_title = 'History Order';
+$templateTitle = 'History Order';
 
 require '../../template/_header.php';
 
@@ -13,8 +13,7 @@ $query= $pos->bank->history([
     'ip'        => $ip,
 ]);
 
-$response = $query->response;
-$dump = get_object_vars($response);
+$response = $query->getResponse();
 ?>
 
 <div class="result">
@@ -24,7 +23,7 @@ $dump = get_object_vars($response);
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>
         <dd class="col-sm-12">
-            <pre><?php print_r($dump); ?></pre>
+            <pre><?php dump($response); ?></pre>
         </dd>
     </dl>
     <hr>
