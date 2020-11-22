@@ -15,7 +15,7 @@ $order = [
     'currency'          => 'TRY',
     'success_url'       => $success_url,
     'fail_url'          => $fail_url,
-    'lang'              => \Mews\Pos\PosNet::LANG_TR,
+    'lang'              => \Mews\Pos\Gateways\PosNet::LANG_TR,
 ];
 ?>
 
