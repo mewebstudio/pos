@@ -97,11 +97,11 @@ return [
             'name'  => 'Yapıkredi',
             'class' => Mews\Pos\Gateways\PosNet::class,
             'urls'  => [
-                'production'    => 'https://www.posnet.ykb.com/PosnetWebService/XML',
-                'test'          => 'https://setmpos.ykb.com/PosnetWebService/XML',
+                'production'    => 'https://posnet.yapikredi.com.tr/PosnetWebService/XML',
+                'test'          => 'https://setmpos.yapikredi.com.tr/PosnetWebService/XML',
                 'gateway'       => [
-                    'production'    => 'https://www.posnet.ykb.com/3DSWebService/YKBPaymentService',
-                    'test'          => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
+                    'production'    => 'https://www.posnet.yapikredi.com.tr/3DSWebService/YKBPaymentService',
+                    'test'          => 'https://setmpos.yapikredi.com.tr/3DSWebService/YKBPaymentService',
                 ],
             ],
         ],
