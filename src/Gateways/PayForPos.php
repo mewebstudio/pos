@@ -1,27 +1,19 @@
 <?php
 
 
-namespace Mews\Pos;
+namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCardEstPos;
+use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardPayFor;
-use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 /**
  * Class PayForPos
  */
-class PayForPos implements PosInterface
+class PayForPos extends AbstractGateway
 {
-    use PosHelpersTrait {
-        createXML as traitCreateXML;
-    }
-
     const LANG_TR = 'tr';
     const LANG_EN = 'en';
 
@@ -36,11 +28,14 @@ class PayForPos implements PosInterface
     const MOTO = '0';
 
     /**
-     * Raw Response Data
-     *
-     * @var object
+     * @var PayForAccount
      */
-    protected $data;
+    protected $account;
+
+    /**
+     * @var CreditCardPayFor
+     */
+    protected $card;
 
     /**
      * Response Codes
@@ -69,103 +64,47 @@ class PayForPos implements PosInterface
         'M049' => 'invalid_credentials',
     ];
 
-    private $config;
-    private $account;
-
     /**
      * Transaction Types
      *
      * @var array
      */
-    private $types = [
-        'pay' => 'Auth',
-        'pre' => 'PreAuth',
-        'post' => 'PostAuth',
-        'cancel' => 'Void',
-        'refund' => 'Refund',
-        'history' => 'TxnHistory',
-        'status' => 'OrderInquiry',
+    protected $types = [
+        self::TX_PAY => 'Auth',
+        self::TX_PRE_PAY => 'PreAuth',
+        self::TX_POST_PAY => 'PostAuth',
+        self::TX_CANCEL => 'Void',
+        self::TX_REFUND => 'Refund',
+        self::TX_HISTORY => 'TxnHistory',
+        self::TX_STATUS => 'OrderInquiry',
     ];
 
     /**
-     * Transaction Type
+     * currency mapping
      *
-     * @var string
-     */
-    private $type;
-
-    /**
      * @var array
      */
-    private $currencies;
+    protected $currencies = [
+        'TRY'       => 949,
+        'USD'       => 840,
+        'EUR'       => 978,
+        'GBP'       => 826,
+        'JPY'       => 392,
+        'RUB'       => 643,
+    ];
 
     /**
-     * @var object
-     */
-    private $order;
-
-    /**
-     * @var CreditCardPayFor
-     */
-    private $card;
-
-    /**
-     * Processed Response Data
+     * @inheritDoc
      *
-     * @var object
+     * @param PayForAccount $account
      */
-    private $response;
-
-
     public function __construct($config, $account, array $currencies)
     {
-        $this->config = $config;
-        $this->account = $account;
-
-        if(!isset($this->account->lang)) $this->account->lang = self::LANG_TR;
-
-        $this->currencies = $currencies;
-
-        $this->url = isset($this->config['urls'][$this->account->env]) ?
-            $this->config['urls'][$this->account->env] :
-            $this->config['urls']['production'];
-
-        $this->gateway = isset($this->config['urls']['gateway'][$this->account->env]) ?
-            $this->config['urls']['gateway'][$this->account->env] :
-            $this->config['urls']['gateway']['production'];
-
-        $this->gateway3DHost = isset($this->config['urls']['gateway_3d_host'][$this->account->env]) ?
-            $this->config['urls']['gateway_3d_host'][$this->account->env] :
-            $this->config['urls']['gateway_3d_host']['production'];
+        parent::__construct($config, $account, $currencies);
     }
 
     /**
-     * @return mixed
-     */
-    public function getResponse()
-    {
-        return $this->response;
-
-    }
-
-    /**
-     * @return array
-     */
-    public function getCurrencies()
-    {
-        return $this->currencies;
-    }
-
-    /**
-     * @return array
-     */
-    public function getConfig()
-    {
-        return $this->config;
-    }
-
-    /**
-     * @return mixed
+     * @return PayForAccount
      */
     public function getAccount()
     {
@@ -173,15 +112,7 @@ class PayForPos implements PosInterface
     }
 
     /**
-     * @return mixed
-     */
-    public function getOrder()
-    {
-        return $this->order;
-    }
-
-    /**
-     * @return CreditCardPayFor|null
+     * @return CreditCardPayFor
      */
     public function getCard()
     {
@@ -189,65 +120,7 @@ class PayForPos implements PosInterface
     }
 
     /**
-     * @param AbstractCreditCard $card
-     *
-     * @return $this
-     *
-     * @throws GuzzleException
-     * @throws UnsupportedPaymentModelException
-     */
-    public function payment($card)
-    {
-        $this->card = $card;
-
-        $model = 'regular';
-        if (isset($this->account->model) && $this->account->model) {
-            $model = $this->account->model;
-        }
-
-        if ('regular' === $model) {
-            $this->makeRegularPayment();
-        } elseif ('3d' === $model) {
-            $this->make3DPayment();
-        } elseif ('3d_pay' === $model) {
-            $this->make3DPayPayment();
-        } elseif ('3d_host' === $model) {
-            $this->make3DHostPayment();
-        } else {
-            throw new UnsupportedPaymentModelException();
-        }
-
-        return $this;
-    }
-
-    /**
-     * Regular Payment
-     *
-     * @return $this
-     *
-     * @throws GuzzleException
-     */
-    public function makeRegularPayment()
-    {
-        $contents = '';
-        if (in_array($this->order->transaction, ['pay', 'pre'])) {
-            $contents = $this->createRegularPaymentXML();
-        } elseif ('post' === $this->order->transaction) {
-            $contents = $this->createRegularPostXML();
-        }
-
-        $this->send($contents);
-
-        $this->response = (object) $this->mapPaymentResponse($this->data);
-
-        return $this;
-    }
-
-    /**
-     * Make 3D Payment
-     * @return $this
-     *
-     * @throws GuzzleException
+     * @inheritDoc
      */
     public function make3DPayment()
     {
@@ -266,9 +139,7 @@ class PayForPos implements PosInterface
     }
 
     /**
-     * Just returns formatted data of 3dPay payment response
-     *
-     * @return $this
+     * @inheritDoc
      */
     public function make3DPayPayment()
     {
@@ -280,9 +151,7 @@ class PayForPos implements PosInterface
     }
 
     /**
-     * Just returns formatted data of host payment response
-     *
-     * @return $this
+     * @inheritDoc
      */
     public function make3DHostPayment()
     {
@@ -297,91 +166,36 @@ class PayForPos implements PosInterface
      * Warning: You can not use refund for purchases made at the same date.
      * Instead, you need to use cancel.
      *
-     * @param array $meta
-     *
-     * @return $this
-     *
-     * @throws GuzzleException
+     * @inheritDoc
      */
-    public function refund(array $meta)
+    public function refund()
     {
-        $xml = $this->createRefundXML();
-        $this->send($xml);
-
-        $this->response = $this->mapRefundResponse($this->data);
-
-        return $this;
-    }
-
-    /**
-     * Cancel Order
-     *
-     * @param array $meta
-     *
-     * @return $this
-     *
-     * @throws GuzzleException
-     */
-    public function cancel(array $meta)
-    {
-        $xml = $this->createCancelXML();
-        $this->send($xml);
-
-        $this->response = $this->mapCancelResponse($this->data);
-
-        return $this;
-    }
-
-    /**
-     * Order Status
-     *
-     * @param array $meta
-     *
-     * @return $this
-     *
-     * @throws GuzzleException
-     */
-    public function status(array $meta)
-    {
-        $xml = $this->createOrderStatusXML();
-
-        $this->send($xml);
-
-        $this->response = $this->mapStatusResponse($this->data);
-
-        return $this;
+        return parent::refund();
     }
 
     /**
      * Fetches All Transaction/Action/Order history, both failed and successful, for the given date ReqDate
-     * or single order if orderId is given
+     * or transactions related to the queried order if orderId is given
      * Note: history request to gateway returns JSON response
+     * If both reqDate and orderId provided then finansbank will take into account only orderId
      *
-     * @param array $meta
-     *
-     * @return $this
-     *
-     * @throws GuzzleException
+     * returns list array or items for the given date,
+     * if orderId specified in request then return array of transactions (refund|pre|post|cancel)
+     * both successful and failed, for the related orderId
+     * @inheritDoc
      */
     public function history(array $meta)
     {
-        $xml = $this->createHistoryXML($meta);
-
-        $this->send($xml);
-
-        //returns list array or items, if orderId specified in request then return array with single item
-        $this->response = (array) $this->data;
-
-        return $this;
+        return parent::history($meta);
     }
 
 
     /**
-     * returns data needed for 3d, 3d_pay and 3d_host models
+     * returns form data needed for 3d, 3d_pay and 3d_host models
      *
      * @return array
      */
-    public function get3dFormData()
+    public function get3DFormData()
     {
         if (!$this->order) {
             return [];
@@ -389,58 +203,33 @@ class PayForPos implements PosInterface
 
         $this->order->hash = $this->create3DHash();
 
-        if ('3d_pay' === $this->account->model) {
+        if ('3d_pay' === $this->account->getModel()) {
             $formData = $this->getCommon3DFormData();
             $formData['inputs']['SecureType'] = '3DPay';
-            $formData['gateway'] = $this->gateway;
-        } elseif ('3d' === $this->account->model) {
+            $formData['gateway'] = $this->get3DGatewayURL();
+        } elseif ('3d' === $this->account->getModel()) {
             $formData = $this->getCommon3DFormData();
             $formData['inputs']['SecureType'] = '3DModel';
-            $formData['gateway'] = $this->gateway;
+            $formData['gateway'] = $this->get3DGatewayURL();
         } else {
             $formData = $this->getCommon3DFormData();
             $formData['inputs']['SecureType'] = '3DHost';
-            $formData['gateway'] = $this->gateway3DHost;
+            $formData['gateway'] = $this->get3DHostGatewayURL();
         }
 
         return $formData;
     }
 
-    /**
-     * @param object           $order
-     * @param CreditCardPayFor $card
-     *
-     * @return void
-     *
-     * @throws UnsupportedTransactionTypeException
-     */
-    public function prepare($order, $card = null)
-    {
-        $this->type = $this->types['pay'];
-        if (isset($order->transaction)) {
-            if (array_key_exists($order->transaction, $this->types)) {
-                $this->type = $this->types[$order->transaction];
-            } else {
-                throw new UnsupportedTransactionTypeException('Unsupported transaction type!');
-            }
-        }
 
-        $this->order = $order;
-        $this->card = $card;
-    }
 
     /**
-     * @param $postData
-     *
-     * @return $this|PayForPos
-     *
-     * @throws GuzzleException
+     * @inheritDoc
      */
     public function send($postData)
     {
         $client = new Client();
 
-        $response = $client->request('POST', $this->url, [
+        $response = $client->request('POST', $this->getApiURL(), [
             'body' => $postData,
         ]);
 
@@ -472,7 +261,7 @@ class PayForPos implements PosInterface
      */
     public function createXML(array $data, $encoding = 'UTF-8'): string
     {
-        return $this->traitCreateXML(['PayforRequest' => $data], $encoding);
+        return parent::createXML(['PayforRequest' => $data], $encoding);
     }
 
 
@@ -485,9 +274,9 @@ class PayForPos implements PosInterface
             . $this->order->amount . $this->order->success_url
             . $this->order->fail_url . $this->type
             . $this->order->installment . $this->order->rand
-            . $this->account->store_key;
+            . $this->account->getStoreKey();
 
-        return base64_encode(pack('H*', sha1($hashStr)));
+        return base64_encode(sha1($hashStr, true));
     }
 
     /**
@@ -500,21 +289,168 @@ class PayForPos implements PosInterface
     public function check3DHash($data)
     {
 
-        $hashStr = $this->account->client_id . $this->account->store_key
+        $hashStr = $this->account->getClientId() . $this->account->getStoreKey()
             . $data['OrderId'] . $data['AuthCode']
             . $data['ProcReturnCode'] . $data['3DStatus']
-            . $data['ResponseRnd'] . $this->account->username;
+            . $data['ResponseRnd'] . $this->account->getUsername();
 
-        $hash = base64_encode(pack('H*', sha1($hashStr)));
+        $hash = base64_encode(sha1($hashStr, true));
 
         return $hash === $data['ResponseHash'];
     }
 
     /**
-     * @param array  $raw3DAuthResponseData
-     * @param object $rawPaymentResponseData
-     *
-     * @return object
+     * @inheritDoc
+     */
+    public function createRegularPaymentXML()
+    {
+        $requestData = [
+            'MbrId' => self::MBR_ID,
+            'MerchantId' => $this->account->getClientId(),
+            'UserCode' => $this->account->getUsername(),
+            'UserPass' => $this->account->getPassword(),
+            'MOTO' => self::MOTO,
+            'OrderId' => $this->order->id,
+            'SecureType' => 'NonSecure',
+            'TxnType' => $this->type,
+            'PurchAmount' => $this->order->amount,
+            'Currency' => $this->order->currency,
+            'InstallmentCount' => $this->order->installment,
+            'Lang' => $this->getLang(),
+            'CardHolderName' => $this->card->getHolderName(),
+            'Pan' => $this->card->getNumber(),
+            'Expiry' => $this->card->getExpirationDate(),
+            'Cvv2' => $this->card->getCvv(),
+        ];
+
+        return $this->createXML($requestData);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createRegularPostXML()
+    {
+        $requestData = [
+            'MbrId' => self::MBR_ID,
+            'MerchantId' => $this->account->getClientId(),
+            'UserCode' => $this->account->getUsername(),
+            'UserPass' => $this->account->getPassword(),
+            'OrgOrderId' => $this->order->id,
+            'SecureType' => 'NonSecure',
+            'TxnType' => $this->type,
+            'PurchAmount' => $this->order->amount,
+            'Currency' => $this->order->currency,
+            'Lang' => $this->getLang(),
+        ];
+
+        return $this->createXML($requestData);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function create3DPaymentXML($responseData)
+    {
+        $requestData = [
+            'RequestGuid' => $responseData['RequestGuid'],
+            'UserCode' => $this->account->getUsername(),
+            'UserPass' => $this->account->getPassword(),
+            'OrderId' => $this->order->id,
+            'SecureType' => '3DModelPayment',
+        ];
+
+        return $this->createXML($requestData);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createStatusXML()
+    {
+        $requestData = [
+            'MbrId' => self::MBR_ID,
+            'MerchantId' => $this->account->getClientId(),
+            'UserCode' => $this->account->getUsername(),
+            'UserPass' => $this->account->getPassword(),
+            'OrgOrderId' => $this->order->id,
+            'SecureType' => 'Inquiry',
+            'Lang' => $this->getLang(),
+            'TxnType' => $this->types[self::TX_STATUS],
+        ];
+
+        return $this->createXML($requestData);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createHistoryXML($customQueryData)
+    {
+        $requestData = [
+            'MbrId' => self::MBR_ID,
+            'MerchantId' => $this->account->getClientId(),
+            'UserCode' => $this->account->getUsername(),
+            'UserPass' => $this->account->getPassword(),
+            'SecureType' => 'Report',
+            'TxnType' => $this->types[self::TX_HISTORY],
+            'Lang' => $this->getLang(),
+        ];
+
+        if (isset($customQueryData['orderId'])) {
+            $requestData['OrderId'] = $customQueryData['orderId'];
+        } elseif (isset($customQueryData['reqDate'])) {
+            //ReqData YYYYMMDD format
+            $requestData['ReqDate'] = $customQueryData['reqDate'];
+        }
+
+
+        return $this->createXML($requestData);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createRefundXML()
+    {
+        $requestData = [
+            'MbrId' => self::MBR_ID,
+            'MerchantId' => $this->account->getClientId(),
+            'UserCode' => $this->account->getUsername(),
+            'UserPass' => $this->account->getPassword(),
+            'SecureType' => 'NonSecure',
+            'Lang' => $this->getLang(),
+            'OrgOrderId' => $this->order->id,
+            'TxnType' => $this->types[self::TX_REFUND],
+            'PurchAmount' => $this->order->amount,
+            'Currency' => $this->order->currency,
+        ];
+
+        return $this->createXML($requestData);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createCancelXML()
+    {
+        $requestData = [
+            'MbrId' => self::MBR_ID,
+            'MerchantId' => $this->account->getClientId(),
+            'UserCode' => $this->account->getUsername(),
+            'UserPass' => $this->account->getPassword(),
+            'OrgOrderId' => $this->order->id,
+            'SecureType' => 'NonSecure',
+            'TxnType' => $this->types[self::TX_CANCEL],
+            'Currency' => $this->order->currency,
+            'Lang' => $this->getLang(),
+        ];
+
+        return $this->createXML($requestData);
+    }
+
+    /**
+     * @inheritDoc
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
@@ -547,9 +483,7 @@ class PayForPos implements PosInterface
     }
 
     /**
-     * @param array $raw3DAuthResponseData
-     *
-     * @return object
+     * @inheritDoc
      */
     protected function map3DPayResponseData($raw3DAuthResponseData)
     {
@@ -568,7 +502,7 @@ class PayForPos implements PosInterface
             'error_code' => ('approved' !== $status) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
             'error_message' => ('approved' !== $status) ? $raw3DAuthResponseData['ErrMsg'] : null,
             'transaction_type' => array_search($raw3DAuthResponseData['TxnType'], $this->types, true),
-            'transaction' => $this->order->transaction,
+            'transaction' => $this->type,
         ];
 
         return (object) array_merge($threeDResponse, $this->map3DCommonResponseData($raw3DAuthResponseData));
@@ -604,11 +538,17 @@ class PayForPos implements PosInterface
     }
 
     /**
-     * @param $rawResponseData
-     *
-     * @return object
+     * @inheritDoc
      */
     protected function mapRefundResponse($rawResponseData)
+    {
+        return $this->mapCancelResponse($rawResponseData);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function mapCancelResponse($rawResponseData)
     {
 
         $status = 'declined';
@@ -630,34 +570,8 @@ class PayForPos implements PosInterface
         ];
     }
 
-    protected function mapCancelResponse($rawResponseData){
-
-        $status = 'declined';
-        if ('00' === $rawResponseData->ProcReturnCode) {
-            $status = 'approved';
-        }
-
-        return (object) [
-            'order_id' => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
-            'auth_code' => ('declined' !== $status) ? $rawResponseData->AuthCode : null,
-            'host_ref_num' => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
-            'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $rawResponseData->ProcReturnCode : null,
-            'trans_id' => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
-            'error_code' => ('declined' === $status) ? $rawResponseData->ProcReturnCode : null,
-            'error_message' => ('declined' === $status) ? $rawResponseData->ErrMsg : null,
-            'status' => $status,
-            'status_detail' => isset($this->codes[$rawResponseData->ProcReturnCode]) ? $this->codes[$rawResponseData->ProcReturnCode] : null,
-            'all' => $rawResponseData,
-        ];
-    }
-
-
     /**
-     * Processes payment response data
-     *
-     * @param object $responseData
-     *
-     * @return array
+     * @inheritDoc
      */
     protected function mapPaymentResponse($responseData)
     {
@@ -685,9 +599,7 @@ class PayForPos implements PosInterface
     }
 
     /**
-     * @param object $rawResponseData
-     *
-     * @return object
+     * @inheritDoc
      */
     protected function mapStatusResponse($rawResponseData)
     {
@@ -748,193 +660,21 @@ class PayForPos implements PosInterface
         ];
     }
 
-
-    /**
-     * Create Regular Payment XML
-     *
-     * @return string
-     */
-    protected function createRegularPaymentXML()
-    {
-        $requestData = [
-            'MbrId' => self::MBR_ID,
-            'MerchantId' => $this->account->client_id,
-            'UserCode' => $this->account->username,
-            'UserPass' => $this->account->password,
-            'MOTO' => self::MOTO,
-            'OrderId' => $this->order->id,
-            'SecureType' => 'NonSecure',
-            'TxnType' => $this->type,
-            'PurchAmount' => $this->order->amount,
-            'Currency' => $this->order->currency,
-            'InstallmentCount' => $this->order->installment,
-            'Lang' => $this->getLang(),
-            'CardHolderName' => $this->card->getHolderName(),
-            'Pan' => $this->card->getNumber(),
-            'Expiry' => $this->card->getExpirationDate(),
-            'Cvv2' => $this->card->getCvv(),
-        ];
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * Create Regular Payment Post XML
-     *
-     * @return string
-     */
-    protected function createRegularPostXML()
-    {
-        $requestData = [
-            'MbrId' => self::MBR_ID,
-            'MerchantId' => $this->account->client_id,
-            'UserCode' => $this->account->username,
-            'UserPass' => $this->account->password,
-            'MOTO' => self::MOTO,
-            'OrgOrderId' => $this->order->id,
-            'SecureType' => 'NonSecure',
-            'TxnType' => $this->type,
-            'PurchAmount' => $this->order->amount,
-            'Currency' => $this->order->currency,
-            'Lang' => $this->getLang(),
-            'CardHolderName' => $this->card->getHolderName(),
-            'Pan' => $this->card->getNumber(),
-            'Expiry' => $this->card->getExpirationDate(),
-            'Cvv2' => $this->card->getCvv(),
-        ];
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * Creates 3D Payment XML
-     * @param $responseData
-     *
-     * @return string
-     */
-    protected function create3DPaymentXML($responseData)
-    {
-        $requestData = [
-            'RequestGuid' => $responseData['RequestGuid'],
-            'UserCode' => $this->account->username,
-            'UserPass' => $this->account->password,
-            'OrderId' => $this->order->id,
-            'SecureType' => '3DModelPayment',
-        ];
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * Creates XML string for order status inquiry
-     *
-     * @return string
-     */
-    protected function createOrderStatusXML()
-    {
-        $requestData = [
-            'MbrId' => self::MBR_ID,
-            'MerchantId' => $this->account->client_id,
-            'UserCode' => $this->account->username,
-            'UserPass' => $this->account->password,
-            'OrgOrderId' => $this->order->id,
-            'SecureType' => 'Inquiry',
-            'Lang' => $this->getLang(),
-            'TxnType' => $this->types['status'],
-        ];
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * Creates XML string for order refund operation
-     *
-     * @return string
-     */
-    protected function createRefundXML()
-    {
-        $requestData = [
-            'MbrId' => self::MBR_ID,
-            'MerchantId' => $this->account->client_id,
-            'UserCode' => $this->account->username,
-            'UserPass' => $this->account->password,
-            'SecureType' => 'NonSecure',
-            'Lang' => $this->getLang(),
-            'OrgOrderId' => $this->order->id,
-            'TxnType' => $this->types['refund'],
-            'PurchAmount' => $this->order->amount,
-            'Currency' => $this->order->currency,
-        ];
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * Creates XML string for order cancel operation
-     *
-     * @return string
-     */
-    protected function createCancelXML()
-    {
-        $requestData = [
-            'MbrId' => self::MBR_ID,
-            'MerchantId' => $this->account->client_id,
-            'UserCode' => $this->account->username,
-            'UserPass' => $this->account->password,
-            'OrgOrderId' => $this->order->id,
-            'SecureType' => 'NonSecure',
-            'TxnType' => $this->types['cancel'],
-            'Currency' => $this->order->currency,
-            'Lang' => $this->getLang(),
-        ];
-
-        return $this->createXML($requestData);
-    }
-
-
-    /**
-     * Creates XML string for history inquiry
-     *
-     * @param array $customQueryData
-     *
-     * @return string
-     */
-    protected function createHistoryXML($customQueryData)
-    {
-        $requestData = [
-            'MbrId' => self::MBR_ID,
-            'MerchantId' => $this->account->client_id,
-            'UserCode' => $this->account->username,
-            'UserPass' => $this->account->password,
-            'SecureType' => 'Report',
-            'TxnType' => $this->types['history'],
-            'Lang' => $this->getLang(),
-        ];
-
-        if (isset($customQueryData['orderId'])) {
-            $requestData['OrderId'] = $customQueryData['orderId'];
-        } elseif (isset($customQueryData['ReqDate'])) {
-            //ReqData YYYYMMDD format
-            $requestData['ReqDate'] = $customQueryData['reqDate'];
-        }
-
-
-        return $this->createXML($requestData);
-    }
-
     /**
      * returns common form data used by all 3D payment gates
+     * @param bool $withCrediCard
+     *
      * @return array
      */
     protected function getCommon3DFormData($withCrediCard = false)
     {
         $inputs = [
             'MbrId' => self::MBR_ID,
-            'MerchantID' => $this->account->client_id,
-            'UserCode' => $this->account->username,
+            'MerchantID' => $this->account->getClientId(),
+            'UserCode' => $this->account->getUsername(),
             'OrderId' => $this->order->id,
             'Lang' => $this->getLang(),
-            'SecureType' => null,
+            'SecureType' => null, //to be filled by the caller
             'TxnType' => $this->type,
             'PurchAmount' => $this->order->amount,
             'InstallmentCount' => $this->order->installment,
@@ -953,23 +693,88 @@ class PayForPos implements PosInterface
         }
 
         return [
-            'gateway' => null,
+            'gateway' => null, //to be filled by the caller
             'inputs' => $inputs,
         ];
     }
 
     /**
-     * bank returns error messages for specified language value
-     * usually accepted values are tr,en
-     * @return string
+     * @inheritDoc
      */
-    private function getLang()
+    protected function mapHistoryResponse($rawResponseData)
     {
-        if ($this->order && isset($this->order->lang)) {
-            return $this->order->lang;
-        }
-
-        return $this->account->lang;
+        return $rawResponseData;
     }
 
+    /**
+     * @inheritDoc
+     */
+    protected function preparePaymentOrder(array $order)
+    {
+        // Installment
+        $installment = 0;
+        if (isset($order['installment']) && $order['installment'] > 1) {
+            $installment = (int) $order['installment'];
+        }
+
+        $currency = isset($order['currency']) ? $order['currency'] : 'TRY';
+
+        // Order
+        return (object) array_merge($order, [
+            'installment'   => $installment,
+            'currency'      => $this->mapCurrency($currency),
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePostPaymentOrder(array $order)
+    {
+        return (object) [
+            'id' => $order['id'],
+            'amount' => $order['amount'],
+            'currency' => $this->mapCurrency($order['currency']),
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareStatusOrder(array $order)
+    {
+        return (object) $order;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareHistoryOrder(array $order)
+    {
+        return (object) [
+            //reqDate or order id
+            'reqDate' => isset($order['reqDate']) ? $order['reqDate'] : null,
+            'id' => isset($order['id']) ? $order['id'] : null,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareCancelOrder(array $order)
+    {
+        $order['currency'] = $this->mapCurrency($order['currency']);
+
+        return (object) $order;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareRefundOrder(array $order)
+    {
+        $order['currency'] = $this->mapCurrency($order['currency']);
+
+        return (object) $order;
+    }
 }

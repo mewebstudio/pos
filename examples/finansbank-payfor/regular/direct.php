@@ -17,17 +17,16 @@ $order = [
     'installment'   => '0',
     'currency'      => 'TRY',
     'ip'            => $ip,
-    'transaction'   => 'pay', // pay => Auth, pre PreAuth
 ];
 
-$pos->prepare($order);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 
 $card = new \Mews\Pos\Entity\Card\CreditCardPayFor('4155650100416111', '25', '01', '123', 'John Doe');
 
 
-$payment = $pos->payment($card);
+$pos->payment($card);
 
-$response = $payment->getResponse();
+$response = $pos->getResponse();
 
 ?>
 

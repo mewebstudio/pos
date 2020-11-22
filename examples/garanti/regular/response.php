@@ -21,10 +21,9 @@ $order = [
     'installment'   => '1',
     'currency'      => 'TRY',
     'ip'            => $ip,
-    'transaction'   => 'pay', // pay => S, pre => preauth
 ];
 
-$pos->prepare($order);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 
 $card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos(
     $request->get('number'),
@@ -33,14 +32,14 @@ $card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos(
     $request->get('cvv')
 );
 
-$payment = $pos->payment($card);
+$pos->payment($card);
 
-$response = $payment->getResponse();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $payment->isSuccess() ? 'success' : 'danger'; ?>">
-        <?php echo $payment->isSuccess() ? 'Payment is successful!' : 'Payment is not successful!'; ?>
+    <h3 class="text-center text-<?php echo $pos->isSuccess() ? 'success' : 'danger'; ?>">
+        <?php echo $pos->isSuccess() ? 'Payment is successful!' : 'Payment is not successful!'; ?>
     </h3>
     <hr>
     <dl class="row">

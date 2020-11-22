@@ -11,9 +11,9 @@ if ($request->getMethod() !== 'POST') {
 
 $order = (array) json_decode($redis->lPop('order'));
 
-$pos->prepare($order);
-$payment = $pos->payment();
-$response = $payment->getResponse();
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
+$pos->payment();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">

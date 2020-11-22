@@ -7,7 +7,8 @@ $templateTitle = 'Post Auth Order (Ön Provizyonu, preAuth, iptal etme';
 require '../../template/_header.php';
 
 try {
-    $pos = new \Mews\Pos\Pos($account);
+    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
+    $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
     dump($e->getCode(), $e->getMessage());
 } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
@@ -15,18 +16,16 @@ try {
 }
 
 $order = (array) json_decode($redis->lPop('order'));
-$order['transaction'] = 'post';
 
 try {
-    $pos->prepare($order);
+    $pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY);
 } catch (\Mews\Pos\Exceptions\UnsupportedTransactionTypeException $e) {
     dump($e->getCode(), $e->getMessage());
 }
-$card = new \Mews\Pos\Entity\Card\CreditCardPayFor('4155650100416111', '25', '01', '123', 'John Doe');
 
-$payment = $pos->payment($card);
+$pos->payment(null);
 
-$response = $payment->getResponse();
+$response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
     $redis->lPush('order', json_encode($order));
@@ -44,13 +43,10 @@ if ($pos->isSuccess()) {
         </dd>
     </dl>
     <hr>
-    <?php if ($pos->isSuccess()) : ?>
-        <div class="text-right">
-            <a href="cancel.php" class="btn btn-lg btn-info">&lt; Cancel payment</a>
-        </div>
-    <?php endif;?>
-    <hr>
     <div class="text-right">
+        <?php if ($pos->isSuccess()) : ?>
+                <a href="cancel.php" class="btn btn-lg btn-info">&lt; Cancel payment</a>
+        <?php endif;?>
         <a href="credit-card-form.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
     </div>
 </div>

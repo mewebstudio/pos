@@ -13,11 +13,9 @@ $order = [
     'currency'      => 'TRY',
 ];
 
-$pos->prepare($order);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_REFUND);
 
-$refund = $pos->bank->refund([]);
-
-$response = $refund->getResponse();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">

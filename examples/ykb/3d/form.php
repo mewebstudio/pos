@@ -14,7 +14,6 @@ $order = [
     'name'          => $_POST['name'],
     'amount'        => $_POST['amount'],
     'currency'      => $_POST['currency'],
-    'transaction'   => $_POST['transaction'],
     'success_url'   => $_POST['success_url'],
     'fail_url'      => $_POST['fail_url'],
     'lang'          => $_POST['lang'],
@@ -31,9 +30,9 @@ $card = new \Mews\Pos\Entity\Card\CreditCardPosNet(
     $request->get('type')
 );
 
-$pos->prepare($order, $card);
+$pos->prepare($order, $_POST['transaction'], $card);
 
-$form_data = $pos->get3dFormData();
+$form_data = $pos->get3DFormData();
 ?>
 
 <span class="text-muted text-center">Redirecting...</span>

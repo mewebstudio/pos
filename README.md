@@ -47,18 +47,13 @@ $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
 
 // API kullanıcı bilgileri
-$account = [
-    'bank'          => 'akbank',
-    'model'         => 'regular',
-    'client_id'     => 'XXXXXXXX',
-    'username'      => 'XXXXXXXX',
-    'password'      => 'XXXXXXXX',
-    'env'           => 'test', // test veya production. test ise; API Test Url, production ise; API Production URL kullanılır.
-];
+$account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount('akbank', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '3d', 'XXXXXXX', \Mews\Pos\Gateways\EstPos::LANG_TR);
 
 // API kullanıcı hesabı ile paket bir değişkene aktarılıyor
 try {
-    $pos = new \Mews\Pos\Pos($account);
+    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
+    // test veya production. test ise; API Test Url, production ise; API Production URL kullanılır.
+    $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
     dump($e->getCode(), $e->getMessage());
     exit();
@@ -84,30 +79,29 @@ $order = [
     'installment'   => '0',
     'currency'      => 'TRY',
     'ip'            => $ip,
-    'transaction'   => 'pay', // pay => Auth, pre PreAuth (Direkt satış için pay, ön provizyon için pre)
 ];
 
 // Kredi kartı bilgieri
 $card = new \Mews\Pos\Entity\Card\CreditCardEstPos('1111222233334444', '20', '01', '000');
 
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri gönderiliyor
-$pos->prepare($order);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 
 // Ödeme tamamlanıyor
-$payment = $pos->payment($card);
+$pos->payment($card);
 
 // Ödeme başarılı mı?
-$payment->isSuccess();
+$pos->isSuccess();
 //veya
 $pos->isSuccess();
 
 // Ödeme başarısız mı?
-$payment->isError();
+$pos->isError();
 //veya
 $pos->isError();
 
 // Sonuç çıktısı
-dump($payment->getResponse());
+dump($pos->getResponse());
 
 ````
 
@@ -124,21 +118,18 @@ Projenizde bir ayar dosyası oluşturup (pos_ayarlar.php gibi), paket içerisind
 <?php
 
 return [
-    // Para birimleri
+    
+    //param birimleri Gateway'ler icinde tanımlıdır, özel bir mapping istemediğiniz sürece boş bırakınız
     'currencies'    => [
-        'TRY'       => 949,
-        'USD'       => 840,
-        'EUR'       => 978,
-        'GBP'       => 826,
-        'JPY'       => 392,
-        'RUB'       => 643,
+//        'TRY'       => 949,
+//        'USD'       => 840,
     ],
 
     // Banka sanal pos tanımlamaları
     'banks'         => [
         'akbank'    => [
             'name'  => 'AKBANK T.A.S.',
-            'class' => \Mews\Pos\EstPos::class,
+            'class' => \Mews\Pos\Gateways\EstPos::class,
             'urls'  => [
                 'production'    => 'https://www.sanalakpos.com/fim/api',
                 'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
@@ -152,7 +143,7 @@ return [
         // Yeni eklenen banka
         'isbank'    => [
             'name'  => 'İŞ BANKASI .A.S.',
-            'class' => \Mews\Pos\EstPos::class, // Altyapı sınıfı
+            'class' => \Mews\Pos\Gateways\EstPos::class, // Altyapı sınıfı
             'urls'  => [
                 'production'    => 'xxxx', // API Url
                 'test'          => 'xxxx', // API Test Url
@@ -169,8 +160,9 @@ return [
 
 Bundan sonra nesnemizi, yeni ayarlarımıza göre oluşturup kullanmamız gerekir. Örnek:
 ```php
+//yeni ayar yolu ya da degeri
 $yeni_ayarlar = require './pos_ayarlar.php';
-$pos = new \Mews\Pos\Pos($account, $yeni_ayarlar);
+$pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeni_ayarlar);
 ```
 
 ### Örnek Kodlar
@@ -187,7 +179,9 @@ http://localhost/ URL projenin `examples` klasörünün içine bakar.
   - Dökümantasyon hazırlanacak
   - UnitTest yazılacak -> Bu hiçbir zaman olmayabilir, birisi el atarsa sevinirim :)
 
-> Değerli yorum, öneri ve katkılarınızı bekliyorum.
+> Değerli yorum, öneri ve katkılarınızı 
+> 
+> Sorun bulursanız veya eklenmesi gereken POS sistemi varsa lütfen issue oluşturun.
 
 License
 ----

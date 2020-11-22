@@ -6,21 +6,27 @@ $templateTitle = 'Cancel Order';
 
 require '../../template/_header.php';
 
+$order = [
+    'id'  => '201811133F3F',
+];
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL);
+
 // Cancel Order
-$cancel = $pos->bank->cancel([
-    'order_id'  => '201811133F3F',
-]);
+$pos->cancel();
 
 /*
 // faster params...
-$cancel = $pos->bank->cancel([
-    'order_id'      => '201810295863',
+$order = [
+    'id'      => '201810295863',
     'host_ref_num'  => '018711539490000181',
     'auth_code'     => '115394',
-]);
+];
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL);
+
+$pos->cancel();
 */
 
-$response = $cancel->getResponse();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">

@@ -11,14 +11,14 @@ if ($request->getMethod() !== 'POST') {
 
 $order = (array) json_decode($redis->lPop('order'));
 
-$pos->prepare($order);
-$payment = $pos->payment();
-$response = $payment->getResponse();
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
+$pos->payment();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $payment->isSuccess() ? 'success' : 'danger'; ?>">
-        <?php echo $payment->isSuccess() ? 'Payment is successful!' : 'Payment is not successful'; ?>
+    <h3 class="text-center text-<?php echo $pos->isSuccess() ? 'success' : 'danger'; ?>">
+        <?php echo $pos->isSuccess() ? 'Payment is successful!' : 'Payment is not successful'; ?>
     </h3>
     <hr>
     <dl class="row">

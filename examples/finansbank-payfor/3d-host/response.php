@@ -12,9 +12,9 @@ $order = (array) json_decode($redis->lPop('order'));
 dump($account);
 dump($order);
 
-$pos->prepare($order);
-$payment = $pos->payment();
-$response = $payment->getResponse();
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
+$pos->payment();
+$response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
     $redis->lPush('order', json_encode($order));
@@ -100,9 +100,7 @@ if ($pos->isSuccess()) {
     <hr>
     <div class="text-right">
         <?php if ($pos->isSuccess()) : ?>
-            <?php if ('pay' === $order['transaction']) : ?>
-                <a href="../regular/cancel.php" class="btn btn-lg btn-danger">Cancel payment</a>
-            <?php endif; ?>
+            <a href="../regular/cancel.php" class="btn btn-lg btn-danger">Cancel payment</a>
             <a href="../regular/status.php" class="btn btn-lg btn-default">Order Status</a>
         <?php endif; ?>
 

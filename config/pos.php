@@ -1,22 +1,16 @@
 <?php
 
 return [
-
-    // Currencies
+    //if you need to use custom keys for currency mapping, otherwise leave empty
     'currencies'    => [
-        'TRY'       => 949,
-        'USD'       => 840,
-        'EUR'       => 978,
-        'GBP'       => 826,
-        'JPY'       => 392,
-        'RUB'       => 643,
+//        'TRY'       => 949,
+//        'USD'       => 840,
     ],
-
     // Banks
     'banks'         => [
         'akbank'    => [
             'name'  => 'AKBANK T.A.S.',
-            'class' => Mews\Pos\EstPos::class,
+            'class' => Mews\Pos\Gateways\EstPos::class,
             'urls'  => [
                 'production'    => 'https://www.sanalakpos.com/fim/api',
                 'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
@@ -28,7 +22,7 @@ return [
         ],
         'ziraat'    => [
             'name'  => 'Ziraat Bankası',
-            'class' => Mews\Pos\EstPos::class,
+            'class' => Mews\Pos\Gateways\EstPos::class,
             'urls'  => [
                 'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/api',
                 'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
@@ -40,7 +34,7 @@ return [
         ],
         'finansbank'    => [
             'name'  => 'QNB Finansbank',
-            'class' => Mews\Pos\EstPos::class,
+            'class' => Mews\Pos\Gateways\EstPos::class,
             'urls'  => [
                 'production'    => 'https://www.fbwebpos.com/fim/api',
                 'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
@@ -52,7 +46,7 @@ return [
         ],
         'halkbank'    => [
             'name'  => 'Halkbank',
-            'class' => Mews\Pos\EstPos::class,
+            'class' => Mews\Pos\Gateways\EstPos::class,
             'urls'  => [
                 'production'    => 'https://sanalpos.halkbank.com.tr/fim/api',
                 'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
@@ -64,7 +58,7 @@ return [
         ],
         'teb'    => [
             'name'  => 'TEB',
-            'class' => Mews\Pos\EstPos::class,
+            'class' => Mews\Pos\Gateways\EstPos::class,
             'urls'  => [
                 'production'    => 'https://sanalpos.teb.com.tr/fim/api',
                 'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
@@ -76,7 +70,7 @@ return [
         ],
         'isbank'    => [
             'name'  => 'İşbank',
-            'class' => Mews\Pos\EstPos::class,
+            'class' => Mews\Pos\Gateways\EstPos::class,
             'urls'  => [
                 'production'    => 'https://sanalpos.isbank.com.tr/fim/api',
                 'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
@@ -88,7 +82,8 @@ return [
         ],
         'isbank-payflex'    => [
             'name'  => 'İşbank - PayFlex',
-            'class' => Mews\Pos\PayFlex::class,
+            //TODO implement PayFlex
+            'class' => Mews\Pos\Gateways\PayFlex::class,
             'urls'  => [
                 'production'    => 'https://trx.payflex.com.tr/VposWeb/v3/Vposreq.aspx',
                 'test'          => 'https://sanalpos.innova.com.tr/ISBANK_v4/VposWeb/v3/Vposreq.aspx',
@@ -100,7 +95,7 @@ return [
         ],
         'yapikredi' => [
             'name'  => 'Yapıkredi',
-            'class' => Mews\Pos\PosNet::class,
+            'class' => Mews\Pos\Gateways\PosNet::class,
             'urls'  => [
                 'production'    => 'https://www.posnet.ykb.com/PosnetWebService/XML',
                 'test'          => 'https://setmpos.ykb.com/PosnetWebService/XML',
@@ -109,17 +104,10 @@ return [
                     'test'          => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
                 ],
             ],
-			'order' => [
-			    'id_total_length' => 24,
-				'id_length' => 20,
-				'id_3d_prefix' => 'TDSC',
-                'id_3d_pay_prefix' => '', //?
-                'id_regular_prefix' => '' //?
-			]
         ],
         'garanti' => [
             'name'  => 'Garanti',
-            'class' => Mews\Pos\GarantiPos::class,
+            'class' => Mews\Pos\Gateways\GarantiPos::class,
             'urls'  => [
                 'production'    => 'https://sanalposprov.garanti.com.tr/VPServlet',
                 'test'          => 'https://sanalposprovtest.garanti.com.tr/VPServlet',
@@ -131,7 +119,7 @@ return [
         ],
         'qnbfinansbank-payfor' => [
             'name'  => 'QNBFinansbank-PayFor',
-            'class' => Mews\Pos\PayForPos::class,
+            'class' => Mews\Pos\Gateways\PayForPos::class,
             'urls'  => [
                 'production'    => 'https://vpos.qnbfinansbank.com/Gateway/XMLGate.aspx',
                 'test'          => 'https://vpostest.qnbfinansbank.com/Gateway/XmlGate.aspx',
@@ -146,5 +134,4 @@ return [
             ]
         ]
     ],
-
 ];

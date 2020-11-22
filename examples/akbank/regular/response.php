@@ -21,10 +21,9 @@ $order = [
     'installment'   => '0',
     'currency'      => 'TRY',
     'ip'            => $ip,
-    'transaction'   => 'pre', // pay => Auth, pre PreAuth
 ];
 
-$pos->prepare($order);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY);
 
 $card = new \Mews\Pos\Entity\Card\CreditCardEstPos(
     $request->get('number'),
@@ -33,8 +32,8 @@ $card = new \Mews\Pos\Entity\Card\CreditCardEstPos(
     $request->get('cvv')
 );
 
-$payment = $pos->payment($card);
-$response = $payment->getResponse();
+$pos->payment($card);
+$response = $pos->getResponse();
 ?>
 
 <div class="result">

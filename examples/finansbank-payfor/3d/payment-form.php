@@ -23,15 +23,15 @@ $order = [
     'ip'                => $ip,
     'success_url'       => $successUrl,
     'fail_url'          => $failUrl,
-    'transaction'       => 'pay', // pay => Auth, pre PreAuth,
     'rand'              => $rand,
 ];
 
-$pos->prepare($order);
-$order['hash'] = $pos->get3DHash();
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
+//$order['hash'] = $pos->create3D();
 $redis->lPush('order', json_encode($order));
+$redis->lPush('transaction', \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 
-$form_data = $pos->get3dFormData();
+$form_data = $pos->get3DFormData();
 
 ?>
 

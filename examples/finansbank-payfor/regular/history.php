@@ -6,15 +6,16 @@ $templateTitle = 'Order History';
 
 require '../../template/_header.php';
 
+
 // History Order
-$query= $pos->bank->history([
+$pos->history([
     //siparis tarihi
-    'reqDate'  => '20201031',
+    //'reqDate'  => '20201031',
     //veya siparis ID
-    'orderId' => '20201031C06E',
+    'id' => '20201031C06E',
 ]);
 
-$response = $query->getResponse();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">

@@ -4,26 +4,26 @@ require '_config.php';
 
 require '../../template/_header.php';
 
-$url = $baseUrl . 'form.php';
+$url = $baseUrl.'form.php';
 ?>
 
 <form method="post" action="<?php echo $url; ?>" role="form">
     <div class="row">
         <div class="form-group col-sm-12">
             <label for="name">Card holder name</label>
-            <input type="text" name="name" id="name" class="form-control input-lg" placeholder="Card holder name">
+            <input type="text" name="name" id="name" class="form-control input-lg" placeholder="Card holder name"  value="John Doe">
         </div>
         <div class="form-group col-sm-3">
             <label for="type">Card Type</label>
             <select name="type" id="type" class="form-control input-lg">
                 <option value="">Type</option>
-                <option value="visa">Visa</option>
+                <option value="visa" selected>Visa</option>
                 <option value="master">MasterCard</option>
             </select>
         </div>
         <div class="form-group col-sm-9">
             <label for="number">Card Number</label>
-            <input type="text" name="number" id="number" class="form-control input-lg" placeholder="Credit card number">
+            <input type="text" name="number" id="number" class="form-control input-lg" placeholder="Credit card number"  value="4355084355084358">
         </div>
         <div class="form-group col-sm-4">
             <label for="month">Expire Month</label>
@@ -45,7 +45,7 @@ $url = $baseUrl . 'form.php';
         </div>
         <div class="form-group col-sm-4">
             <label for="cvv">Cvv</label>
-            <input type="text" name="cvv" id="cvv" class="form-control input-lg" placeholder="Cvv">
+            <input type="text" name="cvv" id="cvv" class="form-control input-lg" placeholder="Cvv" value="000">
         </div>
     </div>
     <hr>

@@ -21,12 +21,11 @@ $order = [
     'installment' => '4',
     'currency' => 'TRY',
     'ip' => $ip,
-    'transaction' => 'pay', // pay => Auth, pre PreAuth
     //'lang'          => \Mews\Pos\PayForPos::LANG_TR
 ];
 
-
-$pos->prepare($order);
+$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY;
+$pos->prepare($order, $transaction);
 
 $card = new \Mews\Pos\Entity\Card\CreditCardPayFor(
     $request->get('number'),
@@ -36,9 +35,9 @@ $card = new \Mews\Pos\Entity\Card\CreditCardPayFor(
     $request->get('name')
 );
 
-$payment = $pos->payment($card);
+$pos->payment($card);
 
-$response = $payment->getResponse();
+$response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
     $redis->lPush('order', json_encode($order));
@@ -49,9 +48,9 @@ if ($pos->isSuccess()) {
 <div class="result">
 
     <h3 class="text-center text-<?php echo $pos->isSuccess() ? 'success' : 'danger'; ?>">
-        <?php if ('pay' === $order['transaction']) : ?>
+        <?php if (\Mews\Pos\Gateways\AbstractGateway::TX_PAY === $transaction) : ?>
             <?php echo $pos->isSuccess() ? 'Payment is successful!' : 'Payment is not successful!'; ?>
-        <?php elseif ('pre' === $order['transaction']) : ?>
+        <?php elseif (\Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY === $transaction) : ?>
             <?php echo $pos->isSuccess() ? 'Pre Authorization is successful!' : 'Pre Authorization is not successful!'; ?>
         <?php endif; ?>
     </h3>
@@ -116,11 +115,11 @@ if ($pos->isSuccess()) {
     <hr>
     <div class="text-right">
         <?php if ($pos->isSuccess()) : ?>
-            <?php if ('pre' === $order['transaction']) : ?>
-                <a href="post-auth.php?orderId=<?= $order['id']; ?>" class="btn btn-lg btn-primary">Finish provisioning
+            <?php if (\Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY === $transaction) : ?>
+                <a href="post-auth.php" class="btn btn-lg btn-primary">Finish provisioning
                     ></a>
             <?php endif; ?>
-            <?php if ('pay' === $order['transaction']) : ?>
+            <?php if (\Mews\Pos\Gateways\AbstractGateway::TX_PAY === $transaction) : ?>
                 <a href="cancel.php" class="btn btn-lg btn-danger">Cancel payment</a>
             <?php endif; ?>
             <a href="status.php" class="btn btn-lg btn-default">Order Status</a>

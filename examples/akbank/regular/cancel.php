@@ -7,11 +7,14 @@ $templateTitle = 'Cancel Order';
 require '../../template/_header.php';
 
 // Cancel Order
-$cancel = $pos->bank->cancel([
-    'order_id'  => '20181029A3C1',
-]);
+$order = [
+    'id'  => '20181029A3C1',
+];
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL);
 
-$response = $cancel->getResponse();
+$pos->cancel();
+
+$response = $pos->getResponse();
 ?>
 
 <div class="result">

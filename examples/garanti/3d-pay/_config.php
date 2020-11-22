@@ -7,20 +7,11 @@ $baseUrl = $hostUrl . $path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
-
-$account = [
-    'bank'              => 'garanti',
-    'model'             => '3d_pay',
-    'client_id'         => '7000679',
-    'terminal_id'       => '30691298',
-    'username'          => 'PROVAUT',
-    'password'          => '123qweASD/',
-    'store_key'         => '12345678',
-    'env'               => 'test',
-];
+$account = \Mews\Pos\Factory\AccountFactory::createGarantiPosAccount('garanti', '7000679', 'PROVAUT', '123qweASD/', '30691298', '3d_pay', '12345678');
 
 try {
-    $pos = new \Mews\Pos\Pos($account);
+    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
+    $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
     dump($e->getCode(), $e->getMessage());
 } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {

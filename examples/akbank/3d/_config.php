@@ -3,24 +3,15 @@
 require '../../_main_config.php';
 
 $path = '/akbank/3d/';
-$baseUrl = $hostUrl . $path;
+$baseUrl = $hostUrl.$path;
 
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
-
-$account = [
-    'bank'          => 'akbank',
-    'model'         => '3d',
-    'client_id'     => 'XXXXXXX',
-    'username'      => 'XXXXXXX',
-    'password'      => 'XXXXXXX',
-    'store_key'     => 'XXXXXXX',
-    'env'           => 'test',
-    'lang'          => \Mews\Pos\EstPos::LANG_TR
-];
+$account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount('akbank', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '3d', 'XXXXXXX', \Mews\Pos\Gateways\EstPos::LANG_TR);
 
 try {
-    $pos = new \Mews\Pos\Pos($account);
+    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
+    $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
     dump($e->getCode(), $e->getMessage());
 } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
