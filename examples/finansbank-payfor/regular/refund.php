@@ -15,6 +15,8 @@ $order = [
 
 $pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_REFUND);
 
+$pos->refund();
+
 $response = $pos->getResponse();
 ?>
 
