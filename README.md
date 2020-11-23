@@ -14,7 +14,7 @@ Finansbank'ın PayFor sanal pos sistemini desteklemektedir, Finansbank'ın IP k�
   - Standart E-Commerce modeliyle ödeme (model => regular)
   - 3D modeliyle ödeme (model => 3d)
   - 3D Pay modeliyle ödeme (model => 3d_pay)
-  - Sipariş/Ödeme sorgulama (query)
+  - Sipariş/Ödeme sorgulama (status)
   - Sipariş/Ödeme geçmişi sorgulama (history)
   - Sipariş/Para iadesi yapma (refund)
   - Sipariş iptal etme (cancel)
@@ -52,7 +52,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount('akbank', 'XXXX
 // API kullanıcı hesabı ile paket bir değişkene aktarılıyor
 try {
     $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
-    // test veya production. test ise; API Test Url, production ise; API Production URL kullanılır.
+    //değere göre API URL'leri test veya production değerler kullanılır.
     $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
     dump($e->getCode(), $e->getMessage());
@@ -87,17 +87,13 @@ $card = new \Mews\Pos\Entity\Card\CreditCardEstPos('1111222233334444', '20', '01
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri gönderiliyor
 $pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 
-// Ödeme tamamlanıyor
+// Ödeme tamamlanıyor, $card zorunlu değil.
 $pos->payment($card);
 
 // Ödeme başarılı mı?
 $pos->isSuccess();
-//veya
-$pos->isSuccess();
 
 // Ödeme başarısız mı?
-$pos->isError();
-//veya
 $pos->isError();
 
 // Sonuç çıktısı
@@ -177,7 +173,6 @@ http://localhost/ URL projenin `examples` klasörünün içine bakar.
 
 ### Yol Haritası
   - Dökümantasyon hazırlanacak
-  - UnitTest yazılacak -> Bu hiçbir zaman olmayabilir, birisi el atarsa sevinirim :)
 
 > Değerli yorum, öneri ve katkılarınızı 
 > 
