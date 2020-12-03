@@ -15,8 +15,7 @@ $order = [
     'currency'          => 'TRY',
     'success_url'       => $success_url,
     'fail_url'          => $fail_url,
-    'transaction'       => 'pay', // pay => Sale, pre Auth
-    'lang'              => \Mews\Pos\PosNet::LANG_TR,
+    'lang'              => \Mews\Pos\Gateways\PosNet::LANG_TR,
 ];
 ?>
 
@@ -64,7 +63,7 @@ $order = [
     <input type="hidden" name="amount" value="<?php echo $order['amount']; ?>" />
     <input type="hidden" name="currency" value="<?php echo $order['currency']; ?>" />
     <input type="hidden" name="order_id" value="<?php echo $order['id']; ?>" />
-    <input type="hidden" name="transaction" value="<?php echo $order['transaction']; ?>" />
+    <input type="hidden" name="transaction" value="<?php echo \Mews\Pos\Gateways\AbstractGateway::TX_PAY; ?>" />
     <input type="hidden" name="success_url" value="<?php echo $order['success_url']; ?>" />
     <input type="hidden" name="fail_url" value="<?php echo $order['fail_url']; ?>" />
     <input name="lang" type="hidden" id="lang" value="<?php echo $order['lang'] ?>">

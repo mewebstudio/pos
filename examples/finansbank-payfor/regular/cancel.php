@@ -13,17 +13,12 @@ $order = [
     'currency'  => $ord['currency'],
 ];
 
-/*$order = [
-    'id'  => '202011012784',
-    'currency'  => 'TRY',
-];*/
-
-$pos->prepare($order);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL);
 
 // Cancel Order
-$cancel = $pos->bank->cancel([]);
+$pos->cancel();
 
-$response = $cancel->getResponse();
+$response = $pos->getResponse();
 
 ?>
 

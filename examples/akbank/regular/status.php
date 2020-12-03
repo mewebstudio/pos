@@ -6,17 +6,19 @@ $templateTitle = 'Order Status';
 
 require '../../template/_header.php';
 
+$order = [
+    'id'  => '201810297189',
+];
+$pos->prepare($order,\Mews\Pos\Gateways\AbstractGateway::TX_STATUS);
 // Query Order
-$query= $pos->bank->status([
-    'order_id'  => '201810297189'
-]);
+$pos->status();
 
-$response = $query->getResponse();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $response->proc_return_code == '00' ? 'success' : 'danger'; ?>">
-        <?php echo $response->proc_return_code == '00' ? 'Query Order is successful!' : 'Query Order is not successful!'; ?>
+    <h3 class="text-center text-<?php echo $response->proc_return_code === '00' ? 'success' : 'danger'; ?>">
+        <?php echo $response->proc_return_code === '00' ? 'Query Order is successful!' : 'Query Order is not successful!'; ?>
     </h3>
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>

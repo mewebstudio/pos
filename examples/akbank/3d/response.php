@@ -11,7 +11,7 @@ if ($request->getMethod() !== 'POST') {
 
 $order = (array) json_decode($redis->lPop('order'));
 
-$pos->prepare($order);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 $payment = $pos->payment();
 $response = $payment->getResponse();
 ?>

@@ -6,22 +6,24 @@ $templateTitle = 'Refund Order';
 
 require '../../template/_header.php';
 
-// Refund Order
-$refund = $pos->bank->refund([
-    'order_id'      => '201811142A0A',
+$order = [
+    'id'            => '201811142A0A',
     'ip'            => $ip,
     'email'         => 'mail@customer.com',
     'ref_ret_num'   => '831803586333',
     'amount'        => 1,
     'currency'      => 'TRY',
-]);
+];
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_REFUND);
+// Refund Order
+$pos->refund();
 
-$response = $refund->getResponse();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $response->proc_return_code == '00' ? 'success' : 'danger'; ?>">
-        <?php echo $response->proc_return_code == '00' ? 'Refund Order is successful!' : 'Refund Order is not successful!'; ?>
+    <h3 class="text-center text-<?php echo $response->proc_return_code === '00' ? 'success' : 'danger'; ?>">
+        <?php echo $response->proc_return_code === '00' ? 'Refund Order is successful!' : 'Refund Order is not successful!'; ?>
     </h3>
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>

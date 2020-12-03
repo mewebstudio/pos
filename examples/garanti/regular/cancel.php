@@ -6,22 +6,25 @@ $templateTitle = 'Cancel Order';
 
 require '../../template/_header.php';
 
-// Cancel Order
-$cancel = $pos->bank->cancel([
-    'order_id'      => '20181114DF2C',
+$order = [
+    'id'            => '20181114DF2C',
     'ip'            => $ip,
     'email'         => 'mail@customer.com',
     'ref_ret_num'   => '831803579226',
     'amount'        => 1,
     'currency'      => 'TRY',
-]);
+];
 
-$response = $cancel->getResponse();
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL);
+// Cancel Order
+$pos->cancel();
+
+$response = $pos->getResponse();
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $response->proc_return_code == '00' ? 'success' : 'danger'; ?>">
-        <?php echo $response->proc_return_code == '00' ? 'Cancel Order is successful!' : 'Cancel Order is not successful!'; ?>
+    <h3 class="text-center text-<?php echo $response->proc_return_code === '00' ? 'success' : 'danger'; ?>">
+        <?php echo $response->proc_return_code === '00' ? 'Cancel Order is successful!' : 'Cancel Order is not successful!'; ?>
     </h3>
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>

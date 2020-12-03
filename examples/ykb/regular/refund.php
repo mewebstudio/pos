@@ -6,14 +6,15 @@ $templateTitle = 'Refund Order';
 
 require '../../template/_header.php';
 
-// Refund Order
-$refund = $pos->bank->refund([
-    'order_id'      => '20181113DCDB',
+$pos->prepare([
+    'id'      => '20181113DCDB',
     'amount'        => '1',
     'currency'      => 'TRY',
-]);
+], \Mews\Pos\Gateways\AbstractGateway::TX_REFUND);
+// Refund Order
+$pos->refund();
 
-$response = $refund->getResponse();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">

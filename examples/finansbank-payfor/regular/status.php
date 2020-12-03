@@ -12,17 +12,17 @@ $order = [
     'id'  => $ord['id'],
 ];
 
-$pos->prepare($order);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_STATUS);
 
-$query= $pos->bank->status([]);
+$pos->status();
 
-$response = $query->getResponse();
+$response = $pos->getResponse();
 
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $response->proc_return_code == '00' ? 'success' : 'danger'; ?>">
-        <?php echo $response->proc_return_code == '00' ? 'Query Order is successful!' : 'Query Order is not successful!'; ?>
+    <h3 class="text-center text-<?php echo $response->proc_return_code === '00' ? 'success' : 'danger'; ?>">
+        <?php echo $response->proc_return_code === '00' ? 'Query Order is successful!' : 'Query Order is not successful!'; ?>
     </h3>
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>

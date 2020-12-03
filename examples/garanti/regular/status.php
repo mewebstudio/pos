@@ -6,14 +6,17 @@ $templateTitle = 'Order Status';
 
 require '../../template/_header.php';
 
-// Query Order
-$query= $pos->bank->status([
-    'order_id'  => '201812195CF2',
+$order = [
+    'id'  => '201812195CF2',
     'currency'  => 'TRY',
-    'ip'        => $ip
-]);
+    'ip'        => $ip,
+];
 
-$response = $query->getResponse();
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_STATUS);
+// Query Order
+$pos->status();
+
+$response = $pos->getResponse();
 ?>
 
 <div class="result">

@@ -20,10 +20,9 @@ $order = [
     'amount'        => $amount,
     'installment'   => 1,
     'currency'      => 'TRY',
-    'transaction'   => 'pay', // pay => Sale, pre Auth
 ];
 
-$pos->prepare($order);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 
 $card = [
     'number'    => $request->get('number'),
@@ -32,9 +31,9 @@ $card = [
     'cvv'       => $request->get('cvv'),
 ];
 
-$payment = $pos->payment($card);
+$pos->payment($card);
 
-$response = $payment->getResponse();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">

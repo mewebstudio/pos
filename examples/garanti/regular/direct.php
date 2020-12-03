@@ -14,16 +14,15 @@ $order = [
     'installment'   => '0',
     'currency'      => 'TRY',
     'ip'            => $ip,
-    'transaction'   => 'pay', // pay => Auth, pre PreAuth
 ];
 
 try {
-    $pos->prepare($order);
+    $pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 } catch (\Mews\Pos\Exceptions\UnsupportedTransactionTypeException $e) {
     dump($e->getCode(), $e->getMessage());
 }
 
 $card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos('4282209027132016', '20', '05', '165');
-$payment = $pos->payment($card);
+$pos->payment($card);
 
-dump($payment->getResponse());
+dump($pos->getResponse());

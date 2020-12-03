@@ -23,14 +23,13 @@ $order = [
     'ip'                => $ip,
     'success_url'       => $successUrl,
     'fail_url'          => $failUrl,
-    'transaction'       => 'pay', // pay => Auth, pre PreAuth,
     'rand'              => $rand,
 ];
 $redis->lPush('order', json_encode($order));
 
-$pos->prepare($order);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 
-$form_data = $pos->get3dFormData();
+$form_data = $pos->get3DFormData();
 ?>
 
 <form method="post" action="<?php echo $form_data['gateway']; ?>" class="redirect-form" role="form">

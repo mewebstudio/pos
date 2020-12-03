@@ -7,11 +7,11 @@ $templateTitle = 'History Order';
 require '../../template/_header.php';
 
 // History Order
-$query = $pos->bank->history([
+$pos->history([
     'order_id'  => '201811133F3F',
 ]);
 
-$response = $query->getResponse();
+$response = $pos->getResponse();
 ?>
 
 <div class="result">

@@ -29,8 +29,7 @@ $order = [
     'ip'                => $ip,
     'success_url'       => $success_url,
     'fail_url'          => $fail_url,
-    'transaction'       => 'pay', // pay => Auth, pre PreAuth,
-    'lang'              => \Mews\Pos\EstPos::LANG_TR,
+    'lang'              => \Mews\Pos\Gateways\EstPos::LANG_TR,
     'rand'              => $rand,
 ];
 
@@ -45,9 +44,9 @@ $card = new \Mews\Pos\Entity\Card\CreditCardEstPos(
     $request->get('type')
 );
 
-$pos->prepare($order, $card);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY, $card);
 
-$form_data = $pos->get3dFormData();
+$form_data = $pos->get3DFormData();
 ?>
 
 <form method="post" action="<?php echo $form_data['gateway']; ?>" class="redirect-form" role="form">

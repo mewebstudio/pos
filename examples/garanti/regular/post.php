@@ -23,7 +23,8 @@ $templateTitle = 'Post Auth Order';
 require '../../template/_header.php';
 
 try {
-    $pos = new \Mews\Pos\Pos($account);
+    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
+    $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
     dump($e->getCode(), $e->getMessage());
 } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
@@ -32,14 +33,13 @@ try {
 
 $order = [
     'id'            => '201810231553',
-    'transaction'   => 'post',
     'amount'        => '1',
     'ref_ret_num'   => '829603332856',
     'ip'            => $ip,
 ];
 
 try {
-    $pos->prepare($order);
+    $pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY);
 } catch (\Mews\Pos\Exceptions\UnsupportedTransactionTypeException $e) {
     dump($e->getCode(), $e->getMessage());
 }

@@ -7,7 +7,7 @@ $templateTitle = 'History Order';
 require '../../template/_header.php';
 
 // History Order
-$query= $pos->bank->history([
+$query= $pos->history([
     'order_id'  => '201810297189',
 ]);
 
@@ -15,8 +15,8 @@ $response = $query->getResponse();
 ?>
 
 <div class="result">
-    <h3 class="text-center text-<?php echo $response->proc_return_code == '00' ? 'success' : 'danger'; ?>">
-        <?php echo $response->proc_return_code == '00' ? 'History Order is successful!' : 'History Order is not successful!'; ?>
+    <h3 class="text-center text-<?php echo $response->proc_return_code === '00' ? 'success' : 'danger'; ?>">
+        <?php echo $response->proc_return_code === '00' ? 'History Order is successful!' : 'History Order is not successful!'; ?>
     </h3>
     <dl class="row">
         <dt class="col-sm-12">All Data Dump:</dt>

@@ -17,9 +17,6 @@ $instalment = '0';
 $success_url = $baseUrl . 'response.php';
 $fail_url = $baseUrl . 'response.php';
 
-$transaction = 'pay'; // pay => Auth, pre PreAuth
-$transaction_type = $pos->bank->types[$transaction];
-
 $rand = microtime();
 
 $order = [
@@ -32,8 +29,7 @@ $order = [
     'ip'                => $ip,
     'success_url'       => $success_url,
     'fail_url'          => $fail_url,
-    'transaction'       => $transaction,
-    'lang'              => \Mews\Pos\GarantiPos::LANG_TR,
+    'lang'              => \Mews\Pos\Gateways\GarantiPos::LANG_TR,
     'rand'              => $rand,
 ];
 
@@ -48,9 +44,9 @@ $card = new \Mews\Pos\Entity\Card\CreditCardGarantiPos(
     $request->get('type')
 );
 
-$pos->prepare($order, $card);
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY, $card);
 
-$form_data = $pos->get3dFormData();
+$form_data = $pos->get3DFormData();
 ?>
 
 <form method="post" action="<?php echo $form_data['gateway']; ?>" class="redirect-form" role="form">
