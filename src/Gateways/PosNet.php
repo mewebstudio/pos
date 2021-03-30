@@ -613,7 +613,7 @@ class PosNet extends AbstractGateway
                 $this->account->getClientId(),
                 $this->account->getTerminalId(),
                 $this->order->amount,
-                $this->order->installment,
+                ((int) $this->order->installment),
                 self::formatOrderId($this->order->id),
             ]);
 
@@ -621,7 +621,7 @@ class PosNet extends AbstractGateway
                 $decryptedData[0],
                 $decryptedData[1],
                 $decryptedData[2],
-                $decryptedData[3],
+                ((int) $decryptedData[3]),
                 $decryptedData[4],
             ]);
 
