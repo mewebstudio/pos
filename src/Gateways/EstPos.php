@@ -489,13 +489,11 @@ class EstPos extends AbstractGateway
             'year' => (string) $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
             'amount' => (string) $raw3DAuthResponseData['amount'],
             'currency' => (string) $raw3DAuthResponseData['currency'],
-            'tx_status' => (string) $raw3DAuthResponseData['txstatus'],
             'eci' => (string) $raw3DAuthResponseData['eci'],
             'cavv' => (string) $raw3DAuthResponseData['cavv'],
-            'xid' => (string) $raw3DAuthResponseData['xid'],
+            'xid' => (string) $raw3DAuthResponseData['oid'],
             'md_error_message' => (string) $raw3DAuthResponseData['mdErrorMsg'],
             'name' => (string) $raw3DAuthResponseData['firmaadi'],
-            'email' => (string) $raw3DAuthResponseData['Email'],
             '3d_all' => $raw3DAuthResponseData,
         ];
 
