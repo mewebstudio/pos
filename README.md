@@ -33,6 +33,13 @@ $ mkdir pos-test && cd pos-test
 $ composer require mews/pos
 ```
 
+### Unit testler çalıştırma
+Projenin root klasoründe bu satırı çalıştırmanız gerekiyor
+```sh
+$ ./vendor/bin/phpunit tests
+```
+
+
 **config.php (Ayar dosyası)**
 ```php
 <?php
