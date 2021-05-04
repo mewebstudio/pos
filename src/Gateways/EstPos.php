@@ -160,6 +160,14 @@ class EstPos extends AbstractGateway
 
 
         if ($this->check3DHash($request->request->all())) {
+            if ($request->request->get('ProcReturnCode') !== '00') {
+                /**
+                 * TODO hata durumu ele alinmasi gerekiyor
+                 * ornegin soyle bir hata donebilir
+                 * ["ProcReturnCode" => "99", "mdStatus" => "7", "mdErrorMsg" => "Isyeri kullanim tipi desteklenmiyor.",
+                 * "ErrMsg" => "Isyeri kullanim tipi desteklenmiyor.", "Response" => "Error", "ErrCode" => "3D-1007", ...]
+                 */
+            }
             $contents = $this->create3DPaymentXML($request->request->all());
             $this->send($contents);
         }
