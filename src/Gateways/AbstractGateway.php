@@ -3,7 +3,6 @@
 
 namespace Mews\Pos\Gateways;
 
-use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -296,12 +295,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @param AbstractCreditCard|null $card
-     *
-     * @return $this
-     *
-     * @throws GuzzleException
-     * @throws UnsupportedPaymentModelException
+     * @inheritDoc
      */
     public function payment($card = null)
     {

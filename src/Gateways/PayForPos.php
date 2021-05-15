@@ -43,8 +43,8 @@ class PayForPos extends AbstractGateway
      * @var array
      */
     protected $codes = [
-        '00' => 'approved',
-        '96' => 'general_error',
+        '00'   => 'approved',
+        '96'   => 'general_error',
         'V004' => 'invalid_credentials',
         'V001' => 'invalid_credentials',
         'V111' => 'general_error',
@@ -70,13 +70,13 @@ class PayForPos extends AbstractGateway
      * @var array
      */
     protected $types = [
-        self::TX_PAY => 'Auth',
-        self::TX_PRE_PAY => 'PreAuth',
+        self::TX_PAY      => 'Auth',
+        self::TX_PRE_PAY  => 'PreAuth',
         self::TX_POST_PAY => 'PostAuth',
-        self::TX_CANCEL => 'Void',
-        self::TX_REFUND => 'Refund',
-        self::TX_HISTORY => 'TxnHistory',
-        self::TX_STATUS => 'OrderInquiry',
+        self::TX_CANCEL   => 'Void',
+        self::TX_REFUND   => 'Refund',
+        self::TX_HISTORY  => 'TxnHistory',
+        self::TX_STATUS   => 'OrderInquiry',
     ];
 
     /**
@@ -85,12 +85,12 @@ class PayForPos extends AbstractGateway
      * @var array
      */
     protected $currencies = [
-        'TRY'       => 949,
-        'USD'       => 840,
-        'EUR'       => 978,
-        'GBP'       => 826,
-        'JPY'       => 392,
-        'RUB'       => 643,
+        'TRY' => 949,
+        'USD' => 840,
+        'EUR' => 978,
+        'GBP' => 826,
+        'JPY' => 392,
+        'RUB' => 643,
     ];
 
     /**
@@ -227,7 +227,6 @@ class PayForPos extends AbstractGateway
     }
 
 
-
     /**
      * @inheritDoc
      */
@@ -276,11 +275,11 @@ class PayForPos extends AbstractGateway
      */
     public function create3DHash()
     {
-        $hashStr = self::MBR_ID . $this->order->id
-            . $this->order->amount . $this->order->success_url
-            . $this->order->fail_url . $this->type
-            . $this->order->installment . $this->order->rand
-            . $this->account->getStoreKey();
+        $hashStr = self::MBR_ID.$this->order->id
+            .$this->order->amount.$this->order->success_url
+            .$this->order->fail_url.$this->type
+            .$this->order->installment.$this->order->rand
+            .$this->account->getStoreKey();
 
         return base64_encode(sha1($hashStr, true));
     }
@@ -295,10 +294,10 @@ class PayForPos extends AbstractGateway
     public function check3DHash($data)
     {
 
-        $hashStr = $this->account->getClientId() . $this->account->getStoreKey()
-            . $data['OrderId'] . $data['AuthCode']
-            . $data['ProcReturnCode'] . $data['3DStatus']
-            . $data['ResponseRnd'] . $this->account->getUsername();
+        $hashStr = $this->account->getClientId().$this->account->getStoreKey()
+            .$data['OrderId'].$data['AuthCode']
+            .$data['ProcReturnCode'].$data['3DStatus']
+            .$data['ResponseRnd'].$this->account->getUsername();
 
         $hash = base64_encode(sha1($hashStr, true));
 
@@ -311,22 +310,22 @@ class PayForPos extends AbstractGateway
     public function createRegularPaymentXML()
     {
         $requestData = [
-            'MbrId' => self::MBR_ID,
-            'MerchantId' => $this->account->getClientId(),
-            'UserCode' => $this->account->getUsername(),
-            'UserPass' => $this->account->getPassword(),
-            'MOTO' => self::MOTO,
-            'OrderId' => $this->order->id,
-            'SecureType' => 'NonSecure',
-            'TxnType' => $this->type,
-            'PurchAmount' => $this->order->amount,
-            'Currency' => $this->order->currency,
+            'MbrId'            => self::MBR_ID,
+            'MerchantId'       => $this->account->getClientId(),
+            'UserCode'         => $this->account->getUsername(),
+            'UserPass'         => $this->account->getPassword(),
+            'MOTO'             => self::MOTO,
+            'OrderId'          => $this->order->id,
+            'SecureType'       => 'NonSecure',
+            'TxnType'          => $this->type,
+            'PurchAmount'      => $this->order->amount,
+            'Currency'         => $this->order->currency,
             'InstallmentCount' => $this->order->installment,
-            'Lang' => $this->getLang(),
-            'CardHolderName' => $this->card->getHolderName(),
-            'Pan' => $this->card->getNumber(),
-            'Expiry' => $this->card->getExpirationDate(),
-            'Cvv2' => $this->card->getCvv(),
+            'Lang'             => $this->getLang(),
+            'CardHolderName'   => $this->card->getHolderName(),
+            'Pan'              => $this->card->getNumber(),
+            'Expiry'           => $this->card->getExpirationDate(),
+            'Cvv2'             => $this->card->getCvv(),
         ];
 
         return $this->createXML($requestData);
@@ -338,16 +337,16 @@ class PayForPos extends AbstractGateway
     public function createRegularPostXML()
     {
         $requestData = [
-            'MbrId' => self::MBR_ID,
-            'MerchantId' => $this->account->getClientId(),
-            'UserCode' => $this->account->getUsername(),
-            'UserPass' => $this->account->getPassword(),
-            'OrgOrderId' => $this->order->id,
-            'SecureType' => 'NonSecure',
-            'TxnType' => $this->type,
+            'MbrId'       => self::MBR_ID,
+            'MerchantId'  => $this->account->getClientId(),
+            'UserCode'    => $this->account->getUsername(),
+            'UserPass'    => $this->account->getPassword(),
+            'OrgOrderId'  => $this->order->id,
+            'SecureType'  => 'NonSecure',
+            'TxnType'     => $this->type,
             'PurchAmount' => $this->order->amount,
-            'Currency' => $this->order->currency,
-            'Lang' => $this->getLang(),
+            'Currency'    => $this->order->currency,
+            'Lang'        => $this->getLang(),
         ];
 
         return $this->createXML($requestData);
@@ -360,10 +359,10 @@ class PayForPos extends AbstractGateway
     {
         $requestData = [
             'RequestGuid' => $responseData['RequestGuid'],
-            'UserCode' => $this->account->getUsername(),
-            'UserPass' => $this->account->getPassword(),
-            'OrderId' => $this->order->id,
-            'SecureType' => '3DModelPayment',
+            'UserCode'    => $this->account->getUsername(),
+            'UserPass'    => $this->account->getPassword(),
+            'OrderId'     => $this->order->id,
+            'SecureType'  => '3DModelPayment',
         ];
 
         return $this->createXML($requestData);
@@ -375,14 +374,14 @@ class PayForPos extends AbstractGateway
     public function createStatusXML()
     {
         $requestData = [
-            'MbrId' => self::MBR_ID,
+            'MbrId'      => self::MBR_ID,
             'MerchantId' => $this->account->getClientId(),
-            'UserCode' => $this->account->getUsername(),
-            'UserPass' => $this->account->getPassword(),
+            'UserCode'   => $this->account->getUsername(),
+            'UserPass'   => $this->account->getPassword(),
             'OrgOrderId' => $this->order->id,
             'SecureType' => 'Inquiry',
-            'Lang' => $this->getLang(),
-            'TxnType' => $this->types[self::TX_STATUS],
+            'Lang'       => $this->getLang(),
+            'TxnType'    => $this->types[self::TX_STATUS],
         ];
 
         return $this->createXML($requestData);
@@ -394,13 +393,13 @@ class PayForPos extends AbstractGateway
     public function createHistoryXML($customQueryData)
     {
         $requestData = [
-            'MbrId' => self::MBR_ID,
+            'MbrId'      => self::MBR_ID,
             'MerchantId' => $this->account->getClientId(),
-            'UserCode' => $this->account->getUsername(),
-            'UserPass' => $this->account->getPassword(),
+            'UserCode'   => $this->account->getUsername(),
+            'UserPass'   => $this->account->getPassword(),
             'SecureType' => 'Report',
-            'TxnType' => $this->types[self::TX_HISTORY],
-            'Lang' => $this->getLang(),
+            'TxnType'    => $this->types[self::TX_HISTORY],
+            'Lang'       => $this->getLang(),
         ];
 
         if (isset($customQueryData['orderId'])) {
@@ -420,16 +419,16 @@ class PayForPos extends AbstractGateway
     public function createRefundXML()
     {
         $requestData = [
-            'MbrId' => self::MBR_ID,
-            'MerchantId' => $this->account->getClientId(),
-            'UserCode' => $this->account->getUsername(),
-            'UserPass' => $this->account->getPassword(),
-            'SecureType' => 'NonSecure',
-            'Lang' => $this->getLang(),
-            'OrgOrderId' => $this->order->id,
-            'TxnType' => $this->types[self::TX_REFUND],
+            'MbrId'       => self::MBR_ID,
+            'MerchantId'  => $this->account->getClientId(),
+            'UserCode'    => $this->account->getUsername(),
+            'UserPass'    => $this->account->getPassword(),
+            'SecureType'  => 'NonSecure',
+            'Lang'        => $this->getLang(),
+            'OrgOrderId'  => $this->order->id,
+            'TxnType'     => $this->types[self::TX_REFUND],
             'PurchAmount' => $this->order->amount,
-            'Currency' => $this->order->currency,
+            'Currency'    => $this->order->currency,
         ];
 
         return $this->createXML($requestData);
@@ -441,15 +440,15 @@ class PayForPos extends AbstractGateway
     public function createCancelXML()
     {
         $requestData = [
-            'MbrId' => self::MBR_ID,
+            'MbrId'      => self::MBR_ID,
             'MerchantId' => $this->account->getClientId(),
-            'UserCode' => $this->account->getUsername(),
-            'UserPass' => $this->account->getPassword(),
+            'UserCode'   => $this->account->getUsername(),
+            'UserPass'   => $this->account->getPassword(),
             'OrgOrderId' => $this->order->id,
             'SecureType' => 'NonSecure',
-            'TxnType' => $this->types[self::TX_CANCEL],
-            'Currency' => $this->order->currency,
-            'Lang' => $this->getLang(),
+            'TxnType'    => $this->types[self::TX_CANCEL],
+            'Currency'   => $this->order->currency,
+            'Lang'       => $this->getLang(),
         ];
 
         return $this->createXML($requestData);
@@ -468,17 +467,17 @@ class PayForPos extends AbstractGateway
         }
 
         $threeDResponse = [
-            'id' => $raw3DAuthResponseData['AuthCode'],
-            'trans_id' => $raw3DAuthResponseData['OrderId'],
-            'auth_code' => $raw3DAuthResponseData['AuthCode'],
-            'host_ref_num' => $raw3DAuthResponseData['HostRefNum'],
-            'order_id' => $raw3DAuthResponseData['OrderId'],
+            'id'               => $raw3DAuthResponseData['AuthCode'],
+            'trans_id'         => $raw3DAuthResponseData['OrderId'],
+            'auth_code'        => $raw3DAuthResponseData['AuthCode'],
+            'host_ref_num'     => $raw3DAuthResponseData['HostRefNum'],
+            'order_id'         => $raw3DAuthResponseData['OrderId'],
             'proc_return_code' => $raw3DAuthResponseData['ProcReturnCode'],
-            'code' => $raw3DAuthResponseData['ProcReturnCode'],
-            'status' => 'declined',
-            'status_detail' => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $this->codes[$raw3DAuthResponseData['ProcReturnCode']] : null,
-            'error_code' => $raw3DAuthResponseData['ProcReturnCode'],
-            'error_message' => $raw3DAuthResponseData['ErrMsg'],
+            'code'             => $raw3DAuthResponseData['ProcReturnCode'],
+            'status'           => 'declined',
+            'status_detail'    => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $this->codes[$raw3DAuthResponseData['ProcReturnCode']] : null,
+            'error_code'       => $raw3DAuthResponseData['ProcReturnCode'],
+            'error_message'    => $raw3DAuthResponseData['ErrMsg'],
         ];
 
         if (empty($paymentResponseData)) {
@@ -496,19 +495,19 @@ class PayForPos extends AbstractGateway
         $status = '00' === $raw3DAuthResponseData['ProcReturnCode'] ? 'approved' : 'declined';
 
         $threeDResponse = [
-            'id' => $raw3DAuthResponseData['AuthCode'],
-            'trans_id' => $raw3DAuthResponseData['OrderId'],
-            'auth_code' => $raw3DAuthResponseData['AuthCode'],
-            'host_ref_num' => $raw3DAuthResponseData['HostRefNum'],
-            'order_id' => $raw3DAuthResponseData['OrderId'],
+            'id'               => $raw3DAuthResponseData['AuthCode'],
+            'trans_id'         => $raw3DAuthResponseData['OrderId'],
+            'auth_code'        => $raw3DAuthResponseData['AuthCode'],
+            'host_ref_num'     => $raw3DAuthResponseData['HostRefNum'],
+            'order_id'         => $raw3DAuthResponseData['OrderId'],
             'proc_return_code' => $raw3DAuthResponseData['ProcReturnCode'],
-            'code' => $raw3DAuthResponseData['ProcReturnCode'],
-            'status' => $status,
-            'status_detail' => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $this->codes[$raw3DAuthResponseData['ProcReturnCode']] : null,
-            'error_code' => ('approved' !== $status) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
-            'error_message' => ('approved' !== $status) ? $raw3DAuthResponseData['ErrMsg'] : null,
+            'code'             => $raw3DAuthResponseData['ProcReturnCode'],
+            'status'           => $status,
+            'status_detail'    => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $this->codes[$raw3DAuthResponseData['ProcReturnCode']] : null,
+            'error_code'       => ('approved' !== $status) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
+            'error_message'    => ('approved' !== $status) ? $raw3DAuthResponseData['ErrMsg'] : null,
             'transaction_type' => array_search($raw3DAuthResponseData['TxnType'], $this->types, true),
-            'transaction' => $this->type,
+            'transaction'      => $this->type,
         ];
 
         return (object) array_merge($threeDResponse, $this->map3DCommonResponseData($raw3DAuthResponseData));
@@ -516,6 +515,7 @@ class PayForPos extends AbstractGateway
 
     /**
      * returns mapped data of the common response data among all 3d models.
+     *
      * @param $raw3DAuthResponseData
      *
      * @return array
@@ -526,20 +526,20 @@ class PayForPos extends AbstractGateway
 
         return [
             'transaction_security' => $raw3DAuthResponseData['SecureType'],
-            'hash' => $raw3DAuthResponseData['ResponseHash'],
-            'rand' => $raw3DAuthResponseData['ResponseRnd'],
-            'masked_number' => $raw3DAuthResponseData['CardMask'],
-            'amount' => $raw3DAuthResponseData['PurchAmount'],
-            'currency' => array_search($raw3DAuthResponseData['Currency'], $this->currencies),
-            'tx_status' => $raw3DAuthResponseData['TxnResult'],
-            'xid' => $raw3DAuthResponseData['PayerTxnId'],
-            'md_code' => $raw3DAuthResponseData['ProcReturnCode'],
-            'md_status' => $raw3DAuthResponseData['3DStatus'],
-            'md_error_code' => ('declined' === $threeDAuthStatus) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
-            'md_error_message' => ('declined' === $threeDAuthStatus) ? $raw3DAuthResponseData['ErrMsg'] : null,
-            'md_status_detail' => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $this->codes[$raw3DAuthResponseData['ProcReturnCode']] : null,
-            'eci' => $raw3DAuthResponseData['Eci'],
-            '3d_all' => $raw3DAuthResponseData,
+            'hash'                 => $raw3DAuthResponseData['ResponseHash'],
+            'rand'                 => $raw3DAuthResponseData['ResponseRnd'],
+            'masked_number'        => $raw3DAuthResponseData['CardMask'],
+            'amount'               => $raw3DAuthResponseData['PurchAmount'],
+            'currency'             => array_search($raw3DAuthResponseData['Currency'], $this->currencies),
+            'tx_status'            => $raw3DAuthResponseData['TxnResult'],
+            'xid'                  => $raw3DAuthResponseData['PayerTxnId'],
+            'md_code'              => $raw3DAuthResponseData['ProcReturnCode'],
+            'md_status'            => $raw3DAuthResponseData['3DStatus'],
+            'md_error_code'        => ('declined' === $threeDAuthStatus) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
+            'md_error_message'     => ('declined' === $threeDAuthStatus) ? $raw3DAuthResponseData['ErrMsg'] : null,
+            'md_status_detail'     => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $this->codes[$raw3DAuthResponseData['ProcReturnCode']] : null,
+            'eci'                  => $raw3DAuthResponseData['Eci'],
+            '3d_all'               => $raw3DAuthResponseData,
         ];
     }
 
@@ -563,16 +563,16 @@ class PayForPos extends AbstractGateway
         }
 
         return (object) [
-            'order_id' => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
-            'auth_code' => ('declined' !== $status) ? $rawResponseData->AuthCode : null,
-            'host_ref_num' => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
+            'order_id'         => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
+            'auth_code'        => ('declined' !== $status) ? $rawResponseData->AuthCode : null,
+            'host_ref_num'     => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
             'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $rawResponseData->ProcReturnCode : null,
-            'trans_id' => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
-            'error_code' => ('declined' === $status) ? $rawResponseData->ProcReturnCode : null,
-            'error_message' => ('declined' === $status) ? $rawResponseData->ErrMsg : null,
-            'status' => $status,
-            'status_detail' => isset($this->codes[$rawResponseData->ProcReturnCode]) ? $this->codes[$rawResponseData->ProcReturnCode] : null,
-            'all' => $rawResponseData,
+            'trans_id'         => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
+            'error_code'       => ('declined' === $status) ? $rawResponseData->ProcReturnCode : null,
+            'error_message'    => ('declined' === $status) ? $rawResponseData->ErrMsg : null,
+            'status'           => $status,
+            'status_detail'    => isset($this->codes[$rawResponseData->ProcReturnCode]) ? $this->codes[$rawResponseData->ProcReturnCode] : null,
+            'all'              => $rawResponseData,
         ];
     }
 
@@ -587,20 +587,20 @@ class PayForPos extends AbstractGateway
         }
 
         return [
-            'id' => $responseData->AuthCode,
-            'order_id' => $responseData->TransId,
-            'trans_id' => $responseData->TransId,
+            'id'               => $responseData->AuthCode,
+            'order_id'         => $responseData->TransId,
+            'trans_id'         => $responseData->TransId,
             'transaction_type' => $this->type,
-            'transaction' => $this->type,
-            'auth_code' => $responseData->AuthCode,
-            'host_ref_num' => $responseData->HostRefNum,
+            'transaction'      => $this->type,
+            'auth_code'        => $responseData->AuthCode,
+            'host_ref_num'     => $responseData->HostRefNum,
             'proc_return_code' => $responseData->ProcReturnCode,
-            'code' => $responseData->ProcReturnCode,
-            'status' => $status,
-            'status_detail' => isset($this->codes[$responseData->ProcReturnCode]) ? $this->codes[$responseData->ProcReturnCode] : null,
-            'error_code' => ('declined' === $status) ? $responseData->ProcReturnCode : null,
-            'error_message' => ('declined' === $status) ? $responseData->ErrMsg : null,
-            'all' => $responseData,
+            'code'             => $responseData->ProcReturnCode,
+            'status'           => $status,
+            'status_detail'    => isset($this->codes[$responseData->ProcReturnCode]) ? $this->codes[$responseData->ProcReturnCode] : null,
+            'error_code'       => ('declined' === $status) ? $responseData->ProcReturnCode : null,
+            'error_message'    => ('declined' === $status) ? $responseData->ErrMsg : null,
+            'all'              => $responseData,
         ];
     }
 
@@ -624,20 +624,20 @@ class PayForPos extends AbstractGateway
         }
 
         return (object) [
-            'auth_code' => isset($rawResponseData->AuthCode) ? $rawResponseData->AuthCode : null,
-            'order_id' => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
-            'org_order_id' => isset($rawResponseData->OrgOrderId) ? $rawResponseData->OrgOrderId : null,
+            'auth_code'        => isset($rawResponseData->AuthCode) ? $rawResponseData->AuthCode : null,
+            'order_id'         => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
+            'org_order_id'     => isset($rawResponseData->OrgOrderId) ? $rawResponseData->OrgOrderId : null,
             'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $rawResponseData->ProcReturnCode : null,
-            'error_message' => ('declined' === $status) ? $rawResponseData->ErrMsg : null,
-            'host_ref_num' => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
-            'order_status' => $orderStatus,
-            'process_type' => isset($rawResponseData->TxnType) ? array_search($rawResponseData->TxnType, $this->types, true) : null,
-            'masked_number' => isset($rawResponseData->CardMask) ? $rawResponseData->CardMask : null,
-            'amount' => isset($rawResponseData->PurchAmount) ? $rawResponseData->PurchAmount : null,
-            'currency' => isset($rawResponseData->Currency) ? array_search($rawResponseData->Currency, $this->currencies) : null,
-            'status' => $status,
-            'status_detail' => isset($this->codes[$rawResponseData->ProcReturnCode]) ? $this->codes[$rawResponseData->ProcReturnCode] : null,
-            'all' => $rawResponseData,
+            'error_message'    => ('declined' === $status) ? $rawResponseData->ErrMsg : null,
+            'host_ref_num'     => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
+            'order_status'     => $orderStatus,
+            'process_type'     => isset($rawResponseData->TxnType) ? array_search($rawResponseData->TxnType, $this->types, true) : null,
+            'masked_number'    => isset($rawResponseData->CardMask) ? $rawResponseData->CardMask : null,
+            'amount'           => isset($rawResponseData->PurchAmount) ? $rawResponseData->PurchAmount : null,
+            'currency'         => isset($rawResponseData->Currency) ? array_search($rawResponseData->Currency, $this->currencies) : null,
+            'status'           => $status,
+            'status_detail'    => isset($this->codes[$rawResponseData->ProcReturnCode]) ? $this->codes[$rawResponseData->ProcReturnCode] : null,
+            'all'              => $rawResponseData,
         ];
     }
 
@@ -649,20 +649,20 @@ class PayForPos extends AbstractGateway
     protected function getDefaultPaymentResponse()
     {
         return [
-            'id' => null,
-            'order_id' => null,
-            'trans_id' => null,
+            'id'               => null,
+            'order_id'         => null,
+            'trans_id'         => null,
             'transaction_type' => $this->type,
-            'transaction' => $this->type,
-            'auth_code' => null,
-            'host_ref_num' => null,
+            'transaction'      => $this->type,
+            'auth_code'        => null,
+            'host_ref_num'     => null,
             'proc_return_code' => null,
-            'code' => null,
-            'status' => 'declined',
-            'status_detail' => null,
-            'error_code' => null,
-            'error_message' => null,
-            'all' => null,
+            'code'             => null,
+            'status'           => 'declined',
+            'status_detail'    => null,
+            'error_code'       => null,
+            'error_message'    => null,
+            'all'              => null,
         ];
     }
 
@@ -674,20 +674,20 @@ class PayForPos extends AbstractGateway
     protected function getCommon3DFormData()
     {
         $inputs = [
-            'MbrId' => self::MBR_ID,
-            'MerchantID' => $this->account->getClientId(),
-            'UserCode' => $this->account->getUsername(),
-            'OrderId' => $this->order->id,
-            'Lang' => $this->getLang(),
-            'SecureType' => null, //to be filled by the caller
-            'TxnType' => $this->type,
-            'PurchAmount' => $this->order->amount,
+            'MbrId'            => self::MBR_ID,
+            'MerchantID'       => $this->account->getClientId(),
+            'UserCode'         => $this->account->getUsername(),
+            'OrderId'          => $this->order->id,
+            'Lang'             => $this->getLang(),
+            'SecureType'       => null, //to be filled by the caller
+            'TxnType'          => $this->type,
+            'PurchAmount'      => $this->order->amount,
             'InstallmentCount' => $this->order->installment,
-            'Currency' => $this->order->currency,
-            'OkUrl' => $this->order->success_url,
-            'FailUrl' => $this->order->fail_url,
-            'Rnd' => $this->order->rand,
-            'Hash' => $this->order->hash,
+            'Currency'         => $this->order->currency,
+            'OkUrl'            => $this->order->success_url,
+            'FailUrl'          => $this->order->fail_url,
+            'Rnd'              => $this->order->rand,
+            'Hash'             => $this->order->hash,
         ];
 
         if ($this->card) {
@@ -699,7 +699,7 @@ class PayForPos extends AbstractGateway
 
         return [
             'gateway' => null, //to be filled by the caller
-            'inputs' => $inputs,
+            'inputs'  => $inputs,
         ];
     }
 
@@ -726,8 +726,8 @@ class PayForPos extends AbstractGateway
 
         // Order
         return (object) array_merge($order, [
-            'installment'   => $installment,
-            'currency'      => $this->mapCurrency($currency),
+            'installment' => $installment,
+            'currency'    => $this->mapCurrency($currency),
         ]);
     }
 
@@ -737,8 +737,8 @@ class PayForPos extends AbstractGateway
     protected function preparePostPaymentOrder(array $order)
     {
         return (object) [
-            'id' => $order['id'],
-            'amount' => $order['amount'],
+            'id'       => $order['id'],
+            'amount'   => $order['amount'],
             'currency' => $this->mapCurrency($order['currency']),
         ];
     }
@@ -759,7 +759,7 @@ class PayForPos extends AbstractGateway
         return (object) [
             //reqDate or order id
             'reqDate' => isset($order['reqDate']) ? $order['reqDate'] : null,
-            'id' => isset($order['id']) ? $order['id'] : null,
+            'id'      => isset($order['id']) ? $order['id'] : null,
         ];
     }
 

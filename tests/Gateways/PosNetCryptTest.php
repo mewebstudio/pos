@@ -5,7 +5,6 @@ namespace Mews\Pos\Tests\Gateways;
 use Mews\Pos\Gateways\PosNetCrypt;
 use PHPUnit\Framework\TestCase;
 
-
 class PosNetCryptTest extends TestCase
 {
     private $crypt;
