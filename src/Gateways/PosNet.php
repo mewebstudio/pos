@@ -294,6 +294,14 @@ class PosNet extends AbstractGateway
     }
 
     /**
+     * @param CreditCardPosNet|null $card
+     */
+    public function setCard($card)
+    {
+        $this->card = $card;
+    }
+
+    /**
      * Hash string
      * @param string $str
      *

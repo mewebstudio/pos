@@ -118,6 +118,14 @@ class GarantiPos extends AbstractGateway
     }
 
     /**
+     * @param CreditCardGarantiPos|null $card
+     */
+    public function setCard($card)
+    {
+        $this->card = $card;
+    }
+
+    /**
      * @inheritDoc
      */
     public function createXML(array $data, $encoding = 'UTF-8'): string

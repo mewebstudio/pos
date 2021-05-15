@@ -290,6 +290,14 @@ class EstPos extends AbstractGateway
     }
 
     /**
+     * @param CreditCardEstPos|null $card
+     */
+    public function setCard($card)
+    {
+        $this->card = $card;
+    }
+
+    /**
      * @inheritDoc
      */
     public function createRegularPaymentXML()

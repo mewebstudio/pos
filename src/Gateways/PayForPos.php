@@ -120,6 +120,14 @@ class PayForPos extends AbstractGateway
     }
 
     /**
+     * @param CreditCardPayFor|null $card
+     */
+    public function setCard($card)
+    {
+        $this->card = $card;
+    }
+
+    /**
      * @inheritDoc
      */
     public function make3DPayment()

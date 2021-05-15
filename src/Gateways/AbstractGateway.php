@@ -164,6 +164,11 @@ abstract class AbstractGateway implements PosInterface
     abstract public function getCard();
 
     /**
+     * @param AbstractCreditCard|null $card
+     */
+    abstract public function setCard($card);
+
+    /**
      * @return mixed
      */
     public function getOrder()
