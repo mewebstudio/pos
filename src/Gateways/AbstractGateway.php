@@ -9,9 +9,7 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Mews\Pos\PosNet;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
-use function Sodium\library_version_major;
 
 /**
  * Class AbstractGateway
@@ -83,9 +81,10 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * AbstractGateway constructor.
-     * @param $config
+     *
+     * @param                    $config
      * @param AbstractPosAccount $account
-     * @param array $currencies
+     * @param array              $currencies
      */
     public function __construct($config, $account, ?array $currencies)
     {
@@ -191,7 +190,7 @@ abstract class AbstractGateway implements PosInterface
 
         return $encoder->encode($nodes[$rootNodeName], 'xml', [
             XmlEncoder::ROOT_NODE_NAME => $rootNodeName,
-            XmlEncoder::ENCODING => $encoding,
+            XmlEncoder::ENCODING       => $encoding,
         ]);
     }
 
@@ -463,6 +462,7 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * Creates 3D Payment XML
+     *
      * @param $responseData
      *
      * @return string
@@ -478,6 +478,7 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * prepares order for payment request
+     *
      * @param array $order
      *
      * @return object
@@ -486,6 +487,7 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * prepares order for TX_POST_PAY type request
+     *
      * @param array $order
      *
      * @return object
@@ -494,6 +496,7 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * prepares order for order status request
+     *
      * @param array $order
      *
      * @return object
@@ -502,6 +505,7 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * prepares order for history request
+     *
      * @param array $order
      *
      * @return object
@@ -510,6 +514,7 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * prepares order for cancel request
+     *
      * @param array $order
      *
      * @return object
@@ -518,6 +523,7 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * prepares order for refund request
+     *
      * @param array $order
      *
      * @return object
