@@ -231,24 +231,23 @@ class PosNet extends AbstractGateway
      */
     public function get3DFormData()
     {
-        $inputs = [];
-        $data = null;
-
-        if ($this->card && $this->order) {
-            $data = $this->getOosTransactionData();
-
-            $inputs = [
-                'posnetData'         => $data->oosRequestDataResponse->data1,
-                'posnetData2'        => $data->oosRequestDataResponse->data2,
-                'mid'                => $this->account->getClientId(),
-                'posnetID'           => $this->account->getPosNetId(),
-                'digest'             => $data->oosRequestDataResponse->sign,
-                'vftCode'            => isset($this->account->promotion_code) ? $this->account->promotion_code : null,
-                'merchantReturnURL'  => $this->order->success_url,
-                'url'                => '',
-                'lang'               => $this->getLang(),
-            ];
+        if (!$this->card || !$this->order) {
+            return [];
         }
+
+        $data = $this->getOosTransactionData();
+
+        $inputs = [
+            'posnetData'         => $data->oosRequestDataResponse->data1,
+            'posnetData2'        => $data->oosRequestDataResponse->data2,
+            'mid'                => $this->account->getClientId(),
+            'posnetID'           => $this->account->getPosNetId(),
+            'digest'             => $data->oosRequestDataResponse->sign,
+            'vftCode'            => isset($this->account->promotion_code) ? $this->account->promotion_code : null,
+            'merchantReturnURL'  => $this->order->success_url,
+            'url'                => '',
+            'lang'               => $this->getLang(),
+        ];
 
         return [
             'gateway'       => $this->get3DGatewayURL(),

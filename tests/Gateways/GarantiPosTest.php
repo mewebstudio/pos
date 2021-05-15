@@ -8,7 +8,6 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\GarantiPos;
-use Mews\Pos\Gateways\PayForPos;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -30,7 +29,7 @@ class GarantiPosTest extends TestCase
      */
     private $xmlDecoder;
     /**
-     * @var PayForPos
+     * @var GarantiPos
      */
     private $pos;
 
@@ -78,17 +77,74 @@ class GarantiPosTest extends TestCase
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 
-    public function testGet3DFormData()
+    public function testGet3DFormWithCardData()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $form = [
             'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
+            'inputs'  => [
+                'secure3dsecuritylevel' => $this->account->getModel() === '3d_pay' ? '3D_PAY' : '3D',
+                'mode'                  => 'TEST',
+                'apiversion'            => GarantiPos::API_VERSION,
+                'terminalprovuserid'    => $this->account->getUsername(),
+                'terminaluserid'        => $this->account->getUsername(),
+                'terminalmerchantid'    => $this->account->getClientId(),
+                'txntype'               => 'sales',
+                'txnamount'             => GarantiPos::amountFormat($this->order['amount']),
+                'txncurrencycode'       => $this->pos->mapCurrency($this->order['currency']),
+                'txninstallmentcount'   => empty($this->order['installment']) ? '' : $this->order['installment'],
+                'orderid'               => $this->order['id'],
+                'terminalid'            => $this->account->getTerminalId(),
+                'successurl'            => $this->order['success_url'],
+                'errorurl'              => $this->order['fail_url'],
+                'customeremailaddress'  => isset($this->order['email']) ? $this->order['email'] : null,
+                'customeripaddress'     => $this->order['ip'],
+                'secure3dhash'          => '1D319D5EA945F5730FF5BCC970FF96690993F4BD',
+                'cardnumber'            => $this->card->getNumber(),
+                'cardexpiredatemonth'   => $this->card->getExpireMonth(),
+                'cardexpiredateyear'    => $this->card->getExpireYear(),
+                'cardcvv2'              => $this->card->getCvv(),
+            ],
         ];
+
         $actualForm = $this->pos->get3DFormData();
         $this->assertNotEmpty($actualForm['inputs']);
 
-        unset($actualForm['inputs']);
+        $this->assertEquals($form, $actualForm);
+    }
+
+
+    public function testGet3DFormWithoutCardData()
+    {
+        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
+
+        $form = [
+            'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
+            'inputs'  => [
+                'secure3dsecuritylevel' => $this->account->getModel() === '3d_pay' ? '3D_PAY' : '3D',
+                'mode'                  => 'TEST',
+                'apiversion'            => GarantiPos::API_VERSION,
+                'terminalprovuserid'    => $this->account->getUsername(),
+                'terminaluserid'        => $this->account->getUsername(),
+                'terminalmerchantid'    => $this->account->getClientId(),
+                'txntype'               => 'sales',
+                'txnamount'             => GarantiPos::amountFormat($this->order['amount']),
+                'txncurrencycode'       => $this->pos->mapCurrency($this->order['currency']),
+                'txninstallmentcount'   => empty($this->order['installment']) ? '' : $this->order['installment'],
+                'orderid'               => $this->order['id'],
+                'terminalid'            => $this->account->getTerminalId(),
+                'successurl'            => $this->order['success_url'],
+                'errorurl'              => $this->order['fail_url'],
+                'customeremailaddress'  => isset($this->order['email']) ? $this->order['email'] : null,
+                'customeripaddress'     => $this->order['ip'],
+                'secure3dhash'          => '1D319D5EA945F5730FF5BCC970FF96690993F4BD',
+            ],
+        ];
+
+        $actualForm = $this->pos->get3DFormData();
+        $this->assertNotEmpty($actualForm['inputs']);
+
         $this->assertEquals($form, $actualForm);
     }
 

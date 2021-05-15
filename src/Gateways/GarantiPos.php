@@ -198,6 +198,10 @@ class GarantiPos extends AbstractGateway
      */
     public function get3DFormData()
     {
+        if (!$this->order) {
+            return [];
+        }
+
         $hashData = $this->create3DHash();
 
         $inputs = [
@@ -217,12 +221,15 @@ class GarantiPos extends AbstractGateway
             'errorurl'              => $this->order->fail_url,
             'customeremailaddress'  => isset($this->order->email) ? $this->order->email : null,
             'customeripaddress'     => $this->order->ip,
-            'cardnumber'            => $this->card->getNumber(),
-            'cardexpiredatemonth'   => $this->card->getExpireMonth(),
-            'cardexpiredateyear'    => $this->card->getExpireYear(),
-            'cardcvv2'              => $this->card->getCvv(),
             'secure3dhash'          => $hashData,
         ];
+
+        if ($this->card) {
+            $inputs['cardnumber'] = $this->card->getNumber();
+            $inputs['cardexpiredatemonth'] = $this->card->getExpireMonth();
+            $inputs['cardexpiredateyear'] = $this->card->getExpireYear();
+            $inputs['cardcvv2'] = $this->card->getCvv();
+        }
 
         return [
             'gateway'       => $this->get3DGatewayURL(),

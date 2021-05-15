@@ -202,45 +202,46 @@ class EstPos extends AbstractGateway
      */
     public function get3DFormData()
     {
-        $data = [];
-
-        if ($this->order) {
-            $this->order->hash = $this->create3DHash();
-
-            $inputs = [
-                'clientid' => $this->account->getClientId(),
-                'storetype' => $this->account->getModel(),
-                'hash' => $this->order->hash,
-                'cardType' => $this->card->getCardCode(),
-                'pan' => $this->card->getNumber(),
-                'Ecom_Payment_Card_ExpDate_Month' => $this->card->getExpireMonth(),
-                'Ecom_Payment_Card_ExpDate_Year' => $this->card->getExpireYear(),
-                'cv2' => $this->card->getCvv(),
-                'firmaadi' => $this->order->name,
-                'Email' => $this->order->email,
-                'amount' => $this->order->amount,
-                'oid' => $this->order->id,
-                'okUrl' => $this->order->success_url,
-                'failUrl' => $this->order->fail_url,
-                'rnd' => $this->order->rand,
-                'lang' => $this->getLang(),
-                'currency' => $this->order->currency,
-            ];
-
-            if ($this->account->getModel() === '3d_pay') {
-                $inputs = array_merge($inputs, [
-                    'islemtipi' => $this->type,
-                    'taksit' => $this->order->installment,
-                ]);
-            }
-
-            $data = [
-                'gateway' => $this->get3DGatewayURL(),
-                'inputs' => $inputs,
-            ];
+        if (!$this->order) {
+            return [];
         }
 
-        return $data;
+        $this->order->hash = $this->create3DHash();
+
+        $inputs = [
+            'clientid' => $this->account->getClientId(),
+            'storetype' => $this->account->getModel(),
+            'hash' => $this->order->hash,
+            'firmaadi' => $this->order->name,
+            'Email' => $this->order->email,
+            'amount' => $this->order->amount,
+            'oid' => $this->order->id,
+            'okUrl' => $this->order->success_url,
+            'failUrl' => $this->order->fail_url,
+            'rnd' => $this->order->rand,
+            'lang' => $this->getLang(),
+            'currency' => $this->order->currency,
+        ];
+
+        if ($this->account->getModel() === '3d_pay') {
+            $inputs = array_merge($inputs, [
+                'islemtipi' => $this->type,
+                'taksit' => $this->order->installment,
+            ]);
+        }
+
+        if ($this->card) {
+            $inputs['cardType'] = $this->card->getCardCode();
+            $inputs['pan'] = $this->card->getNumber();
+            $inputs['Ecom_Payment_Card_ExpDate_Month'] = $this->card->getExpireMonth();
+            $inputs['Ecom_Payment_Card_ExpDate_Year'] = $this->card->getExpireYear();
+            $inputs['cv2'] = $this->card->getCvv();
+        }
+
+        return [
+            'gateway' => $this->get3DGatewayURL(),
+            'inputs' => $inputs,
+        ];
     }
 
     /**

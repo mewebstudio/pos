@@ -211,16 +211,14 @@ class PayForPos extends AbstractGateway
 
         $this->order->hash = $this->create3DHash();
 
+        $formData = $this->getCommon3DFormData();
         if ('3d_pay' === $this->account->getModel()) {
-            $formData = $this->getCommon3DFormData();
             $formData['inputs']['SecureType'] = '3DPay';
             $formData['gateway'] = $this->get3DGatewayURL();
         } elseif ('3d' === $this->account->getModel()) {
-            $formData = $this->getCommon3DFormData();
             $formData['inputs']['SecureType'] = '3DModel';
             $formData['gateway'] = $this->get3DGatewayURL();
         } else {
-            $formData = $this->getCommon3DFormData();
             $formData['inputs']['SecureType'] = '3DHost';
             $formData['gateway'] = $this->get3DHostGatewayURL();
         }
@@ -670,11 +668,10 @@ class PayForPos extends AbstractGateway
 
     /**
      * returns common form data used by all 3D payment gates
-     * @param bool $withCrediCard
      *
      * @return array
      */
-    protected function getCommon3DFormData($withCrediCard = false)
+    protected function getCommon3DFormData()
     {
         $inputs = [
             'MbrId' => self::MBR_ID,
@@ -693,7 +690,7 @@ class PayForPos extends AbstractGateway
             'Hash' => $this->order->hash,
         ];
 
-        if ($withCrediCard) {
+        if ($this->card) {
             $inputs['CardHolderName'] = $this->card->getHolderName();
             $inputs['Pan'] = $this->card->getNumber();
             $inputs['Expiry'] = $this->card->getExpirationDate();

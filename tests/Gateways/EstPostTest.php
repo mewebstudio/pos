@@ -73,7 +73,7 @@ class EstPostTest extends TestCase
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 
-    public function testGet3DFormData()
+    public function testGet3DFormWithCardData()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
@@ -88,6 +88,30 @@ class EstPostTest extends TestCase
                 'Ecom_Payment_Card_ExpDate_Month' => $this->card->getExpireMonth(),
                 'Ecom_Payment_Card_ExpDate_Year' => $this->card->getExpireYear(),
                 'cv2' => $this->card->getCvv(),
+                'firmaadi' => $this->order['name'],
+                'Email' => $this->order['email'],
+                'amount' => $this->order['amount'],
+                'oid' => $this->order['id'],
+                'okUrl' => $this->order['success_url'],
+                'failUrl' => $this->order['fail_url'],
+                'rnd' => $this->order['rand'],
+                'lang' => $this->order['lang'],
+                'currency' => 949,
+            ],
+        ];
+        $this->assertEquals($form, $this->pos->get3DFormData());
+    }
+
+    public function testGet3DFormWithoutCardData()
+    {
+        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
+
+        $form = [
+            'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
+            'inputs' => [
+                'clientid' => $this->account->getClientId(),
+                'storetype' => $this->account->getModel(),
+                'hash' => $this->pos->create3DHash(),
                 'firmaadi' => $this->order['name'],
                 'Email' => $this->order['email'],
                 'amount' => $this->order['amount'],

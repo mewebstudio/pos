@@ -93,9 +93,39 @@ class PayForTest extends TestCase
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 
-    public function testGet3DFormData()
+    public function testGet3DFormDataWithCard()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $order = $this->pos->getOrder();
+        $form = [
+            'gateway' => $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'],
+            'inputs' => [
+                'MbrId' => PayForPos::MBR_ID,
+                'MerchantID' => $this->threeDAccount->getClientId(),
+                'UserCode' => $this->threeDAccount->getUsername(),
+                'OrderId' => $order->id,
+                'Lang' => $order->lang,
+                'SecureType' => '3DModel',
+                'TxnType' => 'Auth',
+                'PurchAmount' => $order->amount,
+                'InstallmentCount' => $order->installment,
+                'Currency' => $order->currency,
+                'OkUrl' => $order->success_url,
+                'FailUrl' => $order->fail_url,
+                'Rnd' => $order->rand,
+                'Hash' => $this->pos->create3DHash(),
+                'CardHolderName' => 'ahmet',
+                'Pan' => '5555444433332222',
+                'Expiry' => '0122',
+                'Cvv2' => '123',
+            ]
+        ];
+        $this->assertEquals($form, $this->pos->get3DFormData());
+    }
+
+    public function testGet3DFormDataWithoutCard()
+    {
+        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
         $order = $this->pos->getOrder();
         $form = [
             'gateway' => $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'],
