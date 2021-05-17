@@ -84,6 +84,13 @@ class PosNetTest extends TestCase
         $this->assertEquals('J/7/Xprj7F/KDf98luVfIGyUPRQzUCqGwpmvz3KT7oQ=', $this->pos->create3DHash());
     }
 
+    public function testAmountFormat()
+    {
+        $this->assertEquals(100000, PosNet::amountFormat(1000));
+        $this->assertEquals(100000, PosNet::amountFormat(1000.00));
+        $this->assertEquals(100001, PosNet::amountFormat(1000.01));
+    }
+
     public function testVerifyResponseMAC()
     {
 

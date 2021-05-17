@@ -77,6 +77,13 @@ class GarantiPosTest extends TestCase
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 
+    public function testAmountFormat()
+    {
+        $this->assertEquals(100000, GarantiPos::amountFormat(1000));
+        $this->assertEquals(100000, GarantiPos::amountFormat(1000.00));
+        $this->assertEquals(100001, GarantiPos::amountFormat(1000.01));
+    }
+
     public function testGet3DFormWithCardData()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);

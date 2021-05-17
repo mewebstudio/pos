@@ -375,9 +375,9 @@ class PosNet extends AbstractGateway
      *
      * @return int
      */
-    public static function formatAmount($amount)
+    public static function amountFormat($amount)
     {
-        return (int) str_replace('.', '', number_format($amount, 2, '.', ''));
+        return round($amount, 2) * 100;
     }
 
     /**
@@ -992,7 +992,7 @@ class PosNet extends AbstractGateway
         return (object) array_merge($order, [
             'id'          => self::formatOrderId($order['id']),
             'installment' => self::formatInstallment($installment),
-            'amount'      => self::formatAmount($order['amount']),
+            'amount'      => self::amountFormat($order['amount']),
             'currency'    => $this->mapCurrency($order['currency']),
         ]);
     }
@@ -1010,7 +1010,7 @@ class PosNet extends AbstractGateway
 
         return (object) [
             'host_ref_num' => $order['host_ref_num'],
-            'amount'       => self::formatAmount($order['amount']),
+            'amount'       => self::amountFormat($order['amount']),
             'currency'     => $this->mapCurrency($order['currency']),
             'installment'  => self::formatInstallment($installment),
         ];
@@ -1057,7 +1057,7 @@ class PosNet extends AbstractGateway
             //id or host_ref_num
             'id'           => isset($order['id']) ? self::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()) : null,
             'host_ref_num' => isset($order['host_ref_num']) ? $order['host_ref_num'] : null,
-            'amount'       => self::formatAmount($order['amount']),
+            'amount'       => self::amountFormat($order['amount']),
             'currency'     => self::mapCurrency($order['currency']),
         ];
     }
