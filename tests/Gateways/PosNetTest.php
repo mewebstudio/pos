@@ -38,23 +38,23 @@ class PosNetTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__ . '/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos.php';
 
         $this->account = AccountFactory::createPosNetAccount('yapikredi', '6706598320', 'XXXXXX', 'XXXXXX', '67005551', '27426', '3d', '10,10,10,10,10,10,10,10');
 
         $this->card = new CreditCardPosNet('5555444433332222', '21', '12', '122', 'ahmet');
 
         $this->order = [
-            'id' => 'YKB_TST_190620093100_024',
-            'name' => 'siparis veren',
-            'email' => 'test@test.com',
-            'amount' => '1.75',
+            'id'          => 'YKB_TST_190620093100_024',
+            'name'        => 'siparis veren',
+            'email'       => 'test@test.com',
+            'amount'      => '1.75',
             'installment' => 0,
-            'currency' => 'TL',
+            'currency'    => 'TL',
             'success_url' => 'https://domain.com/success',
-            'fail_url' => 'https://domain.com/fail_url',
-            'lang' => 'tr',
-            'rand' => microtime(),
+            'fail_url'    => 'https://domain.com/fail_url',
+            'lang'        => 'tr',
+            'rand'        => microtime(),
         ];
 
         $this->pos = PosFactory::createPosGateway($this->account);
@@ -77,13 +77,15 @@ class PosNetTest extends TestCase
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 
-    public function testCreate3DHash(){
+    public function testCreate3DHash()
+    {
 
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $this->assertEquals('J/7/Xprj7F/KDf98luVfIGyUPRQzUCqGwpmvz3KT7oQ=', $this->pos->create3DHash());
     }
 
-    public function testVerifyResponseMAC(){
+    public function testVerifyResponseMAC()
+    {
 
         $newOrder = $this->order;
         $newOrder['id'] = '895';
@@ -97,16 +99,16 @@ class PosNetTest extends TestCase
 
         $pos->prepare($newOrder, AbstractGateway::TX_PAY);
         $data = (object) [
-          'mdStatus' => '9',
-          'mac' => 'U2kU/JWjclCvKZjILq8xBJUXhyB4DswKvN+pKfxl0u0=',
+            'mdStatus' => '9',
+            'mac'      => 'U2kU/JWjclCvKZjILq8xBJUXhyB4DswKvN+pKfxl0u0=',
         ];
         $this->assertTrue($pos->verifyResponseMAC($data));
 
         $newOrder['id'] = '800';
         $pos->prepare($newOrder, AbstractGateway::TX_PAY);
         $data = (object) [
-          'mdStatus' => '9',
-          'mac' => 'U2kU/JWjclCvKZjILq8xBJUXhyB4DswKvN+pKfxl0u0=',
+            'mdStatus' => '9',
+            'mac'      => 'U2kU/JWjclCvKZjILq8xBJUXhyB4DswKvN+pKfxl0u0=',
         ];
         $this->assertFalse($pos->verifyResponseMAC($data));
     }
@@ -114,14 +116,17 @@ class PosNetTest extends TestCase
     public function testCreateRegularPaymentXML()
     {
         $order = [
-            'id'                => '2020110828BC',
-            'amount'            => 100.01,
-            'installment'       => '2',
-            'currency'          => 'TRY',
+            'id'          => '2020110828BC',
+            'amount'      => 100.01,
+            'installment' => '2',
+            'currency'    => 'TRY',
         ];
 
 
         $card = new CreditCardPosNet('5555444433332222', '22', '01', '123', 'ahmet');
+        /**
+         * @var PosNet $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
 
@@ -136,13 +141,16 @@ class PosNetTest extends TestCase
     public function testCreateRegularPostXML()
     {
         $order = [
-            'id'                => '2020110828BC',
-            'host_ref_num'      => '019676067890000191',
-            'amount'            => 10.02,
-            'currency'          => 'TRY',
-            'installment'       => '2',
+            'id'           => '2020110828BC',
+            'host_ref_num' => '019676067890000191',
+            'amount'       => 10.02,
+            'currency'     => 'TRY',
+            'installment'  => '2',
         ];
 
+        /**
+         * @var PosNet $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_POST_PAY);
 
@@ -158,17 +166,20 @@ class PosNetTest extends TestCase
     {
 
         $order = [
-            'id'                => '2020110828BC',
-            'amount'            => 100.01,
-            'installment'       => '0',
-            'currency'          => 'TRY',
+            'id'          => '2020110828BC',
+            'amount'      => 100.01,
+            'installment' => '0',
+            'currency'    => 'TRY',
         ];
         $responseData = [
-            'BankPacket' => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
+            'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
             'MerchantPacket' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
-            'Sign' => '9998F61E1D0C0FB6EC5203A748124F30',
+            'Sign'           => '9998F61E1D0C0FB6EC5203A748124F30',
         ];
 
+        /**
+         * @var PosNet $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_PAY);
 
@@ -184,17 +195,20 @@ class PosNetTest extends TestCase
     {
 
         $order = [
-            'id'                => '2020110828BC',
-            'amount'            => 100.01,
-            'installment'       => '0',
-            'currency'          => 'TRY',
+            'id'          => '2020110828BC',
+            'amount'      => 100.01,
+            'installment' => '0',
+            'currency'    => 'TRY',
         ];
         $responseData = [
-            'BankPacket' => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
+            'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
             'MerchantPacket' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
-            'Sign' => '9998F61E1D0C0FB6EC5203A748124F30',
+            'Sign'           => '9998F61E1D0C0FB6EC5203A748124F30',
         ];
 
+        /**
+         * @var PosNet $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_PAY);
 
@@ -209,10 +223,13 @@ class PosNetTest extends TestCase
     public function testCreateStatusXML()
     {
         $order = [
-            'id'  => '2020110828BC',
+            'id'   => '2020110828BC',
             'type' => 'status',
         ];
 
+        /**
+         * @var PosNet $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_STATUS);
 
@@ -228,10 +245,13 @@ class PosNetTest extends TestCase
     public function testCreateCancelXML()
     {
         $order = [
-            'id'  => '2020110828BC',
+            'id'           => '2020110828BC',
             'host_ref_num' => '2020110828BCNUM',
         ];
 
+        /**
+         * @var PosNet $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_CANCEL);
 
@@ -246,11 +266,14 @@ class PosNetTest extends TestCase
     public function testCreateRefundXML()
     {
         $order = [
-            'id'  => '2020110828BC',
-            'amount' => 50,
+            'id'       => '2020110828BC',
+            'amount'   => 50,
             'currency' => 'TRY',
         ];
 
+        /**
+         * @var PosNet $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_REFUND);
 
@@ -263,32 +286,32 @@ class PosNetTest extends TestCase
     }
 
     /**
-     * @param $order
+     * @param                  $order
      * @param CreditCardPosNet $card
-     * @param PosNetAccount $account
+     * @param PosNetAccount    $account
      *
      * @return array
      */
     private function getSampleRegularPaymentXMLData($order, $card, $account)
     {
         return [
-            'mid'               => $account->getClientId(),
-            'tid'               => $account->getTerminalId(),
-            'tranDateRequired'  => '1',
-            'sale'  => [
-                'orderID'       => $order->id,
-                'installment'   => $order->installment,
-                'amount'        => $order->amount,
-                'currencyCode'  => $order->currency,
-                'ccno'          => $card->getNumber(),
-                'expDate'       => $card->getExpirationDate(),
-                'cvc'           => $card->getCvv(),
+            'mid'              => $account->getClientId(),
+            'tid'              => $account->getTerminalId(),
+            'tranDateRequired' => '1',
+            'sale'             => [
+                'orderID'      => $order->id,
+                'installment'  => $order->installment,
+                'amount'       => $order->amount,
+                'currencyCode' => $order->currency,
+                'ccno'         => $card->getNumber(),
+                'expDate'      => $card->getExpirationDate(),
+                'cvc'          => $card->getCvv(),
             ],
         ];
     }
 
     /**
-     * @param $order
+     * @param               $order
      * @param PosNetAccount $account
      *
      * @return array
@@ -296,61 +319,61 @@ class PosNetTest extends TestCase
     private function getSampleRegularPostXMLData($order, $account)
     {
         return [
-            'mid'               => $account->getClientId(),
-            'tid'               => $account->getTerminalId(),
-            'tranDateRequired'  => '1',
-            'capt'  => [
-                'hostLogKey'    => $order->host_ref_num,
-                'amount'        => $order->amount,
-                'currencyCode'  => $order->currency,
-                'installment'   => $order->installment,
+            'mid'              => $account->getClientId(),
+            'tid'              => $account->getTerminalId(),
+            'tranDateRequired' => '1',
+            'capt'             => [
+                'hostLogKey'   => $order->host_ref_num,
+                'amount'       => $order->amount,
+                'currencyCode' => $order->currency,
+                'installment'  => $order->installment,
             ],
         ];
     }
 
     /**
      * @param PosNetAccount $account
-     * @param array $responseData
+     * @param array         $responseData
      *
      * @return array
      */
     private function getSample3DPaymentXMLData($account, array $responseData)
     {
         return [
-            'mid'   => $account->getClientId(),
-            'tid'   => $account->getTerminalId(),
+            'mid'         => $account->getClientId(),
+            'tid'         => $account->getTerminalId(),
             'oosTranData' => [
-                'bankData'      => $responseData['BankPacket'],
-                'merchantData'  => $responseData['MerchantPacket'],
-                'sign'          => $responseData['Sign'],
-                'wpAmount'      => 0,
-                'mac' => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
+                'bankData'     => $responseData['BankPacket'],
+                'merchantData' => $responseData['MerchantPacket'],
+                'sign'         => $responseData['Sign'],
+                'wpAmount'     => 0,
+                'mac'          => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
             ],
         ];
     }
 
     /**
      * @param PosNetAccount $account
-     * @param array $responseData
+     * @param array         $responseData
      *
      * @return array
      */
     private function getSampleResolveMerchantDataXMLData($account, array $responseData)
     {
         return [
-            'mid'   => $account->getClientId(),
-            'tid'   => $account->getTerminalId(),
+            'mid'                    => $account->getClientId(),
+            'tid'                    => $account->getTerminalId(),
             'oosResolveMerchantData' => [
-                'bankData'      => $responseData['BankPacket'],
-                'merchantData'  => $responseData['MerchantPacket'],
-                'sign'          => $responseData['Sign'],
-                'mac' => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
+                'bankData'     => $responseData['BankPacket'],
+                'merchantData' => $responseData['MerchantPacket'],
+                'sign'         => $responseData['Sign'],
+                'mac'          => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
             ],
         ];
     }
 
     /**
-     * @param $order
+     * @param               $order
      * @param PosNetAccount $account
      *
      * @return array
@@ -358,16 +381,16 @@ class PosNetTest extends TestCase
     private function getSampleStatusXMLData($order, $account)
     {
         return [
-            'mid'   => $account->getClientId(),
-            'tid'   => $account->getTerminalId(),
+            'mid'       => $account->getClientId(),
+            'tid'       => $account->getTerminalId(),
             'agreement' => [
-                'orderID'   => $order->id,
+                'orderID' => $order->id,
             ],
         ];
     }
 
     /**
-     * @param $order
+     * @param               $order
      * @param PosNetAccount $account
      *
      * @return array
@@ -375,11 +398,11 @@ class PosNetTest extends TestCase
     private function getSampleCancelXMLData($order, $account)
     {
         $requestData = [
-            'mid'               => $account->getClientId(),
-            'tid'               => $account->getTerminalId(),
-            'tranDateRequired'  => '1',
-            'reverse' => [
-                'transaction'   => 'sale',
+            'mid'              => $account->getClientId(),
+            'tid'              => $account->getTerminalId(),
+            'tranDateRequired' => '1',
+            'reverse'          => [
+                'transaction' => 'sale',
             ],
         ];
 
@@ -389,11 +412,12 @@ class PosNetTest extends TestCase
         } else {
             $requestData['reverse']['orderID'] = PosNet::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
         }
+
         return $requestData;
     }
 
     /**
-     * @param $order
+     * @param               $order
      * @param PosNetAccount $account
      *
      * @return array
@@ -401,12 +425,12 @@ class PosNetTest extends TestCase
     private function getSampleRefundXMLData($order, $account)
     {
         $requestData = [
-            'mid'               => $account->getClientId(),
-            'tid'               => $account->getTerminalId(),
-            'tranDateRequired'  => '1',
-            'return' => [
-                'amount'        => $order->amount,
-                'currencyCode'  => $order->currency,
+            'mid'              => $account->getClientId(),
+            'tid'              => $account->getTerminalId(),
+            'tranDateRequired' => '1',
+            'return'           => [
+                'amount'       => $order->amount,
+                'currencyCode' => $order->currency,
             ],
         ];
 

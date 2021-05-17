@@ -33,19 +33,19 @@ class GarantiPos extends AbstractGateway
      * @var array
      */
     protected $codes = [
-        '00'    => 'approved',
-        '01'    => 'bank_call',
-        '02'    => 'bank_call',
-        '05'    => 'reject',
-        '09'    => 'try_again',
-        '12'    => 'invalid_transaction',
-        '28'    => 'reject',
-        '51'    => 'insufficient_balance',
-        '54'    => 'expired_card',
-        '57'    => 'does_not_allow_card_holder',
-        '62'    => 'restricted_card',
-        '77'    => 'request_rejected',
-        '99'    => 'general_error',
+        '00' => 'approved',
+        '01' => 'bank_call',
+        '02' => 'bank_call',
+        '05' => 'reject',
+        '09' => 'try_again',
+        '12' => 'invalid_transaction',
+        '28' => 'reject',
+        '51' => 'insufficient_balance',
+        '54' => 'expired_card',
+        '57' => 'does_not_allow_card_holder',
+        '62' => 'restricted_card',
+        '77' => 'request_rejected',
+        '99' => 'general_error',
     ];
 
     /**
@@ -54,13 +54,13 @@ class GarantiPos extends AbstractGateway
      * @var array
      */
     protected $types = [
-        self::TX_PAY => 'sales',
-        self::TX_PRE_PAY => 'preauth',
+        self::TX_PAY      => 'sales',
+        self::TX_PRE_PAY  => 'preauth',
         self::TX_POST_PAY => 'postauth',
-        self::TX_CANCEL => 'void',
-        self::TX_REFUND => 'refund',
-        self::TX_HISTORY => 'orderhistoryinq',
-        self::TX_STATUS => 'orderinq',
+        self::TX_CANCEL   => 'void',
+        self::TX_REFUND   => 'refund',
+        self::TX_HISTORY  => 'orderhistoryinq',
+        self::TX_STATUS   => 'orderinq',
     ];
 
 
@@ -70,12 +70,12 @@ class GarantiPos extends AbstractGateway
      * @var array
      */
     protected $currencies = [
-        'TRY'       => 949,
-        'USD'       => 840,
-        'EUR'       => 978,
-        'GBP'       => 826,
-        'JPY'       => 392,
-        'RUB'       => 643,
+        'TRY' => 949,
+        'USD' => 840,
+        'EUR' => 978,
+        'GBP' => 826,
+        'JPY' => 392,
+        'RUB' => 643,
     ];
 
     /**
@@ -91,9 +91,9 @@ class GarantiPos extends AbstractGateway
     /**
      * GarantiPost constructor.
      *
-     * @param array $config
+     * @param array             $config
      * @param GarantiPosAccount $account
-     * @param array $currencies
+     * @param array             $currencies
      */
     public function __construct($config, $account, array $currencies = [])
     {
@@ -115,6 +115,14 @@ class GarantiPos extends AbstractGateway
     public function getCard()
     {
         return $this->card;
+    }
+
+    /**
+     * @param CreditCardGarantiPos|null $card
+     */
+    public function setCard($card)
+    {
+        $this->card = $card;
     }
 
     /**
@@ -177,7 +185,7 @@ class GarantiPos extends AbstractGateway
         $client = new Client();
 
         $response = $client->request('POST', $this->getApiURL(), [
-            'body'  => $contents,
+            'body' => $contents,
         ]);
 
         $this->data = $this->XMLStringToObject($response->getBody()->getContents());
@@ -190,6 +198,10 @@ class GarantiPos extends AbstractGateway
      */
     public function get3DFormData()
     {
+        if (!$this->order) {
+            return [];
+        }
+
         $hashData = $this->create3DHash();
 
         $inputs = [
@@ -209,16 +221,19 @@ class GarantiPos extends AbstractGateway
             'errorurl'              => $this->order->fail_url,
             'customeremailaddress'  => isset($this->order->email) ? $this->order->email : null,
             'customeripaddress'     => $this->order->ip,
-            'cardnumber'            => $this->card->getNumber(),
-            'cardexpiredatemonth'   => $this->card->getExpireMonth(),
-            'cardexpiredateyear'    => $this->card->getExpireYear(),
-            'cardcvv2'              => $this->card->getCvv(),
             'secure3dhash'          => $hashData,
         ];
 
+        if ($this->card) {
+            $inputs['cardnumber'] = $this->card->getNumber();
+            $inputs['cardexpiredatemonth'] = $this->card->getExpireMonth();
+            $inputs['cardexpiredateyear'] = $this->card->getExpireYear();
+            $inputs['cardcvv2'] = $this->card->getCvv();
+        }
+
         return [
-            'gateway'       => $this->get3DGatewayURL(),
-            'inputs'        => $inputs,
+            'gateway' => $this->get3DGatewayURL(),
+            'inputs'  => $inputs,
         ];
     }
 
@@ -237,43 +252,43 @@ class GarantiPos extends AbstractGateway
     public function createRegularPaymentXML()
     {
         $requestData = [
-            'Mode'              => $this->getMode(),
-            'Version'           => self::API_VERSION,
-            'Terminal'          => [
-                'ProvUserID'    => $this->account->getUsername(),
-                'UserID'        => $this->account->getUsername(),
-                'HashData'      => $this->createHashData(),
-                'ID'            => $this->account->getTerminalId(),
-                'MerchantID'    => $this->account->getTerminalId(),
+            'Mode'        => $this->getMode(),
+            'Version'     => self::API_VERSION,
+            'Terminal'    => [
+                'ProvUserID' => $this->account->getUsername(),
+                'UserID'     => $this->account->getUsername(),
+                'HashData'   => $this->createHashData(),
+                'ID'         => $this->account->getTerminalId(),
+                'MerchantID' => $this->account->getTerminalId(),
             ],
-            'Customer'          => [
-                'IPAddress'     => $this->order->ip,
-                'EmailAddress'  => $this->order->email,
+            'Customer'    => [
+                'IPAddress'    => $this->order->ip,
+                'EmailAddress' => $this->order->email,
             ],
-            'Card'              => [
-                'Number'        => $this->card->getNumber(),
-                'ExpireDate'    => $this->card->getExpirationDate(),
-                'CVV2'          => $this->card->getCvv(),
+            'Card'        => [
+                'Number'     => $this->card->getNumber(),
+                'ExpireDate' => $this->card->getExpirationDate(),
+                'CVV2'       => $this->card->getCvv(),
             ],
-            'Order'             => [
-                'OrderID'       => $this->order->id,
-                'GroupID'       => '',
-                'AddressList'   => [
-                    'Address'   => [
-                        'Type'          => 'S',
-                        'Name'          => $this->order->name,
-                        'LastName'      => '',
-                        'Company'       => '',
-                        'Text'          => '',
-                        'District'      => '',
-                        'City'          => '',
-                        'PostalCode'    => '',
-                        'Country'       => '',
-                        'PhoneNumber'   => '',
+            'Order'       => [
+                'OrderID'     => $this->order->id,
+                'GroupID'     => '',
+                'AddressList' => [
+                    'Address' => [
+                        'Type'        => 'S',
+                        'Name'        => $this->order->name,
+                        'LastName'    => '',
+                        'Company'     => '',
+                        'Text'        => '',
+                        'District'    => '',
+                        'City'        => '',
+                        'PostalCode'  => '',
+                        'Country'     => '',
+                        'PhoneNumber' => '',
                     ],
                 ],
             ],
-            'Transaction'       => [
+            'Transaction' => [
                 'Type'                  => $this->type,
                 'InstallmentCnt'        => $this->order->installment,
                 'Amount'                => $this->order->amount,
@@ -294,23 +309,23 @@ class GarantiPos extends AbstractGateway
     public function createRegularPostXML()
     {
         $requestData = [
-            'Mode'      => $this->getMode(),
-            'Version'   => self::API_VERSION,
-            'Terminal'  => [
-                'ProvUserID'    => $this->account->getUsername(),
-                'UserID'        => $this->account->getUsername(),
-                'HashData'      => $this->createHashData(),
-                'ID'            => $this->account->getTerminalId(),
-                'MerchantID'    => $this->account->getClientId(),
+            'Mode'        => $this->getMode(),
+            'Version'     => self::API_VERSION,
+            'Terminal'    => [
+                'ProvUserID' => $this->account->getUsername(),
+                'UserID'     => $this->account->getUsername(),
+                'HashData'   => $this->createHashData(),
+                'ID'         => $this->account->getTerminalId(),
+                'MerchantID' => $this->account->getClientId(),
             ],
-            'Customer'          => [
-                'IPAddress'     => $this->order->ip,
-                'EmailAddress'  => $this->order->email,
+            'Customer'    => [
+                'IPAddress'    => $this->order->ip,
+                'EmailAddress' => $this->order->email,
             ],
-            'Order' => [
-                'OrderID'   => $this->order->id,
+            'Order'       => [
+                'OrderID' => $this->order->id,
             ],
-            'Transaction'   => [
+            'Transaction' => [
                 'Type'              => $this->types[self::TX_POST_PAY],
                 'Amount'            => $this->order->amount,
                 'CurrencyCode'      => $this->order->currency,
@@ -327,44 +342,44 @@ class GarantiPos extends AbstractGateway
     public function create3DPaymentXML($responseData)
     {
         $requestData = [
-            'Mode'              => $this->getMode(),
-            'Version'           => self::API_VERSION,
-            'ChannelCode'       => '',
-            'Terminal'          => [
-                'ProvUserID'    => $this->account->getUsername(),
-                'UserID'        => $this->account->getUsername(),
-                'HashData'      => $this->createHashData(),
-                'ID'            => $this->account->getTerminalId(),
-                'MerchantID'    => $this->account->getClientId(),
+            'Mode'        => $this->getMode(),
+            'Version'     => self::API_VERSION,
+            'ChannelCode' => '',
+            'Terminal'    => [
+                'ProvUserID' => $this->account->getUsername(),
+                'UserID'     => $this->account->getUsername(),
+                'HashData'   => $this->createHashData(),
+                'ID'         => $this->account->getTerminalId(),
+                'MerchantID' => $this->account->getClientId(),
             ],
-            'Customer'          => [
-                'IPAddress'     => $responseData['customeripaddress'],
-                'EmailAddress'  => $responseData['customeremailaddress'],
+            'Customer'    => [
+                'IPAddress'    => $responseData['customeripaddress'],
+                'EmailAddress' => $responseData['customeremailaddress'],
             ],
-            'Card'              => [
-                'Number'        => '',
-                'ExpireDate'    => '',
-                'CVV2'          => '',
+            'Card'        => [
+                'Number'     => '',
+                'ExpireDate' => '',
+                'CVV2'       => '',
             ],
-            'Order'             => [
-                'OrderID'       => $responseData['orderid'],
-                'GroupID'       => '',
-                'AddressList'   => [
-                    'Address'   => [
-                        'Type'          => 'B',
-                        'Name'          => $this->order->name,
-                        'LastName'      => '',
-                        'Company'       => '',
-                        'Text'          => '',
-                        'District'      => '',
-                        'City'          => '',
-                        'PostalCode'    => '',
-                        'Country'       => '',
-                        'PhoneNumber'   => '',
+            'Order'       => [
+                'OrderID'     => $responseData['orderid'],
+                'GroupID'     => '',
+                'AddressList' => [
+                    'Address' => [
+                        'Type'        => 'B',
+                        'Name'        => $this->order->name,
+                        'LastName'    => '',
+                        'Company'     => '',
+                        'Text'        => '',
+                        'District'    => '',
+                        'City'        => '',
+                        'PostalCode'  => '',
+                        'Country'     => '',
+                        'PhoneNumber' => '',
                     ],
                 ],
             ],
-            'Transaction'       => [
+            'Transaction' => [
                 'Type'                  => $responseData['txntype'],
                 'InstallmentCnt'        => $this->order->installment,
                 'Amount'                => $responseData['txnamount'],
@@ -372,10 +387,10 @@ class GarantiPos extends AbstractGateway
                 'CardholderPresentCode' => '13',
                 'MotoInd'               => 'N',
                 'Secure3D'              => [
-                    'AuthenticationCode'    => $responseData['cavv'],
-                    'SecurityLevel'         => $responseData['eci'],
-                    'TxnID'                 => $responseData['xid'],
-                    'Md'                    => $responseData['md'],
+                    'AuthenticationCode' => $responseData['cavv'],
+                    'SecurityLevel'      => $responseData['eci'],
+                    'TxnID'              => $responseData['xid'],
+                    'Md'                 => $responseData['md'],
                 ],
             ],
         ];
@@ -389,25 +404,25 @@ class GarantiPos extends AbstractGateway
     public function createCancelXML()
     {
         $requestData = [
-            'Mode'          => $this->getMode(),
-            'Version'       => self::API_VERSION,
-            'ChannelCode'   => '',
-            'Terminal'      => [
-                'ProvUserID'    => $this->account->getRefundUsername(),
-                'UserID'        => $this->account->getRefundUsername(),
-                'HashData'      => $this->createHashData(),
-                'ID'            => $this->account->getTerminalId(),
-                'MerchantID'    => $this->account->getClientId(),
+            'Mode'        => $this->getMode(),
+            'Version'     => self::API_VERSION,
+            'ChannelCode' => '',
+            'Terminal'    => [
+                'ProvUserID' => $this->account->getRefundUsername(),
+                'UserID'     => $this->account->getRefundUsername(),
+                'HashData'   => $this->createHashData(),
+                'ID'         => $this->account->getTerminalId(),
+                'MerchantID' => $this->account->getClientId(),
             ],
-            'Customer'      => [
-                'IPAddress'     => $this->order->ip,
-                'EmailAddress'  => $this->order->email,
+            'Customer'    => [
+                'IPAddress'    => $this->order->ip,
+                'EmailAddress' => $this->order->email,
             ],
-            'Order'         => [
-                'OrderID'   => $this->order->id,
-                'GroupID'   => '',
+            'Order'       => [
+                'OrderID' => $this->order->id,
+                'GroupID' => '',
             ],
-            'Transaction'   => [
+            'Transaction' => [
                 'Type'                  => $this->types[self::TX_CANCEL],
                 'InstallmentCnt'        => $this->order->installment,
                 'Amount'                => $this->order->amount, //TODO we need this field here?
@@ -427,25 +442,25 @@ class GarantiPos extends AbstractGateway
     public function createRefundXML()
     {
         $requestData = [
-            'Mode'          => $this->getMode(),
-            'Version'       => self::API_VERSION,
-            'ChannelCode'   => '',
-            'Terminal'      => [
-                'ProvUserID'    => $this->account->getRefundUsername(),
-                'UserID'        => $this->account->getRefundUsername(),
-                'HashData'      => $this->createHashData(),
-                'ID'            => $this->account->getTerminalId(),
-                'MerchantID'    => $this->account->getClientId(),
+            'Mode'        => $this->getMode(),
+            'Version'     => self::API_VERSION,
+            'ChannelCode' => '',
+            'Terminal'    => [
+                'ProvUserID' => $this->account->getRefundUsername(),
+                'UserID'     => $this->account->getRefundUsername(),
+                'HashData'   => $this->createHashData(),
+                'ID'         => $this->account->getTerminalId(),
+                'MerchantID' => $this->account->getClientId(),
             ],
-            'Customer'      => [
-                'IPAddress'     => $this->order->ip,
-                'EmailAddress'  => $this->order->email,
+            'Customer'    => [
+                'IPAddress'    => $this->order->ip,
+                'EmailAddress' => $this->order->email,
             ],
-            'Order'         => [
-                'OrderID'   => $this->order->id,
-                'GroupID'   => '',
+            'Order'       => [
+                'OrderID' => $this->order->id,
+                'GroupID' => '',
             ],
-            'Transaction'   => [
+            'Transaction' => [
                 'Type'                  => $this->types[self::TX_REFUND],
                 'InstallmentCnt'        => $this->order->installment,
                 'Amount'                => $this->order->amount,
@@ -465,30 +480,30 @@ class GarantiPos extends AbstractGateway
     public function createHistoryXML($customQueryData)
     {
         $requestData = [
-            'Mode'          => $this->getMode(),
-            'Version'       => self::API_VERSION,
-            'ChannelCode'   => '',
-            'Terminal'      => [
-                'ProvUserID'    => $this->account->getUsername(),
-                'UserID'        => $this->account->getUsername(),
-                'HashData'      => $this->createHashData(),
-                'ID'            => $this->account->getTerminalId(),
-                'MerchantID'    => $this->account->getClientId(),
+            'Mode'        => $this->getMode(),
+            'Version'     => self::API_VERSION,
+            'ChannelCode' => '',
+            'Terminal'    => [
+                'ProvUserID' => $this->account->getUsername(),
+                'UserID'     => $this->account->getUsername(),
+                'HashData'   => $this->createHashData(),
+                'ID'         => $this->account->getTerminalId(),
+                'MerchantID' => $this->account->getClientId(),
             ],
-            'Customer'      => [ //TODO we need this data?
-                'IPAddress'     => $this->order->ip,
-                'EmailAddress'  => $this->order->email,
+            'Customer'    => [ //TODO we need this data?
+                'IPAddress'    => $this->order->ip,
+                'EmailAddress' => $this->order->email,
             ],
-            'Order'         => [
-                'OrderID'   => $this->order->id,
-                'GroupID'   => '',
+            'Order'       => [
+                'OrderID' => $this->order->id,
+                'GroupID' => '',
             ],
-            'Card'  => [
-                'Number'        => '',
-                'ExpireDate'    => '',
-                'CVV2'          => '',
+            'Card'        => [
+                'Number'     => '',
+                'ExpireDate' => '',
+                'CVV2'       => '',
             ],
-            'Transaction'   => [
+            'Transaction' => [
                 'Type'                  => $this->types[self::TX_HISTORY],
                 'InstallmentCnt'        => $this->order->installment,
                 'Amount'                => $this->order->amount,
@@ -509,30 +524,30 @@ class GarantiPos extends AbstractGateway
         $hashData = $this->createHashData();
 
         $requestData = [
-            'Mode'          => $this->getMode(),
-            'Version'       => self::API_VERSION,
-            'ChannelCode'   => '',
-            'Terminal'      => [
-                'ProvUserID'    => $this->account->getUsername(),
-                'UserID'        => $this->account->getUsername(),
-                'HashData'      => $hashData,
-                'ID'            => $this->account->getTerminalId(),
-                'MerchantID'    => $this->account->getClientId(),
+            'Mode'        => $this->getMode(),
+            'Version'     => self::API_VERSION,
+            'ChannelCode' => '',
+            'Terminal'    => [
+                'ProvUserID' => $this->account->getUsername(),
+                'UserID'     => $this->account->getUsername(),
+                'HashData'   => $hashData,
+                'ID'         => $this->account->getTerminalId(),
+                'MerchantID' => $this->account->getClientId(),
             ],
-            'Customer'      => [ //TODO we need this data?
-                'IPAddress'     => $this->order->ip,
-                'EmailAddress'  => $this->order->email,
+            'Customer'    => [ //TODO we need this data?
+                'IPAddress'    => $this->order->ip,
+                'EmailAddress' => $this->order->email,
             ],
-            'Order'         => [
-                'OrderID'   => $this->order->id,
-                'GroupID'   => '',
+            'Order'       => [
+                'OrderID' => $this->order->id,
+                'GroupID' => '',
             ],
-            'Card'  => [
-                'Number'        => '',
-                'ExpireDate'    => '',
-                'CVV2'          => '',
+            'Card'        => [
+                'Number'     => '',
+                'ExpireDate' => '',
+                'CVV2'       => '',
             ],
-            'Transaction'   => [
+            'Transaction' => [
                 'Type'                  => $this->types[self::TX_STATUS],
                 'InstallmentCnt'        => $this->order->installment,
                 'Amount'                => $this->order->amount,   //TODO we need it?
@@ -631,46 +646,46 @@ class GarantiPos extends AbstractGateway
         }
 
         return (object) [
-            'id'                    => isset($rawPaymentResponseData->Transaction->AuthCode) ? $this->printData($rawPaymentResponseData->Transaction->AuthCode) : null,
-            'order_id'              => $raw3DAuthResponseData['oid'],
-            'group_id'              => isset($rawPaymentResponseData->Transaction->SequenceNum) ? $this->printData($rawPaymentResponseData->Transaction->SequenceNum) : null,
-            'auth_code'             => isset($rawPaymentResponseData->Transaction->AuthCode) ? $this->printData($rawPaymentResponseData->Transaction->AuthCode) : null,
-            'host_ref_num'          => isset($rawPaymentResponseData->Transaction->RetrefNum) ? $this->printData($rawPaymentResponseData->Transaction->RetrefNum) : null,
-            'ret_ref_num'           => isset($rawPaymentResponseData->Transaction->RetrefNum) ? $this->printData($rawPaymentResponseData->Transaction->RetrefNum) : null,
-            'batch_num'             => isset($rawPaymentResponseData->Transaction->BatchNum) ? $this->printData($rawPaymentResponseData->Transaction->BatchNum) : null,
-            'error_code'            => isset($rawPaymentResponseData->Transaction->Response->ErrorCode) ? $this->printData($rawPaymentResponseData->Transaction->Response->ErrorCode) : null,
-            'error_message'         => isset($rawPaymentResponseData->Transaction->Response->ErrorMsg) ? $this->printData($rawPaymentResponseData->Transaction->Response->ErrorMsg) : null,
-            'reason_code'           => isset($rawPaymentResponseData->Transaction->Response->ReasonCode) ? $this->printData($rawPaymentResponseData->Transaction->Response->ReasonCode) : null,
-            'campaign_url'          => isset($rawPaymentResponseData->Transaction->CampaignChooseLink) ? $this->printData($rawPaymentResponseData->Transaction->CampaignChooseLink) : null,
-            'all'                   => $rawPaymentResponseData,
-            'trans_id'              => $raw3DAuthResponseData['transid'],
-            'response'              => $response,
-            'transaction_type'      => $this->type,
-            'transaction'           => $this->type,
-            'transaction_security'  => $transactionSecurity,
-            'proc_return_code'      => $procReturnCode,
-            'code'                  => $procReturnCode,
-            'status'                => $status,
-            'status_detail'         => $this->getStatusDetail(),
-            'md_status'             => $raw3DAuthResponseData['mdstatus'],
-            'rand'                  => (string) $raw3DAuthResponseData['rnd'],
-            'hash'                  => (string) $raw3DAuthResponseData['secure3dhash'],
-            'hash_params'           => (string) $raw3DAuthResponseData['hashparams'],
-            'hash_params_val'       => (string) $raw3DAuthResponseData['hashparamsval'],
-            'secure_3d_hash'        => (string) $raw3DAuthResponseData['secure3dhash'],
-            'secure_3d_level'       => (string) $raw3DAuthResponseData['secure3dsecuritylevel'],
-            'masked_number'         => (string) $raw3DAuthResponseData['MaskedPan'],
-            'amount'                => (string) $raw3DAuthResponseData['txnamount'],
-            'currency'              => (string) $raw3DAuthResponseData['txncurrencycode'],
-            'tx_status'             => (string) $raw3DAuthResponseData['txnstatus'],
-            'eci'                   => (string) $raw3DAuthResponseData['eci'],
-            'cavv'                  => (string) $raw3DAuthResponseData['cavv'],
-            'xid'                   => (string) $raw3DAuthResponseData['xid'],
-            'md_error_message'      => (string) $raw3DAuthResponseData['mderrormessage'],
+            'id'                   => isset($rawPaymentResponseData->Transaction->AuthCode) ? $this->printData($rawPaymentResponseData->Transaction->AuthCode) : null,
+            'order_id'             => $raw3DAuthResponseData['oid'],
+            'group_id'             => isset($rawPaymentResponseData->Transaction->SequenceNum) ? $this->printData($rawPaymentResponseData->Transaction->SequenceNum) : null,
+            'auth_code'            => isset($rawPaymentResponseData->Transaction->AuthCode) ? $this->printData($rawPaymentResponseData->Transaction->AuthCode) : null,
+            'host_ref_num'         => isset($rawPaymentResponseData->Transaction->RetrefNum) ? $this->printData($rawPaymentResponseData->Transaction->RetrefNum) : null,
+            'ret_ref_num'          => isset($rawPaymentResponseData->Transaction->RetrefNum) ? $this->printData($rawPaymentResponseData->Transaction->RetrefNum) : null,
+            'batch_num'            => isset($rawPaymentResponseData->Transaction->BatchNum) ? $this->printData($rawPaymentResponseData->Transaction->BatchNum) : null,
+            'error_code'           => isset($rawPaymentResponseData->Transaction->Response->ErrorCode) ? $this->printData($rawPaymentResponseData->Transaction->Response->ErrorCode) : null,
+            'error_message'        => isset($rawPaymentResponseData->Transaction->Response->ErrorMsg) ? $this->printData($rawPaymentResponseData->Transaction->Response->ErrorMsg) : null,
+            'reason_code'          => isset($rawPaymentResponseData->Transaction->Response->ReasonCode) ? $this->printData($rawPaymentResponseData->Transaction->Response->ReasonCode) : null,
+            'campaign_url'         => isset($rawPaymentResponseData->Transaction->CampaignChooseLink) ? $this->printData($rawPaymentResponseData->Transaction->CampaignChooseLink) : null,
+            'all'                  => $rawPaymentResponseData,
+            'trans_id'             => $raw3DAuthResponseData['transid'],
+            'response'             => $response,
+            'transaction_type'     => $this->type,
+            'transaction'          => $this->type,
+            'transaction_security' => $transactionSecurity,
+            'proc_return_code'     => $procReturnCode,
+            'code'                 => $procReturnCode,
+            'status'               => $status,
+            'status_detail'        => $this->getStatusDetail(),
+            'md_status'            => $raw3DAuthResponseData['mdstatus'],
+            'rand'                 => (string) $raw3DAuthResponseData['rnd'],
+            'hash'                 => (string) $raw3DAuthResponseData['secure3dhash'],
+            'hash_params'          => (string) $raw3DAuthResponseData['hashparams'],
+            'hash_params_val'      => (string) $raw3DAuthResponseData['hashparamsval'],
+            'secure_3d_hash'       => (string) $raw3DAuthResponseData['secure3dhash'],
+            'secure_3d_level'      => (string) $raw3DAuthResponseData['secure3dsecuritylevel'],
+            'masked_number'        => (string) $raw3DAuthResponseData['MaskedPan'],
+            'amount'               => (string) $raw3DAuthResponseData['txnamount'],
+            'currency'             => (string) $raw3DAuthResponseData['txncurrencycode'],
+            'tx_status'            => (string) $raw3DAuthResponseData['txnstatus'],
+            'eci'                  => (string) $raw3DAuthResponseData['eci'],
+            'cavv'                 => (string) $raw3DAuthResponseData['cavv'],
+            'xid'                  => (string) $raw3DAuthResponseData['xid'],
+            'md_error_message'     => (string) $raw3DAuthResponseData['mderrormessage'],
             //'name'                  => (string) $raw3DAuthResponseData['firmaadi'],
-            'email'                 => (string) $raw3DAuthResponseData['customeremailaddress'],
-            'extra'                 => null,
-            '3d_all'                => $raw3DAuthResponseData,
+            'email'                => (string) $raw3DAuthResponseData['customeremailaddress'],
+            'extra'                => null,
+            '3d_all'               => $raw3DAuthResponseData,
         ];
     }
 
@@ -696,39 +711,39 @@ class GarantiPos extends AbstractGateway
         }
 
         $this->response = (object) [
-            'id'                    => (string) $raw3DAuthResponseData['authcode'],
-            'order_id'              => (string) $raw3DAuthResponseData['oid'],
-            'trans_id'              => (string) $raw3DAuthResponseData['transid'],
-            'auth_code'             => (string) $raw3DAuthResponseData['authcode'],
-            'host_ref_num'          => (string) $raw3DAuthResponseData['hostrefnum'],
-            'response'              => $response,
-            'transaction_type'      => $this->type,
-            'transaction'           => $this->type,
-            'transaction_security'  => $transactionSecurity,
-            'proc_return_code'      => $procReturnCode,
-            'code'                  => $procReturnCode,
-            'md_status'             => $raw3DAuthResponseData['mdStatus'],
-            'status'                => $status,
-            'status_detail'         => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? (string) $raw3DAuthResponseData['ProcReturnCode'] : null,
-            'hash'                  => (string) $raw3DAuthResponseData['secure3dhash'],
-            'rand'                  => (string) $raw3DAuthResponseData['rnd'],
-            'hash_params'           => (string) $raw3DAuthResponseData['hashparams'],
-            'hash_params_val'       => (string) $raw3DAuthResponseData['hashparamsval'],
-            'masked_number'         => (string) $raw3DAuthResponseData['MaskedPan'],
-            'amount'                => (string) $raw3DAuthResponseData['txnamount'],
-            'currency'              => (string) $raw3DAuthResponseData['txncurrencycode'],
-            'tx_status'             => (string) $raw3DAuthResponseData['txnstatus'],
-            'eci'                   => (string) $raw3DAuthResponseData['eci'],
-            'cavv'                  => (string) $raw3DAuthResponseData['cavv'],
-            'xid'                   => (string) $raw3DAuthResponseData['xid'],
-            'error_code'            => (string) $raw3DAuthResponseData['errcode'],
-            'error_message'         => (string) $raw3DAuthResponseData['errmsg'],
-            'md_error_message'      => (string) $raw3DAuthResponseData['mderrormessage'],
-            'campaign_url'          => null,
+            'id'                   => (string) $raw3DAuthResponseData['authcode'],
+            'order_id'             => (string) $raw3DAuthResponseData['oid'],
+            'trans_id'             => (string) $raw3DAuthResponseData['transid'],
+            'auth_code'            => (string) $raw3DAuthResponseData['authcode'],
+            'host_ref_num'         => (string) $raw3DAuthResponseData['hostrefnum'],
+            'response'             => $response,
+            'transaction_type'     => $this->type,
+            'transaction'          => $this->type,
+            'transaction_security' => $transactionSecurity,
+            'proc_return_code'     => $procReturnCode,
+            'code'                 => $procReturnCode,
+            'md_status'            => $raw3DAuthResponseData['mdStatus'],
+            'status'               => $status,
+            'status_detail'        => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? (string) $raw3DAuthResponseData['ProcReturnCode'] : null,
+            'hash'                 => (string) $raw3DAuthResponseData['secure3dhash'],
+            'rand'                 => (string) $raw3DAuthResponseData['rnd'],
+            'hash_params'          => (string) $raw3DAuthResponseData['hashparams'],
+            'hash_params_val'      => (string) $raw3DAuthResponseData['hashparamsval'],
+            'masked_number'        => (string) $raw3DAuthResponseData['MaskedPan'],
+            'amount'               => (string) $raw3DAuthResponseData['txnamount'],
+            'currency'             => (string) $raw3DAuthResponseData['txncurrencycode'],
+            'tx_status'            => (string) $raw3DAuthResponseData['txnstatus'],
+            'eci'                  => (string) $raw3DAuthResponseData['eci'],
+            'cavv'                 => (string) $raw3DAuthResponseData['cavv'],
+            'xid'                  => (string) $raw3DAuthResponseData['xid'],
+            'error_code'           => (string) $raw3DAuthResponseData['errcode'],
+            'error_message'        => (string) $raw3DAuthResponseData['errmsg'],
+            'md_error_message'     => (string) $raw3DAuthResponseData['mderrormessage'],
+            'campaign_url'         => null,
             //'name'                  => (string) $raw3DAuthResponseData['firmaadi'],
-            'email'                 => (string) $raw3DAuthResponseData['customeremailaddress'],
-            'extra'                 => $raw3DAuthResponseData['Extra'],
-            'all'                   => $raw3DAuthResponseData,
+            'email'                => (string) $raw3DAuthResponseData['customeremailaddress'],
+            'extra'                => $raw3DAuthResponseData['Extra'],
+            'all'                  => $raw3DAuthResponseData,
         ];
     }
 
@@ -743,26 +758,26 @@ class GarantiPos extends AbstractGateway
         }
 
         return (object) [
-            'id'                => isset($responseData->Transaction->AuthCode) ? $this->printData($responseData->Transaction->AuthCode) : null,
-            'order_id'          => isset($responseData->Order->OrderID) ? $this->printData($responseData->Order->OrderID) : null,
-            'group_id'          => isset($responseData->Order->GroupID) ? $this->printData($responseData->Order->GroupID) : null,
-            'trans_id'          => isset($responseData->Transaction->AuthCode) ? $this->printData($responseData->Transaction->AuthCode) : null,
-            'response'          => isset($responseData->Transaction->Response->Message) ? $this->printData($responseData->Transaction->Response->Message) : null,
-            'transaction_type'  => $this->type,
-            'transaction'       => $this->type,
-            'auth_code'         => isset($responseData->Transaction->AuthCode) ? $this->printData($responseData->Transaction->AuthCode) : null,
-            'host_ref_num'      => isset($responseData->Transaction->RetrefNum) ? $this->printData($responseData->Transaction->RetrefNum) : null,
-            'ret_ref_num'       => isset($responseData->Transaction->RetrefNum) ? $this->printData($responseData->Transaction->RetrefNum) : null,
-            'hash_data'         => isset($responseData->Transaction->HashData) ? $this->printData($responseData->Transaction->HashData) : null,
-            'proc_return_code'  => $this->getProcReturnCode(),
-            'code'              => $this->getProcReturnCode(),
-            'status'            => $status,
-            'status_detail'     => $this->getStatusDetail(),
-            'error_code'        => isset($responseData->Transaction->Response->Code) ? $this->printData($responseData->Transaction->Response->Code) : null,
-            'error_message'     => isset($responseData->Transaction->Response->ErrorMsg) ? $this->printData($responseData->Transaction->Response->ErrorMsg) : null,
-            'campaign_url'      => isset($responseData->Transaction->CampaignChooseLink) ? $this->printData($responseData->Transaction->CampaignChooseLink) : null,
-            'extra'             => isset($responseData->Extra) ? $responseData->Extra : null,
-            'all'               => $responseData,
+            'id'               => isset($responseData->Transaction->AuthCode) ? $this->printData($responseData->Transaction->AuthCode) : null,
+            'order_id'         => isset($responseData->Order->OrderID) ? $this->printData($responseData->Order->OrderID) : null,
+            'group_id'         => isset($responseData->Order->GroupID) ? $this->printData($responseData->Order->GroupID) : null,
+            'trans_id'         => isset($responseData->Transaction->AuthCode) ? $this->printData($responseData->Transaction->AuthCode) : null,
+            'response'         => isset($responseData->Transaction->Response->Message) ? $this->printData($responseData->Transaction->Response->Message) : null,
+            'transaction_type' => $this->type,
+            'transaction'      => $this->type,
+            'auth_code'        => isset($responseData->Transaction->AuthCode) ? $this->printData($responseData->Transaction->AuthCode) : null,
+            'host_ref_num'     => isset($responseData->Transaction->RetrefNum) ? $this->printData($responseData->Transaction->RetrefNum) : null,
+            'ret_ref_num'      => isset($responseData->Transaction->RetrefNum) ? $this->printData($responseData->Transaction->RetrefNum) : null,
+            'hash_data'        => isset($responseData->Transaction->HashData) ? $this->printData($responseData->Transaction->HashData) : null,
+            'proc_return_code' => $this->getProcReturnCode(),
+            'code'             => $this->getProcReturnCode(),
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail(),
+            'error_code'       => isset($responseData->Transaction->Response->Code) ? $this->printData($responseData->Transaction->Response->Code) : null,
+            'error_message'    => isset($responseData->Transaction->Response->ErrorMsg) ? $this->printData($responseData->Transaction->Response->ErrorMsg) : null,
+            'campaign_url'     => isset($responseData->Transaction->CampaignChooseLink) ? $this->printData($responseData->Transaction->CampaignChooseLink) : null,
+            'extra'            => isset($responseData->Extra) ? $responseData->Extra : null,
+            'all'              => $responseData,
         ];
     }
 
@@ -777,22 +792,22 @@ class GarantiPos extends AbstractGateway
         }
 
         return (object) [
-            'id'                => isset($rawResponseData->Transaction->AuthCode) ? $this->printData($rawResponseData->Transaction->AuthCode) : null,
-            'order_id'          => isset($rawResponseData->Order->OrderID) ? $this->printData($rawResponseData->Order->OrderID) : null,
-            'group_id'          => isset($rawResponseData->Order->GroupID) ? $this->printData($rawResponseData->Order->GroupID) : null,
-            'trans_id'          => isset($rawResponseData->Transaction->AuthCode) ? $this->printData($rawResponseData->Transaction->AuthCode) : null,
-            'response'          => isset($rawResponseData->Transaction->Response->Message) ? $this->printData($rawResponseData->Transaction->Response->Message) : null,
-            'auth_code'         => isset($rawResponseData->Transaction->AuthCode) ? $rawResponseData->Transaction->AuthCode : null,
-            'host_ref_num'      => isset($rawResponseData->Transaction->RetrefNum) ? $this->printData($rawResponseData->Transaction->RetrefNum) : null,
-            'ret_ref_num'       => isset($rawResponseData->Transaction->RetrefNum) ? $this->printData($rawResponseData->Transaction->RetrefNum) : null,
-            'hash_data'         => isset($rawResponseData->Transaction->HashData) ? $this->printData($rawResponseData->Transaction->HashData) : null,
-            'proc_return_code'  => $this->getProcReturnCode(),
-            'code'              => $this->getProcReturnCode(),
-            'error_code'        => isset($rawResponseData->Transaction->Response->Code) ? $this->printData($rawResponseData->Transaction->Response->Code) : null,
-            'error_message'     => isset($rawResponseData->Transaction->Response->ErrorMsg) ? $this->printData($rawResponseData->Transaction->Response->ErrorMsg) : null,
-            'status'            => $status,
-            'status_detail'     => $this->getStatusDetail(),
-            'all'               => $rawResponseData,
+            'id'               => isset($rawResponseData->Transaction->AuthCode) ? $this->printData($rawResponseData->Transaction->AuthCode) : null,
+            'order_id'         => isset($rawResponseData->Order->OrderID) ? $this->printData($rawResponseData->Order->OrderID) : null,
+            'group_id'         => isset($rawResponseData->Order->GroupID) ? $this->printData($rawResponseData->Order->GroupID) : null,
+            'trans_id'         => isset($rawResponseData->Transaction->AuthCode) ? $this->printData($rawResponseData->Transaction->AuthCode) : null,
+            'response'         => isset($rawResponseData->Transaction->Response->Message) ? $this->printData($rawResponseData->Transaction->Response->Message) : null,
+            'auth_code'        => isset($rawResponseData->Transaction->AuthCode) ? $rawResponseData->Transaction->AuthCode : null,
+            'host_ref_num'     => isset($rawResponseData->Transaction->RetrefNum) ? $this->printData($rawResponseData->Transaction->RetrefNum) : null,
+            'ret_ref_num'      => isset($rawResponseData->Transaction->RetrefNum) ? $this->printData($rawResponseData->Transaction->RetrefNum) : null,
+            'hash_data'        => isset($rawResponseData->Transaction->HashData) ? $this->printData($rawResponseData->Transaction->HashData) : null,
+            'proc_return_code' => $this->getProcReturnCode(),
+            'code'             => $this->getProcReturnCode(),
+            'error_code'       => isset($rawResponseData->Transaction->Response->Code) ? $this->printData($rawResponseData->Transaction->Response->Code) : null,
+            'error_message'    => isset($rawResponseData->Transaction->Response->ErrorMsg) ? $this->printData($rawResponseData->Transaction->Response->ErrorMsg) : null,
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail(),
+            'all'              => $rawResponseData,
         ];
     }
 
@@ -815,23 +830,23 @@ class GarantiPos extends AbstractGateway
         }
 
         return (object) [
-            'id'                => isset($rawResponseData->Order->OrderInqResult->AuthCode) ? $this->printData($rawResponseData->Order->OrderInqResult->AuthCode) : null,
-            'order_id'          => isset($rawResponseData->Order->OrderID) ? $this->printData($rawResponseData->Order->OrderID) : null,
-            'group_id'          => isset($rawResponseData->Order->GroupID) ? $this->printData($rawResponseData->Order->GroupID) : null,
-            'trans_id'          => isset($rawResponseData->Transaction->AuthCode) ? $this->printData($rawResponseData->Transaction->AuthCode) : null,
-            'response'          => isset($rawResponseData->Transaction->Response->Message) ? $this->printData($rawResponseData->Transaction->Response->Message) : null,
-            'auth_code'         => isset($rawResponseData->Order->OrderInqResult->AuthCode) ? $this->printData($rawResponseData->Order->OrderInqResult->AuthCode) : null,
-            'host_ref_num'      => isset($rawResponseData->Order->OrderInqResult->RetrefNum) ? $this->printData($rawResponseData->Order->OrderInqResult->RetrefNum) : null,
-            'ret_ref_num'       => isset($rawResponseData->Order->OrderInqResult->RetrefNum) ? $this->printData($rawResponseData->Order->OrderInqResult->RetrefNum) : null,
-            'hash_data'         => isset($rawResponseData->Transaction->HashData) ? $this->printData($rawResponseData->Transaction->HashData) : null,
-            'proc_return_code'  => $this->getProcReturnCode(),
-            'code'              => $this->getProcReturnCode(),
-            'status'            => $status,
-            'status_detail'     => $this->getStatusDetail(),
-            'error_code'        => isset($rawResponseData->Transaction->Response->Code) ? $this->printData($rawResponseData->Transaction->Response->Code) : null,
-            'error_message'     => isset($rawResponseData->Transaction->Response->ErrorMsg) ? $this->printData($rawResponseData->Transaction->Response->ErrorMsg) : null,
-            'extra'             => isset($rawResponseData->Extra) ? $rawResponseData->Extra : null,
-            'all'               => $rawResponseData,
+            'id'               => isset($rawResponseData->Order->OrderInqResult->AuthCode) ? $this->printData($rawResponseData->Order->OrderInqResult->AuthCode) : null,
+            'order_id'         => isset($rawResponseData->Order->OrderID) ? $this->printData($rawResponseData->Order->OrderID) : null,
+            'group_id'         => isset($rawResponseData->Order->GroupID) ? $this->printData($rawResponseData->Order->GroupID) : null,
+            'trans_id'         => isset($rawResponseData->Transaction->AuthCode) ? $this->printData($rawResponseData->Transaction->AuthCode) : null,
+            'response'         => isset($rawResponseData->Transaction->Response->Message) ? $this->printData($rawResponseData->Transaction->Response->Message) : null,
+            'auth_code'        => isset($rawResponseData->Order->OrderInqResult->AuthCode) ? $this->printData($rawResponseData->Order->OrderInqResult->AuthCode) : null,
+            'host_ref_num'     => isset($rawResponseData->Order->OrderInqResult->RetrefNum) ? $this->printData($rawResponseData->Order->OrderInqResult->RetrefNum) : null,
+            'ret_ref_num'      => isset($rawResponseData->Order->OrderInqResult->RetrefNum) ? $this->printData($rawResponseData->Order->OrderInqResult->RetrefNum) : null,
+            'hash_data'        => isset($rawResponseData->Transaction->HashData) ? $this->printData($rawResponseData->Transaction->HashData) : null,
+            'proc_return_code' => $this->getProcReturnCode(),
+            'code'             => $this->getProcReturnCode(),
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail(),
+            'error_code'       => isset($rawResponseData->Transaction->Response->Code) ? $this->printData($rawResponseData->Transaction->Response->Code) : null,
+            'error_message'    => isset($rawResponseData->Transaction->Response->ErrorMsg) ? $this->printData($rawResponseData->Transaction->Response->ErrorMsg) : null,
+            'extra'            => isset($rawResponseData->Extra) ? $rawResponseData->Extra : null,
+            'all'              => $rawResponseData,
         ];
     }
 
@@ -846,24 +861,24 @@ class GarantiPos extends AbstractGateway
         }
 
         return (object) [
-            'id'                => isset($rawResponseData->Order->OrderHistInqResult->AuthCode) ? $this->printData($rawResponseData->Order->OrderHistInqResult->AuthCode) : null,
-            'order_id'          => isset($rawResponseData->Order->OrderID) ? $this->printData($rawResponseData->Order->OrderID) : null,
-            'group_id'          => isset($rawResponseData->Order->GroupID) ? $this->printData($rawResponseData->Order->GroupID) : null,
-            'trans_id'          => isset($rawResponseData->Transaction->AuthCode) ? $this->printData($rawResponseData->Transaction->AuthCode) : null,
-            'response'          => isset($rawResponseData->Transaction->Response->Message) ? $this->printData($rawResponseData->Transaction->Response->Message) : null,
-            'auth_code'         => isset($rawResponseData->Order->OrderHistInqResult->AuthCode) ? $this->printData($rawResponseData->Order->OrderHistInqResult->AuthCode) : null,
-            'host_ref_num'      => isset($rawResponseData->Order->OrderHistInqResult->RetrefNum) ? $this->printData($rawResponseData->Order->OrderHistInqResult->RetrefNum) : null,
-            'ret_ref_num'       => isset($rawResponseData->Order->OrderHistInqResult->RetrefNum) ? $this->printData($rawResponseData->Order->OrderHistInqResult->RetrefNum) : null,
-            'hash_data'         => isset($rawResponseData->Transaction->HashData) ? $this->printData($rawResponseData->Transaction->HashData) : null,
-            'proc_return_code'  => $this->getProcReturnCode(),
-            'code'              => $this->getProcReturnCode(),
-            'status'            => $status,
-            'status_detail'     => $this->getStatusDetail(),
-            'error_code'        => isset($rawResponseData->Transaction->Response->Code) ? $this->printData($rawResponseData->Transaction->Response->Code) : null,
-            'error_message'     => isset($rawResponseData->Transaction->Response->ErrorMsg) ? $this->printData($rawResponseData->Transaction->Response->ErrorMsg) : null,
-            'extra'             => isset($rawResponseData->Extra) ? $rawResponseData->Extra : null,
-            'order_txn'         => isset($rawResponseData->Order->OrderHistInqResult->OrderTxnList->OrderTxn) ? $rawResponseData->Order->OrderHistInqResult->OrderTxnList->OrderTxn : [],
-            'all'               => $rawResponseData,
+            'id'               => isset($rawResponseData->Order->OrderHistInqResult->AuthCode) ? $this->printData($rawResponseData->Order->OrderHistInqResult->AuthCode) : null,
+            'order_id'         => isset($rawResponseData->Order->OrderID) ? $this->printData($rawResponseData->Order->OrderID) : null,
+            'group_id'         => isset($rawResponseData->Order->GroupID) ? $this->printData($rawResponseData->Order->GroupID) : null,
+            'trans_id'         => isset($rawResponseData->Transaction->AuthCode) ? $this->printData($rawResponseData->Transaction->AuthCode) : null,
+            'response'         => isset($rawResponseData->Transaction->Response->Message) ? $this->printData($rawResponseData->Transaction->Response->Message) : null,
+            'auth_code'        => isset($rawResponseData->Order->OrderHistInqResult->AuthCode) ? $this->printData($rawResponseData->Order->OrderHistInqResult->AuthCode) : null,
+            'host_ref_num'     => isset($rawResponseData->Order->OrderHistInqResult->RetrefNum) ? $this->printData($rawResponseData->Order->OrderHistInqResult->RetrefNum) : null,
+            'ret_ref_num'      => isset($rawResponseData->Order->OrderHistInqResult->RetrefNum) ? $this->printData($rawResponseData->Order->OrderHistInqResult->RetrefNum) : null,
+            'hash_data'        => isset($rawResponseData->Transaction->HashData) ? $this->printData($rawResponseData->Transaction->HashData) : null,
+            'proc_return_code' => $this->getProcReturnCode(),
+            'code'             => $this->getProcReturnCode(),
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail(),
+            'error_code'       => isset($rawResponseData->Transaction->Response->Code) ? $this->printData($rawResponseData->Transaction->Response->Code) : null,
+            'error_message'    => isset($rawResponseData->Transaction->Response->ErrorMsg) ? $this->printData($rawResponseData->Transaction->Response->ErrorMsg) : null,
+            'extra'            => isset($rawResponseData->Extra) ? $rawResponseData->Extra : null,
+            'order_txn'        => isset($rawResponseData->Order->OrderHistInqResult->OrderTxnList->OrderTxn) ? $rawResponseData->Order->OrderHistInqResult->OrderTxnList->OrderTxn : [],
+            'all'              => $rawResponseData,
         ];
     }
 
@@ -902,11 +917,11 @@ class GarantiPos extends AbstractGateway
 
         // Order
         return (object) array_merge($order, [
-            'installment'   => $installment,
-            'currency'      => $this->mapCurrency($order['currency']),
-            'amount'        => self::amountFormat($order['amount']),
-            'ip' => isset($order['ip']) ? $order['ip'] : '',
-            'email' => isset($order['email']) ? $order['email'] : '',
+            'installment' => $installment,
+            'currency'    => $this->mapCurrency($order['currency']),
+            'amount'      => self::amountFormat($order['amount']),
+            'ip'          => isset($order['ip']) ? $order['ip'] : '',
+            'email'       => isset($order['email']) ? $order['email'] : '',
         ]);
     }
 
@@ -916,12 +931,12 @@ class GarantiPos extends AbstractGateway
     protected function preparePostPaymentOrder(array $order)
     {
         return (object) [
-            'id' => $order['id'],
+            'id'          => $order['id'],
             'ref_ret_num' => $order['ref_ret_num'],
-            'currency'      => $this->mapCurrency($order['currency']),
+            'currency'    => $this->mapCurrency($order['currency']),
             'amount'      => self::amountFormat($order['amount']),
-            'ip' => isset($order['ip']) ? $order['ip'] : '',
-            'email' => isset($order['email']) ? $order['email'] : '',
+            'ip'          => isset($order['ip']) ? $order['ip'] : '',
+            'email'       => isset($order['email']) ? $order['email'] : '',
         ];
     }
 
@@ -931,11 +946,11 @@ class GarantiPos extends AbstractGateway
     protected function prepareStatusOrder(array $order)
     {
         return (object) [
-            'id' => $order['id'],
-            'amount' => self::amountFormat(1),
-            'currency' => $this->mapCurrency($order['currency']),
-            'ip' => isset($order['ip']) ? $order['ip'] : '',
-            'email' => isset($order['email']) ? $order['email'] : '',
+            'id'          => $order['id'],
+            'amount'      => self::amountFormat(1),
+            'currency'    => $this->mapCurrency($order['currency']),
+            'ip'          => isset($order['ip']) ? $order['ip'] : '',
+            'email'       => isset($order['email']) ? $order['email'] : '',
             'installment' => '',
         ];
     }
@@ -954,12 +969,12 @@ class GarantiPos extends AbstractGateway
     protected function prepareCancelOrder(array $order)
     {
         return (object) [
-            'id' => $order['id'],
-            'amount' => self::amountFormat(1),
-            'currency' => $this->mapCurrency($order['currency']),
+            'id'          => $order['id'],
+            'amount'      => self::amountFormat(1),
+            'currency'    => $this->mapCurrency($order['currency']),
             'ref_ret_num' => $order['ref_ret_num'],
-            'ip' => isset($order['ip']) ? $order['ip'] : '',
-            'email' => isset($order['email']) ? $order['email'] : '',
+            'ip'          => isset($order['ip']) ? $order['ip'] : '',
+            'email'       => isset($order['email']) ? $order['email'] : '',
             'installment' => '',
         ];
     }

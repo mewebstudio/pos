@@ -7,6 +7,7 @@ use Mews\Pos\Entity\Card\CreditCardEstPos;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\Gateways\EstPos;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -16,6 +17,9 @@ class EstPostTest extends TestCase
      * @var EstPosAccount
      */
     private $account;
+    /**
+     * @var EstPos
+     */
     private $pos;
     private $config;
 
@@ -33,23 +37,23 @@ class EstPostTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__ . '/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos.php';
 
-        $this->account = AccountFactory::createEstPosAccount('akbank', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '3d', 'VnM5WZ3sGrPusmWP', \Mews\Pos\Gateways\EstPos::LANG_TR);
+        $this->account = AccountFactory::createEstPosAccount('akbank', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '3d', 'VnM5WZ3sGrPusmWP', EstPos::LANG_TR);
 
         $this->card = new CreditCardEstPos('5555444433332222', '21', '12', '122', 'ahmet', 'visa');
 
         $this->order = [
-            'id' => 'order222',
-            'name' => 'siparis veren',
-            'email' => 'test@test.com',
-            'amount' => '100.25',
+            'id'          => 'order222',
+            'name'        => 'siparis veren',
+            'email'       => 'test@test.com',
+            'amount'      => '100.25',
             'installment' => 0,
-            'currency' => 'TRY',
+            'currency'    => 'TRY',
             'success_url' => 'https://domain.com/success',
-            'fail_url' => 'https://domain.com/fail_url',
-            'lang' => 'tr',
-            'rand' => microtime()
+            'fail_url'    => 'https://domain.com/fail_url',
+            'lang'        => 'tr',
+            'rand'        => microtime(),
         ];
 
         $this->pos = PosFactory::createPosGateway($this->account);
@@ -73,30 +77,54 @@ class EstPostTest extends TestCase
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 
-    public function testGet3DFormData()
+    public function testGet3DFormWithCardData()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $form = [
             'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
-            'inputs' => [
-                'clientid' => $this->account->getClientId(),
-                'storetype' => $this->account->getModel(),
-                'hash' => $this->pos->create3DHash(),
-                'cardType' => $this->card->getCardCode(),
-                'pan' => $this->card->getNumber(),
+            'inputs'  => [
+                'clientid'                        => $this->account->getClientId(),
+                'storetype'                       => $this->account->getModel(),
+                'hash'                            => $this->pos->create3DHash(),
+                'cardType'                        => $this->card->getCardCode(),
+                'pan'                             => $this->card->getNumber(),
                 'Ecom_Payment_Card_ExpDate_Month' => $this->card->getExpireMonth(),
-                'Ecom_Payment_Card_ExpDate_Year' => $this->card->getExpireYear(),
-                'cv2' => $this->card->getCvv(),
-                'firmaadi' => $this->order['name'],
-                'Email' => $this->order['email'],
-                'amount' => $this->order['amount'],
-                'oid' => $this->order['id'],
-                'okUrl' => $this->order['success_url'],
-                'failUrl' => $this->order['fail_url'],
-                'rnd' => $this->order['rand'],
-                'lang' => $this->order['lang'],
-                'currency' => 949,
+                'Ecom_Payment_Card_ExpDate_Year'  => $this->card->getExpireYear(),
+                'cv2'                             => $this->card->getCvv(),
+                'firmaadi'                        => $this->order['name'],
+                'Email'                           => $this->order['email'],
+                'amount'                          => $this->order['amount'],
+                'oid'                             => $this->order['id'],
+                'okUrl'                           => $this->order['success_url'],
+                'failUrl'                         => $this->order['fail_url'],
+                'rnd'                             => $this->order['rand'],
+                'lang'                            => $this->order['lang'],
+                'currency'                        => 949,
+            ],
+        ];
+        $this->assertEquals($form, $this->pos->get3DFormData());
+    }
+
+    public function testGet3DFormWithoutCardData()
+    {
+        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
+
+        $form = [
+            'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
+            'inputs'  => [
+                'clientid'  => $this->account->getClientId(),
+                'storetype' => $this->account->getModel(),
+                'hash'      => $this->pos->create3DHash(),
+                'firmaadi'  => $this->order['name'],
+                'Email'     => $this->order['email'],
+                'amount'    => $this->order['amount'],
+                'oid'       => $this->order['id'],
+                'okUrl'     => $this->order['success_url'],
+                'failUrl'   => $this->order['fail_url'],
+                'rnd'       => $this->order['rand'],
+                'lang'      => $this->order['lang'],
+                'currency'  => 949,
             ],
         ];
         $this->assertEquals($form, $this->pos->get3DFormData());
@@ -105,19 +133,19 @@ class EstPostTest extends TestCase
     public function testCheck3DHash()
     {
         $data = [
-            "md" => "478719:0373D10CFD8BDED34FA0546D27D5BE76F8BA4A947D1EC499102AE97B880EB1B9:4242:##400902568",
-            "cavv" => "BwAQAhIYRwEAABWGABhHEE6v5IU=",
-            "AuthCode" => "",
-            "oid" => "880",
-            "mdStatus" => "4",
-            "eci" => "06",
-            "clientid" => "400902568",
-            "rnd" => "hDx50d0cq7u1vbpWQMae",
+            "md"             => "478719:0373D10CFD8BDED34FA0546D27D5BE76F8BA4A947D1EC499102AE97B880EB1B9:4242:##400902568",
+            "cavv"           => "BwAQAhIYRwEAABWGABhHEE6v5IU=",
+            "AuthCode"       => "",
+            "oid"            => "880",
+            "mdStatus"       => "4",
+            "eci"            => "06",
+            "clientid"       => "400902568",
+            "rnd"            => "hDx50d0cq7u1vbpWQMae",
             "ProcReturnCode" => "N7",
-            "Response" => "Declined",
-            "HASH" => "D+B5fFWXEWFqVSkwotyuTPUW800=",
-            "HASHPARAMS" => "clientid:oid:AuthCode:ProcReturnCode:Response:mdStatus:cavv:eci:md:rnd:",
-            "HASHPARAMSVAL" => "400902568880N7Declined4BwAQAhIYRwEAABWGABhHEE6v5IU=06478719:0373D10CFD8BDED34FA0546D27D5BE76F8BA4A947D1EC499102AE97B880EB1B9:4242:##400902568hDx50d0cq7u1vbpWQMae",
+            "Response"       => "Declined",
+            "HASH"           => "D+B5fFWXEWFqVSkwotyuTPUW800=",
+            "HASHPARAMS"     => "clientid:oid:AuthCode:ProcReturnCode:Response:mdStatus:cavv:eci:md:rnd:",
+            "HASHPARAMSVAL"  => "400902568880N7Declined4BwAQAhIYRwEAABWGABhHEE6v5IU=06478719:0373D10CFD8BDED34FA0546D27D5BE76F8BA4A947D1EC499102AE97B880EB1B9:4242:##400902568hDx50d0cq7u1vbpWQMae",
         ];
 
         $this->assertTrue($this->pos->check3DHash($data));
@@ -129,18 +157,21 @@ class EstPostTest extends TestCase
     public function testCreateRegularPaymentXML()
     {
         $order = [
-            'id'                => '2020110828BC',
-            'email'             => 'samp@iexample.com',
-            'name'              => 'john doe',
-            'user_id'           => '1535',
-            'ip'                => '192.168.1.0',
-            'amount'            => 100.01,
-            'installment'       => '0',
-            'currency'          => 'TRY',
+            'id'          => '2020110828BC',
+            'email'       => 'samp@iexample.com',
+            'name'        => 'john doe',
+            'user_id'     => '1535',
+            'ip'          => '192.168.1.0',
+            'amount'      => 100.01,
+            'installment' => '0',
+            'currency'    => 'TRY',
         ];
 
 
         $card = new CreditCardEstPos('5555444433332222', '22', '01', '123', 'ahmet');
+        /**
+         * @var EstPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
 
@@ -155,16 +186,19 @@ class EstPostTest extends TestCase
     public function testCreateRegularPostXML()
     {
         $order = [
-            'id'                => '2020110828BC',
+            'id' => '2020110828BC',
         ];
 
+        /**
+         * @var EstPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_POST_PAY);
 
         $actualXML = $pos->createRegularPostXML();
         $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
 
-        $expectedData = $this->getSampleRegularPostXMLData($pos->getOrder(),  $pos->getAccount());
+        $expectedData = $this->getSampleRegularPostXMLData($pos->getOrder(), $pos->getAccount());
         $this->assertEquals($expectedData, $actualData);
         //$this->assertEquals([], $actualData);
     }
@@ -173,24 +207,27 @@ class EstPostTest extends TestCase
     {
 
         $order = [
-            'id'                => '2020110828BC',
-            'email'             => 'samp@iexample.com',
-            'name'              => 'john doe',
-            'user_id'           => '1535',
-            'ip'                => '192.168.1.0',
-            'amount'            => 100.01,
-            'installment'       => '0',
-            'currency'          => 'TRY',
-            'success_url'       => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'          => 'http://localhost/finansbank-payfor/3d/response.php',
+            'id'          => '2020110828BC',
+            'email'       => 'samp@iexample.com',
+            'name'        => 'john doe',
+            'user_id'     => '1535',
+            'ip'          => '192.168.1.0',
+            'amount'      => 100.01,
+            'installment' => '0',
+            'currency'    => 'TRY',
+            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
+            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
         ];
         $responseData = [
-            'md' => '1',
-            'xid' => '100000005xid',
-            'eci' => '100000005eci',
+            'md'   => '1',
+            'xid'  => '100000005xid',
+            'eci'  => '100000005eci',
             'cavv' => 'cavv',
         ];
 
+        /**
+         * @var EstPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_PAY);
 
@@ -205,9 +242,12 @@ class EstPostTest extends TestCase
     public function testCreateStatusXML()
     {
         $order = [
-            'id'  => '2020110828BC',
+            'id' => '2020110828BC',
         ];
 
+        /**
+         * @var EstPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_STATUS);
 
@@ -223,9 +263,12 @@ class EstPostTest extends TestCase
     public function testCreateCancelXML()
     {
         $order = [
-            'id'  => '2020110828BC',
+            'id' => '2020110828BC',
         ];
 
+        /**
+         * @var EstPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_CANCEL);
 
@@ -240,10 +283,13 @@ class EstPostTest extends TestCase
     public function testCreateRefundXML()
     {
         $order = [
-            'id'  => '2020110828BC',
-            'amount' => 50
+            'id'     => '2020110828BC',
+            'amount' => 50,
         ];
 
+        /**
+         * @var EstPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_REFUND);
 
@@ -256,41 +302,41 @@ class EstPostTest extends TestCase
     }
 
     /**
-     * @param $order
+     * @param                  $order
      * @param CreditCardEstPos $card
-     * @param EstPosAccount $account
+     * @param EstPosAccount    $account
      *
      * @return array
      */
     private function getSampleRegularPaymentXMLData($order, $card, $account)
     {
         return [
-            'Name' => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
-            'Type' => 'Auth',
+            'Name'      => $account->getUsername(),
+            'Password'  => $account->getPassword(),
+            'ClientId'  => $account->getClientId(),
+            'Type'      => 'Auth',
             'IPAddress' => $order->ip,
-            'Email' => $order->email,
-            'OrderId' => $order->id,
-            'UserId' => isset($order->user_id) ? $order->user_id : null,
-            'Total' => $order->amount,
-            'Currency' => $order->currency,
-            'Taksit' => $order->installment,
-            'CardType' => $card->getType(),
-            'Number' => $card->getNumber(),
-            'Expires' => $card->getExpirationDate(),
-            'Cvv2Val' => $card->getCvv(),
-            'Mode' => 'P',
-            'GroupId' => '',
-            'TransId' => '',
-            'BillTo' => [
+            'Email'     => $order->email,
+            'OrderId'   => $order->id,
+            'UserId'    => isset($order->user_id) ? $order->user_id : null,
+            'Total'     => $order->amount,
+            'Currency'  => $order->currency,
+            'Taksit'    => $order->installment,
+            'CardType'  => $card->getType(),
+            'Number'    => $card->getNumber(),
+            'Expires'   => $card->getExpirationDate(),
+            'Cvv2Val'   => $card->getCvv(),
+            'Mode'      => 'P',
+            'GroupId'   => '',
+            'TransId'   => '',
+            'BillTo'    => [
                 'Name' => $order->name ? $order->name : null,
             ],
         ];
     }
 
     /**
-     * @param $order
+     * @param               $order
      * @param EstPosAccount $account
      *
      * @return array
@@ -298,56 +344,57 @@ class EstPostTest extends TestCase
     private function getSampleRegularPostXMLData($order, $account)
     {
         return [
-            'Name' => $account->getUsername(),
+            'Name'     => $account->getUsername(),
             'Password' => $account->getPassword(),
             'ClientId' => $account->getClientId(),
-            'Type' => 'PostAuth',
-            'OrderId' => $order->id,
+            'Type'     => 'PostAuth',
+            'OrderId'  => $order->id,
         ];
     }
 
     /**
-     * @param $order
+     * @param               $order
      * @param EstPosAccount $account
-     * @param array $responseData
+     * @param array         $responseData
      *
      * @return array
      */
     private function getSample3DPaymentXMLData($order, $account, array $responseData)
     {
         $requestData = [
-            'Name' => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
-            'Type' => 'Auth',
-            'IPAddress' => $order->ip,
-            'Email' => $order->email,
-            'OrderId' => $order->id,
-            'UserId' => isset($order->user_id) ? $order->user_id : null,
-            'Total' => $order->amount,
-            'Currency' => $order->currency,
-            'Taksit' => $order->installment,
-            'Number' => $responseData['md'],
-            'Expires' => '',
-            'Cvv2Val' => '',
-            'PayerTxnId' => $responseData['xid'],
-            'PayerSecurityLevel' => $responseData['eci'],
+            'Name'                    => $account->getUsername(),
+            'Password'                => $account->getPassword(),
+            'ClientId'                => $account->getClientId(),
+            'Type'                    => 'Auth',
+            'IPAddress'               => $order->ip,
+            'Email'                   => $order->email,
+            'OrderId'                 => $order->id,
+            'UserId'                  => isset($order->user_id) ? $order->user_id : null,
+            'Total'                   => $order->amount,
+            'Currency'                => $order->currency,
+            'Taksit'                  => $order->installment,
+            'Number'                  => $responseData['md'],
+            'Expires'                 => '',
+            'Cvv2Val'                 => '',
+            'PayerTxnId'              => $responseData['xid'],
+            'PayerSecurityLevel'      => $responseData['eci'],
             'PayerAuthenticationCode' => $responseData['cavv'],
-            'CardholderPresentCode' => '13',
-            'Mode' => 'P',
-            'GroupId' => '',
-            'TransId' => '',
+            'CardholderPresentCode'   => '13',
+            'Mode'                    => 'P',
+            'GroupId'                 => '',
+            'TransId'                 => '',
         ];
         if (isset($order->name)) {
             $requestData['BillTo'] = [
                 'Name' => $order->name,
             ];
         }
+
         return $requestData;
     }
 
     /**
-     * @param $order
+     * @param               $order
      * @param EstPosAccount $account
      *
      * @return array
@@ -355,18 +402,18 @@ class EstPostTest extends TestCase
     private function getSampleStatusXMLData($order, $account)
     {
         return [
-            'Name' => $account->getUsername(),
+            'Name'     => $account->getUsername(),
             'Password' => $account->getPassword(),
             'ClientId' => $account->getClientId(),
-            'OrderId' => $order->id,
-            'Extra' => [
+            'OrderId'  => $order->id,
+            'Extra'    => [
                 'ORDERSTATUS' => 'QUERY',
             ],
         ];
     }
 
     /**
-     * @param $order
+     * @param               $order
      * @param EstPosAccount $account
      *
      * @return array
@@ -374,16 +421,16 @@ class EstPostTest extends TestCase
     private function getSampleCancelXMLData($order, $account)
     {
         return [
-            'Name' => $account->getUsername(),
+            'Name'     => $account->getUsername(),
             'Password' => $account->getPassword(),
             'ClientId' => $account->getClientId(),
-            'OrderId' => $order->id,
-            'Type' => 'Void',
+            'OrderId'  => $order->id,
+            'Type'     => 'Void',
         ];
     }
 
     /**
-     * @param $order
+     * @param               $order
      * @param EstPosAccount $account
      *
      * @return array
@@ -391,11 +438,11 @@ class EstPostTest extends TestCase
     private function getSampleRefundXMLData($order, $account)
     {
         $data = [
-            'Name' => $account->getUsername(),
+            'Name'     => $account->getUsername(),
             'Password' => $account->getPassword(),
             'ClientId' => $account->getClientId(),
-            'OrderId' => $order->id,
-            'Type' => 'Credit',
+            'OrderId'  => $order->id,
+            'Type'     => 'Credit',
         ];
 
         if ($order->amount) {

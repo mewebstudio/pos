@@ -6,7 +6,6 @@ use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\AbstractGateway;
 
 /**
@@ -17,9 +16,9 @@ interface PosInterface
     /**
      * PosInterface constructor.
      *
-     * @param object $config
+     * @param object             $config
      * @param AbstractPosAccount $account
-     * @param array $currencies
+     * @param array              $currencies
      */
     public function __construct($config, $account, array $currencies);
 
@@ -88,9 +87,9 @@ interface PosInterface
     /**
      * Prepare Order
      *
-     * @param array $order
-     * @param string $txType //txTypes from AbstractGateway
-     * @param AbstractCreditCard|null $card need when 3DFormData requested
+     * @param array                   $order
+     * @param string                  $txType //txTypes from AbstractGateway
+     * @param AbstractCreditCard|null $card   need when 3DFormData requested
      *
      * @return void
      */

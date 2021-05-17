@@ -8,7 +8,6 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\GarantiPos;
-use Mews\Pos\Gateways\PayForPos;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -30,7 +29,7 @@ class GarantiPosTest extends TestCase
      */
     private $xmlDecoder;
     /**
-     * @var PayForPos
+     * @var GarantiPos
      */
     private $pos;
 
@@ -38,24 +37,24 @@ class GarantiPosTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__ . '/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos.php';
 
         $this->account = AccountFactory::createGarantiPosAccount('garanti', '7000679', 'PROVAUT', '123qweASD/', '30691298', '3d', '12345678', 'PROVRFN', '123qweASD/');
 
         $this->card = new CreditCardGarantiPos('5555444433332222', '21', '12', '122');
 
         $this->order = [
-            'id' => 'order222',
-            'name' => 'siparis veren',
-            'email' => 'test@test.com',
-            'amount' => '100.25',
+            'id'          => 'order222',
+            'name'        => 'siparis veren',
+            'email'       => 'test@test.com',
+            'amount'      => '100.25',
             'installment' => 0,
-            'currency' => 'TRY',
+            'currency'    => 'TRY',
             'success_url' => 'https://domain.com/success',
-            'fail_url' => 'https://domain.com/fail_url',
-            'lang' => 'tr',
-            'rand' => microtime(),
-            'ip' => '156.155.154.153',
+            'fail_url'    => 'https://domain.com/fail_url',
+            'lang'        => 'tr',
+            'rand'        => microtime(),
+            'ip'          => '156.155.154.153',
         ];
 
         $this->pos = PosFactory::createPosGateway($this->account);
@@ -78,35 +77,95 @@ class GarantiPosTest extends TestCase
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 
-    public function testGet3DFormData()
+    public function testGet3DFormWithCardData()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $form = [
             'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
+            'inputs'  => [
+                'secure3dsecuritylevel' => $this->account->getModel() === '3d_pay' ? '3D_PAY' : '3D',
+                'mode'                  => 'TEST',
+                'apiversion'            => GarantiPos::API_VERSION,
+                'terminalprovuserid'    => $this->account->getUsername(),
+                'terminaluserid'        => $this->account->getUsername(),
+                'terminalmerchantid'    => $this->account->getClientId(),
+                'txntype'               => 'sales',
+                'txnamount'             => GarantiPos::amountFormat($this->order['amount']),
+                'txncurrencycode'       => $this->pos->mapCurrency($this->order['currency']),
+                'txninstallmentcount'   => empty($this->order['installment']) ? '' : $this->order['installment'],
+                'orderid'               => $this->order['id'],
+                'terminalid'            => $this->account->getTerminalId(),
+                'successurl'            => $this->order['success_url'],
+                'errorurl'              => $this->order['fail_url'],
+                'customeremailaddress'  => isset($this->order['email']) ? $this->order['email'] : null,
+                'customeripaddress'     => $this->order['ip'],
+                'secure3dhash'          => '1D319D5EA945F5730FF5BCC970FF96690993F4BD',
+                'cardnumber'            => $this->card->getNumber(),
+                'cardexpiredatemonth'   => $this->card->getExpireMonth(),
+                'cardexpiredateyear'    => $this->card->getExpireYear(),
+                'cardcvv2'              => $this->card->getCvv(),
+            ],
         ];
+
         $actualForm = $this->pos->get3DFormData();
         $this->assertNotEmpty($actualForm['inputs']);
 
-        unset($actualForm['inputs']);
+        $this->assertEquals($form, $actualForm);
+    }
+
+
+    public function testGet3DFormWithoutCardData()
+    {
+        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
+
+        $form = [
+            'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
+            'inputs'  => [
+                'secure3dsecuritylevel' => $this->account->getModel() === '3d_pay' ? '3D_PAY' : '3D',
+                'mode'                  => 'TEST',
+                'apiversion'            => GarantiPos::API_VERSION,
+                'terminalprovuserid'    => $this->account->getUsername(),
+                'terminaluserid'        => $this->account->getUsername(),
+                'terminalmerchantid'    => $this->account->getClientId(),
+                'txntype'               => 'sales',
+                'txnamount'             => GarantiPos::amountFormat($this->order['amount']),
+                'txncurrencycode'       => $this->pos->mapCurrency($this->order['currency']),
+                'txninstallmentcount'   => empty($this->order['installment']) ? '' : $this->order['installment'],
+                'orderid'               => $this->order['id'],
+                'terminalid'            => $this->account->getTerminalId(),
+                'successurl'            => $this->order['success_url'],
+                'errorurl'              => $this->order['fail_url'],
+                'customeremailaddress'  => isset($this->order['email']) ? $this->order['email'] : null,
+                'customeripaddress'     => $this->order['ip'],
+                'secure3dhash'          => '1D319D5EA945F5730FF5BCC970FF96690993F4BD',
+            ],
+        ];
+
+        $actualForm = $this->pos->get3DFormData();
+        $this->assertNotEmpty($actualForm['inputs']);
+
         $this->assertEquals($form, $actualForm);
     }
 
     public function testCreateRegularPaymentXML()
     {
         $order = [
-            'id'                => '2020110828BC',
-            'email'             => 'samp@iexample.com',
-            'name'              => 'john doe',
-            'user_id'           => '1535',
-            'ip'                => '192.168.1.0',
-            'amount'            => 100.01,
-            'installment'       => 0,
-            'currency'          => 'TRY',
+            'id'          => '2020110828BC',
+            'email'       => 'samp@iexample.com',
+            'name'        => 'john doe',
+            'user_id'     => '1535',
+            'ip'          => '192.168.1.0',
+            'amount'      => 100.01,
+            'installment' => 0,
+            'currency'    => 'TRY',
         ];
 
 
         $card = new CreditCardGarantiPos('5555444433332222', '22', '01', '123', 'ahmet');
+        /**
+         * @var GarantiPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->setTestMode(true);
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
@@ -121,14 +180,17 @@ class GarantiPosTest extends TestCase
     public function testCreateRegularPostXML()
     {
         $order = [
-            'id'                => '2020110828BC',
-            'ref_ret_num'       => '831803579226',
-            'currency'          => 'TRY',
-            'amount'            => 100.01,
-            'email'             => 'samp@iexample.com',
-            'ip'                => '192.168.1.0',
+            'id'          => '2020110828BC',
+            'ref_ret_num' => '831803579226',
+            'currency'    => 'TRY',
+            'amount'      => 100.01,
+            'email'       => 'samp@iexample.com',
+            'ip'          => '192.168.1.0',
         ];
 
+        /**
+         * @var GarantiPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->setTestMode(true);
         $pos->prepare($order, AbstractGateway::TX_POST_PAY);
@@ -136,37 +198,40 @@ class GarantiPosTest extends TestCase
         $actualXML = $pos->createRegularPostXML();
         $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
 
-        $expectedData = $this->getSampleRegularPostXMLData($pos->getOrder(),  $pos->getAccount());
+        $expectedData = $this->getSampleRegularPostXMLData($pos->getOrder(), $pos->getAccount());
         $this->assertEquals($expectedData, $actualData);
     }
 
     public function testCreate3DPaymentXML()
     {
         $order = [
-            'id'                => '2020110828BC',
-            'email'             => 'samp@iexample.com',
-            'name'              => 'john doe',
-            'user_id'           => '1535',
-            'ip'                => '192.168.1.0',
-            'amount'            => 100.01,
-            'installment'       => '0',
-            'currency'          => 'TRY',
-            'success_url'       => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'          => 'http://localhost/finansbank-payfor/3d/response.php',
+            'id'          => '2020110828BC',
+            'email'       => 'samp@iexample.com',
+            'name'        => 'john doe',
+            'user_id'     => '1535',
+            'ip'          => '192.168.1.0',
+            'amount'      => 100.01,
+            'installment' => '0',
+            'currency'    => 'TRY',
+            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
+            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
         ];
         $responseData = [
-            'orderid' => '2020110828BC',
-            'md' => '1',
-            'xid' => '100000005xid',
-            'eci' => '100000005eci',
-            'cavv' => 'cavv',
-            'txncurrencycode' => 'txncurrencycode',
-            'txnamount' => 'txnamount',
-            'txntype' => 'txntype',
-            'customeripaddress' => 'customeripaddress',
+            'orderid'              => '2020110828BC',
+            'md'                   => '1',
+            'xid'                  => '100000005xid',
+            'eci'                  => '100000005eci',
+            'cavv'                 => 'cavv',
+            'txncurrencycode'      => 'txncurrencycode',
+            'txnamount'            => 'txnamount',
+            'txntype'              => 'txntype',
+            'customeripaddress'    => 'customeripaddress',
             'customeremailaddress' => 'customeremailaddress',
         ];
 
+        /**
+         * @var GarantiPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->setTestMode(true);
         $pos->prepare($order, AbstractGateway::TX_PAY);
@@ -181,10 +246,13 @@ class GarantiPosTest extends TestCase
     public function testCreateStatusXML()
     {
         $order = [
-            'id'  => '2020110828BC',
+            'id'       => '2020110828BC',
             'currency' => 'TRY',
         ];
 
+        /**
+         * @var GarantiPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->setTestMode(true);
         $pos->prepare($order, AbstractGateway::TX_STATUS);
@@ -200,12 +268,15 @@ class GarantiPosTest extends TestCase
     public function testCreateCancelXML()
     {
         $order = [
-            'id'  => '2020110828BC',
-            'currency' => 'TRY',
-            'amount' => 10.01,
-            'ref_ret_num'   => '831803579226',
+            'id'          => '2020110828BC',
+            'currency'    => 'TRY',
+            'amount'      => 10.01,
+            'ref_ret_num' => '831803579226',
         ];
 
+        /**
+         * @var GarantiPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->setTestMode(true);
         $pos->prepare($order, AbstractGateway::TX_CANCEL);
@@ -220,12 +291,15 @@ class GarantiPosTest extends TestCase
     public function testCreateRefundXML()
     {
         $order = [
-            'id'  => '2020110828BC',
-            'currency' => 'TRY',
-            'amount' => 10.01,
-            'ref_ret_num'   => '831803579226',
+            'id'          => '2020110828BC',
+            'currency'    => 'TRY',
+            'amount'      => 10.01,
+            'ref_ret_num' => '831803579226',
         ];
 
+        /**
+         * @var GarantiPos $pos
+         */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->setTestMode(true);
         $pos->prepare($order, AbstractGateway::TX_REFUND);
@@ -239,52 +313,52 @@ class GarantiPosTest extends TestCase
     }
 
     /**
-     * @param $order
+     * @param                      $order
      * @param CreditCardGarantiPos $card
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount    $account
      *
      * @return array
      */
     private function getSampleRegularPaymentXMLData($order, $card, $account)
     {
         return [
-            'Mode'              => 'TEST',
-            'Version'           => GarantiPos::API_VERSION,
-            'Terminal'          => [
-                'ProvUserID'    => $account->getUsername(),
-                'UserID'        => $account->getUsername(),
-                'HashData'      => 'F0641E566B7B98260FD1608D1DF81E8D55461877',
-                'ID'            => $account->getTerminalId(),
-                'MerchantID'    => $account->getTerminalId(),
+            'Mode'        => 'TEST',
+            'Version'     => GarantiPos::API_VERSION,
+            'Terminal'    => [
+                'ProvUserID' => $account->getUsername(),
+                'UserID'     => $account->getUsername(),
+                'HashData'   => 'F0641E566B7B98260FD1608D1DF81E8D55461877',
+                'ID'         => $account->getTerminalId(),
+                'MerchantID' => $account->getTerminalId(),
             ],
-            'Customer'          => [
-                'IPAddress'     => $order->ip,
-                'EmailAddress'  => $order->email,
+            'Customer'    => [
+                'IPAddress'    => $order->ip,
+                'EmailAddress' => $order->email,
             ],
-            'Card'              => [
-                'Number'        => $card->getNumber(),
-                'ExpireDate'    => $card->getExpirationDate(),
-                'CVV2'          => $card->getCvv(),
+            'Card'        => [
+                'Number'     => $card->getNumber(),
+                'ExpireDate' => $card->getExpirationDate(),
+                'CVV2'       => $card->getCvv(),
             ],
-            'Order'             => [
-                'OrderID'       => $order->id,
-                'GroupID'       => '',
-                'AddressList'   => [
-                    'Address'   => [
-                        'Type'          => 'S',
-                        'Name'          => $order->name,
-                        'LastName'      => '',
-                        'Company'       => '',
-                        'Text'          => '',
-                        'District'      => '',
-                        'City'          => '',
-                        'PostalCode'    => '',
-                        'Country'       => '',
-                        'PhoneNumber'   => '',
+            'Order'       => [
+                'OrderID'     => $order->id,
+                'GroupID'     => '',
+                'AddressList' => [
+                    'Address' => [
+                        'Type'        => 'S',
+                        'Name'        => $order->name,
+                        'LastName'    => '',
+                        'Company'     => '',
+                        'Text'        => '',
+                        'District'    => '',
+                        'City'        => '',
+                        'PostalCode'  => '',
+                        'Country'     => '',
+                        'PhoneNumber' => '',
                     ],
                 ],
             ],
-            'Transaction'       => [
+            'Transaction' => [
                 'Type'                  => 'sales',
                 'InstallmentCnt'        => $order->installment,
                 'Amount'                => $order->amount,
@@ -298,7 +372,7 @@ class GarantiPosTest extends TestCase
     }
 
     /**
-     * @param $order
+     * @param                   $order
      * @param GarantiPosAccount $account
      *
      * @return array
@@ -306,23 +380,23 @@ class GarantiPosTest extends TestCase
     private function getSampleRegularPostXMLData($order, $account)
     {
         return [
-            'Mode'      => 'TEST',
-            'Version'   => GarantiPos::API_VERSION,
-            'Terminal'  => [
-                'ProvUserID'    => $account->getUsername(),
-                'UserID'        => $account->getUsername(),
-                'HashData'      => '7598B3D1A15C45095CD139E9CFD780B050D1C4AA',
-                'ID'            => $account->getTerminalId(),
-                'MerchantID'    => $account->getClientId(),
+            'Mode'        => 'TEST',
+            'Version'     => GarantiPos::API_VERSION,
+            'Terminal'    => [
+                'ProvUserID' => $account->getUsername(),
+                'UserID'     => $account->getUsername(),
+                'HashData'   => '7598B3D1A15C45095CD139E9CFD780B050D1C4AA',
+                'ID'         => $account->getTerminalId(),
+                'MerchantID' => $account->getClientId(),
             ],
-            'Customer'          => [
-                'IPAddress'     => $order->ip,
-                'EmailAddress'  => $order->email,
+            'Customer'    => [
+                'IPAddress'    => $order->ip,
+                'EmailAddress' => $order->email,
             ],
-            'Order' => [
-                'OrderID'   => $order->id,
+            'Order'       => [
+                'OrderID' => $order->id,
             ],
-            'Transaction'   => [
+            'Transaction' => [
                 'Type'              => 'postauth',
                 'Amount'            => $order->amount,
                 'CurrencyCode'      => $order->currency,
@@ -332,53 +406,53 @@ class GarantiPosTest extends TestCase
     }
 
     /**
-     * @param $order
+     * @param                   $order
      * @param GarantiPosAccount $account
-     * @param array $responseData
+     * @param array             $responseData
      *
      * @return array
      */
     private function getSample3DPaymentXMLData($order, $account, array $responseData)
     {
         return [
-            'Mode'              => 'TEST',
-            'Version'           => GarantiPos::API_VERSION,
-            'ChannelCode'       => '',
-            'Terminal'          => [
-                'ProvUserID'    => $account->getUsername(),
-                'UserID'        => $account->getUsername(),
-                'HashData'      => '7598B3D1A15C45095CD139E9CFD780B050D1C4AA',
-                'ID'            => $account->getTerminalId(),
-                'MerchantID'    => $account->getClientId(),
+            'Mode'        => 'TEST',
+            'Version'     => GarantiPos::API_VERSION,
+            'ChannelCode' => '',
+            'Terminal'    => [
+                'ProvUserID' => $account->getUsername(),
+                'UserID'     => $account->getUsername(),
+                'HashData'   => '7598B3D1A15C45095CD139E9CFD780B050D1C4AA',
+                'ID'         => $account->getTerminalId(),
+                'MerchantID' => $account->getClientId(),
             ],
-            'Customer'          => [
-                'IPAddress'     => $responseData['customeripaddress'],
-                'EmailAddress'  => $responseData['customeremailaddress'],
+            'Customer'    => [
+                'IPAddress'    => $responseData['customeripaddress'],
+                'EmailAddress' => $responseData['customeremailaddress'],
             ],
-            'Card'              => [
-                'Number'        => '',
-                'ExpireDate'    => '',
-                'CVV2'          => '',
+            'Card'        => [
+                'Number'     => '',
+                'ExpireDate' => '',
+                'CVV2'       => '',
             ],
-            'Order'             => [
-                'OrderID'       => $responseData['orderid'],
-                'GroupID'       => '',
-                'AddressList'   => [
-                    'Address'   => [
-                        'Type'          => 'B',
-                        'Name'          => $order->name,
-                        'LastName'      => '',
-                        'Company'       => '',
-                        'Text'          => '',
-                        'District'      => '',
-                        'City'          => '',
-                        'PostalCode'    => '',
-                        'Country'       => '',
-                        'PhoneNumber'   => '',
+            'Order'       => [
+                'OrderID'     => $responseData['orderid'],
+                'GroupID'     => '',
+                'AddressList' => [
+                    'Address' => [
+                        'Type'        => 'B',
+                        'Name'        => $order->name,
+                        'LastName'    => '',
+                        'Company'     => '',
+                        'Text'        => '',
+                        'District'    => '',
+                        'City'        => '',
+                        'PostalCode'  => '',
+                        'Country'     => '',
+                        'PhoneNumber' => '',
                     ],
                 ],
             ],
-            'Transaction'       => [
+            'Transaction' => [
                 'Type'                  => $responseData['txntype'],
                 'InstallmentCnt'        => $order->installment,
                 'Amount'                => $responseData['txnamount'],
@@ -386,17 +460,17 @@ class GarantiPosTest extends TestCase
                 'CardholderPresentCode' => '13',
                 'MotoInd'               => 'N',
                 'Secure3D'              => [
-                    'AuthenticationCode'    => $responseData['cavv'],
-                    'SecurityLevel'         => $responseData['eci'],
-                    'TxnID'                 => $responseData['xid'],
-                    'Md'                    => $responseData['md'],
+                    'AuthenticationCode' => $responseData['cavv'],
+                    'SecurityLevel'      => $responseData['eci'],
+                    'TxnID'              => $responseData['xid'],
+                    'Md'                 => $responseData['md'],
                 ],
             ],
         ];
     }
 
     /**
-     * @param $order
+     * @param                   $order
      * @param GarantiPosAccount $account
      *
      * @return array
@@ -404,30 +478,30 @@ class GarantiPosTest extends TestCase
     private function getSampleStatusXMLData($order, $account)
     {
         return [
-            'Mode'          => 'TEST',
-            'Version'       => GarantiPos::API_VERSION,
-            'ChannelCode'   => '',
-            'Terminal'      => [
-                'ProvUserID'    => $account->getUsername(),
-                'UserID'        => $account->getUsername(),
-                'HashData'      => '8DD74209DEEB7D333105E1C69998A827419A3B04',
-                'ID'            => $account->getTerminalId(),
-                'MerchantID'    => $account->getClientId(),
+            'Mode'        => 'TEST',
+            'Version'     => GarantiPos::API_VERSION,
+            'ChannelCode' => '',
+            'Terminal'    => [
+                'ProvUserID' => $account->getUsername(),
+                'UserID'     => $account->getUsername(),
+                'HashData'   => '8DD74209DEEB7D333105E1C69998A827419A3B04',
+                'ID'         => $account->getTerminalId(),
+                'MerchantID' => $account->getClientId(),
             ],
-            'Customer'      => [
-                'IPAddress'     => $order->ip,
-                'EmailAddress'  => $order->email,
+            'Customer'    => [
+                'IPAddress'    => $order->ip,
+                'EmailAddress' => $order->email,
             ],
-            'Order'         => [
-                'OrderID'   => $order->id,
-                'GroupID'   => '',
+            'Order'       => [
+                'OrderID' => $order->id,
+                'GroupID' => '',
             ],
-            'Card'  => [
-                'Number'        => '',
-                'ExpireDate'    => '',
-                'CVV2'          => '',
+            'Card'        => [
+                'Number'     => '',
+                'ExpireDate' => '',
+                'CVV2'       => '',
             ],
-            'Transaction'   => [
+            'Transaction' => [
                 'Type'                  => 'orderinq',
                 'InstallmentCnt'        => '',
                 'Amount'                => $order->amount,
@@ -439,7 +513,7 @@ class GarantiPosTest extends TestCase
     }
 
     /**
-     * @param $order
+     * @param                   $order
      * @param GarantiPosAccount $account
      *
      * @return array
@@ -447,25 +521,25 @@ class GarantiPosTest extends TestCase
     private function getSampleCancelXMLData($order, $account)
     {
         return [
-            'Mode'          => 'TEST',
-            'Version'       => GarantiPos::API_VERSION,
-            'ChannelCode'   => '',
-            'Terminal'      => [
-                'ProvUserID'    => $account->getRefundUsername(),
-                'UserID'        => $account->getRefundUsername(),
-                'HashData'      => '8DD74209DEEB7D333105E1C69998A827419A3B04',
-                'ID'            => $account->getTerminalId(),
-                'MerchantID'    => $account->getClientId(),
+            'Mode'        => 'TEST',
+            'Version'     => GarantiPos::API_VERSION,
+            'ChannelCode' => '',
+            'Terminal'    => [
+                'ProvUserID' => $account->getRefundUsername(),
+                'UserID'     => $account->getRefundUsername(),
+                'HashData'   => '8DD74209DEEB7D333105E1C69998A827419A3B04',
+                'ID'         => $account->getTerminalId(),
+                'MerchantID' => $account->getClientId(),
             ],
-            'Customer'      => [
-                'IPAddress'     => $order->ip,
-                'EmailAddress'  => $order->email,
+            'Customer'    => [
+                'IPAddress'    => $order->ip,
+                'EmailAddress' => $order->email,
             ],
-            'Order'         => [
-                'OrderID'   => $order->id,
-                'GroupID'   => '',
+            'Order'       => [
+                'OrderID' => $order->id,
+                'GroupID' => '',
             ],
-            'Transaction'   => [
+            'Transaction' => [
                 'Type'                  => 'void',
                 'InstallmentCnt'        => $order->installment,
                 'Amount'                => $order->amount,
@@ -479,7 +553,7 @@ class GarantiPosTest extends TestCase
     }
 
     /**
-     * @param $order
+     * @param                   $order
      * @param GarantiPosAccount $account
      *
      * @return array
@@ -487,25 +561,25 @@ class GarantiPosTest extends TestCase
     private function getSampleRefundXMLData($order, $account)
     {
         return [
-            'Mode'          => 'TEST',
-            'Version'       => GarantiPos::API_VERSION,
-            'ChannelCode'   => '',
-            'Terminal'      => [
-                'ProvUserID'    => $account->getRefundUsername(),
-                'UserID'        => $account->getRefundUsername(),
-                'HashData'      => '8DD74209DEEB7D333105E1C69998A827419A3B04',
-                'ID'            => $account->getTerminalId(),
-                'MerchantID'    => $account->getClientId(),
+            'Mode'        => 'TEST',
+            'Version'     => GarantiPos::API_VERSION,
+            'ChannelCode' => '',
+            'Terminal'    => [
+                'ProvUserID' => $account->getRefundUsername(),
+                'UserID'     => $account->getRefundUsername(),
+                'HashData'   => '8DD74209DEEB7D333105E1C69998A827419A3B04',
+                'ID'         => $account->getTerminalId(),
+                'MerchantID' => $account->getClientId(),
             ],
-            'Customer'      => [
-                'IPAddress'     => $order->ip,
-                'EmailAddress'  => $order->email,
+            'Customer'    => [
+                'IPAddress'    => $order->ip,
+                'EmailAddress' => $order->email,
             ],
-            'Order'         => [
-                'OrderID'   => $order->id,
-                'GroupID'   => '',
+            'Order'       => [
+                'OrderID' => $order->id,
+                'GroupID' => '',
             ],
-            'Transaction'   => [
+            'Transaction' => [
                 'Type'                  => 'refund',
                 'InstallmentCnt'        => '',
                 'Amount'                => $order->amount,

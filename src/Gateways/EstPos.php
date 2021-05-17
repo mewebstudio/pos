@@ -48,13 +48,13 @@ class EstPos extends AbstractGateway
      * @var array
      */
     protected $types = [
-        self::TX_PAY => 'Auth',
-        self::TX_PRE_PAY => 'PreAuth',
+        self::TX_PAY      => 'Auth',
+        self::TX_PRE_PAY  => 'PreAuth',
         self::TX_POST_PAY => 'PostAuth',
-        self::TX_CANCEL => 'Void',
-        self::TX_REFUND => 'Credit',
-        self::TX_STATUS => 'ORDERSTATUS',
-        self::TX_HISTORY => 'ORDERHISTORY',
+        self::TX_CANCEL   => 'Void',
+        self::TX_REFUND   => 'Credit',
+        self::TX_STATUS   => 'ORDERSTATUS',
+        self::TX_HISTORY  => 'ORDERHISTORY',
     ];
 
 
@@ -64,12 +64,12 @@ class EstPos extends AbstractGateway
      * @var array
      */
     protected $currencies = [
-        'TRY'       => 949,
-        'USD'       => 840,
-        'EUR'       => 978,
-        'GBP'       => 826,
-        'JPY'       => 392,
-        'RUB'       => 643,
+        'TRY' => 949,
+        'USD' => 840,
+        'EUR' => 978,
+        'GBP' => 826,
+        'JPY' => 392,
+        'RUB' => 643,
     ];
 
     /**
@@ -85,9 +85,9 @@ class EstPos extends AbstractGateway
     /**
      * EstPos constructor.
      *
-     * @param array $config
+     * @param array         $config
      * @param EstPosAccount $account
-     * @param array $currencies
+     * @param array         $currencies
      */
     public function __construct($config, $account, array $currencies = [])
     {
@@ -112,9 +112,9 @@ class EstPos extends AbstractGateway
         $hashStr = '';
 
         if ($this->account->getModel() === '3d') {
-            $hashStr = $this->account->getClientId() . $this->order->id . $this->order->amount . $this->order->success_url . $this->order->fail_url . $this->order->rand . $this->account->getStoreKey();
+            $hashStr = $this->account->getClientId().$this->order->id.$this->order->amount.$this->order->success_url.$this->order->fail_url.$this->order->rand.$this->account->getStoreKey();
         } elseif ($this->account->getModel() === '3d_pay') {
-            $hashStr = $this->account->getClientId() . $this->order->id . $this->order->amount . $this->order->success_url . $this->order->fail_url . $this->type . $this->order->installment . $this->order->rand . $this->account->getStoreKey();
+            $hashStr = $this->account->getClientId().$this->order->id.$this->order->amount.$this->order->success_url.$this->order->fail_url.$this->type.$this->order->installment.$this->order->rand.$this->account->getStoreKey();
         }
 
         return base64_encode(sha1($hashStr, true));
@@ -122,6 +122,7 @@ class EstPos extends AbstractGateway
 
     /**
      * Check 3D Hash
+     *
      * @param array $data
      *
      * @return bool
@@ -160,6 +161,14 @@ class EstPos extends AbstractGateway
 
 
         if ($this->check3DHash($request->request->all())) {
+            if ($request->request->get('ProcReturnCode') !== '00') {
+                /**
+                 * TODO hata durumu ele alinmasi gerekiyor
+                 * ornegin soyle bir hata donebilir
+                 * ["ProcReturnCode" => "99", "mdStatus" => "7", "mdErrorMsg" => "Isyeri kullanim tipi desteklenmiyor.",
+                 * "ErrMsg" => "Isyeri kullanim tipi desteklenmiyor.", "Response" => "Error", "ErrCode" => "3D-1007", ...]
+                 */
+            }
             $contents = $this->create3DPaymentXML($request->request->all());
             $this->send($contents);
         }
@@ -194,45 +203,46 @@ class EstPos extends AbstractGateway
      */
     public function get3DFormData()
     {
-        $data = [];
-
-        if ($this->order) {
-            $this->order->hash = $this->create3DHash();
-
-            $inputs = [
-                'clientid' => $this->account->getClientId(),
-                'storetype' => $this->account->getModel(),
-                'hash' => $this->order->hash,
-                'cardType' => $this->card->getCardCode(),
-                'pan' => $this->card->getNumber(),
-                'Ecom_Payment_Card_ExpDate_Month' => $this->card->getExpireMonth(),
-                'Ecom_Payment_Card_ExpDate_Year' => $this->card->getExpireYear(),
-                'cv2' => $this->card->getCvv(),
-                'firmaadi' => $this->order->name,
-                'Email' => $this->order->email,
-                'amount' => $this->order->amount,
-                'oid' => $this->order->id,
-                'okUrl' => $this->order->success_url,
-                'failUrl' => $this->order->fail_url,
-                'rnd' => $this->order->rand,
-                'lang' => $this->getLang(),
-                'currency' => $this->order->currency,
-            ];
-
-            if ($this->account->getModel() === '3d_pay') {
-                $inputs = array_merge($inputs, [
-                    'islemtipi' => $this->type,
-                    'taksit' => $this->order->installment,
-                ]);
-            }
-
-            $data = [
-                'gateway' => $this->get3DGatewayURL(),
-                'inputs' => $inputs,
-            ];
+        if (!$this->order) {
+            return [];
         }
 
-        return $data;
+        $this->order->hash = $this->create3DHash();
+
+        $inputs = [
+            'clientid'  => $this->account->getClientId(),
+            'storetype' => $this->account->getModel(),
+            'hash'      => $this->order->hash,
+            'firmaadi'  => $this->order->name,
+            'Email'     => $this->order->email,
+            'amount'    => $this->order->amount,
+            'oid'       => $this->order->id,
+            'okUrl'     => $this->order->success_url,
+            'failUrl'   => $this->order->fail_url,
+            'rnd'       => $this->order->rand,
+            'lang'      => $this->getLang(),
+            'currency'  => $this->order->currency,
+        ];
+
+        if ($this->account->getModel() === '3d_pay') {
+            $inputs = array_merge($inputs, [
+                'islemtipi' => $this->type,
+                'taksit'    => $this->order->installment,
+            ]);
+        }
+
+        if ($this->card) {
+            $inputs['cardType'] = $this->card->getCardCode();
+            $inputs['pan'] = $this->card->getNumber();
+            $inputs['Ecom_Payment_Card_ExpDate_Month'] = $this->card->getExpireMonth();
+            $inputs['Ecom_Payment_Card_ExpDate_Year'] = $this->card->getExpireYear();
+            $inputs['cv2'] = $this->card->getCvv();
+        }
+
+        return [
+            'gateway' => $this->get3DGatewayURL(),
+            'inputs'  => $inputs,
+        ];
     }
 
     /**
@@ -282,30 +292,38 @@ class EstPos extends AbstractGateway
     }
 
     /**
+     * @param CreditCardEstPos|null $card
+     */
+    public function setCard($card)
+    {
+        $this->card = $card;
+    }
+
+    /**
      * @inheritDoc
      */
     public function createRegularPaymentXML()
     {
         $requestData = [
-            'Name' => $this->account->getUsername(),
-            'Password' => $this->account->getPassword(),
-            'ClientId' => $this->account->getClientId(),
-            'Type' => $this->type,
+            'Name'      => $this->account->getUsername(),
+            'Password'  => $this->account->getPassword(),
+            'ClientId'  => $this->account->getClientId(),
+            'Type'      => $this->type,
             'IPAddress' => $this->order->ip,
-            'Email' => $this->order->email,
-            'OrderId' => $this->order->id,
-            'UserId' => isset($this->order->user_id) ? $this->order->user_id : null,
-            'Total' => $this->order->amount,
-            'Currency' => $this->order->currency,
-            'Taksit' => $this->order->installment,
-            'CardType' => $this->card->getType(),
-            'Number' => $this->card->getNumber(),
-            'Expires' => $this->card->getExpirationDate(),
-            'Cvv2Val' => $this->card->getCvv(),
-            'Mode' => 'P', //TODO what is this constant for?
-            'GroupId' => '',
-            'TransId' => '',
-            'BillTo' => [
+            'Email'     => $this->order->email,
+            'OrderId'   => $this->order->id,
+            'UserId'    => isset($this->order->user_id) ? $this->order->user_id : null,
+            'Total'     => $this->order->amount,
+            'Currency'  => $this->order->currency,
+            'Taksit'    => $this->order->installment,
+            'CardType'  => $this->card->getType(),
+            'Number'    => $this->card->getNumber(),
+            'Expires'   => $this->card->getExpirationDate(),
+            'Cvv2Val'   => $this->card->getCvv(),
+            'Mode'      => 'P', //TODO what is this constant for?
+            'GroupId'   => '',
+            'TransId'   => '',
+            'BillTo'    => [
                 'Name' => $this->order->name ? $this->order->name : null,
             ],
         ];
@@ -319,11 +337,11 @@ class EstPos extends AbstractGateway
     public function createRegularPostXML()
     {
         $requestData = [
-            'Name' => $this->account->getUsername(),
+            'Name'     => $this->account->getUsername(),
             'Password' => $this->account->getPassword(),
             'ClientId' => $this->account->getClientId(),
-            'Type' => $this->types[self::TX_POST_PAY],
-            'OrderId' => $this->order->id,
+            'Type'     => $this->types[self::TX_POST_PAY],
+            'OrderId'  => $this->order->id,
         ];
 
         return $this->createXML($requestData);
@@ -335,27 +353,27 @@ class EstPos extends AbstractGateway
     public function create3DPaymentXML($responseData)
     {
         $requestData = [
-            'Name' => $this->account->getUsername(),
-            'Password' => $this->account->getPassword(),
-            'ClientId' => $this->account->getClientId(),
-            'Type' => $this->type,
-            'IPAddress' => $this->order->ip,
-            'Email' => $this->order->email,
-            'OrderId' => $this->order->id,
-            'UserId' => isset($this->order->user_id) ? $this->order->user_id : null,
-            'Total' => $this->order->amount,
-            'Currency' => $this->order->currency,
-            'Taksit' => $this->order->installment,
-            'Number' => $responseData['md'],
-            'Expires' => '',
-            'Cvv2Val' => '',
-            'PayerTxnId' => $responseData['xid'],
-            'PayerSecurityLevel' => $responseData['eci'],
+            'Name'                    => $this->account->getUsername(),
+            'Password'                => $this->account->getPassword(),
+            'ClientId'                => $this->account->getClientId(),
+            'Type'                    => $this->type,
+            'IPAddress'               => $this->order->ip,
+            'Email'                   => $this->order->email,
+            'OrderId'                 => $this->order->id,
+            'UserId'                  => isset($this->order->user_id) ? $this->order->user_id : null,
+            'Total'                   => $this->order->amount,
+            'Currency'                => $this->order->currency,
+            'Taksit'                  => $this->order->installment,
+            'Number'                  => $responseData['md'],
+            'Expires'                 => '',
+            'Cvv2Val'                 => '',
+            'PayerTxnId'              => $responseData['xid'],
+            'PayerSecurityLevel'      => $responseData['eci'],
             'PayerAuthenticationCode' => $responseData['cavv'],
-            'CardholderPresentCode' => '13',
-            'Mode' => 'P',
-            'GroupId' => '',
-            'TransId' => '',
+            'CardholderPresentCode'   => '13',
+            'Mode'                    => 'P',
+            'GroupId'                 => '',
+            'TransId'                 => '',
         ];
 
         if ($this->order->name) {
@@ -373,11 +391,11 @@ class EstPos extends AbstractGateway
     public function createStatusXML()
     {
         $requestData = [
-            'Name' => $this->account->getUsername(),
+            'Name'     => $this->account->getUsername(),
             'Password' => $this->account->getPassword(),
             'ClientId' => $this->account->getClientId(),
-            'OrderId' => $this->order->id,
-            'Extra' => [
+            'OrderId'  => $this->order->id,
+            'Extra'    => [
                 $this->types[self::TX_STATUS] => 'QUERY',
             ],
         ];
@@ -391,11 +409,11 @@ class EstPos extends AbstractGateway
     public function createHistoryXML($customQueryData)
     {
         $requestData = [
-            'Name' => $this->account->getUsername(),
+            'Name'     => $this->account->getUsername(),
             'Password' => $this->account->getPassword(),
             'ClientId' => $this->account->getClientId(),
-            'OrderId' => $this->order->id,
-            'Extra' => [
+            'OrderId'  => $this->order->id,
+            'Extra'    => [
                 $this->types[self::TX_HISTORY] => 'QUERY',
             ],
         ];
@@ -409,11 +427,11 @@ class EstPos extends AbstractGateway
     public function createCancelXML()
     {
         $requestData = [
-            'Name' => $this->account->getUsername(),
+            'Name'     => $this->account->getUsername(),
             'Password' => $this->account->getPassword(),
             'ClientId' => $this->account->getClientId(),
-            'OrderId' => $this->order->id,
-            'Type' => $this->types[self::TX_CANCEL],
+            'OrderId'  => $this->order->id,
+            'Type'     => $this->types[self::TX_CANCEL],
         ];
 
         return $this->createXML($requestData);
@@ -425,11 +443,11 @@ class EstPos extends AbstractGateway
     public function createRefundXML()
     {
         $requestData = [
-            'Name' => $this->account->getUsername(),
+            'Name'     => $this->account->getUsername(),
             'Password' => $this->account->getPassword(),
             'ClientId' => $this->account->getClientId(),
-            'OrderId' => $this->order->id,
-            'Type' => $this->types[self::TX_REFUND],
+            'OrderId'  => $this->order->id,
+            'Type'     => $this->types[self::TX_REFUND],
         ];
 
         if (isset($this->order->amount)) {
@@ -479,22 +497,23 @@ class EstPos extends AbstractGateway
 
         $threeDResponse = [
             'transaction_security' => $transactionSecurity,
-            'md_status' => $raw3DAuthResponseData['mdStatus'],
-            'hash' => (string) $raw3DAuthResponseData['HASH'],
-            'rand' => (string) $raw3DAuthResponseData['rnd'],
-            'hash_params' => (string) $raw3DAuthResponseData['HASHPARAMS'],
-            'hash_params_val' => (string) $raw3DAuthResponseData['HASHPARAMSVAL'],
-            'masked_number' => (string) $raw3DAuthResponseData['maskedCreditCard'],
-            'month' => (string) $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
-            'year' => (string) $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
-            'amount' => (string) $raw3DAuthResponseData['amount'],
-            'currency' => (string) $raw3DAuthResponseData['currency'],
-            'eci' => (string) $raw3DAuthResponseData['eci'],
-            'cavv' => (string) $raw3DAuthResponseData['cavv'],
-            'xid' => (string) $raw3DAuthResponseData['oid'],
-            'md_error_message' => (string) $raw3DAuthResponseData['mdErrorMsg'],
-            'name' => (string) $raw3DAuthResponseData['firmaadi'],
-            '3d_all' => $raw3DAuthResponseData,
+            'md_status'            => $raw3DAuthResponseData['mdStatus'],
+            'hash'                 => (string) $raw3DAuthResponseData['HASH'],
+            'rand'                 => (string) $raw3DAuthResponseData['rnd'],
+            'hash_params'          => (string) $raw3DAuthResponseData['HASHPARAMS'],
+            'hash_params_val'      => (string) $raw3DAuthResponseData['HASHPARAMSVAL'],
+            'masked_number'        => (string) $raw3DAuthResponseData['maskedCreditCard'],
+            'month'                => (string) $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
+            'year'                 => (string) $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
+            'amount'               => (string) $raw3DAuthResponseData['amount'],
+            'currency'             => (string) $raw3DAuthResponseData['currency'],
+            'eci'                  => (string) $raw3DAuthResponseData['eci'],
+            'tx_status'            => null,
+            'cavv'                 => (string) $raw3DAuthResponseData['cavv'],
+            'xid'                  => (string) $raw3DAuthResponseData['oid'],
+            'md_error_message'     => (string) $raw3DAuthResponseData['mdErrorMsg'],
+            'name'                 => (string) $raw3DAuthResponseData['firmaadi'],
+            '3d_all'               => $raw3DAuthResponseData,
         ];
 
         return (object) array_merge($threeDResponse, $paymentResponseData);
@@ -523,40 +542,39 @@ class EstPos extends AbstractGateway
         }
 
         return (object) [
-            'id' => $raw3DAuthResponseData['AuthCode'],
-            'trans_id' => $raw3DAuthResponseData['TransId'],
-            'auth_code' => $raw3DAuthResponseData['AuthCode'],
-            'host_ref_num' => $raw3DAuthResponseData['HostRefNum'],
-            'response' => $raw3DAuthResponseData['Response'],
-            'order_id' => $raw3DAuthResponseData['oid'],
-            'transaction_type' => $this->type,
-            'transaction' => $this->type,
+            'id'                   => $raw3DAuthResponseData['AuthCode'],
+            'trans_id'             => $raw3DAuthResponseData['TransId'],
+            'auth_code'            => $raw3DAuthResponseData['AuthCode'],
+            'host_ref_num'         => $raw3DAuthResponseData['HostRefNum'],
+            'response'             => $raw3DAuthResponseData['Response'],
+            'order_id'             => $raw3DAuthResponseData['oid'],
+            'transaction_type'     => $this->type,
+            'transaction'          => $this->type,
             'transaction_security' => $transactionSecurity,
-            'code' => $raw3DAuthResponseData['ProcReturnCode'],
-            'md_status' => $raw3DAuthResponseData['mdStatus'],
-            'status' => $status,
-            'status_detail' => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
-            'hash' => $raw3DAuthResponseData['HASH'],
-            'rand' => $raw3DAuthResponseData['rnd'],
-            'hash_params' => $raw3DAuthResponseData['HASHPARAMS'],
-            'hash_params_val' => $raw3DAuthResponseData['HASHPARAMSVAL'],
-            'masked_number' => $raw3DAuthResponseData['maskedCreditCard'],
-            'month' => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
-            'year' => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
-            'amount' => $raw3DAuthResponseData['amount'],
-            'currency' => $raw3DAuthResponseData['currency'],
-            'tx_status' => $raw3DAuthResponseData['txstatus'],
-            'eci' => $raw3DAuthResponseData['eci'],
-            'cavv' => $raw3DAuthResponseData['cavv'],
-            'xid' => $raw3DAuthResponseData['xid'],
-            'error_code' => $raw3DAuthResponseData['ErrCode'],
-            'error_message' => $raw3DAuthResponseData['ErrMsg'],
-            'md_error_message' => $raw3DAuthResponseData['mdErrorMsg'],
-            'name' => $raw3DAuthResponseData['firmaadi'],
-            'email' => $raw3DAuthResponseData['Email'],
-            'campaign_url' => null,
-            'extra' => $raw3DAuthResponseData['Extra'],
-            'all' => $raw3DAuthResponseData,
+            'code'                 => $raw3DAuthResponseData['ProcReturnCode'],
+            'md_status'            => $raw3DAuthResponseData['mdStatus'],
+            'status'               => $status,
+            'status_detail'        => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
+            'hash'                 => $raw3DAuthResponseData['HASH'],
+            'rand'                 => $raw3DAuthResponseData['rnd'],
+            'hash_params'          => $raw3DAuthResponseData['HASHPARAMS'],
+            'hash_params_val'      => $raw3DAuthResponseData['HASHPARAMSVAL'],
+            'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
+            'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
+            'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
+            'amount'               => $raw3DAuthResponseData['amount'],
+            'currency'             => $raw3DAuthResponseData['currency'],
+            'tx_status'            => null,
+            'eci'                  => $raw3DAuthResponseData['eci'],
+            'cavv'                 => $raw3DAuthResponseData['cavv'],
+            'xid'                  => $raw3DAuthResponseData['oid'],
+            'error_code'           => isset($raw3DAuthResponseData['ErrMsg']) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
+            'error_message'        => $raw3DAuthResponseData['ErrMsg'],
+            'md_error_message'     => $raw3DAuthResponseData['mdErrorMsg'],
+            'name'                 => $raw3DAuthResponseData['firmaadi'],
+            'email'                => $raw3DAuthResponseData['Email'],
+            'campaign_url'         => null,
+            'all'                  => $raw3DAuthResponseData,
         ];
     }
 
@@ -571,18 +589,18 @@ class EstPos extends AbstractGateway
         }
 
         return (object) [
-            'order_id' => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
-            'group_id' => isset($rawResponseData->GroupId) ? $rawResponseData->GroupId : null,
-            'response' => isset($rawResponseData->Response) ? $rawResponseData->Response : null,
-            'auth_code' => isset($rawResponseData->AuthCode) ? $rawResponseData->AuthCode : null,
-            'host_ref_num' => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
+            'order_id'         => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
+            'group_id'         => isset($rawResponseData->GroupId) ? $rawResponseData->GroupId : null,
+            'response'         => isset($rawResponseData->Response) ? $rawResponseData->Response : null,
+            'auth_code'        => isset($rawResponseData->AuthCode) ? $rawResponseData->AuthCode : null,
+            'host_ref_num'     => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
             'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $rawResponseData->ProcReturnCode : null,
-            'trans_id' => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
-            'error_code' => isset($rawResponseData->Extra->ERRORCODE) ? $rawResponseData->Extra->ERRORCODE : null,
-            'error_message' => isset($rawResponseData->ErrMsg) ? $rawResponseData->ErrMsg : null,
-            'status' => $status,
-            'status_detail' => $this->getStatusDetail(),
-            'all' => $rawResponseData,
+            'trans_id'         => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
+            'error_code'       => isset($rawResponseData->Extra->ERRORCODE) ? $rawResponseData->Extra->ERRORCODE : null,
+            'error_message'    => isset($rawResponseData->ErrMsg) ? $rawResponseData->ErrMsg : null,
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail(),
+            'all'              => $rawResponseData,
         ];
     }
 
@@ -597,18 +615,18 @@ class EstPos extends AbstractGateway
         }
 
         $this->response = (object) [
-            'order_id' => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
-            'group_id' => isset($rawResponseData->GroupId) ? $rawResponseData->GroupId : null,
-            'response' => isset($rawResponseData->Response) ? $rawResponseData->Response : null,
-            'auth_code' => isset($rawResponseData->AuthCode) ? $rawResponseData->AuthCode : null,
-            'host_ref_num' => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
+            'order_id'         => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
+            'group_id'         => isset($rawResponseData->GroupId) ? $rawResponseData->GroupId : null,
+            'response'         => isset($rawResponseData->Response) ? $rawResponseData->Response : null,
+            'auth_code'        => isset($rawResponseData->AuthCode) ? $rawResponseData->AuthCode : null,
+            'host_ref_num'     => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
             'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $rawResponseData->ProcReturnCode : null,
-            'trans_id' => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
-            'error_code' => isset($rawResponseData->Extra->ERRORCODE) ? $rawResponseData->Extra->ERRORCODE : null,
-            'error_message' => isset($rawResponseData->ErrMsg) ? $rawResponseData->ErrMsg : null,
-            'status' => $status,
-            'status_detail' => $this->getStatusDetail(),
-            'all' => $rawResponseData,
+            'trans_id'         => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
+            'error_code'       => isset($rawResponseData->Extra->ERRORCODE) ? $rawResponseData->Extra->ERRORCODE : null,
+            'error_message'    => isset($rawResponseData->ErrMsg) ? $rawResponseData->ErrMsg : null,
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail(),
+            'all'              => $rawResponseData,
         ];
     }
 
@@ -627,22 +645,22 @@ class EstPos extends AbstractGateway
         $capture = $firstAmount === $captureAmount ? true : false;
 
         return (object) [
-            'order_id' => isset($rawResponseData->OrderId) ? $this->printData($rawResponseData->OrderId) : null,
-            'response' => isset($rawResponseData->Response) ? $this->printData($rawResponseData->Response) : null,
+            'order_id'         => isset($rawResponseData->OrderId) ? $this->printData($rawResponseData->OrderId) : null,
+            'response'         => isset($rawResponseData->Response) ? $this->printData($rawResponseData->Response) : null,
             'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $this->printData($rawResponseData->ProcReturnCode) : null,
-            'trans_id' => isset($rawResponseData->TransId) ? $this->printData($rawResponseData->TransId) : null,
-            'error_message' => isset($rawResponseData->ErrMsg) ? $this->printData($rawResponseData->ErrMsg) : null,
-            'host_ref_num' => isset($rawResponseData->Extra->HOST_REF_NUM) ? $this->printData($rawResponseData->Extra->HOST_REF_NUM) : null,
-            'order_status' => isset($rawResponseData->Extra->ORDERSTATUS) ? $this->printData($rawResponseData->Extra->ORDERSTATUS) : null,
-            'process_type' => isset($rawResponseData->Extra->CHARGE_TYPE_CD) ? $this->printData($rawResponseData->Extra->CHARGE_TYPE_CD) : null,
-            'pan' => isset($rawResponseData->Extra->PAN) ? $this->printData($rawResponseData->Extra->PAN) : null,
-            'num_code' => isset($rawResponseData->Extra->NUMCODE) ? $this->printData($rawResponseData->Extra->NUMCODE) : null,
-            'first_amount' => $firstAmount,
-            'capture_amount' => $captureAmount,
-            'status' => $status,
-            'status_detail' => $this->getStatusDetail(),
-            'capture' => $capture,
-            'all' => $rawResponseData,
+            'trans_id'         => isset($rawResponseData->TransId) ? $this->printData($rawResponseData->TransId) : null,
+            'error_message'    => isset($rawResponseData->ErrMsg) ? $this->printData($rawResponseData->ErrMsg) : null,
+            'host_ref_num'     => isset($rawResponseData->Extra->HOST_REF_NUM) ? $this->printData($rawResponseData->Extra->HOST_REF_NUM) : null,
+            'order_status'     => isset($rawResponseData->Extra->ORDERSTATUS) ? $this->printData($rawResponseData->Extra->ORDERSTATUS) : null,
+            'process_type'     => isset($rawResponseData->Extra->CHARGE_TYPE_CD) ? $this->printData($rawResponseData->Extra->CHARGE_TYPE_CD) : null,
+            'pan'              => isset($rawResponseData->Extra->PAN) ? $this->printData($rawResponseData->Extra->PAN) : null,
+            'num_code'         => isset($rawResponseData->Extra->NUMCODE) ? $this->printData($rawResponseData->Extra->NUMCODE) : null,
+            'first_amount'     => $firstAmount,
+            'capture_amount'   => $captureAmount,
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail(),
+            'capture'          => $capture,
+            'all'              => $rawResponseData,
         ];
     }
 
@@ -656,25 +674,25 @@ class EstPos extends AbstractGateway
             $status = 'approved';
         }
 
-       return [
-            'id' => isset($responseData->AuthCode) ? $this->printData($responseData->AuthCode) : null,
-            'order_id' => isset($responseData->OrderId) ? $this->printData($responseData->OrderId) : null,
-            'group_id' => isset($responseData->GroupId) ? $this->printData($responseData->GroupId) : null,
-            'trans_id' => isset($responseData->TransId) ? $this->printData($responseData->TransId) : null,
-            'response' => isset($responseData->Response) ? $this->printData($responseData->Response) : null,
+        return [
+            'id'               => isset($responseData->AuthCode) ? $this->printData($responseData->AuthCode) : null,
+            'order_id'         => isset($responseData->OrderId) ? $this->printData($responseData->OrderId) : null,
+            'group_id'         => isset($responseData->GroupId) ? $this->printData($responseData->GroupId) : null,
+            'trans_id'         => isset($responseData->TransId) ? $this->printData($responseData->TransId) : null,
+            'response'         => isset($responseData->Response) ? $this->printData($responseData->Response) : null,
             'transaction_type' => $this->type,
-            'transaction' => $this->type,
-            'auth_code' => isset($responseData->AuthCode) ? $this->printData($responseData->AuthCode) : null,
-            'host_ref_num' => isset($responseData->HostRefNum) ? $this->printData($responseData->HostRefNum) : null,
+            'transaction'      => $this->type,
+            'auth_code'        => isset($responseData->AuthCode) ? $this->printData($responseData->AuthCode) : null,
+            'host_ref_num'     => isset($responseData->HostRefNum) ? $this->printData($responseData->HostRefNum) : null,
             'proc_return_code' => isset($responseData->ProcReturnCode) ? $this->printData($responseData->ProcReturnCode) : null,
-            'code' => isset($responseData->ProcReturnCode) ? $this->printData($responseData->ProcReturnCode) : null,
-            'status' => $status,
-            'status_detail' => $this->getStatusDetail(),
-            'error_code' => isset($responseData->Extra->ERRORCODE) ? $this->printData($responseData->Extra->ERRORCODE) : null,
-            'error_message' => isset($responseData->Extra->ERRORCODE) ? $this->printData($responseData->ErrMsg) : null,
-            'campaign_url' => null,
-            'extra' => isset($responseData->Extra) ? $responseData->Extra : null,
-            'all' => $responseData,
+            'code'             => isset($responseData->ProcReturnCode) ? $this->printData($responseData->ProcReturnCode) : null,
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail(),
+            'error_code'       => isset($responseData->Extra->ERRORCODE) ? $this->printData($responseData->Extra->ERRORCODE) : null,
+            'error_message'    => isset($responseData->Extra->ERRORCODE) ? $this->printData($responseData->ErrMsg) : null,
+            'campaign_url'     => null,
+            'extra'            => isset($responseData->Extra) ? $responseData->Extra : null,
+            'all'              => $responseData,
         ];
     }
 
@@ -689,15 +707,15 @@ class EstPos extends AbstractGateway
         }
 
         return (object) [
-            'order_id' => isset($rawResponseData->OrderId) ? $this->printData($rawResponseData->OrderId) : null,
-            'response' => isset($rawResponseData->Response) ? $this->printData($rawResponseData->Response) : null,
+            'order_id'         => isset($rawResponseData->OrderId) ? $this->printData($rawResponseData->OrderId) : null,
+            'response'         => isset($rawResponseData->Response) ? $this->printData($rawResponseData->Response) : null,
             'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $this->printData($rawResponseData->ProcReturnCode) : null,
-            'error_message' => isset($rawResponseData->ErrMsg) ? $this->printData($rawResponseData->ErrMsg) : null,
-            'num_code' => isset($rawResponseData->Extra->NUMCODE) ? $this->printData($rawResponseData->Extra->NUMCODE) : null,
-            'trans_count' => isset($rawResponseData->Extra->TRXCOUNT) ? $this->printData($rawResponseData->Extra->TRXCOUNT) : null,
-            'status' => $status,
-            'status_detail' => $this->getStatusDetail(),
-            'all' => $rawResponseData,
+            'error_message'    => isset($rawResponseData->ErrMsg) ? $this->printData($rawResponseData->ErrMsg) : null,
+            'num_code'         => isset($rawResponseData->Extra->NUMCODE) ? $this->printData($rawResponseData->Extra->NUMCODE) : null,
+            'trans_count'      => isset($rawResponseData->Extra->TRXCOUNT) ? $this->printData($rawResponseData->Extra->TRXCOUNT) : null,
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail(),
+            'all'              => $rawResponseData,
         ];
     }
 
@@ -714,8 +732,8 @@ class EstPos extends AbstractGateway
 
         // Order
         return (object) array_merge($order, [
-            'installment'   => $installment,
-            'currency'      => $this->mapCurrency($order['currency']),
+            'installment' => $installment,
+            'currency'    => $this->mapCurrency($order['currency']),
         ]);
     }
 
