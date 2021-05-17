@@ -9,12 +9,12 @@ require '../../template/_header.php';
 
 $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
 $amount = (float) 1.01;
-$instalment = '0';
+$installment = '0';
 
 $order = [
     'id'          => $orderId,
     'amount'      => $amount,
-    'installment' => $instalment,
+    'installment' => $installment,
     'currency'    => 'TRY',
     'success_url' => $successUrl,
     'fail_url'    => $failUrl,

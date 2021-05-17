@@ -1,5 +1,6 @@
 <?php
 
+use Mews\Pos\Entity\Card\CreditCardVakifBank;
 use Mews\Pos\Gateways\AbstractGateway;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -17,7 +18,7 @@ $transaction = AbstractGateway::TX_PAY;
 
 $pos->prepare($order, $transaction);
 
-$card = new \Mews\Pos\Entity\Card\CreditCardVakifBank(
+$card = new CreditCardVakifBank(
     $request->get('number'),
     $request->get('year'),
     $request->get('month'),
@@ -41,63 +42,63 @@ if ($pos->isSuccess()) {
 
     <div class="result">
 
-        <h3 class="text-center text-<?php echo $pos->isSuccess() ? 'success' : 'danger'; ?>">
+        <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
             <?php if (AbstractGateway::TX_PAY === $transaction) : ?>
-                <?php echo $pos->isSuccess() ? 'Payment is successful!' : 'Payment is not successful!'; ?>
+                <?= $pos->isSuccess() ? 'Payment is successful!' : 'Payment is not successful!'; ?>
             <?php elseif (AbstractGateway::TX_PRE_PAY === $transaction) : ?>
-                <?php echo $pos->isSuccess() ? 'Pre Authorization is successful!' : 'Pre Authorization is not successful!'; ?>
+                <?= $pos->isSuccess() ? 'Pre Authorization is successful!' : 'Pre Authorization is not successful!'; ?>
             <?php endif; ?>
         </h3>
 
         <hr>
         <dl class="row">
             <dt class="col-sm-3">Status:</dt>
-            <dd class="col-sm-9"><?php echo $response->status; ?></dd>
+            <dd class="col-sm-9"><?= $response->status; ?></dd>
         </dl>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">Transaction:</dt>
-            <dd class="col-sm-9"><?php echo $response->transaction; ?></dd>
+            <dd class="col-sm-9"><?= $response->transaction; ?></dd>
         </dl>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">Transaction Type:</dt>
-            <dd class="col-sm-9"><?php echo $response->transaction_type; ?></dd>
+            <dd class="col-sm-9"><?= $response->transaction_type; ?></dd>
         </dl>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">Order ID:</dt>
-            <dd class="col-sm-9"><?php echo $response->order_id ? $response->order_id : '-'; ?></dd>
+            <dd class="col-sm-9"><?= $response->order_id ? $response->order_id : '-'; ?></dd>
         </dl>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">AuthCode:</dt>
-            <dd class="col-sm-9"><?php echo $response->auth_code ? $response->auth_code : '-'; ?></dd>
+            <dd class="col-sm-9"><?= $response->auth_code ? $response->auth_code : '-'; ?></dd>
         </dl>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">HostRefNum:</dt>
-            <dd class="col-sm-9"><?php echo $response->host_ref_num ? $response->host_ref_num : '-'; ?></dd>
+            <dd class="col-sm-9"><?= $response->host_ref_num ? $response->host_ref_num : '-'; ?></dd>
         </dl>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">TransactionId:</dt>
-            <dd class="col-sm-9"><?php echo $response->trans_id ? $response->trans_id : '-'; ?></dd>
+            <dd class="col-sm-9"><?= $response->trans_id ? $response->trans_id : '-'; ?></dd>
         </dl>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">ProcReturnCode:</dt>
-            <dd class="col-sm-9"><?php echo $response->code; ?></dd>
+            <dd class="col-sm-9"><?= $response->code; ?></dd>
         </dl>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">Error Code:</dt>
-            <dd class="col-sm-9"><?php echo $response->error_code ? $response->error_code : '-'; ?></dd>
+            <dd class="col-sm-9"><?= $response->error_code ? $response->error_code : '-'; ?></dd>
         </dl>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">Error Message:</dt>
-            <dd class="col-sm-9"><?php echo $response->error_message ? $response->error_message : '-'; ?></dd>
+            <dd class="col-sm-9"><?= $response->error_message ? $response->error_message : '-'; ?></dd>
         </dl>
         <hr>
         <dl class="row">

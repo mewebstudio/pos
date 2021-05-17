@@ -9,12 +9,12 @@ require '../../template/_header.php';
 
 $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
 $amount = (float) 1.01;
-$instalment = '0';
+$installment = '0';
 
 $order = [
     'id'                        => $orderId,
     'amount'                    => $amount,
-    'installment'               => $instalment,
+    'installment'               => $installment,
     'currency'                  => 'TRY',
     'success_url'               => $successUrl,
     'fail_url'                  => $failUrl,
@@ -26,7 +26,7 @@ $order = [
     'recurringFrequencyType'    => 'Month', //Day|Month|Year
     //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
     'recurringInstallmentCount' => 4,
-    'recurringEndDate' => '202112', //optional
+    'recurringEndDate'          => '202112', //optional
 ];
 ?>
 

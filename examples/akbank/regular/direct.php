@@ -1,9 +1,12 @@
 <?php
 
+use Mews\Pos\Entity\Card\CreditCardEstPos;
+use Mews\Pos\Gateways\AbstractGateway;
+
 require '_config.php';
 
 $orderId = date('Ymd') . strtoupper(substr(uniqid(sha1(time())),0,4));
-$amount = (double) 100;
+$amount = (float) 100;
 
 $order = [
     'id'            => $orderId,
@@ -16,10 +19,10 @@ $order = [
     'ip'            => $ip,
 ];
 
-$card = new \Mews\Pos\Entity\Card\CreditCardEstPos('4355084355084358', '20', '12', '000');
+$card = new CreditCardEstPos('4355084355084358', '20', '12', '000');
 
 try {
-    $pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
+    $pos->prepare($order, AbstractGateway::TX_PAY);
 } catch (\Mews\Pos\Exceptions\UnsupportedTransactionTypeException $e) {
     dump($e->getCode(), $e->getMessage());
 }

@@ -1,20 +1,26 @@
 <?php
 
+use Mews\Pos\Exceptions\BankClassNullException;
+use Mews\Pos\Exceptions\BankNotFoundException;
+use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\PosFactory;
+use Symfony\Component\HttpFoundation\Request;
+
 require '../../_main_config.php';
 
 $path = '/garanti/3d/';
 $baseUrl = $hostUrl.$path;
 
-$request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+$request = Request::createFromGlobals();
 $ip = $request->getClientIp();
-$account = \Mews\Pos\Factory\AccountFactory::createGarantiPosAccount('garanti', '7000679', 'PROVAUT', '123qweASD/', '30691298', '3d', '12345678');
+$account = AccountFactory::createGarantiPosAccount('garanti', '7000679', 'PROVAUT', '123qweASD/', '30691298', '3d', '12345678');
 
 try {
-    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
+    $pos = PosFactory::createPosGateway($account);
     $pos->setTestMode(true);
-} catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
+} catch (BankNotFoundException $e) {
     dump($e->getCode(), $e->getMessage());
-} catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
+} catch (BankClassNullException $e) {
     dump($e->getCode(), $e->getMessage());
 }
 
