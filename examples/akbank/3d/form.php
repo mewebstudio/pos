@@ -36,6 +36,12 @@ $order = [
     'fail_url'    => $failUrl,
     'lang'        => EstPos::LANG_TR,
     'rand'        => $rand,
+
+    //tekrarlanan odemeler icin (optional):
+    'recurringFrequency'        => 3,
+    'recurringFrequencyType'    => 'MONTH', //DAY|WEEK|MONTH|YEAR
+    //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
+    'recurringInstallmentCount' => 4,
 ];
 
 $redis->lPush('order', json_encode($order));

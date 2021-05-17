@@ -82,6 +82,12 @@ class VakifBankPostTest extends TestCase
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 
+    public function testMapRecurringFrequency()
+    {
+        $this->assertEquals('Month', $this->pos->mapRecurringFrequency('MONTH'));
+        $this->assertEquals('Month', $this->pos->mapRecurringFrequency('Month'));
+    }
+
     public function testCreate3DEnrollmentCheckData()
     {
 

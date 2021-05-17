@@ -52,6 +52,12 @@ class VakifBankPos extends AbstractGateway
         self::TX_STATUS   => 'OrderInquiry',
     ];
 
+    protected $recurringOrderFrequencyMapping = [
+        'DAY'   => 'Day',
+        'MONTH' => 'Month',
+        'YEAR'  => 'Year',
+    ];
+
     /**
      * currency mapping
      *
@@ -567,6 +573,10 @@ class VakifBankPos extends AbstractGateway
         }
 
         $currency = isset($order['currency']) ? $order['currency'] : 'TRY';
+
+        if (isset($order['recurringFrequency'])) {
+            $order['recurringFrequencyType'] = $this->mapRecurringFrequency($order['recurringFrequencyType']);
+        }
 
         // Order
         return (object) array_merge($order, [

@@ -51,6 +51,13 @@ abstract class AbstractGateway implements PosInterface
     protected $type;
 
     /**
+     * Recurring Order Frequency Type Mapping
+     *
+     * @var array
+     */
+    protected $recurringOrderFrequencyMapping = [];
+
+    /**
      * Currency mapping
      *
      * @var array
@@ -411,6 +418,16 @@ abstract class AbstractGateway implements PosInterface
     public function mapCurrency(string $currency): string
     {
         return isset($this->currencies[$currency]) ? $this->currencies[$currency] : $currency;
+    }
+
+    /**
+     * @param string $period
+     *
+     * @return string
+     */
+    public function mapRecurringFrequency(string $period): string
+    {
+        return isset($this->recurringOrderFrequencyMapping[$period]) ? $this->recurringOrderFrequencyMapping[$period] : $period;
     }
 
     /**

@@ -21,9 +21,9 @@ $order = [
     'rand'                      => time(),
     'ip'                        => $ip,
 
-    //tekrarlanan odemeler icin:
+    //tekrarlanan odemeler icin (optional):
     'recurringFrequency'        => 3,
-    'recurringFrequencyType'    => 'Month', //Day|Month|Year
+    'recurringFrequencyType'    => 'MONTH', //DAY|MONTH|YEAR
     //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
     'recurringInstallmentCount' => 4,
     'recurringEndDate'          => '202112', //optional

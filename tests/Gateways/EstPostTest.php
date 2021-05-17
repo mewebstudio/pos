@@ -77,6 +77,12 @@ class EstPostTest extends TestCase
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 
+    public function testMapRecurringFrequency()
+    {
+        $this->assertEquals('M', $this->pos->mapRecurringFrequency('MONTH'));
+        $this->assertEquals('M', $this->pos->mapRecurringFrequency('M'));
+    }
+
     public function testGet3DFormWithCardData()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -239,6 +245,46 @@ class EstPostTest extends TestCase
         //$this->assertEquals([], $actualData);
     }
 
+    public function testCreate3DPaymentXMLForRecurringOrder()
+    {
+
+        $order = [
+            'id'                        => '2020110828BC',
+            'email'                     => 'samp@iexample.com',
+            'name'                      => 'john doe',
+            'user_id'                   => '1535',
+            'ip'                        => '192.168.1.0',
+            'amount'                    => 100.01,
+            'installment'               => '0',
+            'currency'                  => 'TRY',
+            'success_url'               => 'http://localhost/finansbank-payfor/3d/response.php',
+            'fail_url'                  => 'http://localhost/finansbank-payfor/3d/response.php',
+            'recurringFrequency'        => 3,
+            'recurringFrequencyType'    => 'MONTH',
+            'recurringInstallmentCount' => 4,
+        ];
+
+        $responseData = [
+            'md'   => '1',
+            'xid'  => '100000005xid',
+            'eci'  => '100000005eci',
+            'cavv' => 'cavv',
+        ];
+
+        /**
+         * @var EstPos $pos
+         */
+        $pos = PosFactory::createPosGateway($this->account);
+        $pos->prepare($order, AbstractGateway::TX_PAY);
+
+        $actualXML = $pos->create3DPaymentXML($responseData);
+        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
+
+        $expectedData = $this->getSample3DPaymentXMLData($pos->getOrder(), $pos->getAccount(), $responseData);
+        $this->assertEquals($expectedData, $actualData);
+        $this->assertEquals($expectedData['PbOrder'], $actualData['PbOrder']);
+    }
+
     public function testCreateStatusXML()
     {
         $order = [
@@ -387,6 +433,15 @@ class EstPostTest extends TestCase
         if (isset($order->name)) {
             $requestData['BillTo'] = [
                 'Name' => $order->name,
+            ];
+        }
+
+        if (isset($order->recurringFrequency)) {
+            $requestData['PbOrder'] = [
+                'OrderType'              => 0,
+                'OrderFrequencyInterval' => $order->recurringFrequency,
+                'OrderFrequencyCycle'    => $order->recurringFrequencyType,
+                'TotalNumberPayments'    => $order->recurringInstallmentCount,
             ];
         }
 
