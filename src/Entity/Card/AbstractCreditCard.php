@@ -33,7 +33,7 @@ abstract class AbstractCreditCard
     protected $holderName;
 
     /**
-     * visa, master ...
+     * visa, master, troy, amex, ...
      * @var string|null
      */
     protected $type;
