@@ -576,6 +576,30 @@ abstract class AbstractGateway implements PosInterface
      */
     abstract protected function mapHistoryResponse($rawResponseData);
 
+    /**
+     * Returns payment default response data
+     *
+     * @return array
+     */
+    protected function getDefaultPaymentResponse()
+    {
+        return [
+            'id'               => null,
+            'order_id'         => null,
+            'trans_id'         => null,
+            'transaction_type' => $this->type,
+            'transaction'      => $this->type,
+            'auth_code'        => null,
+            'host_ref_num'     => null,
+            'proc_return_code' => null,
+            'code'             => null,
+            'status'           => 'declined',
+            'status_detail'    => null,
+            'error_code'       => null,
+            'error_message'    => null,
+            'all'              => null,
+        ];
+    }
 
     /**
      * bank returns error messages for specified language value
@@ -589,6 +613,16 @@ abstract class AbstractGateway implements PosInterface
         }
 
         return $this->account->getLang();
+    }
+
+    /**
+     * @param string $str
+     *
+     * @return bool
+     */
+    protected function isHTML($str)
+    {
+        return $str !== strip_tags($str);
     }
 
     /**

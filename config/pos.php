@@ -132,6 +132,18 @@ return [
                     'test'          => 'https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx',
                 ],
             ]
-        ]
+        ],
+        'vakifbank' => [
+            'name'  => 'VakifBank-VPOS',
+            'class' => Mews\Pos\Gateways\VakifBankPos::class,
+            'urls'  => [
+                'production'    => 'https://onlineodeme.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
+                'test'          => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
+                'gateway'       => [
+                    'production'    => 'https://3dsecure.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspx',
+                    'test'          => 'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspx',
+                ],
+            ],
+        ],
     ],
 ];

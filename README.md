@@ -8,6 +8,7 @@ YapıKredi Posnet sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` 
 
 Finansbank'ın PayFor sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
 
+VakifBank GET 7/24 MPI ve VPOS 7/24 eklendi ama test ortami olmadigi icin test edilemedi, gelen geri donuslere gore hatalar giderilecek. 
 > EST altyapısında olan Akbank, TEB ve Ziraat bankası test edilmiştir.
 
 ### Özellikler
@@ -82,7 +83,7 @@ $order = [
     'name'          => 'John Doe', // zorunlu değil
     'email'         => 'mail@customer.com', // zorunlu değil
     'user_id'       => '12', // zorunlu değil
-    'amount'        => (double) 20, // Sipariş tutarı
+    'amount'        => (float) 20, // Sipariş tutarı
     'installment'   => '0',
     'currency'      => 'TRY',
     'ip'            => $ip,
