@@ -375,7 +375,7 @@ class PosNet extends AbstractGateway
      *
      * @return int
      */
-    public static function amountFormat($amount)
+    public static function amountFormat($amount): int
     {
         return round($amount, 2) * 100;
     }

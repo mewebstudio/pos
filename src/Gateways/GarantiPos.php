@@ -603,12 +603,12 @@ class GarantiPos extends AbstractGateway
 
     /**
      * Amount Formatter
-     *
+     * converts 100 to 10000, or 10.01 to 1001
      * @param double $amount
      *
      * @return int
      */
-    public static function amountFormat($amount)
+    public static function amountFormat($amount): int
     {
         return round($amount, 2) * 100;
     }
