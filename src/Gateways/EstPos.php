@@ -57,6 +57,12 @@ class EstPos extends AbstractGateway
         self::TX_HISTORY  => 'ORDERHISTORY',
     ];
 
+    protected $recurringOrderFrequencyMapping = [
+        'DAY'   => 'D',
+        'WEEK'  => 'W',
+        'MONTH' => 'M',
+        'YEAR'  => 'Y',
+    ];
 
     /**
      * Currency mapping
@@ -379,6 +385,17 @@ class EstPos extends AbstractGateway
         if ($this->order->name) {
             $requestData['BillTo'] = [
                 'Name' => $this->order->name,
+            ];
+        }
+
+        if (isset($this->order->recurringFrequency)) {
+            $requestData['PbOrder'] = [
+                'OrderType'              => 0,
+                // Periyodik İşlem Frekansı
+                'OrderFrequencyInterval' => $this->order->recurringFrequency,
+                //D|M|Y
+                'OrderFrequencyCycle'    => $this->order->recurringFrequencyType,
+                'TotalNumberPayments'    => $this->order->recurringInstallmentCount,
             ];
         }
 
@@ -728,6 +745,10 @@ class EstPos extends AbstractGateway
         $installment = 0;
         if (isset($order['installment']) && $order['installment'] > 1) {
             $installment = (int) $order['installment'];
+        }
+
+        if (isset($order['recurringFrequency'])) {
+            $order['recurringFrequencyType'] = $this->mapRecurringFrequency($order['recurringFrequencyType']);
         }
 
         // Order

@@ -8,6 +8,7 @@ use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
+use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Exceptions\MissingAccountInfoException;
 use Mews\Pos\Gateways\PayForPos;
 
@@ -92,10 +93,40 @@ class AccountFactory
         return new PosNetAccount($bank, $model, $clientId, $username, $password, $lang, $terminalId, $posNetId, $storeKey);
     }
 
+    /**
+     * @param string $bank
+     * @param string $clientId
+     * @param string $password
+     * @param string $terminalId
+     * @param string $model
+     * @param int    $merchantType
+     * @param null   $subMerchantId
+     *
+     * @return VakifBankAccount
+     *
+     * @throws MissingAccountInfoException
+     */
+    public static function createVakifBankAccount(string $bank, string $clientId, string $password, string $terminalId, string $model = 'regular', $merchantType = 0, $subMerchantId = null): VakifBankAccount
+    {
+        self::checkVakifBankMerchantType($merchantType, $subMerchantId);
+
+        return new VakifBankAccount($bank, $model, $clientId, $password, $terminalId, $merchantType, $subMerchantId);
+    }
+
     private static function checkParameters($model, $storeKey)
     {
         if ('regular' !== $model && null === $storeKey) {
             throw new MissingAccountInfoException("$model requires storeKey!");
+        }
+    }
+
+    private static function checkVakifBankMerchantType(int $merchantType, ?string $subMerchantId)
+    {
+        if (2 === $merchantType && empty($subMerchantId)) {
+            throw new MissingAccountInfoException("SubMerchantId is required for sub branches!");
+        }
+        if (!in_array($merchantType, VakifBankAccount::getMerchantTypes())) {
+            throw new MissingAccountInfoException("Invalid MerchantType!");
         }
     }
 }

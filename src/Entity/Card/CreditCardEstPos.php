@@ -7,6 +7,11 @@ namespace Mews\Pos\Entity\Card;
  */
 class CreditCardEstPos extends AbstractCreditCard
 {
+    private $cardTypeToCodeMapping = [
+        'visa'   => '1',
+        'master' => '2',
+    ];
+
     /**
      * @inheritDoc
      */
@@ -16,22 +21,22 @@ class CreditCardEstPos extends AbstractCreditCard
     }
 
     /**
-     * returns null, '1' or '2'
-     * @return string|null
+     * @return string
      */
-    public function getCardCode()
+    public function getCardCode(): string
     {
-        if (null === $this->type || '1' === $this->type || '2' === $this->type) {
+        if (!isset($this->cardTypeToCodeMapping[$this->type])) {
             return $this->type;
         }
 
-        if ('visa' === $this->type) {
-            return '1';
-        }
-        if ('master' === $this->type) {
-            return '2';
-        }
+        return $this->cardTypeToCodeMapping[$this->type];
+    }
 
-        return null;
+    /**
+     * @return string[]
+     */
+    public function getCardTypeToCodeMapping(): array
+    {
+        return $this->cardTypeToCodeMapping;
     }
 }

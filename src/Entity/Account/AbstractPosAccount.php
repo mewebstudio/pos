@@ -11,7 +11,7 @@ abstract class AbstractPosAccount
      */
     protected $clientId;
     /**
-     * account model 3d, 3d_pay...
+     * account models: regular, 3d, 3d_pay, 3d_host
      * @var string
      */
     protected $model;

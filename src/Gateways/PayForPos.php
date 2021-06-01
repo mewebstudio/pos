@@ -642,31 +642,6 @@ class PayForPos extends AbstractGateway
     }
 
     /**
-     * Returns payment default response data
-     *
-     * @return array
-     */
-    protected function getDefaultPaymentResponse()
-    {
-        return [
-            'id'               => null,
-            'order_id'         => null,
-            'trans_id'         => null,
-            'transaction_type' => $this->type,
-            'transaction'      => $this->type,
-            'auth_code'        => null,
-            'host_ref_num'     => null,
-            'proc_return_code' => null,
-            'code'             => null,
-            'status'           => 'declined',
-            'status_detail'    => null,
-            'error_code'       => null,
-            'error_message'    => null,
-            'all'              => null,
-        ];
-    }
-
-    /**
      * returns common form data used by all 3D payment gates
      *
      * @return array
