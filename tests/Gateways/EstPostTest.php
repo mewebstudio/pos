@@ -136,6 +136,36 @@ class EstPostTest extends TestCase
         $this->assertEquals($form, $this->pos->get3DFormData());
     }
 
+    public function testGet3DHostFormData()
+    {
+        $account = AccountFactory::createEstPosAccount('akbank', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '3d_host', 'VnM5WZ3sGrPusmWP', EstPos::LANG_TR);
+        $pos = PosFactory::createPosGateway($account);
+        $pos->setTestMode(true);
+
+        $pos->prepare($this->order, AbstractGateway::TX_PAY);
+
+        $form = [
+            'gateway' => $this->config['banks'][$account->getBank()]['urls']['gateway']['test'],
+            'inputs'  => [
+                'clientid'  => $account->getClientId(),
+                'storetype' => $account->getModel(),
+                'hash'      => $pos->create3DHash(),
+                'firmaadi'  => $this->order['name'],
+                'Email'     => $this->order['email'],
+                'amount'    => $this->order['amount'],
+                'oid'       => $this->order['id'],
+                'okUrl'     => $this->order['success_url'],
+                'failUrl'   => $this->order['fail_url'],
+                'rnd'       => $this->order['rand'],
+                'lang'      => $this->order['lang'],
+                'currency'  => 949,
+                'islemtipi'  => 'Auth',
+                'taksit'    => $this->order['installment'],
+            ],
+        ];
+        $this->assertEquals($form, $pos->get3DFormData());
+    }
+
     public function testCheck3DHash()
     {
         $data = [
