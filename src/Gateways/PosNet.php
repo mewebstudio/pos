@@ -439,6 +439,10 @@ class PosNet extends AbstractGateway
                 'cvc'          => $this->card->getCvv(),
             ],
         ];
+        
+        if(isset($this->order->koiCode) && $this->order->koiCode > 0){
+            $requestData[strtolower($this->type)]['koiCode'] = $this->order->koiCode;
+        }
 
         return $this->createXML($requestData);
     }
