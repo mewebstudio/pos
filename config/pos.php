@@ -98,10 +98,10 @@ return [
             'class' => Mews\Pos\Gateways\PosNet::class,
             'urls'  => [
                 'production'    => 'https://posnet.yapikredi.com.tr/PosnetWebService/XML',
-                'test'          => 'https://setmpos.yapikredi.com.tr/PosnetWebService/XML',
+                'test'          => 'https://setmpos.ykb.com/PosnetWebService/XML',
                 'gateway'       => [
                     'production'    => 'https://www.posnet.yapikredi.com.tr/3DSWebService/YKBPaymentService',
-                    'test'          => 'https://setmpos.yapikredi.com.tr/3DSWebService/YKBPaymentService',
+                    'test'          => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
                 ],
             ],
         ],
