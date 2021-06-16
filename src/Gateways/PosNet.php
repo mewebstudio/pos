@@ -236,13 +236,16 @@ class PosNet extends AbstractGateway
         }
 
         $data = $this->getOosTransactionData();
+        if(!$data->approved){
+            throw new \Exception($data->respText);
+        }
 
         $inputs = [
-            'posnetData'        => $data->oosRequestDataResponse->data1,
-            'posnetData2'       => $data->oosRequestDataResponse->data2,
+            'posnetData'        => isset($data->oosRequestDataResponse->data1) ? $data->oosRequestDataResponse->data1 : '',
+            'posnetData2'       => isset($data->oosRequestDataResponse->data2) ? $data->oosRequestDataResponse->data2 : '',
             'mid'               => $this->account->getClientId(),
             'posnetID'          => $this->account->getPosNetId(),
-            'digest'            => $data->oosRequestDataResponse->sign,
+            'digest'            => isset($data->oosRequestDataResponse->sign) ? $data->oosRequestDataResponse->sign : '',
             'vftCode'           => isset($this->account->promotion_code) ? $this->account->promotion_code : null,
             'merchantReturnURL' => $this->order->success_url,
             'url'               => '',
