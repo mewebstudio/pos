@@ -100,7 +100,7 @@ return [
                 'production'    => 'https://posnet.yapikredi.com.tr/PosnetWebService/XML',
                 'test'          => 'https://setmpos.ykb.com/PosnetWebService/XML',
                 'gateway'       => [
-                    'production'    => 'https://www.posnet.yapikredi.com.tr/3DSWebService/YKBPaymentService',
+                    'production'    => 'https://posnet.yapikredi.com.tr/3DSWebService/YKBPaymentService',
                     'test'          => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
                 ],
             ],
