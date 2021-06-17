@@ -249,6 +249,10 @@ class PosNet extends AbstractGateway
             'lang'              => $this->getLang(),
         ];
 
+        if(isset($this->order->koiCode) && $this->order->koiCode > 0){
+            $inputs['useJokerVadaa'] = 1;
+        }
+        
         return [
             'gateway' => $this->get3DGatewayURL(),
             'inputs'  => $inputs,
