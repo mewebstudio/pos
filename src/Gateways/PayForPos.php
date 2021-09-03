@@ -235,6 +235,9 @@ class PayForPos extends AbstractGateway
         $client = new Client();
 
         $response = $client->request('POST', $this->getApiURL(), [
+	        'headers' => [
+		        'Content-Type' => 'text/xml; charset=UTF-8',
+	        ],
             'body' => $postData,
         ]);
 
