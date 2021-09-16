@@ -122,7 +122,7 @@ return [
             'class' => Mews\Pos\Gateways\PayForPos::class,
             'urls'  => [
                 'production'    => 'https://vpos.qnbfinansbank.com/Gateway/XMLGate.aspx',
-                'test'          => 'https://vpostest.qnbfinansbank.com/Gateway/XmlGate.aspx',
+                'test'          => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
                 'gateway'       => [
                     'production'    => 'https://vpos.qnbfinansbank.com/Gateway/Default.aspx',
                     'test'          => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
