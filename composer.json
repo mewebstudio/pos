@@ -1,7 +1,7 @@
 {
     "name": "mews/pos",
     "description": "Türk bankaları için sanal pos kütüphanesi",
-	"keywords": ["pos", "sanal pos", "est", "est pos", "akbank"],
+	"keywords": ["pos", "sanal pos", "est", "est pos", "akbank", "posnet", "payfor", "vakifbankpos"],
 	"homepage": "https://github.com/mewebstudio/pos",
     "license": "MIT",
     "authors": [
@@ -11,7 +11,7 @@
         }
     ],
     "require": {
-        "php": "^7.1.3",
+        "php": ">=7.1.3",
         "ext-dom": "*",
         "ext-json": "*",
         "ext-openssl": "*",
@@ -35,5 +35,8 @@
         "squizlabs/php_codesniffer": "^3.5",
         "escapestudios/symfony2-coding-standard": "^3.11",
         "symfony/var-dumper": "^5.1"
+    },
+    "config": {
+        "sort-packages": true
     }
 }
