@@ -40,12 +40,16 @@ abstract class AbstractCreditCard
 
     /**
      * AbstractCreditCard constructor.
+     *
      * @param string      $number         credit card number with or without spaces
-     * @param string      $expireYear     accepts year in 1, 2 and 4 digit format. accepted year formats '1' (2001), '02' (2002), '20' (2020), '2024' (2024)
+     * @param string      $expireYear     accepts year in 1, 2 and 4 digit format. accepted year formats '1' (2001), '02'
+     *                                    (2002), '20' (2020), '2024' (2024)
      * @param string      $expireMonth    single digit or double digit month values are accepted
      * @param string      $cvv
      * @param string|null $cardHolderName
      * @param string|null $cardType       examples values: 'visa', 'master', '1', '2'
+     *
+     * @throws \DomainException
      */
     public function __construct(string $number, string $expireYear, string $expireMonth, string $cvv, ?string $cardHolderName = null, ?string $cardType = null)
     {
@@ -55,6 +59,9 @@ abstract class AbstractCreditCard
         $this->expireYear = \DateTime::createFromFormat($yearFormat, $expireYear);
 
         $this->expireMonth = \DateTime::createFromFormat('m', $expireMonth);
+        if (!$this->expireYear || !$this->expireMonth) {
+            throw new \DomainException('INVALID DATE FORMAT');
+        }
         $this->cvv = $cvv;
         $this->holderName = $cardHolderName;
         $this->type = $cardType;
