@@ -8,17 +8,18 @@ namespace Mews\Pos\Entity\Card;
 abstract class AbstractCreditCard
 {
     /**
+     * 16 digit credit card number without spaces
      * @var string
      */
     protected $number;
 
     /**
-     * @var \DateTime
+     * @var \DateTimeImmutable
      */
     protected $expireYear;
 
     /**
-     * @var \DateTime
+     * @var \DateTimeImmutable
      */
     protected $expireMonth;
 
@@ -55,16 +56,16 @@ abstract class AbstractCreditCard
     {
         $this->number = preg_replace('/\s+/', '', $number);
 
-        $yearFormat = 4 === strlen($expireYear) ? 'Y' : 'y';
-        $this->expireYear = \DateTime::createFromFormat($yearFormat, $expireYear);
-
-        $this->expireMonth = \DateTime::createFromFormat('m', $expireMonth);
+        $yearFormat        = 4 === strlen($expireYear) ? 'Y' : 'y';
+        $this->expireYear  = \DateTimeImmutable::createFromFormat($yearFormat, $expireYear);
+        $this->expireMonth = \DateTimeImmutable::createFromFormat('m', $expireMonth);
         if (!$this->expireYear || !$this->expireMonth) {
             throw new \DomainException('INVALID DATE FORMAT');
         }
-        $this->cvv = $cvv;
+
+        $this->cvv        = $cvv;
         $this->holderName = $cardHolderName;
-        $this->type = $cardType;
+        $this->type       = $cardType;
     }
 
     /**
