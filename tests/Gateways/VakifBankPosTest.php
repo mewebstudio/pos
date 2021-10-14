@@ -11,7 +11,7 @@ use Mews\Pos\Gateways\VakifBankPos;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
-class VakifBankPostTest extends TestCase
+class VakifBankPosTest extends TestCase
 {
     /**
      * @var VakifBankAccount

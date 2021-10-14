@@ -8,17 +8,18 @@ namespace Mews\Pos\Entity\Card;
 abstract class AbstractCreditCard
 {
     /**
+     * 16 digit credit card number without spaces
      * @var string
      */
     protected $number;
 
     /**
-     * @var \DateTime
+     * @var \DateTimeImmutable
      */
     protected $expireYear;
 
     /**
-     * @var \DateTime
+     * @var \DateTimeImmutable
      */
     protected $expireMonth;
 
@@ -40,24 +41,31 @@ abstract class AbstractCreditCard
 
     /**
      * AbstractCreditCard constructor.
+     *
      * @param string      $number         credit card number with or without spaces
-     * @param string      $expireYear     accepts year in 1, 2 and 4 digit format. accepted year formats '1' (2001), '02' (2002), '20' (2020), '2024' (2024)
+     * @param string      $expireYear     accepts year in 1, 2 and 4 digit format. accepted year formats '1' (2001), '02'
+     *                                    (2002), '20' (2020), '2024' (2024)
      * @param string      $expireMonth    single digit or double digit month values are accepted
      * @param string      $cvv
      * @param string|null $cardHolderName
      * @param string|null $cardType       examples values: 'visa', 'master', '1', '2'
+     *
+     * @throws \DomainException
      */
     public function __construct(string $number, string $expireYear, string $expireMonth, string $cvv, ?string $cardHolderName = null, ?string $cardType = null)
     {
         $this->number = preg_replace('/\s+/', '', $number);
 
-        $yearFormat = 4 === strlen($expireYear) ? 'Y' : 'y';
-        $this->expireYear = \DateTime::createFromFormat($yearFormat, $expireYear);
+        $yearFormat        = 4 === strlen($expireYear) ? 'Y' : 'y';
+        $this->expireYear  = \DateTimeImmutable::createFromFormat($yearFormat, $expireYear);
+        $this->expireMonth = \DateTimeImmutable::createFromFormat('m', $expireMonth);
+        if (!$this->expireYear || !$this->expireMonth) {
+            throw new \DomainException('INVALID DATE FORMAT');
+        }
 
-        $this->expireMonth = \DateTime::createFromFormat('m', $expireMonth);
-        $this->cvv = $cvv;
+        $this->cvv        = $cvv;
         $this->holderName = $cardHolderName;
-        $this->type = $cardType;
+        $this->type       = $cardType;
     }
 
     /**
