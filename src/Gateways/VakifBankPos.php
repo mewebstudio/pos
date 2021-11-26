@@ -325,13 +325,12 @@ class VakifBankPos extends AbstractGateway
             'Currency'                  => $this->order->currency,
             'SuccessUrl'                => $this->order->success_url,
             'FailureUrl'                => $this->order->fail_url,
-            'InstallmentCount'          => $this->order->installment,
             'Pan'                       => $this->card->getNumber(),
             'ExpiryDate'                => $this->card->getExpirationDate(),
             'BrandName'                 => $this->card->getCardCode(),
             'IsRecurring'               => 'false',
         ];
-        if ($this->order->installment) {
+        if ($this->order->installment > 1) {
             $requestData['InstallmentCount'] = $this->order->installment;
         }
         if (isset($this->order->extraData)) {
