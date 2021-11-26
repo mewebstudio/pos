@@ -1,0 +1,21 @@
+name: Unit Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        php: [7.3]
+        dependency-version: [prefer-stable]
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install dependencies
+        run: composer install --no-progress --no-suggest
+
+      - name: Run test suite
+        run: vendor/bin/phpunit
