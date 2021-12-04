@@ -102,13 +102,20 @@ class VakifBankPosTest extends TestCase
             'Currency'                  => $order->currency,
             'SuccessUrl'                => $order->success_url,
             'FailureUrl'                => $order->fail_url,
-            'InstallmentCount'          => $order->installment,
             'Pan'                       => $this->card->getNumber(),
             'ExpiryDate'                => $this->card->getExpirationDate(),
             'BrandName'                 => $this->card->getCardCode(),
             'IsRecurring'               => 'false',
         ];
 
+        $this->assertEquals($expectedValue, $this->pos->create3DEnrollmentCheckData());
+
+
+        $this->order['installment'] = 2;
+        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $order = $this->pos->getOrder();
+
+        $expectedValue['InstallmentCount'] = $order->installment;
         $this->assertEquals($expectedValue, $this->pos->create3DEnrollmentCheckData());
     }
 
@@ -120,28 +127,79 @@ class VakifBankPosTest extends TestCase
         $order['recurringInstallmentCount'] = 2;
 
         $this->pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
-        $order = $this->pos->getOrder();
+        $posOrder = $this->pos->getOrder();
 
         $expectedValue = [
             'MerchantId'                => $this->account->getClientId(),
             'MerchantPassword'          => $this->account->getPassword(),
             'MerchantType'              => $this->account->getMerchantType(),
-            'PurchaseAmount'            => $order->amount,
-            'VerifyEnrollmentRequestId' => $order->rand,
-            'Currency'                  => $order->currency,
-            'SuccessUrl'                => $order->success_url,
-            'FailureUrl'                => $order->fail_url,
-            'InstallmentCount'          => $order->installment,
+            'PurchaseAmount'            => $posOrder->amount,
+            'VerifyEnrollmentRequestId' => $posOrder->rand,
+            'Currency'                  => $posOrder->currency,
+            'SuccessUrl'                => $posOrder->success_url,
+            'FailureUrl'                => $posOrder->fail_url,
             'Pan'                       => $this->card->getNumber(),
             'ExpiryDate'                => $this->card->getExpirationDate(),
             'BrandName'                 => $this->card->getCardCode(),
             'IsRecurring'               => 'true',
-            'RecurringFrequency'        => $order->recurringFrequency,
-            'RecurringFrequencyType'    => $order->recurringFrequencyType,
-            'RecurringInstallmentCount' => $order->recurringInstallmentCount,
+            'RecurringFrequency'        => $posOrder->recurringFrequency,
+            'RecurringFrequencyType'    => $posOrder->recurringFrequencyType,
+            'RecurringInstallmentCount' => $posOrder->recurringInstallmentCount,
         ];
 
         $this->assertEquals($expectedValue, $this->pos->create3DEnrollmentCheckData());
+
+
+        $order['installment'] = 2;
+        $this->pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
+        $posOrder = $this->pos->getOrder();
+
+        $expectedValue['InstallmentCount'] = $posOrder->installment;
+        $this->assertEquals($expectedValue, $this->pos->create3DEnrollmentCheckData());
+    }
+
+    public function testCreate3DPaymentXML()
+    {
+        $order = $this->order;
+        $order['amount'] = 1000;
+        $this->pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
+
+        $gatewayResponse = [
+            'Eci'                       => rand(1, 100),
+            'Cavv'                      => rand(1, 100),
+            'VerifyEnrollmentRequestId' => rand(1, 100),
+        ];
+        $expectedValue = [
+            'MerchantId'              => $this->account->getClientId(),
+            'Password'                => $this->account->getPassword(),
+            'TerminalNo'              => $this->account->getTerminalId(),
+            'TransactionType'         => 'Sale',
+            'OrderId'                 => $order['id'],
+            'ClientIp'                => $order['ip'],
+            'OrderDescription'        => '',
+            'TransactionId'           => $order['rand'],
+            'Cvv'                     => $this->card->getCvv(),
+            'CardHoldersName'         => $this->card->getHolderName(),
+            'ECI'                     => $gatewayResponse['Eci'],
+            'CAVV'                    => $gatewayResponse['Cavv'],
+            'MpiTransactionId'        => $gatewayResponse['VerifyEnrollmentRequestId'],
+            'TransactionDeviceSource' => 0,
+        ];
+
+        $actualXML = $this->pos->create3DPaymentXML($gatewayResponse);
+        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
+
+        $this->assertEquals($expectedValue, $actualData);
+
+
+        $order['installment'] = 2;
+        $expectedValue['NumberOfInstallments'] = $order['installment'];
+        $this->pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
+
+        $actualXML = $this->pos->create3DPaymentXML($gatewayResponse);
+        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
+
+        $this->assertEquals($expectedValue, $actualData);
     }
 
     public function testCreateRegularPaymentXML()
