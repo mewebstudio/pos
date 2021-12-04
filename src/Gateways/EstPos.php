@@ -631,7 +631,7 @@ class EstPos extends AbstractGateway
             $status = 'approved';
         }
 
-        $this->response = (object) [
+        return (object) [
             'order_id'         => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
             'group_id'         => isset($rawResponseData->GroupId) ? $rawResponseData->GroupId : null,
             'response'         => isset($rawResponseData->Response) ? $rawResponseData->Response : null,
