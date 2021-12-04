@@ -9,6 +9,9 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\EstPos;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
+use ReflectionException;
+use ReflectionMethod;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 class EstPostTest extends TestCase
@@ -377,6 +380,37 @@ class EstPostTest extends TestCase
         //$this->assertEquals([], $actualData);
     }
 
+    public function testMapCancelResponse()
+    {
+        $gatewayResponse = [
+            'OrderId' => rand(),
+            'GroupId' => rand(1, 100),
+            'Response' => rand(1, 100),
+            'AuthCode' => rand(1, 100),
+            'HostRefNum' => rand(1, 100),
+            'ProcReturnCode' => rand(1, 100),
+            'TransId' => rand(1, 100),
+            'Extra' => null,
+            'ErrMsg' => null,
+        ];
+        $mapCancelResponseFunc = $this->getProtectedMethod('mapCancelResponse');
+        $pos = PosFactory::createPosGateway($this->account);
+
+        $canceledResult = $mapCancelResponseFunc->invokeArgs($pos, [json_decode(json_encode($gatewayResponse))]);
+        $this->assertNotEmpty($canceledResult);
+
+        $this->assertSame($gatewayResponse['OrderId'], $canceledResult->order_id);
+        $this->assertSame($gatewayResponse['GroupId'], $canceledResult->group_id);
+        $this->assertSame($gatewayResponse['Response'], $canceledResult->response);
+        $this->assertSame($gatewayResponse['AuthCode'], $canceledResult->auth_code);
+        $this->assertSame($gatewayResponse['HostRefNum'], $canceledResult->host_ref_num);
+        $this->assertSame($gatewayResponse['ProcReturnCode'], $canceledResult->proc_return_code);
+        $this->assertSame($gatewayResponse['TransId'], $canceledResult->trans_id);
+        $this->assertSame(null, $canceledResult->error_code);
+        $this->assertSame(null, $canceledResult->error_message);
+        $this->assertSame('declined', $canceledResult->status);
+    }
+
     /**
      * @param                  $order
      * @param CreditCardEstPos $card
@@ -535,5 +569,22 @@ class EstPostTest extends TestCase
         }
 
         return $data;
+    }
+
+
+    /**
+     * @param string $name
+     *
+     * @return ReflectionMethod
+     *
+     * @throws ReflectionException
+     */
+    private static function getProtectedMethod(string $name)
+    {
+        $class = new ReflectionClass(EstPos::class);
+        $method = $class->getMethod($name);
+        $method->setAccessible(true);
+
+        return $method;
     }
 }
