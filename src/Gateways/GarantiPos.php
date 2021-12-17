@@ -710,7 +710,7 @@ class GarantiPos extends AbstractGateway
             $response = 'Approved';
         }
 
-        $this->response = (object) [
+        return (object) [
             'id'                   => (string) $raw3DAuthResponseData['authcode'],
             'order_id'             => (string) $raw3DAuthResponseData['oid'],
             'trans_id'             => (string) $raw3DAuthResponseData['transid'],
