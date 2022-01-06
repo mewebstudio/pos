@@ -699,7 +699,7 @@ class GarantiPos extends AbstractGateway
         $procReturnCode = $raw3DAuthResponseData['procreturncode'];
 
         $transactionSecurity = 'MPI fallback';
-        if (in_array($raw3DAuthResponseData['mdstatus'], [1, 2, 3, 4])) {
+        if (in_array($raw3DAuthResponseData['mdstatus'], [1, 2, 3, 4]) && $raw3DAuthResponseData['response'] !== $response) {
             if ($raw3DAuthResponseData['mdstatus'] == '1') {
                 $transactionSecurity = 'Full 3D Secure';
             } elseif (in_array($raw3DAuthResponseData['mdstatus'], [2, 3, 4])) {
@@ -722,9 +722,9 @@ class GarantiPos extends AbstractGateway
             'transaction_security' => $transactionSecurity,
             'proc_return_code'     => $procReturnCode,
             'code'                 => $procReturnCode,
-            'md_status'            => $raw3DAuthResponseData['mdStatus'],
+            'md_status'            => $raw3DAuthResponseData['mdstatus'],
             'status'               => $status,
-            'status_detail'        => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? (string) $raw3DAuthResponseData['ProcReturnCode'] : null,
+            'status_detail'        => isset($this->codes[$raw3DAuthResponseData['procreturncode']]) ? (string) $raw3DAuthResponseData['procreturncode'] : null,
             'hash'                 => (string) $raw3DAuthResponseData['secure3dhash'],
             'rand'                 => (string) $raw3DAuthResponseData['rnd'],
             'hash_params'          => (string) $raw3DAuthResponseData['hashparams'],
@@ -736,13 +736,13 @@ class GarantiPos extends AbstractGateway
             'eci'                  => (string) $raw3DAuthResponseData['eci'],
             'cavv'                 => (string) $raw3DAuthResponseData['cavv'],
             'xid'                  => (string) $raw3DAuthResponseData['xid'],
-            'error_code'           => (string) $raw3DAuthResponseData['errcode'],
+            'error_code'           => (string) isset($raw3DAuthResponseData['errcode'])?$raw3DAuthResponseData['errcode']:null,
             'error_message'        => (string) $raw3DAuthResponseData['errmsg'],
             'md_error_message'     => (string) $raw3DAuthResponseData['mderrormessage'],
             'campaign_url'         => null,
             //'name'                  => (string) $raw3DAuthResponseData['firmaadi'],
             'email'                => (string) $raw3DAuthResponseData['customeremailaddress'],
-            'extra'                => $raw3DAuthResponseData['Extra'],
+            'extra'                => $raw3DAuthResponseData['Extra'] ?? null,
             'all'                  => $raw3DAuthResponseData,
         ];
     }
