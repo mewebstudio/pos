@@ -380,6 +380,7 @@ class GarantiPosTest extends TestCase
         $method = $this->getMethod('map3DPayResponseData');
         $result1 = $method->invoke($this->pos, $gatewayResponse);
 
+        $this->assertIsObject($result1);
         $this->assertSame($expected, json_encode($result1));
     }
 
