@@ -259,7 +259,7 @@ class GarantiPos extends AbstractGateway
                 'UserID'     => $this->account->getUsername(),
                 'HashData'   => $this->createHashData(),
                 'ID'         => $this->account->getTerminalId(),
-                'MerchantID' => $this->account->getTerminalId(),
+                'MerchantID' => $this->account->getClientId(),
             ],
             'Customer'    => [
                 'IPAddress'    => $this->order->ip,
