@@ -2,14 +2,15 @@
 
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
 
-EST altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Garanti Ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
+- EST altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Garanti Ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
 
-YapıKredi Posnet sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` işlemleri test edilmedi. 
+- YapıKredi Posnet sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` işlemleri test edilmedi. 
 
-Finansbank'ın PayFor sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
+- Finansbank'ın PayFor sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
 
-VakifBank GET 7/24 MPI ve VPOS 7/24 eklendi ama test ortami olmadigi icin test edilemedi, gelen geri donuslere gore hatalar giderilecek. 
+- VakifBank GET 7/24 MPI ve VPOS 7/24 eklendi ama test ortami olmadigi icin test edilemedi, gelen geri donuslere gore hatalar giderilecek. 
 > EST altyapısında olan Akbank, TEB ve Ziraat bankası test edilmiştir.
+- InterPOS (Deniz bank) destegi eklenmistir, test edildikce, sorunlari bulundukca hatalar giderilecek
 
 ### Özellikler
   - Standart E-Commerce modeliyle ödeme (model => regular)

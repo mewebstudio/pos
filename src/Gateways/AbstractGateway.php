@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Mews\Pos\Gateways;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -11,6 +10,9 @@ use Mews\Pos\PosInterface;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 /**
+ * todo we need to update request data code base to return array instead of XML, because some providers does not use XML.
+ *  for example createRefundXML() this method will be createRefund() and return array.
+ *  Then it will be converted to XML in some other place if needed
  * Class AbstractGateway
  */
 abstract class AbstractGateway implements PosInterface
@@ -542,8 +544,8 @@ abstract class AbstractGateway implements PosInterface
     abstract protected function prepareRefundOrder(array $order);
 
     /**
-     * @param array  $raw3DAuthResponseData response from 3D authentication
-     * @param object $rawPaymentResponseData
+     * @param array        $raw3DAuthResponseData  response from 3D authentication
+     * @param object|array $rawPaymentResponseData
      *
      * @return object
      */
@@ -559,7 +561,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * Processes regular payment response data
      *
-     * @param object $responseData
+     * @param object|array $responseData
      *
      * @return array
      */

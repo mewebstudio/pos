@@ -13,6 +13,24 @@
 </head>
 <body>
 
+<header class="bs-docs-nav navbar navbar-static-top" id="top">
+    <div class="container">
+        <div class="navbar-header">
+            <button aria-controls="bs-navbar" aria-expanded="false" class="collapsed navbar-toggle" data-target="#bs-navbar" data-toggle="collapse" type="button">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="<?= $hostUrl ?>" class="navbar-brand">Main Page</a>
+        </div>
+        <nav class="collapse navbar-collapse" id="bs-navbar">
+            <ul class="nav navbar-nav">
+                <li> <a href="<?= $hostUrl ?>/interpos">InterPos (Deniz bank)</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
 <div id="wrapper">
     <div class="container" style="max-width: 640px;">
         <h2 class="text-center"><?= $templateTitle; ?></h2>

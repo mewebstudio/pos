@@ -1,11 +1,10 @@
 <?php
 
-
 namespace Mews\Pos\Factory;
-
 
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
+use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
@@ -14,7 +13,6 @@ use Mews\Pos\Gateways\PayForPos;
 
 class AccountFactory
 {
-
     /**
      * @param string $bank
      * @param string $clientId
@@ -112,6 +110,27 @@ class AccountFactory
 
         return new VakifBankAccount($bank, $model, $clientId, $password, $terminalId, $merchantType, $subMerchantId);
     }
+
+    /**
+     * @param string      $bank
+     * @param string      $shopCode
+     * @param string      $userCode
+     * @param string      $userPass
+     * @param string      $model
+     * @param string|null $merchantPass
+     * @param string      $lang
+     *
+     * @return InterPosAccount
+     *
+     * @throws MissingAccountInfoException
+     */
+    public static function createInterPosAccount(string $bank, string $shopCode, string $userCode, string $userPass, string $model = 'regular', ?string $merchantPass = null, string $lang = 'tr'): InterPosAccount
+    {
+        self::checkParameters($model, $merchantPass);
+
+        return new InterPosAccount($bank, $model, $shopCode, $userCode, $userPass, $lang, $merchantPass);
+    }
+
 
     private static function checkParameters($model, $storeKey)
     {
