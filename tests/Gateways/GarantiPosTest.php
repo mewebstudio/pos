@@ -431,7 +431,7 @@ class GarantiPosTest extends TestCase
      *
      * @return array
      */
-    private function getSampleRegularPaymentXMLData($order, $card, $account)
+    private function getSampleRegularPaymentXMLData($order, CreditCardGarantiPos $card, GarantiPosAccount $account)
     {
         return [
             'Mode'        => 'TEST',
@@ -441,7 +441,7 @@ class GarantiPosTest extends TestCase
                 'UserID'     => $account->getUsername(),
                 'HashData'   => 'F0641E566B7B98260FD1608D1DF81E8D55461877',
                 'ID'         => $account->getTerminalId(),
-                'MerchantID' => $account->getTerminalId(),
+                'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
                 'IPAddress'    => $order->ip,
