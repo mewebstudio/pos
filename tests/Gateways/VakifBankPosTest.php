@@ -219,7 +219,7 @@ class VakifBankPosTest extends TestCase
             'ClientIp'                => $order['ip'],
             'TransactionDeviceSource' => 0,
             'Pan'                     => $this->card->getNumber(),
-            'Expiry'                  => $this->card->getExpirationDate(),
+            'Expiry'                  => $this->card->getExpirationDateLong(),
             'Cvv'                     => $this->card->getCvv(),
         ];
 
