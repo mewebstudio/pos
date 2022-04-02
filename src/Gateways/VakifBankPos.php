@@ -114,7 +114,7 @@ class VakifBankPos extends AbstractGateway
         $request = Request::createFromGlobals()->request;
 
         // 3D authorization failed
-        if ('Y' !== $request->get('Status') || 'A' !== $request->get('Status')) {
+        if ('Y' !== $request->get('Status') && 'A' !== $request->get('Status')) {
             $this->response = $this->map3DPaymentData($request->all(), (object) []);
 
             return $this;
@@ -184,7 +184,7 @@ class VakifBankPos extends AbstractGateway
          * E:Hata durumu
          */
         if ('E' === $data->Message->VERes->Status) {
-            throw new Exception($data->ErrorMessage, $data->ErrorCode);
+            throw new Exception($data->ErrorMessage, $data->MessageErrorCode);
         }
         if ('N' === $data->Message->VERes->Status) {
             // todo devam half secure olarak devam et yada satisi iptal et.
@@ -236,34 +236,34 @@ class VakifBankPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createXML(array $data, $encoding = 'UTF-8'): string
+    public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = true): string
     {
-        return parent::createXML($data, $encoding);
+        return parent::createXML($nodes, $encoding, $ignorePiNode);
     }
 
     /**
      * @inheritDoc
      */
-    public function send($postData, $url = null)
+    public function send($contents, ?string $url = null)
     {
         $client = new Client();
-        $url = $url ? $url : $this->getApiURL();
+        $url = $url ?: $this->getApiURL();
 
-        $isXML = is_string($postData);
-        $body = $isXML ? ['body' => $postData] : ['form_params' => $postData];
+        $isXML = is_string($contents);
+        $body = $isXML ? ['form_params' => ['prmstr' => $contents]] : ['form_params' => $contents];
 
         $response = $client->request('POST', $url, $body);
 
-        $contents = $response->getBody()->getContents();
+        $responseBody = $response->getBody()->getContents();
 
         try {
-            $this->data = $this->XMLStringToObject($contents);
+            $this->data = $this->XMLStringToObject($responseBody);
         } catch (NotEncodableValueException $e) {
-            if ($this->isHTML($contents)) {
+            if ($this->isHTML($responseBody)) {
                 // if something wrong server responds with HTML content
-                throw new Exception($contents);
+                throw new Exception($responseBody);
             }
-            $this->data = (object) json_decode($contents);
+            $this->data = (object) json_decode($responseBody);
         }
 
         return $this;
@@ -285,7 +285,7 @@ class VakifBankPos extends AbstractGateway
             'ClientIp'                => $this->order->ip,
             'TransactionDeviceSource' => 0,
             'Pan'                     => $this->card->getNumber(),
-            'Expiry'                  => $this->card->getExpirationDate(),
+            'Expiry'                  => $this->card->getExpirationDateLong(),
             'Cvv'                     => $this->card->getCvv(),
         ];
 
@@ -357,6 +357,7 @@ class VakifBankPos extends AbstractGateway
     }
 
     /**
+     * NOT: diger gatewaylerden farkli olarak vakifbank kredit bilgilerini bu asamada istiyor.
      * @inheritDoc
      */
     public function create3DPaymentXML($responseData)
@@ -366,9 +367,13 @@ class VakifBankPos extends AbstractGateway
             'Password'                => $this->account->getPassword(),
             'TerminalNo'              => $this->account->getTerminalId(),
             'TransactionType'         => $this->type,
-            'TransactionId'           => $this->order->rand,
+            'TransactionId'           => $this->order->id,
+            'CurrencyAmount'          => $this->order->amount,
+            'CurrencyCode'            => $this->order->currency,
             'CardHoldersName'         => $this->card->getHolderName(),
             'Cvv'                     => $this->card->getCvv(),
+            'Pan'                     => $this->card->getNumber(),
+            'Expiry'                  => $this->card->getExpirationDateLong(),
             'ECI'                     => $responseData['Eci'],
             'CAVV'                    => $responseData['Cavv'],
             'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
@@ -496,16 +501,17 @@ class VakifBankPos extends AbstractGateway
     protected function mapCancelResponse($rawResponseData)
     {
         $status = 'declined';
-        if ('0000' === $rawResponseData->ResultCode) {
+        $resultCode = $rawResponseData->ResultCode;
+        if ('0000' === $resultCode) {
             $status = 'approved';
         }
 
         return (object) [
-            'order_id'         => $rawResponseData->TransactionId,
+            'order_id'         => isset($rawResponseData->TransactionId) ? $rawResponseData->TransactionId : null,
             'auth_code'        => ('declined' !== $status) ? $rawResponseData->AuthCode : null,
             'host_ref_num'     => isset($rawResponseData->Rrn) ? $rawResponseData->Rrn : null,
-            'proc_return_code' => $rawResponseData->ResultCode,
-            'trans_id'         => $rawResponseData->TransactionId,
+            'proc_return_code' => $resultCode,
+            'trans_id'         => isset($rawResponseData->TransactionId) ? $rawResponseData->TransactionId : null,
             'error_code'       => ('declined' === $status) ? $rawResponseData->ResultDetail : null,
             'error_message'    => ('declined' === $status) ? $rawResponseData->ResultDetail : null,
             'status'           => $status,
@@ -519,27 +525,17 @@ class VakifBankPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData)
     {
-        $status = 'declined';
-        if ('0000' === $responseData->ResultCode) {
-            $status = 'approved';
+        $commonResponse = $this->getCommonPaymentResponse($responseData);
+        if ('approved' === $commonResponse['status']) {
+            $commonResponse['id'] = $responseData->AuthCode;
+            $commonResponse['trans_id'] = $responseData->TransactionId;
+            $commonResponse['auth_code'] = $responseData->AuthCode;
+            $commonResponse['host_ref_num'] = $responseData->Rrn;
+            $commonResponse['order_id'] = $responseData->OrderId;
+            $commonResponse['transaction_type'] = $responseData->TransactionType;
         }
 
-        return [
-            'id'               => $responseData->AuthCode,
-            'trans_id'         => $responseData->TransactionId,
-            'auth_code'        => $responseData->AuthCode,
-            'host_ref_num'     => $responseData->Rrn,
-            'order_id'         => $responseData->OrderId,
-            'transaction'      => $this->type,
-            'transaction_type' => $responseData->TransactionType,
-            'proc_return_code' => $responseData->ResultCode,
-            'code'             => $responseData->ResultCode,
-            'status'           => $status,
-            'status_detail'    => $responseData->ResultDetail,
-            'error_code'       => ('declined' === $status) ? $responseData->ResultCode : null,
-            'error_message'    => ('declined' === $status) ? $responseData->ResultDetail : null,
-            'all'              => $responseData,
-        ];
+        return $commonResponse;
     }
 
     /**
@@ -633,5 +629,37 @@ class VakifBankPos extends AbstractGateway
         $order['amount'] = self::amountFormat($order['amount']);
 
         return (object) $order;
+    }
+
+    /**
+     * @param $responseData
+     *
+     * @return array
+     */
+    private function getCommonPaymentResponse($responseData): array
+    {
+        $status = 'declined';
+        $resultCode = $responseData->ResultCode;
+        if ('0000' === $resultCode) {
+            $status = 'approved';
+        }
+
+        return [
+            'id'               => null,
+            'trans_id'         => null,
+            'auth_code'        => null,
+            'host_ref_num'     => null,
+            'order_id'         => null,
+            'transaction'      => $this->type,
+            'transaction_type' => null,
+            'response'         => null,
+            'proc_return_code' => $resultCode,
+            'code'             => $resultCode,
+            'status'           => $status,
+            'status_detail'    => $responseData->ResultDetail,
+            'error_code'       => ('declined' === $status) ? $resultCode : null,
+            'error_message'    => ('declined' === $status) ? $responseData->ResultDetail : null,
+            'all'              => $responseData,
+        ];
     }
 }

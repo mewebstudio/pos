@@ -131,9 +131,9 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createXML(array $data, $encoding = 'ISO-8859-9'): string
+    public function createXML(array $nodes, string $encoding = 'ISO-8859-9', bool $ignorePiNode = false): string
     {
-        return parent::createXML(['posnetRequest' => $data], $encoding);
+        return parent::createXML(['posnetRequest' => $nodes], $encoding, $ignorePiNode);
     }
 
     /**
@@ -255,7 +255,7 @@ class PosNet extends AbstractGateway
         if(isset($this->order->koiCode) && $this->order->koiCode > 0){
             $inputs['useJokerVadaa'] = 1;
         }
-        
+
         return [
             'gateway' => $this->get3DGatewayURL(),
             'inputs'  => $inputs,
@@ -446,7 +446,7 @@ class PosNet extends AbstractGateway
                 'cvc'          => $this->card->getCvv(),
             ],
         ];
-        
+
         if(isset($this->order->koiCode) && $this->order->koiCode > 0){
             $requestData[strtolower($this->type)]['koiCode'] = $this->order->koiCode;
         }
