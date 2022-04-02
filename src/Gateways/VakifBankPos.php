@@ -184,7 +184,7 @@ class VakifBankPos extends AbstractGateway
          * E:Hata durumu
          */
         if ('E' === $data->Message->VERes->Status) {
-            throw new Exception($data->ErrorMessage, $data->ErrorCode);
+            throw new Exception($data->ErrorMessage, $data->MessageErrorCode);
         }
         if ('N' === $data->Message->VERes->Status) {
             // todo devam half secure olarak devam et yada satisi iptal et.
@@ -519,27 +519,17 @@ class VakifBankPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData)
     {
-        $status = 'declined';
-        if ('0000' === $responseData->ResultCode) {
-            $status = 'approved';
+        $commonResponse = $this->getCommonPaymentResponse($responseData);
+        if ('approved' === $commonResponse['status']) {
+            $commonResponse['id'] = $responseData->AuthCode;
+            $commonResponse['trans_id'] = $responseData->TransactionId;
+            $commonResponse['auth_code'] = $responseData->AuthCode;
+            $commonResponse['host_ref_num'] = $responseData->Rrn;
+            $commonResponse['order_id'] = $responseData->OrderId;
+            $commonResponse['transaction_type'] = $responseData->TransactionType;
         }
 
-        return [
-            'id'               => $responseData->AuthCode,
-            'trans_id'         => $responseData->TransactionId,
-            'auth_code'        => $responseData->AuthCode,
-            'host_ref_num'     => $responseData->Rrn,
-            'order_id'         => $responseData->OrderId,
-            'transaction'      => $this->type,
-            'transaction_type' => $responseData->TransactionType,
-            'proc_return_code' => $responseData->ResultCode,
-            'code'             => $responseData->ResultCode,
-            'status'           => $status,
-            'status_detail'    => $responseData->ResultDetail,
-            'error_code'       => ('declined' === $status) ? $responseData->ResultCode : null,
-            'error_message'    => ('declined' === $status) ? $responseData->ResultDetail : null,
-            'all'              => $responseData,
-        ];
+        return $commonResponse;
     }
 
     /**
@@ -633,5 +623,37 @@ class VakifBankPos extends AbstractGateway
         $order['amount'] = self::amountFormat($order['amount']);
 
         return (object) $order;
+    }
+
+    /**
+     * @param $responseData
+     *
+     * @return array
+     */
+    private function getCommonPaymentResponse($responseData): array
+    {
+        $status = 'declined';
+        $resultCode = $responseData->ResultCode;
+        if ('0000' === $resultCode) {
+            $status = 'approved';
+        }
+
+        return [
+            'id'               => null,
+            'trans_id'         => null,
+            'auth_code'        => null,
+            'host_ref_num'     => null,
+            'order_id'         => null,
+            'transaction'      => $this->type,
+            'transaction_type' => null,
+            'response'         => null,
+            'proc_return_code' => $resultCode,
+            'code'             => $resultCode,
+            'status'           => $status,
+            'status_detail'    => $responseData->ResultDetail,
+            'error_code'       => ('declined' === $status) ? $resultCode : null,
+            'error_message'    => ('declined' === $status) ? $responseData->ResultDetail : null,
+            'all'              => $responseData,
+        ];
     }
 }
