@@ -357,6 +357,7 @@ class VakifBankPos extends AbstractGateway
     }
 
     /**
+     * NOT: diger gatewaylerden farkli olarak vakifbank kredit bilgilerini bu asamada istiyor.
      * @inheritDoc
      */
     public function create3DPaymentXML($responseData)
@@ -366,9 +367,13 @@ class VakifBankPos extends AbstractGateway
             'Password'                => $this->account->getPassword(),
             'TerminalNo'              => $this->account->getTerminalId(),
             'TransactionType'         => $this->type,
-            'TransactionId'           => $this->order->rand,
+            'TransactionId'           => $this->order->id,
+            'CurrencyAmount'          => $this->order->amount,
+            'CurrencyCode'            => $this->order->currency,
             'CardHoldersName'         => $this->card->getHolderName(),
             'Cvv'                     => $this->card->getCvv(),
+            'Pan'                     => $this->card->getNumber(),
+            'Expiry'                  => $this->card->getExpirationDateLong(),
             'ECI'                     => $responseData['Eci'],
             'CAVV'                    => $responseData['Cavv'],
             'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],

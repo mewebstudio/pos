@@ -163,23 +163,27 @@ class VakifBankPosTest extends TestCase
         $order = $this->order;
         $order['amount'] = 1000;
         $this->pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
-
+        $preparedOrder = $this->pos->getOrder();
         $gatewayResponse = [
-            'Eci'                       => rand(1, 100),
-            'Cavv'                      => rand(1, 100),
-            'VerifyEnrollmentRequestId' => rand(1, 100),
+            'Eci'                       => (string) rand(1, 100),
+            'Cavv'                      => (string) rand(1, 100),
+            'VerifyEnrollmentRequestId' => (string) rand(1, 100),
         ];
         $expectedValue = [
             'MerchantId'              => $this->account->getClientId(),
             'Password'                => $this->account->getPassword(),
             'TerminalNo'              => $this->account->getTerminalId(),
             'TransactionType'         => 'Sale',
-            'OrderId'                 => $order['id'],
-            'ClientIp'                => $order['ip'],
+            'OrderId'                 => $preparedOrder->id,
+            'ClientIp'                => $preparedOrder->ip,
+            'CurrencyCode'            => $preparedOrder->currency,
+            'CurrencyAmount'          => $preparedOrder->amount,
             'OrderDescription'        => '',
-            'TransactionId'           => $order['rand'],
+            'TransactionId'           => $preparedOrder->id,
+            'Pan'                     => $this->card->getNumber(),
             'Cvv'                     => $this->card->getCvv(),
             'CardHoldersName'         => $this->card->getHolderName(),
+            'Expiry'                  => $this->card->getExpirationDateLong(),
             'ECI'                     => $gatewayResponse['Eci'],
             'CAVV'                    => $gatewayResponse['Cavv'],
             'MpiTransactionId'        => $gatewayResponse['VerifyEnrollmentRequestId'],
