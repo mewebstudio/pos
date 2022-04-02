@@ -236,9 +236,9 @@ class VakifBankPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createXML(array $data, $encoding = 'UTF-8'): string
+    public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = true): string
     {
-        return parent::createXML($data, $encoding);
+        return parent::createXML($nodes, $encoding, $ignorePiNode);
     }
 
     /**
