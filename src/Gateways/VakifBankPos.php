@@ -496,16 +496,17 @@ class VakifBankPos extends AbstractGateway
     protected function mapCancelResponse($rawResponseData)
     {
         $status = 'declined';
-        if ('0000' === $rawResponseData->ResultCode) {
+        $resultCode = $rawResponseData->ResultCode;
+        if ('0000' === $resultCode) {
             $status = 'approved';
         }
 
         return (object) [
-            'order_id'         => $rawResponseData->TransactionId,
+            'order_id'         => isset($rawResponseData->TransactionId) ? $rawResponseData->TransactionId : null,
             'auth_code'        => ('declined' !== $status) ? $rawResponseData->AuthCode : null,
             'host_ref_num'     => isset($rawResponseData->Rrn) ? $rawResponseData->Rrn : null,
-            'proc_return_code' => $rawResponseData->ResultCode,
-            'trans_id'         => $rawResponseData->TransactionId,
+            'proc_return_code' => $resultCode,
+            'trans_id'         => isset($rawResponseData->TransactionId) ? $rawResponseData->TransactionId : null,
             'error_code'       => ('declined' === $status) ? $rawResponseData->ResultDetail : null,
             'error_message'    => ('declined' === $status) ? $rawResponseData->ResultDetail : null,
             'status'           => $status,
