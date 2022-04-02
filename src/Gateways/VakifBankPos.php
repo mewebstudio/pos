@@ -244,26 +244,26 @@ class VakifBankPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($postData, $url = null)
+    public function send($contents, ?string $url = null)
     {
         $client = new Client();
-        $url = $url ? $url : $this->getApiURL();
+        $url = $url ?: $this->getApiURL();
 
-        $isXML = is_string($postData);
-        $body = $isXML ? ['body' => $postData] : ['form_params' => $postData];
+        $isXML = is_string($contents);
+        $body = $isXML ? ['form_params' => ['prmstr' => $contents]] : ['form_params' => $contents];
 
         $response = $client->request('POST', $url, $body);
 
-        $contents = $response->getBody()->getContents();
+        $responseBody = $response->getBody()->getContents();
 
         try {
-            $this->data = $this->XMLStringToObject($contents);
+            $this->data = $this->XMLStringToObject($responseBody);
         } catch (NotEncodableValueException $e) {
-            if ($this->isHTML($contents)) {
+            if ($this->isHTML($responseBody)) {
                 // if something wrong server responds with HTML content
-                throw new Exception($contents);
+                throw new Exception($responseBody);
             }
-            $this->data = (object) json_decode($contents);
+            $this->data = (object) json_decode($responseBody);
         }
 
         return $this;
