@@ -114,7 +114,7 @@ class VakifBankPos extends AbstractGateway
         $request = Request::createFromGlobals()->request;
 
         // 3D authorization failed
-        if ('Y' !== $request->get('Status') || 'A' !== $request->get('Status')) {
+        if ('Y' !== $request->get('Status') && 'A' !== $request->get('Status')) {
             $this->response = $this->map3DPaymentData($request->all(), (object) []);
 
             return $this;
