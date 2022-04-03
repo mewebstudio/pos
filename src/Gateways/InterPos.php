@@ -135,13 +135,15 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($contents)
+    public function send($contents, ?string $url = null)
     {
         $client = new Client();
+        $url = $url ?: $this->getApiURL();
 
-        $response = $client->request('POST', $this->getApiURL(), [
-            'form_params' => $contents,
-        ]);
+        $isXML = is_string($contents);
+        $body = $isXML ? ['body' => $contents] : ['form_params' => $contents];
+
+        $response = $client->request('POST', $url, $body);
         //genelde ;; delimiter kullanilmis, ama bazen arasinda ;;; boyle delimiter de var.
         $resultValues = preg_split('/(;;;|;;)/', $response->getBody()->getContents());
         $result       = [];
