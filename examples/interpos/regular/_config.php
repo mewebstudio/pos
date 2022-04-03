@@ -12,6 +12,4 @@ $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount('denizbank', 
 
 $pos = getGateway($account);
 
-$gateway = $baseUrl.'response.php';
-
 $templateTitle = 'Regular Payment';
