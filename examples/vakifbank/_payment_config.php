@@ -28,8 +28,13 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mew
     return null;
 }
 
-function getNewOrder(string $baseUrl, string $ip, ?int $installment = 0, bool $tekrarlanan = false)
-{
+function getNewOrder(
+    string $baseUrl,
+    string $ip,
+    \Symfony\Component\HttpFoundation\Session\Session $session,
+    ?int $installment = 0,
+    bool $tekrarlanan = false
+): array {
     $successUrl = $baseUrl.'response.php';
     $failUrl = $baseUrl.'response.php';
 
@@ -45,6 +50,7 @@ function getNewOrder(string $baseUrl, string $ip, ?int $installment = 0, bool $t
         'fail_url'                  => $failUrl,
         'rand'                      => time(),
         'ip'                        => $ip,
+        'extraData'                 => $session->getId(), //optional, istekte SessionInfo degere atanir
     ];
     if ($tekrarlanan) {
         $order = array_merge($order, [

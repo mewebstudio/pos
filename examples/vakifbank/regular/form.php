@@ -2,7 +2,7 @@
 
 require_once '_config.php';
 
-$order = getNewOrder($baseUrl, $ip, $request->get('installment'));
+$order = getNewOrder($baseUrl, $ip, $session, $request->get('installment'));
 $session->set('order', $order);
 $transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PAY;
 

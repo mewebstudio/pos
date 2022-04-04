@@ -7,7 +7,7 @@ require '_config.php';
 require '../../template/_header.php';
 require '../_header.php';
 
-$order = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip);
+$order = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip, $session);
 
 $order = [
     'id'       => $order['id'],
