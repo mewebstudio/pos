@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Mews\Pos\Gateways;
 
 use Exception;
@@ -458,17 +457,17 @@ class VakifBankPos extends AbstractGateway
         }
 
         $threeDResponse = [
-            'id'            => $raw3DAuthResponseData['AuthCode'],
+            'id'            => null,
             'eci'           => $raw3DAuthResponseData['Eci'],
             'cavv'          => $raw3DAuthResponseData['Cavv'],
             'auth_code'     => null,
             'order_id'      => $raw3DAuthResponseData['VerifyEnrollmentRequestId'],
             'status'        => $threeDAuthStatus,
             'status_detail' => null,
-            'error_code'    => 'declined' === $threeDAuthStatus ? $raw3DAuthResponseData['Status'] : null,
-            'error_message' => null,
+            'error_code'    => 'declined' === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorCode'] : null,
+            'error_message' => 'declined' === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorMessage'] : null,
             'all'           => $rawPaymentResponseData,
-            'ed_all'        => $raw3DAuthResponseData,
+            '3d_all'        => $raw3DAuthResponseData,
         ];
 
         if (empty($paymentResponseData)) {
@@ -533,6 +532,7 @@ class VakifBankPos extends AbstractGateway
             $commonResponse['host_ref_num'] = $responseData->Rrn;
             $commonResponse['order_id'] = $responseData->OrderId;
             $commonResponse['transaction_type'] = $responseData->TransactionType;
+            $commonResponse['eci'] = $responseData->ECI;
         }
 
         return $commonResponse;
@@ -653,6 +653,7 @@ class VakifBankPos extends AbstractGateway
             'transaction'      => $this->type,
             'transaction_type' => null,
             'response'         => null,
+            'eci'              => null,
             'proc_return_code' => $resultCode,
             'code'             => $resultCode,
             'status'           => $status,
