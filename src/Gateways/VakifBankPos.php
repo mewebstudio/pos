@@ -111,25 +111,25 @@ class VakifBankPos extends AbstractGateway
     public function make3DPayment()
     {
         $request = Request::createFromGlobals()->request;
-
+        $gatewayResponse = $this->emptyStringsToNull($request->all());
         // 3D authorization failed
-        if ('Y' !== $request->get('Status') && 'A' !== $request->get('Status')) {
-            $this->response = $this->map3DPaymentData($request->all(), (object) []);
+        if ('Y' !== $gatewayResponse['Status'] && 'A' !== $gatewayResponse['Status']) {
+            $this->response = $this->map3DPaymentData($gatewayResponse, (object) []);
 
             return $this;
         }
 
-        if ('A' === $request->get('Status')) {
+        if ('A' === $gatewayResponse['Status']) {
             // TODO Half 3D Secure
-            $this->response = $this->map3DPaymentData($request->all(), (object) []);
+            $this->response = $this->map3DPaymentData($gatewayResponse, (object) []);
 
             return $this;
         }
 
-        $contents = $this->create3DPaymentXML($request->all());
+        $contents = $this->create3DPaymentXML($gatewayResponse);
         $this->send($contents);
 
-        $this->response = $this->map3DPaymentData($request->all(), $this->data);
+        $this->response = $this->map3DPaymentData($gatewayResponse, $this->data);
 
         return $this;
     }
@@ -264,6 +264,8 @@ class VakifBankPos extends AbstractGateway
             }
             $this->data = (object) json_decode($responseBody);
         }
+
+        $this->data = $this->emptyStringsToNull($this->data);
 
         return $this;
     }
@@ -662,5 +664,30 @@ class VakifBankPos extends AbstractGateway
             'error_message'    => ('declined' === $status) ? $responseData->ResultDetail : null,
             'all'              => $responseData,
         ];
+    }
+
+    /**
+     * bankadan gelen response'da bos string degerler var.
+     * bu metod ile bos string'leri null deger olarak degistiriyoruz
+     *
+     * @param string|object|array $data
+     *
+     * @return string|object|array
+     */
+    private function emptyStringsToNull($data)
+    {
+        if (is_string($data)) {
+            $data = '' === $data ? null : $data;
+        } elseif (is_array($data)) {
+            foreach ($data as $key => $value) {
+                $data[$key] = '' === $value ? null : $value;
+            }
+        } elseif (is_object($data)) {
+            foreach ($data as $key => $value) {
+                $data->{$key} = '' === $value ? null : $value;
+            }
+        }
+
+        return $data;
     }
 }
