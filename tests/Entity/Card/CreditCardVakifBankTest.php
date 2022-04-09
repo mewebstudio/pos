@@ -12,6 +12,7 @@ class CreditCardVakifBankTest extends TestCase
     {
         $card = new CreditCardVakifBank('1111222233334444', '02', '03', '111', 'ahmet mehmet');
         $this->assertEquals('0203', $card->getExpirationDate());
+        $this->assertEquals('200203', $card->getExpirationDateLong());
     }
 
     public function testTypeCode()

@@ -128,9 +128,9 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createXML(array $data, $encoding = 'UTF-8'): string
+    public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false): string
     {
-        return parent::createXML(['GVPSRequest' => $data], $encoding);
+        return parent::createXML(['GVPSRequest' => $nodes], $encoding, $ignorePiNode);
     }
 
     /**
@@ -259,7 +259,7 @@ class GarantiPos extends AbstractGateway
                 'UserID'     => $this->account->getUsername(),
                 'HashData'   => $this->createHashData(),
                 'ID'         => $this->account->getTerminalId(),
-                'MerchantID' => $this->account->getTerminalId(),
+                'MerchantID' => $this->account->getClientId(),
             ],
             'Customer'    => [
                 'IPAddress'    => $this->order->ip,

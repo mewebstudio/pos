@@ -1,34 +1,21 @@
 <?php
 
-use Mews\Pos\Exceptions\BankClassNullException;
-use Mews\Pos\Exceptions\BankNotFoundException;
-use Mews\Pos\Factory\AccountFactory;
-use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\VakifBankPos;
-use Symfony\Component\HttpFoundation\Request;
+require '../_payment_config.php';
 
-require '../../_main_config.php';
+$baseUrl = $hostUrl.'/vakifbank/regular/';
 
-$path = '/vakifbank/regular/';
-$baseUrl = $hostUrl.$path;
+$merchantId = '000000000111111';
+$terminalId = 'VP000095';
+$isyeriSifre = '3XTgER89as';
 
-$successUrl = $failUrl = $baseUrl.'response.php';
+$account = \Mews\Pos\Factory\AccountFactory::createVakifBankAccount(
+    'vakifbank',
+    $merchantId,
+    $isyeriSifre,
+    $terminalId,
+    'regular'
+);
 
-$account = AccountFactory::createVakifBankAccount('vakifbank', '000000000111111', '3XTgER89as', 'VP999999', 'regular');
-
-$request = Request::createFromGlobals();
-$ip = $request->getClientIp();
-
-try {
-    /**
-     * @var VakifBankPos $pos
-     */
-    $pos = PosFactory::createPosGateway($account);
-    $pos->setTestMode(true);
-} catch (BankNotFoundException $e) {
-    dump($e->getCode(), $e->getMessage());
-} catch (BankClassNullException $e) {
-    dump($e->getCode(), $e->getMessage());
-}
+$pos = getGateway($account);
 
 $templateTitle = 'Regular Payment';

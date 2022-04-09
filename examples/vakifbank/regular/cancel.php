@@ -2,17 +2,16 @@
 
 use Mews\Pos\Gateways\AbstractGateway;
 
-require '_config.php';
-
 $templateTitle = 'Cancel Order';
-
+require '_config.php';
 require '../../template/_header.php';
+require '../_header.php';
 
-$ord = (array) json_decode($redis->lPop('order'));
+$order = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip, $session);
 
 $order = [
-    'id' => $ord['id'], //ReferenceTransactionId
-    'ip' => $ip,
+    'id' => $order['id'], //ReferenceTransactionId
+    'ip' => $order['ip'],
 ];
 
 $pos->prepare($order, AbstractGateway::TX_CANCEL);
@@ -36,7 +35,7 @@ $response = $pos->getResponse();
         </dl>
         <hr>
         <div class="text-right">
-            <a href="credit-card-form.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
+            <a href="index.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
         </div>
     </div>
 

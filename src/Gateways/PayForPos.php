@@ -267,9 +267,9 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createXML(array $data, $encoding = 'UTF-8'): string
+    public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false): string
     {
-        return parent::createXML(['PayforRequest' => $data], $encoding);
+        return parent::createXML(['PayforRequest' => $nodes], $encoding, $ignorePiNode);
     }
 
 

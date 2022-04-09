@@ -1,34 +1,24 @@
 <?php
 
-use Mews\Pos\Exceptions\BankClassNullException;
-use Mews\Pos\Exceptions\BankNotFoundException;
-use Mews\Pos\Factory\AccountFactory;
-use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\VakifBankPos;
-use Symfony\Component\HttpFoundation\Request;
+require '../_payment_config.php';
 
-require '../../_main_config.php';
-
-$path = '/vakifbank/3d/';
-$baseUrl = $hostUrl.$path;
+$baseUrl = $hostUrl.'/vakifbank/3d/';
 
 $successUrl = $failUrl = $baseUrl.'response.php';
 
-$account = AccountFactory::createVakifBankAccount('vakifbank', '000000000111111', '3XTgER89as', 'VP999999', '3d');
+$merchantId = '000000000111111';
+$terminalId = 'VP000095';
+$isyeriSifre = '3XTgER89as';
+$account = \Mews\Pos\Factory\AccountFactory::createVakifBankAccount(
+    'vakifbank',
+    $merchantId,
+    $isyeriSifre,
+    $terminalId,
+    '3d'
+);
 
-$request = Request::createFromGlobals();
-$ip = $request->getClientIp();
+$pos = getGateway($account);
 
-try {
-    /**
-     * @var VakifBankPos $pos
-     */
-    $pos = PosFactory::createPosGateway($account);
-    $pos->setTestMode(true);
-} catch (BankNotFoundException $e) {
-    dump($e->getCode(), $e->getMessage());
-} catch (BankClassNullException $e) {
-    dump($e->getCode(), $e->getMessage());
-}
+$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PAY;
 
 $templateTitle = '3D Model Payment';

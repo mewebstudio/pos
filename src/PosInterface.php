@@ -27,10 +27,11 @@ interface PosInterface
      *
      * @param array  $nodes
      * @param string $encoding
+     * @param bool   $ignorePiNode when true it will not wrap it with this node <?xml version="1.0" encoding="UTF-8"?>
      *
      * @return string the XML, or false if an error occurred.
      */
-    public function createXML(array $nodes, $encoding = 'UTF-8');
+    public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false);
 
     /**
      * Print Data

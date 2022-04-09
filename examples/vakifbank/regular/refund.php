@@ -2,17 +2,17 @@
 
 use Mews\Pos\Gateways\AbstractGateway;
 
-require '_config.php';
-
 $templateTitle = 'Refund Order';
-
+require '_config.php';
 require '../../template/_header.php';
+require '../_header.php';
 
+$order = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip, $session);
 // Refund Order
 $order = [
-    'id'     => '20201101C02D', //ReferenceTransactionId
-    'amount' => 100,
-    'ip'     => $ip,
+    'id'     => $order['id'], //ReferenceTransactionId
+    'amount' => $order['amount'],
+    'ip'     => $order['ip'],
 ];
 
 $pos->prepare($order, AbstractGateway::TX_REFUND);
@@ -34,7 +34,7 @@ $response = $pos->getResponse();
     </dl>
     <hr>
     <div class="text-right">
-        <a href="credit-card-form.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
+        <a href="index.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
     </div>
 </div>
 
