@@ -182,22 +182,23 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * Create XML DOM Document
-     *
-     * @param array  $nodes
-     * @param string $encoding
-     *
-     * @return string the XML, or false if an error occurred.
+     * @inheritDoc
      */
-    public function createXML(array $nodes, $encoding = 'UTF-8')
+    public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false): string
     {
         $rootNodeName = array_keys($nodes)[0];
         $encoder = new XmlEncoder();
-
-        return $encoder->encode($nodes[$rootNodeName], 'xml', [
+        $context = [
             XmlEncoder::ROOT_NODE_NAME => $rootNodeName,
             XmlEncoder::ENCODING       => $encoding,
-        ]);
+        ];
+        if ($ignorePiNode) {
+            $context[XmlEncoder::ENCODER_IGNORED_NODE_TYPES] = [
+                XML_PI_NODE,
+            ];
+        }
+
+        return $encoder->encode($nodes[$rootNodeName], 'xml', $context);
     }
 
     /**

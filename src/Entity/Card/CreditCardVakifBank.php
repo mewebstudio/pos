@@ -3,6 +3,7 @@
 namespace Mews\Pos\Entity\Card;
 
 /**
+ * VakifBank credit card class for secure payments
  * Class CreditCardVakifBank
  */
 class CreditCardVakifBank extends AbstractCreditCard
@@ -20,6 +21,24 @@ class CreditCardVakifBank extends AbstractCreditCard
     public function getExpirationDate(): string
     {
         return $this->getExpireYear().$this->getExpireMonth();
+    }
+
+    /**
+     * yyyymm de formatinda tarih dondurur
+     * @return string
+     */
+    public function getExpirationDateLong(): string
+    {
+        return $this->getExpireYearLong().$this->getExpireMonth();
+    }
+
+    /**
+     * returns exp year in 4 digit format
+     * @return string
+     */
+    public function getExpireYearLong(): string
+    {
+        return $this->expireYear->format('Y');
     }
 
     /**

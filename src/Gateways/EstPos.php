@@ -5,7 +5,6 @@ namespace Mews\Pos\Gateways;
 use GuzzleHttp\Client;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardEstPos;
-use Mews\Pos\Exceptions\NotImplementedException;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -103,9 +102,9 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createXML(array $data, $encoding = 'ISO-8859-9'): string
+    public function createXML(array $nodes, string $encoding = 'ISO-8859-9', bool $ignorePiNode = false): string
     {
-        return parent::createXML(['CC5Request' => $data], $encoding);
+        return parent::createXML(['CC5Request' => $nodes], $encoding, $ignorePiNode);
     }
 
     /**

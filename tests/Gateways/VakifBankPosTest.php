@@ -9,6 +9,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\VakifBankPos;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 class VakifBankPosTest extends TestCase
@@ -27,6 +28,8 @@ class VakifBankPosTest extends TestCase
      * @var CreditCardVakifBank
      */
     private $card;
+
+    /** @var array */
     private $order;
     /**
      * @var XmlEncoder
@@ -52,7 +55,8 @@ class VakifBankPosTest extends TestCase
             'currency'    => 'TRY',
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'rand'        => microtime(),
+            'rand'        => microtime(true),
+            'extraData'   => microtime(true),
             'ip'          => '127.0.0.1',
         ];
 
@@ -102,6 +106,7 @@ class VakifBankPosTest extends TestCase
             'Currency'                  => $order->currency,
             'SuccessUrl'                => $order->success_url,
             'FailureUrl'                => $order->fail_url,
+            'SessionInfo'               => $order->extraData,
             'Pan'                       => $this->card->getNumber(),
             'ExpiryDate'                => $this->card->getExpirationDate(),
             'BrandName'                 => $this->card->getCardCode(),
@@ -145,6 +150,7 @@ class VakifBankPosTest extends TestCase
             'RecurringFrequency'        => $posOrder->recurringFrequency,
             'RecurringFrequencyType'    => $posOrder->recurringFrequencyType,
             'RecurringInstallmentCount' => $posOrder->recurringInstallmentCount,
+            'SessionInfo'               => $posOrder->extraData,
         ];
 
         $this->assertEquals($expectedValue, $this->pos->create3DEnrollmentCheckData());
@@ -163,23 +169,27 @@ class VakifBankPosTest extends TestCase
         $order = $this->order;
         $order['amount'] = 1000;
         $this->pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
-
+        $preparedOrder = $this->pos->getOrder();
         $gatewayResponse = [
-            'Eci'                       => rand(1, 100),
-            'Cavv'                      => rand(1, 100),
-            'VerifyEnrollmentRequestId' => rand(1, 100),
+            'Eci'                       => (string) rand(1, 100),
+            'Cavv'                      => (string) rand(1, 100),
+            'VerifyEnrollmentRequestId' => (string) rand(1, 100),
         ];
         $expectedValue = [
             'MerchantId'              => $this->account->getClientId(),
             'Password'                => $this->account->getPassword(),
             'TerminalNo'              => $this->account->getTerminalId(),
             'TransactionType'         => 'Sale',
-            'OrderId'                 => $order['id'],
-            'ClientIp'                => $order['ip'],
+            'OrderId'                 => $preparedOrder->id,
+            'ClientIp'                => $preparedOrder->ip,
+            'CurrencyCode'            => $preparedOrder->currency,
+            'CurrencyAmount'          => $preparedOrder->amount,
             'OrderDescription'        => '',
-            'TransactionId'           => $order['rand'],
+            'TransactionId'           => $preparedOrder->id,
+            'Pan'                     => $this->card->getNumber(),
             'Cvv'                     => $this->card->getCvv(),
             'CardHoldersName'         => $this->card->getHolderName(),
+            'Expiry'                  => $this->card->getExpirationDateLong(),
             'ECI'                     => $gatewayResponse['Eci'],
             'CAVV'                    => $gatewayResponse['Cavv'],
             'MpiTransactionId'        => $gatewayResponse['VerifyEnrollmentRequestId'],
@@ -219,7 +229,7 @@ class VakifBankPosTest extends TestCase
             'ClientIp'                => $order['ip'],
             'TransactionDeviceSource' => 0,
             'Pan'                     => $this->card->getNumber(),
-            'Expiry'                  => $this->card->getExpirationDate(),
+            'Expiry'                  => $this->card->getExpirationDateLong(),
             'Cvv'                     => $this->card->getCvv(),
         ];
 
@@ -292,5 +302,156 @@ class VakifBankPosTest extends TestCase
         $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
 
         $this->assertEquals($expectedValue, $actualData);
+    }
+
+    /**
+     * @covers \Mews\Pos\Gateways\VakifBankPos::map3DPaymentData
+     *
+     * @return void
+     */
+    public function testMap3DPaymentData3DSuccess()
+    {
+        $card  = $this->card;
+        $order = $this->order;
+        $this->pos->prepare($order, AbstractGateway::TX_PAY);
+        $preparedOrder  = (array) $this->pos->getOrder();
+        $threeDResponse = [
+            'MerchantId'                => $this->account->getClientId(),
+            'SubMerchantNo'             => $this->account->getSubMerchantId(),
+            'SubMerchantName'           => null,
+            'SubMerchantNumber'         => null,
+            'PurchAmount'               => $preparedOrder['amount'] * 100,
+            'PurchCurrency'             => $preparedOrder['currency'],
+            'VerifyEnrollmentRequestId' => $preparedOrder['id'],
+            'SessionInfo'               => $preparedOrder['extraData'],
+            'InstallmentCount'          => null,
+            'Pan'                       => $card->getNumber(),
+            'Expiry'                    => $card->getExpirationDate(),
+            'Xid'                       => md5(uniqid(rand(), true)),
+            'Status'                    => 'Y',
+            'Cavv'                      => 'AAABBBBBBBBBBBBBBBIIIIII=',
+            'Eci'                       => '02',
+            'ExpSign'                   => null,
+            'ErrorCode'                 => null,
+            'ErrorMessage'              => null,
+        ];
+
+        $provisionResponse = [
+            'MerchantId'              => $this->account->getClientId(),
+            'TerminalNo'              => $this->account->getTerminalId(),
+            'TransactionType'         => 'Sale',
+            'TransactionId'           => $preparedOrder['extraData'], //todo why it is equal to extraData?
+            'ResultCode'              => '0000',
+            'ResultDetail'            => 'İŞLEM BAŞARILI',
+            'CustomItems'             => (object) [],
+            'InstallmentTable'        => null,
+            'CampaignResult'          => null,
+            'AuthCode'                => '822641',
+            'HostDate'                => '20220404123456',
+            'Rrn'                     => '209411062014',
+            'CurrencyAmount'          => $preparedOrder['amount'],
+            'CurrencyCode'            => $preparedOrder['currency'],
+            'OrderId'                 => $preparedOrder['id'],
+            'TLAmount'                => $preparedOrder['amount'],
+            'ECI'                     => '02',
+            'ThreeDSecureType'        => '2',
+            'TransactionDeviceSource' => '0',
+            'BatchNo'                 => '1',
+        ];
+
+        $method  = $this->getMethod('map3DPaymentData');
+        $result = $method->invoke($this->pos, $threeDResponse, (object) $provisionResponse);
+
+        $expected = [
+            'eci'              => $provisionResponse['ECI'],
+            'cavv'             => $threeDResponse['Cavv'],
+            'auth_code'        => $provisionResponse['AuthCode'],
+            'order_id'         => $provisionResponse['OrderId'],
+            'status'           => 'approved',
+            'status_detail'    => $provisionResponse['ResultDetail'],
+            'error_code'       => null,
+            'error_message'    => null,
+            'all'              => (object) $provisionResponse,
+            '3d_all'           => $threeDResponse,
+            'id'               => $provisionResponse['AuthCode'],
+            'trans_id'         => $provisionResponse['TransactionId'],
+            'host_ref_num'     => $provisionResponse['Rrn'],
+            'transaction'      => $provisionResponse['TransactionType'],
+            'transaction_type' => $provisionResponse['TransactionType'],
+            'response'         => null,
+            'proc_return_code' => $provisionResponse['ResultCode'],
+            'code'             => $provisionResponse['ResultCode'],
+        ];
+
+        $this->assertEquals($expected, (array) $result);
+    }
+
+    /**
+     * @covers \Mews\Pos\Gateways\VakifBankPos::map3DPaymentData
+     *
+     * @return void
+     */
+    public function testMap3DPaymentData3DFail()
+    {
+        $card  = $this->card;
+        $order = $this->order;
+        $this->pos->prepare($order, AbstractGateway::TX_PAY);
+        $preparedOrder  = (array) $this->pos->getOrder();
+        $threeDResponse = [
+            'MerchantId'                => $this->account->getClientId(),
+            'SubMerchantNo'             => $this->account->getSubMerchantId(),
+            'SubMerchantName'           => null,
+            'SubMerchantNumber'         => null,
+            'PurchAmount'               => $preparedOrder['amount'] * 100,
+            'PurchCurrency'             => $preparedOrder['currency'],
+            'VerifyEnrollmentRequestId' => $preparedOrder['id'],
+            'SessionInfo'               => $preparedOrder['extraData'],
+            'InstallmentCount'          => null,
+            'Pan'                       => $card->getNumber(),
+            'Expiry'                    => $card->getExpirationDate(),
+            'Xid'                       => md5(uniqid(rand(), true)),
+            'Status'                    => 'E', //diger hata durumlari N, U
+            'Cavv'                      => 'AAABBBBBBBBBBBBBBBIIIIII=',
+            'Eci'                       => '02',
+            'ExpSign'                   => '',
+            'ErrorCode'                 => '1105',
+            'ErrorMessage'              => 'Üye isyeri IP si sistemde tanimli degil',
+        ];
+
+        $provisionResponse = [];
+
+        $method  = $this->getMethod('map3DPaymentData');
+        $result = $method->invoke($this->pos, $threeDResponse, (object) $provisionResponse);
+
+        $expected = [
+            'eci'              => $threeDResponse['Eci'],
+            'cavv'             => $threeDResponse['Cavv'],
+            'auth_code'        => null,
+            'order_id'         => $threeDResponse['VerifyEnrollmentRequestId'],
+            'status'           => 'declined',
+            'status_detail'    => null,
+            'error_code'       => $threeDResponse['ErrorCode'],
+            'error_message'    => $threeDResponse['ErrorMessage'],
+            'all'              => (object) $provisionResponse,
+            '3d_all'           => $threeDResponse,
+            'id'               => null,
+            'trans_id'         => null,
+            'host_ref_num'     => null,
+            'transaction_type' => 'Sale',
+            'transaction'      => 'Sale',
+            'proc_return_code' => null,
+            'code'             => null,
+        ];
+
+        $this->assertEquals($expected, (array) $result);
+    }
+
+    private static function getMethod(string $name): \ReflectionMethod
+    {
+        $class = new ReflectionClass(VakifBankPos::class);
+        $method = $class->getMethod($name);
+        $method->setAccessible(true);
+
+        return $method;
     }
 }
