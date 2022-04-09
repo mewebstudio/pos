@@ -1,38 +1,41 @@
 <?php
 
+$templateTitle = 'History Order';
+
 require '_config.php';
-
-$templateTitle = 'Order History';
-
 require '../../template/_header.php';
+require '../_header.php';
 
+$ord = $session->get('order');
 
-// History Order
-$pos->history([
+$order = [
     //siparis tarihi
     //'reqDate'  => '20201031',
     //veya siparis ID
-    'id' => '20201031C06E',
-]);
+    'order_id' => $ord ? $ord['id'] : '20201031C06E',
+];
 
-$response = $pos->getResponse();
+// History Order
+$query = $pos->history($order);
+
+$response = $query->getResponse();
 ?>
 
     <div class="result">
-        <!--    <h3 class="text-center text-<?php /*echo $pos->isSuccess() ? 'success' : 'danger'; */ ?>">
-        <?php /*echo $pos->isSuccess() ? 'History Order is successful!' : 'History Order is not successful!'; */ ?>
-    </h3>-->
+        <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
+            <?= $pos->isSuccess() ? 'History Order is successful!' : 'History Order is not successful!'; ?>
+        </h3>
         <dl class="row">
             <dt class="col-sm-12">All Data Dump:</dt>
             <dd class="col-sm-12">
                 <pre><?php dump($response); ?></pre>
             </dd>
-            </dd>
         </dl>
         <hr>
         <div class="text-right">
-            <a href="credit-card-form.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
+            <a href="index.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
         </div>
     </div>
 
 <?php require '../../template/_footer.php';
+

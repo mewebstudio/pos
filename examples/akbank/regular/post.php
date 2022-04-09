@@ -1,43 +1,18 @@
 <?php
 
-use Mews\Pos\Exceptions\BankClassNullException;
-use Mews\Pos\Exceptions\BankNotFoundException;
-use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
-use Symfony\Component\HttpFoundation\Request;
-
-require '../../_main_config.php';
-
-$path = '/akbank/regular/';
-$baseUrl = $hostUrl.$path;
-
-$request = Request::createFromGlobals();
-$ip = $request->getClientIp();
-
-$account = [
-    'bank'      => 'akbank',
-    'model'     => AbstractGateway::MODEL_NON_SECURE,
-    'client_id' => '100100000',
-    'username'  => 'mewsapi',
-    'password'  => 'ME12345.',
-    'env'       => 'test',
-];
-
 $templateTitle = 'Post Auth Order';
-
+require '_config.php';
 require '../../template/_header.php';
+require '../_header.php';
 
-try {
-    $pos = PosFactory::createPosGateway($account);
-    $pos->setTestMode(true);
-} catch (BankNotFoundException $e) {
-    dump($e->getCode(), $e->getMessage());
-} catch (BankClassNullException $e) {
-    dump($e->getCode(), $e->getMessage());
-}
+use Mews\Pos\Gateways\AbstractGateway;
+
+$baseUrl = $hostUrl.'/akbank/regular/';
+
+$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip);
 
 $order = [
-    'id' => '201810297189',
+    'id' => $ord['id'],
 ];
 
 try {
@@ -52,8 +27,8 @@ $response = $payment->getResponse();
 ?>
 
     <div class="result">
-        <h3 class="text-center text-<?= $pos->isSuccess() === '00' ? 'success' : 'danger'; ?>">
-            <?= $pos->isSuccess() === '00' ? 'Post Auth Order is successful!' : 'Post Auth Order is not successful!'; ?>
+        <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
+            <?= $pos->isSuccess() ? 'Post Auth Order is successful!' : 'Post Auth Order is not successful!'; ?>
         </h3>
         <dl class="row">
             <dt class="col-sm-12">All Data Dump:</dt>

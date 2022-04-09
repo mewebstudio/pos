@@ -1,14 +1,13 @@
 <?php
 
+$templateTitle = 'Order Status';
+require '_config.php';
+require '../../template/_header.php';
+require '../_header.php';
+
 use Mews\Pos\Gateways\AbstractGateway;
 
-require '_config.php';
-
-$templateTitle = 'Order Status';
-
-require '../../template/_header.php';
-
-$ord = (array) json_decode($redis->lPop('order'));
+$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip);
 
 $order = [
     'id' => $ord['id'],
@@ -23,8 +22,8 @@ $response = $pos->getResponse();
 ?>
 
     <div class="result">
-        <h3 class="text-center text-<?= $response->proc_return_code === '00' ? 'success' : 'danger'; ?>">
-            <?= $response->proc_return_code === '00' ? 'Query Order is successful!' : 'Query Order is not successful!'; ?>
+        <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
+            <?= $pos->isSuccess() ? 'Query Order is successful!' : 'Query Order is not successful!'; ?>
         </h3>
         <dl class="row">
             <dt class="col-sm-12">All Data Dump:</dt>
@@ -34,7 +33,7 @@ $response = $pos->getResponse();
         </dl>
         <hr>
         <div class="text-right">
-            <a href="credit-card-form.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
+            <a href="index.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
         </div>
     </div>
 

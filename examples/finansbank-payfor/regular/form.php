@@ -6,7 +6,7 @@ $order = getNewOrder($baseUrl, $ip, $request->get('installment'));
 $session->set('order', $order);
 $transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PAY;
 
-$card = new \Mews\Pos\Entity\Card\CreditCardEstPos(
+$card = new \Mews\Pos\Entity\Card\CreditCardPayFor(
     $request->get('number'),
     $request->get('year'),
     $request->get('month'),
