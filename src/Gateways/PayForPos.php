@@ -5,6 +5,7 @@ namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
 use Mews\Pos\Entity\Account\PayForAccount;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCardPayFor;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -210,7 +211,7 @@ class PayForPos extends AbstractGateway
      *
      * @return array
      */
-    public function get3DFormData()
+    public function get3DFormData(): array
     {
         if (!$this->order) {
             return [];

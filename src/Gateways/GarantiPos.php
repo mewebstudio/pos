@@ -202,7 +202,7 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData()
+    public function get3DFormData(): array
     {
         if (!$this->order) {
             return [];

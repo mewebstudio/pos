@@ -5,7 +5,6 @@ namespace Mews\Pos\Gateways;
 use GuzzleHttp\Client;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
-use Mews\Pos\Entity\Card\CreditCardEstPos;
 use Mews\Pos\Entity\Card\CreditCardInterPos;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Symfony\Component\HttpFoundation\Request;
@@ -109,7 +108,7 @@ class InterPos extends AbstractGateway
     }
 
     /**
-     * @param CreditCardEstPos|null $card
+     * @param CreditCardInterPos|null $card
      */
     public function setCard($card)
     {

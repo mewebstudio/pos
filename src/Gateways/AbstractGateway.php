@@ -17,7 +17,6 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
  */
 abstract class AbstractGateway implements PosInterface
 {
-
     const TX_PAY = 'pay';
     const TX_PRE_PAY = 'pre';
     const TX_POST_PAY = 'post';
@@ -152,7 +151,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @return array
      */
-    public function getCurrencies()
+    public function getCurrencies(): array
     {
         return $this->currencies;
     }
@@ -213,9 +212,9 @@ abstract class AbstractGateway implements PosInterface
      *
      * @param $data
      *
-     * @return null|string
+     * @return string|null
      */
-    public function printData($data)
+    public function printData($data): ?string
     {
         if ((is_object($data) || is_array($data)) && !count((array) $data)) {
             $data = null;
@@ -229,7 +228,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return bool
      */
-    public function isSuccess()
+    public function isSuccess(): bool
     {
         if (isset($this->response) && 'approved' === $this->response->status) {
             return true;
@@ -243,7 +242,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return bool
      */
-    public function isError()
+    public function isError(): bool
     {
         return !$this->isSuccess();
     }
@@ -266,7 +265,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @return string
      */
-    public function getApiURL()
+    public function getApiURL(): string
     {
         return $this->config['urls'][$this->getModeInWord()];
     }
@@ -274,15 +273,15 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @return string
      */
-    public function get3DGatewayURL()
+    public function get3DGatewayURL(): string
     {
         return $this->config['urls']['gateway'][$this->getModeInWord()];
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function get3DHostGatewayURL()
+    public function get3DHostGatewayURL(): ?string
     {
         return isset($this->config['urls']['gateway_3d_host'][$this->getModeInWord()]) ? $this->config['urls']['gateway_3d_host'][$this->getModeInWord()] : null;
     }
@@ -425,7 +424,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function mapCurrency(string $currency): string
     {
-        return isset($this->currencies[$currency]) ? $this->currencies[$currency] : $currency;
+        return $this->currencies[$currency] ?? $currency;
     }
 
     /**
@@ -435,7 +434,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function mapRecurringFrequency(string $period): string
     {
-        return isset($this->recurringOrderFrequencyMapping[$period]) ? $this->recurringOrderFrequencyMapping[$period] : $period;
+        return $this->recurringOrderFrequencyMapping[$period] ?? $period;
     }
 
     /**
@@ -493,7 +492,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return array
      */
-    abstract public function get3DFormData();
+    abstract public function get3DFormData(): array;
 
     /**
      * prepares order for payment request
@@ -606,7 +605,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return array
      */
-    protected function getDefaultPaymentResponse()
+    protected function getDefaultPaymentResponse(): array
     {
         return [
             'id'               => null,
@@ -632,7 +631,7 @@ abstract class AbstractGateway implements PosInterface
      * usually accepted values are tr,en
      * @return string
      */
-    protected function getLang()
+    protected function getLang(): string
     {
         if ($this->order && isset($this->order->lang)) {
             return $this->order->lang;
@@ -646,7 +645,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return bool
      */
-    protected function isHTML($str)
+    protected function isHTML($str): bool
     {
         return $str !== strip_tags($str);
     }
@@ -655,7 +654,7 @@ abstract class AbstractGateway implements PosInterface
      * return values are used as a key in config file
      * @return string
      */
-    private function getModeInWord()
+    private function getModeInWord(): string
     {
         return !$this->isTestMode() ? 'production' : 'test';
     }

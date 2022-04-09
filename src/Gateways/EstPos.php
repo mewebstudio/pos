@@ -206,7 +206,7 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData()
+    public function get3DFormData(): array
     {
         if (!$this->order) {
             return [];
@@ -281,7 +281,7 @@ class EstPos extends AbstractGateway
     }
 
     /**
-     * @return mixed
+     * @return EstPosAccount
      */
     public function getAccount()
     {
@@ -329,7 +329,7 @@ class EstPos extends AbstractGateway
             'GroupId'   => '',
             'TransId'   => '',
             'BillTo'    => [
-                'Name' => $this->order->name ? $this->order->name : null,
+                'Name' => $this->order->name ?: null,
             ],
         ];
 

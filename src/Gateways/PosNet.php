@@ -229,14 +229,14 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData()
+    public function get3DFormData(): array
     {
         if (!$this->card || !$this->order) {
             return [];
         }
 
         $data = $this->getOosTransactionData();
-        if(!$data->approved){
+        if (!$data->approved) {
             throw new \Exception($data->respText);
         }
 
@@ -252,7 +252,7 @@ class PosNet extends AbstractGateway
             'lang'              => $this->getLang(),
         ];
 
-        if(isset($this->order->koiCode) && $this->order->koiCode > 0){
+        if (isset($this->order->koiCode) && $this->order->koiCode > 0) {
             $inputs['useJokerVadaa'] = 1;
         }
 

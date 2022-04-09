@@ -168,7 +168,7 @@ class VakifBankPos extends AbstractGateway
      *
      * @throws Exception|GuzzleException
      */
-    public function get3DFormData()
+    public function get3DFormData(): array
     {
         if (!$this->card || !$this->order) {
             return [];
