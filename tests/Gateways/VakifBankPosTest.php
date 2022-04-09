@@ -42,7 +42,13 @@ class VakifBankPosTest extends TestCase
 
         $this->config = require __DIR__.'/../../config/pos.php';
 
-        $this->account = AccountFactory::createVakifBankAccount('vakifbank', '000000000111111', '3XTgER89as', 'VP999999', '3d');
+        $this->account = AccountFactory::createVakifBankAccount(
+            'vakifbank',
+            '000000000111111',
+            '3XTgER89as',
+            'VP999999',
+            AbstractGateway::MODEL_3D_SECURE
+        );
 
         $this->card = new CreditCardVakifBank('5555444433332222', '2021', '12', '122', 'ahmet', 'visa');
 
