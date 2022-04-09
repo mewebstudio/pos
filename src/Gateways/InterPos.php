@@ -589,26 +589,14 @@ class InterPos extends AbstractGateway
             $status = 'approved';
         }
 
-        $result = [
-            'id'               => null,
-            'order_id'         => null,
-            'group_id'         => null,
-            'trans_id'         => null,
-            'response'         => null,
-            'transaction_type' => $this->type,
-            'transaction'      => $this->type,
-            'auth_code'        => null,
-            'host_ref_num'     => null,
-            'proc_return_code' => $procReturnCode,
-            'code'             => $procReturnCode,
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => null,
-            'error_message'    => null,
-            'campaign_url'     => null,
-            'extra'            => null,
-            'all'              => $responseData,
-        ];
+        $result = $this->getDefaultPaymentResponse();
+
+        $result['proc_return_code'] = $procReturnCode;
+        $result['code']             = $procReturnCode;
+        $result['status']           = $status;
+        $result['status_detail']    = $this->getStatusDetail($procReturnCode);
+        $result['all']              = $responseData;
+
         if (!$responseData) {
             return $result;
         }

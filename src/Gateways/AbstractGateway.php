@@ -622,6 +622,7 @@ abstract class AbstractGateway implements PosInterface
             'status_detail'    => null,
             'error_code'       => null,
             'error_message'    => null,
+            'response'         => null,
             'all'              => null,
         ];
     }

@@ -447,6 +447,7 @@ class VakifBankPosTest extends TestCase
             'transaction'      => 'Sale',
             'proc_return_code' => null,
             'code'             => null,
+            'response'         => null,
         ];
 
         $this->assertEquals($expected, (array) $result);
