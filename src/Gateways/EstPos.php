@@ -116,9 +116,9 @@ class EstPos extends AbstractGateway
     {
         $hashStr = '';
 
-        if ($this->account->getModel() === '3d') {
+        if ($this->account->getModel() === self::MODEL_3D_SECURE) {
             $hashStr = $this->account->getClientId().$this->order->id.$this->order->amount.$this->order->success_url.$this->order->fail_url.$this->order->rand.$this->account->getStoreKey();
-        } elseif ($this->account->getModel() === '3d_pay' || $this->account->getModel() === '3d_host') {
+        } elseif ($this->account->getModel() === self::MODEL_3D_PAY || $this->account->getModel() === self::MODEL_3D_HOST) {
             $hashStr = $this->account->getClientId().$this->order->id.$this->order->amount.$this->order->success_url.$this->order->fail_url.$this->type.$this->order->installment.$this->order->rand.$this->account->getStoreKey();
         }
 
@@ -229,7 +229,7 @@ class EstPos extends AbstractGateway
             'currency'  => $this->order->currency,
         ];
 
-        if ($this->account->getModel() === '3d_pay' || $this->account->getModel() === '3d_host') {
+        if ($this->account->getModel() === self::MODEL_3D_PAY || $this->account->getModel() === self::MODEL_3D_HOST) {
             $inputs = array_merge($inputs, [
                 'islemtipi' => $this->type,
                 'taksit'    => $this->order->installment,

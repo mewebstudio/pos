@@ -205,7 +205,7 @@ class GarantiPos extends AbstractGateway
         $hashData = $this->create3DHash();
 
         $inputs = [
-            'secure3dsecuritylevel' => $this->account->getModel() === '3d_pay' ? '3D_PAY' : '3D',
+            'secure3dsecuritylevel' => $this->account->getModel() === self::MODEL_3D_PAY ? '3D_PAY' : '3D',
             'mode'                  => $this->getMode(),
             'apiversion'            => self::API_VERSION,
             'terminalprovuserid'    => $this->account->getUsername(),

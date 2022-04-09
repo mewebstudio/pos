@@ -47,7 +47,7 @@ class InterPosTest extends TestCase
             $shopCode,
             $userCode,
             $userPass,
-            '3d',
+            AbstractGateway::MODEL_3D_SECURE,
             $merchantPass,
             InterPos::LANG_TR
         );
@@ -153,7 +153,15 @@ class InterPosTest extends TestCase
 
     public function testGet3DHostFormData()
     {
-        $account = AccountFactory::createInterPosAccount('denizbank', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '3d_host', 'VnM5WZ3sGrPusmWP', InterPos::LANG_TR);
+        $account = AccountFactory::createInterPosAccount(
+            'denizbank',
+            'XXXXXXX',
+            'XXXXXXX',
+            'XXXXXXX',
+            AbstractGateway::MODEL_3D_HOST,
+            'VnM5WZ3sGrPusmWP',
+            InterPos::LANG_TR
+        );
         /** @var InterPos $pos */
         $pos     = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);

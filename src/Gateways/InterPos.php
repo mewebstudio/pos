@@ -247,10 +247,10 @@ class InterPos extends AbstractGateway
     {
         $secureType = '3DHost';
         $gatewayUrl = $this->get3DHostGatewayURL();
-        if ('3d' === $this->account->getModel()) {
+        if (self::MODEL_3D_SECURE === $this->account->getModel()) {
             $secureType = '3DModel';
             $gatewayUrl = $this->get3DGatewayURL();
-        } elseif ('3d_pay' === $this->account->getModel()) {
+        } elseif (self::MODEL_3D_PAY === $this->account->getModel()) {
             $secureType = '3DPay';
             $gatewayUrl = $this->get3DGatewayURL();
         }

@@ -330,7 +330,7 @@ class PosNet extends AbstractGateway
         $glue = ';';
         $firstHash = $this->hashString($this->account->getStoreKey().$glue.$this->account->getTerminalId());
 
-        if ($this->account->getModel() === '3d' || $this->account->getModel() === '3d_pay') {
+        if ($this->account->getModel() === self::MODEL_3D_SECURE || $this->account->getModel() === self::MODEL_3D_PAY) {
             $hashStr = $this->hashString(implode($glue, [self::formatOrderId($this->order->id), $this->order->amount, $this->order->currency, $this->account->getClientId(), $firstHash]));
         }
 
@@ -350,7 +350,7 @@ class PosNet extends AbstractGateway
         $glue = ';';
         $firstHash = $this->hashString($this->account->getStoreKey().$glue.$this->account->getTerminalId());
 
-        if ($this->account->getModel() === '3d' || $this->account->getModel() === '3d_pay') {
+        if ($this->account->getModel() === self::MODEL_3D_SECURE || $this->account->getModel() === self::MODEL_3D_PAY) {
             $hashStr = $this->hashString(implode($glue, [$data->mdStatus, self::formatOrderId($this->order->id), $this->order->amount, $this->order->currency, $this->account->getClientId(), $firstHash]));
         }
 
@@ -401,9 +401,9 @@ class PosNet extends AbstractGateway
     public static function mapOrderIdToPrefixedOrderId(string $orderId, string $accountModel)
     {
         $prefix = self::ORDER_ID_REGULAR_PREFIX;
-        if ('3d' === $accountModel) {
+        if (self::MODEL_3D_SECURE === $accountModel) {
             $prefix = self::ORDER_ID_3D_PREFIX;
-        } elseif ('3d_pay' === $accountModel) {
+        } elseif (self::MODEL_3D_PAY === $accountModel) {
             $prefix = self::ORDER_ID_3D_PAY_PREFIX;
         }
 

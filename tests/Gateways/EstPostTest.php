@@ -42,7 +42,15 @@ class EstPostTest extends TestCase
 
         $this->config = require __DIR__.'/../../config/pos.php';
 
-        $this->account = AccountFactory::createEstPosAccount('akbank', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '3d', 'VnM5WZ3sGrPusmWP', EstPos::LANG_TR);
+        $this->account = AccountFactory::createEstPosAccount(
+            'akbank',
+            'XXXXXXX',
+            'XXXXXXX',
+            'XXXXXXX',
+            AbstractGateway::MODEL_3D_SECURE,
+            'VnM5WZ3sGrPusmWP',
+            EstPos::LANG_TR
+        );
 
         $this->card = new CreditCardEstPos('5555444433332222', '21', '12', '122', 'ahmet', 'visa');
 
@@ -141,7 +149,15 @@ class EstPostTest extends TestCase
 
     public function testGet3DHostFormData()
     {
-        $account = AccountFactory::createEstPosAccount('akbank', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '3d_host', 'VnM5WZ3sGrPusmWP', EstPos::LANG_TR);
+        $account = AccountFactory::createEstPosAccount(
+            'akbank',
+            'XXXXXXX',
+            'XXXXXXX',
+            'XXXXXXX',
+            AbstractGateway::MODEL_3D_HOST,
+            'VnM5WZ3sGrPusmWP',
+            EstPos::LANG_TR
+        );
         $pos = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
 

@@ -9,22 +9,29 @@ use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Exceptions\MissingAccountInfoException;
+use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\Gateways\GarantiPos;
+use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\PayForPos;
+use Mews\Pos\Gateways\PosNet;
 
 class AccountFactory
 {
     /**
-     * @param string $bank
-     * @param string $clientId
-     * @param string $username
-     * @param string $password
-     * @param string $model
-     * @param null $storeKey
-     * @param string $lang
+     * @param string      $bank
+     * @param string      $clientId
+     * @param string      $username
+     * @param string      $password
+     * @param string      $model
+     * @param string|null $storeKey
+     * @param string      $lang
+     *
      * @return EstPosAccount
+     *
      * @throws MissingAccountInfoException
      */
-    public static function createEstPosAccount(string $bank, string $clientId, string $username, string $password, string $model = 'regular', $storeKey = null, $lang = 'tr'): EstPosAccount
+    public static function createEstPosAccount(string $bank, string $clientId, string $username, string $password, string $model = AbstractGateway::MODEL_REGULAR, ?string $storeKey = null, string $lang = EstPos::LANG_TR): EstPosAccount
     {
         self::checkParameters($model, $storeKey);
 
@@ -32,17 +39,19 @@ class AccountFactory
     }
 
     /**
-     * @param string $bank
-     * @param string $merchantId
-     * @param string $userCode
-     * @param string $userPassword
-     * @param string $model
-     * @param null $merchantPass
-     * @param string $lang
+     * @param string      $bank
+     * @param string      $merchantId
+     * @param string      $userCode
+     * @param string      $userPassword
+     * @param string      $model
+     * @param string|null $merchantPass
+     * @param string      $lang
+     *
      * @return PayForAccount
+     *
      * @throws MissingAccountInfoException
      */
-    public static function createPayForAccount(string $bank, string $merchantId, string $userCode, string $userPassword, string $model = 'regular', $merchantPass = null, $lang = PayForPos::LANG_TR): PayForAccount
+    public static function createPayForAccount(string $bank, string $merchantId, string $userCode, string $userPassword, string $model = AbstractGateway::MODEL_REGULAR, ?string $merchantPass = null, string $lang = PayForPos::LANG_TR): PayForAccount
     {
         self::checkParameters($model, $merchantPass);
 
@@ -50,20 +59,22 @@ class AccountFactory
     }
 
     /**
-     * @param string $bank
-     * @param string $clientId
-     * @param string $username
-     * @param string $password
-     * @param string $terminalId
-     * @param string $model
+     * @param string      $bank
+     * @param string      $clientId
+     * @param string      $username
+     * @param string      $password
+     * @param string      $terminalId
+     * @param string      $model
      * @param string|null $storeKey
      * @param string|null $refundUsername
      * @param string|null $refundPassword
-     * @param string $lang
+     * @param string      $lang
+     *
      * @return GarantiPosAccount
+     *
      * @throws MissingAccountInfoException
      */
-    public static function createGarantiPosAccount(string $bank, string $clientId, string $username, string $password, string $terminalId, string $model = 'regular', ?string $storeKey = null, ?string $refundUsername = null, ?string $refundPassword = null, string $lang = 'tr'): GarantiPosAccount
+    public static function createGarantiPosAccount(string $bank, string $clientId, string $username, string $password, string $terminalId, string $model = AbstractGateway::MODEL_REGULAR, ?string $storeKey = null, ?string $refundUsername = null, ?string $refundPassword = null, string $lang = GarantiPos::LANG_TR): GarantiPosAccount
     {
         self::checkParameters($model, $storeKey);
 
@@ -72,19 +83,21 @@ class AccountFactory
 
 
     /**
-     * @param string $bank
-     * @param string $clientId
-     * @param string $username
-     * @param string $password
-     * @param string $terminalId
-     * @param string $posNetId
-     * @param string $model
+     * @param string      $bank
+     * @param string      $clientId
+     * @param string      $username
+     * @param string      $password
+     * @param string      $terminalId
+     * @param string      $posNetId
+     * @param string      $model
      * @param string|null $storeKey
-     * @param string $lang
+     * @param string      $lang
+     *
      * @return PosNetAccount
+     *
      * @throws MissingAccountInfoException
      */
-    public static function createPosNetAccount(string $bank, string $clientId, string $username, string $password, string $terminalId, string $posNetId, string $model = 'regular', ?string $storeKey = null, string $lang = 'tr'): PosNetAccount
+    public static function createPosNetAccount(string $bank, string $clientId, string $username, string $password, string $terminalId, string $posNetId, string $model = AbstractGateway::MODEL_REGULAR, ?string $storeKey = null, string $lang = PosNet::LANG_TR): PosNetAccount
     {
         self::checkParameters($model, $storeKey);
 
@@ -104,7 +117,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createVakifBankAccount(string $bank, string $clientId, string $password, string $terminalId, string $model = 'regular', $merchantType = 0, $subMerchantId = null): VakifBankAccount
+    public static function createVakifBankAccount(string $bank, string $clientId, string $password, string $terminalId, string $model = AbstractGateway::MODEL_REGULAR, int $merchantType = VakifBankAccount::MERCHANT_TYPE_STANDARD, $subMerchantId = null): VakifBankAccount
     {
         self::checkVakifBankMerchantType($merchantType, $subMerchantId);
 
@@ -124,28 +137,43 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createInterPosAccount(string $bank, string $shopCode, string $userCode, string $userPass, string $model = 'regular', ?string $merchantPass = null, string $lang = 'tr'): InterPosAccount
+    public static function createInterPosAccount(string $bank, string $shopCode, string $userCode, string $userPass, string $model = AbstractGateway::MODEL_REGULAR, ?string $merchantPass = null, string $lang = InterPos::LANG_TR): InterPosAccount
     {
         self::checkParameters($model, $merchantPass);
 
         return new InterPosAccount($bank, $model, $shopCode, $userCode, $userPass, $lang, $merchantPass);
     }
 
-
-    private static function checkParameters($model, $storeKey)
+    /**
+     * @param string      $model
+     * @param string|null $storeKey
+     *
+     * @return void
+     *
+     * @throws MissingAccountInfoException
+     */
+    private static function checkParameters(string $model, ?string $storeKey)
     {
-        if ('regular' !== $model && null === $storeKey) {
+        if (AbstractGateway::MODEL_REGULAR !== $model && null === $storeKey) {
             throw new MissingAccountInfoException("$model requires storeKey!");
         }
     }
 
+    /**
+     * @param int         $merchantType
+     * @param string|null $subMerchantId
+     *
+     * @return void
+     *
+     * @throws MissingAccountInfoException
+     */
     private static function checkVakifBankMerchantType(int $merchantType, ?string $subMerchantId)
     {
-        if (2 === $merchantType && empty($subMerchantId)) {
-            throw new MissingAccountInfoException("SubMerchantId is required for sub branches!");
+        if (VakifBankAccount::MERCHANT_TYPE_SUB_DEALER === $merchantType && empty($subMerchantId)) {
+            throw new MissingAccountInfoException('SubMerchantId is required for sub branches!');
         }
         if (!in_array($merchantType, VakifBankAccount::getMerchantTypes())) {
-            throw new MissingAccountInfoException("Invalid MerchantType!");
+            throw new MissingAccountInfoException('Invalid MerchantType!');
         }
     }
 }

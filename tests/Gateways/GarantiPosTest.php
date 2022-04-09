@@ -41,7 +41,17 @@ class GarantiPosTest extends TestCase
 
         $this->config = require __DIR__.'/../../config/pos.php';
 
-        $this->account = AccountFactory::createGarantiPosAccount('garanti', '7000679', 'PROVAUT', '123qweASD/', '30691298', '3d', '12345678', 'PROVRFN', '123qweASD/');
+        $this->account = AccountFactory::createGarantiPosAccount(
+            'garanti',
+            '7000679',
+            'PROVAUT',
+            '123qweASD/',
+            '30691298',
+            AbstractGateway::MODEL_3D_SECURE,
+            '12345678',
+            'PROVRFN',
+            '123qweASD/'
+        );
 
         $this->card = new CreditCardGarantiPos('5555444433332222', '21', '12', '122');
 
@@ -93,7 +103,7 @@ class GarantiPosTest extends TestCase
         $form = [
             'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
             'inputs'  => [
-                'secure3dsecuritylevel' => $this->account->getModel() === '3d_pay' ? '3D_PAY' : '3D',
+                'secure3dsecuritylevel' => $this->account->getModel() === AbstractGateway::MODEL_3D_PAY ? '3D_PAY' : '3D',
                 'mode'                  => 'TEST',
                 'apiversion'            => GarantiPos::API_VERSION,
                 'terminalprovuserid'    => $this->account->getUsername(),
@@ -131,7 +141,7 @@ class GarantiPosTest extends TestCase
         $form = [
             'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
             'inputs'  => [
-                'secure3dsecuritylevel' => $this->account->getModel() === '3d_pay' ? '3D_PAY' : '3D',
+                'secure3dsecuritylevel' => $this->account->getModel() === AbstractGateway::MODEL_3D_PAY ? '3D_PAY' : '3D',
                 'mode'                  => 'TEST',
                 'apiversion'            => GarantiPos::API_VERSION,
                 'terminalprovuserid'    => $this->account->getUsername(),

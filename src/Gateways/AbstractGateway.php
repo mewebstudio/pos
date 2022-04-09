@@ -26,6 +26,11 @@ abstract class AbstractGateway implements PosInterface
     const TX_STATUS = 'status';
     const TX_HISTORY = 'history';
 
+    const MODEL_3D_SECURE = '3d';
+    const MODEL_3D_PAY = '3d_pay';
+    const MODEL_3D_HOST = '3d_host';
+    const MODEL_REGULAR = 'regular';
+
     private $config;
 
     /**
@@ -92,7 +97,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @param                    $config
      * @param AbstractPosAccount $account
-     * @param array              $currencies
+     * @param array|null         $currencies
      */
     public function __construct($config, $account, ?array $currencies)
     {
@@ -313,13 +318,13 @@ abstract class AbstractGateway implements PosInterface
 
         $model = $this->account->getModel();
 
-        if ('regular' === $model) {
+        if (self::MODEL_REGULAR === $model) {
             $this->makeRegularPayment();
-        } elseif ('3d' === $model) {
+        } elseif (self::MODEL_3D_SECURE === $model) {
             $this->make3DPayment();
-        } elseif ('3d_pay' === $model) {
+        } elseif (self::MODEL_3D_PAY === $model) {
             $this->make3DPayPayment();
-        } elseif ('3d_host' === $model) {
+        } elseif (self::MODEL_3D_HOST === $model) {
             $this->make3DHostPayment();
         } else {
             throw new UnsupportedPaymentModelException();

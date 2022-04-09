@@ -212,10 +212,10 @@ class PayForPos extends AbstractGateway
         $this->order->hash = $this->create3DHash();
 
         $formData = $this->getCommon3DFormData();
-        if ('3d_pay' === $this->account->getModel()) {
+        if (self::MODEL_3D_PAY === $this->account->getModel()) {
             $formData['inputs']['SecureType'] = '3DPay';
             $formData['gateway'] = $this->get3DGatewayURL();
-        } elseif ('3d' === $this->account->getModel()) {
+        } elseif (self::MODEL_3D_SECURE === $this->account->getModel()) {
             $formData['inputs']['SecureType'] = '3DModel';
             $formData['gateway'] = $this->get3DGatewayURL();
         } else {
