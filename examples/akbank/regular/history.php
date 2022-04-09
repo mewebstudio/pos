@@ -1,22 +1,27 @@
 <?php
 
-require '_config.php';
-
 $templateTitle = 'History Order';
 
+require '_config.php';
 require '../../template/_header.php';
+require '../_header.php';
+
+$ord = $session->get('order');
+
+$order = [
+    'order_id' => $ord ? $ord['id'] : '973009309',
+];
 
 // History Order
-$query = $pos->history([
-    'order_id' => '201810297189',
-]);
+$query = $pos->history($order);
 
 $response = $query->getResponse();
+
 ?>
 
     <div class="result">
-        <h3 class="text-center text-<?= $response->proc_return_code === '00' ? 'success' : 'danger'; ?>">
-            <?= $response->proc_return_code === '00' ? 'History Order is successful!' : 'History Order is not successful!'; ?>
+        <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
+            <?= $pos->isSuccess() ? 'History Order is successful!' : 'History Order is not successful!'; ?>
         </h3>
         <dl class="row">
             <dt class="col-sm-12">All Data Dump:</dt>

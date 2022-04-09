@@ -16,7 +16,7 @@ $ip = $request->getClientIp();
 
 $account = [
     'bank'      => 'akbank',
-    'model'     => 'regular',
+    'model'     => AbstractGateway::MODEL_NON_SECURE,
     'client_id' => '100100000',
     'username'  => 'mewsapi',
     'password'  => 'ME12345.',

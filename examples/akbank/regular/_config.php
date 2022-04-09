@@ -1,23 +1,17 @@
 <?php
 
-require '../../_main_config.php';
+require '../_payment_config.php';
 
-$path = '/akbank/regular/';
-$baseUrl = $hostUrl.$path;
+$baseUrl = $hostUrl.'/akbank/regular/';
 
-$request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
-$ip = $request->getClientIp();
-$account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount('akbank', 'XXXXXXX', 'XXXXXXX', '', 'regular');
+$account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
+    'akbank',
+    'XXXXXXX',
+    'XXXXXXX',
+    '',
+    \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE
+);
 
-try {
-    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
-    $pos->setTestMode(true);
-} catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
-    dump($e->getCode(), $e->getMessage());
-} catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
-    dump($e->getCode(), $e->getMessage());
-}
-
-$gateway = $baseUrl.'response.php';
+$pos = getGateway($account);
 
 $templateTitle = 'Regular Payment';

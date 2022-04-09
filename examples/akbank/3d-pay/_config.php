@@ -1,22 +1,20 @@
 <?php
 
-require '../../_main_config.php';
+require '../_payment_config.php';
 
-$path = '/akbank/3d-pay/';
-$baseUrl = $hostUrl.$path;
+$baseUrl = $hostUrl.'/akbank/3d-pay/';
 
-$request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
-$ip = $request->getClientIp();
+$account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
+    'akbank',
+    'XXXXXXX',
+    'XXXXXXX',
+    '',
+    \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_PAY,
+    'XXXXXXX'
+);
 
-$account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount('akbank', 'XXXXXXX', 'XXXXXXX', '', '3d_pay', 'XXXXXXX');
+$pos = getGateway($account);
 
-try {
-    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
-    $pos->setTestMode(true);
-} catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
-    dump($e->getCode(), $e->getMessage());
-} catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
-    dump($e->getCode(), $e->getMessage());
-}
+$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PAY;
 
 $templateTitle = '3D Pay Model Payment';

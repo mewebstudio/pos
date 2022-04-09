@@ -2,15 +2,17 @@
 
 use Mews\Pos\Gateways\AbstractGateway;
 
-require '_config.php';
-
 $templateTitle = 'Order Status';
-
+require '_config.php';
 require '../../template/_header.php';
+require '../_header.php';
+
+$ord = $session->get('order');
 
 $order = [
-    'id' => '201810297189',
+    'id' => $ord ? $ord['id'] : '973009309',
 ];
+
 $pos->prepare($order, AbstractGateway::TX_STATUS);
 // Query Order
 $pos->status();
@@ -19,8 +21,8 @@ $response = $pos->getResponse();
 ?>
 
     <div class="result">
-        <h3 class="text-center text-<?= $response->proc_return_code === '00' ? 'success' : 'danger'; ?>">
-            <?= $response->proc_return_code === '00' ? 'Query Order is successful!' : 'Query Order is not successful!'; ?>
+        <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
+            <?= $pos->isSuccess() ? 'Query Order is successful!' : 'Query Order is not successful!'; ?>
         </h3>
         <dl class="row">
             <dt class="col-sm-12">All Data Dump:</dt>

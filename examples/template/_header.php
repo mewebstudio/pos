@@ -28,6 +28,7 @@
             <ul class="nav navbar-nav">
                 <li> <a href="<?= $hostUrl ?>/interpos/index.php">InterPos (Deniz bank)</a></li>
                 <li> <a href="<?= $hostUrl ?>/vakifbank/index.php">VPOS (VakifBank bank)</a></li>
+                <li> <a href="<?= $hostUrl ?>/akbank/index.php">EST POS</a></li>
             </ul>
         </nav>
     </div>

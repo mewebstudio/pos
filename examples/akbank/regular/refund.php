@@ -2,22 +2,27 @@
 
 use Mews\Pos\Gateways\AbstractGateway;
 
-require '_config.php';
-
 $templateTitle = 'Refund Order';
-
+require '_config.php';
 require '../../template/_header.php';
+require '../_header.php';
 
-$pos->prepare([
-    'id'     => '201810297E8B',
-    'amount' => '100',
-], AbstractGateway::TX_REFUND);
+$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl);
+
+// Refund Order
+$order = [
+    'id'       => $ord['id'],
+    'amount'   => $ord['amount'],
+];
+
+$pos->prepare($order, AbstractGateway::TX_REFUND);
 // Refund Order
 $pos->refund();
 
 $response = $pos->getResponse();
 ?>
 
+    <h4 class="text-center">NOT: Iade islemi 12 saati (bankaya gore degisir) gecmis odeme icin yapilabilir</h4>
     <div class="result">
         <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
             <?= $pos->isSuccess() ? 'Refund Order is successful!' : 'Refund Order is not successful!'; ?>
@@ -33,5 +38,4 @@ $response = $pos->getResponse();
             <a href="index.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
         </div>
     </div>
-
 <?php require '../../template/_footer.php';
