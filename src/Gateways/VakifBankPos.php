@@ -379,7 +379,7 @@ class VakifBankPos extends AbstractGateway
             'CAVV'                    => $responseData['Cavv'],
             'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
             'OrderId'                 => $this->order->id,
-            'OrderDescription'        => isset($this->order->description) ? $this->order->description : null,
+            'OrderDescription'        => $this->order->description ?? null,
             'ClientIp'                => $this->order->ip,
             'TransactionDeviceSource' => 0, // ECommerce
         ];
@@ -508,11 +508,11 @@ class VakifBankPos extends AbstractGateway
         }
 
         return (object) [
-            'order_id'         => isset($rawResponseData->TransactionId) ? $rawResponseData->TransactionId : null,
+            'order_id'         => $rawResponseData->TransactionId ?? null,
             'auth_code'        => ('declined' !== $status) ? $rawResponseData->AuthCode : null,
-            'host_ref_num'     => isset($rawResponseData->Rrn) ? $rawResponseData->Rrn : null,
+            'host_ref_num'     => $rawResponseData->Rrn ?? null,
             'proc_return_code' => $resultCode,
-            'trans_id'         => isset($rawResponseData->TransactionId) ? $rawResponseData->TransactionId : null,
+            'trans_id'         => $rawResponseData->TransactionId ?? null,
             'error_code'       => ('declined' === $status) ? $rawResponseData->ResultDetail : null,
             'error_message'    => ('declined' === $status) ? $rawResponseData->ResultDetail : null,
             'status'           => $status,
@@ -524,7 +524,7 @@ class VakifBankPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    protected function mapPaymentResponse($responseData)
+    protected function mapPaymentResponse($responseData): array
     {
         $commonResponse = $this->getCommonPaymentResponse($responseData);
         if ('approved' === $commonResponse['status']) {
@@ -568,7 +568,7 @@ class VakifBankPos extends AbstractGateway
             $installment = (int) $order['installment'];
         }
 
-        $currency = isset($order['currency']) ? $order['currency'] : 'TRY';
+        $currency = $order['currency'] ?? 'TRY';
 
         if (isset($order['recurringFrequency'])) {
             $order['recurringFrequencyType'] = $this->mapRecurringFrequency($order['recurringFrequencyType']);
@@ -611,7 +611,7 @@ class VakifBankPos extends AbstractGateway
     protected function prepareHistoryOrder(array $order)
     {
         return (object) [
-            'id' => isset($order['id']) ? $order['id'] : null,
+            'id' => $order['id'] ?? null,
         ];
     }
 

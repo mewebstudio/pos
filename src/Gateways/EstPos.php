@@ -112,7 +112,7 @@ class EstPos extends AbstractGateway
      *
      * @return string
      */
-    public function create3DHash()
+    public function create3DHash(): string
     {
         $hashStr = '';
 
@@ -132,7 +132,7 @@ class EstPos extends AbstractGateway
      *
      * @return bool
      */
-    public function check3DHash($data)
+    public function check3DHash(array $data): bool
     {
         $hashParams = $data['HASHPARAMS'];
         $hashParamsVal = $data['HASHPARAMSVAL'];
@@ -317,7 +317,7 @@ class EstPos extends AbstractGateway
             'IPAddress' => $this->order->ip,
             'Email'     => $this->order->email,
             'OrderId'   => $this->order->id,
-            'UserId'    => isset($this->order->user_id) ? $this->order->user_id : null,
+            'UserId'    => $this->order->user_id ?? null,
             'Total'     => $this->order->amount,
             'Currency'  => $this->order->currency,
             'Taksit'    => $this->order->installment,
@@ -365,7 +365,7 @@ class EstPos extends AbstractGateway
             'IPAddress'               => $this->order->ip,
             'Email'                   => $this->order->email,
             'OrderId'                 => $this->order->id,
-            'UserId'                  => isset($this->order->user_id) ? $this->order->user_id : null,
+            'UserId'                  => $this->order->user_id ?? null,
             'Total'                   => $this->order->amount,
             'Currency'                => $this->order->currency,
             'Taksit'                  => $this->order->installment,
@@ -478,7 +478,7 @@ class EstPos extends AbstractGateway
      *
      * @return string|null
      */
-    protected function getProcReturnCode()
+    protected function getProcReturnCode(): ?string
     {
         return isset($this->data->ProcReturnCode) ? (string) $this->data->ProcReturnCode : null;
     }
@@ -488,7 +488,7 @@ class EstPos extends AbstractGateway
      *
      * @return string|null
      */
-    protected function getStatusDetail()
+    protected function getStatusDetail(): ?string
     {
         $procReturnCode = $this->getProcReturnCode();
 
@@ -605,15 +605,15 @@ class EstPos extends AbstractGateway
         }
 
         return (object) [
-            'order_id'         => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
-            'group_id'         => isset($rawResponseData->GroupId) ? $rawResponseData->GroupId : null,
-            'response'         => isset($rawResponseData->Response) ? $rawResponseData->Response : null,
-            'auth_code'        => isset($rawResponseData->AuthCode) ? $rawResponseData->AuthCode : null,
-            'host_ref_num'     => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
-            'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $rawResponseData->ProcReturnCode : null,
-            'trans_id'         => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
-            'error_code'       => isset($rawResponseData->Extra->ERRORCODE) ? $rawResponseData->Extra->ERRORCODE : null,
-            'error_message'    => isset($rawResponseData->ErrMsg) ? $rawResponseData->ErrMsg : null,
+            'order_id'         => $rawResponseData->OrderId ?? null,
+            'group_id'         => $rawResponseData->GroupId ?? null,
+            'response'         => $rawResponseData->Response ?? null,
+            'auth_code'        => $rawResponseData->AuthCode ?? null,
+            'host_ref_num'     => $rawResponseData->HostRefNum ?? null,
+            'proc_return_code' => $rawResponseData->ProcReturnCode ?? null,
+            'trans_id'         => $rawResponseData->TransId ?? null,
+            'error_code'       => $rawResponseData->Extra->ERRORCODE ?? null,
+            'error_message'    => $rawResponseData->ErrMsg ?? null,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail(),
             'all'              => $rawResponseData,
@@ -631,15 +631,15 @@ class EstPos extends AbstractGateway
         }
 
         return (object) [
-            'order_id'         => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
-            'group_id'         => isset($rawResponseData->GroupId) ? $rawResponseData->GroupId : null,
-            'response'         => isset($rawResponseData->Response) ? $rawResponseData->Response : null,
-            'auth_code'        => isset($rawResponseData->AuthCode) ? $rawResponseData->AuthCode : null,
-            'host_ref_num'     => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
-            'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $rawResponseData->ProcReturnCode : null,
-            'trans_id'         => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
-            'error_code'       => isset($rawResponseData->Extra->ERRORCODE) ? $rawResponseData->Extra->ERRORCODE : null,
-            'error_message'    => isset($rawResponseData->ErrMsg) ? $rawResponseData->ErrMsg : null,
+            'order_id'         => $rawResponseData->OrderId ?? null,
+            'group_id'         => $rawResponseData->GroupId ?? null,
+            'response'         => $rawResponseData->Response ?? null,
+            'auth_code'        => $rawResponseData->AuthCode ?? null,
+            'host_ref_num'     => $rawResponseData->HostRefNum ?? null,
+            'proc_return_code' => $rawResponseData->ProcReturnCode ?? null,
+            'trans_id'         => $rawResponseData->TransId ?? null,
+            'error_code'       => $rawResponseData->Extra->ERRORCODE ?? null,
+            'error_message'    => $rawResponseData->ErrMsg ?? null,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail(),
             'all'              => $rawResponseData,
@@ -658,7 +658,7 @@ class EstPos extends AbstractGateway
 
         $firstAmount = isset($rawResponseData->Extra->ORIG_TRANS_AMT) ? $this->printData($rawResponseData->Extra->ORIG_TRANS_AMT) : null;
         $captureAmount = isset($rawResponseData->Extra->CAPTURE_AMT) ? $this->printData($rawResponseData->Extra->CAPTURE_AMT) : null;
-        $capture = $firstAmount === $captureAmount ? true : false;
+        $capture = $firstAmount === $captureAmount;
 
         return (object) [
             'order_id'         => isset($rawResponseData->OrderId) ? $this->printData($rawResponseData->OrderId) : null,
@@ -683,7 +683,7 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    protected function mapPaymentResponse($responseData)
+    protected function mapPaymentResponse($responseData): array
     {
         $status = 'declined';
         if ($this->getProcReturnCode() === '00') {
@@ -707,7 +707,7 @@ class EstPos extends AbstractGateway
             'error_code'       => isset($responseData->Extra->ERRORCODE) ? $this->printData($responseData->Extra->ERRORCODE) : null,
             'error_message'    => isset($responseData->Extra->ERRORCODE) ? $this->printData($responseData->ErrMsg) : null,
             'campaign_url'     => null,
-            'extra'            => isset($responseData->Extra) ? $responseData->Extra : null,
+            'extra'            => $responseData->Extra ?? null,
             'all'              => $responseData,
         ];
     }

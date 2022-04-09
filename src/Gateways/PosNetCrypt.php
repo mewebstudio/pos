@@ -18,11 +18,6 @@ class PosNetCrypt
     private $ks;
 
     /**
-     * @var int
-     */
-    private $block;
-
-    /**
      *
      * @access private
      */
@@ -35,7 +30,6 @@ class PosNetCrypt
     {
         srand((float) microtime() * 10000000);
         $this->algo = 'des-ede3-cbc';
-        $this->block = 8;
         $this->ks = 24;
         $this->error = '';
     }
@@ -45,7 +39,7 @@ class PosNetCrypt
      *
      * @return string
      */
-    public function getLastError()
+    public function getLastError(): string
     {
         return $this->error;
     }
@@ -69,7 +63,7 @@ class PosNetCrypt
      *
      * @return string
      */
-    public function encrypt($data, $key)
+    public function encrypt($data, $key): string
     {
         // Create IV
         $iv = $this->createIV();
@@ -81,9 +75,7 @@ class PosNetCrypt
         $hexEncryptedData = strtoupper(bin2hex($iv)).strtoupper(bin2hex($encryptedData));
 
         // Add CRC
-        $hexEncryptedData = $this->addCrc($hexEncryptedData);
-
-        return $hexEncryptedData;
+        return $this->addCrc($hexEncryptedData);
     }
 
     /**
@@ -133,7 +125,7 @@ class PosNetCrypt
      *
      * @return string
      */
-    public function addCrc($data)
+    public function addCrc($data): string
     {
         $crc = crc32($data);
         $hexCrc = sprintf("%08x", $crc);
@@ -148,7 +140,7 @@ class PosNetCrypt
      *
      * @return bool
      */
-    public function checkCrc($data, $crc)
+    public function checkCrc($data, $crc): bool
     {
         $crcCalc = crc32($data);
         $hexCrc = sprintf("%08x", $crcCalc);

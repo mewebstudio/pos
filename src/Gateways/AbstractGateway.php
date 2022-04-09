@@ -570,7 +570,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return array
      */
-    abstract protected function mapPaymentResponse($responseData);
+    abstract protected function mapPaymentResponse($responseData): array;
 
     /**
      * @param $rawResponseData

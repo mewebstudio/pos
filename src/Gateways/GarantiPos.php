@@ -225,7 +225,7 @@ class GarantiPos extends AbstractGateway
             'terminalid'            => $this->account->getTerminalId(),
             'successurl'            => $this->order->success_url,
             'errorurl'              => $this->order->fail_url,
-            'customeremailaddress'  => isset($this->order->email) ? $this->order->email : null,
+            'customeremailaddress'  => $this->order->email ?? null,
             'customeripaddress'     => $this->order->ip,
             'secure3dhash'          => $hashData,
         ];
@@ -571,7 +571,7 @@ class GarantiPos extends AbstractGateway
      *
      * @return string
      */
-    public function createHashData()
+    public function createHashData(): string
     {
         $map = [
             $this->order->id,
@@ -590,7 +590,7 @@ class GarantiPos extends AbstractGateway
      *
      * @return string
      */
-    public function create3DHash()
+    public function create3DHash(): string
     {
         $map = [
             $this->account->getTerminalId(),
@@ -610,7 +610,7 @@ class GarantiPos extends AbstractGateway
     /**
      * Amount Formatter
      * converts 100 to 10000, or 10.01 to 1001
-     * @param double $amount
+     * @param float $amount
      *
      * @return int
      */
@@ -622,7 +622,7 @@ class GarantiPos extends AbstractGateway
     /**
      * @return string
      */
-    protected function getMode()
+    protected function getMode(): string
     {
         return !$this->isTestMode() ? 'PROD' : 'TEST';
     }
@@ -787,14 +787,14 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    protected function mapPaymentResponse($responseData)
+    protected function mapPaymentResponse($responseData): array
     {
         $status = 'declined';
         if ($this->getProcReturnCode() === '00') {
             $status = 'approved';
         }
 
-        return (object) [
+        return [
             'id'               => isset($responseData->Transaction->AuthCode) ? $this->printData($responseData->Transaction->AuthCode) : null,
             'order_id'         => isset($responseData->Order->OrderID) ? $this->printData($responseData->Order->OrderID) : null,
             'group_id'         => isset($responseData->Order->GroupID) ? $this->printData($responseData->Order->GroupID) : null,
@@ -813,7 +813,7 @@ class GarantiPos extends AbstractGateway
             'error_code'       => isset($responseData->Transaction->Response->Code) ? $this->printData($responseData->Transaction->Response->Code) : null,
             'error_message'    => isset($responseData->Transaction->Response->ErrorMsg) ? $this->printData($responseData->Transaction->Response->ErrorMsg) : null,
             'campaign_url'     => isset($responseData->Transaction->CampaignChooseLink) ? $this->printData($responseData->Transaction->CampaignChooseLink) : null,
-            'extra'            => isset($responseData->Extra) ? $responseData->Extra : null,
+            'extra'            => $responseData->Extra ?? null,
             'all'              => $responseData,
         ];
     }
@@ -882,7 +882,7 @@ class GarantiPos extends AbstractGateway
             'status_detail'    => $this->getStatusDetail(),
             'error_code'       => isset($rawResponseData->Transaction->Response->Code) ? $this->printData($rawResponseData->Transaction->Response->Code) : null,
             'error_message'    => isset($rawResponseData->Transaction->Response->ErrorMsg) ? $this->printData($rawResponseData->Transaction->Response->ErrorMsg) : null,
-            'extra'            => isset($rawResponseData->Extra) ? $rawResponseData->Extra : null,
+            'extra'            => $rawResponseData->Extra ?? null,
             'all'              => $rawResponseData,
         ];
     }
@@ -913,8 +913,8 @@ class GarantiPos extends AbstractGateway
             'status_detail'    => $this->getStatusDetail(),
             'error_code'       => isset($rawResponseData->Transaction->Response->Code) ? $this->printData($rawResponseData->Transaction->Response->Code) : null,
             'error_message'    => isset($rawResponseData->Transaction->Response->ErrorMsg) ? $this->printData($rawResponseData->Transaction->Response->ErrorMsg) : null,
-            'extra'            => isset($rawResponseData->Extra) ? $rawResponseData->Extra : null,
-            'order_txn'        => isset($rawResponseData->Order->OrderHistInqResult->OrderTxnList->OrderTxn) ? $rawResponseData->Order->OrderHistInqResult->OrderTxnList->OrderTxn : [],
+            'extra'            => $rawResponseData->Extra ?? null,
+            'order_txn'        => $rawResponseData->Order->OrderHistInqResult->OrderTxnList->OrderTxn ?? [],
             'all'              => $rawResponseData,
         ];
     }
@@ -924,7 +924,7 @@ class GarantiPos extends AbstractGateway
      *
      * @return string|null
      */
-    protected function getProcReturnCode()
+    protected function getProcReturnCode(): ?string
     {
         return isset($this->data->Transaction->Response->Code) ? (string) $this->data->Transaction->Response->Code : null;
     }
@@ -934,7 +934,7 @@ class GarantiPos extends AbstractGateway
      *
      * @return string|null
      */
-    protected function getStatusDetail()
+    protected function getStatusDetail(): ?string
     {
         $procReturnCode = $this->getProcReturnCode();
 
@@ -957,8 +957,8 @@ class GarantiPos extends AbstractGateway
             'installment' => $installment,
             'currency'    => $this->mapCurrency($order['currency']),
             'amount'      => self::amountFormat($order['amount']),
-            'ip'          => isset($order['ip']) ? $order['ip'] : '',
-            'email'       => isset($order['email']) ? $order['email'] : '',
+            'ip'          => $order['ip'] ?? '',
+            'email'       => $order['email'] ?? '',
         ]);
     }
 
@@ -972,8 +972,8 @@ class GarantiPos extends AbstractGateway
             'ref_ret_num' => $order['ref_ret_num'],
             'currency'    => $this->mapCurrency($order['currency']),
             'amount'      => self::amountFormat($order['amount']),
-            'ip'          => isset($order['ip']) ? $order['ip'] : '',
-            'email'       => isset($order['email']) ? $order['email'] : '',
+            'ip'          => $order['ip'] ?? '',
+            'email'       => $order['email'] ?? '',
         ];
     }
 
@@ -986,8 +986,8 @@ class GarantiPos extends AbstractGateway
             'id'          => $order['id'],
             'amount'      => self::amountFormat(1),
             'currency'    => $this->mapCurrency($order['currency']),
-            'ip'          => isset($order['ip']) ? $order['ip'] : '',
-            'email'       => isset($order['email']) ? $order['email'] : '',
+            'ip'          => $order['ip'] ?? '',
+            'email'       => $order['email'] ?? '',
             'installment' => '',
         ];
     }
@@ -1010,8 +1010,8 @@ class GarantiPos extends AbstractGateway
             'amount'      => self::amountFormat(1),
             'currency'    => $this->mapCurrency($order['currency']),
             'ref_ret_num' => $order['ref_ret_num'],
-            'ip'          => isset($order['ip']) ? $order['ip'] : '',
-            'email'       => isset($order['email']) ? $order['email'] : '',
+            'ip'          => $order['ip'] ?? '',
+            'email'       => $order['email'] ?? '',
             'installment' => '',
         ];
     }
@@ -1028,7 +1028,7 @@ class GarantiPos extends AbstractGateway
      * Make Security Data
      * @return string
      */
-    private function createSecurityData()
+    private function createSecurityData(): string
     {
         if ($this->type === $this->types[self::TX_REFUND] || $this->type === $this->types[self::TX_CANCEL]) {
             $password = $this->account->getRefundPassword();

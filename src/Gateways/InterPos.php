@@ -579,7 +579,7 @@ class InterPos extends AbstractGateway
      * todo test for success
      * @inheritDoc
      */
-    protected function mapPaymentResponse($responseData)
+    protected function mapPaymentResponse($responseData): array
     {
         $responseData   = $this->emptyStringsToNull($responseData);
         $status         = 'declined';
