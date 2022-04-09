@@ -12,7 +12,7 @@ if ($request->getMethod() !== 'POST') {
     exit();
 }
 
-$order = getNewOrder($baseUrl, $request->get('installment'));
+$order = getNewOrder($baseUrl, $ip, $session, $request->get('installment'));
 $session->set('order', $order);
 
 $card = new CreditCardVakifBank(

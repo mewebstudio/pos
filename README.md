@@ -2,23 +2,24 @@
 
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
 
-EST altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Garanti Ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
+- **EST POS** altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Akbank, TEB ve Ziraat bankası test edilmiştir.
+- **Garanti Virtual POS** ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
 
-YapıKredi Posnet sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` işlemleri test edilmedi. 
+- **YapıKredi PosNet** sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` işlemleri test edilmedi. 
 
-Finansbank'ın PayFor sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
+- **Finansbank PayFor** sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
 
-VakifBank GET 7/24 MPI ve VPOS 7/24 eklendi ama test ortami olmadigi icin test edilemedi, gelen geri donuslere gore hatalar giderilecek. 
-> EST altyapısında olan Akbank, TEB ve Ziraat bankası test edilmiştir.
+- **VakifBank GET 7/24 MPI ve VPOS 7/24** 3D Secure ödemesi çalışır durumda, diğer işlemlerde sorunlar ortaya çıktıkça giderilecek.
 
 ### Özellikler
-  - Standart E-Commerce modeliyle ödeme (model => regular)
-  - 3D modeliyle ödeme (model => 3d)
-  - 3D Pay modeliyle ödeme (model => 3d_pay)
-  - Sipariş/Ödeme sorgulama (status)
-  - Sipariş/Ödeme geçmişi sorgulama (history)
-  - Sipariş/Para iadesi yapma (refund)
-  - Sipariş iptal etme (cancel)
+  - Standart E-Commerce modeliyle ödeme (model => `regular`)
+  - 3D Secure modeliyle ödeme (model => `3d`)
+  - 3D Pay modeliyle ödeme (model => `3d_pay`)
+  - 3D Host modeliyle ödeme (model => `3d_host`)
+  - Sipariş/Ödeme sorgulama (`status`)
+  - Sipariş/Ödeme geçmişi sorgulama (`history`)
+  - Sipariş/Para iadesi yapma (`refund`)
+  - Sipariş iptal etme (`cancel`)
 
 ### Minimum Gereksinimler
   - PHP >= 7.1.3
