@@ -49,6 +49,13 @@ class InterPos extends AbstractGateway
         self::TX_STATUS   => 'StatusHistory',
     ];
 
+    protected $secureTypeMappings = [
+        self::MODEL_3D_SECURE  => '3DModel',
+        self::MODEL_3D_PAY     => '3DPay',
+        self::MODEL_3D_HOST    => '3DHost',
+        self::MODEL_NON_SECURE => 'NonSecure',
+    ];
+
     /**
      * Currency mapping
      *
@@ -245,17 +252,14 @@ class InterPos extends AbstractGateway
      */
     public function get3DFormData(): array
     {
-        $secureType = '3DHost';
         $gatewayUrl = $this->get3DHostGatewayURL();
         if (self::MODEL_3D_SECURE === $this->account->getModel()) {
-            $secureType = '3DModel';
             $gatewayUrl = $this->get3DGatewayURL();
         } elseif (self::MODEL_3D_PAY === $this->account->getModel()) {
-            $secureType = '3DPay';
             $gatewayUrl = $this->get3DGatewayURL();
         }
 
-        return $this->getCommon3DFormData($this->account, $this->order, $this->getLang(), $this->type, $secureType, $gatewayUrl, $this->card);
+        return $this->getCommon3DFormData($this->account, $this->order, $this->getLang(), $this->type, $gatewayUrl, $this->card);
     }
 
     /**
@@ -268,7 +272,7 @@ class InterPos extends AbstractGateway
             'UserPass'         => $this->account->getPassword(),
             'ShopCode'         => $this->account->getClientId(),
             'TxnType'          => $this->type,
-            'SecureType'       => 'NonSecure',
+            'SecureType'       => $this->secureTypeMappings[self::MODEL_NON_SECURE],
             'OrderId'          => $this->order->id,
             'PurchAmount'      => $this->order->amount,
             'Currency'         => $this->order->currency,
@@ -297,7 +301,7 @@ class InterPos extends AbstractGateway
             'UserPass'    => $this->account->getPassword(),
             'ShopCode'    => $this->account->getClientId(),
             'TxnType'     => $this->type,
-            'SecureType'  => 'NonSecure',
+            'SecureType'  => $this->secureTypeMappings[self::MODEL_NON_SECURE],
             'OrderId'     => null,
             'orgOrderId'  => $this->order->id,
             'PurchAmount' => $this->order->amount,
@@ -318,7 +322,7 @@ class InterPos extends AbstractGateway
             'UserPass'                => $this->account->getPassword(),
             'ClientId'                => $this->account->getClientId(),
             'TxnType'                 => $this->type,
-            'SecureType'              => 'NonSecure',
+            'SecureType'              => $this->secureTypeMappings[self::MODEL_NON_SECURE],
             'OrderId'                 => $this->order->id,
             'PurchAmount'             => $this->order->amount,
             'Currency'                => $this->order->currency,
@@ -354,7 +358,7 @@ class InterPos extends AbstractGateway
             'OrderId'    => null, //todo buraya hangi deger verilecek?
             'orgOrderId' => $this->order->id,
             'TxnType'    => $this->types[self::TX_STATUS],
-            'SecureType' => 'NonSecure',
+            'SecureType' => $this->secureTypeMappings[self::MODEL_NON_SECURE],
             'Lang'       => $this->getLang(),
         ];
 
@@ -373,7 +377,7 @@ class InterPos extends AbstractGateway
             'OrderId'    => null, //todo buraya hangi deger verilecek?
             'orgOrderId' => $this->order->id,
             'TxnType'    => $this->types[self::TX_CANCEL],
-            'SecureType' => 'NonSecure',
+            'SecureType' => $this->secureTypeMappings[self::MODEL_NON_SECURE],
             'Lang'       => $this->getLang(),
         ];
 
@@ -393,7 +397,7 @@ class InterPos extends AbstractGateway
             'orgOrderId'  => $this->order->id,
             'PurchAmount' => $this->order->amount,
             'TxnType'     => $this->types[self::TX_REFUND],
-            'SecureType'  => 'NonSecure',
+            'SecureType'  => $this->secureTypeMappings[self::MODEL_NON_SECURE],
             'Lang'        => $this->getLang(),
             'MOTO'        => '0',
         ];
@@ -714,13 +718,12 @@ class InterPos extends AbstractGateway
      * @param                         $order
      * @param string                  $lang
      * @param string                  $txType
-     * @param string                  $secureType
      * @param string                  $gatewayURL
      * @param CreditCardInterPos|null $card
      *
      * @return array
      */
-    private function getCommon3DFormData(AbstractPosAccount $account, $order, string $lang, string $txType, string $secureType, string $gatewayURL, ?CreditCardInterPos $card = null): array
+    private function getCommon3DFormData(AbstractPosAccount $account, $order, string $lang, string $txType, string $gatewayURL, ?CreditCardInterPos $card = null): array
     {
         if (!$order) {
             return [];
@@ -730,7 +733,7 @@ class InterPos extends AbstractGateway
         $inputs = [
             'ShopCode'         => $account->getClientId(),
             'TxnType'          => $txType,
-            'SecureType'       => $secureType,
+            'SecureType'       => $this->secureTypeMappings[$this->account->getModel()],
             'Hash'             => $hash,
             'PurchAmount'      => $order->amount,
             'OrderId'          => $order->id,

@@ -63,6 +63,12 @@ class GarantiPos extends AbstractGateway
         self::TX_STATUS   => 'orderinq',
     ];
 
+    protected $secureTypeMappings = [
+        self::MODEL_3D_SECURE  => '3D',
+        self::MODEL_3D_PAY     => '3D_PAY',
+        self::MODEL_3D_HOST    => null, //todo
+        self::MODEL_NON_SECURE => null, //todo
+    ];
 
     /**
      * currency mapping
@@ -205,7 +211,7 @@ class GarantiPos extends AbstractGateway
         $hashData = $this->create3DHash();
 
         $inputs = [
-            'secure3dsecuritylevel' => $this->account->getModel() === self::MODEL_3D_PAY ? '3D_PAY' : '3D',
+            'secure3dsecuritylevel' => $this->secureTypeMappings[$this->account->getModel()],
             'mode'                  => $this->getMode(),
             'apiversion'            => self::API_VERSION,
             'terminalprovuserid'    => $this->account->getUsername(),

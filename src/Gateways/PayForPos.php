@@ -79,6 +79,13 @@ class PayForPos extends AbstractGateway
         self::TX_STATUS   => 'OrderInquiry',
     ];
 
+    protected $secureTypeMappings = [
+        self::MODEL_3D_SECURE  => '3DModel',
+        self::MODEL_3D_PAY     => '3DPay',
+        self::MODEL_3D_HOST    => '3DHost',
+        self::MODEL_NON_SECURE => 'NonSecure',
+    ];
+
     /**
      * currency mapping
      *
@@ -213,13 +220,10 @@ class PayForPos extends AbstractGateway
 
         $formData = $this->getCommon3DFormData();
         if (self::MODEL_3D_PAY === $this->account->getModel()) {
-            $formData['inputs']['SecureType'] = '3DPay';
             $formData['gateway'] = $this->get3DGatewayURL();
         } elseif (self::MODEL_3D_SECURE === $this->account->getModel()) {
-            $formData['inputs']['SecureType'] = '3DModel';
             $formData['gateway'] = $this->get3DGatewayURL();
         } else {
-            $formData['inputs']['SecureType'] = '3DHost';
             $formData['gateway'] = $this->get3DHostGatewayURL();
         }
 
@@ -319,7 +323,7 @@ class PayForPos extends AbstractGateway
             'UserPass'         => $this->account->getPassword(),
             'MOTO'             => self::MOTO,
             'OrderId'          => $this->order->id,
-            'SecureType'       => 'NonSecure',
+            'SecureType'       => $this->secureTypeMappings[self::MODEL_NON_SECURE],
             'TxnType'          => $this->type,
             'PurchAmount'      => $this->order->amount,
             'Currency'         => $this->order->currency,
@@ -345,7 +349,7 @@ class PayForPos extends AbstractGateway
             'UserCode'    => $this->account->getUsername(),
             'UserPass'    => $this->account->getPassword(),
             'OrgOrderId'  => $this->order->id,
-            'SecureType'  => 'NonSecure',
+            'SecureType'  => $this->secureTypeMappings[self::MODEL_NON_SECURE],
             'TxnType'     => $this->type,
             'PurchAmount' => $this->order->amount,
             'Currency'    => $this->order->currency,
@@ -426,7 +430,7 @@ class PayForPos extends AbstractGateway
             'MerchantId'  => $this->account->getClientId(),
             'UserCode'    => $this->account->getUsername(),
             'UserPass'    => $this->account->getPassword(),
-            'SecureType'  => 'NonSecure',
+            'SecureType'  => $this->secureTypeMappings[self::MODEL_NON_SECURE],
             'Lang'        => $this->getLang(),
             'OrgOrderId'  => $this->order->id,
             'TxnType'     => $this->types[self::TX_REFUND],
@@ -448,7 +452,7 @@ class PayForPos extends AbstractGateway
             'UserCode'   => $this->account->getUsername(),
             'UserPass'   => $this->account->getPassword(),
             'OrgOrderId' => $this->order->id,
-            'SecureType' => 'NonSecure',
+            'SecureType' => $this->secureTypeMappings[self::MODEL_NON_SECURE],
             'TxnType'    => $this->types[self::TX_CANCEL],
             'Currency'   => $this->order->currency,
             'Lang'       => $this->getLang(),
@@ -657,7 +661,7 @@ class PayForPos extends AbstractGateway
             'UserCode'         => $this->account->getUsername(),
             'OrderId'          => $this->order->id,
             'Lang'             => $this->getLang(),
-            'SecureType'       => null, //to be filled by the caller
+            'SecureType'       => $this->secureTypeMappings[$this->account->getModel()],
             'TxnType'          => $this->type,
             'PurchAmount'      => $this->order->amount,
             'InstallmentCount' => $this->order->installment,
