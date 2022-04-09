@@ -9,10 +9,10 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\InterPos;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use ReflectionException;
-use ReflectionMethod;
 
+/**
+ * @covers \Mews\Pos\Gateways\InterPos
+ */
 class InterPosTest extends TestCase
 {
     /**
@@ -42,14 +42,14 @@ class InterPosTest extends TestCase
         $shopCode     = '3123';
         $merchantPass = 'gDg1N';
 
-        $this->account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount(
+        $this->account = AccountFactory::createInterPosAccount(
             'denizbank',
             $shopCode,
             $userCode,
             $userPass,
             '3d',
             $merchantPass,
-            \Mews\Pos\Gateways\InterPos::LANG_TR
+            InterPos::LANG_TR
         );
 
         $this->card = new CreditCardInterPos('5555444433332222', '21', '12', '122', 'ahmet', 'visa');
@@ -61,7 +61,7 @@ class InterPosTest extends TestCase
             'currency'    => 'TRY',
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => \Mews\Pos\Gateways\InterPos::LANG_TR,
+            'lang'        => InterPos::LANG_TR,
             'rand'        => microtime(true),
         ];
 
@@ -79,7 +79,6 @@ class InterPosTest extends TestCase
 
     public function testPrepare()
     {
-
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $this->assertEquals($this->card, $this->pos->getCard());
     }
@@ -155,6 +154,7 @@ class InterPosTest extends TestCase
     public function testGet3DHostFormData()
     {
         $account = AccountFactory::createInterPosAccount('denizbank', 'XXXXXXX', 'XXXXXXX', 'XXXXXXX', '3d_host', 'VnM5WZ3sGrPusmWP', InterPos::LANG_TR);
+        /** @var InterPos $pos */
         $pos     = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
 
@@ -214,7 +214,6 @@ class InterPosTest extends TestCase
     public function testCreateRegularPaymentXML()
     {
         $order = $this->order;
-
 
         $card = new CreditCardInterPos('5555444433332222', '22', '01', '123', 'ahmet', 'visa');
         /** @var InterPos $pos */
@@ -332,7 +331,7 @@ class InterPosTest extends TestCase
      *
      * @return array
      */
-    private function getSampleRegularPaymentXMLData($order, $card, $account)
+    private function getSampleRegularPaymentXMLData($order, CreditCardInterPos $card, InterPosAccount $account): array
     {
         $requestData = [
             'UserCode'         => $account->getUsername(),
@@ -348,12 +347,10 @@ class InterPosTest extends TestCase
             'Lang'             => $order->lang,
         ];
 
-        if ($card) {
-            $requestData['CardType'] = $card->getCardCode();
-            $requestData['Pan']      = $card->getNumber();
-            $requestData['Expiry']   = $card->getExpirationDate();
-            $requestData['Cvv2']     = $card->getCvv();
-        }
+        $requestData['CardType'] = $card->getCardCode();
+        $requestData['Pan']      = $card->getNumber();
+        $requestData['Expiry']   = $card->getExpirationDate();
+        $requestData['Cvv2']     = $card->getCvv();
 
         return $requestData;
     }
@@ -364,7 +361,7 @@ class InterPosTest extends TestCase
      *
      * @return array
      */
-    private function getSampleRegularPostXMLData($order, $account)
+    private function getSampleRegularPostXMLData($order, InterPosAccount $account): array
     {
         return [
             'UserCode'    => $account->getUsername(),
@@ -387,9 +384,9 @@ class InterPosTest extends TestCase
      *
      * @return array
      */
-    private function getSample3DPaymentXMLData($order, $account, array $responseData)
+    private function getSample3DPaymentXMLData($order, InterPosAccount $account, array $responseData): array
     {
-        $requestData = [
+        return [
             'UserCode'                => $account->getUsername(),
             'UserPass'                => $account->getPassword(),
             'ClientId'                => $account->getClientId(),
@@ -406,8 +403,6 @@ class InterPosTest extends TestCase
             'MOTO'                    => '0',
             'Lang'                    => $order->lang,
         ];
-
-        return $requestData;
     }
 
     /**
@@ -416,7 +411,7 @@ class InterPosTest extends TestCase
      *
      * @return array
      */
-    private function getSampleStatusXMLData($order, $account)
+    private function getSampleStatusXMLData($order, InterPosAccount $account): array
     {
         return [
             'UserCode'   => $account->getUsername(),
@@ -436,7 +431,7 @@ class InterPosTest extends TestCase
      *
      * @return array
      */
-    private function getSampleCancelXMLData($order, $account)
+    private function getSampleCancelXMLData($order, InterPosAccount $account): array
     {
         return [
             'UserCode'   => $account->getUsername(),
@@ -456,7 +451,7 @@ class InterPosTest extends TestCase
      *
      * @return array
      */
-    private function getSampleRefundXMLData($order, $account)
+    private function getSampleRefundXMLData($order, InterPosAccount $account): array
     {
         return [
             'UserCode'    => $account->getUsername(),
@@ -470,22 +465,5 @@ class InterPosTest extends TestCase
             'Lang'        => $account->getLang(),
             'MOTO'        => '0',
         ];
-    }
-
-
-    /**
-     * @param string $name
-     *
-     * @return ReflectionMethod
-     *
-     * @throws ReflectionException
-     */
-    private static function getProtectedMethod(string $name)
-    {
-        $class  = new ReflectionClass(InterPos::class);
-        $method = $class->getMethod($name);
-        $method->setAccessible(true);
-
-        return $method;
     }
 }
