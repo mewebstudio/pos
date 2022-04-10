@@ -19,30 +19,12 @@ $order = [
     'auth_code'     => '115394',
 ];
 */
-
-$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL);
+$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL;
+$pos->prepare($order, $transaction);
 
 // Cancel Order
 $pos->cancel();
 
 $response = $pos->getResponse();
-
-?>
-    <h4 class="text-center">NOT: Iptal islemi 12 saat (bankaya gore degisir) gecMEmis odeme icin yapilabilir</h4>
-    <div class="result">
-        <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
-            <?= $pos->isSuccess() ? 'Cancel Order is successful!' : 'Cancel Order is not successful!'; ?>
-        </h3>
-        <dl class="row">
-            <dt class="col-sm-12">All Data Dump:</dt>
-            <dd class="col-sm-12">
-                <pre><?php dump($response); ?></pre>
-            </dd>
-        </dl>
-        <hr>
-        <div class="text-right">
-            <a href="index.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
-        </div>
-    </div>
-
-<?php require '../../template/_footer.php';
+require '../../template/_simple_response_dump.php';
+require '../../template/_footer.php';

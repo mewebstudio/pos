@@ -12,28 +12,12 @@ $order = [
     'currency' => $ord['currency'],
     'ip'       => $ord['ip'],
 ];
-$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_HISTORY);
+$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_HISTORY;
+$pos->prepare($order, $transaction);
 
 // History Order
 $query = $pos->history([]);
 
 $response = $query->getResponse();
-?>
-
-    <div class="result">
-        <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
-            <?= $pos->isSuccess() ? 'History Order is successful!' : 'History Order is not successful!'; ?>
-        </h3>
-        <dl class="row">
-            <dt class="col-sm-12">All Data Dump:</dt>
-            <dd class="col-sm-12">
-                <pre><?php dump($response); ?></pre>
-            </dd>
-        </dl>
-        <hr>
-        <div class="text-right">
-            <a href="index.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
-        </div>
-    </div>
-
-<?php require '../../template/_footer.php';
+require '../../template/_simple_response_dump.php';
+require '../../template/_footer.php';
