@@ -2,8 +2,8 @@
 
 use Mews\Pos\Gateways\AbstractGateway;
 
-$templateTitle = 'Post Auth Order (Ön Provizyonu, preAuth, iptal etme';
 require '_config.php';
+$templateTitle = 'Post Auth Order (Ön Provizyonu, preAuth, iptal etme)';
 require '../../template/_header.php';
 require '../_header.php';
 

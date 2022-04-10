@@ -86,7 +86,7 @@ $response = $payment->getResponse();
             <dt class="col-sm-3">Status Detail:</dt>
             <dd class="col-sm-9"><?= $response->status_detail ?: '-'; ?></dd>
         </dl>
-        <?php if ('regular' !== $pos->getAccount()->getModel()): ?>
+        <?php if (AbstractGateway::MODEL_NON_SECURE !== $pos->getAccount()->getModel()): ?>
             <hr>
             <dl class="row">
                 <dt class="col-sm-3">Error Message:</dt>

@@ -13,7 +13,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount(
     $shopCode,
     $userCode,
     $userPass,
-    '3d',
+    \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
     $merchantPass,
     \Mews\Pos\Gateways\InterPos::LANG_TR
 );

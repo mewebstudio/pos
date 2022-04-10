@@ -13,7 +13,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createVakifBankAccount(
     $merchantId,
     $isyeriSifre,
     $terminalId,
-    'regular'
+    \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE
 );
 
 $pos = getGateway($account);

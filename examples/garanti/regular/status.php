@@ -1,7 +1,7 @@
 <?php
 
-$templateTitle = 'Order Status';
 require '_config.php';
+$templateTitle = 'Order Status';
 require '../../template/_header.php';
 require '../_header.php';
 

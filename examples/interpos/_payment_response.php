@@ -16,7 +16,9 @@ $order = $session->get('order');
 
 $pos->prepare($order, $transaction);
 
-if ($pos->getAccount()->getModel() === 'regular' && AbstractGateway::TX_POST_PAY !== $transaction) {
+if ($pos->getAccount()->getModel() === AbstractGateway::MODEL_NON_SECURE
+    && AbstractGateway::TX_POST_PAY !== $transaction
+) {
     //bu asamada $card regular/non secure odemede lazim.
     $payment = $pos->payment($card);
 } else {
@@ -84,7 +86,7 @@ $response = $payment->getResponse();
             <dt class="col-sm-3">Status Detail:</dt>
             <dd class="col-sm-9"><?= $response->status_detail ?: '-'; ?></dd>
         </dl>
-        <?php if ('regular' !== $pos->getAccount()->getModel()): ?>
+        <?php if (AbstractGateway::MODEL_NON_SECURE !== $pos->getAccount()->getModel()): ?>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">Error Message:</dt>

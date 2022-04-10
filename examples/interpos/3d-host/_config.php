@@ -15,7 +15,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount(
     $shopCode,
     $userCode,
     $userPass,
-    '3d_host',
+    \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_HOST,
     $merchantPass,
     \Mews\Pos\Gateways\InterPos::LANG_TR
 );
