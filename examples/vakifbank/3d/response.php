@@ -12,4 +12,5 @@ $card = new \Mews\Pos\Entity\Card\CreditCardVakifBank(
     $savedCard['name'],
     $savedCard['type']
 );
-require '../_payment_response.php';
+
+require '../../template/_payment_response.php';

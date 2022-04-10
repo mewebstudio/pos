@@ -2,7 +2,7 @@
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/vakifbank/3d/';
+$baseUrl = $bankTestsUrl.'/3d/';
 
 $merchantId = '000000000111111';
 $terminalId = 'VP000095';

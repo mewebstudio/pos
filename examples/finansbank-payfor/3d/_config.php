@@ -2,7 +2,7 @@
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/finansbank-payfor/3d/';
+$baseUrl = $bankTestsUrl.'/3d/';
 
 $account = \Mews\Pos\Factory\AccountFactory::createPayForAccount(
     'qnbfinansbank-payfor',

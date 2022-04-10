@@ -15,4 +15,4 @@ $card = new CreditCardGarantiPos(
     $request->get('cvv')
 );
 
-require '../_payment_response.php';
+require '../../template/_payment_response.php';

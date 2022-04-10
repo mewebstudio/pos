@@ -15,4 +15,4 @@ $card = new \Mews\Pos\Entity\Card\CreditCardEstPos(
     $request->get('type')
 );
 
-require '../_payment_response.php';
+require '../../template/_payment_response.php';

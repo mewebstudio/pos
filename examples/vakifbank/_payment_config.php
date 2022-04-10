@@ -2,6 +2,8 @@
 
 require __DIR__.'/../_main_config.php';
 
+$bankTestsUrl = $hostUrl.'/vakifbank';
+
 $installments = [
     0  => 'Peşin',
     2  => '2 Taksit',
@@ -45,6 +47,18 @@ function getNewOrder(
     }
 
     return $order;
+}
+
+function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+{
+    if (\Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY !== $transaction) {
+        /**
+         * diger banklaradan farkli olarak 3d islemler icin de Vakifbank bu asamada kredi kart bilgileri istiyor
+         */
+        $pos->payment($card);
+    } else {
+        $pos->payment();
+    }
 }
 
 $testCards = [

@@ -2,6 +2,8 @@
 
 require __DIR__.'/../_main_config.php';
 
+$bankTestsUrl = $hostUrl.'/interpos';
+
 $installments = [
     0  => 'Peşin',
     2  => '2 Taksit',
@@ -11,7 +13,7 @@ $installments = [
 
 function getNewOrder(string $baseUrl, ?int $installment = 0)
 {
-    $amount = 320.00;
+    $amount = 30.0;
 
     $successUrl = $baseUrl.'response.php';
     $failUrl = $baseUrl.'response.php';
@@ -35,6 +37,18 @@ function getNewOrder(string $baseUrl, ?int $installment = 0)
     ];
 
     return $order;
+}
+
+function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+{
+    if ($pos->getAccount()->getModel() === \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE
+        && \Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY !== $transaction
+    ) {
+        //bu asamada $card regular/non secure odemede lazim.
+        $pos->payment($card);
+    } else {
+        $pos->payment();
+    }
 }
 
 $testCards = [

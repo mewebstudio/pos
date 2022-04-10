@@ -7,7 +7,7 @@ require '../_header.php';
 
 use Mews\Pos\Gateways\AbstractGateway;
 
-$baseUrl = $hostUrl.'/akbank/regular/';
+$baseUrl = $bankTestsUrl.'/regular/';
 
 $ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip);
 

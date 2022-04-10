@@ -5,7 +5,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/ykb/3d/';
+$baseUrl = $hostUrl.'/3d/';
 
 $account = AccountFactory::createPosNetAccount(
     'yapikredi',

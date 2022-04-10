@@ -4,7 +4,7 @@ use Mews\Pos\Factory\AccountFactory;
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/garanti/3d/';
+$baseUrl = $bankTestsUrl.'/3d/';
 
 $account = AccountFactory::createGarantiPosAccount(
     'garanti',

@@ -2,7 +2,7 @@
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/interpos/regular/';
+$baseUrl = $bankTestsUrl.'/regular/';
 
 $userCode =  'InterTestApi';
 $userPass = '3';

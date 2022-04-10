@@ -2,7 +2,7 @@
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/interpos/3d-pay/';
+$baseUrl = $bankTestsUrl.'/3d-pay/';
 
 $userCode =  'InterTestApi';
 $userPass = '3';

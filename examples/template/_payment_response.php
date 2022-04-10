@@ -16,16 +16,10 @@ $order = $session->get('order');
 
 $pos->prepare($order, $transaction);
 
-if ($pos->getAccount()->getModel() === AbstractGateway::MODEL_NON_SECURE
-    && AbstractGateway::TX_POST_PAY !== $transaction
-) {
-    //bu asamada $card regular/non secure odemede lazim.
-    $payment = $pos->payment($card);
-} else {
-    $payment = $pos->payment();
-}
+doPayment($pos, $transaction, $card);
 
-$response = $payment->getResponse();
+$response = $pos->getResponse();
+
 ?>
 
     <div class="result">
@@ -36,12 +30,6 @@ $response = $payment->getResponse();
                 <?= $pos->isSuccess() ? 'Pre Authorization is successful!' : 'Pre Authorization is not successful!'; ?>
             <?php endif; ?>
         </h3>
-
-        <hr>
-        <dl class="row">
-            <dt class="col-sm-3">Response:</dt>
-            <dd class="col-sm-9"><?= $response->response; ?></dd>
-        </dl>
         <hr>
         <dl class="row">
             <dt class="col-sm-3">Status:</dt>
@@ -129,16 +117,16 @@ $response = $payment->getResponse();
         <div class="text-right">
             <?php if ($pos->isSuccess()) : ?>
                 <?php if (AbstractGateway::TX_PRE_PAY === $transaction) : ?>
-                    <a href="post-auth.php" class="btn btn-lg btn-primary">Finish provisioning
+                    <a href="<?= $bankTestsUrl ?>/regular/post-auth.php" class="btn btn-lg btn-primary">Finish provisioning
                         ></a>
                 <?php endif; ?>
                 <?php if (AbstractGateway::TX_PAY === $transaction) : ?>
-                    <a href="cancel.php" class="btn btn-lg btn-danger">Cancel payment</a>
+                    <a href="<?= $bankTestsUrl ?>/regular/cancel.php" class="btn btn-lg btn-danger">Cancel payment</a>
                 <?php endif; ?>
-                <a href="status.php" class="btn btn-lg btn-default">Order Status</a>
+                <a href="<?= $bankTestsUrl ?>/regular/status.php" class="btn btn-lg btn-default">Order Status</a>
             <?php endif; ?>
             <a href="index.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
         </div>
     </div>
 
-<?php require '../../template/_footer.php';
+<?php require __DIR__.'/_footer.php';

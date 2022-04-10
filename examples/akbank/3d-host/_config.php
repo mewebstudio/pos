@@ -2,7 +2,7 @@
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/akbank/3d-host/';
+$baseUrl = $bankTestsUrl.'/3d-host/';
 
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank',

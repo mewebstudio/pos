@@ -2,6 +2,8 @@
 
 require __DIR__.'/../_main_config.php';
 
+$bankTestsUrl = $hostUrl.'/ykb';
+
 $installments = [
     0  => 'Peşin',
     2  => '2 Taksit',
@@ -30,6 +32,18 @@ function getNewOrder(
     ];
 
     return $order;
+}
+
+function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+{
+    if ($pos->getAccount()->getModel() === \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE
+        && \Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY !== $transaction
+    ) {
+        //bu asamada $card regular/non secure odemede lazim.
+        $pos->payment($card);
+    } else {
+        $pos->payment();
+    }
 }
 
 $testCards = [

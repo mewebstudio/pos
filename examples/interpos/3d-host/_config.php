@@ -2,7 +2,7 @@
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/interpos/3d-host/';
+$baseUrl = $bankTestsUrl.'/3d-host/';
 
 //$userCode ve $userPass 3d-host odemede kullanilmiyor.
 $userCode =  '';
