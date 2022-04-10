@@ -1,25 +1,28 @@
 <?php
 
 require '_config.php';
-
 $templateTitle = 'History Order';
-
 require '../../template/_header.php';
+require '../_header.php';
+
+$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip);
+
+$order = [
+    'id'       => $ord['id'],
+    'currency' => $ord['currency'],
+    'ip'       => $ord['ip'],
+];
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_HISTORY);
 
 // History Order
-$pos->history([
-    'order_id' => '2018111377EF',
-    'currency' => 'TRY',
-    'ip'       => $ip,
-]);
+$query = $pos->history([]);
 
-$response = $pos->getResponse();
+$response = $query->getResponse();
 ?>
 
     <div class="result">
-        <h3 class="text-center text-<?= $response->proc_return_code === '00' ? 'success' : 'danger'; ?>">
-            <?= $response->proc_return_code === '00' ? 'History Order is successful!' : 'History Order is not successful!'; ?>
-            <?= $response->proc_return_code === '00' ? 'History Order is successful!' : 'History Order is not successful!'; ?>
+        <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
+            <?= $pos->isSuccess() ? 'History Order is successful!' : 'History Order is not successful!'; ?>
         </h3>
         <dl class="row">
             <dt class="col-sm-12">All Data Dump:</dt>

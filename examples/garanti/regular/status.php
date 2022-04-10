@@ -1,29 +1,31 @@
 <?php
 
+$templateTitle = 'Order Status';
+require '_config.php';
+require '../../template/_header.php';
+require '../_header.php';
+
 use Mews\Pos\Gateways\AbstractGateway;
 
-require '_config.php';
-
-$templateTitle = 'Order Status';
-
-require '../../template/_header.php';
+$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip);
 
 $order = [
-    'id'       => '201812195CF2',
-    'currency' => 'TRY',
-    'ip'       => $ip,
+    'id'       => $ord['id'],
+    'currency' => $ord['currency'],
+    'ip'       => $ord['ip'],
 ];
 
 $pos->prepare($order, AbstractGateway::TX_STATUS);
-// Query Order
+
 $pos->status();
 
 $response = $pos->getResponse();
+
 ?>
 
     <div class="result">
-        <h3 class="text-center text-<?= $response->proc_return_code == '00' ? 'success' : 'danger'; ?>">
-            <?= $response->proc_return_code == '00' ? 'Query Order is successful!' : 'Query Order is not successful!'; ?>
+        <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
+            <?= $pos->isSuccess() ? 'Query Order is successful!' : 'Query Order is not successful!'; ?>
         </h3>
         <dl class="row">
             <dt class="col-sm-12">All Data Dump:</dt>

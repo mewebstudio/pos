@@ -30,6 +30,7 @@
                 <li> <a href="<?= $hostUrl ?>/vakifbank/index.php">VPOS (VakifBank bank)</a></li>
                 <li> <a href="<?= $hostUrl ?>/akbank/index.php">EST POS</a></li>
                 <li> <a href="<?= $hostUrl ?>/finansbank-payfor/index.php">PayFor (Finansbank)</a></li>
+                <li> <a href="<?= $hostUrl ?>/garanti/index.php">Garanti POS</a></li>
             </ul>
         </nav>
     </div>
