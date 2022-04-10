@@ -12,7 +12,12 @@ if ($request->getMethod() !== 'POST' && AbstractGateway::TX_POST_PAY !== $transa
     exit();
 }
 
-$order = $session->get('order');
+if (AbstractGateway::TX_POST_PAY === $transaction) {
+    $order = $session->get('post_order');
+} else {
+    $order = $session->get('order');
+}
+
 
 $pos->prepare($order, $transaction);
 
