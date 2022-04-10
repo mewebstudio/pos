@@ -3,22 +3,24 @@
 use Mews\Pos\Gateways\AbstractGateway;
 
 require '_config.php';
-
 $templateTitle = 'Refund Order';
-
 require '../../template/_header.php';
+require '../_header.php';
+
+$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl);
 
 $pos->prepare([
-    'id'       => '20181113DCDB',
-    'amount'   => '1',
-    'currency' => 'TRY',
+    'id'       => $ord['id'],
+    'amount'   => $ord['amount'],
+    'currency' => $ord['currency'],
 ], AbstractGateway::TX_REFUND);
+
 // Refund Order
 $pos->refund();
 
 $response = $pos->getResponse();
 ?>
-
+    <h4 class="text-center">NOT: Iade islemi 12 saati (bankaya gore degisir) gecmis odeme icin yapilabilir</h4>
     <div class="result">
         <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
             <?= $pos->isSuccess() ? 'Refund Order is successful!' : 'Refund Order is not successful!'; ?>

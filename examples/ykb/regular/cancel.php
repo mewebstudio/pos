@@ -1,18 +1,15 @@
 <?php
 
 require '_config.php';
-
 $templateTitle = 'Cancel Order';
-
 require '../../template/_header.php';
+require '../_header.php';
+
+$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl);
 
 $order = [
-    'id' => '201811133F3F',
+    'id' => $ord['id'],
 ];
-$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL);
-
-// Cancel Order
-$pos->cancel();
 
 /*
 // faster params...
@@ -21,14 +18,17 @@ $order = [
     'host_ref_num'  => '018711539490000181',
     'auth_code'     => '115394',
 ];
-$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL);
-
-$pos->cancel();
 */
 
-$response = $pos->getResponse();
-?>
+$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL);
 
+// Cancel Order
+$pos->cancel();
+
+$response = $pos->getResponse();
+
+?>
+    <h4 class="text-center">NOT: Iptal islemi 12 saat (bankaya gore degisir) gecMEmis odeme icin yapilabilir</h4>
     <div class="result">
         <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
             <?= $pos->isSuccess() ? 'Cancel Order is successful!' : 'Cancel Order is not successful!'; ?>

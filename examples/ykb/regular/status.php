@@ -3,13 +3,14 @@
 use Mews\Pos\Gateways\AbstractGateway;
 
 require '_config.php';
-
 $templateTitle = 'Order Status';
-
 require '../../template/_header.php';
+require '../_header.php';
+
+$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl);
 
 $order = [
-    'id' => '201811133F3F',
+    'id' => $ord['id'],
 ];
 $pos->prepare($order, AbstractGateway::TX_STATUS);
 
