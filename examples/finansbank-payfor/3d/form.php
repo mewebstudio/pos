@@ -28,6 +28,5 @@ $pos->prepare($order, $transaction, $card);
 
 $formData = $pos->get3DFormData();
 
-require '../_redirect_form.php';
-
+require '../../template/_redirect_form.php';
 require '../../template/_footer.php';

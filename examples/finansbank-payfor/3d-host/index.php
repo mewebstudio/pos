@@ -11,5 +11,5 @@ $pos->prepare($order, $transaction);
 
 $formData = $pos->get3DFormData();
 
-require '../_redirect_form.php';
+require '../../template/_redirect_form.php';
 require '../../template/_footer.php';

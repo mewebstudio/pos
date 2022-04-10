@@ -43,5 +43,5 @@ try {
     dd($e);
 }
 
-require '../_redirect_form.php';
+require '../../template/_redirect_form.php';
 require '../../template/_footer.php';
