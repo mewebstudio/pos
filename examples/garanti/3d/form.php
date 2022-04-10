@@ -1,8 +1,6 @@
 <?php
 
 use Mews\Pos\Entity\Card\CreditCardGarantiPos;
-use Mews\Pos\Gateways\AbstractGateway;
-use Mews\Pos\Gateways\GarantiPos;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 require '_config.php';

@@ -61,7 +61,7 @@ function getNewOrder(
 
 $testCards = [
     'visa1' => new \Mews\Pos\Entity\Card\CreditCardGarantiPos(
-        '4022774022774026',
+        '4090700101174272',
         30,
         12,
         '000',
