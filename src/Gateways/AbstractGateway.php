@@ -230,11 +230,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function isSuccess(): bool
     {
-        if (isset($this->response) && 'approved' === $this->response->status) {
-            return true;
-        }
-
-        return false;
+        return isset($this->response->status) && 'approved' === $this->response->status;
     }
 
     /**

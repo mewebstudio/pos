@@ -428,7 +428,7 @@ class EstPos extends AbstractGateway
             'Name'     => $this->account->getUsername(),
             'Password' => $this->account->getPassword(),
             'ClientId' => $this->account->getClientId(),
-            'OrderId'  => $this->order->id,
+            'OrderId'  => $customQueryData['order_id'],
             'Extra'    => [
                 $this->types[self::TX_HISTORY] => 'QUERY',
             ],

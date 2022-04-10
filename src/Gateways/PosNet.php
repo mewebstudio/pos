@@ -237,7 +237,7 @@ class PosNet extends AbstractGateway
 
         $data = $this->getOosTransactionData();
         if (!$data->approved) {
-            throw new \Exception($data->respText);
+            throw new \Exception($data->respText, $data->respCode);
         }
 
         $inputs = [
@@ -1016,6 +1016,7 @@ class PosNet extends AbstractGateway
         }
 
         return (object) [
+            'id'           => self::formatOrderId($order['id']),
             'host_ref_num' => $order['host_ref_num'],
             'amount'       => self::amountFormat($order['amount']),
             'currency'     => $this->mapCurrency($order['currency']),
