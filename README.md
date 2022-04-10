@@ -176,6 +176,15 @@ $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeni_ayarlar);
 ### Örnek Kodlar
 `./pos/examples` dizini içerisinde.
 
+3D ödeme örnek kodlar genel olarak kart bilgilerini website sunucusuna POST eder (`index.php` => `form.php`),
+ondan sonra da işlenip gateway'e yönlendiriliyor.
+Bu şekilde farklı bankalar arası implementation degişmemesi sağlanmakta (ortak kredi kart formu ve aynı işlem akışı).
+Genel olarak kart bilgilerini, website sunucusuna POST yapmadan,
+direk gateway'e yönlendirecek şekilde kullanılabilinir (genelde, banka örnek kodları bu şekilde implement edilmiş).
+Fakat,
+- birden fazla bank seçenegi olunca veya müşteri banka degiştirmek istediginde kart bilgi formunu ona göre güncellemeniz gerekecek.
+- üstelik YKB POSNet ve VakıfBank POS kart bilgilerini website sunucusu tarafından POST edilmesini gerektiriyor.
+
 ### Docker ile test ortamı
 Makinenizde Docker kurulu olmasi gerekiyor. 
 Projenin root klasöründe `docker-compose up` komutu çalıştırmanız yeterli.
