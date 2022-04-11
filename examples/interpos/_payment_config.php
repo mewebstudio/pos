@@ -1,8 +1,42 @@
 <?php
 
+use Mews\Pos\Gateways\AbstractGateway;
+
 require __DIR__.'/../_main_config.php';
 
 $bankTestsUrl = $hostUrl.'/interpos';
+
+$subMenu = [
+    AbstractGateway::MODEL_3D_SECURE => [
+        'path' => '/3d/index.php',
+        'label' => '3D Ödeme',
+    ],
+    AbstractGateway::MODEL_3D_PAY => [
+        'path' => '/3d-pay/index.php',
+        'label' => '3D Pay Ödeme',
+    ],
+    AbstractGateway::MODEL_3D_HOST => [
+        'path' => '/3d-host/index.php',
+        'label' => '3D Host Ödeme',
+    ],
+    AbstractGateway::MODEL_NON_SECURE => [
+        'path' => '/regular/index.php',
+        'label' => 'Non Secure Ödeme',
+    ],
+    AbstractGateway::TX_STATUS => [
+        'path' => '/regular/status.php',
+        'label' => 'Ödeme Durumu',
+    ],
+    AbstractGateway::TX_CANCEL => [
+        'path' => '/regular/cancel.php',
+        'label' => 'İptal',
+    ],
+    AbstractGateway::TX_REFUND => [
+        'path' => '/regular/refund.php',
+        'label' => 'İade',
+    ],
+];
+
 
 $installments = [
     0  => 'Peşin',

@@ -2,10 +2,9 @@
 
 use Mews\Pos\Gateways\AbstractGateway;
 
-$templateTitle = 'Refund Order';
 require '_config.php';
+$templateTitle = 'Refund Order';
 require '../../template/_header.php';
-require '../_header.php';
 
 $ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl);
 

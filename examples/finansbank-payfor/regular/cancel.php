@@ -3,7 +3,6 @@
 $templateTitle = 'Cancel Order';
 require '_config.php';
 require '../../template/_header.php';
-require '../_header.php';
 
 use Mews\Pos\Gateways\AbstractGateway;
 

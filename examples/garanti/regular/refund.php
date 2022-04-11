@@ -3,7 +3,6 @@
 require '_config.php';
 $templateTitle = 'Refund Order';
 require '../../template/_header.php';
-require '../_header.php';
 
 use Mews\Pos\Gateways\AbstractGateway;
 

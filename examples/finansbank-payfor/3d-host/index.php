@@ -2,7 +2,6 @@
 
 require '_config.php';
 require '../../template/_header.php';
-require '../_header.php';
 
 $order = getNewOrder($baseUrl, $ip);
 $session->set('order', $order);

@@ -2,10 +2,9 @@
 
 use Mews\Pos\Gateways\AbstractGateway;
 
-$templateTitle = 'Cancel Order';
 require '_config.php';
+$templateTitle = 'Cancel Order';
 require '../../template/_header.php';
-require '../_header.php';
 
 $order = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip, $session);
 

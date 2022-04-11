@@ -40,3 +40,12 @@
     <div class="container" style="max-width: 640px;">
         <h2 class="text-center"><?= $templateTitle; ?></h2>
         <hr>
+        <nav class="collapse navbar-collapse" id="sub-navbar">
+            <ul class="nav navbar-nav">
+                <?php foreach ($subMenu as $menu): ?>
+                    <li> <a href="<?= $bankTestsUrl ?><?= $menu['path']; ?>"><?= $menu['label']; ?></a></li>
+                <?php endforeach; ?>
+            </ul>
+        </nav>
+        <hr>
+

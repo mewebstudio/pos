@@ -5,7 +5,6 @@ use Mews\Pos\Gateways\AbstractGateway;
 $templateTitle = 'Order Status';
 require '_config.php';
 require '../../template/_header.php';
-require '../_header.php';
 
 $ord = $session->get('order');
 
