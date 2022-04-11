@@ -3,6 +3,7 @@
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
 
 - **EST POS** altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Akbank, TEB ve Ziraat bankası test edilmiştir.
+
 - **Garanti Virtual POS** ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
 
 - **YapıKredi PosNet** sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` işlemleri test edilmedi. 
@@ -10,6 +11,8 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - **Finansbank PayFor** sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
 
 - **VakifBank GET 7/24 MPI ve VPOS 7/24** 3D Secure ödemesi çalışır durumda, diğer işlemlerde sorunlar ortaya çıktıkça giderilecek.
+
+- **InterPOS (Deniz bank)** destegi eklenmistir, test edildikce, sorunlari bulundukca hatalar giderilecek.
 
 ### Özellikler
   - Standart E-Commerce modeliyle ödeme (model => `regular`)
@@ -84,7 +87,7 @@ $order = [
     'name'          => 'John Doe', // zorunlu değil
     'email'         => 'mail@customer.com', // zorunlu değil
     'user_id'       => '12', // zorunlu değil
-    'amount'        => (float) 20, // Sipariş tutarı
+    'amount'        => 20.0, // Sipariş tutarı
     'installment'   => '0',
     'currency'      => 'TRY',
     'ip'            => $ip,
@@ -172,6 +175,15 @@ $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeni_ayarlar);
 
 ### Örnek Kodlar
 `./pos/examples` dizini içerisinde.
+
+3D ödeme örnek kodlar genel olarak kart bilgilerini website sunucusuna POST eder (`index.php` => `form.php`),
+ondan sonra da işlenip gateway'e yönlendiriliyor.
+Bu şekilde farklı bankalar arası implementation degişmemesi sağlanmakta (ortak kredi kart formu ve aynı işlem akışı).
+Genel olarak kart bilgilerini, website sunucusuna POST yapmadan,
+direk gateway'e yönlendirecek şekilde kullanılabilinir (genelde, banka örnek kodları bu şekilde implement edilmiş).
+Fakat,
+- birden fazla bank seçenegi olunca veya müşteri banka degiştirmek istediginde kart bilgi formunu ona göre güncellemeniz gerekecek.
+- üstelik YKB POSNet ve VakıfBank POS kart bilgilerini website sunucusu tarafından POST edilmesini gerektiriyor.
 
 ### Docker ile test ortamı
 Makinenizde Docker kurulu olmasi gerekiyor. 

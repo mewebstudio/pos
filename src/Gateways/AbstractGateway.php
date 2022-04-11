@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Mews\Pos\Gateways;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -11,11 +10,13 @@ use Mews\Pos\PosInterface;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 /**
+ * todo we need to update request data code base to return array instead of XML, because some providers does not use XML.
+ *  for example createRefundXML() this method will be createRefund() and return array.
+ *  Then it will be converted to XML in some other place if needed
  * Class AbstractGateway
  */
 abstract class AbstractGateway implements PosInterface
 {
-
     const TX_PAY = 'pay';
     const TX_PRE_PAY = 'pre';
     const TX_POST_PAY = 'post';
@@ -23,6 +24,11 @@ abstract class AbstractGateway implements PosInterface
     const TX_REFUND = 'refund';
     const TX_STATUS = 'status';
     const TX_HISTORY = 'history';
+
+    const MODEL_3D_SECURE = '3d';
+    const MODEL_3D_PAY = '3d_pay';
+    const MODEL_3D_HOST = '3d_host';
+    const MODEL_NON_SECURE = 'regular';
 
     private $config;
 
@@ -90,7 +96,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @param                    $config
      * @param AbstractPosAccount $account
-     * @param array              $currencies
+     * @param array|null         $currencies
      */
     public function __construct($config, $account, ?array $currencies)
     {
@@ -145,7 +151,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @return array
      */
-    public function getCurrencies()
+    public function getCurrencies(): array
     {
         return $this->currencies;
     }
@@ -206,9 +212,9 @@ abstract class AbstractGateway implements PosInterface
      *
      * @param $data
      *
-     * @return null|string
+     * @return string|null
      */
-    public function printData($data)
+    public function printData($data): ?string
     {
         if ((is_object($data) || is_array($data)) && !count((array) $data)) {
             $data = null;
@@ -222,13 +228,9 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return bool
      */
-    public function isSuccess()
+    public function isSuccess(): bool
     {
-        if (isset($this->response) && 'approved' === $this->response->status) {
-            return true;
-        }
-
-        return false;
+        return isset($this->response->status) && 'approved' === $this->response->status;
     }
 
     /**
@@ -236,7 +238,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return bool
      */
-    public function isError()
+    public function isError(): bool
     {
         return !$this->isSuccess();
     }
@@ -259,7 +261,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @return string
      */
-    public function getApiURL()
+    public function getApiURL(): string
     {
         return $this->config['urls'][$this->getModeInWord()];
     }
@@ -267,15 +269,15 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @return string
      */
-    public function get3DGatewayURL()
+    public function get3DGatewayURL(): string
     {
         return $this->config['urls']['gateway'][$this->getModeInWord()];
     }
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function get3DHostGatewayURL()
+    public function get3DHostGatewayURL(): ?string
     {
         return isset($this->config['urls']['gateway_3d_host'][$this->getModeInWord()]) ? $this->config['urls']['gateway_3d_host'][$this->getModeInWord()] : null;
     }
@@ -311,13 +313,13 @@ abstract class AbstractGateway implements PosInterface
 
         $model = $this->account->getModel();
 
-        if ('regular' === $model) {
+        if (self::MODEL_NON_SECURE === $model) {
             $this->makeRegularPayment();
-        } elseif ('3d' === $model) {
+        } elseif (self::MODEL_3D_SECURE === $model) {
             $this->make3DPayment();
-        } elseif ('3d_pay' === $model) {
+        } elseif (self::MODEL_3D_PAY === $model) {
             $this->make3DPayPayment();
-        } elseif ('3d_host' === $model) {
+        } elseif (self::MODEL_3D_HOST === $model) {
             $this->make3DHostPayment();
         } else {
             throw new UnsupportedPaymentModelException();
@@ -418,7 +420,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function mapCurrency(string $currency): string
     {
-        return isset($this->currencies[$currency]) ? $this->currencies[$currency] : $currency;
+        return $this->currencies[$currency] ?? $currency;
     }
 
     /**
@@ -428,7 +430,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function mapRecurringFrequency(string $period): string
     {
-        return isset($this->recurringOrderFrequencyMapping[$period]) ? $this->recurringOrderFrequencyMapping[$period] : $period;
+        return $this->recurringOrderFrequencyMapping[$period] ?? $period;
     }
 
     /**
@@ -486,7 +488,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return array
      */
-    abstract public function get3DFormData();
+    abstract public function get3DFormData(): array;
 
     /**
      * prepares order for payment request
@@ -543,8 +545,8 @@ abstract class AbstractGateway implements PosInterface
     abstract protected function prepareRefundOrder(array $order);
 
     /**
-     * @param array  $raw3DAuthResponseData response from 3D authentication
-     * @param object $rawPaymentResponseData
+     * @param array        $raw3DAuthResponseData  response from 3D authentication
+     * @param object|array $rawPaymentResponseData
      *
      * @return object
      */
@@ -560,11 +562,11 @@ abstract class AbstractGateway implements PosInterface
     /**
      * Processes regular payment response data
      *
-     * @param object $responseData
+     * @param object|array $responseData
      *
      * @return array
      */
-    abstract protected function mapPaymentResponse($responseData);
+    abstract protected function mapPaymentResponse($responseData): array;
 
     /**
      * @param $rawResponseData
@@ -599,7 +601,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return array
      */
-    protected function getDefaultPaymentResponse()
+    protected function getDefaultPaymentResponse(): array
     {
         return [
             'id'               => null,
@@ -615,6 +617,7 @@ abstract class AbstractGateway implements PosInterface
             'status_detail'    => null,
             'error_code'       => null,
             'error_message'    => null,
+            'response'         => null,
             'all'              => null,
         ];
     }
@@ -624,7 +627,7 @@ abstract class AbstractGateway implements PosInterface
      * usually accepted values are tr,en
      * @return string
      */
-    protected function getLang()
+    protected function getLang(): string
     {
         if ($this->order && isset($this->order->lang)) {
             return $this->order->lang;
@@ -638,7 +641,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return bool
      */
-    protected function isHTML($str)
+    protected function isHTML($str): bool
     {
         return $str !== strip_tags($str);
     }
@@ -647,7 +650,7 @@ abstract class AbstractGateway implements PosInterface
      * return values are used as a key in config file
      * @return string
      */
-    private function getModeInWord()
+    private function getModeInWord(): string
     {
         return !$this->isTestMode() ? 'production' : 'test';
     }

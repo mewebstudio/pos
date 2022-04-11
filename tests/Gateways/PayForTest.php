@@ -43,7 +43,14 @@ class PayForTest extends TestCase
 
         $this->config = require __DIR__.'/../../config/pos.php';
 
-        $this->threeDAccount = AccountFactory::createPayForAccount('qnbfinansbank-payfor', '085300000009704', 'QNB_API_KULLANICI_3DPAY', 'UcBN0', '3d', '12345678');
+        $this->threeDAccount = AccountFactory::createPayForAccount(
+            'qnbfinansbank-payfor',
+            '085300000009704',
+            'QNB_API_KULLANICI_3DPAY',
+            'UcBN0',
+            AbstractGateway::MODEL_3D_SECURE,
+            '12345678'
+        );
 
         $this->card = new CreditCardPayFor('5555444433332222', '22', '01', '123', 'ahmet');
 

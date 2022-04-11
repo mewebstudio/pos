@@ -1,36 +1,22 @@
 <?php
 
 require '_config.php';
-
 $templateTitle = 'History Order';
-
 require '../../template/_header.php';
 
+$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip);
+
+$order = [
+    'id'       => $ord['id'],
+    'currency' => $ord['currency'],
+    'ip'       => $ord['ip'],
+];
+$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_HISTORY;
+$pos->prepare($order, $transaction);
+
 // History Order
-$pos->history([
-    'order_id' => '2018111377EF',
-    'currency' => 'TRY',
-    'ip'       => $ip,
-]);
+$query = $pos->history([]);
 
-$response = $pos->getResponse();
-?>
-
-    <div class="result">
-        <h3 class="text-center text-<?= $response->proc_return_code === '00' ? 'success' : 'danger'; ?>">
-            <?= $response->proc_return_code === '00' ? 'History Order is successful!' : 'History Order is not successful!'; ?>
-            <?= $response->proc_return_code === '00' ? 'History Order is successful!' : 'History Order is not successful!'; ?>
-        </h3>
-        <dl class="row">
-            <dt class="col-sm-12">All Data Dump:</dt>
-            <dd class="col-sm-12">
-                <pre><?php dump($response); ?></pre>
-            </dd>
-        </dl>
-        <hr>
-        <div class="text-right">
-            <a href="index.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
-        </div>
-    </div>
-
-<?php require '../../template/_footer.php';
+$response = $query->getResponse();
+require '../../template/_simple_response_dump.php';
+require '../../template/_footer.php';

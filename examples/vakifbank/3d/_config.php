@@ -2,9 +2,7 @@
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/vakifbank/3d/';
-
-$successUrl = $failUrl = $baseUrl.'response.php';
+$baseUrl = $bankTestsUrl.'/3d/';
 
 $merchantId = '000000000111111';
 $terminalId = 'VP000095';
@@ -14,7 +12,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createVakifBankAccount(
     $merchantId,
     $isyeriSifre,
     $terminalId,
-    '3d'
+    \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE
 );
 
 $pos = getGateway($account);

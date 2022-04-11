@@ -229,30 +229,30 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData()
+    public function get3DFormData(): array
     {
         if (!$this->card || !$this->order) {
             return [];
         }
 
         $data = $this->getOosTransactionData();
-        if(!$data->approved){
-            throw new \Exception($data->respText);
+        if (!$data->approved) {
+            throw new \Exception($data->respText, $data->respCode);
         }
 
         $inputs = [
-            'posnetData'        => isset($data->oosRequestDataResponse->data1) ? $data->oosRequestDataResponse->data1 : '',
-            'posnetData2'       => isset($data->oosRequestDataResponse->data2) ? $data->oosRequestDataResponse->data2 : '',
+            'posnetData'        => $data->oosRequestDataResponse->data1 ?? '',
+            'posnetData2'       => $data->oosRequestDataResponse->data2 ?? '',
             'mid'               => $this->account->getClientId(),
             'posnetID'          => $this->account->getPosNetId(),
-            'digest'            => isset($data->oosRequestDataResponse->sign) ? $data->oosRequestDataResponse->sign : '',
-            'vftCode'           => isset($this->account->promotion_code) ? $this->account->promotion_code : null,
+            'digest'            => $data->oosRequestDataResponse->sign ?? '',
+            'vftCode'           => $this->account->promotion_code ?? null,
             'merchantReturnURL' => $this->order->success_url,
             'url'               => '',
             'lang'              => $this->getLang(),
         ];
 
-        if(isset($this->order->koiCode) && $this->order->koiCode > 0){
+        if (isset($this->order->koiCode) && $this->order->koiCode > 0) {
             $inputs['useJokerVadaa'] = 1;
         }
 
@@ -308,29 +308,17 @@ class PosNet extends AbstractGateway
     }
 
     /**
-     * Hash string
-     *
-     * @param string $str
-     *
-     * @return string
-     */
-    public function hashString(string $str)
-    {
-        return base64_encode(hash('sha256', $str, true));
-    }
-
-    /**
      * Create 3D Hash (MAC)
      *
      * @return string
      */
-    public function create3DHash()
+    public function create3DHash(): string
     {
         $hashStr = '';
         $glue = ';';
         $firstHash = $this->hashString($this->account->getStoreKey().$glue.$this->account->getTerminalId());
 
-        if ($this->account->getModel() === '3d' || $this->account->getModel() === '3d_pay') {
+        if ($this->account->getModel() === self::MODEL_3D_SECURE || $this->account->getModel() === self::MODEL_3D_PAY) {
             $hashStr = $this->hashString(implode($glue, [self::formatOrderId($this->order->id), $this->order->amount, $this->order->currency, $this->account->getClientId(), $firstHash]));
         }
 
@@ -342,15 +330,15 @@ class PosNet extends AbstractGateway
      *
      * @param mixed $data oosResolveMerchantDataResponse
      *
-     * @return boolean
+     * @return bool
      */
-    public function verifyResponseMAC($data)
+    public function verifyResponseMAC($data): bool
     {
         $hashStr = '';
         $glue = ';';
         $firstHash = $this->hashString($this->account->getStoreKey().$glue.$this->account->getTerminalId());
 
-        if ($this->account->getModel() === '3d' || $this->account->getModel() === '3d_pay') {
+        if ($this->account->getModel() === self::MODEL_3D_SECURE || $this->account->getModel() === self::MODEL_3D_PAY) {
             $hashStr = $this->hashString(implode($glue, [$data->mdStatus, self::formatOrderId($this->order->id), $this->order->amount, $this->order->currency, $this->account->getClientId(), $firstHash]));
         }
 
@@ -360,12 +348,12 @@ class PosNet extends AbstractGateway
     /**
      * formats order id by adding 0 pad to the left
      *
-     * @param     $orderId
-     * @param int $padLength
+     * @param          $orderId
+     * @param int|null $padLength
      *
      * @return string
      */
-    public static function formatOrderId($orderId, int $padLength = null)
+    public static function formatOrderId($orderId, int $padLength = null): string
     {
         if (null === $padLength) {
             $padLength = self::ORDER_ID_LENGTH;
@@ -398,12 +386,12 @@ class PosNet extends AbstractGateway
      *
      * @return string
      */
-    public static function mapOrderIdToPrefixedOrderId(string $orderId, string $accountModel)
+    public static function mapOrderIdToPrefixedOrderId(string $orderId, string $accountModel): string
     {
         $prefix = self::ORDER_ID_REGULAR_PREFIX;
-        if ('3d' === $accountModel) {
+        if (self::MODEL_3D_SECURE === $accountModel) {
             $prefix = self::ORDER_ID_3D_PREFIX;
-        } elseif ('3d_pay' === $accountModel) {
+        } elseif (self::MODEL_3D_PAY === $accountModel) {
             $prefix = self::ORDER_ID_3D_PAY_PREFIX;
         }
 
@@ -418,7 +406,7 @@ class PosNet extends AbstractGateway
      *
      * @return string
      */
-    public static function formatInstallment($installment)
+    public static function formatInstallment($installment): string
     {
         if ($installment > 1) {
             return str_pad($installment, 2, '0', STR_PAD_LEFT);
@@ -447,7 +435,7 @@ class PosNet extends AbstractGateway
             ],
         ];
 
-        if(isset($this->order->koiCode) && $this->order->koiCode > 0){
+        if (isset($this->order->koiCode) && $this->order->koiCode > 0) {
             $requestData[strtolower($this->type)]['koiCode'] = $this->order->koiCode;
         }
 
@@ -594,11 +582,23 @@ class PosNet extends AbstractGateway
     }
 
     /**
+     * Hash string
+     *
+     * @param string $str
+     *
+     * @return string
+     */
+    protected function hashString(string $str): string
+    {
+        return base64_encode(hash('sha256', $str, true));
+    }
+
+    /**
      * Get ProcReturnCode
      *
      * @return string|null
      */
-    protected function getProcReturnCode()
+    protected function getProcReturnCode(): ?string
     {
         return (string) $this->data->approved == '1' ? '00' : $this->data->approved;
     }
@@ -608,7 +608,7 @@ class PosNet extends AbstractGateway
      *
      * @return string|null
      */
-    protected function getStatusDetail()
+    protected function getStatusDetail(): ?string
     {
         $procReturnCode = $this->getProcReturnCode();
 
@@ -623,7 +623,7 @@ class PosNet extends AbstractGateway
      *
      * @return bool
      */
-    protected function check3DHash(array $data)
+    protected function check3DHash(array $data): bool
     {
         if ($this->crypt instanceof PosNetCrypt) {
             $decryptedString = $this->crypt->decrypt($data['MerchantPacket'], $this->account->getStoreKey());
@@ -697,8 +697,8 @@ class PosNet extends AbstractGateway
                 'bank_packet'     => $raw3DAuthResponseData['BankPacket'],
                 'sign'            => $raw3DAuthResponseData['Sign'],
             ],
-            'xid'                  => isset($rawPaymentResponseData->oosResolveMerchantDataResponse->xid) ? $rawPaymentResponseData->oosResolveMerchantDataResponse->xid : null,
-            'md_error_message'     => isset($rawPaymentResponseData->oosResolveMerchantDataResponse->mdErrorMessage) ? $rawPaymentResponseData->oosResolveMerchantDataResponse->mdErrorMessage : null,
+            'xid'                  => $rawPaymentResponseData->oosResolveMerchantDataResponse->xid ?? null,
+            'md_error_message'     => $rawPaymentResponseData->oosResolveMerchantDataResponse->mdErrorMessage ?? null,
             'campaign_url'         => null,
             'all'                  => $rawPaymentResponseData,
             '3d_all'               => $raw3DAuthResponseData,
@@ -716,7 +716,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    protected function mapPaymentResponse($responseData)
+    protected function mapPaymentResponse($responseData): array
     {
         $status = 'declined';
         $code = '1';
@@ -725,11 +725,11 @@ class PosNet extends AbstractGateway
 
         if ($this->getProcReturnCode() === '00' && $this->getStatusDetail() === 'approved' && $responseData && !$errorCode) {
             $status = 'approved';
-            $code = isset($responseData->approved) ? $responseData->approved : null;
+            $code = $responseData->approved ?? null;
             $procReturnCode = $this->getProcReturnCode();
         }
 
-        return (object) [
+        return [
             'id'               => isset($responseData->authCode) ? $this->printData($responseData->authCode) : null,
             'order_id'         => $this->order->id,
             'fixed_order_id'   => self::formatOrderId($this->order->id),
@@ -765,13 +765,13 @@ class PosNet extends AbstractGateway
 
         if ($this->getProcReturnCode() === '00' && $rawResponseData && !$errorCode) {
             $status = 'approved';
-            $code = isset($rawResponseData->approved) ? $rawResponseData->approved : null;
+            $code = $rawResponseData->approved ?? null;
             $procReturnCode = $this->getProcReturnCode();
         }
 
         $transaction = null;
         $transactionType = null;
-        $state = isset($rawResponseData->state) ? $rawResponseData->state : null;
+        $state = $rawResponseData->state ?? null;
         if ('Sale' === $state) {
             $transaction = 'pay';
             $transactionType = $this->types[$transaction];
@@ -828,7 +828,7 @@ class PosNet extends AbstractGateway
 
         if ($this->getProcReturnCode() === '00' && isset($rawResponseData->transactions) && !$errorCode) {
             $status = 'approved';
-            $code = isset($rawResponseData->transactions->approved) ? $rawResponseData->transactions->approved : null;
+            $code = $rawResponseData->transactions->approved ?? null;
             $procReturnCode = $this->getProcReturnCode();
         }
 
@@ -838,9 +838,7 @@ class PosNet extends AbstractGateway
         $state = null;
         $authCode = null;
         if (isset($rawResponseData->transactions->transaction)) {
-            $state = isset($rawResponseData->transactions->transaction->state) ?
-                $rawResponseData->transactions->transaction->state :
-                null;
+            $state = $rawResponseData->transactions->transaction->state ?? null;
 
             $authCode = isset($rawResponseData->transactions->transaction->authCode) ? $this->printData($rawResponseData->transactions->transaction->authCode) : null;
 
@@ -905,7 +903,7 @@ class PosNet extends AbstractGateway
 
         if ($this->getProcReturnCode() === '00' && isset($rawResponseData->transactions) && !$errorCode) {
             $status = 'approved';
-            $code = isset($rawResponseData->transactions->approved) ? $rawResponseData->transactions->approved : null;
+            $code = $rawResponseData->transactions->approved ?? null;
             $procReturnCode = $this->getProcReturnCode();
         }
 
@@ -916,9 +914,7 @@ class PosNet extends AbstractGateway
         $authCode = null;
         $refunds = [];
         if (isset($rawResponseData->transactions->transaction)) {
-            $state = isset($rawResponseData->transactions->transaction->state) ?
-                $rawResponseData->transactions->transaction->state :
-                null;
+            $state = $rawResponseData->transactions->transaction->state ?? null;
 
             $authCode = isset($rawResponseData->transactions->transaction->authCode) ? $this->printData($rawResponseData->transactions->transaction->authCode) : null;
 
@@ -1020,6 +1016,7 @@ class PosNet extends AbstractGateway
         }
 
         return (object) [
+            'id'           => self::formatOrderId($order['id']),
             'host_ref_num' => $order['host_ref_num'],
             'amount'       => self::amountFormat($order['amount']),
             'currency'     => $this->mapCurrency($order['currency']),
@@ -1053,9 +1050,9 @@ class PosNet extends AbstractGateway
         return (object) [
             //id or host_ref_num
             'id'           => isset($order['id']) ? self::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()) : null,
-            'host_ref_num' => isset($order['host_ref_num']) ? $order['host_ref_num'] : null,
+            'host_ref_num' => $order['host_ref_num'] ?? null,
             //optional
-            'auth_code'    => isset($order['auth_code']) ? $order['auth_code'] : null,
+            'auth_code'    => $order['auth_code'] ?? null,
         ];
     }
 
@@ -1067,7 +1064,7 @@ class PosNet extends AbstractGateway
         return (object) [
             //id or host_ref_num
             'id'           => isset($order['id']) ? self::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()) : null,
-            'host_ref_num' => isset($order['host_ref_num']) ? $order['host_ref_num'] : null,
+            'host_ref_num' => $order['host_ref_num'] ?? null,
             'amount'       => self::amountFormat($order['amount']),
             'currency'     => self::mapCurrency($order['currency']),
         ];

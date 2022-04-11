@@ -40,7 +40,16 @@ class PosNetTest extends TestCase
 
         $this->config = require __DIR__.'/../../config/pos.php';
 
-        $this->account = AccountFactory::createPosNetAccount('yapikredi', '6706598320', 'XXXXXX', 'XXXXXX', '67005551', '27426', '3d', '10,10,10,10,10,10,10,10');
+        $this->account = AccountFactory::createPosNetAccount(
+            'yapikredi',
+            '6706598320',
+            'XXXXXX',
+            'XXXXXX',
+            '67005551',
+            '27426',
+            AbstractGateway::MODEL_3D_SECURE,
+            '10,10,10,10,10,10,10,10'
+        );
 
         $this->card = new CreditCardPosNet('5555444433332222', '21', '12', '122', 'ahmet');
 
@@ -99,7 +108,16 @@ class PosNetTest extends TestCase
         $newOrder['amount'] = 1;
         $newOrder['currency'] = 'TL';
 
-        $account = AccountFactory::createPosNetAccount('yapikredi', '6706598320', 'XXXXXX', 'XXXXXX', '67825768', '27426', '3d', '10,10,10,10,10,10,10,10');
+        $account = AccountFactory::createPosNetAccount(
+            'yapikredi',
+            '6706598320',
+            'XXXXXX',
+            'XXXXXX',
+            '67825768',
+            '27426',
+            AbstractGateway::MODEL_3D_SECURE,
+            '10,10,10,10,10,10,10,10'
+        );
 
         $pos = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);

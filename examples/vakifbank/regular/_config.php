@@ -2,7 +2,7 @@
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/vakifbank/regular/';
+$baseUrl = $bankTestsUrl.'/regular/';
 
 $merchantId = '000000000111111';
 $terminalId = 'VP000095';
@@ -13,7 +13,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createVakifBankAccount(
     $merchantId,
     $isyeriSifre,
     $terminalId,
-    'regular'
+    \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE
 );
 
 $pos = getGateway($account);

@@ -4,7 +4,18 @@ namespace Mews\Pos\Entity\Account;
 
 class VakifBankAccount extends AbstractPosAccount
 {
-    private static $merchantTypes = [0, 1, 2];
+    public const MERCHANT_TYPE_STANDARD = 0;
+    public const MERCHANT_TYPE_MAIN_DEALER = 1;
+    public const MERCHANT_TYPE_SUB_DEALER = 2;
+
+    /**
+     * @var int[]
+     */
+    private static $merchantTypes = [
+        self::MERCHANT_TYPE_STANDARD,
+        self::MERCHANT_TYPE_MAIN_DEALER,
+        self::MERCHANT_TYPE_SUB_DEALER,
+    ];
 
     /**
      * @var string
@@ -13,9 +24,6 @@ class VakifBankAccount extends AbstractPosAccount
 
     /**
      * Banka tarafından Üye işyerine iletilmektedir
-     * Standart İş yeri: 0
-     * Ana Bayi: 1
-     * Alt Bayi:2
      * @var int
      */
     private $merchantType;
@@ -35,12 +43,12 @@ class VakifBankAccount extends AbstractPosAccount
     /**
      * VakifBankAccount constructor.
      *
-     * @param string   $bank
-     * @param string   $model
-     * @param string   $merchantId Isyeri No
-     * @param string   $password   Isyeri Sifre
-     * @param string   $terminalId Terminal No
-     * @param int      $merchantType
+     * @param string      $bank
+     * @param string      $model
+     * @param string      $merchantId Isyeri No
+     * @param string      $password   Isyeri Sifre
+     * @param string      $terminalId Terminal No
+     * @param int         $merchantType
      * @param string|null $subMerchantId
      */
     public function __construct(
@@ -49,7 +57,7 @@ class VakifBankAccount extends AbstractPosAccount
         string $merchantId,
         string $password,
         string $terminalId,
-        int $merchantType = 0,
+        int $merchantType = self::MERCHANT_TYPE_STANDARD,
         string $subMerchantId = null
     ) {
         parent::__construct($bank, $model, $merchantId, '', $password, 'tr');
@@ -88,7 +96,7 @@ class VakifBankAccount extends AbstractPosAccount
      */
     public function isSubBranch(): bool
     {
-        return 2 === $this->merchantType;
+        return self::MERCHANT_TYPE_SUB_DEALER === $this->merchantType;
     }
 
     /**

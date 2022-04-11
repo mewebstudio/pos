@@ -1,27 +1,23 @@
 <?php
 
-use Mews\Pos\Exceptions\BankClassNullException;
-use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Factory\AccountFactory;
-use Mews\Pos\Factory\PosFactory;
-use Symfony\Component\HttpFoundation\Request;
 
-require '../../_main_config.php';
+require '../_payment_config.php';
 
-$path = '/garanti/3d/';
-$baseUrl = $hostUrl.$path;
+$baseUrl = $bankTestsUrl.'/3d/';
 
-$request = Request::createFromGlobals();
-$ip = $request->getClientIp();
-$account = AccountFactory::createGarantiPosAccount('garanti', '7000679', 'PROVAUT', '123qweASD/', '30691298', '3d', '12345678');
+$account = AccountFactory::createGarantiPosAccount(
+    'garanti',
+    '7000679',
+    'PROVAUT',
+    '123qweASD/',
+    '30691298',
+    \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
+    '12345678'
+);
 
-try {
-    $pos = PosFactory::createPosGateway($account);
-    $pos->setTestMode(true);
-} catch (BankNotFoundException $e) {
-    dump($e->getCode(), $e->getMessage());
-} catch (BankClassNullException $e) {
-    dump($e->getCode(), $e->getMessage());
-}
+$pos = getGateway($account);
+
+$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PAY;
 
 $templateTitle = '3D Model Payment';

@@ -112,13 +112,13 @@ class EstPos extends AbstractGateway
      *
      * @return string
      */
-    public function create3DHash()
+    public function create3DHash(): string
     {
         $hashStr = '';
 
-        if ($this->account->getModel() === '3d') {
+        if ($this->account->getModel() === self::MODEL_3D_SECURE) {
             $hashStr = $this->account->getClientId().$this->order->id.$this->order->amount.$this->order->success_url.$this->order->fail_url.$this->order->rand.$this->account->getStoreKey();
-        } elseif ($this->account->getModel() === '3d_pay' || $this->account->getModel() === '3d_host') {
+        } elseif ($this->account->getModel() === self::MODEL_3D_PAY || $this->account->getModel() === self::MODEL_3D_HOST) {
             $hashStr = $this->account->getClientId().$this->order->id.$this->order->amount.$this->order->success_url.$this->order->fail_url.$this->type.$this->order->installment.$this->order->rand.$this->account->getStoreKey();
         }
 
@@ -132,7 +132,7 @@ class EstPos extends AbstractGateway
      *
      * @return bool
      */
-    public function check3DHash($data)
+    public function check3DHash(array $data): bool
     {
         $hashParams = $data['HASHPARAMS'];
         $hashParamsVal = $data['HASHPARAMSVAL'];
@@ -206,7 +206,7 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData()
+    public function get3DFormData(): array
     {
         if (!$this->order) {
             return [];
@@ -229,7 +229,7 @@ class EstPos extends AbstractGateway
             'currency'  => $this->order->currency,
         ];
 
-        if ($this->account->getModel() === '3d_pay' || $this->account->getModel() === '3d_host') {
+        if ($this->account->getModel() === self::MODEL_3D_PAY || $this->account->getModel() === self::MODEL_3D_HOST) {
             $inputs = array_merge($inputs, [
                 'islemtipi' => $this->type,
                 'taksit'    => $this->order->installment,
@@ -281,7 +281,7 @@ class EstPos extends AbstractGateway
     }
 
     /**
-     * @return mixed
+     * @return EstPosAccount
      */
     public function getAccount()
     {
@@ -317,7 +317,7 @@ class EstPos extends AbstractGateway
             'IPAddress' => $this->order->ip,
             'Email'     => $this->order->email,
             'OrderId'   => $this->order->id,
-            'UserId'    => isset($this->order->user_id) ? $this->order->user_id : null,
+            'UserId'    => $this->order->user_id ?? null,
             'Total'     => $this->order->amount,
             'Currency'  => $this->order->currency,
             'Taksit'    => $this->order->installment,
@@ -329,7 +329,7 @@ class EstPos extends AbstractGateway
             'GroupId'   => '',
             'TransId'   => '',
             'BillTo'    => [
-                'Name' => $this->order->name ? $this->order->name : null,
+                'Name' => $this->order->name ?: null,
             ],
         ];
 
@@ -365,7 +365,7 @@ class EstPos extends AbstractGateway
             'IPAddress'               => $this->order->ip,
             'Email'                   => $this->order->email,
             'OrderId'                 => $this->order->id,
-            'UserId'                  => isset($this->order->user_id) ? $this->order->user_id : null,
+            'UserId'                  => $this->order->user_id ?? null,
             'Total'                   => $this->order->amount,
             'Currency'                => $this->order->currency,
             'Taksit'                  => $this->order->installment,
@@ -428,7 +428,7 @@ class EstPos extends AbstractGateway
             'Name'     => $this->account->getUsername(),
             'Password' => $this->account->getPassword(),
             'ClientId' => $this->account->getClientId(),
-            'OrderId'  => $this->order->id,
+            'OrderId'  => $customQueryData['order_id'],
             'Extra'    => [
                 $this->types[self::TX_HISTORY] => 'QUERY',
             ],
@@ -478,7 +478,7 @@ class EstPos extends AbstractGateway
      *
      * @return string|null
      */
-    protected function getProcReturnCode()
+    protected function getProcReturnCode(): ?string
     {
         return isset($this->data->ProcReturnCode) ? (string) $this->data->ProcReturnCode : null;
     }
@@ -488,7 +488,7 @@ class EstPos extends AbstractGateway
      *
      * @return string|null
      */
-    protected function getStatusDetail()
+    protected function getStatusDetail(): ?string
     {
         $procReturnCode = $this->getProcReturnCode();
 
@@ -605,15 +605,15 @@ class EstPos extends AbstractGateway
         }
 
         return (object) [
-            'order_id'         => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
-            'group_id'         => isset($rawResponseData->GroupId) ? $rawResponseData->GroupId : null,
-            'response'         => isset($rawResponseData->Response) ? $rawResponseData->Response : null,
-            'auth_code'        => isset($rawResponseData->AuthCode) ? $rawResponseData->AuthCode : null,
-            'host_ref_num'     => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
-            'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $rawResponseData->ProcReturnCode : null,
-            'trans_id'         => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
-            'error_code'       => isset($rawResponseData->Extra->ERRORCODE) ? $rawResponseData->Extra->ERRORCODE : null,
-            'error_message'    => isset($rawResponseData->ErrMsg) ? $rawResponseData->ErrMsg : null,
+            'order_id'         => $rawResponseData->OrderId ?? null,
+            'group_id'         => $rawResponseData->GroupId ?? null,
+            'response'         => $rawResponseData->Response ?? null,
+            'auth_code'        => $rawResponseData->AuthCode ?? null,
+            'host_ref_num'     => $rawResponseData->HostRefNum ?? null,
+            'proc_return_code' => $rawResponseData->ProcReturnCode ?? null,
+            'trans_id'         => $rawResponseData->TransId ?? null,
+            'error_code'       => $rawResponseData->Extra->ERRORCODE ?? null,
+            'error_message'    => $rawResponseData->ErrMsg ?? null,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail(),
             'all'              => $rawResponseData,
@@ -631,15 +631,15 @@ class EstPos extends AbstractGateway
         }
 
         return (object) [
-            'order_id'         => isset($rawResponseData->OrderId) ? $rawResponseData->OrderId : null,
-            'group_id'         => isset($rawResponseData->GroupId) ? $rawResponseData->GroupId : null,
-            'response'         => isset($rawResponseData->Response) ? $rawResponseData->Response : null,
-            'auth_code'        => isset($rawResponseData->AuthCode) ? $rawResponseData->AuthCode : null,
-            'host_ref_num'     => isset($rawResponseData->HostRefNum) ? $rawResponseData->HostRefNum : null,
-            'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $rawResponseData->ProcReturnCode : null,
-            'trans_id'         => isset($rawResponseData->TransId) ? $rawResponseData->TransId : null,
-            'error_code'       => isset($rawResponseData->Extra->ERRORCODE) ? $rawResponseData->Extra->ERRORCODE : null,
-            'error_message'    => isset($rawResponseData->ErrMsg) ? $rawResponseData->ErrMsg : null,
+            'order_id'         => $rawResponseData->OrderId ?? null,
+            'group_id'         => $rawResponseData->GroupId ?? null,
+            'response'         => $rawResponseData->Response ?? null,
+            'auth_code'        => $rawResponseData->AuthCode ?? null,
+            'host_ref_num'     => $rawResponseData->HostRefNum ?? null,
+            'proc_return_code' => $rawResponseData->ProcReturnCode ?? null,
+            'trans_id'         => $rawResponseData->TransId ?? null,
+            'error_code'       => $rawResponseData->Extra->ERRORCODE ?? null,
+            'error_message'    => $rawResponseData->ErrMsg ?? null,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail(),
             'all'              => $rawResponseData,
@@ -658,7 +658,7 @@ class EstPos extends AbstractGateway
 
         $firstAmount = isset($rawResponseData->Extra->ORIG_TRANS_AMT) ? $this->printData($rawResponseData->Extra->ORIG_TRANS_AMT) : null;
         $captureAmount = isset($rawResponseData->Extra->CAPTURE_AMT) ? $this->printData($rawResponseData->Extra->CAPTURE_AMT) : null;
-        $capture = $firstAmount === $captureAmount ? true : false;
+        $capture = $firstAmount === $captureAmount;
 
         return (object) [
             'order_id'         => isset($rawResponseData->OrderId) ? $this->printData($rawResponseData->OrderId) : null,
@@ -683,7 +683,7 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    protected function mapPaymentResponse($responseData)
+    protected function mapPaymentResponse($responseData): array
     {
         $status = 'declined';
         if ($this->getProcReturnCode() === '00') {
@@ -707,7 +707,7 @@ class EstPos extends AbstractGateway
             'error_code'       => isset($responseData->Extra->ERRORCODE) ? $this->printData($responseData->Extra->ERRORCODE) : null,
             'error_message'    => isset($responseData->Extra->ERRORCODE) ? $this->printData($responseData->ErrMsg) : null,
             'campaign_url'     => null,
-            'extra'            => isset($responseData->Extra) ? $responseData->Extra : null,
+            'extra'            => $responseData->Extra ?? null,
             'all'              => $responseData,
         ];
     }

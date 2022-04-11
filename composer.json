@@ -1,7 +1,7 @@
 {
     "name": "mews/pos",
     "description": "Türk bankaları için sanal pos kütüphanesi",
-	"keywords": ["pos", "sanal pos", "est", "est pos", "akbank", "posnet", "payfor", "vakifbankpos"],
+	"keywords": ["pos", "sanal pos", "est", "est pos", "akbank", "posnet", "payfor", "vakifbankpos", "InterVPos", "DenizBank Sanal Pos"],
 	"homepage": "https://github.com/mewebstudio/pos",
     "license": "MIT",
     "authors": [

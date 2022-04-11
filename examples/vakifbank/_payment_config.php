@@ -1,9 +1,30 @@
 <?php
 
+use Mews\Pos\Gateways\AbstractGateway;
+
 require __DIR__.'/../_main_config.php';
 
-$request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
-$ip = $request->getClientIp();
+$bankTestsUrl = $hostUrl.'/vakifbank';
+
+$subMenu = [
+    AbstractGateway::MODEL_3D_SECURE => [
+        'path' => '/3d/index.php',
+        'label' => '3D Ödeme',
+    ],
+    AbstractGateway::MODEL_NON_SECURE => [
+        'path' => '/regular/index.php',
+        'label' => 'Non Secure Ödeme',
+    ],
+    AbstractGateway::TX_CANCEL => [
+        'path' => '/regular/cancel.php',
+        'label' => 'İptal',
+    ],
+    AbstractGateway::TX_REFUND => [
+        'path' => '/regular/refund.php',
+        'label' => 'İade',
+    ],
+];
+
 
 $installments = [
     0  => 'Peşin',
@@ -11,22 +32,6 @@ $installments = [
     6  => '6 Taksit',
     12 => '12 Taksit',
 ];
-
-function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mews\Pos\PosInterface
-{
-    try {
-        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
-        $pos->setTestMode(true);
-
-        return $pos;
-    } catch (\Mews\Pos\Exceptions\BankNotFoundException $e) {
-        dump($e->getCode(), $e->getMessage());
-    } catch (\Mews\Pos\Exceptions\BankClassNullException $e) {
-        dump($e->getCode(), $e->getMessage());
-    }
-
-    return null;
-}
 
 function getNewOrder(
     string $baseUrl,
@@ -64,6 +69,18 @@ function getNewOrder(
     }
 
     return $order;
+}
+
+function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+{
+    if (\Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY !== $transaction) {
+        /**
+         * diger banklaradan farkli olarak 3d islemler icin de Vakifbank bu asamada kredi kart bilgileri istiyor
+         */
+        $pos->payment($card);
+    } else {
+        $pos->payment();
+    }
 }
 
 $testCards = [

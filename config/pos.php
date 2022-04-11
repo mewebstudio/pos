@@ -145,5 +145,21 @@ return [
                 ],
             ],
         ],
+        'denizbank' => [
+            'name'  => 'DenizBank-InterPos',
+            'class' => Mews\Pos\Gateways\InterPos::class,
+            'urls'  => [
+                'production'    => 'https://inter-vpos.com.tr/mpi/Default.aspx',
+                'test'          => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                'gateway'       => [
+                    'production'    => 'https://inter-vpos.com.tr/mpi/Default.aspx',
+                    'test'          => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                ],
+                'gateway_3d_host'       => [
+                    'production'    => 'https://inter-vpos.com.tr/mpi/3DHost.aspx',
+                    'test'          => 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx',
+                ],
+            ],
+        ],
     ],
 ];

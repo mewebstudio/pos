@@ -1,3 +1,8 @@
+<?php
+
+$cardYear = (int) str_pad($card->getExpireYear(), 4, '20', STR_PAD_LEFT);
+
+?>
 <form method="post" action="<?= $url; ?>" role="form">
     <div class="row">
         <div class="row">
@@ -7,20 +12,20 @@
                        value="<?= $card->getHolderName(); ?>">
             </div>
             <?php if (method_exists($card,'getCardTypeToCodeMapping')): ?>
-                <div class="form-group col-sm-3">
-                    <label for="type">Card Type</label>
-                    <select name="type" id="type" class="form-control input-lg">
-                        <option value="">Type</option>
-                        <?php foreach ($card->getCardTypeToCodeMapping() as $key => $value): ?>
-                            <option value="<?= $key ?>" <?= $key === $card->getType() ? 'selected' : '' ?>><?= $key ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+            <div class="form-group col-sm-3">
+                <label for="type">Card Type</label>
+                <select name="type" id="type" class="form-control input-lg">
+                    <option value="">Type</option>
+                    <?php foreach ($card->getCardTypeToCodeMapping() as $key => $value): ?>
+                        <option value="<?= $key ?>" <?= $key === $card->getType() ? 'selected' : '' ?>><?= $key ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <?php endif; ?>
             <div class="form-group col-sm-9">
                 <label for="number">Card Number</label>
                 <input type="text" name="number" id="number" class="form-control input-lg"
-                       placeholder="Credit card number" value="4090700101174272">
+                       placeholder="Credit card number" value="<?= $card->getNumber()?>">
             </div>
             <div class="form-group col-sm-4">
                 <label for="month">Expire Month</label>
@@ -35,8 +40,8 @@
                 <label for="year">Expire Year</label>
                 <select name="year" id="year" class="form-control input-lg">
                     <option value="">Year</option>
-                    <?php for ($i = date('y'); $i <= date('y') + 20; $i++) : ?>
-                        <option value="<?= $i; ?>" <?= $i == $card->getExpireYear() ? 'selected': null ?>><?= 2000 + $i; ?></option>
+                    <?php for ($i = date('Y'); $i <= date('Y') + 20; $i++) : ?>
+                        <option value="<?= $i; ?>" <?= $i == $cardYear ? 'selected': null ?>><?= $i; ?></option>
                     <?php endfor; ?>
                 </select>
             </div>
@@ -47,9 +52,9 @@
 
             <div class="form-group col-xs-12">
                 <select name="installment" id="installment" class="form-control input-lg">
-                    <?php foreach ($installments as $installment => $label): ?>
-                        <option value="<?= $installment; ?>"><?= $label; ?></option>
-                    <?php endforeach; ?>
+                <?php foreach ($installments as $installment => $label) : ?>
+                    <option value="<?= $installment; ?>"><?= $label; ?></option>
+                <?php endforeach; ?>
                 </select>
             </div>
         </div>
