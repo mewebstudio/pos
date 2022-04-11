@@ -9,11 +9,11 @@ $baseUrl = $hostUrl.'/3d/';
 
 $account = AccountFactory::createPosNetAccount(
     'yapikredi',
-    'XXXXXX',
-    'XXXXXX',
-    'XXXXXX',
-    'XXXXXX',
-    'XXXXXX',
+    '6706598320',
+    '',
+    '',
+    '67322946',
+    '27426',
     AbstractGateway::MODEL_3D_SECURE,
     '10,10,10,10,10,10,10,10'
 );
