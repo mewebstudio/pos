@@ -9,10 +9,10 @@ namespace Mews\Pos\Entity\Card;
 class CreditCardVakifBank extends AbstractCreditCard
 {
     private static $cardTypeToCodeMapping = [
-        'visa'   => '100',
-        'master' => '200',
-        'troy'   => '300',
-        'amex'   => '400',
+        self::CARD_TYPE_VISA       => '100',
+        self::CARD_TYPE_MASTERCARD => '200',
+        self::CARD_TYPE_TROY       => '300',
+        self::CARD_TYPE_AMEX       => '400',
     ];
 
     /**

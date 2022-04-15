@@ -1,5 +1,6 @@
 <?php
 
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Gateways\AbstractGateway;
 
 require __DIR__.'/../_main_config.php';
@@ -92,7 +93,7 @@ $testCards = [
         11,
         592,
         'John Doe',
-        'visa'
+        AbstractCreditCard::CARD_TYPE_VISA
     ),
     'visa2' => new \Mews\Pos\Entity\Card\CreditCardInterPos(
         '4090700101174272',
@@ -100,6 +101,6 @@ $testCards = [
         12,
         104,
         'John Doe',
-        'visa'
+        AbstractCreditCard::CARD_TYPE_VISA
     ),
 ];

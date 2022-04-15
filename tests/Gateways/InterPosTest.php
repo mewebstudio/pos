@@ -4,6 +4,7 @@ namespace Mews\Pos\Tests\Gateways;
 
 use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\InterPosAccount;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCardInterPos;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\PosFactory;
@@ -54,7 +55,7 @@ class InterPosTest extends TestCase
             InterPos::LANG_TR
         );
 
-        $this->card = new CreditCardInterPos('5555444433332222', '21', '12', '122', 'ahmet', 'visa');
+        $this->card = new CreditCardInterPos('5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
         $this->order = [
             'id'          => 'order222',
@@ -225,7 +226,7 @@ class InterPosTest extends TestCase
     {
         $order = $this->order;
 
-        $card = new CreditCardInterPos('5555444433332222', '22', '01', '123', 'ahmet', 'visa');
+        $card = new CreditCardInterPos('5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
         /** @var InterPos $pos */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
