@@ -7,6 +7,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Gateways\AbstractGateway;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Interface PosInterface
@@ -53,37 +54,41 @@ interface PosInterface
 
     /**
      * Make 3D Payment
+     * @param Request $request
      *
      * @return AbstractGateway
      *
      * @throws GuzzleException
      */
-    public function make3DPayment();
+    public function make3DPayment(Request $request);
 
     /**
      * Make 3D Pay Payment
+     * @param Request $request
      *
      * @return AbstractGateway
      */
-    public function make3DPayPayment();
+    public function make3DPayPayment(Request $request);
 
     /**
      * Just returns formatted data of host payment response
+     * @param Request $request
      *
      * @return AbstractGateway
      */
-    public function make3DHostPayment();
+    public function make3DHostPayment(Request $request);
 
     /**
      * Send contents to WebService
      *
-     * @param $contents
+     * @param array|string $contents
+     * @param string|null  $url
      *
-     * @return AbstractGateway
+     * @return mixed
      *
      * @throws GuzzleException
      */
-    public function send($contents);
+    public function send($contents, ?string $url = null);
 
     /**
      * Prepare Order

@@ -7,6 +7,7 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 /**
@@ -309,6 +310,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function payment($card = null)
     {
+        $request = Request::createFromGlobals();
         $this->card = $card;
 
         $model = $this->account->getModel();
@@ -316,11 +318,11 @@ abstract class AbstractGateway implements PosInterface
         if (self::MODEL_NON_SECURE === $model) {
             $this->makeRegularPayment();
         } elseif (self::MODEL_3D_SECURE === $model) {
-            $this->make3DPayment();
+            $this->make3DPayment($request);
         } elseif (self::MODEL_3D_PAY === $model) {
-            $this->make3DPayPayment();
+            $this->make3DPayPayment($request);
         } elseif (self::MODEL_3D_HOST === $model) {
-            $this->make3DHostPayment();
+            $this->make3DHostPayment($request);
         } else {
             throw new UnsupportedPaymentModelException();
         }
@@ -340,9 +342,9 @@ abstract class AbstractGateway implements PosInterface
             $contents = $this->createRegularPostXML();
         }
 
-        $this->send($contents);
+        $bankResponse = $this->send($contents);
 
-        $this->response = (object) $this->mapPaymentResponse($this->data);
+        $this->response = (object) $this->mapPaymentResponse($bankResponse);
 
         return $this;
     }
@@ -353,9 +355,9 @@ abstract class AbstractGateway implements PosInterface
     public function refund()
     {
         $xml = $this->createRefundXML();
-        $this->send($xml);
+        $bankResponse = $this->send($xml);
 
-        $this->response = $this->mapRefundResponse($this->data);
+        $this->response = $this->mapRefundResponse($bankResponse);
 
         return $this;
     }
@@ -366,9 +368,9 @@ abstract class AbstractGateway implements PosInterface
     public function cancel()
     {
         $xml = $this->createCancelXML();
-        $this->send($xml);
+        $bankResponse = $this->send($xml);
 
-        $this->response = $this->mapCancelResponse($this->data);
+        $this->response = $this->mapCancelResponse($bankResponse);
 
         return $this;
     }
@@ -380,9 +382,9 @@ abstract class AbstractGateway implements PosInterface
     {
         $xml = $this->createStatusXML();
 
-        $this->send($xml);
+        $bankResponse = $this->send($xml);
 
-        $this->response = $this->mapStatusResponse($this->data);
+        $this->response = $this->mapStatusResponse($bankResponse);
 
         return $this;
     }
@@ -394,9 +396,9 @@ abstract class AbstractGateway implements PosInterface
     {
         $xml = $this->createHistoryXML($meta);
 
-        $this->send($xml);
+        $bankResponse = $this->send($xml);
 
-        $this->response = $this->mapHistoryResponse($this->data);
+        $this->response = $this->mapHistoryResponse($bankResponse);
 
         return $this;
     }

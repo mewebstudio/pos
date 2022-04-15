@@ -142,16 +142,16 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment()
+    public function make3DPayment(Request $request)
     {
-        $request = Request::createFromGlobals();
+        $bankResponse = null;
         //TODO hash check
         if (in_array($request->get('mdstatus'), [1, 2, 3, 4])) {
             $contents = $this->create3DPaymentXML($request->request->all());
-            $this->send($contents);
+            $bankResponse = $this->send($contents);
         }
 
-        $this->response = (object) $this->map3DPaymentData($request->request->all(), $this->data);
+        $this->response = (object) $this->map3DPaymentData($request->request->all(), $bankResponse);
 
         return $this;
     }
@@ -159,10 +159,8 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment()
+    public function make3DPayPayment(Request $request)
     {
-        $request = Request::createFromGlobals();
-
         $this->response = (object) $this->map3DPayResponseData($request->request->all());
 
         return $this;
@@ -176,9 +174,9 @@ class GarantiPos extends AbstractGateway
     {
         $xml = $this->createHistoryXML($meta);
 
-        $this->send($xml);
+        $bankResponse = $this->send($xml);
 
-        $this->response = $this->mapHistoryResponse($this->data);
+        $this->response = $this->mapHistoryResponse($bankResponse);
 
         return $this;
     }
@@ -186,7 +184,7 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($contents)
+    public function send($contents, ?string $url = null)
     {
         $client = new Client();
 
@@ -196,7 +194,7 @@ class GarantiPos extends AbstractGateway
 
         $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
-        return $this;
+        return $this->data;
     }
 
     /**
@@ -247,7 +245,7 @@ class GarantiPos extends AbstractGateway
      * TODO
      * @inheritDoc
      */
-    public function make3DHostPayment()
+    public function make3DHostPayment(Request $request)
     {
         throw new NotImplementedException();
     }
