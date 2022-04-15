@@ -31,6 +31,8 @@ abstract class AbstractGateway implements PosInterface
     const MODEL_3D_HOST = '3d_host';
     const MODEL_NON_SECURE = 'regular';
 
+    protected const HASH_ALGORITHM = 'sha1';
+
     private $config;
 
     /**
@@ -481,7 +483,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @param $responseData
      *
-     * @return string
+     * @return string|array
      */
     abstract public function create3DPaymentXML($responseData);
 
@@ -646,6 +648,50 @@ abstract class AbstractGateway implements PosInterface
     protected function isHTML($str): bool
     {
         return $str !== strip_tags($str);
+    }
+
+    /**
+     * @param string $str
+     *
+     * @return string
+     */
+    protected function hashString(string $str): string
+    {
+        return base64_encode(hash(static::HASH_ALGORITHM, $str, true));
+    }
+
+    /**
+     * if 2 arrays has common keys, then non-null value preferred,
+     * if both arrays has the non-null values for the same key then value of $arr2 is preferred.
+     * @param array $arr1
+     * @param array $arr2
+     *
+     * @return array
+     */
+    protected function mergeArraysPreferNonNullValues(array $arr1, array $arr2): array
+    {
+        $resultArray = array_diff_key($arr1, $arr2) + array_diff_key($arr2, $arr1);
+        $commonArrayKeys = array_keys(array_intersect_key($arr1, $arr2));
+        foreach ($commonArrayKeys as $key) {
+            $resultArray[$key] = $arr2[$key] ?: $arr1[$key];
+        }
+
+        return $resultArray;
+    }
+
+    /**
+     * Converts XML string to array
+     *
+     * @param string $data
+     * @param array  $context
+     *
+     * @return array
+     */
+    protected function XMLStringToArray(string $data, array $context = []): array
+    {
+        $encoder = new XmlEncoder();
+
+        return $encoder->decode($data, 'xml', $context);
     }
 
     /**

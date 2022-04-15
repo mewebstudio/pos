@@ -5,6 +5,7 @@ namespace Mews\Pos\Factory;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
+use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
@@ -13,6 +14,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
+use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
 
@@ -81,6 +83,23 @@ class AccountFactory
         return new GarantiPosAccount($bank, $model, $clientId, $username, $password, $lang, $terminalId, $storeKey, $refundUsername, $refundPassword);
     }
 
+
+    /**
+     * @param string      $bank
+     * @param string      $merchantId    Mağaza Numarası
+     * @param string      $username      POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı oluşturulmalıdır
+     * @param string      $customerId    CustomerNumber, Müşteri No
+     * @param string      $storeKey      Oluşturulan APİ kullanıcısının şifre bilgisidir.
+     * @param string      $model
+     * @param string      $lang
+     * @param string|null $subMerchantId
+     *
+     * @return KuveytPosAccount
+     */
+    public static function createKuveytPosAccount(string $bank, string $merchantId, string $username, string $customerId, string $storeKey, string $model = AbstractGateway::MODEL_3D_SECURE, string $lang = KuveytPos::LANG_TR, ?string $subMerchantId = null): KuveytPosAccount
+    {
+        return new KuveytPosAccount($bank, $merchantId, $username, $customerId, $storeKey, $model, $lang, $subMerchantId);
+    }
 
     /**
      * @param string      $bank

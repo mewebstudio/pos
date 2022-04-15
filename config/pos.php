@@ -18,7 +18,7 @@ return [
                     'production'    => 'https://www.sanalakpos.com/fim/est3Dgate',
                     'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
                 ],
-            ]
+            ],
         ],
         'ziraat'    => [
             'name'  => 'Ziraat Bankası',
@@ -30,7 +30,7 @@ return [
                     'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/est3dgate',
                     'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
                 ],
-            ]
+            ],
         ],
         'finansbank'    => [
             'name'  => 'QNB Finansbank',
@@ -42,7 +42,7 @@ return [
                     'production'    => 'https://www.fbwebpos.com/fim/est3dgate',
                     'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
                 ],
-            ]
+            ],
         ],
         'halkbank'    => [
             'name'  => 'Halkbank',
@@ -54,7 +54,7 @@ return [
                     'production'    => 'https://sanalpos.halkbank.com.tr/fim/est3dgate',
                     'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
                 ],
-            ]
+            ],
         ],
         'teb'    => [
             'name'  => 'TEB',
@@ -66,7 +66,7 @@ return [
                     'production'    => 'https://sanalpos.teb.com.tr/fim/est3Dgate',
                     'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
                 ],
-            ]
+            ],
         ],
         'isbank'    => [
             'name'  => 'İşbank',
@@ -78,20 +78,7 @@ return [
                     'production'    => 'https://sanalpos.isbank.com.tr/fim/est3Dgate',
                     'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
                 ],
-            ]
-        ],
-        'isbank-payflex'    => [
-            'name'  => 'İşbank - PayFlex',
-            //TODO implement PayFlex
-            'class' => Mews\Pos\Gateways\PayFlex::class,
-            'urls'  => [
-                'production'    => 'https://trx.payflex.com.tr/VposWeb/v3/Vposreq.aspx',
-                'test'          => 'https://sanalpos.innova.com.tr/ISBANK_v4/VposWeb/v3/Vposreq.aspx',
-                'gateway'       => [
-                    'production'    => 'https://mpi.vpos.isbank.com.tr/MPIEnrollment.aspx',
-                    'test'          => 'https://sanalpos.innova.com.tr/ISBANK/MpiWeb/Enrollment.aspx',
-                ],
-            ]
+            ],
         ],
         'yapikredi' => [
             'name'  => 'Yapıkredi',
@@ -115,7 +102,7 @@ return [
                     'production'    => 'https://sanalposprov.garanti.com.tr/servlet/gt3dengine',
                     'test'          => 'https://sanalposprovtest.garanti.com.tr/servlet/gt3dengine',
                 ],
-            ]
+            ],
         ],
         'qnbfinansbank-payfor' => [
             'name'  => 'QNBFinansbank-PayFor',
@@ -131,7 +118,7 @@ return [
                     'production'    => 'https://vpos.qnbfinansbank.com/Gateway/3DHost.aspx',
                     'test'          => 'https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx',
                 ],
-            ]
+            ],
         ],
         'vakifbank' => [
             'name'  => 'VakifBank-VPOS',
@@ -158,6 +145,18 @@ return [
                 'gateway_3d_host'       => [
                     'production'    => 'https://inter-vpos.com.tr/mpi/3DHost.aspx',
                     'test'          => 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx',
+                ],
+            ],
+        ],
+        'kuveytpos' => [
+            'name'  => 'kuveyt-pos',
+            'class' => Mews\Pos\Gateways\KuveytPos::class,
+            'urls'  => [
+                'production'    => 'https://boa.kuveytturk.com.tr/sanalposservice/Home/ThreeDModelProvisionGate',
+                'test'          => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelProvisionGate',
+                'gateway'       => [
+                    'production'    => 'https://boa.kuveytturk.com.tr/sanalposservice/Home/ThreeDModelPayGate',
+                    'test'          => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelPayGate',
                 ],
             ],
         ],
