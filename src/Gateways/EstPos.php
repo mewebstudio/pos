@@ -3,6 +3,7 @@
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardEstPos;
 use Symfony\Component\HttpFoundation\Request;
@@ -110,19 +111,41 @@ class EstPos extends AbstractGateway
     /**
      * Create 3D Hash
      *
+     * @param AbstractPosAccount $account
+     * @param                    $order
+     * @param string             $txType
+     *
      * @return string
      */
-    public function create3DHash(): string
+    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
     {
-        $hashStr = '';
-
-        if ($this->account->getModel() === self::MODEL_3D_SECURE) {
-            $hashStr = $this->account->getClientId().$this->order->id.$this->order->amount.$this->order->success_url.$this->order->fail_url.$this->order->rand.$this->account->getStoreKey();
-        } elseif ($this->account->getModel() === self::MODEL_3D_PAY || $this->account->getModel() === self::MODEL_3D_HOST) {
-            $hashStr = $this->account->getClientId().$this->order->id.$this->order->amount.$this->order->success_url.$this->order->fail_url.$this->type.$this->order->installment.$this->order->rand.$this->account->getStoreKey();
+        $hashData = [];
+        if ($account->getModel() === self::MODEL_3D_SECURE) {
+            $hashData = [
+                $account->getClientId(),
+                $order->id,
+                $order->amount,
+                $order->success_url,
+                $order->fail_url,
+                $order->rand,
+                $account->getStoreKey(),
+            ];
+        } elseif ($account->getModel() === self::MODEL_3D_PAY || $account->getModel() === self::MODEL_3D_HOST) {
+            $hashData = [
+                $account->getClientId(),
+                $order->id,
+                $order->amount,
+                $order->success_url,
+                $order->fail_url,
+                $txType,
+                $order->installment,
+                $order->rand,
+                $account->getStoreKey(),
+            ];
         }
+        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
-        return base64_encode(sha1($hashStr, true));
+        return $this->hashString($hashStr);
     }
 
     /**
@@ -147,7 +170,7 @@ class EstPos extends AbstractGateway
         }
 
         $hashVal = $paramsVal.$this->account->getStoreKey();
-        $hash = base64_encode(sha1($hashVal, true));
+        $hash = $this->hashString($hashVal);
 
         $return = false;
         if ($hashParams && !($paramsVal !== $hashParamsVal || $hashParam !== $hash)) {
@@ -208,7 +231,7 @@ class EstPos extends AbstractGateway
             return [];
         }
 
-        $this->order->hash = $this->create3DHash();
+        $this->order->hash = $this->create3DHash($this->account, $this->order, $this->type);
 
         $inputs = [
             'clientid'  => $this->account->getClientId(),

@@ -104,7 +104,7 @@ class EstPostTest extends TestCase
             'inputs'  => [
                 'clientid'                        => $this->account->getClientId(),
                 'storetype'                       => $this->account->getModel(),
-                'hash'                            => $this->pos->create3DHash(),
+                'hash'                            => $this->pos->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Auth'),
                 'cardType'                        => $this->card->getCardCode(),
                 'pan'                             => $this->card->getNumber(),
                 'Ecom_Payment_Card_ExpDate_Month' => $this->card->getExpireMonth(),
@@ -133,7 +133,7 @@ class EstPostTest extends TestCase
             'inputs'  => [
                 'clientid'  => $this->account->getClientId(),
                 'storetype' => $this->account->getModel(),
-                'hash'      => $this->pos->create3DHash(),
+                'hash'      => $this->pos->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Auth'),
                 'firmaadi'  => $this->order['name'],
                 'Email'     => $this->order['email'],
                 'amount'    => $this->order['amount'],
@@ -169,7 +169,7 @@ class EstPostTest extends TestCase
             'inputs'  => [
                 'clientid'  => $account->getClientId(),
                 'storetype' => $account->getModel(),
-                'hash'      => $pos->create3DHash(),
+                'hash'      => $pos->create3DHash($pos->getAccount(), $pos->getOrder(), 'Auth'),
                 'firmaadi'  => $this->order['name'],
                 'Email'     => $this->order['email'],
                 'amount'    => $this->order['amount'],
@@ -429,13 +429,58 @@ class EstPostTest extends TestCase
     }
 
     /**
+     * @return void
+     */
+    public function testCreate3DHashFor3DSecure()
+    {
+        $this->order['rand'] = 'rand';
+
+        $account = AccountFactory::createEstPosAccount(
+            'akbank',
+            'XXXXXXX',
+            'XXXXXXX',
+            'XXXXXXX',
+            AbstractGateway::MODEL_3D_SECURE,
+            'VnM5WZ3sGrPusmWP'
+        );
+        $pos     = PosFactory::createPosGateway($account);
+
+        $expected = '3Wb9YCz1uz3OCFHEI0u2Djga294=';
+        $pos->prepare($this->order, AbstractGateway::TX_PAY);
+        $actual = $pos->create3DHash($account, $pos->getOrder(), 'Auth');
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCreate3DHashForNon3DSecure()
+    {
+        $this->order['rand'] = 'rand';
+
+        $account  = AccountFactory::createEstPosAccount(
+            'akbank',
+            'XXXXXXX',
+            'XXXXXXX',
+            'XXXXXXX',
+            AbstractGateway::MODEL_3D_PAY,
+            'VnM5WZ3sGrPusmWP'
+        );
+        $pos      = PosFactory::createPosGateway($account);
+        $expected = 'zW2HEQR/H0mpo1jrztIgmIPFFEU=';
+        $pos->prepare($this->order, AbstractGateway::TX_PAY);
+        $actual = $pos->create3DHash($account, $pos->getOrder(), 'Auth');
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
      * @param                  $order
      * @param CreditCardEstPos $card
      * @param EstPosAccount    $account
      *
      * @return array
      */
-    private function getSampleRegularPaymentXMLData($order, $card, $account)
+    private function getSampleRegularPaymentXMLData($order, CreditCardEstPos $card, EstPosAccount $account)
     {
         return [
             'Name'      => $account->getUsername(),

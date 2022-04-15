@@ -32,6 +32,7 @@ abstract class AbstractGateway implements PosInterface
     const MODEL_NON_SECURE = 'regular';
 
     protected const HASH_ALGORITHM = 'sha1';
+    protected const HASH_SEPARATOR = '';
 
     private $config;
 

@@ -116,24 +116,29 @@ class InterPos extends AbstractGateway
     /**
      * Create 3D Hash
      *
-     * @param InterPosAccount $account
-     * @param                 $order
+     * @param AbstractPosAccount $account
+     * @param                    $order
+     * @param string             $txType
      *
      * @return string
      */
-    public function create3DHash(InterPosAccount $account, $order): string
+    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
     {
-        $hashStr = $account->getClientId()
-            .$order->id
-            .$order->amount
-            .$order->success_url
-            .$order->fail_url
-            .$this->type
-            .$order->installment
-            .$order->rand
-            .$account->getStoreKey();
+        $hashData = [
+            $account->getClientId(),
+            $order->id,
+            $order->amount,
+            $order->success_url,
+            $order->fail_url,
+            $txType,
+            $order->installment,
+            $order->rand,
+            $account->getStoreKey(),
+        ];
 
-        return base64_encode(sha1($hashStr, true));
+        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+
+        return $this->hashString($hashStr);
     }
 
     /**
@@ -183,8 +188,8 @@ class InterPos extends AbstractGateway
             }
         }
 
-        $calculatedHash = $calculatedHashParamsVal.$account->getStoreKey();
-        $hash           = base64_encode(sha1($calculatedHash, true));
+        $hashStr = $calculatedHashParamsVal.$account->getStoreKey();
+        $hash           = $this->hashString($hashStr);
 
         return $hashParams && !($calculatedHashParamsVal !== $actualHashParamsVal || $actualHash !== $hash);
     }
@@ -713,7 +718,7 @@ class InterPos extends AbstractGateway
         if (!$order) {
             return [];
         }
-        $hash = $this->create3DHash($this->account, $this->order);
+        $hash = $this->create3DHash($this->account, $this->order, $txType);
 
         $inputs = [
             'ShopCode'         => $account->getClientId(),

@@ -130,13 +130,13 @@ class KuveytPos extends AbstractGateway
      * Create 3D Hash
      * todo Şifrelenen veriler (Hashdata) uyuşmamaktadır. hatasi aliyoruz
      *
-     * @param KuveytPosAccount $account
-     * @param                  $order
-     * @param bool             $forProvision
+     * @param AbstractPosAccount $account
+     * @param                    $order
+     * @param bool               $forProvision
      *
      * @return string
      */
-    public function create3DHash(KuveytPosAccount $account, $order, bool $forProvision = false): string
+    public function create3DHash(AbstractPosAccount $account, $order, bool $forProvision = false): string
     {
         $hashedPassword = $this->hashString($account->getStoreKey());
 
@@ -146,7 +146,7 @@ class KuveytPos extends AbstractGateway
             $hashData = $this->createHashDataForProvision($account, $order, $hashedPassword);
         }
 
-        $hashStr = implode('', $hashData);
+        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }
@@ -675,13 +675,13 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @param KuveytPosAccount $account
-     * @param                  $order
-     * @param string           $hashedPassword
+     * @param AbstractPosAccount $account
+     * @param                    $order
+     * @param string             $hashedPassword
      *
      * @return array
      */
-    private function createHashDataForAuthorization(KuveytPosAccount $account, $order, string $hashedPassword): array
+    private function createHashDataForAuthorization(AbstractPosAccount $account, $order, string $hashedPassword): array
     {
         return [
             $account->getClientId(),
@@ -693,13 +693,13 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @param KuveytPosAccount $account
-     * @param                  $order
-     * @param string           $hashedPassword
+     * @param AbstractPosAccount $account
+     * @param                    $order
+     * @param string             $hashedPassword
      *
      * @return array
      */
-    private function createHashDataForProvision(KuveytPosAccount $account, $order, string $hashedPassword): array
+    private function createHashDataForProvision(AbstractPosAccount $account, $order, string $hashedPassword): array
     {
         return [
             $account->getClientId(),

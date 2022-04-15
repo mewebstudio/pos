@@ -4,6 +4,7 @@ namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCardGarantiPos;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Symfony\Component\HttpFoundation\Request;
@@ -206,7 +207,7 @@ class GarantiPos extends AbstractGateway
             return [];
         }
 
-        $hashData = $this->create3DHash();
+        $hashData = $this->create3DHash($this->account, $this->order, $this->type);
 
         $inputs = [
             'secure3dsecuritylevel' => $this->secureTypeMappings[$this->account->getModel()],
@@ -261,7 +262,7 @@ class GarantiPos extends AbstractGateway
             'Terminal'    => [
                 'ProvUserID' => $this->account->getUsername(),
                 'UserID'     => $this->account->getUsername(),
-                'HashData'   => $this->createHashData(),
+                'HashData'   => $this->createHashData($this->account, $this->order, $this->type, $this->card),
                 'ID'         => $this->account->getTerminalId(),
                 'MerchantID' => $this->account->getClientId(),
             ],
@@ -318,7 +319,7 @@ class GarantiPos extends AbstractGateway
             'Terminal'    => [
                 'ProvUserID' => $this->account->getUsername(),
                 'UserID'     => $this->account->getUsername(),
-                'HashData'   => $this->createHashData(),
+                'HashData'   => $this->createHashData($this->account, $this->order, $this->type, $this->card),
                 'ID'         => $this->account->getTerminalId(),
                 'MerchantID' => $this->account->getClientId(),
             ],
@@ -352,7 +353,7 @@ class GarantiPos extends AbstractGateway
             'Terminal'    => [
                 'ProvUserID' => $this->account->getUsername(),
                 'UserID'     => $this->account->getUsername(),
-                'HashData'   => $this->createHashData(),
+                'HashData'   => $this->createHashData($this->account, $this->order, $this->type, $this->card),
                 'ID'         => $this->account->getTerminalId(),
                 'MerchantID' => $this->account->getClientId(),
             ],
@@ -414,7 +415,7 @@ class GarantiPos extends AbstractGateway
             'Terminal'    => [
                 'ProvUserID' => $this->account->getRefundUsername(),
                 'UserID'     => $this->account->getRefundUsername(),
-                'HashData'   => $this->createHashData(),
+                'HashData'   => $this->createHashData($this->account, $this->order, $this->type),
                 'ID'         => $this->account->getTerminalId(),
                 'MerchantID' => $this->account->getClientId(),
             ],
@@ -452,7 +453,7 @@ class GarantiPos extends AbstractGateway
             'Terminal'    => [
                 'ProvUserID' => $this->account->getRefundUsername(),
                 'UserID'     => $this->account->getRefundUsername(),
-                'HashData'   => $this->createHashData(),
+                'HashData'   => $this->createHashData($this->account, $this->order, $this->type),
                 'ID'         => $this->account->getTerminalId(),
                 'MerchantID' => $this->account->getClientId(),
             ],
@@ -490,7 +491,7 @@ class GarantiPos extends AbstractGateway
             'Terminal'    => [
                 'ProvUserID' => $this->account->getUsername(),
                 'UserID'     => $this->account->getUsername(),
-                'HashData'   => $this->createHashData(),
+                'HashData'   => $this->createHashData($this->account, $this->order, $this->type),
                 'ID'         => $this->account->getTerminalId(),
                 'MerchantID' => $this->account->getClientId(),
             ],
@@ -525,7 +526,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        $hashData = $this->createHashData();
+        $hashData = $this->createHashData($this->account, $this->order, $this->type);
 
         $requestData = [
             'Mode'        => $this->getMode(),
@@ -567,42 +568,51 @@ class GarantiPos extends AbstractGateway
     /**
      * Make Hash Data
      *
+     * @param GarantiPosAccount       $account
+     * @param                         $order
+     * @param string                  $txType
+     * @param AbstractCreditCard|null $card
+     *
      * @return string
      */
-    public function createHashData(): string
+    public function createHashData(GarantiPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): string
     {
         $map = [
-            $this->order->id,
-            $this->account->getTerminalId(),
-            isset($this->card) ? $this->card->getNumber() : null,
-            $this->order->amount,
-            $this->createSecurityData(),
+            $order->id,
+            $account->getTerminalId(),
+            isset($card) ? $card->getNumber() : null,
+            $order->amount,
+            $this->createSecurityData($account, $txType),
         ];
 
-        return strtoupper(sha1(implode('', $map)));
+        return $this->hashString(implode(static::HASH_SEPARATOR, $map));
     }
 
 
     /**
      * Make 3d Hash Data
      *
+     * @param GarantiPosAccount $account
+     * @param                   $order
+     * @param string            $txType
+     *
      * @return string
      */
-    public function create3DHash(): string
+    public function create3DHash(GarantiPosAccount $account, $order, string $txType): string
     {
         $map = [
-            $this->account->getTerminalId(),
-            $this->order->id,
-            $this->order->amount,
-            $this->order->success_url,
-            $this->order->fail_url,
-            $this->type,
-            $this->order->installment,
-            $this->account->getStoreKey(),
-            $this->createSecurityData(),
+            $account->getTerminalId(),
+            $order->id,
+            $order->amount,
+            $order->success_url,
+            $order->fail_url,
+            $txType,
+            $order->installment,
+            $account->getStoreKey(),
+            $this->createSecurityData($account, $txType),
         ];
 
-        return strtoupper(sha1(implode('', $map)));
+        return $this->hashString(implode(static::HASH_SEPARATOR, $map));
     }
 
     /**
@@ -998,22 +1008,36 @@ class GarantiPos extends AbstractGateway
     }
 
     /**
-     * Make Security Data
+     * @param string $str
+     *
      * @return string
      */
-    private function createSecurityData(): string
+    protected function hashString(string $str): string
     {
-        if ($this->type === $this->types[self::TX_REFUND] || $this->type === $this->types[self::TX_CANCEL]) {
-            $password = $this->account->getRefundPassword();
+        return strtoupper(hash(static::HASH_ALGORITHM, $str));
+    }
+
+    /**
+     * Make Security Data
+     *
+     * @param GarantiPosAccount $account
+     * @param string            $txType
+     *
+     * @return string
+     */
+    private function createSecurityData(GarantiPosAccount $account, string $txType): string
+    {
+        if ($txType === $this->types[self::TX_REFUND] || $txType === $this->types[self::TX_CANCEL]) {
+            $password = $account->getRefundPassword();
         } else {
-            $password = $this->account->getPassword();
+            $password = $account->getPassword();
         }
 
         $map = [
             $password,
-            str_pad((int) $this->account->getTerminalId(), 9, 0, STR_PAD_LEFT),
+            str_pad((int) $account->getTerminalId(), 9, 0, STR_PAD_LEFT),
         ];
 
-        return strtoupper(sha1(implode('', $map)));
+        return $this->hashString(implode(static::HASH_SEPARATOR, $map));
     }
 }

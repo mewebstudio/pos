@@ -29,6 +29,9 @@ class PosNet extends AbstractGateway
     private const ORDER_ID_3D_PAY_PREFIX = '';  //?
     private const ORDER_ID_REGULAR_PREFIX = '';  //?
 
+    protected const HASH_ALGORITHM = 'sha256';
+    protected const HASH_SEPARATOR = ';';
+
     /**
      * @const string
      */
@@ -195,7 +198,7 @@ class PosNet extends AbstractGateway
             goto end;
         }
 
-        if (!$this->verifyResponseMAC($bankResponse->oosResolveMerchantDataResponse)) {
+        if (!$this->verifyResponseMAC($this->account, $this->order, $bankResponse->oosResolveMerchantDataResponse)) {
             goto end;
         }
 
@@ -305,39 +308,55 @@ class PosNet extends AbstractGateway
     /**
      * Create 3D Hash (MAC)
      *
+     * @param PosNetAccount $account
+     * @param               $order
+     *
      * @return string
      */
-    public function create3DHash(): string
+    public function create3DHash(PosNetAccount $account, $order): string
     {
-        $hashStr = '';
-        $glue = ';';
-        $firstHash = $this->hashString($this->account->getStoreKey().$glue.$this->account->getTerminalId());
+        if ($account->getModel() === self::MODEL_3D_SECURE || $account->getModel() === self::MODEL_3D_PAY) {
+            $secondHashData = [
+                self::formatOrderId($order->id),
+                $order->amount,
+                $order->currency,
+                $account->getClientId(),
+                $this->createSecurityData($account),
+            ];
+            $hashStr = implode(static::HASH_SEPARATOR, $secondHashData);
 
-        if ($this->account->getModel() === self::MODEL_3D_SECURE || $this->account->getModel() === self::MODEL_3D_PAY) {
-            $hashStr = $this->hashString(implode($glue, [self::formatOrderId($this->order->id), $this->order->amount, $this->order->currency, $this->account->getClientId(), $firstHash]));
+            return $this->hashString($hashStr);
         }
 
-        return $hashStr;
+        return '';
     }
 
     /**
      * verifies the if request came from bank
      *
-     * @param mixed $data oosResolveMerchantDataResponse
+     * @param PosNetAccount $account
+     * @param               $order
+     * @param mixed         $data    oosResolveMerchantDataResponse
      *
      * @return bool
      */
-    public function verifyResponseMAC($data): bool
+    public function verifyResponseMAC(PosNetAccount $account, $order, $data): bool
     {
         $hashStr = '';
-        $glue = ';';
-        $firstHash = $this->hashString($this->account->getStoreKey().$glue.$this->account->getTerminalId());
 
-        if ($this->account->getModel() === self::MODEL_3D_SECURE || $this->account->getModel() === self::MODEL_3D_PAY) {
-            $hashStr = $this->hashString(implode($glue, [$data->mdStatus, self::formatOrderId($this->order->id), $this->order->amount, $this->order->currency, $this->account->getClientId(), $firstHash]));
+        if ($account->getModel() === self::MODEL_3D_SECURE || $account->getModel() === self::MODEL_3D_PAY) {
+            $secondHashData = [
+                $data->mdStatus,
+                self::formatOrderId($order->id),
+                $order->amount,
+                $order->currency,
+                $account->getClientId(),
+                $this->createSecurityData($account),
+            ];
+            $hashStr = implode(static::HASH_SEPARATOR, $secondHashData);
         }
 
-        return $hashStr === $data->mac;
+        return $this->hashString($hashStr) === $data->mac;
     }
 
     /**
@@ -470,7 +489,7 @@ class PosNet extends AbstractGateway
                 'merchantData' => $responseData['MerchantPacket'],
                 'sign'         => $responseData['Sign'],
                 'wpAmount'     => 0,
-                'mac'          => $this->create3DHash(),
+                'mac'          => $this->create3DHash($this->account, $this->order),
             ],
         ];
 
@@ -491,7 +510,7 @@ class PosNet extends AbstractGateway
                 'bankData'     => $responseData['BankPacket'],
                 'merchantData' => $responseData['MerchantPacket'],
                 'sign'         => $responseData['Sign'],
-                'mac'          => $this->create3DHash(),
+                'mac'          => $this->create3DHash($this->account, $this->order),
             ],
         ];
 
@@ -574,18 +593,6 @@ class PosNet extends AbstractGateway
         }
 
         return $this->createXML($requestData);
-    }
-
-    /**
-     * Hash string
-     *
-     * @param string $str
-     *
-     * @return string
-     */
-    protected function hashString(string $str): string
-    {
-        return base64_encode(hash('sha256', $str, true));
     }
 
     /**
@@ -1063,5 +1070,24 @@ class PosNet extends AbstractGateway
             'amount'       => self::amountFormat($order['amount']),
             'currency'     => self::mapCurrency($order['currency']),
         ];
+    }
+
+
+    /**
+     * Make Security Data
+     *
+     * @param PosNetAccount $account
+     *
+     * @return string
+     */
+    private function createSecurityData(PosNetAccount $account): string
+    {
+        $hashData = [
+            $account->getStoreKey(),
+            $account->getTerminalId(),
+        ];
+        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+
+        return$this->hashString($hashStr);
     }
 }
