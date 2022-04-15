@@ -160,11 +160,9 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment()
+    public function make3DPayment(Request $request)
     {
-        $request = Request::createFromGlobals();
-
-
+        $provisionResponse = null;
         if ($this->check3DHash($request->request->all())) {
             if ($request->request->get('ProcReturnCode') !== '00') {
                 /**
@@ -175,10 +173,10 @@ class EstPos extends AbstractGateway
                  */
             }
             $contents = $this->create3DPaymentXML($request->request->all());
-            $this->send($contents);
+            $provisionResponse = $this->send($contents);
         }
 
-        $this->response = $this->map3DPaymentData($request->request->all(), $this->data);
+        $this->response = $this->map3DPaymentData($request->request->all(), $provisionResponse);
 
         return $this;
     }
@@ -186,10 +184,8 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment()
+    public function make3DPayPayment(Request $request)
     {
-        $request = Request::createFromGlobals();
-
         $this->response = $this->map3DPayResponseData($request->request->all());
 
         return $this;
@@ -198,9 +194,9 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment()
+    public function make3DHostPayment(Request $request)
     {
-        return $this->make3DPayPayment();
+        return $this->make3DPayPayment($request);
     }
 
     /**
@@ -253,7 +249,7 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($contents)
+    public function send($contents, ?string $url = null)
     {
         $client = new Client();
 
@@ -263,7 +259,7 @@ class EstPos extends AbstractGateway
 
         $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
-        return $this;
+        return $this->data;
     }
 
     /**
@@ -273,9 +269,9 @@ class EstPos extends AbstractGateway
     {
         $xml = $this->createHistoryXML($meta);
 
-        $this->send($xml);
+        $bankResponse = $this->send($xml);
 
-        $this->response = $this->mapHistoryResponse($this->data);
+        $this->response = $this->mapHistoryResponse($bankResponse);
 
         return $this;
     }

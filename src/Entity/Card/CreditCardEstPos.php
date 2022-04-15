@@ -8,8 +8,8 @@ namespace Mews\Pos\Entity\Card;
 class CreditCardEstPos extends AbstractCreditCard
 {
     private $cardTypeToCodeMapping = [
-        'visa'   => '1',
-        'master' => '2',
+        self::CARD_TYPE_VISA       => '1',
+        self::CARD_TYPE_MASTERCARD => '2',
     ];
 
     /**

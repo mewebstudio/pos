@@ -138,18 +138,17 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment()
+    public function make3DPayment(Request $request)
     {
-        $request = Request::createFromGlobals();
-
+        $bankResponse = null;
         //if customer 3d verification passed finish payment
         if ($this->check3DHash($request->request->all()) && '1' === $request->get('3DStatus')) {
             //valid ProcReturnCode is V033 in case of success 3D Authentication
             $contents = $this->create3DPaymentXML($request->request->all());
-            $this->send($contents);
+            $bankResponse = $this->send($contents);
         }
 
-        $this->response = $this->map3DPaymentData($request->request->all(), $this->data);
+        $this->response = $this->map3DPaymentData($request->request->all(), $bankResponse);
 
         return $this;
     }
@@ -157,10 +156,8 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment()
+    public function make3DPayPayment(Request $request)
     {
-        $request = Request::createFromGlobals();
-
         $this->response = $this->map3DPayResponseData($request->request->all());
 
         return $this;
@@ -169,9 +166,9 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment()
+    public function make3DHostPayment(Request $request)
     {
-        return $this->make3DPayPayment();
+        return $this->make3DPayPayment($request);
     }
 
     /**
@@ -235,7 +232,7 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($postData)
+    public function send($postData, ?string $url = null)
     {
         $client = new Client();
 
@@ -266,7 +263,7 @@ class PayForPos extends AbstractGateway
             $this->data = (object) json_decode($contents);
         }
 
-        return $this;
+        return $this->data;
     }
 
     /**

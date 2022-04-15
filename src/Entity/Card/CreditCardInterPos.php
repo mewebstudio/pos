@@ -8,9 +8,9 @@ namespace Mews\Pos\Entity\Card;
 class CreditCardInterPos extends AbstractCreditCard
 {
     private $cardTypeToCodeMapping = [
-        'visa'   => '0',
-        'master' => '1',
-        'amex'   => '3',
+        self::CARD_TYPE_VISA       => '0',
+        self::CARD_TYPE_MASTERCARD => '1',
+        self::CARD_TYPE_AMEX       => '3',
     ];
 
     /**

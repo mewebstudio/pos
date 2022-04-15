@@ -108,9 +108,9 @@ class VakifBankPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment()
+    public function make3DPayment(Request $request)
     {
-        $request = Request::createFromGlobals()->request;
+        $request = $request->request;
         $gatewayResponse = $this->emptyStringsToNull($request->all());
         // 3D authorization failed
         if ('Y' !== $gatewayResponse['Status'] && 'A' !== $gatewayResponse['Status']) {
@@ -127,9 +127,9 @@ class VakifBankPos extends AbstractGateway
         }
 
         $contents = $this->create3DPaymentXML($gatewayResponse);
-        $this->send($contents);
+        $bankResponse = $this->send($contents);
 
-        $this->response = $this->map3DPaymentData($gatewayResponse, $this->data);
+        $this->response = $this->map3DPaymentData($gatewayResponse, $bankResponse);
 
         return $this;
     }
@@ -138,7 +138,7 @@ class VakifBankPos extends AbstractGateway
      * TODO
      * @inheritDoc
      */
-    public function make3DPayPayment()
+    public function make3DPayPayment(Request $request)
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -147,7 +147,7 @@ class VakifBankPos extends AbstractGateway
      * TODO
      * @inheritDoc
      */
-    public function make3DHostPayment()
+    public function make3DHostPayment(Request $request)
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -217,7 +217,7 @@ class VakifBankPos extends AbstractGateway
     {
         $requestData = $this->create3DEnrollmentCheckData();
 
-        return $this->send($requestData, $this->get3DGatewayURL())->data;
+        return $this->send($requestData, $this->get3DGatewayURL());
     }
 
     /**
@@ -267,7 +267,7 @@ class VakifBankPos extends AbstractGateway
 
         $this->data = $this->emptyStringsToNull($this->data);
 
-        return $this;
+        return $this->data;
     }
 
     /**

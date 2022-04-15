@@ -80,8 +80,6 @@ class InterPos extends AbstractGateway
     protected $card;
 
     /**
-     * InterPosAccount constructor.
-     *
      * @param array           $config
      * @param InterPosAccount $account
      * @param array           $currencies
@@ -160,7 +158,7 @@ class InterPos extends AbstractGateway
 
         $this->data = $result;
 
-        return $this;
+        return $this->data;
     }
 
     /**
@@ -194,9 +192,10 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment()
+    public function make3DPayment(Request $request)
     {
-        $request         = Request::createFromGlobals()->request;
+        $bankResponse    = null;
+        $request         = $request->request;
         $gatewayResponse = $this->emptyStringsToNull($request->all());
 
         $procReturnCode  = $this->getProcReturnCode($gatewayResponse);
@@ -207,12 +206,12 @@ class InterPos extends AbstractGateway
                  */
             }
             $contents = $this->create3DPaymentXML($gatewayResponse);
-            $this->send($contents);
+            $bankResponse = $this->send($contents);
         }
 
 
-        $authorizationResponse = $this->emptyStringsToNull($this->data);
-        $this->response        = $this->map3DPaymentData($gatewayResponse, $authorizationResponse);
+        $authorizationResponse = $this->emptyStringsToNull($bankResponse);
+        $this->response        = (object) $this->map3DPaymentData($gatewayResponse, $authorizationResponse);
 
         return $this;
     }
@@ -220,9 +219,8 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment()
+    public function make3DPayPayment(Request $request)
     {
-        $request         = Request::createFromGlobals();
         $gatewayResponse = $this->emptyStringsToNull($request->request->all());
         $this->response  = $this->map3DPayResponseData($gatewayResponse);
 
@@ -232,9 +230,9 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment()
+    public function make3DHostPayment(Request $request)
     {
-        return $this->make3DPayPayment();
+        return $this->make3DPayPayment($request);
     }
 
     /**
@@ -462,7 +460,7 @@ class InterPos extends AbstractGateway
             'month'                => null,
             'year'                 => null,
             'amount'               => $raw3DAuthResponseData['PurchAmount'],
-            'currency'             => $raw3DAuthResponseData['Currency'],
+            'currency'             => array_search($raw3DAuthResponseData['Currency'], $this->currencies),
             'eci'                  => $raw3DAuthResponseData['Eci'],
             'tx_status'            => $raw3DAuthResponseData['TxnStat'],
             'cavv'                 => null,
@@ -474,7 +472,7 @@ class InterPos extends AbstractGateway
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
-        return (object) array_merge($paymentResponseData, $threeDResponse);
+        return array_merge($paymentResponseData, $threeDResponse);
     }
 
     /**

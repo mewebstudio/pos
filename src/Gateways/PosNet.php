@@ -139,7 +139,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment()
+    public function make3DHostPayment(Request $request)
     {
         throw new NotImplementedException();
     }
@@ -175,21 +175,18 @@ class PosNet extends AbstractGateway
         ];
         $xml = $this->createXML($requestData);
 
-        $this->send($xml);
-
-        return $this->data;
+        return $this->send($xml);
     }
 
     /**
      * @inheritDoc
      */
-    public function make3DPayment()
+    public function make3DPayment(Request $request)
     {
-        $request = Request::createFromGlobals();
-
+        $bankResponse = null;
         if ($this->check3DHash($request->request->all())) {
             $contents = $this->create3DResolveMerchantDataXML($request->request->all());
-            $this->send($contents);
+            $bankResponse = $this->send($contents);
         } else {
             goto end;
         }
@@ -198,30 +195,28 @@ class PosNet extends AbstractGateway
             goto end;
         }
 
-        if (!$this->verifyResponseMAC($this->data->oosResolveMerchantDataResponse)) {
+        if (!$this->verifyResponseMAC($bankResponse->oosResolveMerchantDataResponse)) {
             goto end;
         }
 
         if ($this->getProcReturnCode() === '00' && $this->getStatusDetail() === 'approved') {
             //if 3D Authentication is successful:
-            if (in_array($this->data->oosResolveMerchantDataResponse->mdStatus, [1, 2, 3, 4])) {
+            if (in_array($bankResponse->oosResolveMerchantDataResponse->mdStatus, [1, 2, 3, 4])) {
                 $contents = $this->create3DPaymentXML($request->request->all());
-                $this->send($contents);
+                $bankResponse = $this->send($contents);
             }
         }
 
         end:
-        $this->response = $this->map3DPaymentData($request->request->all(), $this->data);
+        $this->response = $this->map3DPaymentData($request->request->all(), $bankResponse);
 
         return $this;
     }
 
     /**
-     * Make 3D Pay Payment
-     *
-     * @return $this
+     * @inheritDoc
      */
-    public function make3DPayPayment()
+    public function make3DPayPayment(Request $request)
     {
         throw new NotImplementedException();
     }
@@ -265,7 +260,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($contents)
+    public function send($contents, ?string $url = null)
     {
         $client = new Client();
 
@@ -280,7 +275,7 @@ class PosNet extends AbstractGateway
 
         $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
-        return $this;
+        return $this->data;
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\EstPosAccount;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCardEstPos;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\PosFactory;
@@ -52,7 +53,7 @@ class EstPostTest extends TestCase
             EstPos::LANG_TR
         );
 
-        $this->card = new CreditCardEstPos('5555444433332222', '21', '12', '122', 'ahmet', 'visa');
+        $this->card = new CreditCardEstPos('5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
         $this->order = [
             'id'          => 'order222',

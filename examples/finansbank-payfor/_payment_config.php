@@ -1,5 +1,6 @@
 <?php
 
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Gateways\AbstractGateway;
 
 require __DIR__.'/../_main_config.php';
@@ -98,6 +99,6 @@ $testCards = [
         1,
         '123',
         'John Doe',
-        'visa'
+        AbstractCreditCard::CARD_TYPE_VISA
     ),
 ];
