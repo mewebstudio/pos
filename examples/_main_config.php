@@ -9,16 +9,8 @@ require_once "$root/../vendor/autoload.php";
 $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
 
-/*$redis = new Redis();
-$redis->connect('pos_redis', 6379);
-$sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\Handler\RedisSessionHandler($redis);
 $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-    'cookie_samesite' => 'None'
-], $sessionHandler);
-*/
-
-$sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-    'cookie_samesite' => 'None'
+    'cookie_samesite' => 'None',
 ]);
 $session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
 //banktan donuste eski session'a devam edemiyor, yeni session olusturuluyor
@@ -41,5 +33,3 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mew
         dd($e);
     }
 }
-
-//$hostUrl .= '/pos/examples';
