@@ -32,6 +32,7 @@
                 <li> <a href="<?= $hostUrl ?>/finansbank-payfor/index.php">PayFor (Finansbank)</a></li>
                 <li> <a href="<?= $hostUrl ?>/garanti/index.php">Garanti POS</a></li>
                 <li> <a href="<?= $hostUrl ?>/ykb/index.php">PosNet (YKB)</a></li>
+                <li> <a href="<?= $hostUrl ?>/kuveytpos/index.php">KuveytPOS</a></li>
             </ul>
         </nav>
     </div>
