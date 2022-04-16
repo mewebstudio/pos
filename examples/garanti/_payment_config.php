@@ -89,10 +89,10 @@ function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\
 
 $testCards = [
     'visa1' => new \Mews\Pos\Entity\Card\CreditCardGarantiPos(
-        '4090700101174272',
-        30,
-        12,
-        '000',
+        '4282209004348015',
+        22,
+        '08',
+        123,
         'John Doe',
         AbstractCreditCard::CARD_TYPE_VISA
     ),

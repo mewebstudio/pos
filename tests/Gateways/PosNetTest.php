@@ -88,9 +88,29 @@ class PosNetTest extends TestCase
 
     public function testCreate3DHash()
     {
-
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $this->assertEquals('J/7/Xprj7F/KDf98luVfIGyUPRQzUCqGwpmvz3KT7oQ=', $this->pos->create3DHash());
+        $actual = $this->pos->create3DHash($this->pos->getAccount(), $this->pos->getOrder());
+        $this->assertEquals('J/7/Xprj7F/KDf98luVfIGyUPRQzUCqGwpmvz3KT7oQ=', $actual);
+    }
+
+    public function testCreate3DHashForNon3DSecure()
+    {
+        $account = AccountFactory::createPosNetAccount(
+            'yapikredi',
+            '6706598320',
+            'XXXXXX',
+            'XXXXXX',
+            '67005551',
+            '27426',
+            AbstractGateway::MODEL_NON_SECURE,
+            '10,10,10,10,10,10,10,10'
+        );
+        /** @var PosNet $pos */
+        $pos = PosFactory::createPosGateway($account);
+
+        $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $actual = $pos->create3DHash($pos->getAccount(), $pos->getOrder());
+        $this->assertEquals('', $actual);
     }
 
     public function testAmountFormat()
@@ -118,7 +138,7 @@ class PosNetTest extends TestCase
             AbstractGateway::MODEL_3D_SECURE,
             '10,10,10,10,10,10,10,10'
         );
-
+        /** @var PosNet $pos */
         $pos = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
 
@@ -127,7 +147,7 @@ class PosNetTest extends TestCase
             'mdStatus' => '9',
             'mac'      => 'U2kU/JWjclCvKZjILq8xBJUXhyB4DswKvN+pKfxl0u0=',
         ];
-        $this->assertTrue($pos->verifyResponseMAC($data));
+        $this->assertTrue($pos->verifyResponseMAC($pos->getAccount(), $pos->getOrder(), $data));
 
         $newOrder['id'] = '800';
         $pos->prepare($newOrder, AbstractGateway::TX_PAY);
@@ -135,7 +155,7 @@ class PosNetTest extends TestCase
             'mdStatus' => '9',
             'mac'      => 'U2kU/JWjclCvKZjILq8xBJUXhyB4DswKvN+pKfxl0u0=',
         ];
-        $this->assertFalse($pos->verifyResponseMAC($data));
+        $this->assertFalse($pos->verifyResponseMAC($pos->getAccount(), $pos->getOrder(), $data));
     }
 
     public function testCreateRegularPaymentXML()

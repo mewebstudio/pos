@@ -395,6 +395,55 @@ class GarantiPosTest extends TestCase
     }
 
     /**
+     * @return void
+     */
+    public function testCreate3DHashFor3DSecure()
+    {
+        $expected = '1D319D5EA945F5730FF5BCC970FF96690993F4BD';
+        $pos = $this->pos;
+        $pos->prepare($this->order, AbstractGateway::TX_PAY);
+        $actual = $pos->create3DHash($pos->getAccount(), $pos->getOrder(), 'sales');
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCreateHashForPayment()
+    {
+        $expected = '00CD5B6C29D4CEA1F3002D785A9F9B09974AD51D';
+        $pos = $this->pos;
+        $pos->prepare($this->order, AbstractGateway::TX_PAY);
+        $actual = $pos->createHashData($pos->getAccount(), $pos->getOrder(), 'sales');
+        $this->assertEquals($expected, $actual);
+
+        $pos->prepare($this->order, AbstractGateway::TX_PRE_PAY);
+        $actual = $pos->createHashData($pos->getAccount(), $pos->getOrder(), 'preauth');
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCreateHashForCancelAndRefund()
+    {
+        $order = [
+            'id' => '4499996',
+            'ref_ret_num' => '446ss',
+            'currency' => 'TRY',
+        ];
+        $expected = '9788649A0C3AE14C082783CEA6775E08A7EFB311';
+        $pos = $this->pos;
+        $pos->prepare($order, AbstractGateway::TX_CANCEL);
+        $actual = $pos->createHashData($pos->getAccount(), $pos->getOrder(), 'void');
+        $this->assertEquals($expected, $actual);
+
+        $pos->prepare($order, AbstractGateway::TX_REFUND);
+        $actual = $pos->createHashData($pos->getAccount(), $pos->getOrder(), 'refund');
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
      * @uses \Mews\Pos\Gateways\GarantiPos::map3DPayResponseData()
      *
      * @return void

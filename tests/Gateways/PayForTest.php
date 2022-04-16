@@ -120,7 +120,7 @@ class PayForTest extends TestCase
                 'OkUrl'            => $order->success_url,
                 'FailUrl'          => $order->fail_url,
                 'Rnd'              => $order->rand,
-                'Hash'             => $this->pos->create3DHash(),
+                'Hash'             => $this->pos->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Auth'),
                 'CardHolderName'   => 'ahmet',
                 'Pan'              => '5555444433332222',
                 'Expiry'           => '0122',
@@ -150,7 +150,7 @@ class PayForTest extends TestCase
                 'OkUrl'            => $order->success_url,
                 'FailUrl'          => $order->fail_url,
                 'Rnd'              => $order->rand,
-                'Hash'             => $this->pos->create3DHash(),
+                'Hash'             => $this->pos->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Auth'),
             ],
         ];
         $this->assertEquals($form, $this->pos->get3DFormData());
@@ -167,8 +167,9 @@ class PayForTest extends TestCase
             'rand'        => '0.43625700 1604831630',
         ];
         $hash = 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=';
-        $this->pos->prepare($order, AbstractGateway::TX_PAY);
-        $this->assertEquals($hash, $this->pos->create3DHash());
+        $pos = $this->pos;
+        $pos->prepare($order, AbstractGateway::TX_PAY);
+        $this->assertEquals($hash, $this->pos->create3DHash($pos->getAccount(), $pos->getOrder(), 'Auth'));
     }
 
     public function testCheck3DHash()
@@ -182,10 +183,10 @@ class PayForTest extends TestCase
             "ResponseHash"   => "ogupUOYY6vQ4+opqDqgLk3DLK7I=",
         ];
 
-        $this->assertTrue($this->pos->check3DHash($data));
+        $this->assertTrue($this->pos->check3DHash($this->pos->getAccount(), $data));
 
         $data['3DStatus'] = '';
-        $this->assertFalse($this->pos->check3DHash($data));
+        $this->assertFalse($this->pos->check3DHash($this->pos->getAccount(), $data));
     }
 
     public function testCreateRegularPaymentXML()

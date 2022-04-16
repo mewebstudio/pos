@@ -91,7 +91,7 @@ class InterPosTest extends TestCase
         $order   = (object) $this->order;
         $account = $this->account;
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $hash = $this->pos->create3DHash($account, $this->pos->getOrder());
+        $hash = $this->pos->create3DHash($account, $this->pos->getOrder(), 'Auth');
 
 
         $inputs = [
@@ -129,7 +129,7 @@ class InterPosTest extends TestCase
         $order   = (object) $this->order;
         $account = $this->account;
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $hash = $this->pos->create3DHash($account, $this->pos->getOrder());
+        $hash = $this->pos->create3DHash($account, $this->pos->getOrder(), 'Auth');
 
         $inputs = [
             'ShopCode'         => $account->getClientId(),
@@ -172,7 +172,7 @@ class InterPosTest extends TestCase
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
 
         $order = (object) $this->order;
-        $hash  = $pos->create3DHash($account, $pos->getOrder());
+        $hash  = $pos->create3DHash($account, $pos->getOrder(), 'Auth');
 
         $inputs = [
             'ShopCode'         => $account->getClientId(),
@@ -471,6 +471,19 @@ class InterPosTest extends TestCase
         $this->assertSame('Terminal Aktif Degil', $result['error_message']);
         $this->assertNotEmpty($result['3d_all']);
         $this->assertNull($result['all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCreate3DHash()
+    {
+        $this->order['rand'] = 'rand';
+        $pos = $this->pos;
+        $expected = 'vEbwP8wnsGrBR9oCjfxP9wlho1g=';
+        $pos->prepare($this->order, AbstractGateway::TX_PAY);
+        $actual = $pos->create3DHash($pos->getAccount(), $pos->getOrder(), 'Auth');
+        $this->assertEquals($expected, $actual);
     }
 
     /**

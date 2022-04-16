@@ -4,8 +4,8 @@
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCardPayFor;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -142,7 +142,7 @@ class PayForPos extends AbstractGateway
     {
         $bankResponse = null;
         //if customer 3d verification passed finish payment
-        if ($this->check3DHash($request->request->all()) && '1' === $request->get('3DStatus')) {
+        if ($this->check3DHash($this->account, $request->request->all()) && '1' === $request->get('3DStatus')) {
             //valid ProcReturnCode is V033 in case of success 3D Authentication
             $contents = $this->create3DPaymentXML($request->request->all());
             $bankResponse = $this->send($contents);
@@ -214,7 +214,7 @@ class PayForPos extends AbstractGateway
             return [];
         }
 
-        $this->order->hash = $this->create3DHash();
+        $this->order->hash = $this->create3DHash($this->account, $this->order, $this->type);
 
         $formData = $this->getCommon3DFormData();
         if (self::MODEL_3D_PAY === $this->account->getModel()) {
@@ -276,35 +276,54 @@ class PayForPos extends AbstractGateway
 
 
     /**
+     * @param AbstractPosAccount $account
+     * @param                    $order
+     * @param string             $txType
+     *
      * @return string
      */
-    public function create3DHash(): string
+    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
     {
-        $hashStr = self::MBR_ID.$this->order->id
-            .$this->order->amount.$this->order->success_url
-            .$this->order->fail_url.$this->type
-            .$this->order->installment.$this->order->rand
-            .$this->account->getStoreKey();
+        $hashData = [
+            self::MBR_ID,
+            $order->id,
+            $order->amount,
+            $order->success_url,
+            $order->fail_url,
+            $txType,
+            $order->installment,
+            $order->rand,
+            $account->getStoreKey(),
+        ];
+        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
-        return base64_encode(sha1($hashStr, true));
+        return $this->hashString($hashStr);
     }
 
     /**
      * validates response hash
      *
-     * @param array $data
+     * @param AbstractPosAccount $account
+     * @param array              $data
      *
      * @return bool
      */
-    public function check3DHash(array $data): bool
+    public function check3DHash(AbstractPosAccount $account, array $data): bool
     {
+        $hashData = [
+            $account->getClientId(),
+            $account->getStoreKey(),
+            $data['OrderId'],
+            $data['AuthCode'],
+            $data['ProcReturnCode'],
+            $data['3DStatus'],
+            $data['ResponseRnd'],
+            $account->getUsername(),
+        ];
 
-        $hashStr = $this->account->getClientId().$this->account->getStoreKey()
-            .$data['OrderId'].$data['AuthCode']
-            .$data['ProcReturnCode'].$data['3DStatus']
-            .$data['ResponseRnd'].$this->account->getUsername();
+        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
-        $hash = base64_encode(sha1($hashStr, true));
+        $hash = $this->hashString($hashStr);
 
         return $hash === $data['ResponseHash'];
     }
