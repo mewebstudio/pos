@@ -6,9 +6,9 @@ $baseUrl = $bankTestsUrl.'/regular/';
 
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank',
-    'XXXXXXX',
-    'XXXXXXX',
-    '',
+    '700655000200',
+    'ISBANKAPI',
+    'ISBANK07',
     \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE
 );
 
