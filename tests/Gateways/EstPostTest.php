@@ -13,6 +13,7 @@ use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use ReflectionException;
 use ReflectionMethod;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 class EstPostTest extends TestCase
@@ -45,11 +46,11 @@ class EstPostTest extends TestCase
 
         $this->account = AccountFactory::createEstPosAccount(
             'akbank',
-            'XXXXXXX',
-            'XXXXXXX',
-            'XXXXXXX',
+            '700655000200',
+            'ISBANKAPI',
+            'ISBANK07',
             AbstractGateway::MODEL_3D_SECURE,
-            'VnM5WZ3sGrPusmWP',
+            'TRPS0200',
             EstPos::LANG_TR
         );
 
@@ -188,22 +189,7 @@ class EstPostTest extends TestCase
 
     public function testCheck3DHash()
     {
-        $data = [
-            "md"             => "478719:0373D10CFD8BDED34FA0546D27D5BE76F8BA4A947D1EC499102AE97B880EB1B9:4242:##400902568",
-            "cavv"           => "BwAQAhIYRwEAABWGABhHEE6v5IU=",
-            "AuthCode"       => "",
-            "oid"            => "880",
-            "mdStatus"       => "4",
-            "eci"            => "06",
-            "clientid"       => "400902568",
-            "rnd"            => "hDx50d0cq7u1vbpWQMae",
-            "ProcReturnCode" => "N7",
-            "Response"       => "Declined",
-            "HASH"           => "D+B5fFWXEWFqVSkwotyuTPUW800=",
-            "HASHPARAMS"     => "clientid:oid:AuthCode:ProcReturnCode:Response:mdStatus:cavv:eci:md:rnd:",
-            "HASHPARAMSVAL"  => "400902568880N7Declined4BwAQAhIYRwEAABWGABhHEE6v5IU=06478719:0373D10CFD8BDED34FA0546D27D5BE76F8BA4A947D1EC499102AE97B880EB1B9:4242:##400902568hDx50d0cq7u1vbpWQMae",
-        ];
-
+        $data = $this->get3DMakePaymentFailResponseData();
         $this->assertTrue($this->pos->check3DHash($data));
 
         $data['mdStatus'] = '';
@@ -472,6 +458,437 @@ class EstPostTest extends TestCase
         $actual = $pos->create3DHash($account, $pos->getOrder(), 'Auth');
         $this->assertEquals($expected, $actual);
     }
+
+    /**
+     * @return void
+     */
+    public function testMake3DPaymentAuthFail()
+    {
+        $request = Request::create('', 'POST', $this->get3DMakePaymentFailResponseData());
+
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['send'])
+            ->getMock();
+
+        $posMock->expects($this->never())->method('send');
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->make3DPayment($request);
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('declined', $result['status']);
+        $this->assertSame('Not authenticated', $result['md_error_message']);
+        $this->assertSame('202204171C44', $result['order_id']);
+        $this->assertSame('0', $result['md_status']);
+        $this->assertSame('e5KcIY797JNvjrkWjZSfHOa+690=', $result['hash']);
+        $this->assertSame('4355 08** **** 4358', $result['masked_number']);
+        $this->assertSame('12', $result['month']);
+        $this->assertSame('30', $result['year']);
+        $this->assertSame('1.01', $result['amount']);
+        $this->assertSame('TRY', $result['currency']);
+        $this->assertSame('Auth', $result['transaction_type']);
+        $this->assertSame(null, $result['auth_code']);
+        $this->assertSame(null, $result['host_ref_num']);
+        $this->assertSame(null, $result['status_detail']);
+        $this->assertSame(null, $result['error_code']);
+        $this->assertNotEmpty($result['3d_all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testMake3DPaymentAuthSuccessAndPaymentFail()
+    {
+        $request = Request::create('', 'POST', $this->get3DMakePaymentAuthSuccessResponseData());
+
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML', 'getProcReturnCode'])
+            ->getMock();
+
+        $posMock->expects($this->once())->method('send')->willReturn((object) $this->get3DMakePaymentPaymentFailResponseData());
+        $posMock->expects($this->once())->method('check3DHash')->willReturn(true);
+        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
+        $posMock->expects($this->once())->method('create3DPaymentXML')->willReturn('');
+
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->make3DPayment($request);
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('declined', $result['status']);
+        $this->assertSame(null, $result['md_error_message']);
+        $this->assertSame('202204171C63', $result['order_id']);
+        $this->assertSame('1', $result['md_status']);
+        $this->assertSame('7nVDw9NnL7z4KvTQB7fWhtN8ivQ=', $result['hash']);
+        $this->assertSame('4355 08** **** 4358', $result['masked_number']);
+        $this->assertSame('12', $result['month']);
+        $this->assertSame('30', $result['year']);
+        $this->assertSame('1.01', $result['amount']);
+        $this->assertSame('TRY', $result['currency']);
+        $this->assertSame('Auth', $result['transaction_type']);
+        $this->assertSame(null, $result['auth_code']);
+        $this->assertSame(null, $result['host_ref_num']);
+        $this->assertSame('general_error', $result['status_detail']);
+        $this->assertSame('CORE-2001', $result['error_code']);
+        $this->assertNotEmpty($result['3d_all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testMake3DPaymentAuthSuccessAndPaymentSuccess()
+    {
+        $request = Request::create('', 'POST', $this->get3DMakePaymentAuthSuccessResponseData());
+
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML', 'getProcReturnCode'])
+            ->getMock();
+
+        $posMock->expects($this->once())->method('send')->willReturn((object) $this->get3DMakePaymentPaymentSuccessResponseData());
+        $posMock->expects($this->once())->method('check3DHash')->willReturn(true);
+        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
+        $posMock->expects($this->once())->method('create3DPaymentXML')->willReturn('');
+
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->make3DPayment($request);
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('approved', $result['status']);
+        $this->assertSame(null, $result['md_error_message']);
+        $this->assertSame('202204171C63', $result['order_id']);
+        $this->assertSame('1', $result['md_status']);
+        $this->assertSame('7nVDw9NnL7z4KvTQB7fWhtN8ivQ=', $result['hash']);
+        $this->assertSame('4355 08** **** 4358', $result['masked_number']);
+        $this->assertSame('12', $result['month']);
+        $this->assertSame('30', $result['year']);
+        $this->assertSame('1.01', $result['amount']);
+        $this->assertSame('TRY', $result['currency']);
+        $this->assertSame('Auth', $result['transaction_type']);
+        $this->assertSame('P65781', $result['auth_code']);
+        $this->assertSame('210700616852', $result['host_ref_num']);
+        $this->assertSame('approved', $result['status_detail']);
+        $this->assertSame(null, $result['error_code']);
+        $this->assertNotEmpty($result['3d_all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testMake3DHostPaymentSuccess()
+    {
+        $request = Request::create('', 'POST', $this->get3DHostPaymentSuccessResponseData());
+
+        $pos = $this->pos;
+        $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $pos->make3DHostPayment($request);
+        $result = $pos->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('approved', $result['status']);
+        $this->assertSame(null, $result['md_error_message']);
+        $this->assertSame('20220417FA2D', $result['order_id']);
+        $this->assertSame('1', $result['md_status']);
+        $this->assertSame('bQY4zwZrjrlZmJWdRdDYgqCvMRU=', $result['hash']);
+        $this->assertSame('4355 08** **** 4358', $result['masked_number']);
+        $this->assertSame('12', $result['month']);
+        $this->assertSame('30', $result['year']);
+        $this->assertSame('1.01', $result['amount']);
+        $this->assertSame('TRY', $result['currency']);
+        $this->assertSame('Auth', $result['transaction_type']);
+        $this->assertSame(null, $result['auth_code']);
+        $this->assertSame(null, $result['host_ref_num']);
+        $this->assertSame(null, $result['status_detail']);
+        $this->assertSame(null, $result['error_code']);
+        $this->assertNotEmpty($result['all']);
+    }
+
+    private function get3DMakePaymentPaymentFailResponseData(): array
+    {
+        return [
+            "OrderId" => "",
+            "GroupId" => "",
+            "Response" => "Error",
+            "AuthCode" => "",
+            "HostRefNum" => "",
+            "ProcReturnCode" => "99",
+            "TransId" => "22107QgTJ18637",
+            "ErrMsg" => "Gecersiz Islem Tipi. Islem tipi Auth, PreAuth, PostAuth, Credit, Void islemlerinden biri olabilir.",
+            "Extra" => [
+                "SETTLEID" => "",
+                "TRXDATE" => "20220417 16:32:19",
+                "ERRORCODE" => "CORE-2001",
+                "NUMCODE" => "992001",
+            ],
+        ];
+    }
+
+    private function get3DMakePaymentPaymentSuccessResponseData(): array
+    {
+        return [
+            'OrderId' =>  '202204171C63',
+            'GroupId' =>  '202204171C63',
+            'Response' =>  'Approved',
+            'AuthCode' =>  'P65781',
+            'HostRefNum' =>  '210700616852',
+            'ProcReturnCode' =>  '00',
+            'TransId' =>  '22107PLcF14797',
+            'ErrMsg' =>  '',
+            'Extra' =>  [
+                'SETTLEID' =>  '2092',
+                'TRXDATE' =>  '20220417 15:11:28',
+                'ERRORCODE' =>  '',
+                'TERMINALID' =>  '00655020',
+                'MERCHANTID' =>  '655000200',
+                'CARDBRAND' =>  'VISA',
+                'CARDISSUER' =>  'AKBANK T.A.S.',
+                'AVSAPPROVE' =>  'Y',
+                'HOSTDATE' =>  '0417-151128',
+                'AVSERRORCODEDETAIL' =>  'avshatali-avshatali-avshatali-avshatali-',
+                'NUMCODE' =>  '00',
+            ],
+        ];
+    }
+
+    private function get3DMakePaymentAuthSuccessResponseData(): array
+    {
+        return [
+            'TRANID' => '',
+            'PAResSyntaxOK' => 'true',
+            'firmaadi' => 'John Doe',
+            'lang' => 'tr',
+            'merchantID' => '700655000200',
+            'maskedCreditCard' => '4355 08** **** 4358',
+            'amount' => '1.01',
+            'sID' => '1',
+            'ACQBIN' => '406456',
+            'Ecom_Payment_Card_ExpDate_Year' => '30',
+            'Email' => 'mail@customer.com',
+            'MaskedPan' => '435508***4358',
+            'clientIp' => '89.244.149.137',
+            'iReqDetail' => '',
+            'okUrl' => 'http://localhost/akbank/3d/response.php',
+            'md' => '435508:46A6F89B64E81426ECA35D16C6E94AB6073E49F26ECE838705C267C58E894BB7:4232:##700655000200',
+            'vendorCode' => '',
+            'Ecom_Payment_Card_ExpDate_Month' => '12',
+            'storetype' => '3d',
+            'iReqCode' => '',
+            'mdErrorMsg' => 'Authenticated',
+            'PAResVerified' => 'false',
+            'cavv' => 'AAABBDEjQgAAAAAwAiNCAAAAAAA=',
+            'digest' => 'digest',
+            'callbackCall' => 'true',
+            'failUrl' => 'http://localhost/akbank/3d/response.php',
+            'cavvAlgorithm' => '2',
+            'xid' => '/ivt8mHWI9wJRQZQXelAt8m+Jj0=',
+            'encoding' => 'ISO-8859-9',
+            'currency' => '949',
+            'oid' => '202204171C63',
+            'mdStatus' => '1',
+            'dsId' => '1',
+            'eci' => '05',
+            'version' => '2.0',
+            'clientid' => '700655000200',
+            'txstatus' => 'Y',
+            '_charset_' => 'UTF-8',
+            'HASH' => '7nVDw9NnL7z4KvTQB7fWhtN8ivQ=',
+            'rnd' => '9vbiIiBpFoQTeE11rN+x',
+            'HASHPARAMS' => 'clientid:oid:mdStatus:cavv:eci:md:rnd:',
+            'HASHPARAMSVAL' => '700655000200202204171C631AAABBDEjQgAAAAAwAiNCAAAAAAA=05435508:46A6F89B64E81426ECA35D16C6E94AB6073E49F26ECE838705C267C58E894BB7:4232:##7006550002009vbiIiBpFoQTeE',
+        ];
+    }
+
+    private function get3DMakePaymentFailResponseData(): array
+    {
+        return [
+            'TRANID' => '',
+            'PAResSyntaxOK' => 'true',
+            'firmaadi' => 'John Doe',
+            'lang' => 'tr',
+            'merchantID' => '700655000200',
+            'maskedCreditCard' => '4355 08** **** 4358',
+            'amount' => '1.01',
+            'sID' => '1',
+            'ACQBIN' => '406456',
+            'Ecom_Payment_Card_ExpDate_Year' => '30',
+            'Email' => 'mail@customer.com',
+            'MaskedPan' => '435508***4358',
+            'clientIp' => '89.244.149.137',
+            'iReqDetail' => '',
+            'okUrl' => 'http://localhost/akbank/3d/response.php',
+            'md' => '435508:86D9842A9C594E17B28A2B9037FEB140E8EA480AED5FE19B5CEA446960AA03AA:4122:##700655000200',
+            'vendorCode' => '',
+            'Ecom_Payment_Card_ExpDate_Month' => '12',
+            'storetype' => '3d',
+            'iReqCode' => '',
+            'mdErrorMsg' => 'Not authenticated',
+            'PAResVerified' => 'false',
+            'cavv' => '',
+            'digest' => 'digest',
+            'callbackCall' => 'true',
+            'failUrl' => 'http://localhost/akbank/3d/response.php',
+            'cavvAlgorithm' => '',
+            'xid' => 'FKqfXqwd0VA5RILtjmwaW17t/jk=',
+            'encoding' => 'ISO-8859-9',
+            'currency' => '949',
+            'oid' => '202204171C44',
+            'mdStatus' => '0',
+            'dsId' => '1',
+            'eci' => '',
+            'version' => '2.0',
+            'clientid' => '700655000200',
+            'txstatus' => 'N',
+            '_charset_' => 'UTF-8',
+            'HASH' => 'e5KcIY797JNvjrkWjZSfHOa+690=',
+            'rnd' => 'mzTLQAaM8W5GuQwu4BfD',
+            'HASHPARAMS' => 'clientid:oid:mdStatus:cavv:eci:md:rnd:',
+            'HASHPARAMSVAL' => '700655000200202204171C440435508:86D9842A9C594E17B28A2B9037FEB140E8EA480AED5FE19B5CEA446960AA03AA:4122:##700655000200mzTLQAaM8W5GuQwu4BfD',
+        ];
+    }
+
+    private function get3DHostPaymentSuccessResponseData(): array
+    {
+        return [
+            'panFirst6' => '',
+            'TRANID' => '',
+            'tadres2' => '',
+            'SECMELIKAMPANYAKOD' => '000001',
+            'PAResSyntaxOK' => 'true',
+            'querydcchash' => '8YDETtZVvFBIdh4Vv5KvQ2oDiv1Xf7NIGpOFY9RlowWhBsCO8NT8vVHZ969XWRhrhdDZ3wYcwwjCaP/38npLBg==',
+            'panLast4' => '',
+            'firmaadi' => 'John Doe',
+            'islemtipi' => 'Auth',
+            'campaignOptions' => '000001',
+            'refreshtime' => '300',
+            'lang' => 'tr',
+            'merchantID' => '700655000200',
+            'maskedCreditCard' => '4355 08** **** 4358',
+            'amount' => '1.01',
+            'sID' => '1',
+            'ACQBIN' => '406456',
+            'Ecom_Payment_Card_ExpDate_Year' => '30',
+            'MAXTIPLIMIT' => '0.00',
+            'MaskedPan' => '435508***4358',
+            'Email' => 'mail@customer.com',
+            'Fadres' => '',
+            'clientIp' => '89.244.149.137',
+            'iReqDetail' => '',
+            'girogateParamReqHash' => 'c1UjMNPnYeEp+z/pZOr8G0DAm3Ym+chx6T0PLR+Bmg/G0H8gmoISnoZAlehixmh6f5TTHpzFjE1Q+o0Rcekf2w==',
+            'okUrl' => 'http://localhost/akbank/3d-host/response.php',
+            'tismi' => '',
+            'md' => '435508:D126F5C4AB8882BBCF51CDC7912CDE26DBAE8FBD8EA7FC94A9209D92478E22F3:4881:##700655000200',
+            'vendorCode' => '',
+            'Ecom_Payment_Card_ExpDate_Month' => '12',
+            'tcknvkn' => '',
+            'showdcchash' => 'dFo1wgY5yAnJU4Ops2b5WDO4CYC4/GHuRk0iEHFTo7VXzyy1DB1WRonnwpW78HSITxSNbkfGYQGLi4+yrzEHKQ==',
+            'storetype' => '3d_host',
+            'iReqCode' => '',
+            'querycampainghash' => 'byYgCdEIadiqCcKjjDhRnPK38fe81wY8VHTmmmyfRJmA3FBwHExwlelxHynK4Hwdb99m/gqWoEXNIF6WhXhuvg==',
+            'mdErrorMsg' => 'Authenticated',
+            'PAResVerified' => 'false',
+            'cavv' => 'AAABCCAykgAAAAAwAjKSAAAAAAA=',
+            'digest' => 'digest',
+            'callbackCall' => 'true',
+            'failUrl' => 'http://localhost/akbank/3d-host/response.php',
+            'cavvAlgorithm' => '2',
+            'pbirimsembol' => 'TL ',
+            'xid' => 'WXH3nXz6YmxmpO+Udhzxi3Zp/ZA=',
+            'checkisonushash' => 'U70aRq7mQJlC6vm/tu3n9fMYKF3XHHHqOt9t/Z6B5e5E0fGOYFF7pKvHm7EMil+08OheTyGOG4CmIzfPjOcfbw==',
+            'encoding' => 'ISO-8859-9',
+            'currency' => '949',
+            'oid' => '20220417FA2D',
+            'mdStatus' => '1',
+            'dsId' => '1',
+            'eci' => '05',
+            'version' => '2.0',
+            'Fadres2' => '',
+            'Fismi' => '',
+            'clientid' => '700655000200',
+            'txstatus' => 'Y',
+            '_charset_' => 'UTF-8',
+            'tadres' => '',
+            'HASH' => 'bQY4zwZrjrlZmJWdRdDYgqCvMRU=',
+            'rnd' => 'iPz5dJrRadaSXVCyTtHC',
+            'HASHPARAMS' => 'clientid:oid:mdStatus:cavv:eci:md:rnd:',
+            'HASHPARAMSVAL' => '70065500020020220417FA2D1AAABCCAykgAAAAAwAjKSAAAAAAA=05435508:D126F5C4AB8882BBCF51CDC7912CDE26DBAE8FBD8EA7FC94A9209D92478E22F3:4881:##700655000200iPz5dJrRadaSXVCyTtHC',
+        ];
+    }
+
+    private function get3DHostPaymentFailResponseData(): array
+    {
+        return [
+            'panFirst6' => '',
+            'TRANID' => '',
+            'tadres2' => '',
+            'SECMELIKAMPANYAKOD' => '000001',
+            'PAResSyntaxOK' => 'true',
+            'querydcchash' => '/megIKrKuwMtqh4GbkbX3z6GoSaUYD2vA7nIo+KqXLRyF1gm/Z9Ys/FqcFFLkzC1qzJKv4KjB8jIm7aX5LYRIw==',
+            'panLast4' => '',
+            'firmaadi' => 'John Doe',
+            'islemtipi' => 'Auth',
+            'campaignOptions' => '000001',
+            'refreshtime' => '300',
+            'lang' => 'tr',
+            'merchantID' => '700655000200',
+            'maskedCreditCard' => '4355 08** **** 4358',
+            'amount' => '1.01',
+            'sID' => '1',
+            'ACQBIN' => '406456',
+            'Ecom_Payment_Card_ExpDate_Year' => '30',
+            'MAXTIPLIMIT' => '0.00',
+            'MaskedPan' => '435508***4358',
+            'Email' => 'mail@customer.com',
+            'Fadres' => '',
+            'clientIp' => '89.244.149.137',
+            'iReqDetail' => '',
+            'girogateParamReqHash' => 'AMfID/G6bdwHDSXYley9G8t+5ne/4Ar+Yh3Y2mIrFEI6hMhxKQUdB0ene535crf+TeQFTpw9vWYavvGzEyARqQ==',
+            'okUrl' => 'http://localhost/akbank/3d-host/response.php',
+            'tismi' => '',
+            'md' => '435508:524D8E0D689F6F5E1DD0C737ED160B6073038B4FBBC73E6D7C69341793A2DC0E:3379:##700655000200',
+            'vendorCode' => '',
+            'Ecom_Payment_Card_ExpDate_Month' => '12',
+            'tcknvkn' => '',
+            'showdcchash' => 'IP0lsEyyePWlDTaE2DIiO+oUrfky1R7sENOM3vTsgluXaFeYT3oCc01y/nNW8JhsJyNSuGG7Oyc1lyX7mYu2Qw==',
+            'storetype' => '3d_host',
+            'iReqCode' => '',
+            'querycampainghash' => 'gVSZ/WicO5xjnoBx5uVR2iutwo/6J9j35WQ/+ZJl8CJfLJ05fZOOumfwi3T6LAw3EMGSd9Ui1JN4q06s1qNNtA==',
+            'mdErrorMsg' => 'Not authenticated',
+            'PAResVerified' => 'false',
+            'cavv' => '',
+            'digest' => 'digest',
+            'callbackCall' => 'true',
+            'failUrl' => 'http://localhost/akbank/3d-host/response.php',
+            'cavvAlgorithm' => '',
+            'pbirimsembol' => 'TL ',
+            'xid' => 'waMCr/n5dMiGv2+cQoEfCbe6h/A=',
+            'checkisonushash' => 'iHqkebVVeQLrrMzlNWxs8819FOMOeSqlVFwiMMKVV70uXYIAFf5Zz+jw/s4wJ4VtjZo34dxSzUCaThfTht6tQA==',
+            'encoding' => 'ISO-8859-9',
+            'currency' => '949',
+            'oid' => '202204175A83',
+            'mdStatus' => '0',
+            'dsId' => '1',
+            'eci' => '',
+            'version' => '2.0',
+            'Fadres2' => '',
+            'Fismi' => '',
+            'clientid' => '700655000200',
+            'txstatus' => 'N',
+            '_charset_' => 'UTF-8',
+            'tadres' => '',
+            'HASH' => 'RnwcttwleDHhbpVDD2ZszfFJhRA=',
+            'rnd' => 'g+XYZKbjrxFj5EgZNZFj',
+            'HASHPARAMS' => 'clientid:oid:mdStatus:cavv:eci:md:rnd:',
+            'HASHPARAMSVAL' => '700655000200202204175A830435508:524D8E0D689F6F5E1DD0C737ED160B6073038B4FBBC73E6D7C69341793A2DC0E:3379:##700655000200g+XYZKbjrxFj5EgZNZFj',
+        ];
+    }
+
 
     /**
      * @param                  $order

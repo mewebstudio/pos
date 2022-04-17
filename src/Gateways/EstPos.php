@@ -187,16 +187,17 @@ class EstPos extends AbstractGateway
     {
         $provisionResponse = null;
         if ($this->check3DHash($request->request->all())) {
-            if ($request->request->get('ProcReturnCode') !== '00') {
+            if ($request->request->get('mdErrorMsg') !== 'Authenticated') {
                 /**
                  * TODO hata durumu ele alinmasi gerekiyor
                  * ornegin soyle bir hata donebilir
                  * ["ProcReturnCode" => "99", "mdStatus" => "7", "mdErrorMsg" => "Isyeri kullanim tipi desteklenmiyor.",
                  * "ErrMsg" => "Isyeri kullanim tipi desteklenmiyor.", "Response" => "Error", "ErrCode" => "3D-1007", ...]
                  */
+            } else {
+                $contents = $this->create3DPaymentXML($request->request->all());
+                $provisionResponse = $this->send($contents);
             }
-            $contents = $this->create3DPaymentXML($request->request->all());
-            $provisionResponse = $this->send($contents);
         }
 
         $this->response = $this->map3DPaymentData($request->request->all(), $provisionResponse);
@@ -521,6 +522,8 @@ class EstPos extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
+        $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
+
         $transactionSecurity = 'MPI fallback';
         if ($this->getProcReturnCode() === '00') {
             if ($raw3DAuthResponseData['mdStatus'] == '1') {
@@ -535,22 +538,22 @@ class EstPos extends AbstractGateway
         $threeDResponse = [
             'transaction_security' => $transactionSecurity,
             'md_status'            => $raw3DAuthResponseData['mdStatus'],
-            'hash'                 => (string) $raw3DAuthResponseData['HASH'],
-            'order_id'             => (string) $raw3DAuthResponseData['oid'],
-            'rand'                 => (string) $raw3DAuthResponseData['rnd'],
-            'hash_params'          => (string) $raw3DAuthResponseData['HASHPARAMS'],
-            'hash_params_val'      => (string) $raw3DAuthResponseData['HASHPARAMSVAL'],
-            'masked_number'        => (string) $raw3DAuthResponseData['maskedCreditCard'],
-            'month'                => (string) $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
-            'year'                 => (string) $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
-            'amount'               => (string) $raw3DAuthResponseData['amount'],
-            'currency'             => (string) $raw3DAuthResponseData['currency'],
-            'eci'                  => (string) $raw3DAuthResponseData['eci'],
+            'hash'                 => $raw3DAuthResponseData['HASH'],
+            'order_id'             => $raw3DAuthResponseData['oid'],
+            'rand'                 => $raw3DAuthResponseData['rnd'],
+            'hash_params'          => $raw3DAuthResponseData['HASHPARAMS'],
+            'hash_params_val'      => $raw3DAuthResponseData['HASHPARAMSVAL'],
+            'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
+            'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
+            'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
+            'amount'               => $raw3DAuthResponseData['amount'],
+            'currency'             => array_search($raw3DAuthResponseData['currency'], $this->currencies),
+            'eci'                  => $raw3DAuthResponseData['eci'],
             'tx_status'            => null,
-            'cavv'                 => (string) $raw3DAuthResponseData['cavv'],
-            'xid'                  => (string) $raw3DAuthResponseData['oid'],
-            'md_error_message'     => (string) $raw3DAuthResponseData['mdErrorMsg'],
-            'name'                 => (string) $raw3DAuthResponseData['firmaadi'],
+            'cavv'                 => $raw3DAuthResponseData['cavv'],
+            'xid'                  => $raw3DAuthResponseData['oid'],
+            'md_error_message'     => 'Authenticated' !== $raw3DAuthResponseData['mdErrorMsg'] ? $raw3DAuthResponseData['mdErrorMsg'] : null,
+            'name'                 => $raw3DAuthResponseData['firmaadi'],
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
@@ -564,7 +567,7 @@ class EstPos extends AbstractGateway
     {
         $status = 'declined';
 
-        if ($this->check3DHash($raw3DAuthResponseData) && $raw3DAuthResponseData['ProcReturnCode'] === '00') {
+        if ($this->check3DHash($raw3DAuthResponseData) && $raw3DAuthResponseData['mdErrorMsg'] === 'Authenticated') {
             if (in_array($raw3DAuthResponseData['mdStatus'], [1, 2, 3, 4])) {
                 $status = 'approved';
             }
@@ -767,29 +770,34 @@ class EstPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData): array
     {
+        if (empty($responseData)) {
+            return $this->getDefaultPaymentResponse();
+        }
+        $responseData = $this->emptyStringsToNull($responseData);
+
         $status = 'declined';
         if ($this->getProcReturnCode() === '00') {
             $status = 'approved';
         }
 
         return [
-            'id'               => isset($responseData->AuthCode) ? $this->printData($responseData->AuthCode) : null,
-            'order_id'         => isset($responseData->OrderId) ? $this->printData($responseData->OrderId) : null,
-            'group_id'         => isset($responseData->GroupId) ? $this->printData($responseData->GroupId) : null,
-            'trans_id'         => isset($responseData->TransId) ? $this->printData($responseData->TransId) : null,
-            'response'         => isset($responseData->Response) ? $this->printData($responseData->Response) : null,
+            'id'               => $responseData['AuthCode'],
+            'order_id'         => $responseData['OrderId'],
+            'group_id'         => $responseData['GroupId'],
+            'trans_id'         => $responseData['TransId'],
+            'response'         => $responseData['Response'],
             'transaction_type' => $this->type,
             'transaction'      => $this->type,
-            'auth_code'        => isset($responseData->AuthCode) ? $this->printData($responseData->AuthCode) : null,
-            'host_ref_num'     => isset($responseData->HostRefNum) ? $this->printData($responseData->HostRefNum) : null,
-            'proc_return_code' => isset($responseData->ProcReturnCode) ? $this->printData($responseData->ProcReturnCode) : null,
-            'code'             => isset($responseData->ProcReturnCode) ? $this->printData($responseData->ProcReturnCode) : null,
+            'auth_code'        => $responseData['AuthCode'],
+            'host_ref_num'     => $responseData['HostRefNum'],
+            'proc_return_code' => $responseData['ProcReturnCode'],
+            'code'             => $responseData['ProcReturnCode'],
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail(),
-            'error_code'       => isset($responseData->Extra->ERRORCODE) ? $this->printData($responseData->Extra->ERRORCODE) : null,
-            'error_message'    => isset($responseData->Extra->ERRORCODE) ? $this->printData($responseData->ErrMsg) : null,
+            'error_code'       => $responseData['Extra']['ERRORCODE'],
+            'error_message'    => $responseData['ErrMsg'],
             'campaign_url'     => null,
-            'extra'            => $responseData->Extra ?? null,
+            'extra'            => $responseData['Extra'],
             'all'              => $responseData,
         ];
     }
