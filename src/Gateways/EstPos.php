@@ -527,7 +527,7 @@ class EstPos extends AbstractGateway
 
         $transactionSecurity = 'MPI fallback';
         if ($this->getProcReturnCode() === '00') {
-            if ($raw3DAuthResponseData['mdStatus'] == '1') {
+            if ('1' === $raw3DAuthResponseData['mdStatus']) {
                 $transactionSecurity = 'Full 3D Secure';
             } elseif (in_array($raw3DAuthResponseData['mdStatus'], [2, 3, 4])) {
                 $transactionSecurity = 'Half 3D Secure';
@@ -576,7 +576,7 @@ class EstPos extends AbstractGateway
 
         $transactionSecurity = 'MPI fallback';
         if ('approved' === $status) {
-            if ($raw3DAuthResponseData['mdStatus'] == '1') {
+            if ('1' === $raw3DAuthResponseData['mdStatus']) {
                 $transactionSecurity = 'Full 3D Secure';
             } elseif (in_array($raw3DAuthResponseData['mdStatus'], [2, 3, 4])) {
                 $transactionSecurity = 'Half 3D Secure';
@@ -636,7 +636,7 @@ class EstPos extends AbstractGateway
 
         $transactionSecurity = 'MPI fallback';
         if ('approved' === $status) {
-            if ($raw3DAuthResponseData['mdStatus'] == '1') {
+            if ('1' === $raw3DAuthResponseData['mdStatus']) {
                 $transactionSecurity = 'Full 3D Secure';
             } elseif (in_array($raw3DAuthResponseData['mdStatus'], [2, 3, 4])) {
                 $transactionSecurity = 'Half 3D Secure';
@@ -685,21 +685,23 @@ class EstPos extends AbstractGateway
      */
     protected function mapRefundResponse($rawResponseData)
     {
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $status = 'declined';
         if ($this->getProcReturnCode() === '00') {
             $status = 'approved';
         }
 
         return (object) [
-            'order_id'         => $rawResponseData->OrderId ?? null,
-            'group_id'         => $rawResponseData->GroupId ?? null,
-            'response'         => $rawResponseData->Response ?? null,
-            'auth_code'        => $rawResponseData->AuthCode ?? null,
-            'host_ref_num'     => $rawResponseData->HostRefNum ?? null,
-            'proc_return_code' => $rawResponseData->ProcReturnCode ?? null,
-            'trans_id'         => $rawResponseData->TransId ?? null,
-            'error_code'       => $rawResponseData->Extra->ERRORCODE ?? null,
-            'error_message'    => $rawResponseData->ErrMsg ?? null,
+            'order_id'         => $rawResponseData['OrderId'],
+            'group_id'         => $rawResponseData['GroupId'],
+            'response'         => $rawResponseData['Response'],
+            'auth_code'        => $rawResponseData['AuthCode'],
+            'host_ref_num'     => $rawResponseData['HostRefNum'],
+            'proc_return_code' => $rawResponseData['ProcReturnCode'],
+            'trans_id'         => $rawResponseData['TransId'],
+            'num_code'         => $rawResponseData['Extra']['NUMCODE'],
+            'error_code'       => $rawResponseData['Extra']['ERRORCODE'],
+            'error_message'    => $rawResponseData['ErrMsg'],
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail(),
             'all'              => $rawResponseData,
@@ -711,25 +713,29 @@ class EstPos extends AbstractGateway
      */
     protected function mapCancelResponse($rawResponseData)
     {
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $status = 'declined';
         if ($this->getProcReturnCode() === '00') {
             $status = 'approved';
         }
 
-        return (object) [
-            'order_id'         => $rawResponseData->OrderId ?? null,
-            'group_id'         => $rawResponseData->GroupId ?? null,
-            'response'         => $rawResponseData->Response ?? null,
-            'auth_code'        => $rawResponseData->AuthCode ?? null,
-            'host_ref_num'     => $rawResponseData->HostRefNum ?? null,
-            'proc_return_code' => $rawResponseData->ProcReturnCode ?? null,
-            'trans_id'         => $rawResponseData->TransId ?? null,
-            'error_code'       => $rawResponseData->Extra->ERRORCODE ?? null,
-            'error_message'    => $rawResponseData->ErrMsg ?? null,
+        $result = [
+            'order_id'         => $rawResponseData['OrderId'],
+            'group_id'         => $rawResponseData['GroupId'],
+            'response'         => $rawResponseData['Response'],
+            'auth_code'        => $rawResponseData['AuthCode'],
+            'host_ref_num'     => $rawResponseData['HostRefNum'],
+            'proc_return_code' => $rawResponseData['ProcReturnCode'],
+            'trans_id'         => $rawResponseData['TransId'],
+            'error_code'       => $rawResponseData['Extra']['ERRORCODE'],
+            'num_code'         => $rawResponseData['Extra']['NUMCODE'],
+            'error_message'    => $rawResponseData['ErrMsg'],
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail(),
             'all'              => $rawResponseData,
         ];
+
+        return (object) $result;
     }
 
     /**
@@ -737,33 +743,44 @@ class EstPos extends AbstractGateway
      */
     protected function mapStatusResponse($rawResponseData)
     {
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $status = 'declined';
         if ($this->getProcReturnCode() === '00') {
             $status = 'approved';
         }
 
-        $firstAmount = isset($rawResponseData->Extra->ORIG_TRANS_AMT) ? $this->printData($rawResponseData->Extra->ORIG_TRANS_AMT) : null;
-        $captureAmount = isset($rawResponseData->Extra->CAPTURE_AMT) ? $this->printData($rawResponseData->Extra->CAPTURE_AMT) : null;
-        $capture = $firstAmount === $captureAmount;
-
-        return (object) [
-            'order_id'         => isset($rawResponseData->OrderId) ? $this->printData($rawResponseData->OrderId) : null,
-            'response'         => isset($rawResponseData->Response) ? $this->printData($rawResponseData->Response) : null,
-            'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $this->printData($rawResponseData->ProcReturnCode) : null,
-            'trans_id'         => isset($rawResponseData->TransId) ? $this->printData($rawResponseData->TransId) : null,
-            'error_message'    => isset($rawResponseData->ErrMsg) ? $this->printData($rawResponseData->ErrMsg) : null,
-            'host_ref_num'     => isset($rawResponseData->Extra->HOST_REF_NUM) ? $this->printData($rawResponseData->Extra->HOST_REF_NUM) : null,
-            'order_status'     => isset($rawResponseData->Extra->ORDERSTATUS) ? $this->printData($rawResponseData->Extra->ORDERSTATUS) : null,
-            'process_type'     => isset($rawResponseData->Extra->CHARGE_TYPE_CD) ? $this->printData($rawResponseData->Extra->CHARGE_TYPE_CD) : null,
-            'pan'              => isset($rawResponseData->Extra->PAN) ? $this->printData($rawResponseData->Extra->PAN) : null,
-            'num_code'         => isset($rawResponseData->Extra->NUMCODE) ? $this->printData($rawResponseData->Extra->NUMCODE) : null,
-            'first_amount'     => $firstAmount,
-            'capture_amount'   => $captureAmount,
+        $result = [
+            'order_id'         => $rawResponseData['OrderId'],
+            'auth_code'        => null,
+            'response'         => $rawResponseData['Response'],
+            'proc_return_code' => $rawResponseData['ProcReturnCode'],
+            'trans_id'         => $rawResponseData['TransId'],
+            'error_message'    => $rawResponseData['ErrMsg'],
+            'host_ref_num'     => null,
+            'order_status'     => $rawResponseData['Extra']['ORDERSTATUS'],
+            'process_type'     => null,
+            'masked_number'    => null,
+            'num_code'         => null,
+            'first_amount'     => null,
+            'capture_amount'   => null,
             'status'           => $status,
+            'error_code'       => null,
             'status_detail'    => $this->getStatusDetail(),
-            'capture'          => $capture,
+            'capture'          => false,
             'all'              => $rawResponseData,
         ];
+        if ('approved' === $status) {
+            $result['auth_code']      = $rawResponseData['Extra']['AUTH_CODE'];
+            $result['host_ref_num']   = $rawResponseData['Extra']['HOST_REF_NUM'];
+            $result['process_type']   = $rawResponseData['Extra']['CHARGE_TYPE_CD'];
+            $result['first_amount']   = $rawResponseData['Extra']['ORIG_TRANS_AMT'];
+            $result['capture_amount'] = $rawResponseData['Extra']['CAPTURE_AMT'];
+            $result['masked_number']  = $rawResponseData['Extra']['PAN'];
+            $result['num_code']       = $rawResponseData['Extra']['NUMCODE'];
+            $result['capture']        = $result['first_amount'] === $result['capture_amount'];
+        }
+
+        return (object) $result;
     }
 
     /**
@@ -808,18 +825,19 @@ class EstPos extends AbstractGateway
      */
     protected function mapHistoryResponse($rawResponseData)
     {
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $status = 'declined';
         if ($this->getProcReturnCode() === '00') {
             $status = 'approved';
         }
 
         return (object) [
-            'order_id'         => isset($rawResponseData->OrderId) ? $this->printData($rawResponseData->OrderId) : null,
-            'response'         => isset($rawResponseData->Response) ? $this->printData($rawResponseData->Response) : null,
-            'proc_return_code' => isset($rawResponseData->ProcReturnCode) ? $this->printData($rawResponseData->ProcReturnCode) : null,
-            'error_message'    => isset($rawResponseData->ErrMsg) ? $this->printData($rawResponseData->ErrMsg) : null,
-            'num_code'         => isset($rawResponseData->Extra->NUMCODE) ? $this->printData($rawResponseData->Extra->NUMCODE) : null,
-            'trans_count'      => isset($rawResponseData->Extra->TRXCOUNT) ? $this->printData($rawResponseData->Extra->TRXCOUNT) : null,
+            'order_id'         => $rawResponseData['OrderId'],
+            'response'         => $rawResponseData['Response'],
+            'proc_return_code' => $rawResponseData['ProcReturnCode'],
+            'error_message'    => $rawResponseData['ErrMsg'],
+            'num_code'         => $rawResponseData['Extra']['NUMCODE'],
+            'trans_count'      => $rawResponseData['Extra']['TRXCOUNT'],
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail(),
             'all'              => $rawResponseData,
@@ -907,13 +925,11 @@ class EstPos extends AbstractGateway
         $result = [];
         if (is_string($data)) {
             $result = '' === $data ? null : $data;
+        } elseif (is_numeric($data)) {
+            $result = $data;
         } elseif (is_array($data) || is_object($data)) {
             foreach ($data as $key => $value) {
-                if (is_array($value) || is_object($value)) {
-                    $result[$key] = $this->emptyStringsToNull($value);
-                } else {
-                    $result[$key] = $this->emptyStringsToNull($value);
-                }
+                $result[$key] = $this->emptyStringsToNull($value);
             }
         }
 

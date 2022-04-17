@@ -10,12 +10,12 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\EstPos;
 use PHPUnit\Framework\TestCase;
-use ReflectionClass;
-use ReflectionException;
-use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
+/**
+ * EstPostTest
+ */
 class EstPostTest extends TestCase
 {
     /**
@@ -76,6 +76,9 @@ class EstPostTest extends TestCase
         $this->xmlDecoder = new XmlEncoder();
     }
 
+    /**
+     * @return void
+     */
     public function testInit()
     {
         $this->assertEquals($this->config['banks'][$this->account->getBank()], $this->pos->getConfig());
@@ -83,13 +86,18 @@ class EstPostTest extends TestCase
         $this->assertNotEmpty($this->pos->getCurrencies());
     }
 
+    /**
+     * @return void
+     */
     public function testPrepare()
     {
-
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 
+    /**
+     * @return void
+     */
     public function testMapRecurringFrequency()
     {
         $this->assertEquals('M', $this->pos->mapRecurringFrequency('MONTH'));
@@ -187,6 +195,9 @@ class EstPostTest extends TestCase
         $this->assertEquals($form, $pos->get3DFormData());
     }
 
+    /**
+     * @return void
+     */
     public function testCheck3DHash()
     {
         $data = $this->get3DMakePaymentFailResponseData();
@@ -222,7 +233,6 @@ class EstPostTest extends TestCase
 
         $expectedData = $this->getSampleRegularPaymentXMLData($pos->getOrder(), $pos->getCard(), $pos->getAccount());
         $this->assertEquals($expectedData, $actualData);
-        //$this->assertEquals([], $actualData);
     }
 
     public function testCreateRegularPostXML()
@@ -242,7 +252,6 @@ class EstPostTest extends TestCase
 
         $expectedData = $this->getSampleRegularPostXMLData($pos->getOrder(), $pos->getAccount());
         $this->assertEquals($expectedData, $actualData);
-        //$this->assertEquals([], $actualData);
     }
 
     public function testCreate3DPaymentXML()
@@ -278,7 +287,6 @@ class EstPostTest extends TestCase
 
         $expectedData = $this->getSample3DPaymentXMLData($pos->getOrder(), $pos->getAccount(), $responseData);
         $this->assertEquals($expectedData, $actualData);
-        //$this->assertEquals([], $actualData);
     }
 
     public function testCreate3DPaymentXMLForRecurringOrder()
@@ -338,7 +346,6 @@ class EstPostTest extends TestCase
 
         $expectedData = $this->getSampleStatusXMLData($pos->getOrder(), $pos->getAccount());
         $this->assertEquals($expectedData, $actualData);
-        //$this->assertEquals([], $actualData);
     }
 
 
@@ -359,7 +366,6 @@ class EstPostTest extends TestCase
 
         $expectedData = $this->getSampleCancelXMLData($pos->getOrder(), $pos->getAccount());
         $this->assertEquals($expectedData, $actualData);
-        //$this->assertEquals([], $actualData);
     }
 
     public function testCreateRefundXML()
@@ -367,6 +373,7 @@ class EstPostTest extends TestCase
         $order = [
             'id'     => '2020110828BC',
             'amount' => 50,
+            'currency' => 'TRY',
         ];
 
         /**
@@ -380,38 +387,6 @@ class EstPostTest extends TestCase
 
         $expectedData = $this->getSampleRefundXMLData($pos->getOrder(), $pos->getAccount());
         $this->assertEquals($expectedData, $actualData);
-        //$this->assertEquals([], $actualData);
-    }
-
-    public function testMapCancelResponse()
-    {
-        $gatewayResponse = [
-            'OrderId' => rand(),
-            'GroupId' => rand(1, 100),
-            'Response' => rand(1, 100),
-            'AuthCode' => rand(1, 100),
-            'HostRefNum' => rand(1, 100),
-            'ProcReturnCode' => rand(1, 100),
-            'TransId' => rand(1, 100),
-            'Extra' => null,
-            'ErrMsg' => null,
-        ];
-        $mapCancelResponseFunc = $this->getProtectedMethod('mapCancelResponse');
-        $pos = PosFactory::createPosGateway($this->account);
-
-        $canceledResult = $mapCancelResponseFunc->invokeArgs($pos, [json_decode(json_encode($gatewayResponse))]);
-        $this->assertNotEmpty($canceledResult);
-
-        $this->assertSame($gatewayResponse['OrderId'], $canceledResult->order_id);
-        $this->assertSame($gatewayResponse['GroupId'], $canceledResult->group_id);
-        $this->assertSame($gatewayResponse['Response'], $canceledResult->response);
-        $this->assertSame($gatewayResponse['AuthCode'], $canceledResult->auth_code);
-        $this->assertSame($gatewayResponse['HostRefNum'], $canceledResult->host_ref_num);
-        $this->assertSame($gatewayResponse['ProcReturnCode'], $canceledResult->proc_return_code);
-        $this->assertSame($gatewayResponse['TransId'], $canceledResult->trans_id);
-        $this->assertSame(null, $canceledResult->error_code);
-        $this->assertSame(null, $canceledResult->error_message);
-        $this->assertSame('declined', $canceledResult->status);
     }
 
     /**
@@ -610,26 +585,405 @@ class EstPostTest extends TestCase
         $this->assertNotEmpty($result['all']);
     }
 
-    private function get3DMakePaymentPaymentFailResponseData(): array
+    /**
+     * @return void
+     */
+    public function testMake3DHostPaymentFail()
+    {
+        $request = Request::create('', 'POST', $this->get3DHostPaymentFailResponseData());
+
+        $pos = $this->pos;
+        $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $pos->make3DHostPayment($request);
+        $result = $pos->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('declined', $result['status']);
+        $this->assertSame('Not authenticated', $result['md_error_message']);
+        $this->assertSame('202204175A83', $result['order_id']);
+        $this->assertSame('0', $result['md_status']);
+        $this->assertSame('RnwcttwleDHhbpVDD2ZszfFJhRA=', $result['hash']);
+        $this->assertSame('4355 08** **** 4358', $result['masked_number']);
+        $this->assertSame('12', $result['month']);
+        $this->assertSame('30', $result['year']);
+        $this->assertSame('1.01', $result['amount']);
+        $this->assertSame('TRY', $result['currency']);
+        $this->assertSame('Auth', $result['transaction_type']);
+        $this->assertSame(null, $result['auth_code']);
+        $this->assertSame(null, $result['host_ref_num']);
+        $this->assertSame(null, $result['status_detail']);
+        $this->assertSame(null, $result['error_code']);
+        $this->assertNotEmpty($result['all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testStatusSuccess()
+    {
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['send', 'createStatusXML', 'getProcReturnCode'])
+            ->getMock();
+
+        $posMock->expects($this->once())->method('send')->willReturn((object) $this->getStatusSuccessResponseData());
+        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
+        $posMock->expects($this->once())->method('createStatusXML')->willReturn('');
+
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->status();
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('approved', $result['status']);
+        $this->assertSame('20220417B473', $result['order_id']);
+        $this->assertSame('4355 08** **** 4358', $result['masked_number']);
+        $this->assertSame('101', $result['capture_amount']);
+        $this->assertSame('101', $result['first_amount']);
+        $this->assertSame('P58683', $result['auth_code']);
+        $this->assertSame('210700616873', $result['host_ref_num']);
+        $this->assertSame('approved', $result['status_detail']);
+        $this->assertSame(null, $result['error_code']);
+        $this->assertSame(true, $result['capture']);
+        $this->assertNotEmpty($result['all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testStatusFail()
+    {
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['send', 'createStatusXML', 'getProcReturnCode'])
+            ->getMock();
+
+        $posMock->expects($this->once())->method('send')->willReturn((object) $this->getStatusFailResponseData());
+        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
+        $posMock->expects($this->once())->method('createStatusXML')->willReturn('');
+
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->status();
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('declined', $result['status']);
+        $this->assertSame(null, $result['order_id']);
+        $this->assertSame(null, $result['masked_number']);
+        $this->assertSame(null, $result['capture_amount']);
+        $this->assertSame(null, $result['first_amount']);
+        $this->assertSame(null, $result['auth_code']);
+        $this->assertSame(null, $result['host_ref_num']);
+        $this->assertSame('general_error', $result['status_detail']);
+        $this->assertSame(null, $result['error_code']);
+        $this->assertSame(false, $result['capture']);
+        $this->assertNotEmpty($result['all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testHistorySuccess()
+    {
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['send', 'createHistoryXML', 'getProcReturnCode'])
+            ->getMock();
+
+        $posMock->expects($this->once())->method('send')->willReturn((object) $this->getHistorySuccessData());
+        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
+        $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
+
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->history([]);
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('approved', $result['status']);
+        $this->assertSame('20220417B473', $result['order_id']);
+        $this->assertSame('approved', $result['status_detail']);
+        $this->assertSame('00', $result['proc_return_code']);
+        $this->assertSame(null, $result['error_message']);
+        $this->assertSame('0', $result['num_code']);
+        $this->assertSame('1', $result['trans_count']);
+        $this->assertSame('Approved', $result['response']);
+        $this->assertNotEmpty($result['all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testHistoryFail()
+    {
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['send', 'createHistoryXML', 'getProcReturnCode'])
+            ->getMock();
+
+        $posMock->expects($this->once())->method('send')->willReturn((object) $this->getHistoryFailData());
+        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
+        $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
+
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->history([]);
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('approved', $result['status']);
+        $this->assertSame(null, $result['order_id']);
+        $this->assertSame('approved', $result['status_detail']);
+        $this->assertSame('05', $result['proc_return_code']);
+        $this->assertSame('No record found for', $result['error_message']);
+        $this->assertSame('0', $result['num_code']);
+        $this->assertSame('0', $result['trans_count']);
+        $this->assertSame('Declined', $result['response']);
+        $this->assertNotEmpty($result['all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCancelSuccess()
+    {
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['send', 'createCancelXML', 'getProcReturnCode'])
+            ->getMock();
+
+        $posMock->expects($this->once())->method('send')->willReturn((object) $this->getCancelSuccessData());
+        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
+        $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
+
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->cancel();
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('approved', $result['status']);
+        $this->assertSame('P58683', $result['auth_code']);
+        $this->assertSame('20220417B473', $result['group_id']);
+        $this->assertSame('20220417B473', $result['order_id']);
+        $this->assertSame('approved', $result['status_detail']);
+        $this->assertSame('00', $result['proc_return_code']);
+        $this->assertSame(null, $result['error_message']);
+        $this->assertSame(null, $result['error_code']);
+        $this->assertSame('00', $result['num_code']);
+        $this->assertSame('22107TcKA17186', $result['trans_id']);
+        $this->assertSame('Approved', $result['response']);
+        $this->assertNotEmpty($result['all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCancelFail()
+    {
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['send', 'createCancelXML', 'getProcReturnCode'])
+            ->getMock();
+
+        $posMock->expects($this->once())->method('send')->willReturn((object) $this->getCancelFailData());
+        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
+        $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
+
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->cancel();
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('declined', $result['status']);
+        $this->assertSame(null, $result['auth_code']);
+        $this->assertSame(null, $result['group_id']);
+        $this->assertSame(null, $result['order_id']);
+        $this->assertSame('general_error', $result['status_detail']);
+        $this->assertSame('99', $result['proc_return_code']);
+        $this->assertSame('İptal edilmeye uygun satış işlemi bulunamadı.', $result['error_message']);
+        $this->assertSame('CORE-2008', $result['error_code']);
+        $this->assertSame('992008', $result['num_code']);
+        $this->assertSame('22107VpnG13127', $result['trans_id']);
+        $this->assertSame('Error', $result['response']);
+        $this->assertNotEmpty($result['all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testRefundFail()
+    {
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['send', 'createRefundXML', 'getProcReturnCode'])
+            ->getMock();
+
+        $posMock->expects($this->once())->method('send')->willReturn((object) $this->getRefundFailData());
+        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
+        $posMock->expects($this->once())->method('createRefundXML')->willReturn('');
+
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->refund();
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('declined', $result['status']);
+        $this->assertSame(null, $result['auth_code']);
+        $this->assertSame('46546551651', $result['group_id']);
+        $this->assertSame('46546551651', $result['order_id']);
+        $this->assertSame('general_error', $result['status_detail']);
+        $this->assertSame('99', $result['proc_return_code']);
+        $this->assertSame('Iade icin eslesen siparis bulunamadi.', $result['error_message']);
+        $this->assertSame('CORE-2123', $result['error_code']);
+        $this->assertSame('992123', $result['num_code']);
+        $this->assertSame('22107WC9G14071', $result['trans_id']);
+        $this->assertSame('Error', $result['response']);
+        $this->assertNotEmpty($result['all']);
+    }
+
+    /**
+     * @return array
+     */
+    private function getRefundFailData(): array
     {
         return [
-            "OrderId" => "",
-            "GroupId" => "",
-            "Response" => "Error",
-            "AuthCode" => "",
-            "HostRefNum" => "",
-            "ProcReturnCode" => "99",
-            "TransId" => "22107QgTJ18637",
-            "ErrMsg" => "Gecersiz Islem Tipi. Islem tipi Auth, PreAuth, PostAuth, Credit, Void islemlerinden biri olabilir.",
-            "Extra" => [
-                "SETTLEID" => "",
-                "TRXDATE" => "20220417 16:32:19",
-                "ERRORCODE" => "CORE-2001",
-                "NUMCODE" => "992001",
+            'OrderId' => '46546551651',
+            'GroupId' => '46546551651',
+            'Response' => 'Error',
+            'AuthCode' => '',
+            'HostRefNum' => '',
+            'ProcReturnCode' => '99',
+            'TransId' => '22107WC9G14071',
+            'ErrMsg' => 'Iade icin eslesen siparis bulunamadi.',
+            'Extra' => [
+                'SETTLEID' => '',
+                'TRXDATE' => '20220417 22:02:59',
+                'ERRORCODE' => 'CORE-2123',
+                'NUMCODE' => '992123',
             ],
         ];
     }
 
+    /**
+     * @return array
+     */
+    private function getCancelSuccessData(): array
+    {
+        return [
+            'OrderId'        => '20220417B473',
+            'GroupId'        => '20220417B473',
+            'Response'       => 'Approved',
+            'AuthCode'       => 'P58683',
+            'HostRefNum'     => '210700616873',
+            'ProcReturnCode' => '00',
+            'TransId'        => '22107TcKA17186',
+            'ErrMsg'         => '',
+            'Extra'          => (object) [
+                'SETTLEID'   => '2092',
+                'TRXDATE'    => '20220417 19:28:09',
+                'ERRORCODE'  => '',
+                'TERMINALID' => '00655020',
+                'MERCHANTID' => '655000200',
+                'CARDBRAND'  => 'VISA',
+                'CARDISSUER' => 'AKBANK T.A.S.',
+                'HOSTDATE'   => '0417-213341',
+                'NUMCODE'    => '00',
+            ],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    private function getCancelFailData(): array
+    {
+        return [
+            'OrderId'        => '',
+            'GroupId'        => '',
+            'Response'       => 'Error',
+            'AuthCode'       => '',
+            'HostRefNum'     => '',
+            'ProcReturnCode' => '99',
+            'TransId'        => '22107VpnG13127',
+            'ErrMsg'         => 'İptal edilmeye uygun satış işlemi bulunamadı.',
+            'Extra'          => [
+                'SETTLEID'  => '',
+                'TRXDATE'   => '20220417 21:41:39',
+                'ERRORCODE' => 'CORE-2008',
+                'NUMCODE'   => '992008',
+            ],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    private function getHistoryFailData(): array
+    {
+        return [
+            'ErrMsg'         => 'No record found for',
+            'ProcReturnCode' => '05',
+            'Response'       => 'Declined',
+            'OrderId'        => '',
+            'Extra'          => [
+                'NUMCODE'  => '0',
+                'TRXCOUNT' => '0',
+            ],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    private function getHistorySuccessData(): array
+    {
+        return [
+            'ErrMsg' => '',
+            'ProcReturnCode' => '00',
+            'Response' => 'Approved',
+            'OrderId' => '20220417B473',
+            'Extra' => (object) [
+                'TERMINALID' => '00655020',
+                'MERCHANTID' => '655000200',
+                'NUMCODE' => '0',
+                'TRX1' => 'S\tC\t101\t101\t2022-04-17 19:28:09.777\t2022-04-17 19:28:09.777\t\t210700616873\tP58683\t00\t22107TcKA17186',
+                'TRXCOUNT' => '1',
+            ],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    private function get3DMakePaymentPaymentFailResponseData(): array
+    {
+        return [
+            'OrderId' => '',
+            'GroupId' => '',
+            'Response' => 'Error',
+            'AuthCode' => '',
+            'HostRefNum' => '',
+            'ProcReturnCode' => '99',
+            'TransId' => '22107QgTJ18637',
+            'ErrMsg' => 'Gecersiz Islem Tipi. Islem tipi Auth, PreAuth, PostAuth, Credit, Void islemlerinden biri olabilir.',
+            'Extra' => [
+                'SETTLEID' => '',
+                'TRXDATE' => '20220417 16:32:19',
+                'ERRORCODE' => 'CORE-2001',
+                'NUMCODE' => '992001',
+            ],
+        ];
+    }
+
+    /**
+     * @return array
+     */
     private function get3DMakePaymentPaymentSuccessResponseData(): array
     {
         return [
@@ -657,6 +1011,9 @@ class EstPostTest extends TestCase
         ];
     }
 
+    /**
+     * @return string[]
+     */
     private function get3DMakePaymentAuthSuccessResponseData(): array
     {
         return [
@@ -705,6 +1062,9 @@ class EstPostTest extends TestCase
         ];
     }
 
+    /**
+     * @return string[]
+     */
     private function get3DMakePaymentFailResponseData(): array
     {
         return [
@@ -753,6 +1113,9 @@ class EstPostTest extends TestCase
         ];
     }
 
+    /**
+     * @return string[]
+     */
     private function get3DHostPaymentSuccessResponseData(): array
     {
         return [
@@ -821,6 +1184,63 @@ class EstPostTest extends TestCase
         ];
     }
 
+    /**
+     * @return array
+     */
+    private function getStatusSuccessResponseData(): array
+    {
+        return [
+            'ErrMsg' => 'Record(s) found for 20220417B473',
+            'ProcReturnCode' => '00',
+            'Response' => 'Approved',
+            'OrderId' => '20220417B473',
+            'TransId' => '22107TcKA17186',
+            'Extra' => (object) [
+                'AUTH_CODE' => 'P58683',
+                'AUTH_DTTM' => '2022-04-17 19:28:09.777',
+                'CAPTURE_AMT' => '101',
+                'CAPTURE_DTTM' => '2022-04-17 19:28:09.777',
+                'CAVV_3D' => '',
+                'CHARGE_TYPE_CD' => 'S',
+                'ECI_3D' => '',
+                'HOSTDATE' => '0417-192810',
+                'HOST_REF_NUM' => '210700616873',
+                'MDSTATUS' => '',
+                'NUMCODE' => '0',
+                'ORDERSTATUS' => 'ORD_ID:20220417B473\tCHARGE_TYPE_CD:S\tORIG_TRANS_AMT:101\tCAPTURE_AMT:101\tTRANS_STAT:C\tAUTH_DTTM:2022-04-17 19:28:09.777\tCAPTURE_DTTM:2022-04-17 19:28:09.777\tAUTH_CODE:P58683\tTRANS_ID:22107TcKA17186',
+                'ORD_ID' => '20220417B473',
+                'ORIG_TRANS_AMT' => '101',
+                'PAN' => '4355 08** **** 4358',
+                'PROC_RET_CD' => '00',
+                'SETTLEID' => '',
+                'TRANS_ID' => '22107TcKA17186',
+                'TRANS_STAT' => 'C',
+                'XID_3D' => '',
+            ],
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    private function getStatusFailResponseData(): array
+    {
+        return [
+            'ErrMsg' => 'No record found for order222',
+            'ProcReturnCode' => '99',
+            'Response' => 'Declined',
+            'OrderId' => '',
+            'TransId' => '',
+            'Extra' => [
+                'NUMCODE' => '0',
+                'ORDERSTATUS' => 'ORD_ID:\tCHARGE_TYPE_CD:\tORIG_TRANS_AMT:\tCAPTURE_AMT:\tTRANS_STAT:\tAUTH_DTTM:\tCAPTURE_DTTM:\tAUTH_CODE:',
+            ],
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
     private function get3DHostPaymentFailResponseData(): array
     {
         return [
@@ -930,7 +1350,7 @@ class EstPostTest extends TestCase
      *
      * @return array
      */
-    private function getSampleRegularPostXMLData($order, $account)
+    private function getSampleRegularPostXMLData($order, EstPosAccount $account)
     {
         return [
             'Name'     => $account->getUsername(),
@@ -948,7 +1368,7 @@ class EstPostTest extends TestCase
      *
      * @return array
      */
-    private function getSample3DPaymentXMLData($order, $account, array $responseData)
+    private function getSample3DPaymentXMLData($order, EstPosAccount $account, array $responseData)
     {
         $requestData = [
             'Name'                    => $account->getUsername(),
@@ -997,7 +1417,7 @@ class EstPostTest extends TestCase
      *
      * @return array
      */
-    private function getSampleStatusXMLData($order, $account)
+    private function getSampleStatusXMLData($order, EstPosAccount $account)
     {
         return [
             'Name'     => $account->getUsername(),
@@ -1016,7 +1436,7 @@ class EstPostTest extends TestCase
      *
      * @return array
      */
-    private function getSampleCancelXMLData($order, $account)
+    private function getSampleCancelXMLData($order, EstPosAccount $account)
     {
         return [
             'Name'     => $account->getUsername(),
@@ -1033,13 +1453,14 @@ class EstPostTest extends TestCase
      *
      * @return array
      */
-    private function getSampleRefundXMLData($order, $account)
+    private function getSampleRefundXMLData($order, EstPosAccount $account)
     {
         $data = [
             'Name'     => $account->getUsername(),
             'Password' => $account->getPassword(),
             'ClientId' => $account->getClientId(),
             'OrderId'  => $order->id,
+            'Currency' => 949,
             'Type'     => 'Credit',
         ];
 
@@ -1048,22 +1469,5 @@ class EstPostTest extends TestCase
         }
 
         return $data;
-    }
-
-
-    /**
-     * @param string $name
-     *
-     * @return ReflectionMethod
-     *
-     * @throws ReflectionException
-     */
-    private static function getProtectedMethod(string $name)
-    {
-        $class = new ReflectionClass(EstPos::class);
-        $method = $class->getMethod($name);
-        $method->setAccessible(true);
-
-        return $method;
     }
 }
