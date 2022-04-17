@@ -534,6 +534,7 @@ class EstPos extends AbstractGateway
             'transaction_security' => $transactionSecurity,
             'md_status'            => $raw3DAuthResponseData['mdStatus'],
             'hash'                 => (string) $raw3DAuthResponseData['HASH'],
+            'order_id'             => (string) $raw3DAuthResponseData['oid'],
             'rand'                 => (string) $raw3DAuthResponseData['rnd'],
             'hash_params'          => (string) $raw3DAuthResponseData['HASHPARAMS'],
             'hash_params_val'      => (string) $raw3DAuthResponseData['HASHPARAMSVAL'],
@@ -551,7 +552,7 @@ class EstPos extends AbstractGateway
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
-        return (object) array_merge($threeDResponse, $paymentResponseData);
+        return (object) $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
     }
 
     /**
