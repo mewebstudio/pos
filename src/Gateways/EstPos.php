@@ -485,6 +485,7 @@ class EstPos extends AbstractGateway
             'Password' => $this->account->getPassword(),
             'ClientId' => $this->account->getClientId(),
             'OrderId'  => $this->order->id,
+            'Currency' => $this->order->currency,
             'Type'     => $this->types[self::TX_REFUND],
         ];
 
@@ -886,7 +887,11 @@ class EstPos extends AbstractGateway
      */
     protected function prepareRefundOrder(array $order)
     {
-        return (object) $order;
+        return (object) [
+            'id'       => $order['id'],
+            'currency' => $this->mapCurrency($order['currency']),
+            'amount'   => $order['amount'],
+        ];
     }
 
     /**

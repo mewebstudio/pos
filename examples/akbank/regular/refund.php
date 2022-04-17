@@ -11,6 +11,7 @@ $ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl);
 // Refund Order
 $order = [
     'id'       => $ord['id'],
+    'currency' => 'TRY',
     'amount'   => $ord['amount'],
 ];
 $transaction = AbstractGateway::TX_REFUND;
