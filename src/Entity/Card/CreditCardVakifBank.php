@@ -3,6 +3,7 @@
 namespace Mews\Pos\Entity\Card;
 
 /**
+ * @deprecated 0.6.0 No longer used by internal code and will be removed in the next major release
  * VakifBank credit card class for secure payments
  * Class CreditCardVakifBank
  */

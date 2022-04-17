@@ -1,28 +1,19 @@
 <?php
 
-use Mews\Pos\Entity\Card\CreditCardInterPos;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 require '_config.php';
 require '../../template/_header.php';
 
 if ($request->getMethod() !== 'POST') {
-    echo new RedirectResponse($baseUrl);
+    echo new RedirectResponse($baseUrl.'index.php');
     exit();
 }
 
 $order = getNewOrder($baseUrl, $request->get('installment'));
 $session->set('order', $order);
 
-$card = new CreditCardInterPos(
-    $request->get('number'),
-    $request->get('year'),
-    $request->get('month'),
-    $request->get('cvv'),
-    $request->get('name'),
-    $request->get('type')
-);
-
+$card = createCard($pos, $request->request->all());
 $pos->prepare($order, $transaction, $card);
 
 $formData = $pos->get3DFormData();

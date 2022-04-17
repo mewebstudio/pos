@@ -96,7 +96,15 @@ $order = [
 ];
 
 // Kredi kartı bilgieri
-$card = new \Mews\Pos\Entity\Card\CreditCardEstPos('1111222233334444', '20', '01', '000');
+$card = \Mews\Pos\Factory\CreditCardFactory::create(
+    $pos,
+    '4444555566667777',
+    '25',
+    '12',
+    '123',
+    'john',
+    AbstractCreditCard::CARD_TYPE_VISA, //bankaya göre zorunlu
+  );
 
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri gönderiliyor
 $pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);

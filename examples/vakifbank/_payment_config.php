@@ -85,12 +85,12 @@ function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\
 }
 
 $testCards = [
-    'visa1' => new \Mews\Pos\Entity\Card\CreditCardVakifBank(
-        '4543600299100712',
-        23,
-        11,
-        454,
-        'John Doe',
-        AbstractCreditCard::CARD_TYPE_VISA
-    ),
+    'visa1' => [
+        'number' => '4543600299100712',
+        'year' => '23',
+        'month' => '11',
+        'cvv' => '454',
+        'name' => 'John Doe',
+        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+    ],
 ];

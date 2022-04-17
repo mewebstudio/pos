@@ -5,7 +5,6 @@ namespace Mews\Pos\Gateways;
 use GuzzleHttp\Client;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCardGarantiPos;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -22,6 +21,10 @@ class GarantiPos extends AbstractGateway
      * API version
      */
     const API_VERSION = 'v0.01';
+
+    public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
+    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
+    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
 
     /**
      * @const string
@@ -91,7 +94,7 @@ class GarantiPos extends AbstractGateway
     protected $account;
 
     /**
-     * @var CreditCardGarantiPos
+     * @var AbstractCreditCard
      */
     protected $card;
 
@@ -113,23 +116,6 @@ class GarantiPos extends AbstractGateway
     public function getAccount()
     {
         return $this->account;
-    }
-
-
-    /**
-     * @return CreditCardGarantiPos|null
-     */
-    public function getCard()
-    {
-        return $this->card;
-    }
-
-    /**
-     * @param CreditCardGarantiPos|null $card
-     */
-    public function setCard($card)
-    {
-        $this->card = $card;
     }
 
     /**
@@ -231,8 +217,8 @@ class GarantiPos extends AbstractGateway
 
         if ($this->card) {
             $inputs['cardnumber'] = $this->card->getNumber();
-            $inputs['cardexpiredatemonth'] = $this->card->getExpireMonth();
-            $inputs['cardexpiredateyear'] = $this->card->getExpireYear();
+            $inputs['cardexpiredatemonth'] = $this->card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
+            $inputs['cardexpiredateyear'] = $this->card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
             $inputs['cardcvv2'] = $this->card->getCvv();
         }
 
@@ -272,7 +258,7 @@ class GarantiPos extends AbstractGateway
             ],
             'Card'        => [
                 'Number'     => $this->card->getNumber(),
-                'ExpireDate' => $this->card->getExpirationDate(),
+                'ExpireDate' => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'CVV2'       => $this->card->getCvv(),
             ],
             'Order'       => [

@@ -5,8 +5,8 @@ namespace Mews\Pos\Tests\Gateways;
 use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCardInterPos;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\InterPos;
@@ -29,7 +29,7 @@ class InterPosTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCardInterPos
+     * @var AbstractCreditCard
      */
     private $card;
     private $order;
@@ -55,8 +55,6 @@ class InterPosTest extends TestCase
             InterPos::LANG_TR
         );
 
-        $this->card = new CreditCardInterPos('5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
-
         $this->order = [
             'id'          => 'order222',
             'amount'      => '100.25',
@@ -71,6 +69,7 @@ class InterPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->account);
 
         $this->pos->setTestMode(true);
+        $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 
     public function testInit()
@@ -110,9 +109,9 @@ class InterPosTest extends TestCase
         ];
         $card   = $this->card;
         if ($card) {
-            $inputs['CardType'] = $card->getCardCode();
+            $inputs['CardType'] = '0';
             $inputs['Pan']      = $card->getNumber();
-            $inputs['Expiry']   = $card->getExpirationDate();
+            $inputs['Expiry']   = '1221';
             $inputs['Cvv2']     = $card->getCvv();
         }
 
@@ -226,9 +225,9 @@ class InterPosTest extends TestCase
     {
         $order = $this->order;
 
-        $card = new CreditCardInterPos('5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
         /** @var InterPos $pos */
         $pos = PosFactory::createPosGateway($this->account);
+        $card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
 
         $actual = $pos->createRegularPaymentXML();
@@ -488,12 +487,12 @@ class InterPosTest extends TestCase
 
     /**
      * @param                    $order
-     * @param CreditCardInterPos $card
+     * @param AbstractCreditCard $card
      * @param InterPosAccount    $account
      *
      * @return array
      */
-    private function getSampleRegularPaymentXMLData($order, CreditCardInterPos $card, InterPosAccount $account): array
+    private function getSampleRegularPaymentXMLData($order, AbstractCreditCard $card, InterPosAccount $account): array
     {
         $requestData = [
             'UserCode'         => $account->getUsername(),
@@ -509,9 +508,9 @@ class InterPosTest extends TestCase
             'Lang'             => $order->lang,
         ];
 
-        $requestData['CardType'] = $card->getCardCode();
+        $requestData['CardType'] = '0';
         $requestData['Pan']      = $card->getNumber();
-        $requestData['Expiry']   = $card->getExpirationDate();
+        $requestData['Expiry']   = '0122';
         $requestData['Cvv2']     = $card->getCvv();
 
         return $requestData;

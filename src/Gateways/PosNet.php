@@ -5,7 +5,7 @@ namespace Mews\Pos\Gateways;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\CreditCard;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -104,7 +104,7 @@ class PosNet extends AbstractGateway
     protected $account = [];
 
     /**
-     * @var CreditCard|null
+     * @var AbstractCreditCard|null
      */
     protected $card;
 
@@ -165,14 +165,14 @@ class PosNet extends AbstractGateway
     }
 
     /**
-     * @param PosNetAccount    $account
-     * @param CreditCard $card
-     * @param                  $order
-     * @param string           $txType
+     * @param PosNetAccount      $account
+     * @param AbstractCreditCard $card
+     * @param                    $order
+     * @param string             $txType
      *
      * @return array
      */
-    public function getOosTransactionRequestData(PosNetAccount $account, CreditCard $card, $order, string $txType): array
+    public function getOosTransactionRequestData(PosNetAccount $account, AbstractCreditCard $card, $order, string $txType): array
     {
         if (null === $card->getHolderName() && isset($order->name)) {
             $card->setHolderName($order->name);
@@ -302,22 +302,6 @@ class PosNet extends AbstractGateway
     public function getAccount()
     {
         return $this->account;
-    }
-
-    /**
-     * @return CreditCard|null
-     */
-    public function getCard()
-    {
-        return $this->card;
-    }
-
-    /**
-     * @param CreditCard|null $card
-     */
-    public function setCard($card)
-    {
-        $this->card = $card;
     }
 
     /**

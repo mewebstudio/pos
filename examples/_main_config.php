@@ -33,3 +33,20 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mew
         dd($e);
     }
 }
+
+function createCard(\Mews\Pos\PosInterface $pos, array $card): \Mews\Pos\Entity\Card\AbstractCreditCard
+{
+    try {
+        return \Mews\Pos\Factory\CreditCardFactory::create(
+            $pos,
+            $card['number'],
+            $card['year'],
+            $card['month'],
+            $card['cvv'],
+            $card['name'],
+            $card['type'] ?? null
+        );
+    } catch (Exception $e) {
+        dd($e);
+    }
+}

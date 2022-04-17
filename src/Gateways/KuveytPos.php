@@ -8,7 +8,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
-use Mews\Pos\Entity\Card\CreditCardKuveytPos;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -25,7 +25,12 @@ class KuveytPos extends AbstractGateway
      */
     public const NAME = 'KuveytPos';
     public const API_VERSION = '1.0.0';
-
+    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
+    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
+    protected $cardTypeMapping = [
+        AbstractCreditCard::CARD_TYPE_VISA       => 'Visa',
+        AbstractCreditCard::CARD_TYPE_MASTERCARD => 'MasterCard',
+    ];
     /**
      * Response Codes
      * @var array
@@ -80,7 +85,7 @@ class KuveytPos extends AbstractGateway
     protected $account;
 
     /**
-     * @var CreditCardKuveytPos|null
+     * @var AbstractCreditCard|null
      */
     protected $card;
 
@@ -108,22 +113,6 @@ class KuveytPos extends AbstractGateway
     public function getAccount(): KuveytPosAccount
     {
         return $this->account;
-    }
-
-    /**
-     * @return CreditCardKuveytPos|null
-     */
-    public function getCard(): ?CreditCardKuveytPos
-    {
-        return $this->card;
-    }
-
-    /**
-     * @param CreditCardKuveytPos|null $card
-     */
-    public function setCard($card)
-    {
-        $this->card = $card;
     }
 
     /**
@@ -522,17 +511,17 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @param KuveytPosAccount         $account
-     * @param                          $order
-     * @param string                   $txType
-     * @param string                   $gatewayURL
-     * @param CreditCardKuveytPos|null $card
+     * @param KuveytPosAccount        $account
+     * @param                         $order
+     * @param string                  $txType
+     * @param string                  $gatewayURL
+     * @param AbstractCreditCard|null $card
      *
      * @return array
      *
      * @throws GuzzleException
      */
-    private function getCommon3DFormData(KuveytPosAccount $account, $order, string $txType, string $gatewayURL, ?CreditCardKuveytPos $card = null): array
+    private function getCommon3DFormData(KuveytPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         $formData = $this->create3DEnrollmentCheckData($account, $order, $txType, $card);
         if (!$formData) {
@@ -546,14 +535,14 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @param KuveytPosAccount         $account
-     * @param                          $order
-     * @param string                   $txType
-     * @param CreditCardKuveytPos|null $card
+     * @param KuveytPosAccount        $account
+     * @param                         $order
+     * @param string                  $txType
+     * @param AbstractCreditCard|null $card
      *
      * @return array
      */
-    private function create3DEnrollmentCheckData(KuveytPosAccount $account, $order, string $txType, ?CreditCardKuveytPos $card = null): array
+    private function create3DEnrollmentCheckData(KuveytPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
         if (!$order) {
             return [];
@@ -580,10 +569,10 @@ class KuveytPos extends AbstractGateway
 
         if ($card) {
             $inputs['CardHolderName']      = $card->getHolderName();
-            $inputs['CardType']            = $card->getCardCode();
+            $inputs['CardType']            = $this->cardTypeMapping[$card->getType()];
             $inputs['CardNumber']          = $card->getNumber();
-            $inputs['CardExpireDateYear']  = $card->getExpireYear();
-            $inputs['CardExpireDateMonth'] = $card->getExpireMonth();
+            $inputs['CardExpireDateYear']  = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
+            $inputs['CardExpireDateMonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
             $inputs['CardCVV2']            = $card->getCvv();
         }
 

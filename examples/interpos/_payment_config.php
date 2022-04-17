@@ -87,20 +87,20 @@ function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\
 }
 
 $testCards = [
-    'visa1' => new \Mews\Pos\Entity\Card\CreditCardInterPos(
-        '4090700090840057',
-        22,
-        11,
-        592,
-        'John Doe',
-        AbstractCreditCard::CARD_TYPE_VISA
-    ),
-    'visa2' => new \Mews\Pos\Entity\Card\CreditCardInterPos(
-        '4090700101174272',
-        22,
-        12,
-        104,
-        'John Doe',
-        AbstractCreditCard::CARD_TYPE_VISA
-    ),
+    'visa1' => [
+        'number' => '4090700090840057',
+        'year' => '22',
+        'month' => '1',
+        'cvv' => '592',
+        'name' => 'John Doe',
+        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+    ],
+    'visa2' => [
+        'number' => '4090700101174272',
+        'year' => '22',
+        'month' => '12',
+        'cvv' => '104',
+        'name' => 'John Doe',
+        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+    ],
 ];

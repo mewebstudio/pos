@@ -7,7 +7,6 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -17,6 +16,11 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
  */
 class VakifBankPos extends AbstractGateway
 {
+    /**
+     * @const string
+     */
+    public const NAME = 'VakifPOS';
+
     public const CREDIT_CARD_EXP_DATE_LONG_FORMAT = 'Ym';
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
 
@@ -33,7 +37,7 @@ class VakifBankPos extends AbstractGateway
     protected $account;
 
     /**
-     * @var CreditCard
+     * @var AbstractCreditCard
      */
     protected $card;
 
@@ -98,22 +102,6 @@ class VakifBankPos extends AbstractGateway
     public function getAccount()
     {
         return $this->account;
-    }
-
-    /**
-     * @return CreditCard
-     */
-    public function getCard()
-    {
-        return $this->card;
-    }
-
-    /**
-     * @param CreditCard|null $card
-     */
-    public function setCard($card)
-    {
-        $this->card = $card;
     }
 
     /**

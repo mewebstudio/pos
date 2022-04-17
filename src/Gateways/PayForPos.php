@@ -6,7 +6,7 @@ namespace Mews\Pos\Gateways;
 use GuzzleHttp\Client;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
-use Mews\Pos\Entity\Card\CreditCardPayFor;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
@@ -15,8 +15,15 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
  */
 class PayForPos extends AbstractGateway
 {
+    /**
+     * @const string
+     */
+    public const NAME = 'PayForPOS';
+
     const LANG_TR = 'tr';
     const LANG_EN = 'en';
+
+    public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
 
     /**
      * Kurum kodudur. (Banka tarafından verilir)
@@ -34,7 +41,7 @@ class PayForPos extends AbstractGateway
     protected $account;
 
     /**
-     * @var CreditCardPayFor
+     * @var AbstractCreditCard
      */
     protected $card;
 
@@ -117,22 +124,6 @@ class PayForPos extends AbstractGateway
     public function getAccount()
     {
         return $this->account;
-    }
-
-    /**
-     * @return CreditCardPayFor
-     */
-    public function getCard()
-    {
-        return $this->card;
-    }
-
-    /**
-     * @param CreditCardPayFor|null $card
-     */
-    public function setCard($card)
-    {
-        $this->card = $card;
     }
 
     /**
@@ -348,7 +339,7 @@ class PayForPos extends AbstractGateway
             'Lang'             => $this->getLang(),
             'CardHolderName'   => $this->card->getHolderName(),
             'Pan'              => $this->card->getNumber(),
-            'Expiry'           => $this->card->getExpirationDate(),
+            'Expiry'           => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
             'Cvv2'             => $this->card->getCvv(),
         ];
 
@@ -692,7 +683,7 @@ class PayForPos extends AbstractGateway
         if ($this->card) {
             $inputs['CardHolderName'] = $this->card->getHolderName();
             $inputs['Pan'] = $this->card->getNumber();
-            $inputs['Expiry'] = $this->card->getExpirationDate();
+            $inputs['Expiry'] = $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
             $inputs['Cvv2'] = $this->card->getCvv();
         }
 

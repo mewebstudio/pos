@@ -1,6 +1,5 @@
 <?php
 
-use Mews\Pos\Entity\Card\CreditCardVakifBank;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 require '_config.php';
@@ -14,26 +13,12 @@ if ($request->getMethod() !== 'POST') {
 $order = getNewOrder($baseUrl, $ip, $session, $request->get('installment'));
 $session->set('order', $order);
 
-$card = new CreditCardVakifBank(
-    $request->get('number'),
-    $request->get('year'),
-    $request->get('month'),
-    $request->get('cvv'),
-    $request->get('name'),
-    $request->get('type')
-);
+$card = createCard($pos, $request->request->all());
 
 /**
  * provizyonu (odemeyi) tamamlamak icin tekrar kredi kart bilgileri isteniyor, bu yuzden kaydediyoruz
  */
-$session->set('card', [
-    'number' => $request->get('number'),
-    'year'   => $request->get('year'),
-    'month'  => $request->get('month'),
-    'cvv'    => $request->get('cvv'),
-    'name'   => $request->get('name'),
-    'type'   => $request->get('type'),
-]);
+$card = createCard($pos, $request->request->all());
 
 $pos->prepare($order, $transaction, $card);
 try {

@@ -34,6 +34,8 @@ abstract class AbstractGateway implements PosInterface
     protected const HASH_ALGORITHM = 'sha1';
     protected const HASH_SEPARATOR = '';
 
+    protected $cardTypeMapping = [];
+
     private $config;
 
     /**
@@ -174,14 +176,20 @@ abstract class AbstractGateway implements PosInterface
     abstract public function getAccount();
 
     /**
-     * @return AbstractCreditCard
+     * @return AbstractCreditCard|null
      */
-    abstract public function getCard();
+    public function getCard(): ?AbstractCreditCard
+    {
+        return $this->card;
+    }
 
     /**
      * @param AbstractCreditCard|null $card
      */
-    abstract public function setCard($card);
+    public function setCard(?AbstractCreditCard $card)
+    {
+        $this->card = $card;
+    }
 
     /**
      * @return mixed
@@ -436,6 +444,14 @@ abstract class AbstractGateway implements PosInterface
     public function mapRecurringFrequency(string $period): string
     {
         return $this->recurringOrderFrequencyMapping[$period] ?? $period;
+    }
+
+    /**
+     * @return array
+     */
+    public function getCardTypeMapping(): array
+    {
+        return $this->cardTypeMapping;
     }
 
     /**

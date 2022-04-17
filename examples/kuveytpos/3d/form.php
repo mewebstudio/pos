@@ -3,7 +3,6 @@
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 require '_config.php';
-
 require '../../template/_header.php';
 
 if ($request->getMethod() !== 'POST') {
@@ -12,18 +11,9 @@ if ($request->getMethod() !== 'POST') {
 }
 
 $order = getNewOrder($baseUrl, $ip, $request->get('installment'));
-
 $session->set('order', $order);
 
-$card = new \Mews\Pos\Entity\Card\CreditCardKuveytPos(
-    $request->get('number'),
-    $request->get('year'),
-    $request->get('month'),
-    $request->get('cvv'),
-    $request->get('name'),
-    $request->get('type')
-);
-
+$card = createCard($pos, $request->request->all());
 $pos->prepare($order, $transaction, $card);
 
 try {

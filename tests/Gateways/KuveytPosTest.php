@@ -5,10 +5,10 @@ namespace Mews\Pos\Tests\Gateways;
 use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCardKuveytPos;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\KuveytPos;
@@ -31,7 +31,7 @@ class KuveytPosTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCardKuveytPos
+     * @var AbstractCreditCard
      */
     private $card;
     private $order;
@@ -61,16 +61,6 @@ class KuveytPosTest extends TestCase
             'Api123'
         );
 
-
-        $this->card = new CreditCardKuveytPos(
-            '4155650100416111',
-            25,
-            1,
-            '123',
-            'John Doe',
-            AbstractCreditCard::CARD_TYPE_VISA
-        );
-
         $this->order = [
             'id'          => '2020110828BC',
             'amount'      => 10.01,
@@ -87,6 +77,15 @@ class KuveytPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
 
         $this->pos->setTestMode(true);
+        $this->card = CreditCardFactory::create(
+            $this->pos,
+            '4155650100416111',
+            25,
+            1,
+            '123',
+            'John Doe',
+            AbstractCreditCard::CARD_TYPE_VISA
+        );
 
         $this->xmlDecoder = new XmlEncoder();
     }
@@ -158,10 +157,10 @@ class KuveytPosTest extends TestCase
 
         if ($card) {
             $inputs['CardHolderName']      = $card->getHolderName();
-            $inputs['CardType']            = $card->getCardCode();
+            $inputs['CardType']            = 'Visa';
             $inputs['CardNumber']          = $card->getNumber();
-            $inputs['CardExpireDateYear']  = $card->getExpireYear();
-            $inputs['CardExpireDateMonth'] = $card->getExpireMonth();
+            $inputs['CardExpireDateYear']  = '25';
+            $inputs['CardExpireDateMonth'] = '01';
             $inputs['CardCVV2']            = $card->getCvv();
         }
         $txType = 'Sale';

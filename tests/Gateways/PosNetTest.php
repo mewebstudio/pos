@@ -3,7 +3,7 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\CreditCard;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
@@ -22,7 +22,7 @@ class PosNetTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCard
+     * @var AbstractCreditCard
      */
     private $card;
     private $order;
@@ -337,17 +337,16 @@ class PosNetTest extends TestCase
 
         $expectedData = $this->getSampleRefundXMLData($pos->getOrder(), $pos->getAccount());
         $this->assertEquals($expectedData, $actualData);
-        //$this->assertEquals([], $actualData['return']);
     }
 
     /**
-     * @param                  $order
-     * @param CreditCard $card
-     * @param PosNetAccount    $account
+     * @param                    $order
+     * @param AbstractCreditCard $card
+     * @param PosNetAccount      $account
      *
      * @return array
      */
-    private function getSampleRegularPaymentXMLData($order, $card, $account)
+    private function getSampleRegularPaymentXMLData($order, AbstractCreditCard $card, PosNetAccount $account)
     {
         return [
             'mid'              => $account->getClientId(),
@@ -445,13 +444,13 @@ class PosNetTest extends TestCase
     }
 
     /**
-     * @param                  $order
-     * @param CreditCard $card
-     * @param PosNetAccount    $account
+     * @param                    $order
+     * @param AbstractCreditCard $card
+     * @param PosNetAccount      $account
      *
      * @return array
      */
-    private function getSampleOosTransactionRequestData($order, CreditCard $card, PosNetAccount $account): array
+    private function getSampleOosTransactionRequestData($order, AbstractCreditCard $card, PosNetAccount $account): array
     {
         return  [
             'mid'            => $account->getClientId(),

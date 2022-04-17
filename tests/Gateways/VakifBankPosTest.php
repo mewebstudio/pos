@@ -4,7 +4,6 @@ namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
@@ -27,7 +26,7 @@ class VakifBankPosTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCard
+     * @var AbstractCreditCard
      */
     private $card;
 

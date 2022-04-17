@@ -5,7 +5,7 @@ namespace Mews\Pos\Gateways;
 use GuzzleHttp\Client;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
-use Mews\Pos\Entity\Card\CreditCardInterPos;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -22,6 +22,12 @@ class InterPos extends AbstractGateway
      * @const string
      */
     public const NAME = 'InterPos';
+    public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
+    protected $cardTypeMapping = [
+        AbstractCreditCard::CARD_TYPE_VISA       => '0',
+        AbstractCreditCard::CARD_TYPE_MASTERCARD => '1',
+        AbstractCreditCard::CARD_TYPE_AMEX       => '3',
+    ];
 
     /**
      * Response Codes
@@ -75,7 +81,7 @@ class InterPos extends AbstractGateway
     protected $account;
 
     /**
-     * @var CreditCardInterPos|null
+     * @var AbstractCreditCard|null
      */
     protected $card;
 
@@ -95,22 +101,6 @@ class InterPos extends AbstractGateway
     public function getAccount(): InterPosAccount
     {
         return $this->account;
-    }
-
-    /**
-     * @return CreditCardInterPos|null
-     */
-    public function getCard(): ?CreditCardInterPos
-    {
-        return $this->card;
-    }
-
-    /**
-     * @param CreditCardInterPos|null $card
-     */
-    public function setCard($card)
-    {
-        $this->card = $card;
     }
 
     /**
@@ -284,9 +274,9 @@ class InterPos extends AbstractGateway
         ];
 
         if ($this->card) {
-            $requestData['CardType'] = $this->card->getCardCode();
+            $requestData['CardType'] = $this->cardTypeMapping[$this->card->getType()];
             $requestData['Pan']      = $this->card->getNumber();
-            $requestData['Expiry']   = $this->card->getExpirationDate();
+            $requestData['Expiry']   = $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
             $requestData['Cvv2']     = $this->card->getCvv();
         }
 
@@ -485,7 +475,7 @@ class InterPos extends AbstractGateway
      */
     protected function map3DPayResponseData($raw3DAuthResponseData)
     {
-        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData);
+        return (object) $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData);
     }
 
     /**
@@ -709,11 +699,11 @@ class InterPos extends AbstractGateway
      * @param string                  $lang
      * @param string                  $txType
      * @param string                  $gatewayURL
-     * @param CreditCardInterPos|null $card
+     * @param AbstractCreditCard|null $card
      *
      * @return array
      */
-    private function getCommon3DFormData(AbstractPosAccount $account, $order, string $lang, string $txType, string $gatewayURL, ?CreditCardInterPos $card = null): array
+    private function getCommon3DFormData(AbstractPosAccount $account, $order, string $lang, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         if (!$order) {
             return [];
@@ -736,9 +726,9 @@ class InterPos extends AbstractGateway
         ];
 
         if ($card) {
-            $inputs['CardType'] = $card->getCardCode();
+            $inputs['CardType'] = $this->cardTypeMapping[$card->getType()];
             $inputs['Pan']      = $card->getNumber();
-            $inputs['Expiry']   = $card->getExpirationDate();
+            $inputs['Expiry']   = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
             $inputs['Cvv2']     = $card->getCvv();
         }
 
