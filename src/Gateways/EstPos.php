@@ -219,7 +219,9 @@ class EstPos extends AbstractGateway
      */
     public function make3DHostPayment(Request $request)
     {
-        return $this->make3DPayPayment($request);
+        $this->response = (object) $this->map3DHostResponseData($request->request->all());
+
+        return $this;
     }
 
     /**
@@ -617,6 +619,66 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
+    protected function map3DHostResponseData($raw3DAuthResponseData)
+    {
+        $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
+        $status = 'declined';
+
+        if ($this->check3DHash($raw3DAuthResponseData) && 'Authenticated' === $raw3DAuthResponseData['mdErrorMsg']) {
+            if (in_array($raw3DAuthResponseData['mdStatus'], [1, 2, 3, 4])) {
+                $status = 'approved';
+            }
+        }
+
+        $transactionSecurity = 'MPI fallback';
+        if ('approved' === $status) {
+            if ($raw3DAuthResponseData['mdStatus'] == '1') {
+                $transactionSecurity = 'Full 3D Secure';
+            } elseif (in_array($raw3DAuthResponseData['mdStatus'], [2, 3, 4])) {
+                $transactionSecurity = 'Half 3D Secure';
+            }
+        }
+
+        return [
+            'id'                   => null,
+            'trans_id'             => null,
+            'auth_code'            => null,
+            'host_ref_num'         => null,
+            'response'             => null,
+            'order_id'             => $raw3DAuthResponseData['oid'],
+            'transaction_type'     => $this->type,
+            'transaction'          => $this->type,
+            'transaction_security' => $transactionSecurity,
+            'code'                 => null,
+            'md_status'            => $raw3DAuthResponseData['mdStatus'],
+            'status'               => $status,
+            'status_detail'        => null,
+            'hash'                 => $raw3DAuthResponseData['HASH'],
+            'rand'                 => $raw3DAuthResponseData['rnd'],
+            'hash_params'          => $raw3DAuthResponseData['HASHPARAMS'],
+            'hash_params_val'      => $raw3DAuthResponseData['HASHPARAMSVAL'],
+            'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
+            'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
+            'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
+            'amount'               => $raw3DAuthResponseData['amount'],
+            'currency'             => array_search($raw3DAuthResponseData['currency'], $this->currencies),
+            'tx_status'            => null,
+            'eci'                  => $raw3DAuthResponseData['eci'],
+            'cavv'                 => $raw3DAuthResponseData['cavv'],
+            'xid'                  => $raw3DAuthResponseData['oid'],
+            'error_code'           => null,
+            'error_message'        => null,
+            'md_error_message'     => 'approved' !== $status ? $raw3DAuthResponseData['mdErrorMsg'] : null,
+            'name'                 => $raw3DAuthResponseData['firmaadi'],
+            'email'                => $raw3DAuthResponseData['Email'],
+            'campaign_url'         => null,
+            'all'                  => $raw3DAuthResponseData,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function mapRefundResponse($rawResponseData)
     {
         $status = 'declined';
@@ -817,5 +879,31 @@ class EstPos extends AbstractGateway
     protected function prepareRefundOrder(array $order)
     {
         return (object) $order;
+    }
+
+    /**
+     * bankadan gelen response'da bos string degerler var.
+     * bu metod ile bos string'leri null deger olarak degistiriyoruz
+     *
+     * @param string|object|array $data
+     *
+     * @return array|string|null
+     */
+    private function emptyStringsToNull($data)
+    {
+        $result = [];
+        if (is_string($data)) {
+            $result = '' === $data ? null : $data;
+        } elseif (is_array($data) || is_object($data)) {
+            foreach ($data as $key => $value) {
+                if (is_array($value) || is_object($value)) {
+                    $result[$key] = $this->emptyStringsToNull($value);
+                } else {
+                    $result[$key] = $this->emptyStringsToNull($value);
+                }
+            }
+        }
+
+        return $result;
     }
 }
