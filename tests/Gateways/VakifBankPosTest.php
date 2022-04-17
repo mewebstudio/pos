@@ -4,8 +4,9 @@ namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCardVakifBank;
+use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\VakifBankPos;
@@ -26,7 +27,7 @@ class VakifBankPosTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCardVakifBank
+     * @var CreditCard
      */
     private $card;
 
@@ -51,7 +52,6 @@ class VakifBankPosTest extends TestCase
             AbstractGateway::MODEL_3D_SECURE
         );
 
-        $this->card = new CreditCardVakifBank('5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
         $this->order = [
             'id'          => 'order222',
@@ -70,6 +70,7 @@ class VakifBankPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->account);
 
         $this->pos->setTestMode(true);
+        $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
         $this->xmlDecoder = new XmlEncoder();
     }
@@ -115,8 +116,8 @@ class VakifBankPosTest extends TestCase
             'FailureUrl'                => $order->fail_url,
             'SessionInfo'               => $order->extraData,
             'Pan'                       => $this->card->getNumber(),
-            'ExpiryDate'                => $this->card->getExpirationDate(),
-            'BrandName'                 => $this->card->getCardCode(),
+            'ExpiryDate'                => '2112',
+            'BrandName'                 => '100',
             'IsRecurring'               => 'false',
         ];
 
@@ -151,8 +152,8 @@ class VakifBankPosTest extends TestCase
             'SuccessUrl'                => $posOrder->success_url,
             'FailureUrl'                => $posOrder->fail_url,
             'Pan'                       => $this->card->getNumber(),
-            'ExpiryDate'                => $this->card->getExpirationDate(),
-            'BrandName'                 => $this->card->getCardCode(),
+            'ExpiryDate'                => '2112',
+            'BrandName'                 => '100',
             'IsRecurring'               => 'true',
             'RecurringFrequency'        => $posOrder->recurringFrequency,
             'RecurringFrequencyType'    => $posOrder->recurringFrequencyType,
@@ -196,7 +197,7 @@ class VakifBankPosTest extends TestCase
             'Pan'                     => $this->card->getNumber(),
             'Cvv'                     => $this->card->getCvv(),
             'CardHoldersName'         => $this->card->getHolderName(),
-            'Expiry'                  => $this->card->getExpirationDateLong(),
+            'Expiry'                  => '202112',
             'ECI'                     => $gatewayResponse['Eci'],
             'CAVV'                    => $gatewayResponse['Cavv'],
             'MpiTransactionId'        => $gatewayResponse['VerifyEnrollmentRequestId'],
@@ -236,7 +237,7 @@ class VakifBankPosTest extends TestCase
             'ClientIp'                => $order['ip'],
             'TransactionDeviceSource' => 0,
             'Pan'                     => $this->card->getNumber(),
-            'Expiry'                  => $this->card->getExpirationDateLong(),
+            'Expiry'                  => '202112',
             'Cvv'                     => $this->card->getCvv(),
         ];
 
@@ -333,7 +334,7 @@ class VakifBankPosTest extends TestCase
             'SessionInfo'               => $preparedOrder['extraData'],
             'InstallmentCount'          => null,
             'Pan'                       => $card->getNumber(),
-            'Expiry'                    => $card->getExpirationDate(),
+            'Expiry'                    => 'cv',
             'Xid'                       => md5(uniqid(rand(), true)),
             'Status'                    => 'Y',
             'Cavv'                      => 'AAABBBBBBBBBBBBBBBIIIIII=',
@@ -415,7 +416,7 @@ class VakifBankPosTest extends TestCase
             'SessionInfo'               => $preparedOrder['extraData'],
             'InstallmentCount'          => null,
             'Pan'                       => $card->getNumber(),
-            'Expiry'                    => $card->getExpirationDate(),
+            'Expiry'                    => 'hj',
             'Xid'                       => md5(uniqid(rand(), true)),
             'Status'                    => 'E', //diger hata durumlari N, U
             'Cavv'                      => 'AAABBBBBBBBBBBBBBBIIIIII=',

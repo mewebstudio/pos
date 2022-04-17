@@ -180,4 +180,12 @@ interface PosInterface
      * @return bool
      */
     public function isTestMode();
+
+
+    /**
+     * Card type mapping
+     *
+     * @return array
+     */
+    public function getCardTypeMapping(): array;
 }

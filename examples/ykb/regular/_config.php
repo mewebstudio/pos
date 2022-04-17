@@ -2,7 +2,7 @@
 
 require '../_payment_config.php';
 
-$baseUrl = $hostUrl.'/regular/';
+$baseUrl = $bankTestsUrl.'/regular/';
 
 $account = \Mews\Pos\Factory\AccountFactory::createPosNetAccount(
     'yapikredi',

@@ -3,8 +3,9 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\CreditCardPosNet;
+use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PosNet;
@@ -21,7 +22,7 @@ class PosNetTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCardPosNet
+     * @var CreditCard
      */
     private $card;
     private $order;
@@ -51,7 +52,6 @@ class PosNetTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
-        $this->card = new CreditCardPosNet('5555444433332222', '21', '12', '122', 'ahmet');
 
         $this->order = [
             'id'          => 'YKB_TST_190620093100_024',
@@ -69,6 +69,7 @@ class PosNetTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->account);
 
         $this->pos->setTestMode(true);
+        $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet');
 
         $this->xmlDecoder = new XmlEncoder();
     }
@@ -168,11 +169,11 @@ class PosNetTest extends TestCase
         ];
 
 
-        $card = new CreditCardPosNet('5555444433332222', '22', '01', '123', 'ahmet');
         /**
          * @var PosNet $pos
          */
         $pos = PosFactory::createPosGateway($this->account);
+        $card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
 
         $actualXML = $pos->createRegularPaymentXML();
@@ -341,7 +342,7 @@ class PosNetTest extends TestCase
 
     /**
      * @param                  $order
-     * @param CreditCardPosNet $card
+     * @param CreditCard $card
      * @param PosNetAccount    $account
      *
      * @return array
@@ -358,7 +359,7 @@ class PosNetTest extends TestCase
                 'amount'       => $order->amount,
                 'currencyCode' => $order->currency,
                 'ccno'         => $card->getNumber(),
-                'expDate'      => $card->getExpirationDate(),
+                'expDate'      => '2201',
                 'cvc'          => $card->getCvv(),
             ],
         ];
@@ -445,12 +446,12 @@ class PosNetTest extends TestCase
 
     /**
      * @param                  $order
-     * @param CreditCardPosNet $card
+     * @param CreditCard $card
      * @param PosNetAccount    $account
      *
      * @return array
      */
-    private function getSampleOosTransactionRequestData($order, CreditCardPosNet $card, PosNetAccount $account): array
+    private function getSampleOosTransactionRequestData($order, CreditCard $card, PosNetAccount $account): array
     {
         return  [
             'mid'            => $account->getClientId(),
