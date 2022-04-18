@@ -6,8 +6,7 @@ use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\VakifBankAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCard;
+use Mews\Pos\Entity\Card\CreditCardVakifBank;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -17,23 +16,13 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
  */
 class VakifBankPos extends AbstractGateway
 {
-    public const CREDIT_CARD_EXP_DATE_LONG_FORMAT = 'Ym';
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
-
-    protected $cardTypeMapping = [
-        AbstractCreditCard::CARD_TYPE_VISA       => '100',
-        AbstractCreditCard::CARD_TYPE_MASTERCARD => '200',
-        AbstractCreditCard::CARD_TYPE_TROY       => '300',
-        AbstractCreditCard::CARD_TYPE_AMEX       => '400',
-    ];
-
     /**
      * @var VakifBankAccount
      */
     protected $account;
 
     /**
-     * @var CreditCard
+     * @var CreditCardVakifBank
      */
     protected $card;
 
@@ -101,7 +90,7 @@ class VakifBankPos extends AbstractGateway
     }
 
     /**
-     * @return CreditCard
+     * @return CreditCardVakifBank
      */
     public function getCard()
     {
@@ -109,7 +98,7 @@ class VakifBankPos extends AbstractGateway
     }
 
     /**
-     * @param CreditCard|null $card
+     * @param CreditCardVakifBank|null $card
      */
     public function setCard($card)
     {
@@ -297,7 +286,7 @@ class VakifBankPos extends AbstractGateway
             'ClientIp'                => $this->order->ip,
             'TransactionDeviceSource' => 0,
             'Pan'                     => $this->card->getNumber(),
-            'Expiry'                  => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
+            'Expiry'                  => $this->card->getExpirationDateLong(),
             'Cvv'                     => $this->card->getCvv(),
         ];
 
@@ -338,8 +327,8 @@ class VakifBankPos extends AbstractGateway
             'SuccessUrl'                => $this->order->success_url,
             'FailureUrl'                => $this->order->fail_url,
             'Pan'                       => $this->card->getNumber(),
-            'ExpiryDate'                => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-            'BrandName'                 => $this->cardTypeMapping[$this->card->getType()],
+            'ExpiryDate'                => $this->card->getExpirationDate(),
+            'BrandName'                 => $this->card->getCardCode(),
             'IsRecurring'               => 'false',
         ];
         if ($this->order->installment) {
@@ -385,7 +374,7 @@ class VakifBankPos extends AbstractGateway
             'CardHoldersName'         => $this->card->getHolderName(),
             'Cvv'                     => $this->card->getCvv(),
             'Pan'                     => $this->card->getNumber(),
-            'Expiry'                  => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
+            'Expiry'                  => $this->card->getExpirationDateLong(),
             'ECI'                     => $responseData['Eci'],
             'CAVV'                    => $responseData['Cavv'],
             'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
