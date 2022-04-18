@@ -72,7 +72,7 @@ class CreditCardFactoryTest extends TestCase
     public function testCreateUnSupportedCardTypeException()
     {
         $this->expectException(CardTypeNotSupportedException::class);
-        $pos = $this->getMockBuilder(KuveytPos::class)->disableOriginalConstructor()
+        $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()
             //just any method
             ->onlyMethods(['send'])
             ->getMock();

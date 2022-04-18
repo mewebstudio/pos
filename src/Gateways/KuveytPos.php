@@ -4,8 +4,10 @@ namespace Mews\Pos\Gateways;
 
 use DOMDocument;
 use DOMNodeList;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -20,17 +22,9 @@ class KuveytPos extends AbstractGateway
     const LANG_TR = 'tr';
     const LANG_EN = 'en';
 
-    /**
-     * @const string
-     */
     public const NAME = 'KuveytPos';
     public const API_VERSION = '1.0.0';
-    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
-    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
-    protected $cardTypeMapping = [
-        AbstractCreditCard::CARD_TYPE_VISA       => 'Visa',
-        AbstractCreditCard::CARD_TYPE_MASTERCARD => 'MasterCard',
-    ];
+
     /**
      * Response Codes
      * @var array
@@ -42,52 +36,14 @@ class KuveytPos extends AbstractGateway
         'HashDataError'     => 'invalid_transaction',
     ];
 
-    /**
-     * Transaction Types
-     *
-     * @var array
-     */
-    protected $types = [
-        self::TX_PAY      => 'Sale',
-        //todo update null values with valid values
-        self::TX_PRE_PAY  => null,
-        self::TX_POST_PAY => null,
-        self::TX_CANCEL   => null,
-        self::TX_REFUND   => null,
-        self::TX_STATUS   => null,
-    ];
-
-    protected $secureTypeMappings = [
-        self::MODEL_3D_SECURE  => 3,
-        //todo update null values with valid values
-        self::MODEL_3D_PAY     => null,
-        self::MODEL_3D_HOST    => null,
-        self::MODEL_NON_SECURE => 0,
-    ];
-
-    /**
-     * Currency mapping
-     *
-     * @var array
-     */
-    protected $currencies = [
-        'TRY' => '0949',
-        'USD' => '0840',
-        'EUR' => '0978',
-        'GBP' => '0826',
-        'JPY' => '0392',
-        'RUB' => '0810',
-    ];
-
-    /**
-     * @var KuveytPosAccount
-     */
+    /** @var KuveytPosAccount */
     protected $account;
 
-    /**
-     * @var AbstractCreditCard|null
-     */
+    /** @var AbstractCreditCard|null */
     protected $card;
+
+    /** @var KuveytPosRequestDataMapper */
+    private $requestDataMapper;
 
     /**
      * @param array            $config
@@ -96,6 +52,11 @@ class KuveytPos extends AbstractGateway
      */
     public function __construct($config, $account, array $currencies = [])
     {
+        $this->requestDataMapper = new KuveytPosRequestDataMapper($currencies);
+        $this->types             = $this->requestDataMapper->getTxTypeMappings();
+        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
+        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
+
         parent::__construct($config, $account, $currencies);
     }
 
@@ -116,31 +77,6 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * Create 3D Hash
-     * todo Şifrelenen veriler (Hashdata) uyuşmamaktadır. hatasi aliyoruz
-     *
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param bool               $forProvision
-     *
-     * @return string
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, bool $forProvision = false): string
-    {
-        $hashedPassword = $this->hashString($account->getStoreKey());
-
-        if ($forProvision) {
-            $hashData = $this->createHashDataForAuthorization($account, $order, $hashedPassword);
-        } else {
-            $hashData = $this->createHashDataForProvision($account, $order, $hashedPassword);
-        }
-
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
-
-        return $this->hashString($hashStr);
-    }
-
-    /**
      * @inheritDoc
      */
     public function send($contents, string $url = null)
@@ -154,9 +90,9 @@ class KuveytPos extends AbstractGateway
         $responseBody = $response->getBody()->getContents();
         try {
             $this->data = $this->XMLStringToArray($responseBody);
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             if (!$this->isHTML($responseBody)) {
-                throw new \Exception($responseBody);
+                throw new Exception($responseBody);
             }
             //icinde form olan HTML response dondu
             $this->data = $responseBody;
@@ -227,18 +163,6 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * Amount Formatter
-     * converts 100 to 10000, or 10.01 to 1001
-     * @param float $amount
-     *
-     * @return int
-     */
-    public static function amountFormat(float $amount): int
-    {
-        return round($amount, 2) * 100;
-    }
-
-    /**
      * @inheritDoc
      */
     public function get3DFormData(): array
@@ -253,33 +177,7 @@ class KuveytPos extends AbstractGateway
      */
     public function create3DPaymentXML($responseData)
     {
-        $account = $this->account;
-        $order = $this->order;
-        $hash = $this->create3DHash($this->account, $this->order, true);
-
-        $requestData = [
-            'APIVersion'                   => self::API_VERSION,
-            'HashData'                     => $hash,
-            'MerchantId'                   => $account->getClientId(),
-            'CustomerId'                   => $account->customerId(),
-            'UserName'                     => $account->getUsername(),
-            'CustomerIPAddress'            => $order->ip,
-            'KuveytTurkVPosAdditionalData' => [
-                'AdditionalData' => [
-                    'Key'  => 'MD',
-                    'Data' => $responseData['MD'],
-                ],
-            ],
-            'TransactionType'              => $responseData['VPosMessage']['TransactionType'],
-            'InstallmentCount'             => $responseData['VPosMessage']['InstallmentCount'],
-            'Amount'                       => $responseData['VPosMessage']['Amount'],
-            'DisplayAmount'                => $responseData['VPosMessage']['DisplayAmount'],
-            'CurrencyCode'                 => $responseData['VPosMessage']['CurrencyCode'],
-            'MerchantOrderId'              => $responseData['VPosMessage']['MerchantOrderId'],
-            'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],
-        ];
-
-        return $requestData;
+        return $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
     }
 
     /**
@@ -523,60 +421,15 @@ class KuveytPos extends AbstractGateway
      */
     private function getCommon3DFormData(KuveytPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        $formData = $this->create3DEnrollmentCheckData($account, $order, $txType, $card);
-        if (!$formData) {
+        if (!$order) {
             return [];
         }
 
+        $formData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);
         $xml = $this->createXML($formData);
         $bankResponse = $this->send($xml, $gatewayURL);
 
         return $this->transformReceived3DFormData($bankResponse);
-    }
-
-    /**
-     * @param KuveytPosAccount        $account
-     * @param                         $order
-     * @param string                  $txType
-     * @param AbstractCreditCard|null $card
-     *
-     * @return array
-     */
-    private function create3DEnrollmentCheckData(KuveytPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
-    {
-        if (!$order) {
-            return [];
-        }
-        $hash = $this->create3DHash($this->account, $this->order);
-
-        $inputs = [
-            'APIVersion'          => self::API_VERSION,
-            'MerchantId'          => $account->getClientId(),
-            'UserName'            => $account->getUsername(),
-            'CustomerId'          => $account->customerId(),
-            'HashData'            => $hash,
-            'TransactionType'     => $txType,
-            'TransactionSecurity' => $this->secureTypeMappings[$this->account->getModel()],
-            'InstallmentCount'    => $order->installment,
-            'Amount'              => self::amountFormat($order->amount),
-            //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
-            'DisplayAmount'       => self::amountFormat($order->amount),
-            'CurrencyCode'        => $order->currency,
-            'MerchantOrderId'     => $order->id,
-            'OkUrl'               => $order->success_url,
-            'FailUrl'             => $order->fail_url,
-        ];
-
-        if ($card) {
-            $inputs['CardHolderName']      = $card->getHolderName();
-            $inputs['CardType']            = $this->cardTypeMapping[$card->getType()];
-            $inputs['CardNumber']          = $card->getNumber();
-            $inputs['CardExpireDateYear']  = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $inputs['CardExpireDateMonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['CardCVV2']            = $card->getCvv();
-        }
-
-        return $inputs;
     }
 
     /**
@@ -661,44 +514,6 @@ class KuveytPos extends AbstractGateway
         }
 
         return $data;
-    }
-
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param string             $hashedPassword
-     *
-     * @return array
-     */
-    private function createHashDataForAuthorization(AbstractPosAccount $account, $order, string $hashedPassword): array
-    {
-        return [
-            $account->getClientId(),
-            $order->id,
-            self::amountFormat($order->amount),
-            $account->getUsername(),
-            $hashedPassword,
-        ];
-    }
-
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param string             $hashedPassword
-     *
-     * @return array
-     */
-    private function createHashDataForProvision(AbstractPosAccount $account, $order, string $hashedPassword): array
-    {
-        return [
-            $account->getClientId(),
-            $order->id,
-            self::amountFormat($order->amount),
-            $order->success_url,
-            $order->fail_url,
-            $account->getUsername(),
-            $hashedPassword,
-        ];
     }
 
     /**

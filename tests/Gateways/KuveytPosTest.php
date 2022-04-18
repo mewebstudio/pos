@@ -3,6 +3,7 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\BankClassNullException;
@@ -13,8 +14,6 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\KuveytPos;
 use PHPUnit\Framework\TestCase;
-use ReflectionException;
-use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -40,6 +39,9 @@ class KuveytPosTest extends TestCase
      * @var KuveytPos
      */
     private $pos;
+
+    /** @var KuveytPosRequestDataMapper */
+    private $requestDataMapper;
 
     /**
      * @return void
@@ -87,6 +89,8 @@ class KuveytPosTest extends TestCase
             AbstractCreditCard::CARD_TYPE_VISA
         );
 
+        $this->requestDataMapper = new KuveytPosRequestDataMapper();
+
         $this->xmlDecoder = new XmlEncoder();
     }
 
@@ -121,52 +125,6 @@ class KuveytPosTest extends TestCase
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $this->assertEquals($this->card, $this->pos->getCard());
-    }
-
-    /**
-     * @return void
-     *
-     * @throws ReflectionException
-     *
-     * @uses \Mews\Pos\Gateways\KuveytPos::create3DEnrollmentCheckData()
-     *
-     */
-    public function testCompose3DFormData()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $order   = $this->pos->getOrder();
-        $account = $this->pos->getAccount();
-        $card    = $this->pos->getCard();
-
-        $inputs = [
-            'APIVersion'          => KuveytPos::API_VERSION,
-            'MerchantId'          => $account->getClientId(),
-            'UserName'            => $account->getUsername(),
-            'CustomerId'          => $account->customerId(),
-            'HashData'            => $this->pos->create3DHash($account, $order),
-            'TransactionType'     => 'Sale',
-            'TransactionSecurity' => 3,
-            'InstallmentCount'    => $order->installment,
-            'Amount'              => KuveytPos::amountFormat($order->amount),
-            'DisplayAmount'       => KuveytPos::amountFormat($order->amount),
-            'CurrencyCode'        => $order->currency,
-            'MerchantOrderId'     => $order->id,
-            'OkUrl'               => $order->success_url,
-            'FailUrl'             => $order->fail_url,
-        ];
-
-        if ($card) {
-            $inputs['CardHolderName']      = $card->getHolderName();
-            $inputs['CardType']            = 'Visa';
-            $inputs['CardNumber']          = $card->getNumber();
-            $inputs['CardExpireDateYear']  = '25';
-            $inputs['CardExpireDateMonth'] = '01';
-            $inputs['CardCVV2']            = $card->getCvv();
-        }
-        $txType = 'Sale';
-        $method = $this->getMethod('create3DEnrollmentCheckData');
-        $result = $method->invoke($this->pos, $account, $order, $txType, $card);
-        $this->assertEquals($inputs, $result);
     }
 
     /**
@@ -375,148 +333,5 @@ class KuveytPosTest extends TestCase
         $this->assertSame('lYJYMi/gVO9MWr32Pshaa/zAbSHY=', $result['hash']);
         $this->assertNotEmpty($result['all']);
         $this->assertNotEmpty($result['3d_all']);
-    }
-
-    /**
-     * @return void
-     *
-     * @throws BankClassNullException
-     * @throws BankNotFoundException
-     */
-    public function testCreate3DHashForAuthorization()
-    {
-        $account = AccountFactory::createKuveytPosAccount(
-            'kuveytpos',
-            '80',
-            'apiuser',
-            '400235',
-            'Api123'
-        );
-        $pos     = PosFactory::createPosGateway($account);
-        $order   = [
-            'id'          => 'ORDER-123',
-            'amount'      => 72.56,
-            'currency'    => 'TRY',
-            'installment' => '0',
-            'success_url' => 'http://localhost:44785/Home/Success',
-            'fail_url'    => 'http://localhost:44785/Home/Fail',
-        ];
-        $hash    = 'P3a0zjAklu2g8XDJfTx2qvwHH8g=';
-        $pos->prepare($order, AbstractGateway::TX_PAY);
-        $actual = $pos->create3DHash($pos->getAccount(), $pos->getOrder());
-        $this->assertEquals($hash, $actual);
-    }
-
-    /**
-     * @return void
-     *
-     * @throws BankClassNullException
-     * @throws BankNotFoundException
-     */
-    public function testCreate3DHashForProvision()
-    {
-        $account = AccountFactory::createKuveytPosAccount(
-            'kuveytpos',
-            '80',
-            'apiuser',
-            '400235',
-            'Api123'
-        );
-        $pos     = PosFactory::createPosGateway($account);
-        $order   = [
-            'id'          => 'ORDER-123',
-            'amount'      => 72.56,
-            'currency'    => 'TRY',
-            'installment' => '0',
-            'success_url' => 'http://localhost:44785/Home/Success',
-            'fail_url'    => 'http://localhost:44785/Home/Fail',
-        ];
-        $hash    = 'Bf+hZf2c1gf1pTXnEaSGxDpGRr0=';
-        $pos->prepare($order, AbstractGateway::TX_PAY);
-        $actual = $pos->create3DHash($pos->getAccount(), $pos->getOrder(), true);
-        $this->assertEquals($hash, $actual);
-    }
-
-    /**
-     * @return void
-     *
-     * @throws BankClassNullException
-     * @throws BankNotFoundException
-     */
-    public function testCreate3DPaymentXML()
-    {
-        $responseData = [
-            'MD'          => '67YtBfBRTZ0XBKnAHi8c/A==',
-            'VPosMessage' => [
-                'TransactionType'     => 'Sale',
-                'InstallmentCount'    => '0',
-                'Amount'              => '100',
-                'DisplayAmount'       => '100',
-                'CurrencyCode'        => '0949',
-                'MerchantOrderId'     => 'Order 123',
-                'TransactionSecurity' => '3',
-            ],
-        ];
-        /** @var KuveytPos $pos */
-        $pos = PosFactory::createPosGateway($this->threeDAccount);
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-
-        $actual = $pos->create3DPaymentXML($responseData);
-
-        $expectedData = $this->getSample3DPaymentXMLData($pos, $responseData);
-        $this->assertEquals($expectedData, $actual);
-    }
-
-    /**
-     * @param KuveytPos $pos
-     * @param           $responseData
-     *
-     * @return array
-     */
-    private function getSample3DPaymentXMLData(KuveytPos $pos, $responseData): array
-    {
-        $account = $pos->getAccount();
-        $order   = $pos->getOrder();
-        $hash    = $pos->create3DHash($pos->getAccount(), $pos->getOrder(), true);
-
-        $requestData = [
-            'APIVersion'                   => KuveytPos::API_VERSION,
-            'HashData'                     => $hash,
-            'MerchantId'                   => $account->getClientId(),
-            'CustomerId'                   => $account->customerId(),
-            'UserName'                     => $account->getUsername(),
-            'CustomerIPAddress'            => $order->ip,
-            'KuveytTurkVPosAdditionalData' => [
-                'AdditionalData' => [
-                    'Key'  => 'MD',
-                    'Data' => $responseData['MD'],
-                ],
-            ],
-            'TransactionType'              => $responseData['VPosMessage']['TransactionType'],
-            'InstallmentCount'             => $responseData['VPosMessage']['InstallmentCount'],
-            'Amount'                       => $responseData['VPosMessage']['Amount'],
-            'DisplayAmount'                => $responseData['VPosMessage']['DisplayAmount'],
-            'CurrencyCode'                 => $responseData['VPosMessage']['CurrencyCode'],
-            'MerchantOrderId'              => $responseData['VPosMessage']['MerchantOrderId'],
-            'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],
-        ];
-
-        return $requestData;
-    }
-
-    /**
-     * @param string $methodName
-     *
-     * @return ReflectionMethod
-     *
-     * @throws ReflectionException
-     */
-    private function getMethod(string $methodName): ReflectionMethod
-    {
-        $class  = new \ReflectionClass(KuveytPos::class);
-        $method = $class->getMethod($methodName);
-        $method->setAccessible(true);
-
-        return $method;
     }
 }
