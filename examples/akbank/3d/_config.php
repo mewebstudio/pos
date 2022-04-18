@@ -6,11 +6,11 @@ $baseUrl = $bankTestsUrl.'/3d/';
 
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank',
-    'XXXXXXX',
-    'XXXXXXX',
-    'XXXXXXX',
+    '700655000200',
+    'ISBANKAPI',
+    'ISBANK07',
     \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
-    'XXXXXXX',
+    'TRPS0200',
     \Mews\Pos\Gateways\EstPos::LANG_TR
 );
 

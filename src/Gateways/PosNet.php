@@ -156,29 +156,42 @@ class PosNet extends AbstractGateway
      */
     public function getOosTransactionData()
     {
-        if (null === $this->card->getHolderName() && isset($this->order->name)) {
-            $this->card->setHolderName($this->order->name);
-        }
-
-        $requestData = [
-            'mid'            => $this->account->getClientId(),
-            'tid'            => $this->account->getTerminalId(),
-            'oosRequestData' => [
-                'posnetid'       => $this->account->getPosNetId(),
-                'ccno'           => $this->card->getNumber(),
-                'expDate'        => $this->card->getExpirationDate(),
-                'cvc'            => $this->card->getCvv(),
-                'amount'         => $this->order->amount,
-                'currencyCode'   => $this->order->currency,
-                'installment'    => $this->order->installment,
-                'XID'            => self::formatOrderId($this->order->id),
-                'cardHolderName' => $this->card->getHolderName(),
-                'tranType'       => $this->type,
-            ],
-        ];
+        $requestData = $this->getOosTransactionRequestData($this->account, $this->card, $this->order, $this->type);
         $xml = $this->createXML($requestData);
 
         return $this->send($xml);
+    }
+
+    /**
+     * @param PosNetAccount    $account
+     * @param CreditCardPosNet $card
+     * @param                  $order
+     * @param string           $txType
+     *
+     * @return array
+     */
+    public function getOosTransactionRequestData(PosNetAccount $account, CreditCardPosNet $card, $order, string $txType): array
+    {
+        if (null === $card->getHolderName() && isset($order->name)) {
+            $card->setHolderName($order->name);
+        }
+
+        return [
+            'mid'            => $account->getClientId(),
+            'tid'            => $account->getTerminalId(),
+            'oosRequestData' => [
+                'posnetid'       => $account->getPosNetId(),
+                'ccno'           => $card->getNumber(),
+                'expDate'        => $card->getExpirationDate(),
+                'cvc'            => $card->getCvv(),
+                'amount'         => $order->amount,
+                'currencyCode'   => $order->currency,
+                'installment'    => $order->installment,
+                'XID'            => self::formatOrderId($order->id),
+                'cardHolderName' => $card->getHolderName(),
+                'tranType'       => $txType,
+            ],
+        ];
     }
 
     /**

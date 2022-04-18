@@ -236,6 +236,15 @@ class PosNetTest extends TestCase
         //$this->assertEquals([], $actualData['oosTranData']);
     }
 
+    public function testGetOosTransactionRequestData()
+    {
+        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $order = $this->pos->getOrder();
+        $expected = $this->getSampleOosTransactionRequestData($order, $this->card, $this->pos->getAccount());
+        $this->assertEquals($expected, $this->pos->getOosTransactionRequestData($this->pos->getAccount(), $this->card, $order, 'Sale'));
+    }
+
+
     public function testCreate3DResolveMerchantDataXML()
     {
 
@@ -349,7 +358,7 @@ class PosNetTest extends TestCase
                 'amount'       => $order->amount,
                 'currencyCode' => $order->currency,
                 'ccno'         => $card->getNumber(),
-                'expDate'      => $card->getExpirationDate(),
+                'expDate'      => '2201',
                 'cvc'          => $card->getCvv(),
             ],
         ];
@@ -430,6 +439,33 @@ class PosNetTest extends TestCase
             'tid'       => $account->getTerminalId(),
             'agreement' => [
                 'orderID' => $order->id,
+            ],
+        ];
+    }
+
+    /**
+     * @param                  $order
+     * @param CreditCardPosNet $card
+     * @param PosNetAccount    $account
+     *
+     * @return array
+     */
+    private function getSampleOosTransactionRequestData($order, CreditCardPosNet $card, PosNetAccount $account): array
+    {
+        return  [
+            'mid'            => $account->getClientId(),
+            'tid'            => $account->getTerminalId(),
+            'oosRequestData' => [
+                'posnetid'       => $account->getPosNetId(),
+                'ccno'           => $card->getNumber(),
+                'expDate'        => '2112',
+                'cvc'            => $this->card->getCvv(),
+                'amount'         => $order->amount,
+                'currencyCode'   => $order->currency,
+                'installment'    => $order->installment,
+                'XID'            => PosNet::formatOrderId($order->id),
+                'cardHolderName' => $card->getHolderName(),
+                'tranType'       => 'Sale',
             ],
         ];
     }
