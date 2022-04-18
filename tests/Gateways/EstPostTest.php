@@ -4,8 +4,8 @@ namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCardEstPos;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\EstPos;
@@ -29,7 +29,7 @@ class EstPostTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCardEstPos
+     * @var AbstractCreditCard
      */
     private $card;
     private $order;
@@ -54,8 +54,6 @@ class EstPostTest extends TestCase
             EstPos::LANG_TR
         );
 
-        $this->card = new CreditCardEstPos('5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
-
         $this->order = [
             'id'          => 'order222',
             'name'        => 'siparis veren',
@@ -72,6 +70,8 @@ class EstPostTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->account);
 
         $this->pos->setTestMode(true);
+
+        $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
         $this->xmlDecoder = new XmlEncoder();
     }
@@ -114,10 +114,10 @@ class EstPostTest extends TestCase
                 'clientid'                        => $this->account->getClientId(),
                 'storetype'                       => $this->account->getModel(),
                 'hash'                            => $this->pos->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Auth'),
-                'cardType'                        => $this->card->getCardCode(),
+                'cardType'                        => '1',
                 'pan'                             => $this->card->getNumber(),
-                'Ecom_Payment_Card_ExpDate_Month' => $this->card->getExpireMonth(),
-                'Ecom_Payment_Card_ExpDate_Year'  => $this->card->getExpireYear(),
+                'Ecom_Payment_Card_ExpDate_Month' => '12',
+                'Ecom_Payment_Card_ExpDate_Year'  => '21',
                 'cv2'                             => $this->card->getCvv(),
                 'firmaadi'                        => $this->order['name'],
                 'Email'                           => $this->order['email'],
@@ -220,12 +220,12 @@ class EstPostTest extends TestCase
             'currency'    => 'TRY',
         ];
 
-
-        $card = new CreditCardEstPos('5555444433332222', '22', '01', '123', 'ahmet');
         /**
          * @var EstPos $pos
          */
         $pos = PosFactory::createPosGateway($this->account);
+        $card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
 
         $actualXML = $pos->createRegularPaymentXML();
@@ -1311,13 +1311,13 @@ class EstPostTest extends TestCase
 
 
     /**
-     * @param                  $order
-     * @param CreditCardEstPos $card
-     * @param EstPosAccount    $account
+     * @param                    $order
+     * @param AbstractCreditCard $card
+     * @param EstPosAccount      $account
      *
      * @return array
      */
-    private function getSampleRegularPaymentXMLData($order, CreditCardEstPos $card, EstPosAccount $account)
+    private function getSampleRegularPaymentXMLData($order, AbstractCreditCard $card, EstPosAccount $account)
     {
         return [
             'Name'      => $account->getUsername(),
@@ -1331,15 +1331,15 @@ class EstPostTest extends TestCase
             'Total'     => $order->amount,
             'Currency'  => $order->currency,
             'Taksit'    => $order->installment,
-            'CardType'  => $card->getType(),
+            'CardType'  => AbstractCreditCard::CARD_TYPE_VISA,
             'Number'    => $card->getNumber(),
-            'Expires'   => $card->getExpirationDate(),
+            'Expires'   => '01/22',
             'Cvv2Val'   => $card->getCvv(),
             'Mode'      => 'P',
             'GroupId'   => '',
             'TransId'   => '',
             'BillTo'    => [
-                'Name' => $order->name ? $order->name : null,
+                'Name' => $order->name ?: null,
             ],
         ];
     }

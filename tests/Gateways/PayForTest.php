@@ -4,8 +4,8 @@ namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCardPayFor;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PayForPos;
@@ -22,7 +22,7 @@ class PayForTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCardPayFor
+     * @var AbstractCreditCard
      */
     private $card;
     private $order;
@@ -52,8 +52,6 @@ class PayForTest extends TestCase
             '12345678'
         );
 
-        $this->card = new CreditCardPayFor('5555444433332222', '22', '01', '123', 'ahmet');
-
         $this->order = [
             'id'          => '2020110828BC',
             'email'       => 'mail@customer.com', // optional
@@ -71,6 +69,7 @@ class PayForTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
 
         $this->pos->setTestMode(true);
+        $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
 
         $this->xmlDecoder = new XmlEncoder();
     }
@@ -200,11 +199,11 @@ class PayForTest extends TestCase
             'lang'        => PayForPos::LANG_TR,
         ];
 
-        $card = new CreditCardPayFor('5555444433332222', '22', '01', '123', 'ahmet');
         /**
          * @var PayForPos $pos
          */
         $pos = PosFactory::createPosGateway($this->threeDAccount);
+        $card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
 
         $actualXML = $pos->createRegularPaymentXML();
@@ -342,7 +341,7 @@ class PayForTest extends TestCase
             'Lang'             => 'tr',
             'CardHolderName'   => $card->getHolderName(),
             'Pan'              => $card->getNumber(),
-            'Expiry'           => $card->getExpirationDate(),
+            'Expiry'           => '0122',
             'Cvv2'             => $card->getCvv(),
         ];
     }

@@ -4,8 +4,8 @@ namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Entity\Card\CreditCardVakifBank;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\VakifBankPos;
@@ -26,7 +26,7 @@ class VakifBankPosTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCardVakifBank
+     * @var AbstractCreditCard
      */
     private $card;
 
@@ -51,7 +51,6 @@ class VakifBankPosTest extends TestCase
             AbstractGateway::MODEL_3D_SECURE
         );
 
-        $this->card = new CreditCardVakifBank('5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
         $this->order = [
             'id'          => 'order222',
@@ -70,6 +69,7 @@ class VakifBankPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->account);
 
         $this->pos->setTestMode(true);
+        $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
         $this->xmlDecoder = new XmlEncoder();
     }

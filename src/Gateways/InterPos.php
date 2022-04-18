@@ -3,9 +3,10 @@
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
+use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
-use Mews\Pos\Entity\Card\CreditCardInterPos;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -34,50 +35,14 @@ class InterPos extends AbstractGateway
         'E39' => 'invalid_transaction',
     ];
 
-    /**
-     * Transaction Types
-     *
-     * @var array
-     */
-    protected $types = [
-        self::TX_PAY      => 'Auth',
-        self::TX_PRE_PAY  => 'PreAuth',
-        self::TX_POST_PAY => 'PostAuth',
-        self::TX_CANCEL   => 'Void',
-        self::TX_REFUND   => 'Refund',
-        self::TX_STATUS   => 'StatusHistory',
-    ];
-
-    protected $secureTypeMappings = [
-        self::MODEL_3D_SECURE  => '3DModel',
-        self::MODEL_3D_PAY     => '3DPay',
-        self::MODEL_3D_HOST    => '3DHost',
-        self::MODEL_NON_SECURE => 'NonSecure',
-    ];
-
-    /**
-     * Currency mapping
-     *
-     * @var array
-     */
-    protected $currencies = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 810,
-    ];
-
-    /**
-     * @var InterPosAccount
-     */
+    /** @var InterPosAccount */
     protected $account;
 
-    /**
-     * @var CreditCardInterPos|null
-     */
+    /** @var AbstractCreditCard|null */
     protected $card;
+
+    /** @var InterPosRequestDataMapper */
+    private $requestDataMapper;
 
     /**
      * @param array           $config
@@ -86,6 +51,11 @@ class InterPos extends AbstractGateway
      */
     public function __construct($config, $account, array $currencies = [])
     {
+        $this->requestDataMapper = new InterPosRequestDataMapper($currencies);
+        $this->types             = $this->requestDataMapper->getTxTypeMappings();
+        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
+        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
+
         parent::__construct($config, $account, $currencies);
     }
 
@@ -95,50 +65,6 @@ class InterPos extends AbstractGateway
     public function getAccount(): InterPosAccount
     {
         return $this->account;
-    }
-
-    /**
-     * @return CreditCardInterPos|null
-     */
-    public function getCard(): ?CreditCardInterPos
-    {
-        return $this->card;
-    }
-
-    /**
-     * @param CreditCardInterPos|null $card
-     */
-    public function setCard($card)
-    {
-        $this->card = $card;
-    }
-
-    /**
-     * Create 3D Hash
-     *
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param string             $txType
-     *
-     * @return string
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
-    {
-        $hashData = [
-            $account->getClientId(),
-            $order->id,
-            $order->amount,
-            $order->success_url,
-            $order->fail_url,
-            $txType,
-            $order->installment,
-            $order->rand,
-            $account->getStoreKey(),
-        ];
-
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
-
-        return $this->hashString($hashStr);
     }
 
     /**
@@ -189,7 +115,7 @@ class InterPos extends AbstractGateway
         }
 
         $hashStr = $calculatedHashParamsVal.$account->getStoreKey();
-        $hash           = $this->hashString($hashStr);
+        $hash    = $this->hashString($hashStr);
 
         return $hashParams && !($calculatedHashParamsVal !== $actualHashParamsVal || $actualHash !== $hash);
     }
@@ -260,8 +186,11 @@ class InterPos extends AbstractGateway
         } elseif (self::MODEL_3D_PAY === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         }
+        if (!$this->order) {
+            return [];
+        }
 
-        return $this->getCommon3DFormData($this->account, $this->order, $this->getLang(), $this->type, $gatewayUrl, $this->card);
+        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);
     }
 
     /**
@@ -269,28 +198,7 @@ class InterPos extends AbstractGateway
      */
     public function createRegularPaymentXML()
     {
-        $requestData = [
-            'UserCode'         => $this->account->getUsername(),
-            'UserPass'         => $this->account->getPassword(),
-            'ShopCode'         => $this->account->getClientId(),
-            'TxnType'          => $this->type,
-            'SecureType'       => $this->secureTypeMappings[self::MODEL_NON_SECURE],
-            'OrderId'          => $this->order->id,
-            'PurchAmount'      => $this->order->amount,
-            'Currency'         => $this->order->currency,
-            'InstallmentCount' => $this->order->installment,
-            'MOTO'             => '0',
-            'Lang'             => $this->getLang(),
-        ];
-
-        if ($this->card) {
-            $requestData['CardType'] = $this->card->getCardCode();
-            $requestData['Pan']      = $this->card->getNumber();
-            $requestData['Expiry']   = $this->card->getExpirationDate();
-            $requestData['Cvv2']     = $this->card->getCvv();
-        }
-
-        return $requestData;
+        return $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
     }
 
     /**
@@ -298,20 +206,7 @@ class InterPos extends AbstractGateway
      */
     public function createRegularPostXML()
     {
-        $requestData = [
-            'UserCode'    => $this->account->getUsername(),
-            'UserPass'    => $this->account->getPassword(),
-            'ShopCode'    => $this->account->getClientId(),
-            'TxnType'     => $this->type,
-            'SecureType'  => $this->secureTypeMappings[self::MODEL_NON_SECURE],
-            'OrderId'     => null,
-            'orgOrderId'  => $this->order->id,
-            'PurchAmount' => $this->order->amount,
-            'Currency'    => $this->order->currency,
-            'MOTO'        => '0',
-        ];
-
-        return $requestData;
+        return $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order, $this->type);
     }
 
     /**
@@ -319,25 +214,7 @@ class InterPos extends AbstractGateway
      */
     public function create3DPaymentXML($responseData)
     {
-        $requestData = [
-            'UserCode'                => $this->account->getUsername(),
-            'UserPass'                => $this->account->getPassword(),
-            'ClientId'                => $this->account->getClientId(),
-            'TxnType'                 => $this->type,
-            'SecureType'              => $this->secureTypeMappings[self::MODEL_NON_SECURE],
-            'OrderId'                 => $this->order->id,
-            'PurchAmount'             => $this->order->amount,
-            'Currency'                => $this->order->currency,
-            'InstallmentCount'        => $this->order->installment,
-            'MD'                      => $responseData['MD'],
-            'PayerTxnId'              => $responseData['PayerTxnId'],
-            'Eci'                     => $responseData['Eci'],
-            'PayerAuthenticationCode' => $responseData['PayerAuthenticationCode'],
-            'MOTO'                    => '0',
-            'Lang'                    => $this->getLang(),
-        ];
-
-        return $requestData;
+        return $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
     }
 
     /**
@@ -345,7 +222,7 @@ class InterPos extends AbstractGateway
      */
     public function createHistoryXML($customQueryData)
     {
-        throw new NotImplementedException();
+        return $this->requestDataMapper->createHistoryRequestData($this->account, $this->order, $customQueryData);
     }
 
     /**
@@ -353,18 +230,7 @@ class InterPos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        $requestData = [
-            'UserCode'   => $this->account->getUsername(),
-            'UserPass'   => $this->account->getPassword(),
-            'ShopCode'   => $this->account->getClientId(),
-            'OrderId'    => null, //todo buraya hangi deger verilecek?
-            'orgOrderId' => $this->order->id,
-            'TxnType'    => $this->types[self::TX_STATUS],
-            'SecureType' => $this->secureTypeMappings[self::MODEL_NON_SECURE],
-            'Lang'       => $this->getLang(),
-        ];
-
-        return $requestData;
+        return $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
     }
 
     /**
@@ -372,18 +238,7 @@ class InterPos extends AbstractGateway
      */
     public function createCancelXML()
     {
-        $requestData = [
-            'UserCode'   => $this->account->getUsername(),
-            'UserPass'   => $this->account->getPassword(),
-            'ShopCode'   => $this->account->getClientId(),
-            'OrderId'    => null, //todo buraya hangi deger verilecek?
-            'orgOrderId' => $this->order->id,
-            'TxnType'    => $this->types[self::TX_CANCEL],
-            'SecureType' => $this->secureTypeMappings[self::MODEL_NON_SECURE],
-            'Lang'       => $this->getLang(),
-        ];
-
-        return $requestData;
+        return $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
     }
 
     /**
@@ -391,20 +246,7 @@ class InterPos extends AbstractGateway
      */
     public function createRefundXML()
     {
-        $requestData = [
-            'UserCode'    => $this->account->getUsername(),
-            'UserPass'    => $this->account->getPassword(),
-            'ShopCode'    => $this->account->getClientId(),
-            'OrderId'     => null,
-            'orgOrderId'  => $this->order->id,
-            'PurchAmount' => $this->order->amount,
-            'TxnType'     => $this->types[self::TX_REFUND],
-            'SecureType'  => $this->secureTypeMappings[self::MODEL_NON_SECURE],
-            'Lang'        => $this->getLang(),
-            'MOTO'        => '0',
-        ];
-
-        return $requestData;
+        return $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
     }
 
     /**
@@ -485,7 +327,7 @@ class InterPos extends AbstractGateway
      */
     protected function map3DPayResponseData($raw3DAuthResponseData)
     {
-        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData);
+        return (object) $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData);
     }
 
     /**
@@ -701,50 +543,5 @@ class InterPos extends AbstractGateway
         }
 
         return $data;
-    }
-
-    /**
-     * @param AbstractPosAccount      $account
-     * @param                         $order
-     * @param string                  $lang
-     * @param string                  $txType
-     * @param string                  $gatewayURL
-     * @param CreditCardInterPos|null $card
-     *
-     * @return array
-     */
-    private function getCommon3DFormData(AbstractPosAccount $account, $order, string $lang, string $txType, string $gatewayURL, ?CreditCardInterPos $card = null): array
-    {
-        if (!$order) {
-            return [];
-        }
-        $hash = $this->create3DHash($this->account, $this->order, $txType);
-
-        $inputs = [
-            'ShopCode'         => $account->getClientId(),
-            'TxnType'          => $txType,
-            'SecureType'       => $this->secureTypeMappings[$this->account->getModel()],
-            'Hash'             => $hash,
-            'PurchAmount'      => $order->amount,
-            'OrderId'          => $order->id,
-            'OkUrl'            => $order->success_url,
-            'FailUrl'          => $order->fail_url,
-            'Rnd'              => $order->rand,
-            'Lang'             => $lang,
-            'Currency'         => $order->currency,
-            'InstallmentCount' => $order->installment,
-        ];
-
-        if ($card) {
-            $inputs['CardType'] = $card->getCardCode();
-            $inputs['Pan']      = $card->getNumber();
-            $inputs['Expiry']   = $card->getExpirationDate();
-            $inputs['Cvv2']     = $card->getCvv();
-        }
-
-        return [
-            'gateway' => $gatewayURL,
-            'inputs'  => $inputs,
-        ];
     }
 }

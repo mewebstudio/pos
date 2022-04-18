@@ -33,3 +33,59 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mew
         dd($e);
     }
 }
+
+function createCard(\Mews\Pos\PosInterface $pos, array $card): \Mews\Pos\Entity\Card\AbstractCreditCard
+{
+    try {
+        return \Mews\Pos\Factory\CreditCardFactory::create(
+            $pos,
+            $card['number'],
+            $card['year'],
+            $card['month'],
+            $card['cvv'],
+            $card['name'],
+            $card['type'] ?? null
+        );
+    } catch (Exception $e) {
+        dd($e);
+    }
+}
+
+function createNewPaymentOrderCommon(
+    string $baseUrl,
+    string $ip,
+    string $currency = 'TRY',
+    ?int $installment = 0,
+    ?string $lang = null
+): array {
+
+    $successUrl = $baseUrl.'response.php';
+    $failUrl = $baseUrl.'response.php';
+
+    $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
+
+    $order = [
+        'id'          => $orderId,
+        'amount'      => 1.01,
+        'currency'    => $currency,
+        'installment' => $installment,
+
+        //3d, 3d_pay, 3d_host odemeler icin zorunlu
+        'success_url' => $successUrl,
+        'fail_url'    => $failUrl,
+
+        //gateway'e gore zorunlu olan degerler
+        'ip'          => $ip, //EstPos, Garanti, KuveytPos, VakifBank
+        'email'       => 'mail@customer.com', // EstPos, Garanti, KuveytPos, VakifBank
+        'name'        => 'John Doe', // EstPos, Garanti
+        'user_id'     => md5(uniqid(time())), // EstPos
+        'rand'        => md5(uniqid(time())), //EstPos, Garanti, PayFor, InterPos, VakifBank
+    ];
+
+    if ($lang) {
+        //lang degeri verilmezse account (EstPosAccount) dili kullanilacak
+        $order['lang'] = $lang;
+    }
+
+    return $order;
+}

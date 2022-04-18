@@ -5,7 +5,7 @@ namespace Mews\Pos\Gateways;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\CreditCardPosNet;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -16,6 +16,8 @@ class PosNet extends AbstractGateway
 {
     const LANG_TR = 'tr';
     const LANG_EN = 'en';
+
+    public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
 
     /**
      * PosNet requires order id with specific length
@@ -102,7 +104,7 @@ class PosNet extends AbstractGateway
     protected $account = [];
 
     /**
-     * @var CreditCardPosNet|null
+     * @var AbstractCreditCard|null
      */
     protected $card;
 
@@ -163,14 +165,14 @@ class PosNet extends AbstractGateway
     }
 
     /**
-     * @param PosNetAccount    $account
-     * @param CreditCardPosNet $card
-     * @param                  $order
-     * @param string           $txType
+     * @param PosNetAccount      $account
+     * @param AbstractCreditCard $card
+     * @param                    $order
+     * @param string             $txType
      *
      * @return array
      */
-    public function getOosTransactionRequestData(PosNetAccount $account, CreditCardPosNet $card, $order, string $txType): array
+    public function getOosTransactionRequestData(PosNetAccount $account, AbstractCreditCard $card, $order, string $txType): array
     {
         if (null === $card->getHolderName() && isset($order->name)) {
             $card->setHolderName($order->name);
@@ -182,7 +184,7 @@ class PosNet extends AbstractGateway
             'oosRequestData' => [
                 'posnetid'       => $account->getPosNetId(),
                 'ccno'           => $card->getNumber(),
-                'expDate'        => $card->getExpirationDate(),
+                'expDate'        => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'cvc'            => $card->getCvv(),
                 'amount'         => $order->amount,
                 'currencyCode'   => $order->currency,
@@ -300,22 +302,6 @@ class PosNet extends AbstractGateway
     public function getAccount()
     {
         return $this->account;
-    }
-
-    /**
-     * @return CreditCardPosNet|null
-     */
-    public function getCard()
-    {
-        return $this->card;
-    }
-
-    /**
-     * @param CreditCardPosNet|null $card
-     */
-    public function setCard($card)
-    {
-        $this->card = $card;
     }
 
     /**
@@ -457,7 +443,7 @@ class PosNet extends AbstractGateway
                 'amount'       => $this->order->amount,
                 'currencyCode' => $this->order->currency,
                 'ccno'         => $this->card->getNumber(),
-                'expDate'      => $this->card->getExpirationDate(),
+                'expDate'      => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'cvc'          => $this->card->getCvv(),
             ],
         ];

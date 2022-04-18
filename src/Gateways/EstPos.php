@@ -5,7 +5,7 @@ namespace Mews\Pos\Gateways;
 use GuzzleHttp\Client;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
-use Mews\Pos\Entity\Card\CreditCardEstPos;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -20,6 +20,15 @@ class EstPos extends AbstractGateway
      * @const string
      */
     public const NAME = 'EstPos';
+    public const CREDIT_CARD_EXP_DATE_FORMAT = 'm/y';
+    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
+    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
+
+    protected $cardTypeMapping = [
+        AbstractCreditCard::CARD_TYPE_VISA       => '1',
+        AbstractCreditCard::CARD_TYPE_MASTERCARD => '2',
+    ];
+
 
     /**
      * Response Codes
@@ -84,7 +93,7 @@ class EstPos extends AbstractGateway
     protected $account;
 
     /**
-     * @var CreditCardEstPos|null
+     * @var AbstractCreditCard|null
      */
     protected $card;
 
@@ -259,10 +268,10 @@ class EstPos extends AbstractGateway
         }
 
         if ($this->card) {
-            $inputs['cardType'] = $this->card->getCardCode();
+            $inputs['cardType'] = $this->cardTypeMapping[$this->card->getType()];
             $inputs['pan'] = $this->card->getNumber();
-            $inputs['Ecom_Payment_Card_ExpDate_Month'] = $this->card->getExpireMonth();
-            $inputs['Ecom_Payment_Card_ExpDate_Year'] = $this->card->getExpireYear();
+            $inputs['Ecom_Payment_Card_ExpDate_Month'] = $this->card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
+            $inputs['Ecom_Payment_Card_ExpDate_Year'] = $this->card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
             $inputs['cv2'] = $this->card->getCvv();
         }
 
@@ -311,22 +320,6 @@ class EstPos extends AbstractGateway
     }
 
     /**
-     * @return CreditCardEstPos|null
-     */
-    public function getCard()
-    {
-        return $this->card;
-    }
-
-    /**
-     * @param CreditCardEstPos|null $card
-     */
-    public function setCard($card)
-    {
-        $this->card = $card;
-    }
-
-    /**
      * @inheritDoc
      */
     public function createRegularPaymentXML()
@@ -345,7 +338,7 @@ class EstPos extends AbstractGateway
             'Taksit'    => $this->order->installment,
             'CardType'  => $this->card->getType(),
             'Number'    => $this->card->getNumber(),
-            'Expires'   => $this->card->getExpirationDate(),
+            'Expires'   => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
             'Cvv2Val'   => $this->card->getCvv(),
             'Mode'      => 'P', //TODO what is this constant for?
             'GroupId'   => '',

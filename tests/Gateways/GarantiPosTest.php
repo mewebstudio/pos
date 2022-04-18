@@ -3,8 +3,9 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\GarantiPosAccount;
-use Mews\Pos\Entity\Card\CreditCardGarantiPos;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\GarantiPos;
@@ -22,7 +23,7 @@ class GarantiPosTest extends TestCase
     private $config;
 
     /**
-     * @var CreditCardGarantiPos
+     * @var AbstractCreditCard
      */
     private $card;
     private $order;
@@ -53,8 +54,6 @@ class GarantiPosTest extends TestCase
             '123qweASD/'
         );
 
-        $this->card = new CreditCardGarantiPos('5555444433332222', '21', '12', '122');
-
         $this->order = [
             'id'          => 'order222',
             'name'        => 'siparis veren',
@@ -71,6 +70,7 @@ class GarantiPosTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->account);
         $this->pos->setTestMode(true);
+        $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122');
 
         $this->xmlDecoder = new XmlEncoder();
     }
@@ -121,8 +121,8 @@ class GarantiPosTest extends TestCase
                 'customeripaddress'     => $this->order['ip'],
                 'secure3dhash'          => '1D319D5EA945F5730FF5BCC970FF96690993F4BD',
                 'cardnumber'            => $this->card->getNumber(),
-                'cardexpiredatemonth'   => $this->card->getExpireMonth(),
-                'cardexpiredateyear'    => $this->card->getExpireYear(),
+                'cardexpiredatemonth'   => '12',
+                'cardexpiredateyear'    => '21',
                 'cardcvv2'              => $this->card->getCvv(),
             ],
         ];
@@ -180,13 +180,12 @@ class GarantiPosTest extends TestCase
             'currency'    => 'TRY',
         ];
 
-
-        $card = new CreditCardGarantiPos('5555444433332222', '22', '01', '123', 'ahmet');
         /**
          * @var GarantiPos $pos
          */
         $pos = PosFactory::createPosGateway($this->account);
         $pos->setTestMode(true);
+        $card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
 
         $actualXML = $pos->createRegularPaymentXML();
@@ -484,13 +483,13 @@ class GarantiPosTest extends TestCase
     }
 
     /**
-     * @param                      $order
-     * @param CreditCardGarantiPos $card
-     * @param GarantiPosAccount    $account
+     * @param                    $order
+     * @param AbstractCreditCard $card
+     * @param GarantiPosAccount  $account
      *
      * @return array
      */
-    private function getSampleRegularPaymentXMLData($order, CreditCardGarantiPos $card, GarantiPosAccount $account)
+    private function getSampleRegularPaymentXMLData($order, AbstractCreditCard $card, GarantiPosAccount $account)
     {
         return [
             'Mode'        => 'TEST',
@@ -508,7 +507,7 @@ class GarantiPosTest extends TestCase
             ],
             'Card'        => [
                 'Number'     => $card->getNumber(),
-                'ExpireDate' => $card->getExpirationDate(),
+                'ExpireDate' => '0122',
                 'CVV2'       => $card->getCvv(),
             ],
             'Order'       => [

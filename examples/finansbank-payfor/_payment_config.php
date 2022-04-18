@@ -52,31 +52,12 @@ $installments = [
 function getNewOrder(
     string $baseUrl,
     string $ip,
-    ?int $installment = 0
+    string $currency,
+    \Symfony\Component\HttpFoundation\Session\Session $session,
+    ?int $installment = 0,
+    bool $tekrarlanan = false
 ): array {
-    $successUrl = $baseUrl.'response.php';
-    $failUrl = $baseUrl.'response.php';
-
-    $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
-
-    $amount = 10.01;
-
-    $rand = microtime();
-
-    $order = [
-        'id'          => $orderId,
-        'email'       => 'mail@customer.com', // optional
-        'name'        => 'John Doe', // optional
-        'amount'      => $amount,
-        'installment' => $installment,
-        'currency'    => 'TRY',
-        'ip'          => $ip,
-        'success_url' => $successUrl,
-        'fail_url'    => $failUrl,
-        'rand'        => $rand,
-    ];
-
-    return $order;
+    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, \Mews\Pos\Gateways\PayForPos::LANG_TR);
 }
 
 
@@ -93,12 +74,12 @@ function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\
 }
 
 $testCards = [
-    'visa1' => new \Mews\Pos\Entity\Card\CreditCardPayFor(
-        '4155650100416111',
-        25,
-        1,
-        '123',
-        'John Doe',
-        AbstractCreditCard::CARD_TYPE_VISA
-    ),
+    'visa1' => [
+        'number' => '4155650100416111',
+        'year' => '25',
+        'month' => '1',
+        'cvv' => '123',
+        'name' => 'John Doe',
+        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+    ],
 ];

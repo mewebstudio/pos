@@ -41,7 +41,7 @@ class KuveytPosAccount extends AbstractPosAccount
     /**
      * @return string
      */
-    public function customerId(): string
+    public function getCustomerId(): string
     {
         return $this->password;
     }

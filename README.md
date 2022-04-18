@@ -26,12 +26,17 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - Sipariş/Para iadesi yapma (`refund`)
   - Sipariş iptal etme (`cancel`)
 
+### Latest updates
+
+Son yapılan değişiklikler için [`CHANGELOG`](./docs/CHANGELOG.md).
+
 ### Minimum Gereksinimler
   - PHP >= 7.1.3
   - ext-dom
   - ext-json
   - ext-openssl
   - ext-SimpleXML
+  
 
 ### Kurulum
 Test sunucunuz üzerinde;
@@ -96,7 +101,15 @@ $order = [
 ];
 
 // Kredi kartı bilgieri
-$card = new \Mews\Pos\Entity\Card\CreditCardEstPos('1111222233334444', '20', '01', '000');
+$card = \Mews\Pos\Factory\CreditCardFactory::create(
+    $pos,
+    '4444555566667777',
+    '25',
+    '12',
+    '123',
+    'john',
+    AbstractCreditCard::CARD_TYPE_VISA, //bankaya göre zorunlu
+  );
 
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri gönderiliyor
 $pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);

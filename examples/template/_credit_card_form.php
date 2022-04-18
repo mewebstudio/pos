@@ -1,8 +1,3 @@
-<?php
-
-$cardYear = (int) str_pad($card->getExpireYear(), 4, '20', STR_PAD_LEFT);
-
-?>
 <form method="post" action="<?= $url; ?>" role="form">
     <div class="row">
         <div class="row">
@@ -11,12 +6,12 @@ $cardYear = (int) str_pad($card->getExpireYear(), 4, '20', STR_PAD_LEFT);
                 <input type="text" name="name" id="name" class="form-control input-lg" placeholder="Card holder name"
                        value="<?= $card->getHolderName(); ?>">
             </div>
-            <?php if (method_exists($card,'getCardTypeToCodeMapping')): ?>
+            <?php if ($pos->getCardTypeMapping()): ?>
             <div class="form-group col-sm-3">
                 <label for="type">Card Type</label>
                 <select name="type" id="type" class="form-control input-lg">
                     <option value="">Type</option>
-                    <?php foreach ($card->getCardTypeToCodeMapping() as $key => $value): ?>
+                    <?php foreach ($pos->getCardTypeMapping() as $key => $value): ?>
                         <option value="<?= $key ?>" <?= $key === $card->getType() ? 'selected' : '' ?>><?= $key ?></option>
                     <?php endforeach; ?>
                 </select>
@@ -41,7 +36,7 @@ $cardYear = (int) str_pad($card->getExpireYear(), 4, '20', STR_PAD_LEFT);
                 <select name="year" id="year" class="form-control input-lg">
                     <option value="">Year</option>
                     <?php for ($i = date('Y'); $i <= date('Y') + 20; $i++) : ?>
-                        <option value="<?= $i; ?>" <?= $i == $cardYear ? 'selected': null ?>><?= $i; ?></option>
+                        <option value="<?= $i; ?>" <?= $i == $card->getExpireYear('Y') ? 'selected': null ?>><?= $i; ?></option>
                     <?php endfor; ?>
                 </select>
             </div>
@@ -50,11 +45,26 @@ $cardYear = (int) str_pad($card->getExpireYear(), 4, '20', STR_PAD_LEFT);
                 <input type="text" name="cvv" id="cvv" class="form-control input-lg" placeholder="Cvv" value="<?= $card->getCvv() ?>">
             </div>
 
-            <div class="form-group col-xs-12">
+            <div class="form-group col-md-4">
                 <select name="installment" id="installment" class="form-control input-lg">
                 <?php foreach ($installments as $installment => $label) : ?>
                     <option value="<?= $installment; ?>"><?= $label; ?></option>
                 <?php endforeach; ?>
+                </select>
+            </div>
+            <?php if ($pos->getCurrencies()): ?>
+                <div class="form-group col-md-4">
+                    <select name="currency" id="currency" class="form-control input-lg">
+                        <?php foreach ($pos->getCurrencies() as $currency => $code) : ?>
+                            <option value="<?= $currency; ?>" <?= $currency === 'TRY' ? 'selected': null ?>><?= $currency; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            <?php endif; ?>
+            <div class="form-group col-md-4">
+                <select name="tx" id="currency" class="form-control input-lg">
+                    <option value="<?= \Mews\Pos\Gateways\AbstractGateway::TX_PAY; ?>" selected>Ödeme</option>
+                    <option value="<?= \Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY; ?>">Ön Provizyon</option>
                 </select>
             </div>
         </div>
