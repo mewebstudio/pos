@@ -37,27 +37,14 @@ $installments = [
 function getNewOrder(
     string $baseUrl,
     string $ip,
+    string $currency,
     \Symfony\Component\HttpFoundation\Session\Session $session,
     ?int $installment = 0,
     bool $tekrarlanan = false
 ): array {
-    $successUrl = $baseUrl.'response.php';
-    $failUrl = $baseUrl.'response.php';
+    $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment);
 
-    $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
-    $amount = 1.01;
-
-    $order = [
-        'id'                        => $orderId,
-        'amount'                    => $amount,
-        'installment'               => $installment,
-        'currency'                  => 'TRY',
-        'success_url'               => $successUrl,
-        'fail_url'                  => $failUrl,
-        'rand'                      => time(),
-        'ip'                        => $ip,
-        'extraData'                 => $session->getId(), //optional, istekte SessionInfo degere atanir
-    ];
+    $order['extraData'] = $session->getId(); //optional, istekte SessionInfo degere atanir
     if ($tekrarlanan) {
         $order = array_merge($order, [
             //tekrarlanan odemeler icin (optional):

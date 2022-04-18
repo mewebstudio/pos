@@ -51,30 +51,12 @@ $installments = [
 function getNewOrder(
     string $baseUrl,
     string $ip,
+    string $currency,
+    \Symfony\Component\HttpFoundation\Session\Session $session,
     ?int $installment = 0,
     bool $tekrarlanan = false
 ): array {
-    $successUrl = $baseUrl.'response.php';
-    $failUrl = $baseUrl.'response.php';
-
-    $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
-    $amount = 1.01;
-
-    $rand = microtime();
-
-    $order = [
-        'id'          => $orderId,
-        'email'       => 'mail@customer.com', // optional
-        'name'        => 'John Doe', // optional
-        'amount'      => $amount,
-        'installment' => $installment,
-        'currency'    => 'TRY',
-        'ip'          => $ip,
-        'success_url' => $successUrl,
-        'fail_url'    => $failUrl,
-        'lang'        => \Mews\Pos\Gateways\EstPos::LANG_TR,
-        'rand'        => $rand,
-    ];
+    $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, \Mews\Pos\Gateways\EstPos::LANG_TR);
 
     if ($tekrarlanan) {
         //tekrarlanan odemeler icin (optional):

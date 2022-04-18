@@ -24,26 +24,12 @@ $installments = [
 function getNewOrder(
     string $baseUrl,
     string $ip,
-    ?int $installment = 0
+    string $currency,
+    \Symfony\Component\HttpFoundation\Session\Session $session,
+    ?int $installment = 0,
+    bool $tekrarlanan = false
 ): array {
-    $successUrl = $baseUrl.'response.php';
-    $failUrl = $baseUrl.'response.php';
-
-    $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
-
-    $amount = 10.01;
-
-    $order = [
-        'id'          => $orderId,
-        'amount'      => $amount,
-        'installment' => $installment,
-        'currency'    => 'TRY',
-        'success_url' => $successUrl,
-        'fail_url'    => $failUrl,
-        'ip'          => $ip,
-    ];
-
-    return $order;
+    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, \Mews\Pos\Gateways\KuveytPos::LANG_TR);
 }
 
 

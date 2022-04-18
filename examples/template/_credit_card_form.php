@@ -45,11 +45,26 @@
                 <input type="text" name="cvv" id="cvv" class="form-control input-lg" placeholder="Cvv" value="<?= $card->getCvv() ?>">
             </div>
 
-            <div class="form-group col-xs-12">
+            <div class="form-group col-md-4">
                 <select name="installment" id="installment" class="form-control input-lg">
                 <?php foreach ($installments as $installment => $label) : ?>
                     <option value="<?= $installment; ?>"><?= $label; ?></option>
                 <?php endforeach; ?>
+                </select>
+            </div>
+            <?php if ($pos->getCurrencies()): ?>
+                <div class="form-group col-md-4">
+                    <select name="currency" id="currency" class="form-control input-lg">
+                        <?php foreach ($pos->getCurrencies() as $currency => $code) : ?>
+                            <option value="<?= $currency; ?>" <?= $currency === 'TRY' ? 'selected': null ?>><?= $currency; ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+            <?php endif; ?>
+            <div class="form-group col-md-4">
+                <select name="tx" id="currency" class="form-control input-lg">
+                    <option value="<?= \Mews\Pos\Gateways\AbstractGateway::TX_PAY; ?>" selected>Ödeme</option>
+                    <option value="<?= \Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY; ?>">Ön Provizyon</option>
                 </select>
             </div>
         </div>

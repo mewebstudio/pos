@@ -39,25 +39,13 @@ $installments = [
 
 function getNewOrder(
     string $baseUrl,
-    ?int $installment = 0
+    string $ip,
+    string $currency,
+    \Symfony\Component\HttpFoundation\Session\Session $session,
+    ?int $installment = 0,
+    bool $tekrarlanan = false
 ): array {
-    $successUrl = $baseUrl.'response.php';
-    $failUrl = $baseUrl.'response.php';
-
-    $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
-    $amount = 1.0;
-
-    $order = [
-        'id'          => $orderId,
-        'amount'      => $amount,
-        'installment' => $installment,
-        'currency'    => 'TRY',
-        'success_url' => $successUrl,
-        'fail_url'    => $failUrl,
-        'lang'        => \Mews\Pos\Gateways\PosNet::LANG_TR,
-    ];
-
-    return $order;
+    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, \Mews\Pos\Gateways\InterPos::LANG_TR);
 }
 
 function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
