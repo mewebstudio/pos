@@ -87,7 +87,7 @@ class InterPosRequestDataMapperTest extends TestCase
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_POST_PAY);
 
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($pos->getAccount(), $pos->getOrder(), 'PostAuth');
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($pos->getAccount(), $pos->getOrder());
 
         $expectedData = $this->getSampleNonSecurePaymentPostRequestData($pos->getOrder(), $pos->getAccount());
         $this->assertEquals($expectedData, $actual);

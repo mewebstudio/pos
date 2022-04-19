@@ -206,7 +206,7 @@ class InterPos extends AbstractGateway
      */
     public function createRegularPostXML()
     {
-        return $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order, $this->type);
+        return $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
     }
 
     /**

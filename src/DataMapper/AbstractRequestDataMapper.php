@@ -64,12 +64,11 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount      $account
      * @param                         $order
-     * @param string                  $txType  mapped value from AbstractGateway::TX_PAY
      * @param AbstractCreditCard|null $card
      *
      * @return array
      */
-    abstract public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array;
+    abstract public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array;
 
     /**
      * @param AbstractPosAccount $account

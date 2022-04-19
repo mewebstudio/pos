@@ -176,7 +176,7 @@ class InterPosTest extends TestCase
         $this->assertSame('4hSLIFy/RNlEdB7sUYNnP7kAqzM=', $result['hash']);
         $this->assertSame('Terminal Aktif Degil', $result['error_message']);
         $this->assertNotEmpty($result['3d_all']);
-        $this->assertNull($result['all']);
+        $this->assertEmpty($result['all']);
     }
 
     /**
@@ -243,6 +243,6 @@ class InterPosTest extends TestCase
         $this->assertSame('klXFUEWTgMc6pRZJFsQRMTOa9us=', $result['hash']);
         $this->assertSame('Terminal Aktif Degil', $result['error_message']);
         $this->assertNotEmpty($result['3d_all']);
-        $this->assertNull($result['all']);
+        $this->assertEmpty($result['all']);
     }
 }

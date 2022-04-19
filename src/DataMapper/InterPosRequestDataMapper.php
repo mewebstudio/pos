@@ -111,13 +111,13 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
         return [
             'UserCode'    => $account->getUsername(),
             'UserPass'    => $account->getPassword(),
             'ShopCode'    => $account->getClientId(),
-            'TxnType'     => $txType,
+            'TxnType'     => $this->txTypeMappings[AbstractGateway::TX_POST_PAY],
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'OrderId'     => null,
             'orgOrderId'  => $order->id,
@@ -128,10 +128,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
+     * @inheritDoc
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
@@ -148,10 +145,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
+     * @inheritDoc
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -168,10 +162,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
+     * @inheritDoc
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
