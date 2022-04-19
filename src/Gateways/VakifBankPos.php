@@ -5,6 +5,7 @@ namespace Mews\Pos\Gateways;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -20,16 +21,6 @@ class VakifBankPos extends AbstractGateway
      * @const string
      */
     public const NAME = 'VakifPOS';
-
-    public const CREDIT_CARD_EXP_DATE_LONG_FORMAT = 'Ym';
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
-
-    protected $cardTypeMapping = [
-        AbstractCreditCard::CARD_TYPE_VISA       => '100',
-        AbstractCreditCard::CARD_TYPE_MASTERCARD => '200',
-        AbstractCreditCard::CARD_TYPE_TROY       => '300',
-        AbstractCreditCard::CARD_TYPE_AMEX       => '400',
-    ];
 
     /**
      * @var VakifBankAccount
@@ -51,40 +42,8 @@ class VakifBankPos extends AbstractGateway
         // TODO map other codes
     ];
 
-    /**
-     * Transaction Types
-     *
-     * @var array
-     */
-    protected $types = [
-        self::TX_PAY      => 'Sale',
-        self::TX_PRE_PAY  => 'Auth',
-        self::TX_POST_PAY => 'Capture',
-        self::TX_CANCEL   => 'Cancel',
-        self::TX_REFUND   => 'Refund',
-        self::TX_HISTORY  => 'TxnHistory',
-        self::TX_STATUS   => 'OrderInquiry',
-    ];
-
-    protected $recurringOrderFrequencyMapping = [
-        'DAY'   => 'Day',
-        'MONTH' => 'Month',
-        'YEAR'  => 'Year',
-    ];
-
-    /**
-     * currency mapping
-     *
-     * @var array
-     */
-    protected $currencies = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
-    ];
+    /** @var VakifBankPosRequestDataMapper */
+    private $requestDataMapper;
 
     /**
      * @inheritDoc
@@ -93,6 +52,12 @@ class VakifBankPos extends AbstractGateway
      */
     public function __construct($config, $account, array $currencies)
     {
+        $this->requestDataMapper              = new VakifBankPosRequestDataMapper($currencies);
+        $this->types                          = $this->requestDataMapper->getTxTypeMappings();
+        $this->currencies                     = $this->requestDataMapper->getCurrencyMappings();
+        $this->cardTypeMapping                = $this->requestDataMapper->getCardTypeMapping();
+        $this->recurringOrderFrequencyMapping = $this->requestDataMapper->getRecurringOrderFrequencyMapping();
+
         parent::__construct($config, $account, $currencies);
     }
 
@@ -174,34 +139,9 @@ class VakifBankPos extends AbstractGateway
         }
 
         $data = $this->sendEnrollmentRequest();
-        /**
-         * Status values:
-         * Y:Kart 3-D Secure programına dâhil
-         * N:Kart 3-D Secure programına dâhil değil
-         * U:İşlem gerçekleştirilemiyor
-         * E:Hata durumu
-         */
-        if ('E' === $data->Message->VERes->Status) {
-            throw new Exception($data->ErrorMessage, $data->MessageErrorCode);
-        }
-        if ('N' === $data->Message->VERes->Status) {
-            // todo devam half secure olarak devam et yada satisi iptal et.
-            throw new Exception('Kart 3-D Secure programına dâhil değil');
-        }
-        if ('U' === $data->Message->VERes->Status) {
-            throw new Exception('İşlem gerçekleştirilemiyor');
-        }
+        $data = parent::emptyStringsToNull($data);
 
-        $inputs = [
-            'PaReq'   => $data->Message->VERes->PaReq,
-            'TermUrl' => $data->Message->VERes->TermUrl,
-            'MD'      => $data->Message->VERes->MD,
-        ];
-
-        return [
-            'gateway' => $data->Message->VERes->ACSUrl,
-            'inputs'  => $inputs,
-        ];
+        return $this->requestDataMapper->create3DFormDataFromEnrollmentResponse($data);
     }
 
     /**
@@ -214,21 +154,9 @@ class VakifBankPos extends AbstractGateway
      */
     public function sendEnrollmentRequest()
     {
-        $requestData = $this->create3DEnrollmentCheckData();
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
 
         return $this->send($requestData, $this->get3DGatewayURL());
-    }
-
-    /**
-     * Amount Formatter
-     *
-     * @param float $amount
-     *
-     * @return string ex: 2100.00
-     */
-    public static function amountFormat(float $amount): string
-    {
-        return number_format($amount, 2, '.', '');
     }
 
     /**
@@ -236,7 +164,7 @@ class VakifBankPos extends AbstractGateway
      */
     public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = true): string
     {
-        return parent::createXML($nodes, $encoding, $ignorePiNode);
+        return parent::createXML(['VposRequest' => $nodes], $encoding, $ignorePiNode);
     }
 
     /**
@@ -274,22 +202,9 @@ class VakifBankPos extends AbstractGateway
      */
     public function createRegularPaymentXML()
     {
-        $requestData = [
-            'MerchantId'              => $this->account->getClientId(),
-            'Password'                => $this->account->getPassword(),
-            'TerminalNo'              => $this->account->getTerminalId(),
-            'TransactionType'         => $this->type,
-            'OrderId'                 => $this->order->id,
-            'CurrencyAmount'          => $this->order->amount,
-            'CurrencyCode'            => $this->order->currency,
-            'ClientIp'                => $this->order->ip,
-            'TransactionDeviceSource' => 0,
-            'Pan'                     => $this->card->getNumber(),
-            'Expiry'                  => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
-            'Cvv'                     => $this->card->getCvv(),
-        ];
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
 
-        return $this->createXML(['VposRequest' => $requestData]);
+        return $this->createXML($requestData);
     }
 
     /**
@@ -297,97 +212,20 @@ class VakifBankPos extends AbstractGateway
      */
     public function createRegularPostXML()
     {
-        $requestData = [
-            'MerchantId'             => $this->account->getClientId(),
-            'Password'               => $this->account->getPassword(),
-            'TerminalNo'             => $this->account->getTerminalId(),
-            'TransactionType'        => $this->type,
-            'ReferenceTransactionId' => $this->order->id,
-            'CurrencyAmount'         => $this->order->amount,
-            'CurrencyCode'           => $this->order->currency,
-            'ClientIp'               => $this->order->ip,
-        ];
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
 
-        return $this->createXML(['VposRequest' => $requestData]);
+        return $this->createXML($requestData);
     }
 
     /**
-     * @return array
-     */
-    public function create3DEnrollmentCheckData()
-    {
-        $requestData = [
-            'MerchantId'                => $this->account->getClientId(),
-            'MerchantPassword'          => $this->account->getPassword(),
-            'MerchantType'              => $this->account->getMerchantType(),
-            'PurchaseAmount'            => $this->order->amount,
-            'VerifyEnrollmentRequestId' => $this->order->rand,
-            'Currency'                  => $this->order->currency,
-            'SuccessUrl'                => $this->order->success_url,
-            'FailureUrl'                => $this->order->fail_url,
-            'Pan'                       => $this->card->getNumber(),
-            'ExpiryDate'                => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-            'BrandName'                 => $this->cardTypeMapping[$this->card->getType()],
-            'IsRecurring'               => 'false',
-        ];
-        if ($this->order->installment) {
-            $requestData['InstallmentCount'] = $this->order->installment;
-        }
-        if (isset($this->order->extraData)) {
-            $requestData['SessionInfo'] = $this->order->extraData;
-        }
-        if ($this->account->isSubBranch()) {
-            $requestData['SubMerchantId'] = $this->account->getSubMerchantId();
-        }
-        if (isset($this->order->recurringFrequency)) {
-            $requestData['IsRecurring'] = 'true';
-            // Periyodik İşlem Frekansı
-            $requestData['RecurringFrequency'] = $this->order->recurringFrequency;
-            //Day|Month|Year
-            $requestData['RecurringFrequencyType'] = $this->order->recurringFrequencyType;
-            //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
-            $requestData['RecurringInstallmentCount'] = $this->order->recurringInstallmentCount;
-            if (isset($this->order->recurringEndDate)) {
-                //YYYYMMDD
-                $requestData['RecurringEndDate'] = $this->order->recurringEndDate;
-            }
-        }
-
-        return $requestData;
-    }
-
-    /**
-     * NOT: diger gatewaylerden farkli olarak vakifbank kredit bilgilerini bu asamada istiyor.
+     * NOT: diger gatewaylerden farkli olarak vakifbank kredit bilgilerini bu asamada da istiyor.
      * @inheritDoc
      */
     public function create3DPaymentXML($responseData)
     {
-        $requestData = [
-            'MerchantId'              => $this->account->getClientId(),
-            'Password'                => $this->account->getPassword(),
-            'TerminalNo'              => $this->account->getTerminalId(),
-            'TransactionType'         => $this->type,
-            'TransactionId'           => $this->order->id,
-            'CurrencyAmount'          => $this->order->amount,
-            'CurrencyCode'            => $this->order->currency,
-            'CardHoldersName'         => $this->card->getHolderName(),
-            'Cvv'                     => $this->card->getCvv(),
-            'Pan'                     => $this->card->getNumber(),
-            'Expiry'                  => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
-            'ECI'                     => $responseData['Eci'],
-            'CAVV'                    => $responseData['Cavv'],
-            'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
-            'OrderId'                 => $this->order->id,
-            'OrderDescription'        => $this->order->description ?? null,
-            'ClientIp'                => $this->order->ip,
-            'TransactionDeviceSource' => 0, // ECommerce
-        ];
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData, $this->card);
 
-        if ($this->order->installment) {
-            $requestData['NumberOfInstallments'] = $this->order->installment;
-        }
-
-        return $this->createXML(['VposRequest' => $requestData]);
+        return $this->createXML($requestData);
     }
 
     /**
@@ -396,9 +234,7 @@ class VakifBankPos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        $requestData = [];
-
-        return $this->createXML($requestData);
+        $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
     }
 
     /**
@@ -407,9 +243,7 @@ class VakifBankPos extends AbstractGateway
      */
     public function createHistoryXML($customQueryData)
     {
-        $requestData = [];
-
-        return $this->createXML($requestData);
+        $this->requestDataMapper->createHistoryRequestData($this->account, $this->order, $customQueryData);
     }
 
     /**
@@ -417,16 +251,9 @@ class VakifBankPos extends AbstractGateway
      */
     public function createRefundXML()
     {
-        $requestData = [
-            'MerchantId'             => $this->account->getClientId(),
-            'Password'               => $this->account->getPassword(),
-            'TransactionType'        => $this->type,
-            'ReferenceTransactionId' => $this->order->id,
-            'ClientIp'               => $this->order->ip,
-            'CurrencyAmount'         => $this->order->amount,
-        ];
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
 
-        return $this->createXML(['VposRequest' => $requestData]);
+        return $this->createXML($requestData);
     }
 
     /**
@@ -434,15 +261,9 @@ class VakifBankPos extends AbstractGateway
      */
     public function createCancelXML()
     {
-        $requestData = [
-            'MerchantId'             => $this->account->getClientId(),
-            'Password'               => $this->account->getPassword(),
-            'TransactionType'        => $this->type,
-            'ReferenceTransactionId' => $this->order->id,
-            'ClientIp'               => $this->order->ip,
-        ];
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
 
-        return $this->createXML(['VposRequest' => $requestData]);
+        return $this->createXML($requestData);
     }
 
     /**
@@ -569,15 +390,11 @@ class VakifBankPos extends AbstractGateway
 
         $currency = $order['currency'] ?? 'TRY';
 
-        if (isset($order['recurringFrequency'])) {
-            $order['recurringFrequencyType'] = $this->mapRecurringFrequency($order['recurringFrequencyType']);
-        }
-
         // Order
         return (object) array_merge($order, [
             'installment' => $installment,
             'currency'    => $this->mapCurrency($currency),
-            'amount'      => self::amountFormat($order['amount']),
+            'amount'      => $order['amount'],
         ]);
     }
 
@@ -588,7 +405,7 @@ class VakifBankPos extends AbstractGateway
     {
         return (object) [
             'id'       => $order['id'],
-            'amount'   => self::amountFormat($order['amount']),
+            'amount'   => $order['amount'],
             'currency' => $this->mapCurrency($order['currency']),
             'ip'       => $order['ip'],
         ];
@@ -627,8 +444,6 @@ class VakifBankPos extends AbstractGateway
      */
     protected function prepareRefundOrder(array $order)
     {
-        $order['amount'] = self::amountFormat($order['amount']);
-
         return (object) $order;
     }
 

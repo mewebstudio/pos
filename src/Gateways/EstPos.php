@@ -9,6 +9,8 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
+ * todo cardType verisi dokumantasyona gore kontrol edilmesi gerekiyor.
+ * cardType gondermeden de su an calisiyor.
  * Class EstPos
  */
 class EstPos extends AbstractGateway
