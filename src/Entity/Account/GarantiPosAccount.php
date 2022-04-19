@@ -1,9 +1,12 @@
 <?php
-
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Entity\Account;
 
-
+/**
+ * GarantiPosAccount
+ */
 class GarantiPosAccount extends AbstractPosAccount
 {
     /**
@@ -61,5 +64,4 @@ class GarantiPosAccount extends AbstractPosAccount
     {
         return $this->terminalId;
     }
-
 }
