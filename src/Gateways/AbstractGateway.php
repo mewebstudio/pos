@@ -728,7 +728,7 @@ abstract class AbstractGateway implements PosInterface
             $result = $data;
         } elseif (is_array($data) || is_object($data)) {
             foreach ($data as $key => $value) {
-                $result[$key] = $this->emptyStringsToNull($value);
+                $result[$key] = self::emptyStringsToNull($value);
             }
         }
 
