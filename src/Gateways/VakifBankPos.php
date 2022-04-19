@@ -673,7 +673,7 @@ class VakifBankPos extends AbstractGateway
      *
      * @return string|object|array
      */
-    private function emptyStringsToNull($data)
+    protected function emptyStringsToNull($data)
     {
         if (is_string($data)) {
             $data = '' === $data ? null : $data;

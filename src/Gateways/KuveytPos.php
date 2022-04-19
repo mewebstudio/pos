@@ -496,27 +496,6 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * bankadan gelen response'da bos string degerler var.
-     * bu metod ile bos string'leri null deger olarak degistiriyoruz
-     *
-     * @param string|object|array $data
-     *
-     * @return string|object|array
-     */
-    private function emptyStringsToNull($data)
-    {
-        if (is_string($data)) {
-            $data = '' === $data ? null : $data;
-        } elseif (is_array($data)) {
-            foreach ($data as $key => $value) {
-                $data[$key] = '' === $value ? null : $value;
-            }
-        }
-
-        return $data;
-    }
-
-    /**
      * @param array $raw3DAuthResponseData
      *
      * @return array

@@ -712,6 +712,30 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
+     * bankadan gelen response'da bos string degerler var.
+     * bu metod ile bos string'leri null deger olarak degistiriyoruz
+     *
+     * @param string|object|array $data
+     *
+     * @return string|array
+     */
+    protected function emptyStringsToNull($data)
+    {
+        $result = [];
+        if (is_string($data)) {
+            $result = '' === $data ? null : $data;
+        } elseif (is_numeric($data)) {
+            $result = $data;
+        } elseif (is_array($data) || is_object($data)) {
+            foreach ($data as $key => $value) {
+                $result[$key] = $this->emptyStringsToNull($value);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
      * return values are used as a key in config file
      * @return string
      */
