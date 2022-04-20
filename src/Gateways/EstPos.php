@@ -9,6 +9,8 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
+ * todo cardType verisi dokumantasyona gore kontrol edilmesi gerekiyor.
+ * cardType gondermeden de su an calisiyor.
  * Class EstPos
  */
 class EstPos extends AbstractGateway
@@ -903,29 +905,5 @@ class EstPos extends AbstractGateway
             'currency' => $this->mapCurrency($order['currency']),
             'amount'   => $order['amount'],
         ];
-    }
-
-    /**
-     * bankadan gelen response'da bos string degerler var.
-     * bu metod ile bos string'leri null deger olarak degistiriyoruz
-     *
-     * @param string|object|array $data
-     *
-     * @return array|string|null
-     */
-    private function emptyStringsToNull($data)
-    {
-        $result = [];
-        if (is_string($data)) {
-            $result = '' === $data ? null : $data;
-        } elseif (is_numeric($data)) {
-            $result = $data;
-        } elseif (is_array($data) || is_object($data)) {
-            foreach ($data as $key => $value) {
-                $result[$key] = $this->emptyStringsToNull($value);
-            }
-        }
-
-        return $result;
     }
 }

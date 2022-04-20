@@ -6,6 +6,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 
 /**
+ * todo move txType, currency, installment mapping to here from all gateways
  * AbstractRequestDataMapper
  */
 abstract class AbstractRequestDataMapper
@@ -30,6 +31,12 @@ abstract class AbstractRequestDataMapper
      * @var array
      */
     protected $currencyMappings = [];
+
+    /**
+     * period mapping for recurring orders
+     * @var array
+     */
+    protected $recurringOrderFrequencyMapping = [];
 
     /**
      * @param array $currencyMappings
@@ -64,12 +71,11 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount      $account
      * @param                         $order
-     * @param string                  $txType  mapped value from AbstractGateway::TX_PAY
      * @param AbstractCreditCard|null $card
      *
      * @return array
      */
-    abstract public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array;
+    abstract public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array;
 
     /**
      * @param AbstractPosAccount $account
@@ -125,6 +131,16 @@ abstract class AbstractRequestDataMapper
     abstract public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array;
 
     /**
+     * @param string $period
+     *
+     * @return string
+     */
+    public function mapRecurringFrequency(string $period): string
+    {
+        return $this->recurringOrderFrequencyMapping[$period] ?? $period;
+    }
+
+    /**
      * @return array
      */
     public function getCardTypeMapping(): array
@@ -154,6 +170,14 @@ abstract class AbstractRequestDataMapper
     public function getCurrencyMappings(): array
     {
         return $this->currencyMappings;
+    }
+
+    /**
+     * @return array
+     */
+    public function getRecurringOrderFrequencyMapping(): array
+    {
+        return $this->recurringOrderFrequencyMapping;
     }
 
     /**
