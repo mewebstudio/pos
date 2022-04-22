@@ -1,9 +1,11 @@
 <?php
-
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
+use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -22,18 +24,6 @@ class PayForPos extends AbstractGateway
 
     const LANG_TR = 'tr';
     const LANG_EN = 'en';
-
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
-
-    /**
-     * Kurum kodudur. (Banka tarafından verilir)
-     */
-    const MBR_ID = '5';
-
-    /**
-     * MOTO (Mail Order Telephone Order) 0 for false, 1 for true
-     */
-    const MOTO = '0';
 
     /**
      * @var PayForAccount
@@ -73,40 +63,9 @@ class PayForPos extends AbstractGateway
     ];
 
     /**
-     * Transaction Types
-     *
-     * @var array
+     * @var PayForPosRequestDataMapper
      */
-    protected $types = [
-        self::TX_PAY      => 'Auth',
-        self::TX_PRE_PAY  => 'PreAuth',
-        self::TX_POST_PAY => 'PostAuth',
-        self::TX_CANCEL   => 'Void',
-        self::TX_REFUND   => 'Refund',
-        self::TX_HISTORY  => 'TxnHistory',
-        self::TX_STATUS   => 'OrderInquiry',
-    ];
-
-    protected $secureTypeMappings = [
-        self::MODEL_3D_SECURE  => '3DModel',
-        self::MODEL_3D_PAY     => '3DPay',
-        self::MODEL_3D_HOST    => '3DHost',
-        self::MODEL_NON_SECURE => 'NonSecure',
-    ];
-
-    /**
-     * currency mapping
-     *
-     * @var array
-     */
-    protected $currencies = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
-    ];
+    private $requestDataMapper;
 
     /**
      * @inheritDoc
@@ -115,6 +74,10 @@ class PayForPos extends AbstractGateway
      */
     public function __construct($config, $account, array $currencies)
     {
+        $this->requestDataMapper = new PayForPosRequestDataMapper($currencies);
+        $this->types             = $this->requestDataMapper->getTxTypeMappings();
+        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
+        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
         parent::__construct($config, $account, $currencies);
     }
 
@@ -205,18 +168,12 @@ class PayForPos extends AbstractGateway
             return [];
         }
 
-        $this->order->hash = $this->create3DHash($this->account, $this->order, $this->type);
-
-        $formData = $this->getCommon3DFormData();
-        if (self::MODEL_3D_PAY === $this->account->getModel()) {
-            $formData['gateway'] = $this->get3DGatewayURL();
-        } elseif (self::MODEL_3D_SECURE === $this->account->getModel()) {
-            $formData['gateway'] = $this->get3DGatewayURL();
-        } else {
-            $formData['gateway'] = $this->get3DHostGatewayURL();
+        $gatewayURL = $this->get3DGatewayURL();
+        if (self::MODEL_3D_HOST === $this->account->getModel()) {
+            $gatewayURL = $this->get3DHostGatewayURL();
         }
 
-        return $formData;
+        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayURL, $this->card);
     }
 
 
@@ -243,9 +200,9 @@ class PayForPos extends AbstractGateway
          * </MD>\r\n
          * <Hash>\r\n
          * </Hash>\r\n
-         * redundant whitespaces causes non empty value for response properties
+         * redundant whitespaces causes non-empty value for response properties
          */
-        $contents = preg_replace('/\\r\\n  /', '', $contents);
+        $contents = preg_replace('/\\r\\n\s*/', '', $contents);
 
         try {
             $this->data = $this->XMLStringToObject($contents);
@@ -263,32 +220,6 @@ class PayForPos extends AbstractGateway
     public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false): string
     {
         return parent::createXML(['PayforRequest' => $nodes], $encoding, $ignorePiNode);
-    }
-
-
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param string             $txType
-     *
-     * @return string
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
-    {
-        $hashData = [
-            self::MBR_ID,
-            $order->id,
-            $order->amount,
-            $order->success_url,
-            $order->fail_url,
-            $txType,
-            $order->installment,
-            $order->rand,
-            $account->getStoreKey(),
-        ];
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
-
-        return $this->hashString($hashStr);
     }
 
     /**
@@ -324,24 +255,7 @@ class PayForPos extends AbstractGateway
      */
     public function createRegularPaymentXML()
     {
-        $requestData = [
-            'MbrId'            => self::MBR_ID,
-            'MerchantId'       => $this->account->getClientId(),
-            'UserCode'         => $this->account->getUsername(),
-            'UserPass'         => $this->account->getPassword(),
-            'MOTO'             => self::MOTO,
-            'OrderId'          => $this->order->id,
-            'SecureType'       => $this->secureTypeMappings[self::MODEL_NON_SECURE],
-            'TxnType'          => $this->type,
-            'PurchAmount'      => $this->order->amount,
-            'Currency'         => $this->order->currency,
-            'InstallmentCount' => $this->order->installment,
-            'Lang'             => $this->getLang(),
-            'CardHolderName'   => $this->card->getHolderName(),
-            'Pan'              => $this->card->getNumber(),
-            'Expiry'           => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-            'Cvv2'             => $this->card->getCvv(),
-        ];
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
 
         return $this->createXML($requestData);
     }
@@ -351,18 +265,7 @@ class PayForPos extends AbstractGateway
      */
     public function createRegularPostXML()
     {
-        $requestData = [
-            'MbrId'       => self::MBR_ID,
-            'MerchantId'  => $this->account->getClientId(),
-            'UserCode'    => $this->account->getUsername(),
-            'UserPass'    => $this->account->getPassword(),
-            'OrgOrderId'  => $this->order->id,
-            'SecureType'  => $this->secureTypeMappings[self::MODEL_NON_SECURE],
-            'TxnType'     => $this->type,
-            'PurchAmount' => $this->order->amount,
-            'Currency'    => $this->order->currency,
-            'Lang'        => $this->getLang(),
-        ];
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -372,13 +275,7 @@ class PayForPos extends AbstractGateway
      */
     public function create3DPaymentXML($responseData)
     {
-        $requestData = [
-            'RequestGuid' => $responseData['RequestGuid'],
-            'UserCode'    => $this->account->getUsername(),
-            'UserPass'    => $this->account->getPassword(),
-            'OrderId'     => $this->order->id,
-            'SecureType'  => '3DModelPayment',
-        ];
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, '', $responseData);
 
         return $this->createXML($requestData);
     }
@@ -388,16 +285,7 @@ class PayForPos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        $requestData = [
-            'MbrId'      => self::MBR_ID,
-            'MerchantId' => $this->account->getClientId(),
-            'UserCode'   => $this->account->getUsername(),
-            'UserPass'   => $this->account->getPassword(),
-            'OrgOrderId' => $this->order->id,
-            'SecureType' => 'Inquiry',
-            'Lang'       => $this->getLang(),
-            'TxnType'    => $this->types[self::TX_STATUS],
-        ];
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -407,23 +295,7 @@ class PayForPos extends AbstractGateway
      */
     public function createHistoryXML($customQueryData)
     {
-        $requestData = [
-            'MbrId'      => self::MBR_ID,
-            'MerchantId' => $this->account->getClientId(),
-            'UserCode'   => $this->account->getUsername(),
-            'UserPass'   => $this->account->getPassword(),
-            'SecureType' => 'Report',
-            'TxnType'    => $this->types[self::TX_HISTORY],
-            'Lang'       => $this->getLang(),
-        ];
-
-        if (isset($customQueryData['orderId'])) {
-            $requestData['OrderId'] = $customQueryData['orderId'];
-        } elseif (isset($customQueryData['reqDate'])) {
-            //ReqData YYYYMMDD format
-            $requestData['ReqDate'] = $customQueryData['reqDate'];
-        }
-
+        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $this->order, $customQueryData);
 
         return $this->createXML($requestData);
     }
@@ -433,18 +305,7 @@ class PayForPos extends AbstractGateway
      */
     public function createRefundXML()
     {
-        $requestData = [
-            'MbrId'       => self::MBR_ID,
-            'MerchantId'  => $this->account->getClientId(),
-            'UserCode'    => $this->account->getUsername(),
-            'UserPass'    => $this->account->getPassword(),
-            'SecureType'  => $this->secureTypeMappings[self::MODEL_NON_SECURE],
-            'Lang'        => $this->getLang(),
-            'OrgOrderId'  => $this->order->id,
-            'TxnType'     => $this->types[self::TX_REFUND],
-            'PurchAmount' => $this->order->amount,
-            'Currency'    => $this->order->currency,
-        ];
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -454,17 +315,7 @@ class PayForPos extends AbstractGateway
      */
     public function createCancelXML()
     {
-        $requestData = [
-            'MbrId'      => self::MBR_ID,
-            'MerchantId' => $this->account->getClientId(),
-            'UserCode'   => $this->account->getUsername(),
-            'UserPass'   => $this->account->getPassword(),
-            'OrgOrderId' => $this->order->id,
-            'SecureType' => $this->secureTypeMappings[self::MODEL_NON_SECURE],
-            'TxnType'    => $this->types[self::TX_CANCEL],
-            'Currency'   => $this->order->currency,
-            'Lang'       => $this->getLang(),
-        ];
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -653,43 +504,6 @@ class PayForPos extends AbstractGateway
             'status'           => $status,
             'status_detail'    => $this->codes[$rawResponseData->ProcReturnCode] ?? null,
             'all'              => $rawResponseData,
-        ];
-    }
-
-    /**
-     * returns common form data used by all 3D payment gates
-     *
-     * @return array
-     */
-    protected function getCommon3DFormData(): array
-    {
-        $inputs = [
-            'MbrId'            => self::MBR_ID,
-            'MerchantID'       => $this->account->getClientId(),
-            'UserCode'         => $this->account->getUsername(),
-            'OrderId'          => $this->order->id,
-            'Lang'             => $this->getLang(),
-            'SecureType'       => $this->secureTypeMappings[$this->account->getModel()],
-            'TxnType'          => $this->type,
-            'PurchAmount'      => $this->order->amount,
-            'InstallmentCount' => $this->order->installment,
-            'Currency'         => $this->order->currency,
-            'OkUrl'            => $this->order->success_url,
-            'FailUrl'          => $this->order->fail_url,
-            'Rnd'              => $this->order->rand,
-            'Hash'             => $this->order->hash,
-        ];
-
-        if ($this->card) {
-            $inputs['CardHolderName'] = $this->card->getHolderName();
-            $inputs['Pan'] = $this->card->getNumber();
-            $inputs['Expiry'] = $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
-            $inputs['Cvv2'] = $this->card->getCvv();
-        }
-
-        return [
-            'gateway' => null, //to be filled by the caller
-            'inputs'  => $inputs,
         ];
     }
 
