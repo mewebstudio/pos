@@ -1,9 +1,10 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Tests\Gateways;
 
 use GuzzleHttp\Exception\GuzzleException;
-use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\BankClassNullException;
@@ -39,9 +40,6 @@ class KuveytPosTest extends TestCase
      * @var KuveytPos
      */
     private $pos;
-
-    /** @var KuveytPosRequestDataMapper */
-    private $requestDataMapper;
 
     /**
      * @return void
@@ -89,8 +87,6 @@ class KuveytPosTest extends TestCase
             AbstractCreditCard::CARD_TYPE_VISA
         );
 
-        $this->requestDataMapper = new KuveytPosRequestDataMapper();
-
         $this->xmlDecoder = new XmlEncoder();
     }
 
@@ -124,6 +120,7 @@ class KuveytPosTest extends TestCase
     public function testPrepare()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $this->assertSame('0949', $this->pos->getOrder()->currency);
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 

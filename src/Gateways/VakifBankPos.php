@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
 use Exception;
@@ -393,7 +395,7 @@ class VakifBankPos extends AbstractGateway
         // Order
         return (object) array_merge($order, [
             'installment' => $installment,
-            'currency'    => $this->mapCurrency($currency),
+            'currency'    => $this->requestDataMapper->mapCurrency($currency),
             'amount'      => $order['amount'],
         ]);
     }
@@ -406,7 +408,7 @@ class VakifBankPos extends AbstractGateway
         return (object) [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'currency' => $this->mapCurrency($order['currency']),
+            'currency' => $this->requestDataMapper->mapCurrency($order['currency']),
             'ip'       => $order['ip'],
         ];
     }

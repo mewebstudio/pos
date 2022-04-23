@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
@@ -476,7 +478,7 @@ class InterPos extends AbstractGateway
 
         return (object) array_merge($order, [
             'installment' => $installment,
-            'currency'    => $this->mapCurrency($order['currency']),
+            'currency'    => $this->requestDataMapper->mapCurrency($order['currency']),
         ]);
     }
 

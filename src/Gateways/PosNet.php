@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
@@ -737,7 +739,7 @@ class PosNet extends AbstractGateway
             'id'           => $this->requestDataMapper::formatOrderId($order['id']),
             'amount'       => $this->requestDataMapper::amountFormat($order['amount']),
             'installment'  => $this->requestDataMapper::formatInstallment($installment),
-            'currency'     =>  $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency'     => $this->requestDataMapper->mapCurrency($order['currency']),
             'host_ref_num' => $order['host_ref_num'],
         ];
     }

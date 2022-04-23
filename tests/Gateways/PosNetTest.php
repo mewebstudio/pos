@@ -83,7 +83,15 @@ class PosNetTest extends TestCase
     public function testPrepare()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $this->assertSame('TL', $this->pos->getOrder()->currency);
         $this->assertEquals($this->card, $this->pos->getCard());
+
+        $this->order['host_ref_num'] = 'zz';
+        $this->pos->prepare($this->order, AbstractGateway::TX_POST_PAY);
+        $this->assertSame('TL', $this->pos->getOrder()->currency);
+
+        $this->pos->prepare($this->order, AbstractGateway::TX_REFUND);
+        $this->assertSame('TL', $this->pos->getOrder()->currency);
     }
 
     /**

@@ -531,7 +531,7 @@ class PayForPos extends AbstractGateway
         // Order
         return (object) array_merge($order, [
             'installment' => $installment,
-            'currency'    => $this->mapCurrency($currency),
+            'currency'    => $this->requestDataMapper->mapCurrency($currency),
         ]);
     }
 
@@ -543,7 +543,7 @@ class PayForPos extends AbstractGateway
         return (object) [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'currency' => $this->mapCurrency($order['currency']),
+            'currency' => $this->requestDataMapper->mapCurrency($order['currency']),
         ];
     }
 
@@ -572,7 +572,7 @@ class PayForPos extends AbstractGateway
      */
     protected function prepareCancelOrder(array $order)
     {
-        $order['currency'] = $this->mapCurrency($order['currency']);
+        $order['currency'] = $this->requestDataMapper->mapCurrency($order['currency']);
 
         return (object) $order;
     }
@@ -582,7 +582,7 @@ class PayForPos extends AbstractGateway
      */
     protected function prepareRefundOrder(array $order)
     {
-        $order['currency'] = $this->mapCurrency($order['currency']);
+        $order['currency'] = $this->requestDataMapper->mapCurrency($order['currency']);
 
         return (object) $order;
     }

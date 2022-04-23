@@ -96,6 +96,16 @@ class PayForTest extends TestCase
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $this->assertEquals($this->card, $this->pos->getCard());
         $this->assertNotEmpty($this->pos->getOrder());
+        $this->assertSame('949', $this->pos->getOrder()->currency);
+
+        $this->pos->prepare($this->order, AbstractGateway::TX_POST_PAY);
+        $this->assertSame('949', $this->pos->getOrder()->currency);
+
+        $this->pos->prepare($this->order, AbstractGateway::TX_CANCEL);
+        $this->assertSame('949', $this->pos->getOrder()->currency);
+
+        $this->pos->prepare($this->order, AbstractGateway::TX_REFUND);
+        $this->assertSame('949', $this->pos->getOrder()->currency);
     }
 
     /**
