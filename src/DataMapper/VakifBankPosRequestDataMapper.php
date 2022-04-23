@@ -245,49 +245,20 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param array $extraData
+     *
      * @inheritDoc
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = []): array
     {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @param array $data
-     *
-     * @return array
-     *
-     * @throws Exception
-     */
-    public function create3DFormDataFromEnrollmentResponse(array $data): array
-    {
-        $response = $data['Message']['VERes'];
-        /**
-         * Status values:
-         * Y:Kart 3-D Secure programına dâhil
-         * N:Kart 3-D Secure programına dâhil değil
-         * U:İşlem gerçekleştirilemiyor
-         * E:Hata durumu
-         */
-        if ('E' === $response['Status']) {
-            throw new Exception($data['ErrorMessage'], $data['MessageErrorCode']);
-        }
-        if ('N' === $response['Status']) {
-            // todo devam half secure olarak devam et yada satisi iptal et.
-            throw new Exception('Kart 3-D Secure programına dâhil değil');
-        }
-        if ('U' === $response['Status']) {
-            throw new Exception('İşlem gerçekleştirilemiyor');
-        }
-
         $inputs = [
-            'PaReq'   => $response['PaReq'],
-            'TermUrl' => $response['TermUrl'],
-            'MD'      => $response['MD'],
+            'PaReq'   => $extraData['PaReq'],
+            'TermUrl' => $extraData['TermUrl'],
+            'MD'      => $extraData['MD'],
         ];
 
         return [
-            'gateway' => $response['ACSUrl'],
+            'gateway' => $extraData['ACSUrl'],
             'inputs'  => $inputs,
         ];
     }

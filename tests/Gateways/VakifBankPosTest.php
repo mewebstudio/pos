@@ -4,6 +4,8 @@
  */
 namespace Mews\Pos\Tests\Gateways;
 
+use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
@@ -150,7 +152,7 @@ class VakifBankPosTest extends TestCase
             'BatchNo'                 => '1',
         ];
 
-        $method  = $this->getMethod('map3DPaymentData');
+        $method = $this->getMethod('map3DPaymentData');
         $result = $method->invoke($this->pos, $threeDResponse, (object) $provisionResponse);
 
         $expected = [
@@ -211,7 +213,7 @@ class VakifBankPosTest extends TestCase
 
         $provisionResponse = [];
 
-        $method  = $this->getMethod('map3DPaymentData');
+        $method = $this->getMethod('map3DPaymentData');
         $result = $method->invoke($this->pos, $threeDResponse, (object) $provisionResponse);
 
         $expected = [
@@ -238,9 +240,47 @@ class VakifBankPosTest extends TestCase
         $this->assertEquals($expected, (array) $result);
     }
 
+    /**
+     * @return void
+     *
+     * @throws Exception|GuzzleException
+     */
+    public function testGet3DFormDataEnrollmentFail()
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionCode(2005);
+
+        $posMock = $this->getMockBuilder(VakifBankPos::class)
+            ->setConstructorArgs([[], $this->account, []])
+            ->onlyMethods(['sendEnrollmentRequest'])
+            ->getMock();
+        $posMock->setTestMode(true);
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $posMock->expects($this->once())->method('sendEnrollmentRequest')->willReturn($this->getSampleEnrollmentFailResponseData());
+
+        $posMock->get3DFormData();
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getSampleEnrollmentFailResponseData(): array
+    {
+        return [
+            'Message'                   => [
+                'VERes' => [
+                    'Status' => 'E',
+                ],
+            ],
+            'VerifyEnrollmentRequestId' => '0aebb0757acccae6fba75b2e4d78cecf',
+            'MessageErrorCode'          => '2005',
+            'ErrorMessage'              => 'Merchant cannot be found for this bank',
+        ];
+    }
+
     private static function getMethod(string $name): \ReflectionMethod
     {
-        $class = new ReflectionClass(VakifBankPos::class);
+        $class  = new ReflectionClass(VakifBankPos::class);
         $method = $class->getMethod($name);
         $method->setAccessible(true);
 

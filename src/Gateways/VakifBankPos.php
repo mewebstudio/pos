@@ -143,7 +143,26 @@ class VakifBankPos extends AbstractGateway
         $data = $this->sendEnrollmentRequest();
         $data = parent::emptyStringsToNull($data);
 
-        return $this->requestDataMapper->create3DFormDataFromEnrollmentResponse($data);
+        $status = $data['Message']['VERes']['Status'];
+        /**
+         * Status values:
+         * Y:Kart 3-D Secure programına dâhil
+         * N:Kart 3-D Secure programına dâhil değil
+         * U:İşlem gerçekleştirilemiyor
+         * E:Hata durumu
+         */
+        if ('E' === $status) {
+            throw new Exception($data['ErrorMessage'], $data['MessageErrorCode']);
+        }
+        if ('N' === $status) {
+            //half secure olarak devam et yada satisi iptal et.
+            throw new Exception('Kart 3-D Secure programına dâhil değil');
+        }
+        if ('U' === $status) {
+            throw new Exception('İşlem gerçekleştirilemiyor');
+        }
+
+        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, '', $data['Message']['VERes']);
     }
 
     /**

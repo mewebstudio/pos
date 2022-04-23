@@ -206,10 +206,19 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DFormDataFromEnrollmentResponse()
+    public function testCreate3DFormData()
     {
+        $pos = $this->pos;
+        $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $expectedValue = $this->getSample3DFormDataFromEnrollmentResponse();
-        $actualData = $this->requestDataMapper->create3DFormDataFromEnrollmentResponse($this->getSampleEnrollmentSuccessResponseData());
+        $actualData = $this->requestDataMapper->create3DFormData(
+            $pos->getAccount(),
+            $pos->getOrder(),
+            '',
+            '',
+            $pos->getCard(),
+            $this->getSampleEnrollmentSuccessResponseData()['Message']['VERes']
+        );
 
         $this->assertEquals($expectedValue, $actualData);
     }
