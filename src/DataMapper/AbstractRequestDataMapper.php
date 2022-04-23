@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -170,6 +172,16 @@ abstract class AbstractRequestDataMapper
     public function getCurrencyMappings(): array
     {
         return $this->currencyMappings;
+    }
+
+    /**
+     * @param string $currency TRY, USD
+     *
+     * @return string currency code that is accepted by bank
+     */
+    public function mapCurrency(string $currency): string
+    {
+        return $this->currencyMappings[$currency] ?? $currency;
     }
 
     /**
