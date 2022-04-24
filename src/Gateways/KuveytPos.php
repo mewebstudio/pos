@@ -45,7 +45,7 @@ class KuveytPos extends AbstractGateway
     protected $card;
 
     /** @var KuveytPosRequestDataMapper */
-    private $requestDataMapper;
+    protected $requestDataMapper;
 
     /**
      * @param array            $config

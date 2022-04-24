@@ -1,7 +1,10 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -18,18 +21,18 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
  */
 abstract class AbstractGateway implements PosInterface
 {
-    const TX_PAY = 'pay';
-    const TX_PRE_PAY = 'pre';
-    const TX_POST_PAY = 'post';
-    const TX_CANCEL = 'cancel';
-    const TX_REFUND = 'refund';
-    const TX_STATUS = 'status';
-    const TX_HISTORY = 'history';
+    public const TX_PAY = 'pay';
+    public const TX_PRE_PAY = 'pre';
+    public const TX_POST_PAY = 'post';
+    public const TX_CANCEL = 'cancel';
+    public const TX_REFUND = 'refund';
+    public const TX_STATUS = 'status';
+    public const TX_HISTORY = 'history';
 
-    const MODEL_3D_SECURE = '3d';
-    const MODEL_3D_PAY = '3d_pay';
-    const MODEL_3D_HOST = '3d_host';
-    const MODEL_NON_SECURE = 'regular';
+    public const MODEL_3D_SECURE = '3d';
+    public const MODEL_3D_PAY = '3d_pay';
+    public const MODEL_3D_HOST = '3d_host';
+    public const MODEL_NON_SECURE = 'regular';
 
     protected const HASH_ALGORITHM = 'sha1';
     protected const HASH_SEPARATOR = '';
@@ -95,6 +98,9 @@ abstract class AbstractGateway implements PosInterface
      */
     protected $data;
 
+    /** @var AbstractRequestDataMapper */
+    protected $requestDataMapper;
+
     private $testMode = false;
 
     /**
@@ -147,7 +153,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return mixed
+     * @return object
      */
     public function getResponse()
     {
@@ -422,6 +428,10 @@ abstract class AbstractGateway implements PosInterface
     public function setTestMode(bool $testMode): self
     {
         $this->testMode = $testMode;
+        if (isset($this->requestDataMapper)) {
+            //todo remove if check after all gateways has requestDataMapper
+            $this->requestDataMapper->setTestMode($testMode);
+        }
 
         return $this;
     }

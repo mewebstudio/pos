@@ -67,7 +67,7 @@ class PosNet extends AbstractGateway
     private $crypt;
 
     /** @var PosNetRequestDataMapper */
-    private $requestDataMapper;
+    protected $requestDataMapper;
 
     /**
      * PosNet constructor.

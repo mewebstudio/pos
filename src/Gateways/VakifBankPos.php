@@ -45,7 +45,7 @@ class VakifBankPos extends AbstractGateway
     ];
 
     /** @var VakifBankPosRequestDataMapper */
-    private $requestDataMapper;
+    protected $requestDataMapper;
 
     /**
      * @inheritDoc

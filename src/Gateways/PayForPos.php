@@ -65,7 +65,7 @@ class PayForPos extends AbstractGateway
     /**
      * @var PayForPosRequestDataMapper
      */
-    private $requestDataMapper;
+    protected $requestDataMapper;
 
     /**
      * @inheritDoc

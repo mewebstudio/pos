@@ -40,6 +40,9 @@ abstract class AbstractRequestDataMapper
      */
     protected $recurringOrderFrequencyMapping = [];
 
+    /** @var bool */
+    protected $testMode = false;
+
     /**
      * @param array $currencyMappings
      */
@@ -128,9 +131,17 @@ abstract class AbstractRequestDataMapper
      * @param                    $order
      * @param array              $extraData bankaya gore degisen ozel degerler
      *
-     * @return string
+     * @return array
      */
     abstract public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array;
+
+    /**
+     * @return bool
+     */
+    public function isTestMode(): bool
+    {
+        return $this->testMode;
+    }
 
     /**
      * @param string $period
@@ -172,6 +183,19 @@ abstract class AbstractRequestDataMapper
     public function getCurrencyMappings(): array
     {
         return $this->currencyMappings;
+    }
+
+
+    /**
+     * @param bool $testMode
+     *
+     * @return AbstractRequestDataMapper
+     */
+    public function setTestMode(bool $testMode): self
+    {
+        $this->testMode = $testMode;
+
+        return $this;
     }
 
     /**

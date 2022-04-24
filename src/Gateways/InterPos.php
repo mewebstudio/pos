@@ -44,7 +44,7 @@ class InterPos extends AbstractGateway
     protected $card;
 
     /** @var InterPosRequestDataMapper */
-    private $requestDataMapper;
+    protected $requestDataMapper;
 
     /**
      * @param array           $config
