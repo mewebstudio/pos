@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -13,6 +15,11 @@ use Mews\Pos\Gateways\AbstractGateway;
 class InterPosRequestDataMapper extends AbstractRequestDataMapper
 {
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
+
+    /**
+     * MOTO (Mail Order Telephone Order) 0 for false, 1 for true
+     */
+    protected const MOTO = '0';
 
     protected $secureTypeMappings = [
         AbstractGateway::MODEL_3D_SECURE  => '3DModel',
@@ -74,7 +81,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'PayerTxnId'              => $responseData['PayerTxnId'],
             'Eci'                     => $responseData['Eci'],
             'PayerAuthenticationCode' => $responseData['PayerAuthenticationCode'],
-            'MOTO'                    => '0',
+            'MOTO'                    => self::MOTO,
             'Lang'                    => $this->getLang($account, $order),
         ];
     }
@@ -94,7 +101,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'PurchAmount'      => $order->amount,
             'Currency'         => $order->currency,
             'InstallmentCount' => $order->installment,
-            'MOTO'             => '0',
+            'MOTO'             => self::MOTO,
             'Lang'             => $this->getLang($account, $order),
         ];
 
@@ -123,7 +130,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'orgOrderId'  => $order->id,
             'PurchAmount' => $order->amount,
             'Currency'    => $order->currency,
-            'MOTO'        => '0',
+            'MOTO'        => self::MOTO,
         ];
     }
 
@@ -176,7 +183,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'TxnType'     => $this->txTypeMappings[AbstractGateway::TX_REFUND],
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'Lang'        => $this->getLang($account, $order),
-            'MOTO'        => '0',
+            'MOTO'        => self::MOTO,
         ];
     }
 
