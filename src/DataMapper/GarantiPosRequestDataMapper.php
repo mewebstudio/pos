@@ -28,6 +28,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         AbstractGateway::MODEL_NON_SECURE => null,
     ];
 
+
     /**
      * @inheritdoc
      */
@@ -65,16 +66,13 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'ChannelCode' => '',
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
                 'IPAddress'    => $responseData['customeripaddress'],
                 'EmailAddress' => $responseData['customeremailaddress'],
             ],
-            'Card'        => $this->getCardData(),
             'Order'       => [
                 'OrderID'     => $responseData['orderid'],
-                'GroupID'     => '',
                 'AddressList' => $this->getOrderAddressData($order),
             ],
             'Transaction' => [
@@ -114,7 +112,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Card'        => $this->getCardData($card),
             'Order'       => [
                 'OrderID'     => $order->id,
-                'GroupID'     => '',
                 'AddressList' => $this->getOrderAddressData($order),
             ],
             'Transaction' => [
@@ -124,8 +121,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'CurrencyCode'          => $order->currency,
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => 'N',
-                'Description'           => '',
-                'OriginalRetrefNum'     => '', //todo try removing it
             ],
         ];
     }
@@ -171,22 +166,19 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'ChannelCode' => '',
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
-               'IPAddress'    => $order->ip,
-               'EmailAddress' => $order->email, //TODO we need this data?
+               'IPAddress'    => $order->ip ?? '',
+               'EmailAddress' => $order->email ?? '',
             ],
             'Order'       => [
                 'OrderID' => $order->id,
-                'GroupID' => '',
             ],
-            'Card'        => $this->getCardData(),
             'Transaction' => [
                 'Type'                  => $this->txTypeMappings[AbstractGateway::TX_STATUS],
                 'InstallmentCnt'        => $order->installment,
-                'Amount'                => $order->amount,   //TODO we need it?
-                'CurrencyCode'          => $order->currency, //TODO we need it?
+                'Amount'                => $order->amount,
+                'CurrencyCode'          => $order->currency,
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => 'N',
             ],
@@ -205,15 +197,13 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'ChannelCode' => '',
             'Terminal'    => $this->getTerminalData($account, $hash, true),
             'Customer'    => [
-                'IPAddress'    => $order->ip,
-                'EmailAddress' => $order->email,
+                'IPAddress'    => $order->ip ?? '',
+                'EmailAddress' => $order->email ?? '',
             ],
             'Order'       => [
                 'OrderID' => $order->id,
-                'GroupID' => '',
             ],
             'Transaction' => [
                 'Type'                  => $this->txTypeMappings[AbstractGateway::TX_CANCEL],
@@ -240,7 +230,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'ChannelCode' => '',
             'Terminal'    => $this->getTerminalData($account, $hash, true),
             'Customer'    => [
                 'IPAddress'    => $order->ip,
@@ -248,7 +237,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
             'Order'       => [
                 'OrderID' => $order->id,
-                'GroupID' => '',
             ],
             'Transaction' => [
                 'Type'                  => $txType,
@@ -275,18 +263,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'ChannelCode' => '',
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
-                //TODO we need this data?
-               'IPAddress'    => $order->ip,
-               'EmailAddress' => $order->email,
+               'IPAddress'    => $order->ip ?? '',
+               'EmailAddress' => $order->email ?? '',
             ],
             'Order'       => [
                 'OrderID' => $order->id,
-                'GroupID' => '',
             ],
-            'Card'        => $this->getCardData(),
             'Transaction' => [
                 'Type'                  => $txType,
                 'InstallmentCnt'        => $order->installment,

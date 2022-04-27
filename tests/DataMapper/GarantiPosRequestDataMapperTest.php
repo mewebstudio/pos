@@ -325,7 +325,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
         return [
             'Mode'        => 'TEST',
             'Version'     => 'v0.01',
-            'ChannelCode' => '',
             'Terminal'    => [
                 'ProvUserID' => $account->getUsername(),
                 'UserID'     => $account->getUsername(),
@@ -337,14 +336,8 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'IPAddress'    => $responseData['customeripaddress'],
                 'EmailAddress' => $responseData['customeremailaddress'],
             ],
-            'Card'        => [
-                'Number'     => '',
-                'ExpireDate' => '',
-                'CVV2'       => '',
-            ],
             'Order'       => [
                 'OrderID'     => $responseData['orderid'],
-                'GroupID'     => '',
                 'AddressList' => [
                     'Address' => [
                         'Type'        => 'B',
@@ -388,7 +381,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
         return [
             'Mode'        => 'TEST',
             'Version'     => 'v0.01',
-            'ChannelCode' => '',
             'Terminal'    => [
                 'ProvUserID' => $account->getRefundUsername(),
                 'UserID'     => $account->getRefundUsername(),
@@ -402,7 +394,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Order'       => [
                 'OrderID' => $order->id,
-                'GroupID' => '',
             ],
             'Transaction' => [
                 'Type'                  => 'void',
@@ -446,7 +437,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Order'       => [
                 'OrderID'     => $order->id,
-                'GroupID'     => '',
                 'AddressList' => [
                     'Address' => [
                         'Type'        => 'B',
@@ -469,8 +459,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'CurrencyCode'          => 949,
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => 'N',
-                'Description'           => '',
-                'OriginalRetrefNum'     => '',
             ],
         ];
     }
@@ -520,7 +508,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
         return [
             'Mode'        => 'TEST',
             'Version'     => 'v0.01',
-            'ChannelCode' => '',
             'Terminal'    => [
                 'ProvUserID' => $account->getUsername(),
                 'UserID'     => $account->getUsername(),
@@ -534,12 +521,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Order'       => [
                 'OrderID' => $order->id,
-                'GroupID' => '',
-            ],
-            'Card'        => [
-                'Number'     => '',
-                'ExpireDate' => '',
-                'CVV2'       => '',
             ],
             'Transaction' => [
                 'Type'                  => 'orderinq',
@@ -563,7 +544,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
         return [
             'Mode'        => 'TEST',
             'Version'     => 'v0.01',
-            'ChannelCode' => '',
             'Terminal'    => [
                 'ProvUserID' => $account->getRefundUsername(),
                 'UserID'     => $account->getRefundUsername(),
@@ -577,7 +557,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Order'       => [
                 'OrderID' => $order->id,
-                'GroupID' => '',
             ],
             'Transaction' => [
                 'Type'                  => 'refund',
@@ -602,7 +581,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
         return [
             'Mode'        => 'TEST',
             'Version'     => 'v0.01',
-            'ChannelCode' => '',
             'Terminal'    => [
                 'ProvUserID' => $account->getUsername(),
                 'UserID'     => $account->getUsername(),
@@ -616,12 +594,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Order'       => [
                 'OrderID' => $order->id,
-                'GroupID' => '',
-            ],
-            'Card'        => [
-                'Number'     => '',
-                'ExpireDate' => '',
-                'CVV2'       => '',
             ],
             'Transaction' => [
                 'Type'                  => 'orderhistoryinq',
