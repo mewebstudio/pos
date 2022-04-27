@@ -10,7 +10,6 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Gateways\AbstractGateway;
 
 /**
- * todo tekrarlanan odemeyi ekle
  * Creates request data for GarantiPos Gateway requests
  */
 class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
@@ -56,6 +55,12 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
 
     private const MOTO = 'N';
 
+    protected $recurringOrderFrequencyMapping = [
+        'DAY'   => 'D',
+        'WEEK'  => 'W',
+        'MONTH' => 'M',
+    ];
+
     /**
      * @param GarantiPosAccount $account
      *
@@ -65,7 +70,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $hash = $this->createHash($account, $order, $txType);
 
-        return [
+        $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash),
@@ -92,6 +97,12 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 ],
             ],
         ];
+
+        if (isset($order->recurringInstallmentCount)) {
+            $result['Recurring'] = $this->createRecurringData($order);
+        }
+
+        return $result;
     }
 
     /**
@@ -103,7 +114,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $hash = $this->createHash($account, $order, $txType, $card);
 
-        return [
+        $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash),
@@ -125,6 +136,12 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'MotoInd'               => self::MOTO,
             ],
         ];
+
+        if (isset($order->recurringInstallmentCount)) {
+            $result['Recurring'] = $this->createRecurringData($order);
+        }
+
+        return $result;
     }
 
     /**
@@ -484,6 +501,37 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'Country'     => '',
                 'PhoneNumber' => '',
             ],
+        ];
+    }
+
+    /**
+     * ornek:
+     * <Recurring>
+     *   <Type>G veya R</Type> R:Sabit Tutarli   G:Degisken Tutar
+     *   <TotalPaymentNum></TotalPaymentNum>
+     *   <FrequencyType>M , W , D </FrequencyType> Monthly, weekly, daily
+     *   <FrequencyInterval></FrequencyInterval>
+     *   <StartDate></StartDate>
+     *   <PaymentList>
+     *       <Payment>
+     *           <PaymentNum></PaymentNum>
+     *           <Amount></Amount>
+     *           <DueDate></DueDate> YYYYMMDD
+     *       </Payment>
+     *   </PaymentList>
+     * </Recurring>
+     * @param $order
+     *
+     * @return array
+     */
+    private function createRecurringData($order): array
+    {
+        return [
+            'TotalPaymentNum' => $order->recurringInstallmentCount, //kac kere tekrarlanacak
+            'FrequencyType' => $this->mapRecurringFrequency($order->recurringFrequencyType), //Monthly, weekly, daily
+            'FrequencyInterval' => $order->recurringFrequency,
+            'Type' => $order->recurringType ?? 'R', //R:Sabit Tutarli   G:Degisken Tuta
+            'StartDate' => $order->startDate ?? '',
         ];
     }
 }

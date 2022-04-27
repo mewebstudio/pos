@@ -52,7 +52,14 @@ function getNewOrder(
     ?int $installment = 0,
     bool $tekrarlanan = false
 ): array {
-    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, \Mews\Pos\Gateways\GarantiPos::LANG_TR);
+    $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, \Mews\Pos\Gateways\GarantiPos::LANG_TR);
+    if ($tekrarlanan) {
+        $order['recurringFrequencyType'] = 'MONTH';
+        $order['recurringFrequency'] = 2;
+        $order['recurringInstallmentCount'] = 3;
+    }
+
+    return $order;
 }
 
 function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
