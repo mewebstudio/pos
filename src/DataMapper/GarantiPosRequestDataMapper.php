@@ -54,6 +54,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         'RUB' => 643,
     ];
 
+    private const MOTO = 'N';
+
     /**
      * @param GarantiPosAccount $account
      *
@@ -81,7 +83,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'Amount'                => $responseData['txnamount'],
                 'CurrencyCode'          => $responseData['txncurrencycode'],
                 'CardholderPresentCode' => '13', //13 for 3D secure payment
-                'MotoInd'               => 'N',
+                'MotoInd'               => self::MOTO,
                 'Secure3D'              => [
                     'AuthenticationCode' => $responseData['cavv'],
                     'SecurityLevel'      => $responseData['eci'],
@@ -120,7 +122,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'Amount'                => $order->amount,
                 'CurrencyCode'          => $order->currency,
                 'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
+                'MotoInd'               => self::MOTO,
             ],
         ];
     }
@@ -180,7 +182,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'Amount'                => $order->amount,
                 'CurrencyCode'          => $order->currency,
                 'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
+                'MotoInd'               => self::MOTO,
             ],
         ];
     }
@@ -211,7 +213,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'Amount'                => $order->amount, //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $order->currency,
                 'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
+                'MotoInd'               => self::MOTO,
                 'OriginalRetrefNum'     => $order->ref_ret_num,
             ],
         ];
@@ -244,7 +246,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'Amount'                => $order->amount,
                 'CurrencyCode'          => $order->currency,
                 'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
+                'MotoInd'               => self::MOTO,
                 'OriginalRetrefNum'     => $order->ref_ret_num,
             ],
         ];
@@ -277,7 +279,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'Amount'                => $order->amount, //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $order->currency,
                 'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
+                'MotoInd'               => self::MOTO,
             ],
         ];
     }
