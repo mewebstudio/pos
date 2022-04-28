@@ -67,7 +67,6 @@ class GarantiPos extends AbstractGateway
         $this->types             = $this->requestDataMapper->getTxTypeMappings();
         $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
         $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
-        $this->requestDataMapper->setTestMode(true);
         parent::__construct($config, $account, $currencies);
     }
 
