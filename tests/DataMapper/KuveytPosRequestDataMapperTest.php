@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Tests\DataMapper;
 
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
@@ -74,6 +76,15 @@ class KuveytPosRequestDataMapperTest extends TestCase
         );
 
         $this->requestDataMapper = new KuveytPosRequestDataMapper();
+    }
+
+    /**
+     * @return void
+     */
+    public function testMapCurrency()
+    {
+        $this->assertEquals('0949', $this->requestDataMapper->mapCurrency('TRY'));
+        $this->assertEquals('0978', $this->requestDataMapper->mapCurrency('EUR'));
     }
 
     /**

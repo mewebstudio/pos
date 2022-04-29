@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Tests\DataMapper;
 
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
@@ -71,6 +73,15 @@ class InterPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper = new InterPosRequestDataMapper();
 
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+    }
+
+    /**
+     * @return void
+     */
+    public function testMapCurrency()
+    {
+        $this->assertEquals('949', $this->requestDataMapper->mapCurrency('TRY'));
+        $this->assertEquals('978', $this->requestDataMapper->mapCurrency('EUR'));
     }
 
     /**

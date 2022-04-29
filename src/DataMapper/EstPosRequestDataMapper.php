@@ -50,18 +50,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @inheritdoc
-     */
-    protected $currencyMappings = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
-    ];
-
-    /**
      * @inheritDoc
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
@@ -154,7 +142,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * todo
      * @inheritDoc
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
@@ -184,7 +171,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * todo
      * @inheritDoc
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
@@ -201,7 +187,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
 
 
     /**
-     * todo
      * @inheritDoc
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array

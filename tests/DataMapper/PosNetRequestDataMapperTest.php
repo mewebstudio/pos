@@ -74,6 +74,15 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
+    public function testMapCurrency()
+    {
+        $this->assertEquals('TL', $this->requestDataMapper->mapCurrency('TRY'));
+        $this->assertEquals('EU', $this->requestDataMapper->mapCurrency('EUR'));
+    }
+
+    /**
+     * @return void
+     */
     public function testAmountFormat()
     {
         $this->assertSame(100000, PosNetRequestDataMapper::amountFormat(1000));

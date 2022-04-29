@@ -41,18 +41,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         AbstractGateway::TX_STATUS   => 'orderinq',
     ];
 
-    /**
-     * @inheritdoc
-     */
-    protected $currencyMappings = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
-    ];
-
     private const MOTO = 'N';
 
     protected $recurringOrderFrequencyMapping = [

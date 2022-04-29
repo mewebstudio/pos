@@ -85,6 +85,15 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
+    public function testMapCurrency()
+    {
+        $this->assertEquals('949', $this->requestDataMapper->mapCurrency('TRY'));
+        $this->assertEquals('978', $this->requestDataMapper->mapCurrency('EUR'));
+    }
+
+    /**
+     * @return void
+     */
     public function testCreate3DPaymentRequestData()
     {
         $order = $this->order;

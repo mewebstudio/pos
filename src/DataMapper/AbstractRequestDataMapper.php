@@ -28,11 +28,20 @@ abstract class AbstractRequestDataMapper
     protected $cardTypeMapping = [];
 
     /**
+     * default olarak ISO 4217 kodlar tanimliyoruz.
+     * fakat bazi banklar ISO standarti kullanmiyorlar.
      * Currency mapping
      *
      * @var array
      */
-    protected $currencyMappings = [];
+    protected $currencyMappings = [
+        'TRY' => 949,
+        'USD' => 840,
+        'EUR' => 978,
+        'GBP' => 826,
+        'JPY' => 392,
+        'RUB' => 643,
+    ];
 
     /**
      * period mapping for recurring orders

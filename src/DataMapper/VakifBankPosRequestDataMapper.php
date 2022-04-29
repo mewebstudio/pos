@@ -39,20 +39,6 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         AbstractCreditCard::CARD_TYPE_AMEX       => '400',
     ];
 
-    /**
-     * Currency mapping
-     *
-     * @var array
-     */
-    protected $currencyMappings = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
-    ];
-
     protected $recurringOrderFrequencyMapping = [
         'DAY'   => 'Day',
         'MONTH' => 'Month',
