@@ -177,7 +177,7 @@ class KuveytPosTest extends TestCase
                 'gateway' => [
                     'test' => $testGateway,
                 ],
-            ], ], $this->threeDAccount, [], ])
+            ], ], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class), ])
             ->onlyMethods(['send'])
             ->getMock();
         $posMock->setTestMode(true);
@@ -225,7 +225,7 @@ class KuveytPosTest extends TestCase
         ]);
 
         $posMock = $this->getMockBuilder(KuveytPos::class)
-            ->setConstructorArgs([[], $this->threeDAccount, []])
+            ->setConstructorArgs([[], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class)])
             ->onlyMethods(['send', 'check3DHash'])
             ->getMock();
 
@@ -274,7 +274,7 @@ class KuveytPosTest extends TestCase
         ]);
 
         $posMock = $this->getMockBuilder(KuveytPos::class)
-            ->setConstructorArgs([[], $this->threeDAccount, []])
+            ->setConstructorArgs([[], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class)])
             ->onlyMethods(['send', 'check3DHash'])
             ->getMock();
 

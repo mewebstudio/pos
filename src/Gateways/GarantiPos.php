@@ -5,7 +5,9 @@
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -56,18 +58,13 @@ class GarantiPos extends AbstractGateway
 
     /**
      * GarantiPost constructor.
+     * @inheritdoc
      *
-     * @param array             $config
-     * @param GarantiPosAccount $account
-     * @param array             $currencies
+     * @param GarantiPosAccount         $account
      */
-    public function __construct($config, $account, array $currencies = [])
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
-        $this->requestDataMapper = new GarantiPosRequestDataMapper($currencies);
-        $this->types             = $this->requestDataMapper->getTxTypeMappings();
-        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
-        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
-        parent::__construct($config, $account, $currencies);
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**

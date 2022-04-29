@@ -1,9 +1,11 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
-use Mews\Pos\DataMapper\EstPosRequestDataMapper;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -57,19 +59,13 @@ class EstPos extends AbstractGateway
 
     /**
      * EstPos constructor.
+     * @inheritdoc
      *
-     * @param array         $config
-     * @param EstPosAccount $account
-     * @param array         $currencies
+     * @param EstPosAccount             $account
      */
-    public function __construct($config, $account, array $currencies = [])
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
-        $this->requestDataMapper = new EstPosRequestDataMapper($currencies);
-        $this->types             = $this->requestDataMapper->getTxTypeMappings();
-        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
-        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
-
-        parent::__construct($config, $account, $currencies);
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**

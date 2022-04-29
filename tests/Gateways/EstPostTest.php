@@ -104,7 +104,7 @@ class EstPostTest extends TestCase
         $request = Request::create('', 'POST', $this->get3DMakePaymentFailResponseData());
 
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
             ->onlyMethods(['send'])
             ->getMock();
 
@@ -141,7 +141,7 @@ class EstPostTest extends TestCase
         $request = Request::create('', 'POST', $this->get3DMakePaymentAuthSuccessResponseData());
 
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
             ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML', 'getProcReturnCode'])
             ->getMock();
 
@@ -182,7 +182,7 @@ class EstPostTest extends TestCase
         $request = Request::create('', 'POST', $this->get3DMakePaymentAuthSuccessResponseData());
 
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
             ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML', 'getProcReturnCode'])
             ->getMock();
 
@@ -285,7 +285,7 @@ class EstPostTest extends TestCase
     public function testStatusSuccess()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
             ->onlyMethods(['send', 'createStatusXML', 'getProcReturnCode'])
             ->getMock();
 
@@ -318,7 +318,7 @@ class EstPostTest extends TestCase
     public function testStatusFail()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
             ->onlyMethods(['send', 'createStatusXML', 'getProcReturnCode'])
             ->getMock();
 
@@ -351,7 +351,7 @@ class EstPostTest extends TestCase
     public function testHistorySuccess()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
             ->onlyMethods(['send', 'createHistoryXML', 'getProcReturnCode'])
             ->getMock();
 
@@ -382,7 +382,7 @@ class EstPostTest extends TestCase
     public function testHistoryFail()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
             ->onlyMethods(['send', 'createHistoryXML', 'getProcReturnCode'])
             ->getMock();
 
@@ -413,7 +413,7 @@ class EstPostTest extends TestCase
     public function testCancelSuccess()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
             ->onlyMethods(['send', 'createCancelXML', 'getProcReturnCode'])
             ->getMock();
 
@@ -447,7 +447,7 @@ class EstPostTest extends TestCase
     public function testCancelFail()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
             ->onlyMethods(['send', 'createCancelXML', 'getProcReturnCode'])
             ->getMock();
 
@@ -481,7 +481,7 @@ class EstPostTest extends TestCase
     public function testRefundFail()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
             ->onlyMethods(['send', 'createRefundXML', 'getProcReturnCode'])
             ->getMock();
 

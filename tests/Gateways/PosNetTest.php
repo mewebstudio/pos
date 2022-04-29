@@ -105,7 +105,7 @@ class PosNetTest extends TestCase
         $this->expectExceptionCode(3);
 
         $posMock = $this->getMockBuilder(PosNet::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(PosNet::class)])
             ->onlyMethods(['getOosTransactionData'])
             ->getMock();
         $posMock->setTestMode(true);

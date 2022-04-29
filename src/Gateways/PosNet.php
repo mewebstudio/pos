@@ -6,7 +6,9 @@ namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -71,19 +73,15 @@ class PosNet extends AbstractGateway
 
     /**
      * PosNet constructor.
+     * @inheritdoc
      *
-     * @param array         $config
      * @param PosNetAccount $account
-     * @param array         $currencies
      */
-    public function __construct($config, $account, array $currencies)
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
-        $this->crypt             = new PosNetCrypt();
-        $this->requestDataMapper = new PosNetRequestDataMapper($currencies);
-        $this->types             = $this->requestDataMapper->getTxTypeMappings();
-        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
-        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
-        parent::__construct($config, $account, $currencies);
+        $this->crypt = new PosNetCrypt();
+
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**

@@ -9,6 +9,7 @@ use DOMNodeList;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
@@ -48,18 +49,13 @@ class KuveytPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @param array            $config
-     * @param KuveytPosAccount $account
-     * @param array            $currencies
+     * @inheritdoc
+     *
+     * @param KuveytPosAccount          $account
      */
-    public function __construct($config, $account, array $currencies = [])
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
-        $this->requestDataMapper = new KuveytPosRequestDataMapper($currencies);
-        $this->types             = $this->requestDataMapper->getTxTypeMappings();
-        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
-        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
-
-        parent::__construct($config, $account, $currencies);
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**

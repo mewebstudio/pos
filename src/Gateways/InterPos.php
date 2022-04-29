@@ -5,6 +5,7 @@
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
@@ -47,18 +48,13 @@ class InterPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @param array           $config
-     * @param InterPosAccount $account
-     * @param array           $currencies
+     * @inheritdoc
+     *
+     * @param InterPosAccount           $account
      */
-    public function __construct($config, $account, array $currencies = [])
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
-        $this->requestDataMapper = new InterPosRequestDataMapper($currencies);
-        $this->types             = $this->requestDataMapper->getTxTypeMappings();
-        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
-        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
-
-        parent::__construct($config, $account, $currencies);
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**

@@ -7,7 +7,9 @@ namespace Mews\Pos\Gateways;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -52,15 +54,9 @@ class VakifBankPos extends AbstractGateway
      *
      * @param VakifBankAccount $account
      */
-    public function __construct($config, $account, array $currencies)
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
-        $this->requestDataMapper              = new VakifBankPosRequestDataMapper($currencies);
-        $this->types                          = $this->requestDataMapper->getTxTypeMappings();
-        $this->currencies                     = $this->requestDataMapper->getCurrencyMappings();
-        $this->cardTypeMapping                = $this->requestDataMapper->getCardTypeMapping();
-        $this->recurringOrderFrequencyMapping = $this->requestDataMapper->getRecurringOrderFrequencyMapping();
-
-        parent::__construct($config, $account, $currencies);
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**

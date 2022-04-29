@@ -251,7 +251,7 @@ class VakifBankPosTest extends TestCase
         $this->expectExceptionCode(2005);
 
         $posMock = $this->getMockBuilder(VakifBankPos::class)
-            ->setConstructorArgs([[], $this->account, []])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(VakifBankPos::class)])
             ->onlyMethods(['sendEnrollmentRequest'])
             ->getMock();
         $posMock->setTestMode(true);

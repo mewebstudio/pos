@@ -39,6 +39,7 @@ abstract class AbstractGateway implements PosInterface
 
     protected $cardTypeMapping = [];
 
+    /** @var array */
     private $config;
 
     /**
@@ -106,18 +107,20 @@ abstract class AbstractGateway implements PosInterface
     /**
      * AbstractGateway constructor.
      *
-     * @param                    $config
-     * @param AbstractPosAccount $account
-     * @param array|null         $currencies
+     * @param array                     $config
+     * @param AbstractPosAccount        $account
+     * @param AbstractRequestDataMapper $requestDataMapper
      */
-    public function __construct($config, $account, ?array $currencies)
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
+        $this->requestDataMapper              = $requestDataMapper;
+        $this->types                          = $requestDataMapper->getTxTypeMappings();
+        $this->currencies                     = $requestDataMapper->getCurrencyMappings();
+        $this->cardTypeMapping                = $requestDataMapper->getCardTypeMapping();
+        $this->recurringOrderFrequencyMapping = $requestDataMapper->getRecurringOrderFrequencyMapping();
+
         $this->config = $config;
         $this->account = $account;
-
-        if (count($currencies) > 0) {
-            $this->currencies = $currencies;
-        }
     }
 
     /**
