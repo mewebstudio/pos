@@ -3,6 +3,7 @@
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
+use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -22,15 +23,6 @@ class EstPos extends AbstractGateway
      * @const string
      */
     public const NAME = 'EstPos';
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'm/y';
-    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
-    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
-
-    protected $cardTypeMapping = [
-        AbstractCreditCard::CARD_TYPE_VISA       => '1',
-        AbstractCreditCard::CARD_TYPE_MASTERCARD => '2',
-    ];
-
 
     /**
      * Response Codes
@@ -54,42 +46,6 @@ class EstPos extends AbstractGateway
     ];
 
     /**
-     * Transaction Types
-     *
-     * @var array
-     */
-    protected $types = [
-        self::TX_PAY      => 'Auth',
-        self::TX_PRE_PAY  => 'PreAuth',
-        self::TX_POST_PAY => 'PostAuth',
-        self::TX_CANCEL   => 'Void',
-        self::TX_REFUND   => 'Credit',
-        self::TX_STATUS   => 'ORDERSTATUS',
-        self::TX_HISTORY  => 'ORDERHISTORY',
-    ];
-
-    protected $recurringOrderFrequencyMapping = [
-        'DAY'   => 'D',
-        'WEEK'  => 'W',
-        'MONTH' => 'M',
-        'YEAR'  => 'Y',
-    ];
-
-    /**
-     * Currency mapping
-     *
-     * @var array
-     */
-    protected $currencies = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
-    ];
-
-    /**
      * @var EstPosAccount
      */
     protected $account;
@@ -108,6 +64,11 @@ class EstPos extends AbstractGateway
      */
     public function __construct($config, $account, array $currencies = [])
     {
+        $this->requestDataMapper = new EstPosRequestDataMapper($currencies);
+        $this->types             = $this->requestDataMapper->getTxTypeMappings();
+        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
+        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
+
         parent::__construct($config, $account, $currencies);
     }
 
@@ -130,33 +91,7 @@ class EstPos extends AbstractGateway
      */
     public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
     {
-        $hashData = [];
-        if ($account->getModel() === self::MODEL_3D_SECURE) {
-            $hashData = [
-                $account->getClientId(),
-                $order->id,
-                $order->amount,
-                $order->success_url,
-                $order->fail_url,
-                $order->rand,
-                $account->getStoreKey(),
-            ];
-        } elseif ($account->getModel() === self::MODEL_3D_PAY || $account->getModel() === self::MODEL_3D_HOST) {
-            $hashData = [
-                $account->getClientId(),
-                $order->id,
-                $order->amount,
-                $order->success_url,
-                $order->fail_url,
-                $txType,
-                $order->installment,
-                $order->rand,
-                $account->getStoreKey(),
-            ];
-        }
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
-
-        return $this->hashString($hashStr);
+        return $this->requestDataMapper->create3DHash($account, $order, $txType);
     }
 
     /**
@@ -245,42 +180,7 @@ class EstPos extends AbstractGateway
             return [];
         }
 
-        $this->order->hash = $this->create3DHash($this->account, $this->order, $this->type);
-
-        $inputs = [
-            'clientid'  => $this->account->getClientId(),
-            'storetype' => $this->account->getModel(),
-            'hash'      => $this->order->hash,
-            'firmaadi'  => $this->order->name,
-            'Email'     => $this->order->email,
-            'amount'    => $this->order->amount,
-            'oid'       => $this->order->id,
-            'okUrl'     => $this->order->success_url,
-            'failUrl'   => $this->order->fail_url,
-            'rnd'       => $this->order->rand,
-            'lang'      => $this->getLang(),
-            'currency'  => $this->order->currency,
-        ];
-
-        if ($this->account->getModel() === self::MODEL_3D_PAY || $this->account->getModel() === self::MODEL_3D_HOST) {
-            $inputs = array_merge($inputs, [
-                'islemtipi' => $this->type,
-                'taksit'    => $this->order->installment,
-            ]);
-        }
-
-        if ($this->card) {
-            $inputs['cardType'] = $this->cardTypeMapping[$this->card->getType()];
-            $inputs['pan'] = $this->card->getNumber();
-            $inputs['Ecom_Payment_Card_ExpDate_Month'] = $this->card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['Ecom_Payment_Card_ExpDate_Year'] = $this->card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $inputs['cv2'] = $this->card->getCvv();
-        }
-
-        return [
-            'gateway' => $this->get3DGatewayURL(),
-            'inputs'  => $inputs,
-        ];
+        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card);
     }
 
     /**
@@ -326,29 +226,7 @@ class EstPos extends AbstractGateway
      */
     public function createRegularPaymentXML()
     {
-        $requestData = [
-            'Name'      => $this->account->getUsername(),
-            'Password'  => $this->account->getPassword(),
-            'ClientId'  => $this->account->getClientId(),
-            'Type'      => $this->type,
-            'IPAddress' => $this->order->ip,
-            'Email'     => $this->order->email,
-            'OrderId'   => $this->order->id,
-            'UserId'    => $this->order->user_id ?? null,
-            'Total'     => $this->order->amount,
-            'Currency'  => $this->order->currency,
-            'Taksit'    => $this->order->installment,
-            'CardType'  => $this->card->getType(),
-            'Number'    => $this->card->getNumber(),
-            'Expires'   => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-            'Cvv2Val'   => $this->card->getCvv(),
-            'Mode'      => 'P', //TODO what is this constant for?
-            'GroupId'   => '',
-            'TransId'   => '',
-            'BillTo'    => [
-                'Name' => $this->order->name ?: null,
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
 
         return $this->createXML($requestData);
     }
@@ -358,13 +236,7 @@ class EstPos extends AbstractGateway
      */
     public function createRegularPostXML()
     {
-        $requestData = [
-            'Name'     => $this->account->getUsername(),
-            'Password' => $this->account->getPassword(),
-            'ClientId' => $this->account->getClientId(),
-            'Type'     => $this->types[self::TX_POST_PAY],
-            'OrderId'  => $this->order->id,
-        ];
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -374,46 +246,7 @@ class EstPos extends AbstractGateway
      */
     public function create3DPaymentXML($responseData)
     {
-        $requestData = [
-            'Name'                    => $this->account->getUsername(),
-            'Password'                => $this->account->getPassword(),
-            'ClientId'                => $this->account->getClientId(),
-            'Type'                    => $this->type,
-            'IPAddress'               => $this->order->ip,
-            'Email'                   => $this->order->email,
-            'OrderId'                 => $this->order->id,
-            'UserId'                  => $this->order->user_id ?? null,
-            'Total'                   => $this->order->amount,
-            'Currency'                => $this->order->currency,
-            'Taksit'                  => $this->order->installment,
-            'Number'                  => $responseData['md'],
-            'Expires'                 => '',
-            'Cvv2Val'                 => '',
-            'PayerTxnId'              => $responseData['xid'],
-            'PayerSecurityLevel'      => $responseData['eci'],
-            'PayerAuthenticationCode' => $responseData['cavv'],
-            'CardholderPresentCode'   => '13',
-            'Mode'                    => 'P',
-            'GroupId'                 => '',
-            'TransId'                 => '',
-        ];
-
-        if ($this->order->name) {
-            $requestData['BillTo'] = [
-                'Name' => $this->order->name,
-            ];
-        }
-
-        if (isset($this->order->recurringFrequency)) {
-            $requestData['PbOrder'] = [
-                'OrderType'              => 0,
-                // Periyodik İşlem Frekansı
-                'OrderFrequencyInterval' => $this->order->recurringFrequency,
-                //D|M|Y
-                'OrderFrequencyCycle'    => $this->order->recurringFrequencyType,
-                'TotalNumberPayments'    => $this->order->recurringInstallmentCount,
-            ];
-        }
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
 
         return $this->createXML($requestData);
     }
@@ -423,15 +256,7 @@ class EstPos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        $requestData = [
-            'Name'     => $this->account->getUsername(),
-            'Password' => $this->account->getPassword(),
-            'ClientId' => $this->account->getClientId(),
-            'OrderId'  => $this->order->id,
-            'Extra'    => [
-                $this->types[self::TX_STATUS] => 'QUERY',
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -441,15 +266,7 @@ class EstPos extends AbstractGateway
      */
     public function createHistoryXML($customQueryData)
     {
-        $requestData = [
-            'Name'     => $this->account->getUsername(),
-            'Password' => $this->account->getPassword(),
-            'ClientId' => $this->account->getClientId(),
-            'OrderId'  => $customQueryData['order_id'],
-            'Extra'    => [
-                $this->types[self::TX_HISTORY] => 'QUERY',
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $this->order, $customQueryData);
 
         return $this->createXML($requestData);
     }
@@ -459,13 +276,7 @@ class EstPos extends AbstractGateway
      */
     public function createCancelXML()
     {
-        $requestData = [
-            'Name'     => $this->account->getUsername(),
-            'Password' => $this->account->getPassword(),
-            'ClientId' => $this->account->getClientId(),
-            'OrderId'  => $this->order->id,
-            'Type'     => $this->types[self::TX_CANCEL],
-        ];
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -475,18 +286,7 @@ class EstPos extends AbstractGateway
      */
     public function createRefundXML()
     {
-        $requestData = [
-            'Name'     => $this->account->getUsername(),
-            'Password' => $this->account->getPassword(),
-            'ClientId' => $this->account->getClientId(),
-            'OrderId'  => $this->order->id,
-            'Currency' => $this->order->currency,
-            'Type'     => $this->types[self::TX_REFUND],
-        ];
-
-        if (isset($this->order->amount)) {
-            $requestData['Total'] = $this->order->amount;
-        }
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }

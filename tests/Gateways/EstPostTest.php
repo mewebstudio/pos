@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\EstPosAccount;
@@ -11,32 +13,21 @@ use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\EstPos;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 /**
  * EstPostTest
  */
 class EstPostTest extends TestCase
 {
-    /**
-     * @var EstPosAccount
-     */
+    /** @var EstPosAccount */
     private $account;
-    /**
-     * @var EstPos
-     */
+    /** @var EstPos */
     private $pos;
     private $config;
 
-    /**
-     * @var AbstractCreditCard
-     */
+    /** @var AbstractCreditCard */
     private $card;
     private $order;
-    /**
-     * @var XmlEncoder
-     */
-    private $xmlDecoder;
 
     protected function setUp(): void
     {
@@ -72,8 +63,6 @@ class EstPostTest extends TestCase
         $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
-
-        $this->xmlDecoder = new XmlEncoder();
     }
 
     /**
@@ -98,106 +87,6 @@ class EstPostTest extends TestCase
     /**
      * @return void
      */
-    public function testMapRecurringFrequency()
-    {
-        $this->assertEquals('M', $this->pos->mapRecurringFrequency('MONTH'));
-        $this->assertEquals('M', $this->pos->mapRecurringFrequency('M'));
-    }
-
-    public function testGet3DFormWithCardData()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-
-        $form = [
-            'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
-            'inputs'  => [
-                'clientid'                        => $this->account->getClientId(),
-                'storetype'                       => $this->account->getModel(),
-                'hash'                            => $this->pos->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Auth'),
-                'cardType'                        => '1',
-                'pan'                             => $this->card->getNumber(),
-                'Ecom_Payment_Card_ExpDate_Month' => '12',
-                'Ecom_Payment_Card_ExpDate_Year'  => '21',
-                'cv2'                             => $this->card->getCvv(),
-                'firmaadi'                        => $this->order['name'],
-                'Email'                           => $this->order['email'],
-                'amount'                          => $this->order['amount'],
-                'oid'                             => $this->order['id'],
-                'okUrl'                           => $this->order['success_url'],
-                'failUrl'                         => $this->order['fail_url'],
-                'rnd'                             => $this->order['rand'],
-                'lang'                            => $this->order['lang'],
-                'currency'                        => 949,
-            ],
-        ];
-        $this->assertEquals($form, $this->pos->get3DFormData());
-    }
-
-    public function testGet3DFormWithoutCardData()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-
-        $form = [
-            'gateway' => $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'],
-            'inputs'  => [
-                'clientid'  => $this->account->getClientId(),
-                'storetype' => $this->account->getModel(),
-                'hash'      => $this->pos->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Auth'),
-                'firmaadi'  => $this->order['name'],
-                'Email'     => $this->order['email'],
-                'amount'    => $this->order['amount'],
-                'oid'       => $this->order['id'],
-                'okUrl'     => $this->order['success_url'],
-                'failUrl'   => $this->order['fail_url'],
-                'rnd'       => $this->order['rand'],
-                'lang'      => $this->order['lang'],
-                'currency'  => 949,
-            ],
-        ];
-        $this->assertEquals($form, $this->pos->get3DFormData());
-    }
-
-    public function testGet3DHostFormData()
-    {
-        $account = AccountFactory::createEstPosAccount(
-            'akbank',
-            'XXXXXXX',
-            'XXXXXXX',
-            'XXXXXXX',
-            AbstractGateway::MODEL_3D_HOST,
-            'VnM5WZ3sGrPusmWP',
-            EstPos::LANG_TR
-        );
-        $pos = PosFactory::createPosGateway($account);
-        $pos->setTestMode(true);
-
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-
-        $form = [
-            'gateway' => $this->config['banks'][$account->getBank()]['urls']['gateway']['test'],
-            'inputs'  => [
-                'clientid'  => $account->getClientId(),
-                'storetype' => $account->getModel(),
-                'hash'      => $pos->create3DHash($pos->getAccount(), $pos->getOrder(), 'Auth'),
-                'firmaadi'  => $this->order['name'],
-                'Email'     => $this->order['email'],
-                'amount'    => $this->order['amount'],
-                'oid'       => $this->order['id'],
-                'okUrl'     => $this->order['success_url'],
-                'failUrl'   => $this->order['fail_url'],
-                'rnd'       => $this->order['rand'],
-                'lang'      => $this->order['lang'],
-                'currency'  => 949,
-                'islemtipi'  => 'Auth',
-                'taksit'    => $this->order['installment'],
-            ],
-        ];
-        $this->assertEquals($form, $pos->get3DFormData());
-    }
-
-    /**
-     * @return void
-     */
     public function testCheck3DHash()
     {
         $data = $this->get3DMakePaymentFailResponseData();
@@ -205,233 +94,6 @@ class EstPostTest extends TestCase
 
         $data['mdStatus'] = '';
         $this->assertFalse($this->pos->check3DHash($data));
-    }
-
-    public function testCreateRegularPaymentXML()
-    {
-        $order = [
-            'id'          => '2020110828BC',
-            'email'       => 'samp@iexample.com',
-            'name'        => 'john doe',
-            'user_id'     => '1535',
-            'ip'          => '192.168.1.0',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'currency'    => 'TRY',
-        ];
-
-        /**
-         * @var EstPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->account);
-        $card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
-
-        $pos->prepare($order, AbstractGateway::TX_PAY, $card);
-
-        $actualXML = $pos->createRegularPaymentXML();
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSampleRegularPaymentXMLData($pos->getOrder(), $pos->getCard(), $pos->getAccount());
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    public function testCreateRegularPostXML()
-    {
-        $order = [
-            'id' => '2020110828BC',
-        ];
-
-        /**
-         * @var EstPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->account);
-        $pos->prepare($order, AbstractGateway::TX_POST_PAY);
-
-        $actualXML = $pos->createRegularPostXML();
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSampleRegularPostXMLData($pos->getOrder(), $pos->getAccount());
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    public function testCreate3DPaymentXML()
-    {
-
-        $order = [
-            'id'          => '2020110828BC',
-            'email'       => 'samp@iexample.com',
-            'name'        => 'john doe',
-            'user_id'     => '1535',
-            'ip'          => '192.168.1.0',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'currency'    => 'TRY',
-            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-        ];
-        $responseData = [
-            'md'   => '1',
-            'xid'  => '100000005xid',
-            'eci'  => '100000005eci',
-            'cavv' => 'cavv',
-        ];
-
-        /**
-         * @var EstPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->account);
-        $pos->prepare($order, AbstractGateway::TX_PAY);
-
-        $actualXML = $pos->create3DPaymentXML($responseData);
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSample3DPaymentXMLData($pos->getOrder(), $pos->getAccount(), $responseData);
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    public function testCreate3DPaymentXMLForRecurringOrder()
-    {
-
-        $order = [
-            'id'                        => '2020110828BC',
-            'email'                     => 'samp@iexample.com',
-            'name'                      => 'john doe',
-            'user_id'                   => '1535',
-            'ip'                        => '192.168.1.0',
-            'amount'                    => 100.01,
-            'installment'               => '0',
-            'currency'                  => 'TRY',
-            'success_url'               => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'                  => 'http://localhost/finansbank-payfor/3d/response.php',
-            'recurringFrequency'        => 3,
-            'recurringFrequencyType'    => 'MONTH',
-            'recurringInstallmentCount' => 4,
-        ];
-
-        $responseData = [
-            'md'   => '1',
-            'xid'  => '100000005xid',
-            'eci'  => '100000005eci',
-            'cavv' => 'cavv',
-        ];
-
-        /**
-         * @var EstPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->account);
-        $pos->prepare($order, AbstractGateway::TX_PAY);
-
-        $actualXML = $pos->create3DPaymentXML($responseData);
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSample3DPaymentXMLData($pos->getOrder(), $pos->getAccount(), $responseData);
-        $this->assertEquals($expectedData, $actualData);
-        $this->assertEquals($expectedData['PbOrder'], $actualData['PbOrder']);
-    }
-
-    public function testCreateStatusXML()
-    {
-        $order = [
-            'id' => '2020110828BC',
-        ];
-
-        /**
-         * @var EstPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->account);
-        $pos->prepare($order, AbstractGateway::TX_STATUS);
-
-        $actualXML = $pos->createStatusXML();
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSampleStatusXMLData($pos->getOrder(), $pos->getAccount());
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-
-    public function testCreateCancelXML()
-    {
-        $order = [
-            'id' => '2020110828BC',
-        ];
-
-        /**
-         * @var EstPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->account);
-        $pos->prepare($order, AbstractGateway::TX_CANCEL);
-
-        $actualXML = $pos->createCancelXML();
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSampleCancelXMLData($pos->getOrder(), $pos->getAccount());
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    public function testCreateRefundXML()
-    {
-        $order = [
-            'id'     => '2020110828BC',
-            'amount' => 50,
-            'currency' => 'TRY',
-        ];
-
-        /**
-         * @var EstPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->account);
-        $pos->prepare($order, AbstractGateway::TX_REFUND);
-
-        $actualXML = $pos->createRefundXML();
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSampleRefundXMLData($pos->getOrder(), $pos->getAccount());
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DHashFor3DSecure()
-    {
-        $this->order['rand'] = 'rand';
-
-        $account = AccountFactory::createEstPosAccount(
-            'akbank',
-            'XXXXXXX',
-            'XXXXXXX',
-            'XXXXXXX',
-            AbstractGateway::MODEL_3D_SECURE,
-            'VnM5WZ3sGrPusmWP'
-        );
-        $pos     = PosFactory::createPosGateway($account);
-
-        $expected = '3Wb9YCz1uz3OCFHEI0u2Djga294=';
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $pos->create3DHash($account, $pos->getOrder(), 'Auth');
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DHashForNon3DSecure()
-    {
-        $this->order['rand'] = 'rand';
-
-        $account  = AccountFactory::createEstPosAccount(
-            'akbank',
-            'XXXXXXX',
-            'XXXXXXX',
-            'XXXXXXX',
-            AbstractGateway::MODEL_3D_PAY,
-            'VnM5WZ3sGrPusmWP'
-        );
-        $pos      = PosFactory::createPosGateway($account);
-        $expected = 'zW2HEQR/H0mpo1jrztIgmIPFFEU=';
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $pos->create3DHash($account, $pos->getOrder(), 'Auth');
-        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -1307,167 +969,5 @@ class EstPostTest extends TestCase
             'HASHPARAMS' => 'clientid:oid:mdStatus:cavv:eci:md:rnd:',
             'HASHPARAMSVAL' => '700655000200202204175A830435508:524D8E0D689F6F5E1DD0C737ED160B6073038B4FBBC73E6D7C69341793A2DC0E:3379:##700655000200g+XYZKbjrxFj5EgZNZFj',
         ];
-    }
-
-
-    /**
-     * @param                    $order
-     * @param AbstractCreditCard $card
-     * @param EstPosAccount      $account
-     *
-     * @return array
-     */
-    private function getSampleRegularPaymentXMLData($order, AbstractCreditCard $card, EstPosAccount $account)
-    {
-        return [
-            'Name'      => $account->getUsername(),
-            'Password'  => $account->getPassword(),
-            'ClientId'  => $account->getClientId(),
-            'Type'      => 'Auth',
-            'IPAddress' => $order->ip,
-            'Email'     => $order->email,
-            'OrderId'   => $order->id,
-            'UserId'    => isset($order->user_id) ? $order->user_id : null,
-            'Total'     => $order->amount,
-            'Currency'  => $order->currency,
-            'Taksit'    => $order->installment,
-            'CardType'  => AbstractCreditCard::CARD_TYPE_VISA,
-            'Number'    => $card->getNumber(),
-            'Expires'   => '01/22',
-            'Cvv2Val'   => $card->getCvv(),
-            'Mode'      => 'P',
-            'GroupId'   => '',
-            'TransId'   => '',
-            'BillTo'    => [
-                'Name' => $order->name ?: null,
-            ],
-        ];
-    }
-
-    /**
-     * @param               $order
-     * @param EstPosAccount $account
-     *
-     * @return array
-     */
-    private function getSampleRegularPostXMLData($order, EstPosAccount $account)
-    {
-        return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
-            'Type'     => 'PostAuth',
-            'OrderId'  => $order->id,
-        ];
-    }
-
-    /**
-     * @param               $order
-     * @param EstPosAccount $account
-     * @param array         $responseData
-     *
-     * @return array
-     */
-    private function getSample3DPaymentXMLData($order, EstPosAccount $account, array $responseData)
-    {
-        $requestData = [
-            'Name'                    => $account->getUsername(),
-            'Password'                => $account->getPassword(),
-            'ClientId'                => $account->getClientId(),
-            'Type'                    => 'Auth',
-            'IPAddress'               => $order->ip,
-            'Email'                   => $order->email,
-            'OrderId'                 => $order->id,
-            'UserId'                  => isset($order->user_id) ? $order->user_id : null,
-            'Total'                   => $order->amount,
-            'Currency'                => $order->currency,
-            'Taksit'                  => $order->installment,
-            'Number'                  => $responseData['md'],
-            'Expires'                 => '',
-            'Cvv2Val'                 => '',
-            'PayerTxnId'              => $responseData['xid'],
-            'PayerSecurityLevel'      => $responseData['eci'],
-            'PayerAuthenticationCode' => $responseData['cavv'],
-            'CardholderPresentCode'   => '13',
-            'Mode'                    => 'P',
-            'GroupId'                 => '',
-            'TransId'                 => '',
-        ];
-        if (isset($order->name)) {
-            $requestData['BillTo'] = [
-                'Name' => $order->name,
-            ];
-        }
-
-        if (isset($order->recurringFrequency)) {
-            $requestData['PbOrder'] = [
-                'OrderType'              => 0,
-                'OrderFrequencyInterval' => $order->recurringFrequency,
-                'OrderFrequencyCycle'    => $order->recurringFrequencyType,
-                'TotalNumberPayments'    => $order->recurringInstallmentCount,
-            ];
-        }
-
-        return $requestData;
-    }
-
-    /**
-     * @param               $order
-     * @param EstPosAccount $account
-     *
-     * @return array
-     */
-    private function getSampleStatusXMLData($order, EstPosAccount $account)
-    {
-        return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
-            'OrderId'  => $order->id,
-            'Extra'    => [
-                'ORDERSTATUS' => 'QUERY',
-            ],
-        ];
-    }
-
-    /**
-     * @param               $order
-     * @param EstPosAccount $account
-     *
-     * @return array
-     */
-    private function getSampleCancelXMLData($order, EstPosAccount $account)
-    {
-        return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
-            'OrderId'  => $order->id,
-            'Type'     => 'Void',
-        ];
-    }
-
-    /**
-     * @param               $order
-     * @param EstPosAccount $account
-     *
-     * @return array
-     */
-    private function getSampleRefundXMLData($order, EstPosAccount $account)
-    {
-        $data = [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
-            'OrderId'  => $order->id,
-            'Currency' => 949,
-            'Type'     => 'Credit',
-        ];
-
-        if ($order->amount) {
-            $data['Total'] = $order->amount;
-        }
-
-        return $data;
     }
 }
