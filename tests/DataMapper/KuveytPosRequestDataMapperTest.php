@@ -108,7 +108,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'InstallmentCount'    => $order->installment,
             'Amount'              => KuveytPosRequestDataMapper::amountFormat($order->amount),
             'DisplayAmount'       => KuveytPosRequestDataMapper::amountFormat($order->amount),
-            'CurrencyCode'        => $order->currency,
+            'CurrencyCode'        => '0949',
             'MerchantOrderId'     => $order->id,
             'OkUrl'               => $order->success_url,
             'FailUrl'             => $order->fail_url,

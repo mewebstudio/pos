@@ -74,7 +74,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'          => $txType,
             'PurchAmount'      => $order->amount,
-            'Currency'         => $order->currency,
+            'Currency'         => $this->mapCurrency($order->currency),
             'InstallmentCount' => $order->installment,
             'Lang'             => $this->getLang($account, $order),
             'CardHolderName'   => $card->getHolderName(),
@@ -98,7 +98,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'     => $this->txTypeMappings[AbstractGateway::TX_POST_PAY],
             'PurchAmount' => $order->amount,
-            'Currency'    => $order->currency,
+            'Currency'    => $this->mapCurrency($order->currency),
             'Lang'        => $this->getLang($account, $order),
         ];
     }
@@ -133,7 +133,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'OrgOrderId' => $order->id,
             'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'    => $this->txTypeMappings[AbstractGateway::TX_CANCEL],
-            'Currency'   => $order->currency,
+            'Currency'   => $this->mapCurrency($order->currency),
             'Lang'       => $this->getLang($account, $order),
         ];
     }
@@ -153,7 +153,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'OrgOrderId'  => $order->id,
             'TxnType'     => $this->txTypeMappings[AbstractGateway::TX_REFUND],
             'PurchAmount' => $order->amount,
-            'Currency'    => $order->currency,
+            'Currency'    => $this->mapCurrency($order->currency),
         ];
     }
 
@@ -200,7 +200,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'TxnType'          => $txType,
             'PurchAmount'      => $order->amount,
             'InstallmentCount' => $order->installment,
-            'Currency'         => $order->currency,
+            'Currency'         => $this->mapCurrency($order->currency),
             'OkUrl'            => $order->success_url,
             'FailUrl'          => $order->fail_url,
             'Rnd'              => $order->rand,

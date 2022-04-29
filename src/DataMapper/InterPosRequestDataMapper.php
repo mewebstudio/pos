@@ -61,7 +61,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'SecureType'              => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'OrderId'                 => $order->id,
             'PurchAmount'             => $order->amount,
-            'Currency'                => $order->currency,
+            'Currency'                => $this->mapCurrency($order->currency),
             'InstallmentCount'        => $order->installment,
             'MD'                      => $responseData['MD'],
             'PayerTxnId'              => $responseData['PayerTxnId'],
@@ -85,7 +85,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'OrderId'          => $order->id,
             'PurchAmount'      => $order->amount,
-            'Currency'         => $order->currency,
+            'Currency'         => $this->mapCurrency($order->currency),
             'InstallmentCount' => $order->installment,
             'MOTO'             => self::MOTO,
             'Lang'             => $this->getLang($account, $order),
@@ -115,7 +115,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'OrderId'     => null,
             'orgOrderId'  => $order->id,
             'PurchAmount' => $order->amount,
-            'Currency'    => $order->currency,
+            'Currency'    => $this->mapCurrency($order->currency),
             'MOTO'        => self::MOTO,
         ];
     }
@@ -200,7 +200,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'FailUrl'          => $order->fail_url,
             'Rnd'              => $order->rand,
             'Lang'             => $this->getLang($account, $order),
-            'Currency'         => $order->currency,
+            'Currency'         => $this->mapCurrency($order->currency),
             'InstallmentCount' => $order->installment,
         ];
 

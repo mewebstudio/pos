@@ -63,7 +63,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'TransactionType'         => $txType,
             'TransactionId'           => $order->id,
             'CurrencyAmount'          => self::amountFormat($order->amount),
-            'CurrencyCode'            => $order->currency,
+            'CurrencyCode'            => $this->mapCurrency($order->currency),
             'CardHoldersName'         => $card->getHolderName(),
             'Cvv'                     => $card->getCvv(),
             'Pan'                     => $card->getNumber(),
@@ -99,7 +99,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantType'              => $account->getMerchantType(),
             'PurchaseAmount'            => self::amountFormat($order->amount),
             'VerifyEnrollmentRequestId' => $order->rand,
-            'Currency'                  => $order->currency,
+            'Currency'                  => $this->mapCurrency($order->currency),
             'SuccessUrl'                => $order->success_url,
             'FailureUrl'                => $order->fail_url,
             'Pan'                       => $card->getNumber(),
@@ -150,7 +150,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'TransactionType'         => $txType,
             'OrderId'                 => $order->id,
             'CurrencyAmount'          => self::amountFormat($order->amount),
-            'CurrencyCode'            => $order->currency,
+            'CurrencyCode'            => $this->mapCurrency($order->currency),
             'ClientIp'                => $order->ip,
             'TransactionDeviceSource' => 0,
         ];
@@ -180,7 +180,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'TransactionType'        => $this->txTypeMappings[AbstractGateway::TX_POST_PAY],
             'ReferenceTransactionId' => $order->id,
             'CurrencyAmount'         => self::amountFormat($order->amount),
-            'CurrencyCode'           => $order->currency,
+            'CurrencyCode'           => $this->mapCurrency($order->currency),
             'ClientIp'               => $order->ip,
         ];
     }

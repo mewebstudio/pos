@@ -461,7 +461,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'capt'             => [
                 'hostLogKey'   => $order->host_ref_num,
                 'amount'       => $order->amount,
-                'currencyCode' => $order->currency,
+                'currencyCode' => 'TL',
                 'installment'  => $order->installment,
             ],
         ];

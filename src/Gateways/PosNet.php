@@ -231,7 +231,7 @@ class PosNet extends AbstractGateway
                 $data->mdStatus,
                 $this->requestDataMapper::formatOrderId($order->id),
                 $order->amount,
-                $order->currency,
+                $this->requestDataMapper->mapCurrency($order->currency),
                 $account->getClientId(),
                 $this->requestDataMapper->createSecurityData($account),
             ];
@@ -641,7 +641,7 @@ class PosNet extends AbstractGateway
                 $authCode = $rawResponseData->transactions->transaction[0]->authCode;
 
                 if (count($rawResponseData->transactions->transaction) > 1) {
-                    $currencies = array_flip($this->currencies);
+                    $currencies = array_flip($this->requestDataMapper->getCurrencyMappings());
 
                     foreach ($rawResponseData->transactions->transaction as $key => $_transaction) {
                         if ($key > 0) {
@@ -718,7 +718,7 @@ class PosNet extends AbstractGateway
             'id'          => $this->requestDataMapper::formatOrderId($order['id']),
             'installment' => $this->requestDataMapper::formatInstallment($installment),
             'amount'      => $this->requestDataMapper::amountFormat($order['amount']),
-            'currency'    =>  $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency'    => $order['currency'],
         ]);
     }
 
@@ -737,7 +737,7 @@ class PosNet extends AbstractGateway
             'id'           => $this->requestDataMapper::formatOrderId($order['id']),
             'amount'       => $this->requestDataMapper::amountFormat($order['amount']),
             'installment'  => $this->requestDataMapper::formatInstallment($installment),
-            'currency'     => $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency'     => $order['currency'],
             'host_ref_num' => $order['host_ref_num'],
         ];
     }
@@ -784,7 +784,7 @@ class PosNet extends AbstractGateway
             'id'           => isset($order['id']) ? $this->requestDataMapper::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()) : null,
             'host_ref_num' => $order['host_ref_num'] ?? null,
             'amount'       => $this->requestDataMapper::amountFormat($order['amount']),
-            'currency'     => $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency'     => $order['currency'],
         ];
     }
 }

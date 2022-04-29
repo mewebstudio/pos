@@ -410,7 +410,7 @@ class VakifBankPos extends AbstractGateway
         // Order
         return (object) array_merge($order, [
             'installment' => $installment,
-            'currency'    => $this->requestDataMapper->mapCurrency($currency),
+            'currency'    => $currency,
             'amount'      => $order['amount'],
         ]);
     }
@@ -423,7 +423,7 @@ class VakifBankPos extends AbstractGateway
         return (object) [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'currency' => $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency' => $order['currency'],
             'ip'       => $order['ip'],
         ];
     }

@@ -339,7 +339,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'SecureType'              => 'NonSecure',
             'OrderId'                 => $order->id,
             'PurchAmount'             => $order->amount,
-            'Currency'                => $order->currency,
+            'Currency'                => '949',
             'InstallmentCount'        => $order->installment,
             'MD'                      => $responseData['MD'],
             'PayerTxnId'              => $responseData['PayerTxnId'],
@@ -387,7 +387,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'SecureType'       => 'NonSecure',
             'OrderId'          => $order->id,
             'PurchAmount'      => $order->amount,
-            'Currency'         => $order->currency,
+            'Currency'         => '949',
             'InstallmentCount' => $order->installment,
             'MOTO'             => '0',
             'Lang'             => $order->lang,
@@ -418,7 +418,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'OrderId'     => null,
             'orgOrderId'  => $order->id,
             'PurchAmount' => $order->amount,
-            'Currency'    => $order->currency,
+            'Currency'    => '949',
             'MOTO'        => '0',
         ];
     }

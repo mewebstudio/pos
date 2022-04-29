@@ -93,7 +93,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'orderID'      => self::formatOrderId($order->id),
                 'installment'  => $order->installment,
                 'amount'       => $order->amount,
-                'currencyCode' => $order->currency,
+                'currencyCode' => $this->mapCurrency($order->currency),
                 'ccno'         => $card->getNumber(),
                 'expDate'      => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'cvc'          => $card->getCvv(),
@@ -121,7 +121,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             strtolower($this->txTypeMappings[AbstractGateway::TX_POST_PAY]) => [
                 'hostLogKey'   => $order->host_ref_num,
                 'amount'       => $order->amount,
-                'currencyCode' => $order->currency,
+                'currencyCode' => $this->mapCurrency($order->currency),
                 'installment'  => $order->installment,
             ],
         ];
@@ -187,7 +187,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'tranDateRequired'                                => '1',
             $this->txTypeMappings[AbstractGateway::TX_REFUND] => [
                 'amount'       => $order->amount,
-                'currencyCode' => $order->currency,
+                'currencyCode' => $this->mapCurrency($order->currency),
             ],
         ];
 
@@ -263,7 +263,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'expDate'        => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'cvc'            => $card->getCvv(),
                 'amount'         => $order->amount,
-                'currencyCode'   => $order->currency,
+                'currencyCode'   => $this->mapCurrency($order->currency),
                 'installment'    => $order->installment,
                 'XID'            => self::formatOrderId($order->id),
                 'cardHolderName' => $card->getHolderName(),
@@ -305,7 +305,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             $secondHashData = [
                 self::formatOrderId($order->id),
                 $order->amount,
-                $order->currency,
+                $this->mapCurrency($order->currency),
                 $account->getClientId(),
                 $this->createSecurityData($account),
             ];

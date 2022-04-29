@@ -339,7 +339,7 @@ class EstPos extends AbstractGateway
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
             'amount'               => $raw3DAuthResponseData['amount'],
-            'currency'             => array_search($raw3DAuthResponseData['currency'], $this->currencies),
+            'currency'             => array_search($raw3DAuthResponseData['currency'], $this->requestDataMapper->getCurrencyMappings()),
             'eci'                  => $raw3DAuthResponseData['eci'],
             'tx_status'            => null,
             'cavv'                 => $raw3DAuthResponseData['cavv'],
@@ -456,7 +456,7 @@ class EstPos extends AbstractGateway
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
             'amount'               => $raw3DAuthResponseData['amount'],
-            'currency'             => array_search($raw3DAuthResponseData['currency'], $this->currencies),
+            'currency'             => array_search($raw3DAuthResponseData['currency'], $this->requestDataMapper->getCurrencyMappings()),
             'tx_status'            => null,
             'eci'                  => $raw3DAuthResponseData['eci'],
             'cavv'                 => $raw3DAuthResponseData['cavv'],
@@ -653,7 +653,7 @@ class EstPos extends AbstractGateway
         // Order
         return (object) array_merge($order, [
             'installment' => $installment,
-            'currency'    => $this->mapCurrency($order['currency']),
+            'currency'    => $order['currency'],
         ]);
     }
 
@@ -698,7 +698,7 @@ class EstPos extends AbstractGateway
     {
         return (object) [
             'id'       => $order['id'],
-            'currency' => $this->mapCurrency($order['currency']),
+            'currency' => $order['currency'],
             'amount'   => $order['amount'],
         ];
     }

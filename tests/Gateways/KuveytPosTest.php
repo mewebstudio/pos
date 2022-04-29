@@ -120,7 +120,6 @@ class KuveytPosTest extends TestCase
     public function testPrepare()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $this->assertSame('0949', $this->pos->getOrder()->currency);
         $this->assertEquals($this->card, $this->pos->getCard());
     }
 

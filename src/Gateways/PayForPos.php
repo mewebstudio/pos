@@ -393,7 +393,7 @@ class PayForPos extends AbstractGateway
             'rand'                 => $raw3DAuthResponseData['ResponseRnd'],
             'masked_number'        => $raw3DAuthResponseData['CardMask'],
             'amount'               => $raw3DAuthResponseData['PurchAmount'],
-            'currency'             => array_search($raw3DAuthResponseData['Currency'], $this->currencies),
+            'currency'             => array_search($raw3DAuthResponseData['Currency'], $this->requestDataMapper->getCurrencyMappings()),
             'tx_status'            => $raw3DAuthResponseData['TxnResult'],
             'xid'                  => $raw3DAuthResponseData['PayerTxnId'],
             'md_code'              => $raw3DAuthResponseData['ProcReturnCode'],
@@ -497,7 +497,7 @@ class PayForPos extends AbstractGateway
             'process_type'     => isset($rawResponseData->TxnType) ? array_search($rawResponseData->TxnType, $this->types, true) : null,
             'masked_number'    => $rawResponseData->CardMask ?? null,
             'amount'           => $rawResponseData->PurchAmount ?? null,
-            'currency'         => isset($rawResponseData->Currency) ? array_search($rawResponseData->Currency, $this->currencies) : null,
+            'currency'         => isset($rawResponseData->Currency) ? array_search($rawResponseData->Currency, $this->requestDataMapper->getCurrencyMappings()) : null,
             'status'           => $status,
             'status_detail'    => $this->codes[$rawResponseData->ProcReturnCode] ?? null,
             'all'              => $rawResponseData,
@@ -528,7 +528,7 @@ class PayForPos extends AbstractGateway
         // Order
         return (object) array_merge($order, [
             'installment' => $installment,
-            'currency'    => $this->requestDataMapper->mapCurrency($currency),
+            'currency'    => $currency,
         ]);
     }
 
@@ -540,7 +540,7 @@ class PayForPos extends AbstractGateway
         return (object) [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'currency' => $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency' => $order['currency'],
         ];
     }
 
@@ -569,8 +569,6 @@ class PayForPos extends AbstractGateway
      */
     protected function prepareCancelOrder(array $order)
     {
-        $order['currency'] = $this->requestDataMapper->mapCurrency($order['currency']);
-
         return (object) $order;
     }
 
@@ -579,8 +577,6 @@ class PayForPos extends AbstractGateway
      */
     protected function prepareRefundOrder(array $order)
     {
-        $order['currency'] = $this->requestDataMapper->mapCurrency($order['currency']);
-
         return (object) $order;
     }
 }

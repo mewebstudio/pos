@@ -64,7 +64,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'OrderId'                 => $order->id,
             'UserId'                  => $order->user_id ?? null,
             'Total'                   => $order->amount,
-            'Currency'                => $order->currency,
+            'Currency'                => $this->mapCurrency($order->currency),
             'Taksit'                  => $order->installment,
             'Number'                  => $responseData['md'],
             'PayerTxnId'              => $responseData['xid'],
@@ -105,7 +105,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'OrderId'   => $order->id,
             'UserId'    => $order->user_id ?? null,
             'Total'     => $order->amount,
-            'Currency'  => $order->currency,
+            'Currency'  => $this->mapCurrency($order->currency),
             'Taksit'    => $order->installment,
             'Number'    => $card->getNumber(),
             'Expires'   => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
@@ -159,7 +159,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $requestData = [
             'OrderId'  => $order->id,
-            'Currency' => $order->currency,
+            'Currency' => $this->mapCurrency($order->currency),
             'Type'     => $this->txTypeMappings[AbstractGateway::TX_REFUND],
         ];
 
@@ -205,7 +205,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'failUrl'   => $order->fail_url,
             'rnd'       => $order->rand,
             'lang'      => $this->getLang($account, $order),
-            'currency'  => $order->currency,
+            'currency'  => $this->mapCurrency($order->currency),
         ];
 
         if ($account->getModel() === AbstractGateway::MODEL_3D_PAY || $account->getModel() === AbstractGateway::MODEL_3D_HOST) {

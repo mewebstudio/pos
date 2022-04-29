@@ -74,13 +74,6 @@ abstract class AbstractGateway implements PosInterface
     protected $recurringOrderFrequencyMapping = [];
 
     /**
-     * Currency mapping
-     *
-     * @var array
-     */
-    protected $currencies;
-
-    /**
      * @var object
      */
     protected $order;
@@ -115,7 +108,6 @@ abstract class AbstractGateway implements PosInterface
     {
         $this->requestDataMapper              = $requestDataMapper;
         $this->types                          = $requestDataMapper->getTxTypeMappings();
-        $this->currencies                     = $requestDataMapper->getCurrencyMappings();
         $this->cardTypeMapping                = $requestDataMapper->getCardTypeMapping();
         $this->recurringOrderFrequencyMapping = $requestDataMapper->getRecurringOrderFrequencyMapping();
 
@@ -168,7 +160,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getCurrencies(): array
     {
-        return $this->currencies;
+        return $this->requestDataMapper->getCurrencyMappings();
     }
 
     /**
@@ -437,16 +429,6 @@ abstract class AbstractGateway implements PosInterface
         }
 
         return $this;
-    }
-
-    /**
-     * @param string $currency TRY, USD
-     *
-     * @return string
-     */
-    public function mapCurrency(string $currency): string
-    {
-        return $this->currencies[$currency] ?? $currency;
     }
 
     /**

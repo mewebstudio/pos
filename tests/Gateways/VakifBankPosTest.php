@@ -90,11 +90,9 @@ class VakifBankPosTest extends TestCase
     public function testPrepare()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $this->assertSame('949', $this->pos->getOrder()->currency);
         $this->assertEquals($this->card, $this->pos->getCard());
 
         $this->pos->prepare($this->order, AbstractGateway::TX_POST_PAY);
-        $this->assertSame('949', $this->pos->getOrder()->currency);
     }
 
     /**
@@ -114,7 +112,7 @@ class VakifBankPosTest extends TestCase
             'SubMerchantName'           => null,
             'SubMerchantNumber'         => null,
             'PurchAmount'               => $preparedOrder['amount'] * 100,
-            'PurchCurrency'             => $preparedOrder['currency'],
+            'PurchCurrency'             => '949',
             'VerifyEnrollmentRequestId' => $preparedOrder['id'],
             'SessionInfo'               => $preparedOrder['extraData'],
             'InstallmentCount'          => null,
@@ -143,7 +141,7 @@ class VakifBankPosTest extends TestCase
             'HostDate'                => '20220404123456',
             'Rrn'                     => '209411062014',
             'CurrencyAmount'          => $preparedOrder['amount'],
-            'CurrencyCode'            => $preparedOrder['currency'],
+            'CurrencyCode'            => '949',
             'OrderId'                 => $preparedOrder['id'],
             'TLAmount'                => $preparedOrder['amount'],
             'ECI'                     => '02',
@@ -196,7 +194,7 @@ class VakifBankPosTest extends TestCase
             'SubMerchantName'           => null,
             'SubMerchantNumber'         => null,
             'PurchAmount'               => $preparedOrder['amount'] * 100,
-            'PurchCurrency'             => $preparedOrder['currency'],
+            'PurchCurrency'             => '949',
             'VerifyEnrollmentRequestId' => $preparedOrder['id'],
             'SessionInfo'               => $preparedOrder['extraData'],
             'InstallmentCount'          => null,

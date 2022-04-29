@@ -534,7 +534,7 @@ class GarantiPos extends AbstractGateway
         // Order
         return (object) array_merge($order, [
             'installment' => $installment,
-            'currency'    => $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency'    => $order['currency'],
             'amount'      => $this->requestDataMapper::amountFormat($order['amount']),
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
@@ -549,7 +549,7 @@ class GarantiPos extends AbstractGateway
         return (object) [
             'id'          => $order['id'],
             'ref_ret_num' => $order['ref_ret_num'],
-            'currency'    => $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency'    => $order['currency'],
             'amount'      => $this->requestDataMapper::amountFormat($order['amount']),
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
@@ -564,7 +564,7 @@ class GarantiPos extends AbstractGateway
         return (object) [
             'id'          => $order['id'],
             'amount'      => $this->requestDataMapper::amountFormat(1), //sabit deger gonderilmesi gerekiyor
-            'currency'    => $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency'    => $order['currency'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
             'installment' => '',
@@ -587,7 +587,7 @@ class GarantiPos extends AbstractGateway
         return (object) [
             'id'          => $order['id'],
             'amount'      => $this->requestDataMapper::amountFormat(1), //sabit deger gonderilmesi gerekiyor
-            'currency'    => $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency'    => $order['currency'],
             'ref_ret_num' => $order['ref_ret_num'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',

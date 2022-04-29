@@ -305,7 +305,7 @@ class InterPos extends AbstractGateway
             'month'                => null,
             'year'                 => null,
             'amount'               => $raw3DAuthResponseData['PurchAmount'],
-            'currency'             => array_search($raw3DAuthResponseData['Currency'], $this->currencies),
+            'currency'             => array_search($raw3DAuthResponseData['Currency'], $this->requestDataMapper->getCurrencyMappings()),
             'eci'                  => $raw3DAuthResponseData['Eci'],
             'tx_status'            => $raw3DAuthResponseData['TxnStat'],
             'cavv'                 => null,
@@ -474,7 +474,7 @@ class InterPos extends AbstractGateway
 
         return (object) array_merge($order, [
             'installment' => $installment,
-            'currency'    => $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency'    => $order['currency'],
         ]);
     }
 

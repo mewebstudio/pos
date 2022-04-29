@@ -303,7 +303,7 @@ class KuveytPos extends AbstractGateway
         $result['order_id']      = $responseData['MerchantOrderId'];
         $result['host_ref_num']  = $responseData['RRN'];
         $result['amount']        = $responseData['VPosMessage']['Amount'];
-        $result['currency']      = array_search($responseData['VPosMessage']['CurrencyCode'], $this->currencies);
+        $result['currency']      = array_search($responseData['VPosMessage']['CurrencyCode'], $this->requestDataMapper->getCurrencyMappings());
         $result['masked_number'] = $responseData['VPosMessage']['CardNumber'];
 
         return $result;
@@ -362,7 +362,7 @@ class KuveytPos extends AbstractGateway
 
         return (object) array_merge($order, [
             'installment' => $installment,
-            'currency'    => $this->requestDataMapper->mapCurrency($order['currency']),
+            'currency'    => $order['currency'],
         ]);
     }
 
@@ -543,7 +543,7 @@ class KuveytPos extends AbstractGateway
         if ('approved' === $status) {
             $default['hash'] = $raw3DAuthResponseData['VPosMessage']['HashData'];
             $default['amount'] = $raw3DAuthResponseData['VPosMessage']['Amount'];
-            $default['currency'] = array_search($raw3DAuthResponseData['VPosMessage']['CurrencyCode'], $this->currencies);
+            $default['currency'] = array_search($raw3DAuthResponseData['VPosMessage']['CurrencyCode'], $this->requestDataMapper->getCurrencyMappings());
             $default['masked_number'] = $raw3DAuthResponseData['VPosMessage']['CardNumber'];
         }
 

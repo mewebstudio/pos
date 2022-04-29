@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -123,7 +125,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'Amount'              => self::amountFormat($order->amount),
             //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
             'DisplayAmount'       => self::amountFormat($order->amount),
-            'CurrencyCode'        => $order->currency,
+            'CurrencyCode'        => $this->mapCurrency($order->currency),
             'MerchantOrderId'     => $order->id,
             'OkUrl'               => $order->success_url,
             'FailUrl'             => $order->fail_url,
