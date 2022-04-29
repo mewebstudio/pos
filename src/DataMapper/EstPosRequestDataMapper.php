@@ -110,10 +110,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
-        return [
-            'Name'      => $account->getUsername(),
-            'Password'  => $account->getPassword(),
-            'ClientId'  => $account->getClientId(),
+        return $this->getRequestAccountData($account) + [
             'Type'      => $txType,
             'IPAddress' => $order->ip ?? null,
             'Email'     => $order->email,
@@ -137,10 +134,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
-        return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
+        return $this->getRequestAccountData($account) + [
             'Type'     => $this->txTypeMappings[AbstractGateway::TX_POST_PAY],
             'OrderId'  => $order->id,
         ];
@@ -151,10 +145,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
-        return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
+        return $this->getRequestAccountData($account) + [
             'OrderId'  => $order->id,
             'Extra'    => [
                 $this->txTypeMappings[AbstractGateway::TX_STATUS] => 'QUERY',
@@ -168,12 +159,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
-        return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
+        return $this->getRequestAccountData($account) + [
             'OrderId'  => $order->id,
-            'Type'     => 'Void',
+            'Type'     => $this->txTypeMappings[AbstractGateway::TX_CANCEL],
         ];
     }
 
@@ -183,9 +171,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
         $requestData = [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
             'OrderId'  => $order->id,
             'Currency' => $order->currency,
             'Type'     => $this->txTypeMappings[AbstractGateway::TX_REFUND],
@@ -195,7 +180,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['Total'] = $order->amount;
         }
 
-        return $requestData;
+        return $this->getRequestAccountData($account) + $requestData;
     }
 
     /**
@@ -205,16 +190,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
         $requestData = [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
             'OrderId'  => $extraData['order_id'], //todo orderId ya da id olarak degistirilecek, Payfor'da orderId, Garanti'de id
             'Extra'    => [
                 $this->txTypeMappings[AbstractGateway::TX_HISTORY] => 'QUERY',
             ],
         ];
 
-        return $requestData;
+        return $this->getRequestAccountData($account) + $requestData;
     }
 
 
@@ -294,5 +276,19 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
+    }
+
+    /**
+     * @param AbstractPosAccount $account
+     *
+     * @return array
+     */
+    private function getRequestAccountData(AbstractPosAccount $account): array
+    {
+        return [
+            'Name'     => $account->getUsername(),
+            'Password' => $account->getPassword(),
+            'ClientId' => $account->getClientId(),
+        ];
     }
 }
