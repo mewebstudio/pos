@@ -9,13 +9,13 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Gateways\AbstractGateway;
-use Mews\Pos\Gateways\KuveytPos;
 
 /**
  * Creates request data for KuveytPos Gateway requests
  */
 class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 {
+    public const API_VERSION = '1.0.0';
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
 
@@ -79,7 +79,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
         $hash = $this->create3DHash($account, $order, $txType, true);
 
         return [
-            'APIVersion'                   => KuveytPos::API_VERSION,
+            'APIVersion'                   => self::API_VERSION,
             'HashData'                     => $hash,
             'MerchantId'                   => $account->getClientId(),
             'CustomerId'                   => $account->getCustomerId(),
@@ -114,7 +114,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
         $hash = $this->create3DHash($account, $order, $txType);
 
         $inputs = [
-            'APIVersion'          => KuveytPos::API_VERSION,
+            'APIVersion'          => self::API_VERSION,
             'MerchantId'          => $account->getClientId(),
             'UserName'            => $account->getUsername(),
             'CustomerId'          => $account->getCustomerId(),

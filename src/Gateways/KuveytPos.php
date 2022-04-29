@@ -26,7 +26,6 @@ class KuveytPos extends AbstractGateway
     const LANG_EN = 'en';
 
     public const NAME = 'KuveytPos';
-    public const API_VERSION = '1.0.0';
 
     /**
      * Response Codes

@@ -98,7 +98,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $card    = $this->pos->getCard();
 
         $inputs = [
-            'APIVersion'          => KuveytPos::API_VERSION,
+            'APIVersion'          => KuveytPosRequestDataMapper::API_VERSION,
             'MerchantId'          => $account->getClientId(),
             'UserName'            => $account->getUsername(),
             'CustomerId'          => $account->getCustomerId(),
@@ -205,7 +205,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $hash    = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), $txType, true);
 
         return [
-            'APIVersion'                   => KuveytPos::API_VERSION,
+            'APIVersion'                   => KuveytPosRequestDataMapper::API_VERSION,
             'HashData'                     => $hash,
             'MerchantId'                   => $account->getClientId(),
             'CustomerId'                   => $account->getCustomerId(),
