@@ -41,7 +41,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         'MONTH' => 'M',
         'YEAR'  => 'Y',
     ];
-    //todo store type degerleri ekle
 
     protected $secureTypeMappings = [
         AbstractGateway::MODEL_3D_SECURE  => '3d',
@@ -80,15 +79,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'Currency'                => $order->currency,
             'Taksit'                  => $order->installment,
             'Number'                  => $responseData['md'],
-            'Expires'                 => '', //todo
-            'Cvv2Val'                 => '', //todo
             'PayerTxnId'              => $responseData['xid'],
             'PayerSecurityLevel'      => $responseData['eci'],
             'PayerAuthenticationCode' => $responseData['cavv'],
-            'CardholderPresentCode'   => '13',
             'Mode'                    => 'P',
-            'GroupId'                 => '',
-            'TransId'                 => '',
         ];
 
         if ($order->name) {
@@ -128,13 +122,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'Total'     => $order->amount,
             'Currency'  => $order->currency,
             'Taksit'    => $order->installment,
-            'CardType'  => $card->getType(), //todo remove
             'Number'    => $card->getNumber(),
             'Expires'   => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
             'Cvv2Val'   => $card->getCvv(),
-            'Mode'      => 'P', //TODO what is this constant for?
-            'GroupId'   => '',
-            'TransId'   => '',
+            'Mode'      => 'P',
             'BillTo'    => [
                 'Name' => $order->name ?: null,
             ],
@@ -233,16 +224,12 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        if (!$order) {
-            return [];
-        }
-
-        $order->hash = $this->create3DHash($account, $order, $txType);
+        $hash = $this->create3DHash($account, $order, $txType);
 
         $inputs = [
             'clientid'  => $account->getClientId(),
-            'storetype' => $account->getModel(),
-            'hash'      => $order->hash,
+            'storetype' => $this->secureTypeMappings[$account->getModel()],
+            'hash'      => $hash,
             'firmaadi'  => $order->name,
             'Email'     => $order->email,
             'amount'    => $order->amount,
@@ -262,7 +249,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         }
 
         if ($card) {
-            //todo check card type
             $inputs['cardType'] = $this->cardTypeMapping[$card->getType()];
             $inputs['pan'] = $card->getNumber();
             $inputs['Ecom_Payment_Card_ExpDate_Month'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);

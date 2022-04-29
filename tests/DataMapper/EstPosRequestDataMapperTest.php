@@ -432,15 +432,10 @@ class EstPosRequestDataMapperTest extends TestCase
             'Currency'                => '949',
             'Taksit'                  => '0',
             'Number'                  => $responseData['md'],
-            'Expires'                 => '',
-            'Cvv2Val'                 => '',
             'PayerTxnId'              => $responseData['xid'],
             'PayerSecurityLevel'      => $responseData['eci'],
             'PayerAuthenticationCode' => $responseData['cavv'],
-            'CardholderPresentCode'   => '13',
             'Mode'                    => 'P',
-            'GroupId'                 => '',
-            'TransId'                 => '',
         ];
         if (isset($order->name)) {
             $requestData['BillTo'] = [
@@ -498,13 +493,10 @@ class EstPosRequestDataMapperTest extends TestCase
             'Total'     => '100.25',
             'Currency'  => '949',
             'Taksit'    => '0',
-            'CardType'  => 'visa',
             'Number'    => $card->getNumber(),
             'Expires'   => '01/22',
             'Cvv2Val'   => $card->getCvv(),
             'Mode'      => 'P',
-            'GroupId'   => '',
-            'TransId'   => '',
             'BillTo'    => [
                 'Name' => $order->name ?: null,
             ],
