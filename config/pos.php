@@ -18,6 +18,10 @@ return [
                     'production'    => 'https://www.sanalakpos.com/fim/est3Dgate',
                     'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
                 ],
+                'gateway_3d_host'       => [
+                    'production'    => 'https://sanalpos.isbank.com.tr/fim/est3Dgate',
+                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                ],
             ],
         ],
         'ziraat'    => [
@@ -75,6 +79,10 @@ return [
                 'production'    => 'https://sanalpos.isbank.com.tr/fim/api',
                 'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
                 'gateway'       => [
+                    'production'    => 'https://sanalpos.isbank.com.tr/fim/est3Dgate',
+                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                ],
+                'gateway_3d_host'       => [
                     'production'    => 'https://sanalpos.isbank.com.tr/fim/est3Dgate',
                     'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
                 ],
