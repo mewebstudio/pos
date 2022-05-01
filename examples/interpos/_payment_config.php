@@ -52,14 +52,15 @@ function getNewOrder(
     string $currency,
     \Symfony\Component\HttpFoundation\Session\Session $session,
     ?int $installment = 0,
-    bool $tekrarlanan = false
+    bool $tekrarlanan = false,
+    string $lang = AbstractGateway::LANG_TR
 ): array {
     // todo tekrarlanan odemeler icin daha fazla bilgi lazim, Deniz bank dokumantasyonunda hic bir aciklama yok
     //  ornek kodlarda ise sadece bu alttaki 2 veriyi gondermis.
     //'MaturityPeriod' => 1,
     //'PaymentFrequency' => 2,
 
-    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, \Mews\Pos\Gateways\InterPos::LANG_TR);
+    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 }
 
 function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)

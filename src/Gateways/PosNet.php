@@ -19,9 +19,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PosNet extends AbstractGateway
 {
-    const LANG_TR = 'tr';
-    const LANG_EN = 'en';
-
     protected const HASH_ALGORITHM = 'sha256';
     protected const HASH_SEPARATOR = ';';
     public const NAME = 'PosNet';

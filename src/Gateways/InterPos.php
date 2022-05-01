@@ -19,9 +19,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class InterPos extends AbstractGateway
 {
-    const LANG_TR = 'tr';
-    const LANG_EN = 'en';
-
     /**
      * @const string
      */

@@ -47,7 +47,7 @@ class InterPosTest extends TestCase
             $userPass,
             AbstractGateway::MODEL_3D_SECURE,
             $merchantPass,
-            InterPos::LANG_TR
+            AbstractGateway::LANG_TR
         );
 
         $this->order = [
@@ -57,7 +57,7 @@ class InterPosTest extends TestCase
             'currency'    => 'TRY',
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => InterPos::LANG_TR,
+            'lang'        => AbstractGateway::LANG_TR,
             'rand'        => microtime(true),
         ];
 

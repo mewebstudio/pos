@@ -55,7 +55,7 @@ class PayForTest extends TestCase
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
             'rand'        => '0.43625700 1604831630',
-            'lang'        => PayForPos::LANG_TR,
+            'lang'        => AbstractGateway::LANG_TR,
         ];
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);

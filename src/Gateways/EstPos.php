@@ -18,9 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class EstPos extends AbstractGateway
 {
-    const LANG_TR = 'tr';
-    const LANG_EN = 'en';
-
     /**
      * @const string
      */

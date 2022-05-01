@@ -71,7 +71,7 @@ class KuveytPosTest extends TestCase
             'rand'        => '0.43625700 1604831630',
             'hash'        => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
             'ip'          => '127.0.0.1',
-            'lang'        => KuveytPos::LANG_TR,
+            'lang'        => AbstractGateway::LANG_TR,
         ];
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);

@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Factory;
 
 use Mews\Pos\Entity\Account\EstPosAccount;
@@ -11,13 +13,10 @@ use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Exceptions\MissingAccountInfoException;
 use Mews\Pos\Gateways\AbstractGateway;
-use Mews\Pos\Gateways\EstPos;
-use Mews\Pos\Gateways\GarantiPos;
-use Mews\Pos\Gateways\InterPos;
-use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\PayForPos;
-use Mews\Pos\Gateways\PosNet;
 
+/**
+ * AccountFactory
+ */
 class AccountFactory
 {
     /**
@@ -33,7 +32,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createEstPosAccount(string $bank, string $clientId, string $username, string $password, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = EstPos::LANG_TR): EstPosAccount
+    public static function createEstPosAccount(string $bank, string $clientId, string $username, string $password, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = AbstractGateway::LANG_TR): EstPosAccount
     {
         self::checkParameters($model, $storeKey);
 
@@ -53,7 +52,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createPayForAccount(string $bank, string $merchantId, string $userCode, string $userPassword, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $merchantPass = null, string $lang = PayForPos::LANG_TR): PayForAccount
+    public static function createPayForAccount(string $bank, string $merchantId, string $userCode, string $userPassword, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $merchantPass = null, string $lang = AbstractGateway::LANG_TR): PayForAccount
     {
         self::checkParameters($model, $merchantPass);
 
@@ -76,7 +75,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createGarantiPosAccount(string $bank, string $clientId, string $username, string $password, string $terminalId, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, ?string $refundUsername = null, ?string $refundPassword = null, string $lang = GarantiPos::LANG_TR): GarantiPosAccount
+    public static function createGarantiPosAccount(string $bank, string $clientId, string $username, string $password, string $terminalId, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, ?string $refundUsername = null, ?string $refundPassword = null, string $lang = AbstractGateway::LANG_TR): GarantiPosAccount
     {
         self::checkParameters($model, $storeKey);
 
@@ -96,7 +95,7 @@ class AccountFactory
      *
      * @return KuveytPosAccount
      */
-    public static function createKuveytPosAccount(string $bank, string $merchantId, string $username, string $customerId, string $storeKey, string $model = AbstractGateway::MODEL_3D_SECURE, string $lang = KuveytPos::LANG_TR, ?string $subMerchantId = null): KuveytPosAccount
+    public static function createKuveytPosAccount(string $bank, string $merchantId, string $username, string $customerId, string $storeKey, string $model = AbstractGateway::MODEL_3D_SECURE, string $lang = AbstractGateway::LANG_TR, ?string $subMerchantId = null): KuveytPosAccount
     {
         return new KuveytPosAccount($bank, $merchantId, $username, $customerId, $storeKey, $model, $lang, $subMerchantId);
     }
@@ -116,7 +115,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createPosNetAccount(string $bank, string $merchantId, string $username, string $password, string $terminalId, string $posNetId, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = PosNet::LANG_TR): PosNetAccount
+    public static function createPosNetAccount(string $bank, string $merchantId, string $username, string $password, string $terminalId, string $posNetId, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = AbstractGateway::LANG_TR): PosNetAccount
     {
         self::checkParameters($model, $storeKey);
 
@@ -156,7 +155,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createInterPosAccount(string $bank, string $shopCode, string $userCode, string $userPass, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $merchantPass = null, string $lang = InterPos::LANG_TR): InterPosAccount
+    public static function createInterPosAccount(string $bank, string $shopCode, string $userCode, string $userPass, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $merchantPass = null, string $lang = AbstractGateway::LANG_TR): InterPosAccount
     {
         self::checkParameters($model, $merchantPass);
 

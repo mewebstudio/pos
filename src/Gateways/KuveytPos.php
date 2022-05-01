@@ -22,9 +22,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class KuveytPos extends AbstractGateway
 {
-    const LANG_TR = 'tr';
-    const LANG_EN = 'en';
-
     public const NAME = 'KuveytPos';
 
     /**

@@ -53,7 +53,7 @@ class InterPosRequestDataMapperTest extends TestCase
             $userPass,
             AbstractGateway::MODEL_3D_SECURE,
             $merchantPass,
-            InterPos::LANG_TR
+            AbstractGateway::LANG_TR
         );
 
         $this->order = [
@@ -63,7 +63,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'currency'    => 'TRY',
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => InterPos::LANG_TR,
+            'lang'        => AbstractGateway::LANG_TR,
             'rand'        => microtime(true),
         ];
 
@@ -140,7 +140,7 @@ class InterPosRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'   => '2020110828BC',
-            'lang' => InterPos::LANG_EN,
+            'lang' => AbstractGateway::LANG_EN,
         ];
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_CANCEL);
@@ -163,7 +163,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'currency'    => 'TRY',
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-            'lang'        => InterPos::LANG_EN,
+            'lang'        => AbstractGateway::LANG_EN,
         ];
         $responseData = [
             'MD'                      => '1',
@@ -248,7 +248,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'XXXXXXX',
             AbstractGateway::MODEL_3D_HOST,
             'VnM5WZ3sGrPusmWP',
-            InterPos::LANG_TR
+            AbstractGateway::LANG_TR
         );
         /** @var InterPos $pos */
         $pos     = PosFactory::createPosGateway($account);
@@ -291,7 +291,7 @@ class InterPosRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'   => '2020110828BC',
-            'lang' => InterPos::LANG_EN,
+            'lang' => AbstractGateway::LANG_EN,
         ];
 
         $pos = $this->pos;

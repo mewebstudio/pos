@@ -1,5 +1,7 @@
 <?php
 
+use Mews\Pos\Gateways\AbstractGateway;
+
 require '../_payment_config.php';
 
 $baseUrl = $bankTestsUrl.'/3d/';
@@ -13,13 +15,13 @@ $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount(
     $shopCode,
     $userCode,
     $userPass,
-    \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
+    AbstractGateway::MODEL_3D_SECURE,
     $merchantPass,
-    \Mews\Pos\Gateways\InterPos::LANG_TR
+    AbstractGateway::LANG_TR
 );
 
 $pos = getGateway($account);
 
-$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PAY;
+$transaction = AbstractGateway::TX_PAY;
 
 $templateTitle = '3D Model Payment';

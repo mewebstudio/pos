@@ -3,7 +3,15 @@
 require '_config.php';
 require '../../template/_header.php';
 
-$order = getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
+$order = getNewOrder(
+    $baseUrl,
+    $ip,
+    $request->get('currency', 'TRY'),
+    $session,
+    $request->get('installment'),
+    false,
+    $request->get('lang', \Mews\Pos\Gateways\AbstractGateway::LANG_TR)
+);
 $session->set('order', $order);
 
 $pos->prepare($order, $transaction);

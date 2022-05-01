@@ -42,7 +42,7 @@ class EstPostTest extends TestCase
             'ISBANK07',
             AbstractGateway::MODEL_3D_SECURE,
             'TRPS0200',
-            EstPos::LANG_TR
+            AbstractGateway::LANG_TR
         );
 
         $this->order = [

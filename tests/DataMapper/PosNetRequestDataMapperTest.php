@@ -62,7 +62,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'rand'        => '0.43625700 1604831630',
-            'lang'        => PosNet::LANG_TR,
+            'lang'        => AbstractGateway::LANG_TR,
         ];
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);

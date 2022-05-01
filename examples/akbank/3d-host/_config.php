@@ -1,5 +1,7 @@
 <?php
 
+use Mews\Pos\Gateways\AbstractGateway;
+
 require '../_payment_config.php';
 
 $baseUrl = $bankTestsUrl.'/3d-host/';
@@ -11,7 +13,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'ISBANK07',
     \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_HOST,
     'TRPS0200',
-    \Mews\Pos\Gateways\EstPos::LANG_TR
+    AbstractGateway::LANG_TR
 );
 
 $pos = getGateway($account);

@@ -21,6 +21,9 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
  */
 abstract class AbstractGateway implements PosInterface
 {
+    public const LANG_TR = 'tr';
+    public const LANG_EN = 'en';
+
     public const TX_PAY = 'pay';
     public const TX_PRE_PAY = 'pre';
     public const TX_POST_PAY = 'post';
@@ -450,6 +453,14 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
+     * @return string[]
+     */
+    public function getLanguages(): array
+    {
+        return [self::LANG_TR, self::LANG_EN];
+    }
+
+    /**
      * Create Regular Payment XML
      *
      * @return string
@@ -636,20 +647,6 @@ abstract class AbstractGateway implements PosInterface
             'response'         => null,
             'all'              => null,
         ];
-    }
-
-    /**
-     * bank returns error messages for specified language value
-     * usually accepted values are tr,en
-     * @return string
-     */
-    protected function getLang(): string
-    {
-        if ($this->order && isset($this->order->lang)) {
-            return $this->order->lang;
-        }
-
-        return $this->account->getLang();
     }
 
     /**

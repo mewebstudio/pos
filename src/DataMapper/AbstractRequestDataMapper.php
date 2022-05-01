@@ -6,9 +6,10 @@ namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Gateways\AbstractGateway;
 
 /**
- * todo move txType, currency, installment mapping to here from all gateways
+ * todo move txType, installment mapping to here from all gateways
  * AbstractRequestDataMapper
  */
 abstract class AbstractRequestDataMapper
@@ -26,6 +27,11 @@ abstract class AbstractRequestDataMapper
     protected $txTypeMappings = [];
 
     protected $cardTypeMapping = [];
+
+    protected $langMappings = [
+        AbstractGateway::LANG_TR => 'tr',
+        AbstractGateway::LANG_EN => 'en',
+    ];
 
     /**
      * default olarak ISO 4217 kodlar tanimliyoruz.
@@ -247,9 +253,9 @@ abstract class AbstractRequestDataMapper
     protected function getLang(AbstractPosAccount $account, $order): string
     {
         if ($order && isset($order->lang)) {
-            return $order->lang;
+            return $this->langMappings[$order->lang];
         }
 
-        return $account->getLang();
+        return $this->langMappings[$account->getLang()];
     }
 }

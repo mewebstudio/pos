@@ -23,9 +23,6 @@ class PayForPos extends AbstractGateway
      */
     public const NAME = 'PayForPOS';
 
-    const LANG_TR = 'tr';
-    const LANG_EN = 'en';
-
     /**
      * @var PayForAccount
      */
