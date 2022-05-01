@@ -24,6 +24,9 @@ doPayment($pos, $transaction, $card);
 
 $response = $pos->getResponse();
 
+if ($pos->isSuccess()) {
+    $session->set('ref_ret_num', $response->host_ref_num);
+}
 ?>
 
     <div class="result">

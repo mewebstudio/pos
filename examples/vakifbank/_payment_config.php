@@ -54,6 +54,7 @@ function getNewOrder(
             //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
             'recurringInstallmentCount' => 4,
             'recurringEndDate'          => '202112', //optional
+            // yukardaki belirtilen ayarin anlami 3 ayda bir kesintip yap ve bunu toplam 4 kere tekrarla.
         ]);
     }
 

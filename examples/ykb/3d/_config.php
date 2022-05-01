@@ -18,6 +18,16 @@ $account = AccountFactory::createPosNetAccount(
     '10,10,10,10,10,10,10,10'
 );
 
+/**
+ * vftCode: Vade Farklı işlemler için kullanılacak olan kampanya kodunu belirler.
+ * Üye İşyeri için tanımlı olan kampanya kodu, İşyeri Yönetici Ekranlarına giriş
+ * yapıldıktan sonra, Üye İşyeri bilgileri sayfasından öğrenilebilinir.
+ * vtfCode set etmek icin simdilik bu sekilde:
+ * $account->promotion_code = 'xxx';
+ *
+ * ilerde vtfCode atanmasi duzgun ele alinacak
+ */
+
 $pos = getGateway($account);
 
 $transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PAY;
