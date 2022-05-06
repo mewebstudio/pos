@@ -206,14 +206,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'rnd'       => $order->rand,
             'lang'      => $this->getLang($account, $order),
             'currency'  => $this->mapCurrency($order->currency),
+            'taksit'    => $order->installment,
+            'islemtipi' => $this->mapTxType($txType),
         ];
-
-        if ($account->getModel() === AbstractGateway::MODEL_3D_PAY || $account->getModel() === AbstractGateway::MODEL_3D_HOST) {
-            $inputs = array_merge($inputs, [
-                'islemtipi' => $this->mapTxType($txType),
-                'taksit'    => $order->installment,
-            ]);
-        }
 
         if ($card) {
             $inputs['cardType'] = $this->cardTypeMapping[$card->getType()];
@@ -234,30 +229,18 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
     {
-        $hashData = [];
-        if ($account->getModel() === AbstractGateway::MODEL_3D_SECURE) {
-            $hashData = [
-                $account->getClientId(),
-                $order->id,
-                $order->amount,
-                $order->success_url,
-                $order->fail_url,
-                $order->rand,
-                $account->getStoreKey(),
-            ];
-        } elseif ($account->getModel() === AbstractGateway::MODEL_3D_PAY || $account->getModel() === AbstractGateway::MODEL_3D_HOST) {
-            $hashData = [
-                $account->getClientId(),
-                $order->id,
-                $order->amount,
-                $order->success_url,
-                $order->fail_url,
-                $this->mapTxType($txType),
-                $order->installment,
-                $order->rand,
-                $account->getStoreKey(),
-            ];
-        }
+        $hashData = [
+            $account->getClientId(),
+            $order->id,
+            $order->amount,
+            $order->success_url,
+            $order->fail_url,
+            $this->mapTxType($txType),
+            $order->installment,
+            $order->rand,
+            $account->getStoreKey(),
+        ];
+
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);

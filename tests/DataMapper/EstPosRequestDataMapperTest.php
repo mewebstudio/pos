@@ -130,7 +130,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->order['rand'] = 'rand';
         $pos                 = $this->pos;
 
-        $expected = 'mJReAoQNtx0G+nWUGA/BHLx/+BI=';
+        $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
         $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY);
         $this->assertEquals($expected, $actual);
@@ -152,7 +152,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'VnM5WZ3sGrPusmWP'
         );
         $pos      = PosFactory::createPosGateway($account);
-        $expected = 'zW2HEQR/H0mpo1jrztIgmIPFFEU=';
+        $expected = 'zQJGquP0/PXt6LeutjN1Qxq32Zg=';
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
         $actual = $this->requestDataMapper->create3DHash($account, $pos->getOrder(), AbstractGateway::TX_PAY);
         $this->assertEquals($expected, $actual);
@@ -237,7 +237,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'user_id'                   => '1535',
             'ip'                        => '192.168.1.0',
             'amount'                    => 100.01,
-            'installment'               => '0',
+            'installment'               => '',
             'currency'                  => 'TRY',
             'success_url'               => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'                  => 'http://localhost/finansbank-payfor/3d/response.php',
@@ -288,6 +288,8 @@ class EstPosRequestDataMapperTest extends TestCase
             'rnd'       => $this->order['rand'],
             'lang'      => 'tr',
             'currency'  => 949,
+            'islemtipi' => 'Auth',
+            'taksit'    => '',
         ];
         $form   = [
             'gateway' => $gatewayURL,
@@ -356,7 +358,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'lang'      => 'tr',
             'currency'  => '949',
             'islemtipi'  => 'Auth',
-            'taksit'    => $this->order['installment'],
+            'taksit'    => '',
         ];
         $form       = [
             'gateway' => $gatewayURL,
@@ -430,7 +432,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'UserId'                  => isset($order->user_id) ? $order->user_id : null,
             'Total'                   => 100.01,
             'Currency'                => '949',
-            'Taksit'                  => '0',
+            'Taksit'                  => '',
             'Number'                  => $responseData['md'],
             'PayerTxnId'              => $responseData['xid'],
             'PayerSecurityLevel'      => $responseData['eci'],
@@ -492,7 +494,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'UserId'    => $order->user_id ?? null,
             'Total'     => '100.25',
             'Currency'  => '949',
-            'Taksit'    => '0',
+            'Taksit'    => '',
             'Number'    => $card->getNumber(),
             'Expires'   => '01/22',
             'Cvv2Val'   => $card->getCvv(),

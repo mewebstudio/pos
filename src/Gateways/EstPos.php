@@ -638,7 +638,7 @@ class EstPos extends AbstractGateway
     protected function preparePaymentOrder(array $order)
     {
         // Installment
-        $installment = 0;
+        $installment = '';
         if (isset($order['installment']) && $order['installment'] > 1) {
             $installment = (int) $order['installment'];
         }
