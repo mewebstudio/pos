@@ -100,7 +100,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         $order['amount'] = 10.1;
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
-        $txType = 'Sale';
+        $txType = AbstractGateway::TX_PAY;
         $gatewayResponse = [
             'Eci'                       => (string) rand(1, 100),
             'Cavv'                      => (string) rand(1, 100),
@@ -153,9 +153,9 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $order = $this->order;
-        $txType = 'Sale';
+        $txType = AbstractGateway::TX_PAY;
         $order['amount'] = 1000;
-        $pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
+        $pos->prepare($order, $txType, $this->card);
 
         $expectedValue = $this->getSampleNonSecurePaymentRequestData($pos->getAccount(), $order, $txType, $pos->getCard());
         $actualData = $this->requestDataMapper->createNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), $txType, $pos->getCard());
@@ -264,7 +264,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
             'MerchantId'              => $account->getClientId(),
             'Password'                => $account->getPassword(),
             'TerminalNo'              => $account->getTerminalId(),
-            'TransactionType'         => $txType,
+            'TransactionType'         => $this->requestDataMapper->mapTxType($txType),
             'OrderId'                 => $order->id,
             'ClientIp'                => $order->ip,
             'CurrencyCode'            => '949',
@@ -344,7 +344,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
             'MerchantId'              => $account->getClientId(),
             'Password'                => $account->getPassword(),
             'TerminalNo'              => $account->getTerminalId(),
-            'TransactionType'         => $txType,
+            'TransactionType'         => $this->requestDataMapper->mapTxType($txType),
             'OrderId'                 => $order['id'],
             'CurrencyAmount'          => '1000.00',
             'CurrencyCode'            => 949,

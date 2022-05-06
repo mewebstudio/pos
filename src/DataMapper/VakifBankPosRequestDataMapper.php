@@ -4,7 +4,6 @@
  */
 namespace Mews\Pos\DataMapper;
 
-use Exception;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -60,7 +59,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'              => $account->getClientId(),
             'Password'                => $account->getPassword(),
             'TerminalNo'              => $account->getTerminalId(),
-            'TransactionType'         => $txType,
+            'TransactionType'         => $this->mapTxType($txType),
             'TransactionId'           => $order->id,
             'CurrencyAmount'          => self::amountFormat($order->amount),
             'CurrencyCode'            => $this->mapCurrency($order->currency),
@@ -147,7 +146,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'              => $account->getClientId(),
             'Password'                => $account->getPassword(),
             'TerminalNo'              => $account->getTerminalId(),
-            'TransactionType'         => $txType,
+            'TransactionType'         => $this->mapTxType($txType),
             'OrderId'                 => $order->id,
             'CurrencyAmount'          => self::amountFormat($order->amount),
             'CurrencyCode'            => $this->mapCurrency($order->currency),
@@ -177,7 +176,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
             'TerminalNo'             => $account->getTerminalId(),
-            'TransactionType'        => $this->txTypeMappings[AbstractGateway::TX_POST_PAY],
+            'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
             'ReferenceTransactionId' => $order->id,
             'CurrencyAmount'         => self::amountFormat($order->amount),
             'CurrencyCode'           => $this->mapCurrency($order->currency),
@@ -201,7 +200,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
-            'TransactionType'        => $this->txTypeMappings[AbstractGateway::TX_CANCEL],
+            'TransactionType'        => $this->mapTxType(AbstractGateway::TX_CANCEL),
             'ReferenceTransactionId' => $order->id,
             'ClientIp'               => $order->ip,
         ];
@@ -215,7 +214,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
-            'TransactionType'        => $this->txTypeMappings[AbstractGateway::TX_REFUND],
+            'TransactionType'        => $this->mapTxType(AbstractGateway::TX_REFUND),
             'ReferenceTransactionId' => $order->id,
             'ClientIp'               => $order->ip,
             'CurrencyAmount'         => self::amountFormat($order->amount),

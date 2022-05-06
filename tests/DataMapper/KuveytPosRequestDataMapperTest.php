@@ -102,7 +102,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'MerchantId'          => $account->getClientId(),
             'UserName'            => $account->getUsername(),
             'CustomerId'          => $account->getCustomerId(),
-            'HashData'            => $this->requestDataMapper->create3DHash($account, $order, 'Auth'),
+            'HashData'            => $this->requestDataMapper->create3DHash($account, $order, AbstractGateway::TX_PAY),
             'TransactionType'     => 'Sale',
             'TransactionSecurity' => 3,
             'InstallmentCount'    => $order->installment,
@@ -122,8 +122,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
             $inputs['CardExpireDateMonth'] = '01';
             $inputs['CardCVV2']            = $card->getCvv();
         }
-        $txType = 'Sale';
-        $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);
+
+        $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, AbstractGateway::TX_PAY, $card);
         $this->assertEquals($inputs, $result);
     }
 
@@ -132,11 +132,10 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentXML()
     {
-        $txType = 'Sale';
         $responseData = [
             'MD'          => '67YtBfBRTZ0XBKnAHi8c/A==',
             'VPosMessage' => [
-                'TransactionType'     => $txType,
+                'TransactionType'     => 'Sale',
                 'InstallmentCount'    => '0',
                 'Amount'              => '100',
                 'DisplayAmount'       => '100',
@@ -146,9 +145,9 @@ class KuveytPosRequestDataMapperTest extends TestCase
             ],
         ];
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->pos->getAccount(), $this->pos->getOrder(), $txType, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->pos->getAccount(), $this->pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
 
-        $expectedData = $this->getSample3DPaymentXMLData($this->pos, $txType, $responseData);
+        $expectedData = $this->getSample3DPaymentXMLData($this->pos, AbstractGateway::TX_PAY, $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 

@@ -72,7 +72,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'MOTO'             => self::MOTO,
             'OrderId'          => $order->id,
             'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
-            'TxnType'          => $txType,
+            'TxnType'          => $this->mapTxType($txType),
             'PurchAmount'      => $order->amount,
             'Currency'         => $this->mapCurrency($order->currency),
             'InstallmentCount' => $order->installment,
@@ -96,7 +96,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'UserPass'    => $account->getPassword(),
             'OrgOrderId'  => $order->id,
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
-            'TxnType'     => $this->txTypeMappings[AbstractGateway::TX_POST_PAY],
+            'TxnType'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
             'PurchAmount' => $order->amount,
             'Currency'    => $this->mapCurrency($order->currency),
             'Lang'        => $this->getLang($account, $order),
@@ -116,7 +116,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'OrgOrderId' => $order->id,
             'SecureType' => 'Inquiry',
             'Lang'       => $this->getLang($account, $order),
-            'TxnType'    => $this->txTypeMappings[AbstractGateway::TX_STATUS],
+            'TxnType'    => $this->mapTxType(AbstractGateway::TX_STATUS),
         ];
     }
 
@@ -132,7 +132,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'UserPass'   => $account->getPassword(),
             'OrgOrderId' => $order->id,
             'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
-            'TxnType'    => $this->txTypeMappings[AbstractGateway::TX_CANCEL],
+            'TxnType'    => $this->mapTxType(AbstractGateway::TX_CANCEL),
             'Currency'   => $this->mapCurrency($order->currency),
             'Lang'       => $this->getLang($account, $order),
         ];
@@ -151,7 +151,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'Lang'        => $this->getLang($account, $order),
             'OrgOrderId'  => $order->id,
-            'TxnType'     => $this->txTypeMappings[AbstractGateway::TX_REFUND],
+            'TxnType'     => $this->mapTxType(AbstractGateway::TX_REFUND),
             'PurchAmount' => $order->amount,
             'Currency'    => $this->mapCurrency($order->currency),
         ];
@@ -168,7 +168,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'UserCode'   => $account->getUsername(),
             'UserPass'   => $account->getPassword(),
             'SecureType' => 'Report',
-            'TxnType'    => $this->txTypeMappings[AbstractGateway::TX_HISTORY],
+            'TxnType'    => $this->mapTxType(AbstractGateway::TX_HISTORY),
             'Lang'       => $this->getLang($account, $order),
         ];
 
@@ -197,7 +197,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'OrderId'          => $order->id,
             'Lang'             => $this->getLang($account, $order),
             'SecureType'       => $this->secureTypeMappings[$account->getModel()],
-            'TxnType'          => $txType,
+            'TxnType'          => $this->mapTxType($txType),
             'PurchAmount'      => $order->amount,
             'InstallmentCount' => $order->installment,
             'Currency'         => $this->mapCurrency($order->currency),
@@ -231,7 +231,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             $order->amount,
             $order->success_url,
             $order->fail_url,
-            $txType,
+            $this->mapTxType($txType),
             $order->installment,
             $order->rand,
             $account->getStoreKey(),

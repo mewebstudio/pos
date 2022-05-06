@@ -366,8 +366,8 @@ class PayForPos extends AbstractGateway
             'status_detail'    => $this->codes[$raw3DAuthResponseData['ProcReturnCode']] ?? null,
             'error_code'       => ('approved' !== $status) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
             'error_message'    => ('approved' !== $status) ? $raw3DAuthResponseData['ErrMsg'] : null,
-            'transaction_type' => array_search($raw3DAuthResponseData['TxnType'], $this->types, true),
-            'transaction'      => $this->type,
+            'transaction'      => array_search($raw3DAuthResponseData['TxnType'], $this->requestDataMapper->getTxTypeMappings(), true),
+            'transaction_type' => $this->type,
         ];
 
         return (object) array_merge($threeDResponse, $this->map3DCommonResponseData($raw3DAuthResponseData));
@@ -451,7 +451,7 @@ class PayForPos extends AbstractGateway
             'order_id'         => $responseData->TransId,
             'trans_id'         => $responseData->TransId,
             'transaction_type' => $this->type,
-            'transaction'      => $this->type,
+            'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'auth_code'        => $responseData->AuthCode,
             'host_ref_num'     => $responseData->HostRefNum,
             'proc_return_code' => $responseData->ProcReturnCode,
@@ -491,7 +491,7 @@ class PayForPos extends AbstractGateway
             'error_message'    => ('declined' === $status) ? $rawResponseData->ErrMsg : null,
             'host_ref_num'     => $rawResponseData->HostRefNum ?? null,
             'order_status'     => $orderStatus,
-            'process_type'     => isset($rawResponseData->TxnType) ? array_search($rawResponseData->TxnType, $this->types, true) : null,
+            'process_type'     => isset($rawResponseData->TxnType) ? array_search($rawResponseData->TxnType, $this->requestDataMapper->getTxTypeMappings(), true) : null,
             'masked_number'    => $rawResponseData->CardMask ?? null,
             'amount'           => $rawResponseData->PurchAmount ?? null,
             'currency'         => isset($rawResponseData->Currency) ? array_search($rawResponseData->Currency, $this->requestDataMapper->getCurrencyMappings()) : null,

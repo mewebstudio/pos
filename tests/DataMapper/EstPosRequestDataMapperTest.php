@@ -116,7 +116,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $card  = $this->card;
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), 'Auth', $card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $this->assertEquals($expectedData, $actual);
@@ -132,7 +132,7 @@ class EstPosRequestDataMapperTest extends TestCase
 
         $expected = 'mJReAoQNtx0G+nWUGA/BHLx/+BI=';
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), 'Auth');
+        $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY);
         $this->assertEquals($expected, $actual);
     }
 
@@ -154,7 +154,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $pos      = PosFactory::createPosGateway($account);
         $expected = 'zW2HEQR/H0mpo1jrztIgmIPFFEU=';
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($account, $pos->getOrder(), 'Auth');
+        $actual = $this->requestDataMapper->create3DHash($account, $pos->getOrder(), AbstractGateway::TX_PAY);
         $this->assertEquals($expected, $actual);
     }
 
@@ -219,7 +219,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_PAY);
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), 'Auth', $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
 
         $expectedData = $this->getSample3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), $responseData);
         $this->assertEquals($expectedData, $actual);
@@ -256,7 +256,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_PAY);
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), 'Auth', $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
 
         $expectedData = $this->getSample3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), $responseData);
         $this->assertEquals($expectedData, $actual);
@@ -269,8 +269,8 @@ class EstPosRequestDataMapperTest extends TestCase
     public function testGet3DFormData()
     {
         $account = $this->threeDAccount;
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $txType = 'Auth';
+        $txType = AbstractGateway::TX_PAY;
+        $this->pos->prepare($this->order, $txType);
         $hash       = $this->requestDataMapper->create3DHash($account, $this->pos->getOrder(), $txType);
         $card       = $this->card;
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'];
@@ -297,7 +297,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
             $this->pos->getOrder(),
-            'Auth',
+            $txType,
             $gatewayURL
         ));
 
@@ -313,7 +313,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
             $this->pos->getOrder(),
-            'Auth',
+            $txType,
             $gatewayURL,
             $card
         ));
@@ -340,7 +340,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
         $order      = $pos->getOrder();
-        $hash       = $this->requestDataMapper->create3DHash($account, $order, 'Auth');
+        $hash       = $this->requestDataMapper->create3DHash($account, $order, AbstractGateway::TX_PAY);
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway_3d_host']['test'];
         $inputs     = [
             'clientid'  => $account->getClientId(),
@@ -366,7 +366,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $pos->getAccount(),
             $pos->getOrder(),
-            'Auth',
+            AbstractGateway::TX_PAY,
             $gatewayURL
         ));
     }

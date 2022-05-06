@@ -57,7 +57,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'UserCode'                => $account->getUsername(),
             'UserPass'                => $account->getPassword(),
             'ClientId'                => $account->getClientId(),
-            'TxnType'                 => $txType,
+            'TxnType'                 => $this->mapTxType($txType),
             'SecureType'              => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'OrderId'                 => $order->id,
             'PurchAmount'             => $order->amount,
@@ -81,7 +81,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'UserCode'         => $account->getUsername(),
             'UserPass'         => $account->getPassword(),
             'ShopCode'         => $account->getClientId(),
-            'TxnType'          => $txType,
+            'TxnType'          => $this->mapTxType($txType),
             'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'OrderId'          => $order->id,
             'PurchAmount'      => $order->amount,
@@ -110,7 +110,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'UserCode'    => $account->getUsername(),
             'UserPass'    => $account->getPassword(),
             'ShopCode'    => $account->getClientId(),
-            'TxnType'     => $this->txTypeMappings[AbstractGateway::TX_POST_PAY],
+            'TxnType'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'OrderId'     => null,
             'orgOrderId'  => $order->id,
@@ -131,7 +131,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'ShopCode'   => $account->getClientId(),
             'OrderId'    => null, //todo buraya hangi deger verilecek?
             'orgOrderId' => $order->id,
-            'TxnType'    => $this->txTypeMappings[AbstractGateway::TX_STATUS],
+            'TxnType'    => $this->mapTxType(AbstractGateway::TX_STATUS),
             'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'Lang'       => $this->getLang($account, $order),
         ];
@@ -148,7 +148,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'ShopCode'   => $account->getClientId(),
             'OrderId'    => null, //todo buraya hangi deger verilecek?
             'orgOrderId' => $order->id,
-            'TxnType'    => $this->txTypeMappings[AbstractGateway::TX_CANCEL],
+            'TxnType'    => $this->mapTxType(AbstractGateway::TX_CANCEL),
             'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'Lang'       => $this->getLang($account, $order),
         ];
@@ -166,7 +166,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'OrderId'     => null,
             'orgOrderId'  => $order->id,
             'PurchAmount' => $order->amount,
-            'TxnType'     => $this->txTypeMappings[AbstractGateway::TX_REFUND],
+            'TxnType'     => $this->mapTxType(AbstractGateway::TX_REFUND),
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'Lang'        => $this->getLang($account, $order),
             'MOTO'        => self::MOTO,
@@ -191,7 +191,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
 
         $inputs = [
             'ShopCode'         => $account->getClientId(),
-            'TxnType'          => $txType,
+            'TxnType'          => $this->mapTxType($txType),
             'SecureType'       => $this->secureTypeMappings[$account->getModel()],
             'Hash'             => $hash,
             'PurchAmount'      => $order->amount,
@@ -228,7 +228,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             $order->amount,
             $order->success_url,
             $order->fail_url,
-            $txType,
+            $this->mapTxType($txType),
             $order->installment,
             $order->rand,
             $account->getStoreKey(),

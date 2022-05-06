@@ -116,7 +116,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'AddressList' => $this->getOrderAddressData($order),
             ],
             'Transaction' => [
-                'Type'                  => $txType,
+                'Type'                  => $this->mapTxType($txType),
                 'InstallmentCnt'        => $order->installment,
                 'Amount'                => $order->amount,
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
@@ -139,7 +139,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
-        $hash = $this->createHash($account, $order, $this->txTypeMappings[AbstractGateway::TX_POST_PAY], $card);
+        $hash = $this->createHash($account, $order, AbstractGateway::TX_POST_PAY, $card);
 
         return [
             'Mode'        => $this->getMode(),
@@ -153,7 +153,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order->id,
             ],
             'Transaction' => [
-                'Type'              => $this->txTypeMappings[AbstractGateway::TX_POST_PAY],
+                'Type'              => $this->mapTxType(AbstractGateway::TX_POST_PAY),
                 'Amount'            => $order->amount,
                 'CurrencyCode'      => $this->mapCurrency($order->currency),
                 'OriginalRetrefNum' => $order->ref_ret_num,
@@ -168,7 +168,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
-        $hash = $this->createHash($account, $order, $this->txTypeMappings[AbstractGateway::TX_STATUS]);
+        $hash = $this->createHash($account, $order,AbstractGateway::TX_STATUS);
 
         return [
             'Mode'        => $this->getMode(),
@@ -182,7 +182,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order->id,
             ],
             'Transaction' => [
-                'Type'                  => $this->txTypeMappings[AbstractGateway::TX_STATUS],
+                'Type'                  => $this->mapTxType(AbstractGateway::TX_STATUS),
                 'InstallmentCnt'        => $order->installment,
                 'Amount'                => $order->amount,
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
@@ -199,7 +199,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
-        $hash = $this->createHash($account, $order, $this->txTypeMappings[AbstractGateway::TX_CANCEL]);
+        $hash = $this->createHash($account, $order, AbstractGateway::TX_CANCEL);
 
         return [
             'Mode'        => $this->getMode(),
@@ -213,7 +213,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order->id,
             ],
             'Transaction' => [
-                'Type'                  => $this->txTypeMappings[AbstractGateway::TX_CANCEL],
+                'Type'                  => $this->mapTxType(AbstractGateway::TX_CANCEL),
                 'InstallmentCnt'        => $order->installment,
                 'Amount'                => $order->amount, //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
@@ -231,8 +231,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
-        $txType = $this->txTypeMappings[AbstractGateway::TX_REFUND];
-        $hash = $this->createHash($account, $order, $txType);
+        $hash = $this->createHash($account, $order, AbstractGateway::TX_REFUND);
 
         return [
             'Mode'        => $this->getMode(),
@@ -246,7 +245,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order->id,
             ],
             'Transaction' => [
-                'Type'                  => $txType,
+                'Type'                  => $this->mapTxType(AbstractGateway::TX_REFUND),
                 'InstallmentCnt'        => $order->installment,
                 'Amount'                => $order->amount,
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
@@ -264,8 +263,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
-        $txType = $this->txTypeMappings[AbstractGateway::TX_HISTORY];
-        $hash = $this->createHash($account, $order, $txType);
+        $hash = $this->createHash($account, $order, AbstractGateway::TX_HISTORY);
 
         return [
             'Mode'        => $this->getMode(),
@@ -279,7 +277,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order->id,
             ],
             'Transaction' => [
-                'Type'                  => $txType,
+                'Type'                  => $this->mapTxType(AbstractGateway::TX_HISTORY),
                 'InstallmentCnt'        => $order->installment,
                 'Amount'                => $order->amount, //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
@@ -305,7 +303,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'terminaluserid'        => $account->getUsername(),
             'terminalmerchantid'    => $account->getClientId(),
             'terminalid'            => $account->getTerminalId(),
-            'txntype'               => $txType,
+            'txntype'               => $this->mapTxType($txType),
             'txnamount'             => $order->amount,
             'txncurrencycode'       => $this->mapCurrency($order->currency),
             'txninstallmentcount'   => $order->installment,
@@ -343,7 +341,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             $order->amount,
             $order->success_url,
             $order->fail_url,
-            $txType,
+            $this->mapTxType($txType),
             $order->installment,
             $account->getStoreKey(),
             $this->createSecurityData($account, $txType),
@@ -415,7 +413,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      */
     private function createSecurityData(AbstractPosAccount $account, string $txType): string
     {
-        if ($txType === $this->txTypeMappings[AbstractGateway::TX_REFUND] || $txType === $this->txTypeMappings[AbstractGateway::TX_CANCEL]) {
+        if (AbstractGateway::TX_REFUND === $txType || AbstractGateway::TX_CANCEL === $txType) {
             $password = $account->getRefundPassword();
         } else {
             $password = $account->getPassword();

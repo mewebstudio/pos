@@ -159,7 +159,7 @@ class PosNetRequestDataMapperTest extends TestCase
         $card  = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), 'sale', $card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $this->assertEquals($expectedData, $actual);

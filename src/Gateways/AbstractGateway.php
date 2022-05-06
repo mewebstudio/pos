@@ -56,13 +56,6 @@ abstract class AbstractGateway implements PosInterface
     protected $card;
 
     /**
-     * Transaction Types
-     *
-     * @var array
-     */
-    protected $types = [];
-
-    /**
      * Transaction Type
      *
      * @var string
@@ -110,7 +103,6 @@ abstract class AbstractGateway implements PosInterface
     public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
         $this->requestDataMapper              = $requestDataMapper;
-        $this->types                          = $requestDataMapper->getTxTypeMappings();
         $this->cardTypeMapping                = $requestDataMapper->getCardTypeMapping();
         $this->recurringOrderFrequencyMapping = $requestDataMapper->getRecurringOrderFrequencyMapping();
 
@@ -313,11 +305,9 @@ abstract class AbstractGateway implements PosInterface
      */
     public function setTxType(string $txType)
     {
-        if (array_key_exists($txType, $this->types)) {
-            $this->type = $this->types[$txType];
-        } else {
-            throw new UnsupportedTransactionTypeException();
-        }
+        $this->requestDataMapper->mapTxType($txType);
+
+        $this->type = $txType;
     }
 
     /**
@@ -351,9 +341,9 @@ abstract class AbstractGateway implements PosInterface
     public function makeRegularPayment()
     {
         $contents = '';
-        if (in_array($this->type, [$this->types[self::TX_PAY], $this->types[self::TX_PRE_PAY]])) {
+        if (in_array($this->type, [self::TX_PAY, self::TX_PRE_PAY])) {
             $contents = $this->createRegularPaymentXML();
-        } elseif ($this->types[self::TX_POST_PAY] === $this->type) {
+        } elseif (self::TX_POST_PAY === $this->type) {
             $contents = $this->createRegularPostXML();
         }
 
@@ -635,7 +625,7 @@ abstract class AbstractGateway implements PosInterface
             'order_id'         => null,
             'trans_id'         => null,
             'transaction_type' => $this->type,
-            'transaction'      => $this->type,
+            'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'auth_code'        => null,
             'host_ref_num'     => null,
             'proc_return_code' => null,

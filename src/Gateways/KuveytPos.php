@@ -517,7 +517,7 @@ class KuveytPos extends AbstractGateway
             'order_id'             => $orderId,
             'response'             => $response,
             'transaction_type'     => $this->type,
-            'transaction'          => $this->type,
+            'transaction'          => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'transaction_security' => $transactionSecurity,
             'proc_return_code'     => $procReturnCode,
             'code'                 => $procReturnCode,

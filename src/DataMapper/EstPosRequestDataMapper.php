@@ -58,7 +58,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'Name'                    => $account->getUsername(),
             'Password'                => $account->getPassword(),
             'ClientId'                => $account->getClientId(),
-            'Type'                    => $txType,
+            'Type'                    => $this->mapTxType($txType),
             'IPAddress'               => $order->ip ?? null,
             'Email'                   => $order->email,
             'OrderId'                 => $order->id,
@@ -99,7 +99,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
         return $this->getRequestAccountData($account) + [
-            'Type'      => $txType,
+            'Type'      => $this->mapTxType($txType),
             'IPAddress' => $order->ip ?? null,
             'Email'     => $order->email,
             'OrderId'   => $order->id,
@@ -123,7 +123,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
         return $this->getRequestAccountData($account) + [
-            'Type'     => $this->txTypeMappings[AbstractGateway::TX_POST_PAY],
+            'Type'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
             'OrderId'  => $order->id,
         ];
     }
@@ -136,7 +136,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
             'OrderId'  => $order->id,
             'Extra'    => [
-                $this->txTypeMappings[AbstractGateway::TX_STATUS] => 'QUERY',
+                $this->mapTxType(AbstractGateway::TX_STATUS) => 'QUERY',
             ],
         ];
     }
@@ -148,7 +148,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     {
         return $this->getRequestAccountData($account) + [
             'OrderId'  => $order->id,
-            'Type'     => $this->txTypeMappings[AbstractGateway::TX_CANCEL],
+            'Type'     => $this->mapTxType(AbstractGateway::TX_CANCEL),
         ];
     }
 
@@ -160,7 +160,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'OrderId'  => $order->id,
             'Currency' => $this->mapCurrency($order->currency),
-            'Type'     => $this->txTypeMappings[AbstractGateway::TX_REFUND],
+            'Type'     => $this->mapTxType(AbstractGateway::TX_REFUND),
         ];
 
         if (isset($order->amount)) {
@@ -178,7 +178,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'OrderId'  => $extraData['order_id'], //todo orderId ya da id olarak degistirilecek, Payfor'da orderId, Garanti'de id
             'Extra'    => [
-                $this->txTypeMappings[AbstractGateway::TX_HISTORY] => 'QUERY',
+                $this->mapTxType(AbstractGateway::TX_HISTORY) => 'QUERY',
             ],
         ];
 
@@ -210,7 +210,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
 
         if ($account->getModel() === AbstractGateway::MODEL_3D_PAY || $account->getModel() === AbstractGateway::MODEL_3D_HOST) {
             $inputs = array_merge($inputs, [
-                'islemtipi' => $txType,
+                'islemtipi' => $this->mapTxType($txType),
                 'taksit'    => $order->installment,
             ]);
         }
@@ -252,7 +252,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
                 $order->amount,
                 $order->success_url,
                 $order->fail_url,
-                $txType,
+                $this->mapTxType($txType),
                 $order->installment,
                 $order->rand,
                 $account->getStoreKey(),

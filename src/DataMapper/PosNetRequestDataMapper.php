@@ -89,7 +89,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'mid'               => $account->getClientId(),
             'tid'               => $account->getTerminalId(),
             'tranDateRequired'  => '1',
-            strtolower($txType) => [
+            strtolower($this->mapTxType($txType)) => [
                 'orderID'      => self::formatOrderId($order->id),
                 'installment'  => $order->installment,
                 'amount'       => $order->amount,
@@ -101,7 +101,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         ];
 
         if (isset($order->koiCode) && $order->koiCode > 0) {
-            $requestData[strtolower($txType)]['koiCode'] = $order->koiCode;
+            $requestData[strtolower($this->mapTxType($txType))]['koiCode'] = $order->koiCode;
         }
 
         return $requestData;
@@ -118,7 +118,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'mid'                                                           => $account->getClientId(),
             'tid'                                                           => $account->getTerminalId(),
             'tranDateRequired'                                              => '1',
-            strtolower($this->txTypeMappings[AbstractGateway::TX_POST_PAY]) => [
+            strtolower($this->mapTxType(AbstractGateway::TX_POST_PAY)) => [
                 'hostLogKey'   => $order->host_ref_num,
                 'amount'       => $order->amount,
                 'currencyCode' => $this->mapCurrency($order->currency),
@@ -134,10 +134,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
+        $txType = $this->mapTxType(AbstractGateway::TX_STATUS);
+
         return [
-            'mid'                                             => $account->getClientId(),
-            'tid'                                             => $account->getTerminalId(),
-            $this->txTypeMappings[AbstractGateway::TX_STATUS] => [
+            'mid'   => $account->getClientId(),
+            'tid'   => $account->getTerminalId(),
+            $txType => [
                 'orderID' => $order->id,
             ],
         ];
@@ -150,7 +152,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
-        $txType      = $this->txTypeMappings[AbstractGateway::TX_CANCEL];
+        $txType      = $this->mapTxType(AbstractGateway::TX_CANCEL);
         $requestData = [
             'mid'              => $account->getClientId(),
             'tid'              => $account->getTerminalId(),
@@ -181,20 +183,21 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
+        $txType      = $this->mapTxType(AbstractGateway::TX_REFUND);
         $requestData = [
-            'mid'                                             => $account->getClientId(),
-            'tid'                                             => $account->getTerminalId(),
-            'tranDateRequired'                                => '1',
-            $this->txTypeMappings[AbstractGateway::TX_REFUND] => [
+            'mid'              => $account->getClientId(),
+            'tid'              => $account->getTerminalId(),
+            'tranDateRequired' => '1',
+            $txType            => [
                 'amount'       => $order->amount,
                 'currencyCode' => $this->mapCurrency($order->currency),
             ],
         ];
 
         if (isset($order->host_ref_num)) {
-            $requestData[$this->txTypeMappings[AbstractGateway::TX_REFUND]]['hostLogKey'] = $order->host_ref_num;
+            $requestData[$txType]['hostLogKey'] = $order->host_ref_num;
         } else {
-            $requestData[$this->txTypeMappings[AbstractGateway::TX_REFUND]]['orderID'] = $order->id;
+            $requestData[$txType]['orderID'] = $order->id;
         }
 
         return $requestData;

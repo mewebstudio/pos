@@ -228,7 +228,7 @@ class VakifBankPosTest extends TestCase
             'id'               => null,
             'trans_id'         => null,
             'host_ref_num'     => null,
-            'transaction_type' => 'Sale',
+            'transaction_type' => AbstractGateway::TX_PAY,
             'transaction'      => 'Sale',
             'proc_return_code' => null,
             'code'             => null,

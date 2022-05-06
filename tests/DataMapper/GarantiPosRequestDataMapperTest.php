@@ -118,7 +118,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $card  = $this->card;
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), 'sales', $card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $this->assertEquals($expectedData, $actual);
@@ -132,7 +132,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $expected = '1D319D5EA945F5730FF5BCC970FF96690993F4BD';
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), 'sales');
+        $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY);
         $this->assertSame($expected, $actual);
     }
 
@@ -268,7 +268,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
             $this->pos->getOrder(),
-            'sales',
+            AbstractGateway::TX_PAY,
             $gatewayURL,
             $this->card
         ));

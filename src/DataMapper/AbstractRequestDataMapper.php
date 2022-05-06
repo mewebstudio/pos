@@ -6,10 +6,11 @@ namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\AbstractGateway;
 
 /**
- * todo move txType, installment mapping to here from all gateways
+ * todo move installment mapping to here from all gateways
  * AbstractRequestDataMapper
  */
 abstract class AbstractRequestDataMapper
@@ -71,7 +72,7 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount $account
      * @param                    $order
-     * @param string             $txType       mapped value from AbstractGateway::TX_PAY
+     * @param string             $txType       ex: AbstractGateway::TX_PAY
      * @param array              $responseData gateway'den gelen cevap
      *
      * @return array
@@ -81,7 +82,7 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount      $account
      * @param                         $order
-     * @param string                  $txType  mapped value from AbstractGateway::TX_PAY
+     * @param string                  $txType  ex: AbstractGateway::TX_PAY
      * @param AbstractCreditCard|null $card
      *
      * @return array
@@ -124,7 +125,7 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount      $account
      * @param                         $order
-     * @param string                  $txType     mapped value from AbstractGateway::TX_PAY
+     * @param string                  $txType     ex: AbstractGateway::TX_PAY
      * @param string                  $gatewayURL
      * @param AbstractCreditCard|null $card
      *
@@ -221,6 +222,32 @@ abstract class AbstractRequestDataMapper
     public function mapCurrency(string $currency): string
     {
         return $this->currencyMappings[$currency] ?? $currency;
+    }
+
+    /**
+     * @param string $txType
+     *
+     * @return string
+     *
+     * @throws UnsupportedTransactionTypeException
+     */
+    public function mapTxType(string $txType): string
+    {
+        if (!$this->isSupportedTxType($txType)) {
+            throw new UnsupportedTransactionTypeException();
+        }
+
+        return $this->txTypeMappings[$txType];
+    }
+
+    /**
+     * @param string $txType
+     *
+     * @return bool
+     */
+    public function isSupportedTxType(string $txType): bool
+    {
+        return isset($this->txTypeMappings[$txType]);
     }
 
     /**

@@ -119,7 +119,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'UserName'            => $account->getUsername(),
             'CustomerId'          => $account->getCustomerId(),
             'HashData'            => $hash,
-            'TransactionType'     => $txType,
+            'TransactionType'     => $this->mapTxType($txType),
             'TransactionSecurity' => $this->secureTypeMappings[$account->getModel()],
             'InstallmentCount'    => $order->installment,
             'Amount'              => self::amountFormat($order->amount),

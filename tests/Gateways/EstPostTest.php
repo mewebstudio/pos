@@ -125,7 +125,8 @@ class EstPostTest extends TestCase
         $this->assertSame('30', $result['year']);
         $this->assertSame('1.01', $result['amount']);
         $this->assertSame('TRY', $result['currency']);
-        $this->assertSame('Auth', $result['transaction_type']);
+        $this->assertSame('Auth', $result['transaction']);
+        $this->assertSame(AbstractGateway::TX_PAY, $result['transaction_type']);
         $this->assertSame(null, $result['auth_code']);
         $this->assertSame(null, $result['host_ref_num']);
         $this->assertSame(null, $result['status_detail']);
@@ -166,7 +167,8 @@ class EstPostTest extends TestCase
         $this->assertSame('30', $result['year']);
         $this->assertSame('1.01', $result['amount']);
         $this->assertSame('TRY', $result['currency']);
-        $this->assertSame('Auth', $result['transaction_type']);
+        $this->assertSame('Auth', $result['transaction']);
+        $this->assertSame(AbstractGateway::TX_PAY, $result['transaction_type']);
         $this->assertSame(null, $result['auth_code']);
         $this->assertSame(null, $result['host_ref_num']);
         $this->assertSame('general_error', $result['status_detail']);
@@ -207,7 +209,8 @@ class EstPostTest extends TestCase
         $this->assertSame('30', $result['year']);
         $this->assertSame('1.01', $result['amount']);
         $this->assertSame('TRY', $result['currency']);
-        $this->assertSame('Auth', $result['transaction_type']);
+        $this->assertSame('Auth', $result['transaction']);
+        $this->assertSame(AbstractGateway::TX_PAY, $result['transaction_type']);
         $this->assertSame('P65781', $result['auth_code']);
         $this->assertSame('210700616852', $result['host_ref_num']);
         $this->assertSame('approved', $result['status_detail']);
@@ -239,7 +242,8 @@ class EstPostTest extends TestCase
         $this->assertSame('30', $result['year']);
         $this->assertSame('1.01', $result['amount']);
         $this->assertSame('TRY', $result['currency']);
-        $this->assertSame('Auth', $result['transaction_type']);
+        $this->assertSame('Auth', $result['transaction']);
+        $this->assertSame(AbstractGateway::TX_PAY, $result['transaction_type']);
         $this->assertSame(null, $result['auth_code']);
         $this->assertSame(null, $result['host_ref_num']);
         $this->assertSame(null, $result['status_detail']);
@@ -271,7 +275,8 @@ class EstPostTest extends TestCase
         $this->assertSame('30', $result['year']);
         $this->assertSame('1.01', $result['amount']);
         $this->assertSame('TRY', $result['currency']);
-        $this->assertSame('Auth', $result['transaction_type']);
+        $this->assertSame('Auth', $result['transaction']);
+        $this->assertSame(AbstractGateway::TX_PAY, $result['transaction_type']);
         $this->assertSame(null, $result['auth_code']);
         $this->assertSame(null, $result['host_ref_num']);
         $this->assertSame(null, $result['status_detail']);

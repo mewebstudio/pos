@@ -395,7 +395,7 @@ class PosNet extends AbstractGateway
             'trans_id'             => isset($rawPaymentResponseData->authCode) ? $this->printData($rawPaymentResponseData->authCode) : null,
             'response'             => $this->getStatusDetail(),
             'transaction_type'     => $this->type,
-            'transaction'          => $this->type,
+            'transaction'          => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'transaction_security' => $transactionSecurity,
             'auth_code'            => isset($rawPaymentResponseData->authCode) ? $this->printData($rawPaymentResponseData->authCode) : null,
             'host_ref_num'         => isset($rawPaymentResponseData->hostlogkey) ? $this->printData($rawPaymentResponseData->hostlogkey) : null,
@@ -452,7 +452,7 @@ class PosNet extends AbstractGateway
             'trans_id'         => isset($responseData->authCode) ? $this->printData($responseData->authCode) : null,
             'response'         => $this->getStatusDetail(),
             'transaction_type' => $this->type,
-            'transaction'      => $this->type,
+            'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'auth_code'        => isset($responseData->authCode) ? $this->printData($responseData->authCode) : null,
             'host_ref_num'     => isset($responseData->hostlogkey) ? $this->printData($responseData->hostlogkey) : null,
             'ret_ref_num'      => isset($responseData->hostlogkey) ? $this->printData($responseData->hostlogkey) : null,
@@ -489,13 +489,13 @@ class PosNet extends AbstractGateway
         $state = $rawResponseData->state ?? null;
         if ('Sale' === $state) {
             $transaction = 'pay';
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Authorization' === $state) {
             $transaction = 'pre';
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Capture' === $state) {
             $transaction = 'post';
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         }
 
         return (object) [
@@ -566,15 +566,15 @@ class PosNet extends AbstractGateway
         if ('Sale' === $state) {
             $transaction = 'pay';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Authorization' === $state) {
             $transaction = 'pre';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Capture' === $state) {
             $transaction = 'post';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Bonus_Reverse' === $state) {
             $state = 'cancel';
         } else {
@@ -660,15 +660,15 @@ class PosNet extends AbstractGateway
         if ('Sale' === $state) {
             $transaction = 'pay';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Authorization' === $state) {
             $transaction = 'pre';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Capture' === $state) {
             $transaction = 'post';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Bonus_Reverse' === $state) {
             $state = 'cancel';
         } else {
