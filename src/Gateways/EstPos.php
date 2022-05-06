@@ -337,14 +337,19 @@ class EstPos extends AbstractGateway
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
             'amount'               => $raw3DAuthResponseData['amount'],
             'currency'             => array_search($raw3DAuthResponseData['currency'], $this->requestDataMapper->getCurrencyMappings()),
-            'eci'                  => $raw3DAuthResponseData['eci'],
+            'eci'                  => null,
             'tx_status'            => null,
-            'cavv'                 => $raw3DAuthResponseData['cavv'],
+            'cavv'                 => null,
             'xid'                  => $raw3DAuthResponseData['oid'],
             'md_error_message'     => 'Authenticated' !== $raw3DAuthResponseData['mdErrorMsg'] ? $raw3DAuthResponseData['mdErrorMsg'] : null,
             'name'                 => $raw3DAuthResponseData['firmaadi'],
             '3d_all'               => $raw3DAuthResponseData,
         ];
+
+        if ('Authenticated' === $raw3DAuthResponseData['mdErrorMsg']) {
+            $threeDResponse['eci'] = $raw3DAuthResponseData['eci'];
+            $threeDResponse['cavv'] = $raw3DAuthResponseData['cavv'];
+        }
 
         return (object) $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
     }
