@@ -694,7 +694,7 @@ class EstPos extends AbstractGateway
     {
         return (object) [
             'id'       => $order['id'],
-            'currency' => $order['currency'],
+            'currency' => $order['currency'] ?? 'TRY',
             'amount'   => $order['amount'],
         ];
     }

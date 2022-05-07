@@ -539,7 +539,7 @@ class GarantiPos extends AbstractGateway
         return (object) [
             'id'          => $order['id'],
             'ref_ret_num' => $order['ref_ret_num'],
-            'currency'    => $order['currency'],
+            'currency'    => $order['currency'] ?? 'TRY',
             'amount'      => $this->requestDataMapper::amountFormat($order['amount']),
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
@@ -554,7 +554,7 @@ class GarantiPos extends AbstractGateway
         return (object) [
             'id'          => $order['id'],
             'amount'      => $this->requestDataMapper::amountFormat(1), //sabit deger gonderilmesi gerekiyor
-            'currency'    => $order['currency'],
+            'currency'    => $order['currency'] ?? 'TRY',
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
             'installment' => 0,
@@ -577,7 +577,7 @@ class GarantiPos extends AbstractGateway
         return (object) [
             'id'          => $order['id'],
             'amount'      => $this->requestDataMapper::amountFormat(1), //sabit deger gonderilmesi gerekiyor
-            'currency'    => $order['currency'],
+            'currency'    => $order['currency'] ?? 'TRY',
             'ref_ret_num' => $order['ref_ret_num'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',

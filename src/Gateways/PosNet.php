@@ -709,7 +709,7 @@ class PosNet extends AbstractGateway
             'id'          => $this->requestDataMapper::formatOrderId($order['id']),
             'installment' => $order['installment'] ?? 0,
             'amount'      => $this->requestDataMapper::amountFormat($order['amount']),
-            'currency'    => $order['currency'],
+            'currency'    => $order['currency'] ?? 'TRY',
         ]);
     }
 
@@ -769,7 +769,7 @@ class PosNet extends AbstractGateway
             'id'           => isset($order['id']) ? $this->requestDataMapper::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()) : null,
             'host_ref_num' => $order['host_ref_num'] ?? null,
             'amount'       => $this->requestDataMapper::amountFormat($order['amount']),
-            'currency'     => $order['currency'],
+            'currency'     => $order['currency'] ?? 'TRY',
         ];
     }
 }

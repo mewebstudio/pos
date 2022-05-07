@@ -414,7 +414,7 @@ class VakifBankPos extends AbstractGateway
         return (object) [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'currency' => $order['currency'],
+            'currency' => $order['currency'] ?? 'TRY',
             'ip'       => $order['ip'],
         ];
     }
