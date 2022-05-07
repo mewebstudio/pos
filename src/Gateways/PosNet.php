@@ -309,6 +309,43 @@ class PosNet extends AbstractGateway
     }
 
     /**
+     * Check 3D Hash
+     *
+     * @param array $data
+     *
+     * @return bool
+     */
+    public function check3DHash(array $data): bool
+    {
+        if (!($this->crypt instanceof PosNetCrypt)) {
+            return false;
+        }
+        $decryptedString = $this->crypt->decrypt($data['MerchantPacket'], $this->account->getStoreKey());
+        if (!$decryptedString) {
+            return false;
+        }
+        $decryptedData = explode(';', $decryptedString);
+
+        $originalData = array_map('strval', [
+            $this->account->getClientId(),
+            $this->account->getTerminalId(),
+            $this->order->amount,
+            ((int) $this->order->installment),
+            $this->requestDataMapper::formatOrderId($this->order->id),
+        ]);
+
+        $decryptedDataList = array_map('strval', [
+            $decryptedData[0],
+            $decryptedData[1],
+            $decryptedData[2],
+            ((int) $decryptedData[3]),
+            $decryptedData[4],
+        ]);
+
+        return $originalData === $decryptedDataList;
+    }
+
+    /**
      * Get ProcReturnCode
      *
      * @return string|null
@@ -328,43 +365,6 @@ class PosNet extends AbstractGateway
         $procReturnCode = $this->getProcReturnCode();
 
         return isset($this->codes[$procReturnCode]) ? (string) $this->codes[$procReturnCode] : null;
-    }
-
-
-    /**
-     * Check 3D Hash
-     *
-     * @param array $data
-     *
-     * @return bool
-     */
-    protected function check3DHash(array $data): bool
-    {
-        if ($this->crypt instanceof PosNetCrypt) {
-            $decryptedString = $this->crypt->decrypt($data['MerchantPacket'], $this->account->getStoreKey());
-
-            $decryptedData = explode(';', $decryptedString);
-
-            $originalData = array_map('strval', [
-                $this->account->getClientId(),
-                $this->account->getTerminalId(),
-                $this->order->amount,
-                ((int) $this->order->installment),
-                $this->requestDataMapper::formatOrderId($this->order->id),
-            ]);
-
-            $decryptedDataList = array_map('strval', [
-                $decryptedData[0],
-                $decryptedData[1],
-                $decryptedData[2],
-                ((int) $decryptedData[3]),
-                $decryptedData[4],
-            ]);
-
-            return $originalData === $decryptedDataList;
-        }
-
-        return false;
     }
 
     /**
