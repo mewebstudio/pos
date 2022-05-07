@@ -92,7 +92,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             strtolower($this->mapTxType($txType)) => [
                 'orderID'      => self::formatOrderId($order->id),
                 'installment'  => $this->mapInstallment($order->installment),
-                'amount'       => $order->amount,
+                'amount'       => self::amountFormat($order->amount),
                 'currencyCode' => $this->mapCurrency($order->currency),
                 'ccno'         => $card->getNumber(),
                 'expDate'      => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
@@ -120,7 +120,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'tranDateRequired'                                              => '1',
             strtolower($this->mapTxType(AbstractGateway::TX_POST_PAY)) => [
                 'hostLogKey'   => $order->host_ref_num,
-                'amount'       => $order->amount,
+                'amount'       => self::amountFormat($order->amount),
                 'currencyCode' => $this->mapCurrency($order->currency),
                 'installment'  => $this->mapInstallment($order->installment),
             ],
@@ -189,7 +189,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'tid'              => $account->getTerminalId(),
             'tranDateRequired' => '1',
             $txType            => [
-                'amount'       => $order->amount,
+                'amount'       => self::amountFormat($order->amount),
                 'currencyCode' => $this->mapCurrency($order->currency),
             ],
         ];
@@ -265,7 +265,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'ccno'           => $card->getNumber(),
                 'expDate'        => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'cvc'            => $card->getCvv(),
-                'amount'         => $order->amount,
+                'amount'         => self::amountFormat($order->amount),
                 'currencyCode'   => $this->mapCurrency($order->currency),
                 'installment'    => $this->mapInstallment($order->installment),
                 'XID'            => self::formatOrderId($order->id),
@@ -307,7 +307,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         if ($account->getModel() === AbstractGateway::MODEL_3D_SECURE || $account->getModel() === AbstractGateway::MODEL_3D_PAY) {
             $secondHashData = [
                 self::formatOrderId($order->id),
-                $order->amount,
+                self::amountFormat($order->amount),
                 $this->mapCurrency($order->currency),
                 $account->getClientId(),
                 $this->createSecurityData($account),

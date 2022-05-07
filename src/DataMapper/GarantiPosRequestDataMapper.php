@@ -118,7 +118,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Transaction' => [
                 'Type'                  => $this->mapTxType($txType),
                 'InstallmentCnt'        => $this->mapInstallment($order->installment),
-                'Amount'                => $order->amount,
+                'Amount'                => self::amountFormat($order->amount),
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
@@ -154,7 +154,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
             'Transaction' => [
                 'Type'              => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-                'Amount'            => $order->amount,
+                'Amount'            => self::amountFormat($order->amount),
                 'CurrencyCode'      => $this->mapCurrency($order->currency),
                 'OriginalRetrefNum' => $order->ref_ret_num,
             ],
@@ -168,7 +168,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
-        $hash = $this->createHash($account, $order,AbstractGateway::TX_STATUS);
+        $hash = $this->createHash($account, $order, AbstractGateway::TX_STATUS);
 
         return [
             'Mode'        => $this->getMode(),
@@ -184,7 +184,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_STATUS),
                 'InstallmentCnt'        => $this->mapInstallment($order->installment),
-                'Amount'                => $order->amount,
+                'Amount'                => self::amountFormat($order->amount), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
@@ -215,7 +215,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_CANCEL),
                 'InstallmentCnt'        => $this->mapInstallment($order->installment),
-                'Amount'                => $order->amount, //sabit olarak amount 100 gonderilecek
+                'Amount'                => self::amountFormat($order->amount), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
@@ -247,7 +247,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_REFUND),
                 'InstallmentCnt'        => $this->mapInstallment($order->installment),
-                'Amount'                => $order->amount,
+                'Amount'                => self::amountFormat($order->amount), //sabit olarak amount 100 gonderilecek,
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
@@ -279,7 +279,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_HISTORY),
                 'InstallmentCnt'        => $this->mapInstallment($order->installment),
-                'Amount'                => $order->amount, //sabit olarak amount 100 gonderilecek
+                'Amount'                => self::amountFormat($order->amount), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
@@ -304,7 +304,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'terminalmerchantid'    => $account->getClientId(),
             'terminalid'            => $account->getTerminalId(),
             'txntype'               => $this->mapTxType($txType),
-            'txnamount'             => $order->amount,
+            'txnamount'             => self::amountFormat($order->amount),
             'txncurrencycode'       => $this->mapCurrency($order->currency),
             'txninstallmentcount'   => $this->mapInstallment($order->installment),
             'orderid'               => $order->id,
@@ -338,7 +338,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         $map = [
             $account->getTerminalId(),
             $order->id,
-            $order->amount,
+            self::amountFormat($order->amount),
             $order->success_url,
             $order->fail_url,
             $this->mapTxType($txType),
@@ -366,7 +366,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             $order->id,
             $account->getTerminalId(),
             isset($card) ? $card->getNumber() : null,
-            $order->amount,
+            self::amountFormat($order->amount),
             $this->createSecurityData($account, $txType),
         ];
 

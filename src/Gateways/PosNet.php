@@ -227,7 +227,7 @@ class PosNet extends AbstractGateway
             $secondHashData = [
                 $data->mdStatus,
                 $this->requestDataMapper::formatOrderId($order->id),
-                $order->amount,
+                $this->requestDataMapper::amountFormat($order->amount),
                 $this->requestDataMapper->mapCurrency($order->currency),
                 $account->getClientId(),
                 $this->requestDataMapper->createSecurityData($account),
@@ -329,7 +329,7 @@ class PosNet extends AbstractGateway
         $originalData = array_map('strval', [
             $this->account->getClientId(),
             $this->account->getTerminalId(),
-            $this->order->amount,
+            $this->requestDataMapper::amountFormat($this->order->amount),
             $this->order->installment,
             $this->requestDataMapper::formatOrderId($this->order->id),
         ]);
@@ -708,7 +708,7 @@ class PosNet extends AbstractGateway
         return (object) array_merge($order, [
             'id'          => $this->requestDataMapper::formatOrderId($order['id']),
             'installment' => $order['installment'] ?? 0,
-            'amount'      => $this->requestDataMapper::amountFormat($order['amount']),
+            'amount'      => $order['amount'],
             'currency'    => $order['currency'] ?? 'TRY',
         ]);
     }
@@ -720,7 +720,7 @@ class PosNet extends AbstractGateway
     {
         return (object) [
             'id'           => $this->requestDataMapper::formatOrderId($order['id']),
-            'amount'       => $this->requestDataMapper::amountFormat($order['amount']),
+            'amount'       => $order['amount'],
             'installment'  => $order['installment'] ?? 0,
             'currency'     => $order['currency'] ?? 'TRY',
             'host_ref_num' => $order['host_ref_num'],
@@ -768,7 +768,7 @@ class PosNet extends AbstractGateway
             //id or host_ref_num
             'id'           => isset($order['id']) ? $this->requestDataMapper::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()) : null,
             'host_ref_num' => $order['host_ref_num'] ?? null,
-            'amount'       => $this->requestDataMapper::amountFormat($order['amount']),
+            'amount'       => $order['amount'],
             'currency'     => $order['currency'] ?? 'TRY',
         ];
     }

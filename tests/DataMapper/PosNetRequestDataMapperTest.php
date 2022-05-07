@@ -468,7 +468,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'tranDateRequired' => '1',
             'capt'             => [
                 'hostLogKey'   => $order->host_ref_num,
-                'amount'       => $order->amount,
+                'amount'       => 1002,
                 'currencyCode' => 'TL',
                 'installment'  => '02',
             ],
