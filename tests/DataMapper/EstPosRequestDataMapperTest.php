@@ -89,6 +89,23 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @param string|int|null $installment
+     * @param string|int      $expected
+     *
+     * @testWith ["0", ""]
+     *           ["1", ""]
+     *           ["2", 2]
+     *           [2, 2]
+     *
+     * @return void
+     */
+    public function testMapInstallment($installment, $expected)
+    {
+        $actual = $this->requestDataMapper->mapInstallment($installment);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
      * @return void
      */
     public function testCreateNonSecurePostAuthPaymentRequestData()
@@ -237,7 +254,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'user_id'                   => '1535',
             'ip'                        => '192.168.1.0',
             'amount'                    => 100.01,
-            'installment'               => '',
+            'installment'               => 0,
             'currency'                  => 'TRY',
             'success_url'               => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'                  => 'http://localhost/finansbank-payfor/3d/response.php',

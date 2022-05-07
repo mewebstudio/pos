@@ -91,13 +91,21 @@ class PosNetRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @param string|int|null $installment
+     * @param string|int      $expected
+     *
+     * @testWith ["0", "00"]
+     *           ["1", "00"]
+     *           ["2", "02"]
+     *           ["2", "02"]
+     *           ["12", "12"]
+     *
      * @return void
      */
-    public function testFormatInstallment()
+    public function testMapInstallment($installment, $expected)
     {
-        $this->assertSame('00', PosNetRequestDataMapper::formatInstallment(0));
-        $this->assertSame('00', PosNetRequestDataMapper::formatInstallment(1));
-        $this->assertSame('02', PosNetRequestDataMapper::formatInstallment(2));
+        $actual = $this->requestDataMapper->mapInstallment($installment);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -462,7 +470,7 @@ class PosNetRequestDataMapperTest extends TestCase
                 'hostLogKey'   => $order->host_ref_num,
                 'amount'       => $order->amount,
                 'currencyCode' => 'TL',
-                'installment'  => $order->installment,
+                'installment'  => '02',
             ],
         ];
     }

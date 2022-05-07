@@ -121,7 +121,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'HashData'            => $hash,
             'TransactionType'     => $this->mapTxType($txType),
             'TransactionSecurity' => $this->secureTypeMappings[$account->getModel()],
-            'InstallmentCount'    => $order->installment,
+            'InstallmentCount'    => $this->mapInstallment($order->installment),
             'Amount'              => self::amountFormat($order->amount),
             //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
             'DisplayAmount'       => self::amountFormat($order->amount),
@@ -223,6 +223,14 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
         throw new NotImplementedException();
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function mapInstallment(?int $installment)
+    {
+        return $installment > 1 ? $installment : 0;
     }
 
     /**

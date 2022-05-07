@@ -86,7 +86,7 @@ class GarantiPosTest extends TestCase
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $this->assertEquals($this->card, $this->pos->getCard());
         $this->assertSame(10025, $this->pos->getOrder()->amount);
-        $this->assertSame('', $this->pos->getOrder()->installment);
+        $this->assertSame(0, $this->pos->getOrder()->installment);
     }
 
     /**

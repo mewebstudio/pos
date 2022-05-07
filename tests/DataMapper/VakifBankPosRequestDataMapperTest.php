@@ -92,6 +92,23 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @param string|int|null $installment
+     * @param string|int      $expected
+     *
+     * @testWith ["0", 0]
+     *           ["1", 0]
+     *           ["2", 2]
+     *           [2, 2]
+     *
+     * @return void
+     */
+    public function testMapInstallment($installment, $expected)
+    {
+        $actual = $this->requestDataMapper->mapInstallment($installment);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
      * @return void
      */
     public function testCreate3DPaymentRequestData()
@@ -281,7 +298,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
             'TransactionDeviceSource' => 0,
         ];
         if ($order->installment) {
-            $expectedValue['NumberOfInstallments'] = $order->installment;
+            $expectedValue['NumberOfInstallments'] = $this->requestDataMapper->mapInstallment($order->installment);
         }
 
         return $expectedValue;
@@ -314,7 +331,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         ];
 
         if ($order->installment) {
-            $expectedValue['InstallmentCount'] = $order->installment;
+            $expectedValue['InstallmentCount'] = $this->requestDataMapper->mapInstallment($order->installment);
         }
 
         if (isset($order->recurringFrequency)) {

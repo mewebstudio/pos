@@ -463,15 +463,9 @@ class InterPos extends AbstractGateway
      */
     protected function preparePaymentOrder(array $order)
     {
-        // Installment
-        $installment = '';
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = (int) $order['installment'];
-        }
-
         return (object) array_merge($order, [
-            'installment' => $installment,
-            'currency'    => $order['currency'],
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
         ]);
     }
 

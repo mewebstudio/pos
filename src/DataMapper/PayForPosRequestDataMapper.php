@@ -75,7 +75,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'TxnType'          => $this->mapTxType($txType),
             'PurchAmount'      => $order->amount,
             'Currency'         => $this->mapCurrency($order->currency),
-            'InstallmentCount' => $order->installment,
+            'InstallmentCount' => $this->mapInstallment($order->installment),
             'Lang'             => $this->getLang($account, $order),
             'CardHolderName'   => $card->getHolderName(),
             'Pan'              => $card->getNumber(),
@@ -199,7 +199,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'SecureType'       => $this->secureTypeMappings[$account->getModel()],
             'TxnType'          => $this->mapTxType($txType),
             'PurchAmount'      => $order->amount,
-            'InstallmentCount' => $order->installment,
+            'InstallmentCount' => $this->mapInstallment($order->installment),
             'Currency'         => $this->mapCurrency($order->currency),
             'OkUrl'            => $order->success_url,
             'FailUrl'          => $order->fail_url,
@@ -232,12 +232,20 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             $order->success_url,
             $order->fail_url,
             $this->mapTxType($txType),
-            $order->installment,
+            $this->mapInstallment($order->installment),
             $order->rand,
             $account->getStoreKey(),
         ];
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function mapInstallment(?int $installment)
+    {
+        return $installment > 1 ? $installment : 0;
     }
 }

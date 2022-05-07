@@ -10,7 +10,6 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\AbstractGateway;
 
 /**
- * todo move installment mapping to here from all gateways
  * AbstractRequestDataMapper
  */
 abstract class AbstractRequestDataMapper
@@ -257,6 +256,13 @@ abstract class AbstractRequestDataMapper
     {
         return $this->recurringOrderFrequencyMapping;
     }
+
+    /**
+     * @param int|null $installment
+     *
+     * @return int|string
+     */
+    abstract public function mapInstallment(?int $installment);
 
     /**
      * @param string $str

@@ -85,6 +85,23 @@ class InterPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @param string|int|null $installment
+     * @param string|int      $expected
+     *
+     * @testWith ["0", ""]
+     *           ["1", ""]
+     *           ["2", 2]
+     *           [2, 2]
+     *
+     * @return void
+     */
+    public function testMapInstallment($installment, $expected)
+    {
+        $actual = $this->requestDataMapper->mapInstallment($installment);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
      * @return void
      */
     public function testCreateNonSecurePostAuthPaymentRequestData()
@@ -159,7 +176,7 @@ class InterPosRequestDataMapperTest extends TestCase
         $order        = [
             'id'          => '2020110828BC',
             'amount'      => 100.01,
-            'installment' => '',
+            'installment' => 0,
             'currency'    => 'TRY',
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
@@ -340,7 +357,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'OrderId'                 => $order->id,
             'PurchAmount'             => $order->amount,
             'Currency'                => '949',
-            'InstallmentCount'        => $order->installment,
+            'InstallmentCount'        => '',
             'MD'                      => $responseData['MD'],
             'PayerTxnId'              => $responseData['PayerTxnId'],
             'Eci'                     => $responseData['Eci'],
@@ -388,7 +405,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'OrderId'          => $order->id,
             'PurchAmount'      => $order->amount,
             'Currency'         => '949',
-            'InstallmentCount' => $order->installment,
+            'InstallmentCount' => '',
             'MOTO'             => '0',
             'Lang'             => $order->lang,
         ];

@@ -522,16 +522,9 @@ class GarantiPos extends AbstractGateway
      */
     protected function preparePaymentOrder(array $order)
     {
-        // Installment
-        $installment = '';
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = $order['installment'];
-        }
-
-        // Order
         return (object) array_merge($order, [
-            'installment' => $installment,
-            'currency'    => $order['currency'],
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
             'amount'      => $this->requestDataMapper::amountFormat($order['amount']),
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
@@ -564,7 +557,7 @@ class GarantiPos extends AbstractGateway
             'currency'    => $order['currency'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
-            'installment' => '',
+            'installment' => 0,
         ];
     }
 
@@ -588,7 +581,7 @@ class GarantiPos extends AbstractGateway
             'ref_ret_num' => $order['ref_ret_num'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
-            'installment' => '',
+            'installment' => 0,
         ];
     }
 

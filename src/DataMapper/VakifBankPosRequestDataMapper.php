@@ -77,7 +77,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         ];
 
         if ($order->installment) {
-            $requestData['NumberOfInstallments'] = $order->installment;
+            $requestData['NumberOfInstallments'] = $this->mapInstallment($order->installment);
         }
 
         return $requestData;
@@ -107,7 +107,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'IsRecurring'               => 'false',
         ];
         if ($order->installment) {
-            $requestData['InstallmentCount'] = $order->installment;
+            $requestData['InstallmentCount'] = $this->mapInstallment($order->installment);
         }
         if (isset($order->extraData)) {
             $requestData['SessionInfo'] = $order->extraData;
@@ -266,5 +266,13 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     public static function amountFormat(float $amount): string
     {
         return number_format($amount, 2, '.', '');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function mapInstallment(?int $installment)
+    {
+        return $installment > 1 ? $installment : 0;
     }
 }

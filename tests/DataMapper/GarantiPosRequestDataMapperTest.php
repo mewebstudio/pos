@@ -93,6 +93,23 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @param string|int|null $installment
+     * @param string|int      $expected
+     *
+     * @testWith ["0", ""]
+     *           ["1", ""]
+     *           ["2", 2]
+     *           [2, 2]
+     *
+     * @return void
+     */
+    public function testMapInstallment($installment, $expected)
+    {
+        $actual = $this->requestDataMapper->mapInstallment($installment);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
      * @return void
      */
     public function testCreateNonSecurePostAuthPaymentRequestData()
@@ -246,7 +263,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'txntype'               => 'sales',
             'txnamount'             => 10025,
             'txncurrencycode'       => '949',
-            'txninstallmentcount'   => $order->installment,
+            'txninstallmentcount'   => '',
             'orderid'               => $this->order['id'],
             'successurl'            => $this->order['success_url'],
             'errorurl'              => $this->order['fail_url'],
@@ -355,7 +372,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Transaction' => [
                 'Type'                  => $responseData['txntype'],
-                'InstallmentCnt'        => $order->installment,
+                'InstallmentCnt'        => '',
                 'Amount'                => $responseData['txnamount'],
                 'CurrencyCode'          => $responseData['txncurrencycode'],
                 'CardholderPresentCode' => '13',
@@ -397,7 +414,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Transaction' => [
                 'Type'                  => 'void',
-                'InstallmentCnt'        => $order->installment,
+                'InstallmentCnt'        => '',
                 'Amount'                => 100,
                 'CurrencyCode'          => '949',
                 'CardholderPresentCode' => '0',
@@ -454,7 +471,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Transaction' => [
                 'Type'                  => 'sales',
-                'InstallmentCnt'        => $order->installment,
+                'InstallmentCnt'        => '',
                 'Amount'                => 10025,
                 'CurrencyCode'          => 949,
                 'CardholderPresentCode' => '0',

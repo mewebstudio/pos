@@ -65,7 +65,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'UserId'                  => $order->user_id ?? null,
             'Total'                   => $order->amount,
             'Currency'                => $this->mapCurrency($order->currency),
-            'Taksit'                  => $order->installment,
+            'Taksit'                  => $this->mapInstallment($order->installment),
             'Number'                  => $responseData['md'],
             'PayerTxnId'              => $responseData['xid'],
             'PayerSecurityLevel'      => $responseData['eci'],
@@ -106,7 +106,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'UserId'    => $order->user_id ?? null,
             'Total'     => $order->amount,
             'Currency'  => $this->mapCurrency($order->currency),
-            'Taksit'    => $order->installment,
+            'Taksit'    => $this->mapInstallment($order->installment),
             'Number'    => $card->getNumber(),
             'Expires'   => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
             'Cvv2Val'   => $card->getCvv(),
@@ -206,7 +206,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'rnd'       => $order->rand,
             'lang'      => $this->getLang($account, $order),
             'currency'  => $this->mapCurrency($order->currency),
-            'taksit'    => $order->installment,
+            'taksit'    => $this->mapInstallment($order->installment),
             'islemtipi' => $this->mapTxType($txType),
         ];
 
@@ -236,7 +236,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             $order->success_url,
             $order->fail_url,
             $this->mapTxType($txType),
-            $order->installment,
+            $this->mapInstallment($order->installment),
             $order->rand,
             $account->getStoreKey(),
         ];
@@ -244,6 +244,14 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function mapInstallment(?int $installment)
+    {
+        return $installment > 1 ? $installment : '';
     }
 
     /**

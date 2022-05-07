@@ -62,7 +62,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'OrderId'                 => $order->id,
             'PurchAmount'             => $order->amount,
             'Currency'                => $this->mapCurrency($order->currency),
-            'InstallmentCount'        => $order->installment,
+            'InstallmentCount'        => $this->mapInstallment($order->installment),
             'MD'                      => $responseData['MD'],
             'PayerTxnId'              => $responseData['PayerTxnId'],
             'Eci'                     => $responseData['Eci'],
@@ -86,7 +86,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'OrderId'          => $order->id,
             'PurchAmount'      => $order->amount,
             'Currency'         => $this->mapCurrency($order->currency),
-            'InstallmentCount' => $order->installment,
+            'InstallmentCount' => $this->mapInstallment($order->installment),
             'MOTO'             => self::MOTO,
             'Lang'             => $this->getLang($account, $order),
         ];
@@ -201,7 +201,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'Rnd'              => $order->rand,
             'Lang'             => $this->getLang($account, $order),
             'Currency'         => $this->mapCurrency($order->currency),
-            'InstallmentCount' => $order->installment,
+            'InstallmentCount' => $this->mapInstallment($order->installment),
         ];
 
         if ($card) {
@@ -229,7 +229,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             $order->success_url,
             $order->fail_url,
             $this->mapTxType($txType),
-            $order->installment,
+            $this->mapInstallment($order->installment),
             $order->rand,
             $account->getStoreKey(),
         ];
@@ -237,5 +237,13 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function mapInstallment(?int $installment)
+    {
+        return $installment > 1 ? $installment : '';
     }
 }

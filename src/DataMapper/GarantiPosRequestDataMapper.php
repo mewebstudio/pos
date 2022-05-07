@@ -72,7 +72,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
             'Transaction' => [
                 'Type'                  => $responseData['txntype'],
-                'InstallmentCnt'        => $order->installment,
+                'InstallmentCnt'        => $this->mapInstallment($order->installment),
                 'Amount'                => $responseData['txnamount'],
                 'CurrencyCode'          => $responseData['txncurrencycode'],
                 'CardholderPresentCode' => '13', //13 for 3D secure payment
@@ -117,7 +117,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType($txType),
-                'InstallmentCnt'        => $order->installment,
+                'InstallmentCnt'        => $this->mapInstallment($order->installment),
                 'Amount'                => $order->amount,
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
                 'CardholderPresentCode' => '0',
@@ -183,7 +183,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_STATUS),
-                'InstallmentCnt'        => $order->installment,
+                'InstallmentCnt'        => $this->mapInstallment($order->installment),
                 'Amount'                => $order->amount,
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
                 'CardholderPresentCode' => '0',
@@ -214,7 +214,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_CANCEL),
-                'InstallmentCnt'        => $order->installment,
+                'InstallmentCnt'        => $this->mapInstallment($order->installment),
                 'Amount'                => $order->amount, //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
                 'CardholderPresentCode' => '0',
@@ -246,7 +246,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_REFUND),
-                'InstallmentCnt'        => $order->installment,
+                'InstallmentCnt'        => $this->mapInstallment($order->installment),
                 'Amount'                => $order->amount,
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
                 'CardholderPresentCode' => '0',
@@ -278,7 +278,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_HISTORY),
-                'InstallmentCnt'        => $order->installment,
+                'InstallmentCnt'        => $this->mapInstallment($order->installment),
                 'Amount'                => $order->amount, //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order->currency),
                 'CardholderPresentCode' => '0',
@@ -306,7 +306,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'txntype'               => $this->mapTxType($txType),
             'txnamount'             => $order->amount,
             'txncurrencycode'       => $this->mapCurrency($order->currency),
-            'txninstallmentcount'   => $order->installment,
+            'txninstallmentcount'   => $this->mapInstallment($order->installment),
             'orderid'               => $order->id,
             'successurl'            => $order->success_url,
             'errorurl'              => $order->fail_url,
@@ -342,7 +342,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             $order->success_url,
             $order->fail_url,
             $this->mapTxType($txType),
-            $order->installment,
+            $this->mapInstallment($order->installment),
             $account->getStoreKey(),
             $this->createSecurityData($account, $txType),
         ];
@@ -371,6 +371,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         ];
 
         return $this->hashString(implode(static::HASH_SEPARATOR, $map));
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function mapInstallment(?int $installment)
+    {
+        return $installment > 1 ? $installment : '';
     }
 
     /**

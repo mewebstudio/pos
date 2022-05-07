@@ -91,7 +91,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'tranDateRequired'  => '1',
             strtolower($this->mapTxType($txType)) => [
                 'orderID'      => self::formatOrderId($order->id),
-                'installment'  => $order->installment,
+                'installment'  => $this->mapInstallment($order->installment),
                 'amount'       => $order->amount,
                 'currencyCode' => $this->mapCurrency($order->currency),
                 'ccno'         => $card->getNumber(),
@@ -122,7 +122,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'hostLogKey'   => $order->host_ref_num,
                 'amount'       => $order->amount,
                 'currencyCode' => $this->mapCurrency($order->currency),
-                'installment'  => $order->installment,
+                'installment'  => $this->mapInstallment($order->installment),
             ],
         ];
     }
@@ -267,7 +267,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'cvc'            => $card->getCvv(),
                 'amount'         => $order->amount,
                 'currencyCode'   => $this->mapCurrency($order->currency),
-                'installment'    => $order->installment,
+                'installment'    => $this->mapInstallment($order->installment),
                 'XID'            => self::formatOrderId($order->id),
                 'cardHolderName' => $card->getHolderName(),
                 'tranType'       => $txType,
@@ -352,22 +352,6 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * formats installment in 00, 02, 06 format
-     *
-     * @param int|string $installment
-     *
-     * @return string
-     */
-    public static function formatInstallment($installment): string
-    {
-        if ($installment > 1) {
-            return str_pad($installment, 2, '0', STR_PAD_LEFT);
-        }
-
-        return '00';
-    }
-
-    /**
      * Get PrefixedOrderId
      * To check the status of an order or cancel/refund order Yapikredi
      * - requires the order length to be 24
@@ -406,5 +390,18 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         }
 
         return str_pad($orderId, $padLength, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * formats installment in 00, 02, 06 format
+     * @inheritdoc
+     */
+    public function mapInstallment(?int $installment)
+    {
+        if ($installment > 1) {
+            return str_pad($installment, 2, '0', STR_PAD_LEFT);
+        }
+
+        return '00';
     }
 }

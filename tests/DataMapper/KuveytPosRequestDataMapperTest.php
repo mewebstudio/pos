@@ -88,6 +88,23 @@ class KuveytPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @param string|int|null $installment
+     * @param string|int      $expected
+     *
+     * @testWith ["0", 0]
+     *           ["1", 0]
+     *           ["2", 2]
+     *           [2, 2]
+     *
+     * @return void
+     */
+    public function testMapInstallment($installment, $expected)
+    {
+        $actual = $this->requestDataMapper->mapInstallment($installment);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
      * @return void
      */
     public function testCompose3DFormData()

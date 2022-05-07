@@ -642,20 +642,14 @@ class EstPos extends AbstractGateway
      */
     protected function preparePaymentOrder(array $order)
     {
-        // Installment
-        $installment = '';
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = (int) $order['installment'];
-        }
-
         if (isset($order['recurringFrequency'])) {
             $order['recurringFrequencyType'] = $this->mapRecurringFrequency($order['recurringFrequencyType']);
         }
 
         // Order
         return (object) array_merge($order, [
-            'installment' => $installment,
-            'currency'    => $order['currency'],
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
         ]);
     }
 

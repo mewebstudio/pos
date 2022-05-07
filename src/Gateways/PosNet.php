@@ -330,7 +330,7 @@ class PosNet extends AbstractGateway
             $this->account->getClientId(),
             $this->account->getTerminalId(),
             $this->order->amount,
-            ((int) $this->order->installment),
+            $this->order->installment,
             $this->requestDataMapper::formatOrderId($this->order->id),
         ]);
 
@@ -705,15 +705,9 @@ class PosNet extends AbstractGateway
      */
     protected function preparePaymentOrder(array $order)
     {
-        // Installment
-        $installment = 0;
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = $order['installment'];
-        }
-
         return (object) array_merge($order, [
             'id'          => $this->requestDataMapper::formatOrderId($order['id']),
-            'installment' => $this->requestDataMapper::formatInstallment($installment),
+            'installment' => $order['installment'] ?? 0,
             'amount'      => $this->requestDataMapper::amountFormat($order['amount']),
             'currency'    => $order['currency'],
         ]);
@@ -724,17 +718,11 @@ class PosNet extends AbstractGateway
      */
     protected function preparePostPaymentOrder(array $order)
     {
-        // Installment
-        $installment = 0;
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = $order['installment'];
-        }
-
         return (object) [
             'id'           => $this->requestDataMapper::formatOrderId($order['id']),
             'amount'       => $this->requestDataMapper::amountFormat($order['amount']),
-            'installment'  => $this->requestDataMapper::formatInstallment($installment),
-            'currency'     => $order['currency'],
+            'installment'  => $order['installment'] ?? 0,
+            'currency'     => $order['currency'] ?? 'TRY',
             'host_ref_num' => $order['host_ref_num'],
         ];
     }

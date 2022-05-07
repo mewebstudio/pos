@@ -85,25 +85,6 @@ class EstPostTest extends TestCase
     }
 
     /**
-     * @param string|null $installment
-     * @param string      $expected
-     *
-     * @testWith ["", ""]
-     *           ["0", ""]
-     *           ["1", ""]
-     *           ["2", "2"]
-     *
-     * @return void
-     */
-    public function testPreparePaymentOrder(?string $installment, string $expected)
-    {
-        $this->order['installment'] = $installment;
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $preparedOrder = $this->pos->getOrder();
-        $this->assertEquals($expected, $preparedOrder->installment);
-    }
-
-    /**
      * @return void
      */
     public function testCheck3DHash()
