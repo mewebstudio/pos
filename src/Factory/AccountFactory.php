@@ -21,8 +21,8 @@ class AccountFactory
 {
     /**
      * @param string      $bank
-     * @param string      $clientId
-     * @param string      $username
+     * @param string      $clientId     Üye iş yeri numarası
+     * @param string      $kullaniciAdi
      * @param string      $password
      * @param string      $model
      * @param string|null $storeKey
@@ -32,11 +32,11 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createEstPosAccount(string $bank, string $clientId, string $username, string $password, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = AbstractGateway::LANG_TR): EstPosAccount
+    public static function createEstPosAccount(string $bank, string $clientId, string $kullaniciAdi, string $password, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = AbstractGateway::LANG_TR): EstPosAccount
     {
         self::checkParameters($model, $storeKey);
 
-        return new EstPosAccount($bank, $model, $clientId, $username, $password, $lang, $storeKey);
+        return new EstPosAccount($bank, $model, $clientId, $kullaniciAdi, $password, $lang, $storeKey);
     }
 
     /**
@@ -61,9 +61,9 @@ class AccountFactory
 
     /**
      * @param string      $bank
-     * @param string      $clientId
-     * @param string      $username
-     * @param string      $password
+     * @param string      $merchantId     Üye işyeri Numarası
+     * @param string      $userId
+     * @param string      $password       Terminal UserID şifresi
      * @param string      $terminalId
      * @param string      $model
      * @param string|null $storeKey
@@ -75,11 +75,11 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createGarantiPosAccount(string $bank, string $clientId, string $username, string $password, string $terminalId, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, ?string $refundUsername = null, ?string $refundPassword = null, string $lang = AbstractGateway::LANG_TR): GarantiPosAccount
+    public static function createGarantiPosAccount(string $bank, string $merchantId, string $userId, string $password, string $terminalId, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, ?string $refundUsername = null, ?string $refundPassword = null, string $lang = AbstractGateway::LANG_TR): GarantiPosAccount
     {
         self::checkParameters($model, $storeKey);
 
-        return new GarantiPosAccount($bank, $model, $clientId, $username, $password, $lang, $terminalId, $storeKey, $refundUsername, $refundPassword);
+        return new GarantiPosAccount($bank, $model, $merchantId, $userId, $password, $lang, $terminalId, $storeKey, $refundUsername, $refundPassword);
     }
 
 
@@ -124,9 +124,9 @@ class AccountFactory
 
     /**
      * @param string $bank
-     * @param string $clientId
-     * @param string $password
-     * @param string $terminalId
+     * @param string $merchantId    Üye işyeri numarası
+     * @param string $password      Üye işyeri şifres
+     * @param string $terminalNo    İşlemin hangi terminal üzerinden gönderileceği bilgisi. VB007000...
      * @param string $model
      * @param int    $merchantType
      * @param null   $subMerchantId
@@ -135,11 +135,11 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createVakifBankAccount(string $bank, string $clientId, string $password, string $terminalId, string $model = AbstractGateway::MODEL_NON_SECURE, int $merchantType = VakifBankAccount::MERCHANT_TYPE_STANDARD, $subMerchantId = null): VakifBankAccount
+    public static function createVakifBankAccount(string $bank, string $merchantId, string $password, string $terminalNo, string $model = AbstractGateway::MODEL_NON_SECURE, int $merchantType = VakifBankAccount::MERCHANT_TYPE_STANDARD, $subMerchantId = null): VakifBankAccount
     {
         self::checkVakifBankMerchantType($merchantType, $subMerchantId);
 
-        return new VakifBankAccount($bank, $model, $clientId, $password, $terminalId, $merchantType, $subMerchantId);
+        return new VakifBankAccount($bank, $model, $merchantId, $password, $terminalNo, $merchantType, $subMerchantId);
     }
 
     /**
