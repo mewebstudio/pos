@@ -17,17 +17,17 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - **Kuveyt POS** 3d secure ödeme desteği eklenmiştir, test edildikçe, sorunları bulundukça hatalar giderilecek.
 
 ### Ana başlıklar
-- [Özellikler](#zellikler)
+- [Özellikler](#ozellikler)
 - [Latest updates](#latest-updates)
 - [Minimum Gereksinimler](#minimum-gereksinimler)
 - [Kurulum](#kurulum)
-- [Farklı Banka Sanal Poslarını Eklemek](#farkl-gatewayler-tek-ilem-ak)
-- [Örnek Kodlar](#rnek-kodlar)
+- [Farklı Banka Sanal Poslarını Eklemek](#farkli-gatewayler-tek-islem-akisi)
+- [Örnek Kodlar](#ornek-kodlar)
 - [Troubleshoots](#troubleshoots)
 - [Genel Kültür](#genel-kultur)
 - [Docker ile test ortamı](#docker-ile-test-ortami)
 
-### Özellikler
+### Ozellikler
   - Standart E-Commerce modeliyle ödeme (`AbstractGateway::MODEL_NON_SECURE`)
   - 3D Secure modeliyle ödeme (`AbstractGateway::MODEL_3D_SECURE`)
   - 3D Pay modeliyle ödeme (`AbstractGateway::MODEL_3D_PAY`)
@@ -37,7 +37,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - Sipariş/Para iadesi yapma (`AbstractGateway::TX_REFUND`)
   - Sipariş iptal etme (`AbstractGateway::TX_CANCEL`)
 
-#### Farklı Gateway'ler Tek işlem akışı
+#### Farkli Gateway'ler Tek islem akisi
 * Farklı bankaya geçiş yapmak için sadece doğru `AccountFactory` method'u kullanarak account degistirmek yeterli.
 * **3D**, **3DPay**, **3DHost** ödemeler arasında geçiş yapmak için tek yapmanız gereken Account konfigurasyonunda account tipini değiştirmek (`AbstractGateway::MODEL_3D_PAY` vs.). İşlem akışı aynı olduğu için kod değiştirmenize gerek kalmıyor.
 * Aynı tip işlem için farklı POS Gateway'lerden dönen değerler aynı formata normalize edilmiş durumda. Yani kod güncellemenize gerek yok.
@@ -170,7 +170,7 @@ $pos->isSuccess();
 dump($pos->getResponse());
 //response içeriği için /examples/template/_payment_response.php dosyaya bakınız.
 ````
-### Farklı Banka Sanal Poslarını Eklemek
+### Farkli Banka Sanal Poslarini Eklemek
 Kendi projenizin dizinindeyken
 ```sh
 $ cp ./vendor/mews/pos/config/pos.php ./pos_ayarlar.php
@@ -230,7 +230,7 @@ $yeni_ayarlar = require './pos_ayarlar.php';
 $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeni_ayarlar);
 ```
 
-## Örnek Kodlar
+## Ornek Kodlar
 `/examples` dizini içerisinde.
 
 3D ödeme örnek kodlar genel olarak kart bilgilerini website sunucusuna POST eder (`index.php` => `form.php`),
@@ -253,7 +253,7 @@ Shared hosting'lerde Cpanel'de gördüğünüz IP'den farklı olarak fiziksel su
 O IP adres Cpanel'de gözükmez, hosting firmanızdan sorup öğrenmeniz gerekmekte.
 Bu hatayı alırsanız hosting firmanın verdiği IP adrese'de banka gateway'i tarafından izin verilmesini sağlayın.
 
-## Genel Kültür
+## Genel Kultur
 ### NonSecure, 3D Secure, 3DPay ve 3DHost ödeme modeller arasındaki farklar
 - **3D** - Bankaya göre farklı isimler verilebilir, örn. 3D Full. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödemeyi tamamlamak için banka gateway'ne 1 istek daha (_provizyon_ isteği) gönderir.
 Bu isteği göndermeden ödeme tamamlanmaz.
@@ -287,7 +287,7 @@ Belli bir süre _içinde_ (örn. 12 saat)  yapılması gerekir. Gateway'ler tara
 Genel olarak _miktar_ bilgisi _istenmez_, ancak bazı Gateway'ler ister.
 İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_CANCEL`
 
-## Docker ile test ortamı
+## Docker ile test ortami
 Makinenizde Docker kurulu olmasi gerekiyor.
 Projenin root klasöründe `docker-compose up` komutu çalıştırmanız yeterli.
 **Note**: localhost port 80 boş olması gerekiyor.
