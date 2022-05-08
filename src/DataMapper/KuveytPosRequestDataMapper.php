@@ -62,6 +62,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * Amount Formatter
      * converts 100 to 10000, or 10.01 to 1001
+     *
      * @param float $amount
      *
      * @return int
@@ -72,18 +73,17 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param KuveytPosAccount $account
+     *
      * @inheritDoc
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
         $hash = $this->create3DHash($account, $order, $txType, true);
 
-        return [
+        return $this->getRequestAccountData($account) + [
             'APIVersion'                   => self::API_VERSION,
             'HashData'                     => $hash,
-            'MerchantId'                   => $account->getClientId(),
-            'CustomerId'                   => $account->getCustomerId(),
-            'UserName'                     => $account->getUsername(),
             'CustomerIPAddress'            => $order->ip,
             'KuveytTurkVPosAdditionalData' => [
                 'AdditionalData' => [
@@ -113,11 +113,8 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $hash = $this->create3DHash($account, $order, $txType);
 
-        $inputs = [
+        $inputs = $this->getRequestAccountData($account) + [
             'APIVersion'          => self::API_VERSION,
-            'MerchantId'          => $account->getClientId(),
-            'UserName'            => $account->getUsername(),
-            'CustomerId'          => $account->getCustomerId(),
             'HashData'            => $hash,
             'TransactionType'     => $this->mapTxType($txType),
             'TransactionSecurity' => $this->secureTypeMappings[$account->getModel()],
@@ -268,6 +265,20 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             $order->fail_url,
             $account->getUsername(),
             $hashedPassword,
+        ];
+    }
+
+    /**
+     * @param KuveytPosAccount $account
+     *
+     * @return array
+     */
+    private function getRequestAccountData(AbstractPosAccount $account): array
+    {
+        return [
+            'MerchantId' => $account->getClientId(),
+            'CustomerId' => $account->getCustomerId(),
+            'UserName'   => $account->getUsername(),
         ];
     }
 }

@@ -64,11 +64,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
-        return [
+        return $this->getRequestAccountData($account) + [
             'MbrId'            => self::MBR_ID,
-            'MerchantId'       => $account->getClientId(),
-            'UserCode'         => $account->getUsername(),
-            'UserPass'         => $account->getPassword(),
             'MOTO'             => self::MOTO,
             'OrderId'          => $order->id,
             'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
@@ -89,11 +86,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
-        return  [
+        return $this->getRequestAccountData($account) + [
             'MbrId'       => self::MBR_ID,
-            'MerchantId'  => $account->getClientId(),
-            'UserCode'    => $account->getUsername(),
-            'UserPass'    => $account->getPassword(),
             'OrgOrderId'  => $order->id,
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
@@ -108,11 +102,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
-        return [
+        return $this->getRequestAccountData($account) + [
             'MbrId'      => self::MBR_ID,
-            'MerchantId' => $account->getClientId(),
-            'UserCode'   => $account->getUsername(),
-            'UserPass'   => $account->getPassword(),
             'OrgOrderId' => $order->id,
             'SecureType' => 'Inquiry',
             'Lang'       => $this->getLang($account, $order),
@@ -125,11 +116,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
-        return [
+        return $this->getRequestAccountData($account) + [
             'MbrId'      => self::MBR_ID,
-            'MerchantId' => $account->getClientId(),
-            'UserCode'   => $account->getUsername(),
-            'UserPass'   => $account->getPassword(),
             'OrgOrderId' => $order->id,
             'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'    => $this->mapTxType(AbstractGateway::TX_CANCEL),
@@ -143,11 +131,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
-        return [
+        return $this->getRequestAccountData($account) + [
             'MbrId'       => self::MBR_ID,
-            'MerchantId'  => $account->getClientId(),
-            'UserCode'    => $account->getUsername(),
-            'UserPass'    => $account->getPassword(),
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'Lang'        => $this->getLang($account, $order),
             'OrgOrderId'  => $order->id,
@@ -164,9 +149,6 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $requestData = [
             'MbrId'      => self::MBR_ID,
-            'MerchantId' => $account->getClientId(),
-            'UserCode'   => $account->getUsername(),
-            'UserPass'   => $account->getPassword(),
             'SecureType' => 'Report',
             'TxnType'    => $this->mapTxType(AbstractGateway::TX_HISTORY),
             'Lang'       => $this->getLang($account, $order),
@@ -179,7 +161,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['ReqDate'] = $extraData['reqDate'];
         }
 
-        return $requestData;
+        return $this->getRequestAccountData($account) + $requestData;
     }
 
 
@@ -247,5 +229,19 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     public function mapInstallment(?int $installment)
     {
         return $installment > 1 ? $installment : 0;
+    }
+
+    /**
+     * @param AbstractPosAccount $account
+     *
+     * @return array
+     */
+    private function getRequestAccountData(AbstractPosAccount $account): array
+    {
+        return [
+            'MerchantId' => $account->getClientId(),
+            'UserCode'   => $account->getUsername(),
+            'UserPass'   => $account->getPassword(),
+        ];
     }
 }

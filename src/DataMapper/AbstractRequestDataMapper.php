@@ -135,7 +135,7 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount $account
      * @param                    $order
-     * @param string             $txType  mapped value from AbstractGateway::TX_PAY
+     * @param string             $txType  ex: AbstractGateway::TX_PAY
      *
      * @return string
      */

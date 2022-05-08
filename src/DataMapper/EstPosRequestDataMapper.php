@@ -54,10 +54,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
-        $requestData = [
-            'Name'                    => $account->getUsername(),
-            'Password'                => $account->getPassword(),
-            'ClientId'                => $account->getClientId(),
+        $requestData = $this->getRequestAccountData($account) + [
             'Type'                    => $this->mapTxType($txType),
             'IPAddress'               => $order->ip ?? null,
             'Email'                   => $order->email,

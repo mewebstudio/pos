@@ -55,10 +55,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData, ?AbstractCreditCard $card = null): array
     {
-        $requestData = [
-            'MerchantId'              => $account->getClientId(),
-            'Password'                => $account->getPassword(),
-            'TerminalNo'              => $account->getTerminalId(),
+        $requestData = $this->getRequestAccountData($account) + [
             'TransactionType'         => $this->mapTxType($txType),
             'TransactionId'           => $order->id,
             'CurrencyAmount'          => self::amountFormat($order->amount),
@@ -142,10 +139,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
-        $requestData = [
-            'MerchantId'              => $account->getClientId(),
-            'Password'                => $account->getPassword(),
-            'TerminalNo'              => $account->getTerminalId(),
+        $requestData = $this->getRequestAccountData($account) + [
             'TransactionType'         => $this->mapTxType($txType),
             'OrderId'                 => $order->id,
             'CurrencyAmount'          => self::amountFormat($order->amount),
@@ -172,10 +166,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
-        return [
-            'MerchantId'             => $account->getClientId(),
-            'Password'               => $account->getPassword(),
-            'TerminalNo'             => $account->getTerminalId(),
+        return $this->getRequestAccountData($account) + [
             'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
             'ReferenceTransactionId' => $order->id,
             'CurrencyAmount'         => self::amountFormat($order->amount),
@@ -274,5 +265,19 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     public function mapInstallment(?int $installment)
     {
         return $installment > 1 ? $installment : 0;
+    }
+
+    /**
+     * @param VakifBankAccount $account
+     *
+     * @return array
+     */
+    private function getRequestAccountData(AbstractPosAccount $account): array
+    {
+        return [
+            'MerchantId' => $account->getClientId(),
+            'Password'   => $account->getPassword(),
+            'TerminalNo' => $account->getTerminalId(),
+        ];
     }
 }
