@@ -11,7 +11,7 @@ $userCode =  '';
 $userPass = '';
 $shopCode = '3123';
 $merchantPass = 'gDg1N';
-
+//account bilgileri kendi account bilgilerinizle degistiriniz
 $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount(
     'denizbank',
     $shopCode,

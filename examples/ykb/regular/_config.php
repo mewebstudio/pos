@@ -3,7 +3,7 @@
 require '../_payment_config.php';
 
 $baseUrl = $bankTestsUrl.'/regular/';
-
+//account bilgileri kendi account bilgilerinizle degistiriniz
 $account = \Mews\Pos\Factory\AccountFactory::createPosNetAccount(
     'yapikredi',
     '6706598320',

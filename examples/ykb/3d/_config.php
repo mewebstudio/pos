@@ -6,7 +6,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 require '../_payment_config.php';
 
 $baseUrl = $bankTestsUrl.'/3d/';
-
+//account bilgileri kendi account bilgilerinizle degistiriniz
 $account = AccountFactory::createPosNetAccount(
     'yapikredi',
     '6706598320',

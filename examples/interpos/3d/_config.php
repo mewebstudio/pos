@@ -5,7 +5,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 require '../_payment_config.php';
 
 $baseUrl = $bankTestsUrl.'/3d/';
-
+//account bilgileri kendi account bilgilerinizle degistiriniz
 $userCode =  'InterTestApi';
 $userPass = '3';
 $shopCode = '3123';
