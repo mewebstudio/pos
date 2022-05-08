@@ -24,8 +24,8 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - [Farklı Banka Sanal Poslarını Eklemek](#farkl-gatewayler-tek-ilem-ak)
 - [Örnek Kodlar](#rnek-kodlar)
 - [Troubleshoots](#troubleshoots)
-- [Genel Kültür](#genel-kltr)
-- [Docker ile test ortamı](#docker-ile-test-ortam)
+- [Genel Kültür](#genel-kultur)
+- [Docker ile test ortamı](#docker-ile-test-ortami)
 
 ### Özellikler
   - Standart E-Commerce modeliyle ödeme (`AbstractGateway::MODEL_NON_SECURE`)
