@@ -140,7 +140,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'mid'   => $account->getClientId(),
             'tid'   => $account->getTerminalId(),
             $txType => [
-                'orderID' => $order->id,
+                'orderID' => self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel()),
             ],
         ];
     }
@@ -170,7 +170,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         if (isset($order->host_ref_num)) {
             $requestData[$txType]['hostLogKey'] = $order->host_ref_num;
         } else {
-            $requestData[$txType]['orderID'] = $order->id;
+            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
         }
 
         return $requestData;
@@ -197,7 +197,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         if (isset($order->host_ref_num)) {
             $requestData[$txType]['hostLogKey'] = $order->host_ref_num;
         } else {
-            $requestData[$txType]['orderID'] = $order->id;
+            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
         }
 
         return $requestData;

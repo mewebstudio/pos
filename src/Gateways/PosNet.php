@@ -706,7 +706,7 @@ class PosNet extends AbstractGateway
     protected function preparePaymentOrder(array $order)
     {
         return (object) array_merge($order, [
-            'id'          => $this->requestDataMapper::formatOrderId($order['id']),
+            'id'          => $order['id'],
             'installment' => $order['installment'] ?? 0,
             'amount'      => $order['amount'],
             'currency'    => $order['currency'] ?? 'TRY',
@@ -719,7 +719,7 @@ class PosNet extends AbstractGateway
     protected function preparePostPaymentOrder(array $order)
     {
         return (object) [
-            'id'           => $this->requestDataMapper::formatOrderId($order['id']),
+            'id'           => $order['id'],
             'amount'       => $order['amount'],
             'installment'  => $order['installment'] ?? 0,
             'currency'     => $order['currency'] ?? 'TRY',
@@ -733,7 +733,7 @@ class PosNet extends AbstractGateway
     protected function prepareStatusOrder(array $order)
     {
         return (object) [
-            'id' => $this->requestDataMapper::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()),
+            'id' => $order['id'],
         ];
     }
 
@@ -752,7 +752,7 @@ class PosNet extends AbstractGateway
     {
         return (object) [
             //id or host_ref_num
-            'id'           => isset($order['id']) ? $this->requestDataMapper::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()) : null,
+            'id'           => $order['id'] ?? null,
             'host_ref_num' => $order['host_ref_num'] ?? null,
             //optional
             'auth_code'    => $order['auth_code'] ?? null,
@@ -766,7 +766,7 @@ class PosNet extends AbstractGateway
     {
         return (object) [
             //id or host_ref_num
-            'id'           => isset($order['id']) ? $this->requestDataMapper::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()) : null,
+            'id'           => $order['id'] ?? null,
             'host_ref_num' => $order['host_ref_num'] ?? null,
             'amount'       => $order['amount'],
             'currency'     => $order['currency'] ?? 'TRY',

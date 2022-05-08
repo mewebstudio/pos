@@ -423,7 +423,7 @@ class PosNetRequestDataMapperTest extends TestCase
         if (isset($order->host_ref_num)) {
             $requestData['reverse']['hostLogKey'] = $order->host_ref_num;
         } else {
-            $requestData['reverse']['orderID'] = $order->id;
+            $requestData['reverse']['orderID'] = 'TDSC000000002020110828BC';
         }
 
         return $requestData;
@@ -487,7 +487,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'mid'       => $account->getClientId(),
             'tid'       => $account->getTerminalId(),
             'agreement' => [
-                'orderID' => $order->id,
+                'orderID' => 'TDSC000000002020110828BC',
             ],
         ];
     }
@@ -513,7 +513,7 @@ class PosNetRequestDataMapperTest extends TestCase
         if (isset($order->host_ref_num)) {
             $requestData['return']['hostLogKey'] = $order->host_ref_num;
         } else {
-            $requestData['return']['orderID'] = $order->id;
+            $requestData['return']['orderID'] = 'TDSC000000002020110828BC';
         }
 
         return $requestData;
