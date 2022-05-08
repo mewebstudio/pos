@@ -351,7 +351,7 @@ class InterPosRequestDataMapperTest extends TestCase
         return [
             'UserCode'                => $account->getUsername(),
             'UserPass'                => $account->getPassword(),
-            'ClientId'                => $account->getClientId(),
+            'ShopCode'                => $account->getClientId(),
             'TxnType'                 => 'Auth',
             'SecureType'              => 'NonSecure',
             'OrderId'                 => $order->id,

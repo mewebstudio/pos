@@ -56,7 +56,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'UserCode'                => $account->getUsername(),
             'UserPass'                => $account->getPassword(),
-            'ClientId'                => $account->getClientId(),
+            'ShopCode'                => $account->getClientId(),
             'TxnType'                 => $this->mapTxType($txType),
             'SecureType'              => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'OrderId'                 => $order->id,
