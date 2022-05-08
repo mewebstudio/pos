@@ -74,20 +74,6 @@ class EstPos extends AbstractGateway
     }
 
     /**
-     * Create 3D Hash
-     *
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param string             $txType
-     *
-     * @return string
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
-    {
-        return $this->requestDataMapper->create3DHash($account, $order, $txType);
-    }
-
-    /**
      * Check 3D Hash
      *
      * @param array $data
