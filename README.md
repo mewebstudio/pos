@@ -68,7 +68,7 @@ Projenin root klasoründe bu satırı çalıştırmanız gerekiyor
 $ ./vendor/bin/phpunit tests
 ```
 
-
+### Örnek ödeme kodu
 **config.php (Ayar dosyası)**
 ```php
 <?php
@@ -96,7 +96,7 @@ try {
 }
 ```
  
-**form.php (kullanıcıdan kredi kart bilgileri alındıktan sonra)**
+**form.php (kullanıcıdan kredi kart bilgileri alındıktan sonra çalışacak kod)**
 ```php
 <?php
 
@@ -148,7 +148,7 @@ try {
     dd($e);
 }
 ````
-**response.php (gateway'den döndükten sonra)**
+**response.php (gateway'den döndükten sonra çalışacak kod)**
 ```php
 <?php
 
@@ -265,27 +265,27 @@ Bu isteği göndermeden ödeme tamamlanmaz.
 ### Otorizasyon, Ön Otorizasyon, Ön Provizyon Kapama İşlemler arasındaki farklar
 - **Otorizasyon** - bildiğimiz ve genel olarak kullandığımız işlem. Tek seferde ödeme işlemi biter.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
-İşlemin kütüphanedeli karşılığı `AbstractGateway::TX_PAY`
+İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_PAY`
 - **Ön Otorizasyon** - müşteriden parayı direk çekmek yerine, işlem sonucunda para bloke edilir.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
-İşlemin kütüphanedeli karşılığı `AbstractGateway::TX_PRE_PAY`
+İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_PRE_PAY`
 - **Ön Provizyon Kapama** - ön provizyon sonucunda bloke edilen miktarın satışını tamamlar.
 Ön otorizasyon yapıldıktan sonra, örneğin 1 hafta sonra, Post Otorizasyon isteği gönderilebilinir.
 Bu işlem için kullanıcıdan kredi kart bilgisi _alınmaz_.
-Onun yerine bazı gateway'ler `orderId` degeri isteri, bazıları ise ön provizyon sonucu ödenen banka tarafındaki `orderId`'yi ister.
-Satıcı _ön otorizasyon_ isteği iptal etmek isterse de `cancel` (Post Otorizasyon) isteği gönderir.
-Post Otorizasyon İşlemin kütüphanedeli karşılığı `AbstractGateway::TX_POST_PAY`
+Onun yerine bazı gateway'ler `orderId` degeri isteri, bazıları ise ön provizyon sonucu dönen banka tarafındaki `orderId`'yi ister.
+Satıcı _ön otorizasyon_ isteği iptal etmek isterse de `cancel` isteği gönderir.
+Post Otorizasyon İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_POST_PAY`
 - Bu 3 çeşit işlemler bütün ödeme modelleri (NonSecure, 3D, 3DPay ve 3DHost) tarafından desteklenir.
 
 ### Refund ve Cancel işlemler arasındaki farklar
 - **Refund** - Tamamlanan ödemeyi iade etmek için kullanılır.
 Bu işlemi yapabilmek için ödeme yapıldıktan belli bir süre _sonra_ (örn. 12 saat) yapılabilir.
 İade işlemi için _miktar zorunlu_, çünkü ödenen ve iade edilen miktarı aynı olmayabilir.
-İşlemin kütüphanedeli karşılığı `AbstractGateway::TX_REFUND`
+İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_REFUND`
 - **Cancel** - Tamamlanan ödemeyi iptal etmek için kullanılır.
 Belli bir süre _içinde_ (örn. 12 saat)  yapılması gerekir. Gateway'ler tarafında değişen bu süreyi geçerse `refund` işlemi kullanmak zorundasınız.
 Genel olarak _miktar_ bilgisi _istenmez_, ancak bazı Gateway'ler ister.
-İşlemin kütüphanedeli karşılığı `AbstractGateway::TX_CANCEL`
+İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_CANCEL`
 
 ## Docker ile test ortamı
 Makinenizde Docker kurulu olmasi gerekiyor.
