@@ -1,9 +1,14 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
+use Mews\Pos\DataMapper\PosNetRequestDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -14,29 +19,8 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PosNet extends AbstractGateway
 {
-    const LANG_TR = 'tr';
-    const LANG_EN = 'en';
-
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
-
-    /**
-     * PosNet requires order id with specific length
-     */
-    private const ORDER_ID_LENGTH = 20;
-    /**
-     * order Id total length including prefix;
-     */
-    private const ORDER_ID_TOTAL_LENGTH = 24;
-    private const ORDER_ID_3D_PREFIX = 'TDSC';
-    private const ORDER_ID_3D_PAY_PREFIX = '';  //?
-    private const ORDER_ID_REGULAR_PREFIX = '';  //?
-
     protected const HASH_ALGORITHM = 'sha256';
     protected const HASH_SEPARATOR = ';';
-
-    /**
-     * @const string
-     */
     public const NAME = 'PosNet';
 
     /**
@@ -69,68 +53,32 @@ class PosNet extends AbstractGateway
         '0444' => 'bank_call',
     ];
 
-    /**
-     * Transaction Types
-     *
-     * @var array
-     */
-    protected $types = [
-        self::TX_PAY      => 'Sale',
-        self::TX_PRE_PAY  => 'Auth',
-        self::TX_POST_PAY => 'Capt',
-        self::TX_CANCEL   => 'reverse',
-        self::TX_REFUND   => 'return',
-        self::TX_STATUS   => 'agreement',
-    ];
+    /** @var PosNetAccount */
+    protected $account;
 
-    /**
-     * Fixed Currencies
-     * @var array
-     */
-    protected $currencies = [
-        'TRY' => 'TL',
-        'USD' => 'US',
-        'EUR' => 'EU',
-        'GBP' => 'GB',
-        'JPY' => 'JP',
-        'RUB' => 'RU',
-    ];
-
-    /**
-     * API Account
-     *
-     * @var PosNetAccount
-     */
-    protected $account = [];
-
-    /**
-     * @var AbstractCreditCard|null
-     */
+    /** @var AbstractCreditCard|null */
     protected $card;
 
-    /**
-     * Request
-     *
-     * @var Request
-     */
+    /** @var Request */
     protected $request;
 
-    /**
-     * @var PosNetCrypt|null
-     */
-    public $crypt;
+    /** @var PosNetCrypt|null */
+    private $crypt;
+
+    /** @var PosNetRequestDataMapper */
+    protected $requestDataMapper;
 
     /**
      * PosNet constructor.
+     * @inheritdoc
      *
-     * @param array         $config
      * @param PosNetAccount $account
-     * @param array         $currencies
      */
-    public function __construct($config, $account, array $currencies)
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
         $this->crypt = new PosNetCrypt();
-        parent::__construct($config, $account, $currencies);
+
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**
@@ -151,59 +99,34 @@ class PosNet extends AbstractGateway
 
     /**
      * Get OOS transaction data
-     *
+     * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
      * @return object
      *
      * @throws GuzzleException
      */
     public function getOosTransactionData()
     {
-        $requestData = $this->getOosTransactionRequestData($this->account, $this->card, $this->order, $this->type);
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->type, $this->card);
         $xml = $this->createXML($requestData);
 
         return $this->send($xml);
     }
 
     /**
-     * @param PosNetAccount      $account
-     * @param AbstractCreditCard $card
-     * @param                    $order
-     * @param string             $txType
-     *
-     * @return array
-     */
-    public function getOosTransactionRequestData(PosNetAccount $account, AbstractCreditCard $card, $order, string $txType): array
-    {
-        if (null === $card->getHolderName() && isset($order->name)) {
-            $card->setHolderName($order->name);
-        }
-
-        return [
-            'mid'            => $account->getClientId(),
-            'tid'            => $account->getTerminalId(),
-            'oosRequestData' => [
-                'posnetid'       => $account->getPosNetId(),
-                'ccno'           => $card->getNumber(),
-                'expDate'        => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-                'cvc'            => $card->getCvv(),
-                'amount'         => $order->amount,
-                'currencyCode'   => $order->currency,
-                'installment'    => $order->installment,
-                'XID'            => self::formatOrderId($order->id),
-                'cardHolderName' => $card->getHolderName(),
-                'tranType'       => $txType,
-            ],
-        ];
-    }
-
-    /**
+     * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
     public function make3DPayment(Request $request)
     {
         $bankResponse = null;
         if ($this->check3DHash($request->request->all())) {
-            $contents = $this->create3DResolveMerchantDataXML($request->request->all());
+            $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
+                $this->account,
+                $this->order,
+                $request->request->all()
+            );
+
+            $contents = $this->createXML($requestData);
             $bankResponse = $this->send($contents);
         } else {
             goto end;
@@ -249,30 +172,13 @@ class PosNet extends AbstractGateway
         }
 
         $data = $this->getOosTransactionData();
-        if (!$data->approved) {
-            throw new \Exception($data->respText, $data->respCode);
+        $data = parent::emptyStringsToNull($data);
+
+        if ('0' === $data['approved']) {
+            throw new \Exception($data['respText'], $data['respCode']);
         }
 
-        $inputs = [
-            'posnetData'        => $data->oosRequestDataResponse->data1 ?? '',
-            'posnetData2'       => $data->oosRequestDataResponse->data2 ?? '',
-            'mid'               => $this->account->getClientId(),
-            'posnetID'          => $this->account->getPosNetId(),
-            'digest'            => $data->oosRequestDataResponse->sign ?? '',
-            'vftCode'           => $this->account->promotion_code ?? null,
-            'merchantReturnURL' => $this->order->success_url,
-            'url'               => '',
-            'lang'              => $this->getLang(),
-        ];
-
-        if (isset($this->order->koiCode) && $this->order->koiCode > 0) {
-            $inputs['useJokerVadaa'] = 1;
-        }
-
-        return [
-            'gateway' => $this->get3DGatewayURL(),
-            'inputs'  => $inputs,
-        ];
+        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card, $data['oosRequestDataResponse']);
     }
 
     /**
@@ -305,32 +211,6 @@ class PosNet extends AbstractGateway
     }
 
     /**
-     * Create 3D Hash (MAC)
-     *
-     * @param PosNetAccount $account
-     * @param               $order
-     *
-     * @return string
-     */
-    public function create3DHash(PosNetAccount $account, $order): string
-    {
-        if ($account->getModel() === self::MODEL_3D_SECURE || $account->getModel() === self::MODEL_3D_PAY) {
-            $secondHashData = [
-                self::formatOrderId($order->id),
-                $order->amount,
-                $order->currency,
-                $account->getClientId(),
-                $this->createSecurityData($account),
-            ];
-            $hashStr = implode(static::HASH_SEPARATOR, $secondHashData);
-
-            return $this->hashString($hashStr);
-        }
-
-        return '';
-    }
-
-    /**
      * verifies the if request came from bank
      *
      * @param PosNetAccount $account
@@ -346,11 +226,11 @@ class PosNet extends AbstractGateway
         if ($account->getModel() === self::MODEL_3D_SECURE || $account->getModel() === self::MODEL_3D_PAY) {
             $secondHashData = [
                 $data->mdStatus,
-                self::formatOrderId($order->id),
-                $order->amount,
-                $order->currency,
+                $this->requestDataMapper::formatOrderId($order->id),
+                $this->requestDataMapper::amountFormat($order->amount),
+                $this->requestDataMapper->mapCurrency($order->currency),
                 $account->getClientId(),
-                $this->createSecurityData($account),
+                $this->requestDataMapper->createSecurityData($account),
             ];
             $hashStr = implode(static::HASH_SEPARATOR, $secondHashData);
         }
@@ -359,98 +239,11 @@ class PosNet extends AbstractGateway
     }
 
     /**
-     * formats order id by adding 0 pad to the left
-     *
-     * @param          $orderId
-     * @param int|null $padLength
-     *
-     * @return string
-     */
-    public static function formatOrderId($orderId, int $padLength = null): string
-    {
-        if (null === $padLength) {
-            $padLength = self::ORDER_ID_LENGTH;
-        }
-
-        return str_pad($orderId, $padLength, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * Get amount
-     * formats 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
-     */
-    public static function amountFormat($amount): int
-    {
-        return round($amount, 2) * 100;
-    }
-
-    /**
-     * Get PrefixedOrderId
-     * To check the status of an order or cancel/refund order Yapikredi
-     * - requires the order length to be 24
-     * - and order id prefix which is "TDSC" for 3D payments
-     *
-     * @param string $orderId
-     * @param string $accountModel
-     *
-     * @return string
-     */
-    public static function mapOrderIdToPrefixedOrderId(string $orderId, string $accountModel): string
-    {
-        $prefix = self::ORDER_ID_REGULAR_PREFIX;
-        if (self::MODEL_3D_SECURE === $accountModel) {
-            $prefix = self::ORDER_ID_3D_PREFIX;
-        } elseif (self::MODEL_3D_PAY === $accountModel) {
-            $prefix = self::ORDER_ID_3D_PAY_PREFIX;
-        }
-
-        return $prefix.self::formatOrderId($orderId, self::ORDER_ID_TOTAL_LENGTH - strlen($prefix));
-    }
-
-
-    /**
-     * formats installment in 00, 02, 06 format
-     *
-     * @param int|string $installment
-     *
-     * @return string
-     */
-    public static function formatInstallment($installment): string
-    {
-        if ($installment > 1) {
-            return str_pad($installment, 2, '0', STR_PAD_LEFT);
-        }
-
-        return '00';
-    }
-
-    /**
      * @inheritDoc
      */
     public function createRegularPaymentXML()
     {
-        $requestData = [
-            'mid'                   => $this->account->getClientId(),
-            'tid'                   => $this->account->getTerminalId(),
-            'tranDateRequired'      => '1',
-            strtolower($this->type) => [
-                'orderID'      => self::formatOrderId($this->order->id),
-                'installment'  => $this->order->installment,
-                'amount'       => $this->order->amount,
-                'currencyCode' => $this->order->currency,
-                'ccno'         => $this->card->getNumber(),
-                'expDate'      => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-                'cvc'          => $this->card->getCvv(),
-            ],
-        ];
-
-        if (isset($this->order->koiCode) && $this->order->koiCode > 0) {
-            $requestData[strtolower($this->type)]['koiCode'] = $this->order->koiCode;
-        }
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
 
         return $this->createXML($requestData);
     }
@@ -460,17 +253,7 @@ class PosNet extends AbstractGateway
      */
     public function createRegularPostXML()
     {
-        $requestData = [
-            'mid'                                       => $this->account->getClientId(),
-            'tid'                                       => $this->account->getTerminalId(),
-            'tranDateRequired'                          => '1',
-            strtolower($this->types[self::TX_POST_PAY]) => [
-                'hostLogKey'   => $this->order->host_ref_num,
-                'amount'       => $this->order->amount,
-                'currencyCode' => $this->order->currency,
-                'installment'  => $this->order->installment,
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -480,38 +263,7 @@ class PosNet extends AbstractGateway
      */
     public function create3DPaymentXML($responseData)
     {
-        $requestData = [
-            'mid'         => $this->account->getClientId(),
-            'tid'         => $this->account->getTerminalId(),
-            'oosTranData' => [
-                'bankData'     => $responseData['BankPacket'],
-                'merchantData' => $responseData['MerchantPacket'],
-                'sign'         => $responseData['Sign'],
-                'wpAmount'     => 0,
-                'mac'          => $this->create3DHash($this->account, $this->order),
-            ],
-        ];
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @param $responseData
-     *
-     * @return string
-     */
-    public function create3DResolveMerchantDataXML($responseData)
-    {
-        $requestData = [
-            'mid'                    => $this->account->getClientId(),
-            'tid'                    => $this->account->getTerminalId(),
-            'oosResolveMerchantData' => [
-                'bankData'     => $responseData['BankPacket'],
-                'merchantData' => $responseData['MerchantPacket'],
-                'sign'         => $responseData['Sign'],
-                'mac'          => $this->create3DHash($this->account, $this->order),
-            ],
-        ];
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, '', $responseData);
 
         return $this->createXML($requestData);
     }
@@ -531,13 +283,7 @@ class PosNet extends AbstractGateway
      */
     public function createStatusXML()
     {
-        $requestData = [
-            'mid'                         => $this->account->getClientId(),
-            'tid'                         => $this->account->getTerminalId(),
-            $this->types[self::TX_STATUS] => [
-                'orderID' => $this->order->id,
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -547,25 +293,7 @@ class PosNet extends AbstractGateway
      */
     public function createCancelXML()
     {
-        $requestData = [
-            'mid'                         => $this->account->getClientId(),
-            'tid'                         => $this->account->getTerminalId(),
-            'tranDateRequired'            => '1',
-            $this->types[self::TX_CANCEL] => [
-                'transaction' => 'sale',
-            ],
-        ];
-
-        if (isset($this->order->auth_code)) {
-            $requestData[$this->types[self::TX_CANCEL]]['authCode'] = $this->order->auth_code;
-        }
-
-        //either will work
-        if (isset($this->order->host_ref_num)) {
-            $requestData[$this->types[self::TX_CANCEL]]['hostLogKey'] = $this->order->host_ref_num;
-        } else {
-            $requestData[$this->types[self::TX_CANCEL]]['orderID'] = $this->order->id;
-        }
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -575,23 +303,46 @@ class PosNet extends AbstractGateway
      */
     public function createRefundXML()
     {
-        $requestData = [
-            'mid'                         => $this->account->getClientId(),
-            'tid'                         => $this->account->getTerminalId(),
-            'tranDateRequired'            => '1',
-            $this->types[self::TX_REFUND] => [
-                'amount'       => $this->order->amount,
-                'currencyCode' => $this->order->currency,
-            ],
-        ];
-
-        if (isset($this->order->host_ref_num)) {
-            $requestData[$this->types[self::TX_REFUND]]['hostLogKey'] = $this->order->host_ref_num;
-        } else {
-            $requestData[$this->types[self::TX_REFUND]]['orderID'] = $this->order->id;
-        }
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
+    }
+
+    /**
+     * Check 3D Hash
+     *
+     * @param array $data
+     *
+     * @return bool
+     */
+    public function check3DHash(array $data): bool
+    {
+        if (!($this->crypt instanceof PosNetCrypt)) {
+            return false;
+        }
+        $decryptedString = $this->crypt->decrypt($data['MerchantPacket'], $this->account->getStoreKey());
+        if (!$decryptedString) {
+            return false;
+        }
+        $decryptedData = explode(';', $decryptedString);
+
+        $originalData = array_map('strval', [
+            $this->account->getClientId(),
+            $this->account->getTerminalId(),
+            $this->requestDataMapper::amountFormat($this->order->amount),
+            $this->order->installment,
+            $this->requestDataMapper::formatOrderId($this->order->id),
+        ]);
+
+        $decryptedDataList = array_map('strval', [
+            $decryptedData[0],
+            $decryptedData[1],
+            $decryptedData[2],
+            ((int) $decryptedData[3]),
+            $decryptedData[4],
+        ]);
+
+        return $originalData === $decryptedDataList;
     }
 
     /**
@@ -614,43 +365,6 @@ class PosNet extends AbstractGateway
         $procReturnCode = $this->getProcReturnCode();
 
         return isset($this->codes[$procReturnCode]) ? (string) $this->codes[$procReturnCode] : null;
-    }
-
-
-    /**
-     * Check 3D Hash
-     *
-     * @param array $data
-     *
-     * @return bool
-     */
-    protected function check3DHash(array $data): bool
-    {
-        if ($this->crypt instanceof PosNetCrypt) {
-            $decryptedString = $this->crypt->decrypt($data['MerchantPacket'], $this->account->getStoreKey());
-
-            $decryptedData = explode(';', $decryptedString);
-
-            $originalData = array_map('strval', [
-                $this->account->getClientId(),
-                $this->account->getTerminalId(),
-                $this->order->amount,
-                ((int) $this->order->installment),
-                self::formatOrderId($this->order->id),
-            ]);
-
-            $decryptedDataList = array_map('strval', [
-                $decryptedData[0],
-                $decryptedData[1],
-                $decryptedData[2],
-                ((int) $decryptedData[3]),
-                $decryptedData[4],
-            ]);
-
-            return $originalData === $decryptedDataList;
-        }
-
-        return false;
     }
 
     /**
@@ -681,7 +395,7 @@ class PosNet extends AbstractGateway
             'trans_id'             => isset($rawPaymentResponseData->authCode) ? $this->printData($rawPaymentResponseData->authCode) : null,
             'response'             => $this->getStatusDetail(),
             'transaction_type'     => $this->type,
-            'transaction'          => $this->type,
+            'transaction'          => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'transaction_security' => $transactionSecurity,
             'auth_code'            => isset($rawPaymentResponseData->authCode) ? $this->printData($rawPaymentResponseData->authCode) : null,
             'host_ref_num'         => isset($rawPaymentResponseData->hostlogkey) ? $this->printData($rawPaymentResponseData->hostlogkey) : null,
@@ -733,12 +447,12 @@ class PosNet extends AbstractGateway
         return [
             'id'               => isset($responseData->authCode) ? $this->printData($responseData->authCode) : null,
             'order_id'         => $this->order->id,
-            'fixed_order_id'   => self::formatOrderId($this->order->id),
+            'fixed_order_id'   => $this->requestDataMapper::formatOrderId($this->order->id),
             'group_id'         => isset($responseData->groupID) ? $this->printData($responseData->groupID) : null,
             'trans_id'         => isset($responseData->authCode) ? $this->printData($responseData->authCode) : null,
             'response'         => $this->getStatusDetail(),
             'transaction_type' => $this->type,
-            'transaction'      => $this->type,
+            'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'auth_code'        => isset($responseData->authCode) ? $this->printData($responseData->authCode) : null,
             'host_ref_num'     => isset($responseData->hostlogkey) ? $this->printData($responseData->hostlogkey) : null,
             'ret_ref_num'      => isset($responseData->hostlogkey) ? $this->printData($responseData->hostlogkey) : null,
@@ -775,13 +489,13 @@ class PosNet extends AbstractGateway
         $state = $rawResponseData->state ?? null;
         if ('Sale' === $state) {
             $transaction = 'pay';
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Authorization' === $state) {
             $transaction = 'pre';
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Capture' === $state) {
             $transaction = 'post';
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         }
 
         return (object) [
@@ -852,15 +566,15 @@ class PosNet extends AbstractGateway
         if ('Sale' === $state) {
             $transaction = 'pay';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Authorization' === $state) {
             $transaction = 'pre';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Capture' === $state) {
             $transaction = 'post';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Bonus_Reverse' === $state) {
             $state = 'cancel';
         } else {
@@ -870,7 +584,7 @@ class PosNet extends AbstractGateway
         return (object) [
             'id'               => $authCode,
             'order_id'         => isset($this->order->id) ? $this->printData($this->order->id) : null,
-            'fixed_order_id'   => self::formatOrderId($this->order->id),
+            'fixed_order_id'   => $this->requestDataMapper::formatOrderId($this->order->id),
             'group_id'         => isset($rawResponseData->transactions->transaction->groupID) ? $this->printData($rawResponseData->transactions->transaction->groupID) : null,
             'trans_id'         => $authCode,
             'response'         => $this->getStatusDetail(),
@@ -924,7 +638,7 @@ class PosNet extends AbstractGateway
                 $authCode = $rawResponseData->transactions->transaction[0]->authCode;
 
                 if (count($rawResponseData->transactions->transaction) > 1) {
-                    $currencies = array_flip($this->currencies);
+                    $currencies = array_flip($this->requestDataMapper->getCurrencyMappings());
 
                     foreach ($rawResponseData->transactions->transaction as $key => $_transaction) {
                         if ($key > 0) {
@@ -946,15 +660,15 @@ class PosNet extends AbstractGateway
         if ('Sale' === $state) {
             $transaction = 'pay';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Authorization' === $state) {
             $transaction = 'pre';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Capture' === $state) {
             $transaction = 'post';
             $state = $transaction;
-            $transactionType = $this->types[$transaction];
+            $transactionType = $this->requestDataMapper->mapTxType($transaction);
         } elseif ('Bonus_Reverse' === $state) {
             $state = 'cancel';
         } else {
@@ -991,17 +705,11 @@ class PosNet extends AbstractGateway
      */
     protected function preparePaymentOrder(array $order)
     {
-        // Installment
-        $installment = 0;
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = $order['installment'];
-        }
-
         return (object) array_merge($order, [
-            'id'          => self::formatOrderId($order['id']),
-            'installment' => self::formatInstallment($installment),
-            'amount'      => self::amountFormat($order['amount']),
-            'currency'    => $this->mapCurrency($order['currency']),
+            'id'          => $order['id'],
+            'installment' => $order['installment'] ?? 0,
+            'amount'      => $order['amount'],
+            'currency'    => $order['currency'] ?? 'TRY',
         ]);
     }
 
@@ -1010,18 +718,12 @@ class PosNet extends AbstractGateway
      */
     protected function preparePostPaymentOrder(array $order)
     {
-        // Installment
-        $installment = 0;
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = $order['installment'];
-        }
-
         return (object) [
-            'id'           => self::formatOrderId($order['id']),
+            'id'           => $order['id'],
+            'amount'       => $order['amount'],
+            'installment'  => $order['installment'] ?? 0,
+            'currency'     => $order['currency'] ?? 'TRY',
             'host_ref_num' => $order['host_ref_num'],
-            'amount'       => self::amountFormat($order['amount']),
-            'currency'     => $this->mapCurrency($order['currency']),
-            'installment'  => self::formatInstallment($installment),
         ];
     }
 
@@ -1031,7 +733,7 @@ class PosNet extends AbstractGateway
     protected function prepareStatusOrder(array $order)
     {
         return (object) [
-            'id' => self::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()),
+            'id' => $order['id'],
         ];
     }
 
@@ -1050,7 +752,7 @@ class PosNet extends AbstractGateway
     {
         return (object) [
             //id or host_ref_num
-            'id'           => isset($order['id']) ? self::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()) : null,
+            'id'           => $order['id'] ?? null,
             'host_ref_num' => $order['host_ref_num'] ?? null,
             //optional
             'auth_code'    => $order['auth_code'] ?? null,
@@ -1064,29 +766,10 @@ class PosNet extends AbstractGateway
     {
         return (object) [
             //id or host_ref_num
-            'id'           => isset($order['id']) ? self::mapOrderIdToPrefixedOrderId($order['id'], $this->account->getModel()) : null,
+            'id'           => $order['id'] ?? null,
             'host_ref_num' => $order['host_ref_num'] ?? null,
-            'amount'       => self::amountFormat($order['amount']),
-            'currency'     => self::mapCurrency($order['currency']),
+            'amount'       => $order['amount'],
+            'currency'     => $order['currency'] ?? 'TRY',
         ];
-    }
-
-
-    /**
-     * Make Security Data
-     *
-     * @param PosNetAccount $account
-     *
-     * @return string
-     */
-    private function createSecurityData(PosNetAccount $account): string
-    {
-        $hashData = [
-            $account->getStoreKey(),
-            $account->getTerminalId(),
-        ];
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
-
-        return$this->hashString($hashStr);
     }
 }

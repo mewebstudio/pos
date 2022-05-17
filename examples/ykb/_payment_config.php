@@ -43,9 +43,16 @@ function getNewOrder(
     string $currency,
     \Symfony\Component\HttpFoundation\Session\Session $session,
     ?int $installment = 0,
-    bool $tekrarlanan = false
+    bool $tekrarlanan = false,
+    string $lang = AbstractGateway::LANG_TR
 ): array {
-    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, \Mews\Pos\Gateways\InterPos::LANG_TR);
+    /**
+     * useJokerVadaa: Sadece TDS sistemini kullanacak Üye İşyerleri için, 3D-Secure doğrulamasından
+     * önce Joker Vadaa(üye işyerlerine özel ek taksit ve öteleme kampanyaları)
+     * sorgulamasını ve kullanımını aktif etmek için kullanılır. Opsiyoneldir.
+     * useJokerVadaa degeri $order->koiCode = 1; sekilde set etebilirsiniz.
+     */
+    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 }
 
 function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)

@@ -50,9 +50,17 @@ function getNewOrder(
     string $currency,
     \Symfony\Component\HttpFoundation\Session\Session $session,
     ?int $installment = 0,
-    bool $tekrarlanan = false
+    bool $tekrarlanan = false,
+    string $lang = AbstractGateway::LANG_TR
 ): array {
-    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, \Mews\Pos\Gateways\GarantiPos::LANG_TR);
+    $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
+    if ($tekrarlanan) {
+        $order['recurringFrequencyType'] = 'MONTH';
+        $order['recurringFrequency'] = 2;
+        $order['recurringInstallmentCount'] = 3;
+    }
+
+    return $order;
 }
 
 function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)

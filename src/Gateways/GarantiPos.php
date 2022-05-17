@@ -1,8 +1,13 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
+use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -13,19 +18,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class GarantiPos extends AbstractGateway
 {
-
-    const LANG_TR = 'tr';
-    const LANG_EN = 'en';
-
-    /**
-     * API version
-     */
-    const API_VERSION = 'v0.01';
-
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
-    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
-    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
-
     /**
      * @const string
      */
@@ -52,62 +44,24 @@ class GarantiPos extends AbstractGateway
         '99' => 'general_error',
     ];
 
-    /**
-     * Transaction Types
-     *
-     * @var array
-     */
-    protected $types = [
-        self::TX_PAY      => 'sales',
-        self::TX_PRE_PAY  => 'preauth',
-        self::TX_POST_PAY => 'postauth',
-        self::TX_CANCEL   => 'void',
-        self::TX_REFUND   => 'refund',
-        self::TX_HISTORY  => 'orderhistoryinq',
-        self::TX_STATUS   => 'orderinq',
-    ];
-
-    protected $secureTypeMappings = [
-        self::MODEL_3D_SECURE  => '3D',
-        self::MODEL_3D_PAY     => '3D_PAY',
-        self::MODEL_3D_HOST    => null, //todo
-        self::MODEL_NON_SECURE => null, //todo
-    ];
-
-    /**
-     * currency mapping
-     *
-     * @var array
-     */
-    protected $currencies = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
-    ];
-
-    /**
-     * @var GarantiPosAccount
-     */
+    /** @var GarantiPosAccount */
     protected $account;
 
-    /**
-     * @var AbstractCreditCard
-     */
+    /**4 @var AbstractCreditCard */
     protected $card;
+
+    /** @var GarantiPosRequestDataMapper */
+    protected $requestDataMapper;
 
     /**
      * GarantiPost constructor.
+     * @inheritdoc
      *
-     * @param array             $config
-     * @param GarantiPosAccount $account
-     * @param array             $currencies
+     * @param GarantiPosAccount         $account
      */
-    public function __construct($config, $account, array $currencies = [])
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
-        parent::__construct($config, $account, $currencies);
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**
@@ -132,7 +86,7 @@ class GarantiPos extends AbstractGateway
     public function make3DPayment(Request $request)
     {
         $bankResponse = null;
-        //TODO hash check
+        //TODO add hash check
         if (in_array($request->get('mdstatus'), [1, 2, 3, 4])) {
             $contents = $this->create3DPaymentXML($request->request->all());
             $bankResponse = $this->send($contents);
@@ -152,7 +106,6 @@ class GarantiPos extends AbstractGateway
 
         return $this;
     }
-
 
     /**
      * @inheritDoc
@@ -193,39 +146,7 @@ class GarantiPos extends AbstractGateway
             return [];
         }
 
-        $hashData = $this->create3DHash($this->account, $this->order, $this->type);
-
-        $inputs = [
-            'secure3dsecuritylevel' => $this->secureTypeMappings[$this->account->getModel()],
-            'mode'                  => $this->getMode(),
-            'apiversion'            => self::API_VERSION,
-            'terminalprovuserid'    => $this->account->getUsername(),
-            'terminaluserid'        => $this->account->getUsername(),
-            'terminalmerchantid'    => $this->account->getClientId(),
-            'txntype'               => $this->type,
-            'txnamount'             => $this->order->amount,
-            'txncurrencycode'       => $this->order->currency,
-            'txninstallmentcount'   => $this->order->installment,
-            'orderid'               => $this->order->id,
-            'terminalid'            => $this->account->getTerminalId(),
-            'successurl'            => $this->order->success_url,
-            'errorurl'              => $this->order->fail_url,
-            'customeremailaddress'  => $this->order->email ?? null,
-            'customeripaddress'     => $this->order->ip,
-            'secure3dhash'          => $hashData,
-        ];
-
-        if ($this->card) {
-            $inputs['cardnumber'] = $this->card->getNumber();
-            $inputs['cardexpiredatemonth'] = $this->card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['cardexpiredateyear'] = $this->card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $inputs['cardcvv2'] = $this->card->getCvv();
-        }
-
-        return [
-            'gateway' => $this->get3DGatewayURL(),
-            'inputs'  => $inputs,
-        ];
+        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card);
     }
 
     /**
@@ -242,54 +163,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createRegularPaymentXML()
     {
-        $requestData = [
-            'Mode'        => $this->getMode(),
-            'Version'     => self::API_VERSION,
-            'Terminal'    => [
-                'ProvUserID' => $this->account->getUsername(),
-                'UserID'     => $this->account->getUsername(),
-                'HashData'   => $this->createHashData($this->account, $this->order, $this->type, $this->card),
-                'ID'         => $this->account->getTerminalId(),
-                'MerchantID' => $this->account->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress'    => $this->order->ip,
-                'EmailAddress' => $this->order->email,
-            ],
-            'Card'        => [
-                'Number'     => $this->card->getNumber(),
-                'ExpireDate' => $this->card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-                'CVV2'       => $this->card->getCvv(),
-            ],
-            'Order'       => [
-                'OrderID'     => $this->order->id,
-                'GroupID'     => '',
-                'AddressList' => [
-                    'Address' => [
-                        'Type'        => 'S',
-                        'Name'        => $this->order->name,
-                        'LastName'    => '',
-                        'Company'     => '',
-                        'Text'        => '',
-                        'District'    => '',
-                        'City'        => '',
-                        'PostalCode'  => '',
-                        'Country'     => '',
-                        'PhoneNumber' => '',
-                    ],
-                ],
-            ],
-            'Transaction' => [
-                'Type'                  => $this->type,
-                'InstallmentCnt'        => $this->order->installment,
-                'Amount'                => $this->order->amount,
-                'CurrencyCode'          => $this->order->currency,
-                'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
-                'Description'           => '',
-                'OriginalRetrefNum'     => '',
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
 
         return $this->createXML($requestData);
     }
@@ -299,30 +173,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createRegularPostXML()
     {
-        $requestData = [
-            'Mode'        => $this->getMode(),
-            'Version'     => self::API_VERSION,
-            'Terminal'    => [
-                'ProvUserID' => $this->account->getUsername(),
-                'UserID'     => $this->account->getUsername(),
-                'HashData'   => $this->createHashData($this->account, $this->order, $this->type, $this->card),
-                'ID'         => $this->account->getTerminalId(),
-                'MerchantID' => $this->account->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress'    => $this->order->ip,
-                'EmailAddress' => $this->order->email,
-            ],
-            'Order'       => [
-                'OrderID' => $this->order->id,
-            ],
-            'Transaction' => [
-                'Type'              => $this->types[self::TX_POST_PAY],
-                'Amount'            => $this->order->amount,
-                'CurrencyCode'      => $this->order->currency,
-                'OriginalRetrefNum' => $this->order->ref_ret_num,
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -332,59 +183,7 @@ class GarantiPos extends AbstractGateway
      */
     public function create3DPaymentXML($responseData)
     {
-        $requestData = [
-            'Mode'        => $this->getMode(),
-            'Version'     => self::API_VERSION,
-            'ChannelCode' => '',
-            'Terminal'    => [
-                'ProvUserID' => $this->account->getUsername(),
-                'UserID'     => $this->account->getUsername(),
-                'HashData'   => $this->createHashData($this->account, $this->order, $this->type, $this->card),
-                'ID'         => $this->account->getTerminalId(),
-                'MerchantID' => $this->account->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress'    => $responseData['customeripaddress'],
-                'EmailAddress' => $responseData['customeremailaddress'],
-            ],
-            'Card'        => [
-                'Number'     => '',
-                'ExpireDate' => '',
-                'CVV2'       => '',
-            ],
-            'Order'       => [
-                'OrderID'     => $responseData['orderid'],
-                'GroupID'     => '',
-                'AddressList' => [
-                    'Address' => [
-                        'Type'        => 'B',
-                        'Name'        => $this->order->name,
-                        'LastName'    => '',
-                        'Company'     => '',
-                        'Text'        => '',
-                        'District'    => '',
-                        'City'        => '',
-                        'PostalCode'  => '',
-                        'Country'     => '',
-                        'PhoneNumber' => '',
-                    ],
-                ],
-            ],
-            'Transaction' => [
-                'Type'                  => $responseData['txntype'],
-                'InstallmentCnt'        => $this->order->installment,
-                'Amount'                => $responseData['txnamount'],
-                'CurrencyCode'          => $responseData['txncurrencycode'],
-                'CardholderPresentCode' => '13',
-                'MotoInd'               => 'N',
-                'Secure3D'              => [
-                    'AuthenticationCode' => $responseData['cavv'],
-                    'SecurityLevel'      => $responseData['eci'],
-                    'TxnID'              => $responseData['xid'],
-                    'Md'                 => $responseData['md'],
-                ],
-            ],
-        ];
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
 
         return $this->createXML($requestData);
     }
@@ -394,35 +193,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createCancelXML()
     {
-        $requestData = [
-            'Mode'        => $this->getMode(),
-            'Version'     => self::API_VERSION,
-            'ChannelCode' => '',
-            'Terminal'    => [
-                'ProvUserID' => $this->account->getRefundUsername(),
-                'UserID'     => $this->account->getRefundUsername(),
-                'HashData'   => $this->createHashData($this->account, $this->order, $this->type),
-                'ID'         => $this->account->getTerminalId(),
-                'MerchantID' => $this->account->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress'    => $this->order->ip,
-                'EmailAddress' => $this->order->email,
-            ],
-            'Order'       => [
-                'OrderID' => $this->order->id,
-                'GroupID' => '',
-            ],
-            'Transaction' => [
-                'Type'                  => $this->types[self::TX_CANCEL],
-                'InstallmentCnt'        => $this->order->installment,
-                'Amount'                => $this->order->amount, //TODO we need this field here?
-                'CurrencyCode'          => $this->order->currency,
-                'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
-                'OriginalRetrefNum'     => $this->order->ref_ret_num,
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->getAccount(), $this->getOrder());
 
         return $this->createXML($requestData);
     }
@@ -432,35 +203,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createRefundXML()
     {
-        $requestData = [
-            'Mode'        => $this->getMode(),
-            'Version'     => self::API_VERSION,
-            'ChannelCode' => '',
-            'Terminal'    => [
-                'ProvUserID' => $this->account->getRefundUsername(),
-                'UserID'     => $this->account->getRefundUsername(),
-                'HashData'   => $this->createHashData($this->account, $this->order, $this->type),
-                'ID'         => $this->account->getTerminalId(),
-                'MerchantID' => $this->account->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress'    => $this->order->ip,
-                'EmailAddress' => $this->order->email,
-            ],
-            'Order'       => [
-                'OrderID' => $this->order->id,
-                'GroupID' => '',
-            ],
-            'Transaction' => [
-                'Type'                  => $this->types[self::TX_REFUND],
-                'InstallmentCnt'        => $this->order->installment,
-                'Amount'                => $this->order->amount,
-                'CurrencyCode'          => $this->order->currency,
-                'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
-                'OriginalRetrefNum'     => $this->order->ref_ret_num,
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
     }
@@ -470,39 +213,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createHistoryXML($customQueryData)
     {
-        $requestData = [
-            'Mode'        => $this->getMode(),
-            'Version'     => self::API_VERSION,
-            'ChannelCode' => '',
-            'Terminal'    => [
-                'ProvUserID' => $this->account->getUsername(),
-                'UserID'     => $this->account->getUsername(),
-                'HashData'   => $this->createHashData($this->account, $this->order, $this->type),
-                'ID'         => $this->account->getTerminalId(),
-                'MerchantID' => $this->account->getClientId(),
-            ],
-            'Customer'    => [ //TODO we need this data?
-                'IPAddress'    => $this->order->ip,
-                'EmailAddress' => $this->order->email,
-            ],
-            'Order'       => [
-                'OrderID' => $this->order->id,
-                'GroupID' => '',
-            ],
-            'Card'        => [
-                'Number'     => '',
-                'ExpireDate' => '',
-                'CVV2'       => '',
-            ],
-            'Transaction' => [
-                'Type'                  => $this->types[self::TX_HISTORY],
-                'InstallmentCnt'        => $this->order->installment,
-                'Amount'                => $this->order->amount,
-                'CurrencyCode'          => $this->order->currency, //TODO we need it?
-                'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $this->order, $customQueryData);
 
         return $this->createXML($requestData);
     }
@@ -512,113 +223,9 @@ class GarantiPos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        $hashData = $this->createHashData($this->account, $this->order, $this->type);
-
-        $requestData = [
-            'Mode'        => $this->getMode(),
-            'Version'     => self::API_VERSION,
-            'ChannelCode' => '',
-            'Terminal'    => [
-                'ProvUserID' => $this->account->getUsername(),
-                'UserID'     => $this->account->getUsername(),
-                'HashData'   => $hashData,
-                'ID'         => $this->account->getTerminalId(),
-                'MerchantID' => $this->account->getClientId(),
-            ],
-            'Customer'    => [ //TODO we need this data?
-                'IPAddress'    => $this->order->ip,
-                'EmailAddress' => $this->order->email,
-            ],
-            'Order'       => [
-                'OrderID' => $this->order->id,
-                'GroupID' => '',
-            ],
-            'Card'        => [
-                'Number'     => '',
-                'ExpireDate' => '',
-                'CVV2'       => '',
-            ],
-            'Transaction' => [
-                'Type'                  => $this->types[self::TX_STATUS],
-                'InstallmentCnt'        => $this->order->installment,
-                'Amount'                => $this->order->amount,   //TODO we need it?
-                'CurrencyCode'          => $this->order->currency, //TODO we need it?
-                'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
-            ],
-        ];
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
-    }
-
-    /**
-     * Make Hash Data
-     *
-     * @param GarantiPosAccount       $account
-     * @param                         $order
-     * @param string                  $txType
-     * @param AbstractCreditCard|null $card
-     *
-     * @return string
-     */
-    public function createHashData(GarantiPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): string
-    {
-        $map = [
-            $order->id,
-            $account->getTerminalId(),
-            isset($card) ? $card->getNumber() : null,
-            $order->amount,
-            $this->createSecurityData($account, $txType),
-        ];
-
-        return $this->hashString(implode(static::HASH_SEPARATOR, $map));
-    }
-
-
-    /**
-     * Make 3d Hash Data
-     *
-     * @param GarantiPosAccount $account
-     * @param                   $order
-     * @param string            $txType
-     *
-     * @return string
-     */
-    public function create3DHash(GarantiPosAccount $account, $order, string $txType): string
-    {
-        $map = [
-            $account->getTerminalId(),
-            $order->id,
-            $order->amount,
-            $order->success_url,
-            $order->fail_url,
-            $txType,
-            $order->installment,
-            $account->getStoreKey(),
-            $this->createSecurityData($account, $txType),
-        ];
-
-        return $this->hashString(implode(static::HASH_SEPARATOR, $map));
-    }
-
-    /**
-     * Amount Formatter
-     * converts 100 to 10000, or 10.01 to 1001
-     * @param float $amount
-     *
-     * @return int
-     */
-    public static function amountFormat($amount): int
-    {
-        return round($amount, 2) * 100;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getMode(): string
-    {
-        return !$this->isTestMode() ? 'PROD' : 'TEST';
     }
 
     /**
@@ -725,7 +332,7 @@ class GarantiPos extends AbstractGateway
             'host_ref_num'         => null,
             'response'             => $response,
             'transaction_type'     => $this->type,
-            'transaction'          => $this->type,
+            'transaction'          => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'transaction_security' => $transactionSecurity,
             'proc_return_code'     => $procReturnCode,
             'code'                 => $procReturnCode,
@@ -770,7 +377,7 @@ class GarantiPos extends AbstractGateway
             'trans_id'         => isset($responseData->Transaction->AuthCode) ? $this->printData($responseData->Transaction->AuthCode) : null,
             'response'         => isset($responseData->Transaction->Response->Message) ? $this->printData($responseData->Transaction->Response->Message) : null,
             'transaction_type' => $this->type,
-            'transaction'      => $this->type,
+            'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'auth_code'        => isset($responseData->Transaction->AuthCode) ? $this->printData($responseData->Transaction->AuthCode) : null,
             'host_ref_num'     => isset($responseData->Transaction->RetrefNum) ? $this->printData($responseData->Transaction->RetrefNum) : null,
             'ret_ref_num'      => isset($responseData->Transaction->RetrefNum) ? $this->printData($responseData->Transaction->RetrefNum) : null,
@@ -915,17 +522,10 @@ class GarantiPos extends AbstractGateway
      */
     protected function preparePaymentOrder(array $order)
     {
-        // Installment
-        $installment = '';
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = $order['installment'];
-        }
-
-        // Order
         return (object) array_merge($order, [
-            'installment' => $installment,
-            'currency'    => $this->mapCurrency($order['currency']),
-            'amount'      => self::amountFormat($order['amount']),
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
+            'amount'      => $order['amount'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
         ]);
@@ -939,8 +539,8 @@ class GarantiPos extends AbstractGateway
         return (object) [
             'id'          => $order['id'],
             'ref_ret_num' => $order['ref_ret_num'],
-            'currency'    => $this->mapCurrency($order['currency']),
-            'amount'      => self::amountFormat($order['amount']),
+            'currency'    => $order['currency'] ?? 'TRY',
+            'amount'      => $order['amount'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
         ];
@@ -953,11 +553,11 @@ class GarantiPos extends AbstractGateway
     {
         return (object) [
             'id'          => $order['id'],
-            'amount'      => self::amountFormat(1),
-            'currency'    => $this->mapCurrency($order['currency']),
+            'amount'      => 1, //sabit deger gonderilmesi gerekiyor
+            'currency'    => $order['currency'] ?? 'TRY',
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
-            'installment' => '',
+            'installment' => 0,
         ];
     }
 
@@ -976,12 +576,12 @@ class GarantiPos extends AbstractGateway
     {
         return (object) [
             'id'          => $order['id'],
-            'amount'      => self::amountFormat(1),
-            'currency'    => $this->mapCurrency($order['currency']),
+            'amount'      => 1, //sabit deger gonderilmesi gerekiyor
+            'currency'    => $order['currency'] ?? 'TRY',
             'ref_ret_num' => $order['ref_ret_num'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
-            'installment' => '',
+            'installment' => 0,
         ];
     }
 
@@ -991,39 +591,5 @@ class GarantiPos extends AbstractGateway
     protected function prepareRefundOrder(array $order)
     {
         return $this->prepareCancelOrder($order);
-    }
-
-    /**
-     * @param string $str
-     *
-     * @return string
-     */
-    protected function hashString(string $str): string
-    {
-        return strtoupper(hash(static::HASH_ALGORITHM, $str));
-    }
-
-    /**
-     * Make Security Data
-     *
-     * @param GarantiPosAccount $account
-     * @param string            $txType
-     *
-     * @return string
-     */
-    private function createSecurityData(GarantiPosAccount $account, string $txType): string
-    {
-        if ($txType === $this->types[self::TX_REFUND] || $txType === $this->types[self::TX_CANCEL]) {
-            $password = $account->getRefundPassword();
-        } else {
-            $password = $account->getPassword();
-        }
-
-        $map = [
-            $password,
-            str_pad((int) $account->getTerminalId(), 9, 0, STR_PAD_LEFT),
-        ];
-
-        return $this->hashString(implode(static::HASH_SEPARATOR, $map));
     }
 }

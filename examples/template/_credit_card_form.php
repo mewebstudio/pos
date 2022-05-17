@@ -67,6 +67,13 @@
                     <option value="<?= \Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY; ?>">Ön Provizyon</option>
                 </select>
             </div>
+            <div class="form-group col-md-4">
+                <select name="lang" id="lang" class="form-control input-lg">
+                    <?php foreach ($pos->getLanguages() as $lang) : ?>
+                        <option value="<?= $lang; ?>" <?= $lang === \Mews\Pos\Gateways\AbstractGateway::LANG_TR ? 'selected': null ?>><?= strtoupper($lang); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
         </div>
         <hr>
         <div class="form-group text-center">

@@ -1,7 +1,10 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -18,24 +21,28 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
  */
 abstract class AbstractGateway implements PosInterface
 {
-    const TX_PAY = 'pay';
-    const TX_PRE_PAY = 'pre';
-    const TX_POST_PAY = 'post';
-    const TX_CANCEL = 'cancel';
-    const TX_REFUND = 'refund';
-    const TX_STATUS = 'status';
-    const TX_HISTORY = 'history';
+    public const LANG_TR = 'tr';
+    public const LANG_EN = 'en';
 
-    const MODEL_3D_SECURE = '3d';
-    const MODEL_3D_PAY = '3d_pay';
-    const MODEL_3D_HOST = '3d_host';
-    const MODEL_NON_SECURE = 'regular';
+    public const TX_PAY = 'pay';
+    public const TX_PRE_PAY = 'pre';
+    public const TX_POST_PAY = 'post';
+    public const TX_CANCEL = 'cancel';
+    public const TX_REFUND = 'refund';
+    public const TX_STATUS = 'status';
+    public const TX_HISTORY = 'history';
+
+    public const MODEL_3D_SECURE = '3d';
+    public const MODEL_3D_PAY = '3d_pay';
+    public const MODEL_3D_HOST = '3d_host';
+    public const MODEL_NON_SECURE = 'regular';
 
     protected const HASH_ALGORITHM = 'sha1';
     protected const HASH_SEPARATOR = '';
 
     protected $cardTypeMapping = [];
 
+    /** @var array */
     private $config;
 
     /**
@@ -47,13 +54,6 @@ abstract class AbstractGateway implements PosInterface
      * @var AbstractCreditCard
      */
     protected $card;
-
-    /**
-     * Transaction Types
-     *
-     * @var array
-     */
-    protected $types = [];
 
     /**
      * Transaction Type
@@ -68,13 +68,6 @@ abstract class AbstractGateway implements PosInterface
      * @var array
      */
     protected $recurringOrderFrequencyMapping = [];
-
-    /**
-     * Currency mapping
-     *
-     * @var array
-     */
-    protected $currencies;
 
     /**
      * @var object
@@ -95,23 +88,26 @@ abstract class AbstractGateway implements PosInterface
      */
     protected $data;
 
+    /** @var AbstractRequestDataMapper */
+    protected $requestDataMapper;
+
     private $testMode = false;
 
     /**
      * AbstractGateway constructor.
      *
-     * @param                    $config
-     * @param AbstractPosAccount $account
-     * @param array|null         $currencies
+     * @param array                     $config
+     * @param AbstractPosAccount        $account
+     * @param AbstractRequestDataMapper $requestDataMapper
      */
-    public function __construct($config, $account, ?array $currencies)
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
+        $this->requestDataMapper              = $requestDataMapper;
+        $this->cardTypeMapping                = $requestDataMapper->getCardTypeMapping();
+        $this->recurringOrderFrequencyMapping = $requestDataMapper->getRecurringOrderFrequencyMapping();
+
         $this->config = $config;
         $this->account = $account;
-
-        if (count($currencies) > 0) {
-            $this->currencies = $currencies;
-        }
     }
 
     /**
@@ -147,7 +143,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return mixed
+     * @return object
      */
     public function getResponse()
     {
@@ -159,7 +155,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getCurrencies(): array
     {
-        return $this->currencies;
+        return $this->requestDataMapper->getCurrencyMappings();
     }
 
     /**
@@ -309,11 +305,9 @@ abstract class AbstractGateway implements PosInterface
      */
     public function setTxType(string $txType)
     {
-        if (array_key_exists($txType, $this->types)) {
-            $this->type = $this->types[$txType];
-        } else {
-            throw new UnsupportedTransactionTypeException();
-        }
+        $this->requestDataMapper->mapTxType($txType);
+
+        $this->type = $txType;
     }
 
     /**
@@ -347,9 +341,9 @@ abstract class AbstractGateway implements PosInterface
     public function makeRegularPayment()
     {
         $contents = '';
-        if (in_array($this->type, [$this->types[self::TX_PAY], $this->types[self::TX_PRE_PAY]])) {
+        if (in_array($this->type, [self::TX_PAY, self::TX_PRE_PAY])) {
             $contents = $this->createRegularPaymentXML();
-        } elseif ($this->types[self::TX_POST_PAY] === $this->type) {
+        } elseif (self::TX_POST_PAY === $this->type) {
             $contents = $this->createRegularPostXML();
         }
 
@@ -422,18 +416,12 @@ abstract class AbstractGateway implements PosInterface
     public function setTestMode(bool $testMode): self
     {
         $this->testMode = $testMode;
+        if (isset($this->requestDataMapper)) {
+            //todo remove if check after all gateways has requestDataMapper
+            $this->requestDataMapper->setTestMode($testMode);
+        }
 
         return $this;
-    }
-
-    /**
-     * @param string $currency TRY, USD
-     *
-     * @return string
-     */
-    public function mapCurrency(string $currency): string
-    {
-        return $this->currencies[$currency] ?? $currency;
     }
 
     /**
@@ -452,6 +440,14 @@ abstract class AbstractGateway implements PosInterface
     public function getCardTypeMapping(): array
     {
         return $this->cardTypeMapping;
+    }
+
+    /**
+     * @return string[]
+     */
+    public function getLanguages(): array
+    {
+        return [self::LANG_TR, self::LANG_EN];
     }
 
     /**
@@ -629,7 +625,7 @@ abstract class AbstractGateway implements PosInterface
             'order_id'         => null,
             'trans_id'         => null,
             'transaction_type' => $this->type,
-            'transaction'      => $this->type,
+            'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'auth_code'        => null,
             'host_ref_num'     => null,
             'proc_return_code' => null,
@@ -641,20 +637,6 @@ abstract class AbstractGateway implements PosInterface
             'response'         => null,
             'all'              => null,
         ];
-    }
-
-    /**
-     * bank returns error messages for specified language value
-     * usually accepted values are tr,en
-     * @return string
-     */
-    protected function getLang(): string
-    {
-        if ($this->order && isset($this->order->lang)) {
-            return $this->order->lang;
-        }
-
-        return $this->account->getLang();
     }
 
     /**

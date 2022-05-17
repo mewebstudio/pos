@@ -85,13 +85,39 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
+    public function testMapCurrency()
+    {
+        $this->assertEquals('949', $this->requestDataMapper->mapCurrency('TRY'));
+        $this->assertEquals('978', $this->requestDataMapper->mapCurrency('EUR'));
+    }
+
+    /**
+     * @param string|int|null $installment
+     * @param string|int      $expected
+     *
+     * @testWith ["0", 0]
+     *           ["1", 0]
+     *           ["2", 2]
+     *           [2, 2]
+     *
+     * @return void
+     */
+    public function testMapInstallment($installment, $expected)
+    {
+        $actual = $this->requestDataMapper->mapInstallment($installment);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * @return void
+     */
     public function testCreate3DPaymentRequestData()
     {
         $order = $this->order;
         $order['amount'] = 10.1;
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
-        $txType = 'Sale';
+        $txType = AbstractGateway::TX_PAY;
         $gatewayResponse = [
             'Eci'                       => (string) rand(1, 100),
             'Cavv'                      => (string) rand(1, 100),
@@ -144,9 +170,9 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $order = $this->order;
-        $txType = 'Sale';
+        $txType = AbstractGateway::TX_PAY;
         $order['amount'] = 1000;
-        $pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
+        $pos->prepare($order, $txType, $this->card);
 
         $expectedValue = $this->getSampleNonSecurePaymentRequestData($pos->getAccount(), $order, $txType, $pos->getCard());
         $actualData = $this->requestDataMapper->createNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), $txType, $pos->getCard());
@@ -206,10 +232,19 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DFormDataFromEnrollmentResponse()
+    public function testCreate3DFormData()
     {
+        $pos = $this->pos;
+        $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $expectedValue = $this->getSample3DFormDataFromEnrollmentResponse();
-        $actualData = $this->requestDataMapper->create3DFormDataFromEnrollmentResponse($this->getSampleEnrollmentSuccessResponseData());
+        $actualData = $this->requestDataMapper->create3DFormData(
+            $pos->getAccount(),
+            $pos->getOrder(),
+            '',
+            '',
+            $pos->getCard(),
+            $this->getSampleEnrollmentSuccessResponseData()['Message']['VERes']
+        );
 
         $this->assertEquals($expectedValue, $actualData);
     }
@@ -246,10 +281,10 @@ class VakifBankPosRequestDataMapperTest extends TestCase
             'MerchantId'              => $account->getClientId(),
             'Password'                => $account->getPassword(),
             'TerminalNo'              => $account->getTerminalId(),
-            'TransactionType'         => $txType,
+            'TransactionType'         => $this->requestDataMapper->mapTxType($txType),
             'OrderId'                 => $order->id,
             'ClientIp'                => $order->ip,
-            'CurrencyCode'            => $order->currency,
+            'CurrencyCode'            => '949',
             'CurrencyAmount'          => $order->amount,
             'OrderDescription'        => '',
             'TransactionId'           => $order->id,
@@ -263,7 +298,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
             'TransactionDeviceSource' => 0,
         ];
         if ($order->installment) {
-            $expectedValue['NumberOfInstallments'] = $order->installment;
+            $expectedValue['NumberOfInstallments'] = $this->requestDataMapper->mapInstallment($order->installment);
         }
 
         return $expectedValue;
@@ -285,7 +320,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
             'MerchantType'              => $account->getMerchantType(),
             'PurchaseAmount'            => $order->amount,
             'VerifyEnrollmentRequestId' => $order->rand,
-            'Currency'                  => $order->currency,
+            'Currency'                  => '949',
             'SuccessUrl'                => $order->success_url,
             'FailureUrl'                => $order->fail_url,
             'SessionInfo'               => $order->extraData,
@@ -296,7 +331,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         ];
 
         if ($order->installment) {
-            $expectedValue['InstallmentCount'] = $order->installment;
+            $expectedValue['InstallmentCount'] = $this->requestDataMapper->mapInstallment($order->installment);
         }
 
         if (isset($order->recurringFrequency)) {
@@ -326,7 +361,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
             'MerchantId'              => $account->getClientId(),
             'Password'                => $account->getPassword(),
             'TerminalNo'              => $account->getTerminalId(),
-            'TransactionType'         => $txType,
+            'TransactionType'         => $this->requestDataMapper->mapTxType($txType),
             'OrderId'                 => $order['id'],
             'CurrencyAmount'          => '1000.00',
             'CurrencyCode'            => 949,

@@ -2,7 +2,7 @@
 
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
 
-- **EST POS** altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Akbank, TEB ve Ziraat bankası test edilmiştir.
+- **EST POS** (Asseco) altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Akbank, TEB ve Ziraat bankası test edilmiştir.
 
 - **Garanti Virtual POS** ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
 
@@ -16,7 +16,18 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 - **Kuveyt POS** 3d secure ödeme desteği eklenmiştir, test edildikçe, sorunları bulundukça hatalar giderilecek.
 
-### Özellikler
+### Ana başlıklar
+- [Özellikler](#ozellikler)
+- [Latest updates](#latest-updates)
+- [Minimum Gereksinimler](#minimum-gereksinimler)
+- [Kurulum](#kurulum)
+- [Farklı Banka Sanal Poslarını Eklemek](#farkli-gatewayler-tek-islem-akisi)
+- [Örnek Kodlar](#ornek-kodlar)
+- [Troubleshoots](#troubleshoots)
+- [Genel Kültür](#genel-kultur)
+- [Docker ile test ortamı](#docker-ile-test-ortami)
+
+### Ozellikler
   - Standart E-Commerce modeliyle ödeme (`AbstractGateway::MODEL_NON_SECURE`)
   - 3D Secure modeliyle ödeme (`AbstractGateway::MODEL_3D_SECURE`)
   - 3D Pay modeliyle ödeme (`AbstractGateway::MODEL_3D_PAY`)
@@ -26,8 +37,8 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - Sipariş/Para iadesi yapma (`AbstractGateway::TX_REFUND`)
   - Sipariş iptal etme (`AbstractGateway::TX_CANCEL`)
 
-#### Farklı Gateway'ler Tek işlem akışı
-* Farklı bankaya geçiş yapmak için sadece doğru `AccountFactory` method'u kullanarak account degistirmek.
+#### Farkli Gateway'ler Tek islem akisi
+* Farklı bankaya geçiş yapmak için sadece doğru `AccountFactory` method'u kullanarak account degistirmek yeterli.
 * **3D**, **3DPay**, **3DHost** ödemeler arasında geçiş yapmak için tek yapmanız gereken Account konfigurasyonunda account tipini değiştirmek (`AbstractGateway::MODEL_3D_PAY` vs.). İşlem akışı aynı olduğu için kod değiştirmenize gerek kalmıyor.
 * Aynı tip işlem için farklı POS Gateway'lerden dönen değerler aynı formata normalize edilmiş durumda. Yani kod güncellemenize gerek yok.
 * Aynı tip işlem için farklı Gateway gönderilecek değerler de genel olarak aynı formatta olacak şekilde normalize edişmiştir. 
@@ -67,12 +78,12 @@ require './vendor/autoload.php';
 // API kullanıcı bilgileri
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
 'akbank', //pos config'deki ayarın index name'i
-'XXXXXXX', 
-'XXXXXXX',
-'XXXXXXX',
-AbstractGateway::MODEL_3D_SECURE,
-'XXXXXXX',
-\Mews\Pos\Gateways\EstPos::LANG_TR
+'yourClientID', 
+'yourKullaniciAdi',
+'yourSifre',
+AbstractGateway::MODEL_3D_SECURE, //storetype
+'yourStoreKey',
+AbstractGateway::LANG_TR
 );
 
 // API kullanıcı hesabı ile paket bir değişkene aktarılıyor
@@ -95,8 +106,8 @@ require 'config.php';
 $order = [
     'id'          => 'BENZERSIZ-SIPERIS-ID',
     'amount'      => 1.01,
-    'currency'    => 'TRY', //TRY|USD|EUR
-    'installment' => 0, //0 ya da 1'den büyük değer
+    'currency'    => 'TRY', //TRY|USD|EUR, optional. default: TRY
+    'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
 
     //MODEL_3D_SECURE, MODEL_3D_PAY, MODEL_3D_HOST odemeler icin zorunlu
     //Success ve Fail URL'ler farklı olabilir ama kütüphane success ve fail için aynı kod çalıştırır.
@@ -111,7 +122,7 @@ $order = [
     'rand'        => md5(uniqid(time())), // EstPos, Garanti, PayFor, InterPos, VakifBank. Rastegele değer.
     
     //lang degeri verilmezse account (EstPosAccount) dili kullanılacak
-    'lang' => 'tr', //tr|en. Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
+    'lang' => AbstractGateway::LANG_TR, //LANG_TR|LANG_EN. Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
 $session->set('order', $order);
     
@@ -159,7 +170,7 @@ $pos->isSuccess();
 dump($pos->getResponse());
 //response içeriği için /examples/template/_payment_response.php dosyaya bakınız.
 ````
-### Farklı Banka Sanal Poslarını Eklemek
+### Farkli Banka Sanal Poslarini Eklemek
 Kendi projenizin dizinindeyken
 ```sh
 $ cp ./vendor/mews/pos/config/pos.php ./pos_ayarlar.php
@@ -219,7 +230,7 @@ $yeni_ayarlar = require './pos_ayarlar.php';
 $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeni_ayarlar);
 ```
 
-## Örnek Kodlar
+## Ornek Kodlar
 `/examples` dizini içerisinde.
 
 3D ödeme örnek kodlar genel olarak kart bilgilerini website sunucusuna POST eder (`index.php` => `form.php`),
@@ -233,28 +244,32 @@ Fakat,
 
 
 ## Troubleshoots
-### session sıfırlanması
+### Session sıfırlanması
 Cookie session kullanığınızda, kullanıcı gatewayden geri websitenize yönlendirilidiğinde session'nin sıfırlanabilir.
 Bu durumda PHP header'de `samesite=None` set etmeyi deneyin. Bu header'ı set ettikten sonra,
 taraycıda yeni session oluşturun, çünkü bu değişiklik var olan session'i etkilemez.
+###Shared hosting'lerde IP tanımsız hatası
+Shared hosting'lerde Cpanel'de gördüğünüz IP'den farklı olarak fiziksel sunucun bir tane daha IP'si olur.
+O IP adres Cpanel'de gözükmez, hosting firmanızdan sorup öğrenmeniz gerekmekte.
+Bu hatayı alırsanız hosting firmanın verdiği IP adrese'de banka gateway'i tarafından izin verilmesini sağlayın.
 
-
-## NonSecure, 3D, 3DPay ve 3DHost ödeme modeller arasındaki farklar
-- **3D** - Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödemeyi tamamlamak için banka gateway'ne 1 istek daha (_provizyon_ isteği) gönderir.
+## Genel Kultur
+### NonSecure, 3D Secure, 3DPay ve 3DHost ödeme modeller arasındaki farklar
+- **3D** - Bankaya göre farklı isimler verilebilir, örn. 3D Full. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödemeyi tamamlamak için banka gateway'ne 1 istek daha (_provizyon_ isteği) gönderir.
 Bu isteği göndermeden ödeme tamamlanmaz.
-- **3DPay** - Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödeme bitmiş sayılır. 3D ödeme yapıldığı gibi ekstra provizyon istek gönderilmez.
+- **3DPay** - Bankaya göre farklı isimler verilebilir, örn. 3D Half. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödeme bitmiş sayılır. 3D ödeme yapıldığı gibi ekstra provizyon istek gönderilmez.
 - **3DHost** - Kredi kart girişi için kullanıcı bankanın sayfasına yönledirilir, kredi kart bilgileri girdikten sonra bankanın 3D gateway sayfasına yönlendirilir, ordan da websitenize geri yönlendirilir. Yönlendirme sonucunda ödeme tamanlanmış olur. 
 - **NonSecure** - Ödeme işlemi kullanıcı 3D onay işlemi yapmadan gerçekleşir.
 - **NonSecure, 3D ve 3DPay** - Ödemede kredi kart bilgisi websiteniz tarafından alınır. **3DHost** ödemede ise banka websayfasından alınır.
- 
-## Otorizasyon, Ön Otorizasyon, Post Otorizasyon İşlemler arasındaki farklar
+
+### Otorizasyon, Ön Otorizasyon, Ön Provizyon Kapama İşlemler arasındaki farklar
 - **Otorizasyon** - bildiğimiz ve genel olarak kullandığımız işlem. Tek seferde ödeme işlemi biter.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
 İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_PAY`
 - **Ön Otorizasyon** - müşteriden parayı direk çekmek yerine, işlem sonucunda para bloke edilir.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
 İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_PRE_PAY`
-- **Post Otorizasyon** - ön provizyon sonucunda bloke edilen miktarın satışını tamamlar.
+- **Ön Provizyon Kapama** - ön provizyon sonucunda bloke edilen miktarın satışını tamamlar.
 Ön otorizasyon yapıldıktan sonra, örneğin 1 hafta sonra, Post Otorizasyon isteği gönderilebilinir.
 Bu işlem için kullanıcıdan kredi kart bilgisi _alınmaz_.
 Onun yerine bazı gateway'ler `orderId` degeri isteri, bazıları ise ön provizyon sonucu dönen banka tarafındaki `orderId`'yi ister.
@@ -262,18 +277,17 @@ Satıcı _ön otorizasyon_ isteği iptal etmek isterse de `cancel` isteği gönd
 Post Otorizasyon İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_POST_PAY`
 - Bu 3 çeşit işlemler bütün ödeme modelleri (NonSecure, 3D, 3DPay ve 3DHost) tarafından desteklenir.
 
-
-## Refund ve Cancel işlemler arasındaki farklar
+### Refund ve Cancel işlemler arasındaki farklar
 - **Refund** - Tamamlanan ödemeyi iade etmek için kullanılır.
 Bu işlemi yapabilmek için ödeme yapıldıktan belli bir süre _sonra_ (örn. 12 saat) yapılabilir.
 İade işlemi için _miktar zorunlu_, çünkü ödenen ve iade edilen miktarı aynı olmayabilir.
-İşlemin kütüphanedeli karşılığı `AbstractGateway::TX_REFUND`
+İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_REFUND`
 - **Cancel** - Tamamlanan ödemeyi iptal etmek için kullanılır.
 Belli bir süre _içinde_ (örn. 12 saat)  yapılması gerekir. Gateway'ler tarafında değişen bu süreyi geçerse `refund` işlemi kullanmak zorundasınız.
 Genel olarak _miktar_ bilgisi _istenmez_, ancak bazı Gateway'ler ister.
-İşlemin kütüphanedeli karşılığı `AbstractGateway::TX_CANCEL`
+İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_CANCEL`
 
-## Docker ile test ortamı
+## Docker ile test ortami
 Makinenizde Docker kurulu olmasi gerekiyor.
 Projenin root klasöründe `docker-compose up` komutu çalıştırmanız yeterli.
 **Note**: localhost port 80 boş olması gerekiyor.

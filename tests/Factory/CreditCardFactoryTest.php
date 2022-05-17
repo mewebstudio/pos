@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Tests\Factory;
 
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -8,7 +10,6 @@ use Mews\Pos\Exceptions\CardTypeRequiredException;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\GarantiPos;
-use Mews\Pos\Gateways\KuveytPos;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -72,10 +73,8 @@ class CreditCardFactoryTest extends TestCase
     public function testCreateUnSupportedCardTypeException()
     {
         $this->expectException(CardTypeNotSupportedException::class);
-        $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()
-            //just any method
-            ->onlyMethods(['send'])
-            ->getMock();
+        $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()->getMock();
+        $pos->expects($this->once())->method('getCardTypeMapping')->willReturn(['visa' => 'visa']);
 
         CreditCardFactory::create(
             $pos,
@@ -94,10 +93,9 @@ class CreditCardFactoryTest extends TestCase
     public function testCreateCardTypeRequiredException()
     {
         $this->expectException(CardTypeRequiredException::class);
-        $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()
-            //just any method
-            ->onlyMethods(['send'])
-            ->getMock();
+        $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()->getMock();
+
+        $pos->expects($this->once())->method('getCardTypeMapping')->willReturn(['visa' => 'visa']);
 
         CreditCardFactory::create(
             $pos,

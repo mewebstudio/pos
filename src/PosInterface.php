@@ -1,8 +1,11 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos;
 
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -17,11 +20,11 @@ interface PosInterface
     /**
      * PosInterface constructor.
      *
-     * @param object             $config
-     * @param AbstractPosAccount $account
-     * @param array              $currencies
+     * @param array                     $config
+     * @param AbstractPosAccount        $account
+     * @param AbstractRequestDataMapper $currencies
      */
-    public function __construct($config, $account, array $currencies);
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $currencies);
 
     /**
      * Create XML DOM Document

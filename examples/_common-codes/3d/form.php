@@ -10,7 +10,15 @@ if ($request->getMethod() !== 'POST') {
     exit();
 }
 $transaction = $request->get('tx', \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
-$order = getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session, $request->get('installment'));
+$order = getNewOrder(
+    $baseUrl,
+    $ip,
+    $request->get('currency', 'TRY'),
+    $session,
+    $request->get('installment'),
+    false,
+    $request->get('lang', \Mews\Pos\Gateways\AbstractGateway::LANG_TR)
+);
 $session->set('order', $order);
 
 $card = createCard($pos, $request->request->all());
@@ -24,6 +32,7 @@ $pos->prepare($order, $transaction, $card);
 
 try {
     $formData = $pos->get3DFormData();
+    //dd($formData);
 } catch (\Throwable $e) {
     dd($e);
 }

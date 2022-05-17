@@ -1,9 +1,10 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Tests\Gateways;
 
 use GuzzleHttp\Exception\GuzzleException;
-use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\BankClassNullException;
@@ -40,9 +41,6 @@ class KuveytPosTest extends TestCase
      */
     private $pos;
 
-    /** @var KuveytPosRequestDataMapper */
-    private $requestDataMapper;
-
     /**
      * @return void
      *
@@ -73,7 +71,7 @@ class KuveytPosTest extends TestCase
             'rand'        => '0.43625700 1604831630',
             'hash'        => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
             'ip'          => '127.0.0.1',
-            'lang'        => KuveytPos::LANG_TR,
+            'lang'        => AbstractGateway::LANG_TR,
         ];
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
@@ -88,8 +86,6 @@ class KuveytPosTest extends TestCase
             'John Doe',
             AbstractCreditCard::CARD_TYPE_VISA
         );
-
-        $this->requestDataMapper = new KuveytPosRequestDataMapper();
 
         $this->xmlDecoder = new XmlEncoder();
     }
@@ -180,7 +176,7 @@ class KuveytPosTest extends TestCase
                 'gateway' => [
                     'test' => $testGateway,
                 ],
-            ], ], $this->threeDAccount, [], ])
+            ], ], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class), ])
             ->onlyMethods(['send'])
             ->getMock();
         $posMock->setTestMode(true);
@@ -228,7 +224,7 @@ class KuveytPosTest extends TestCase
         ]);
 
         $posMock = $this->getMockBuilder(KuveytPos::class)
-            ->setConstructorArgs([[], $this->threeDAccount, []])
+            ->setConstructorArgs([[], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class)])
             ->onlyMethods(['send', 'check3DHash'])
             ->getMock();
 
@@ -277,7 +273,7 @@ class KuveytPosTest extends TestCase
         ]);
 
         $posMock = $this->getMockBuilder(KuveytPos::class)
-            ->setConstructorArgs([[], $this->threeDAccount, []])
+            ->setConstructorArgs([[], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class)])
             ->onlyMethods(['send', 'check3DHash'])
             ->getMock();
 

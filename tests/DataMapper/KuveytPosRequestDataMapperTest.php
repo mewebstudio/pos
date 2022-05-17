@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Tests\DataMapper;
 
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
@@ -57,7 +59,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'rand'        => '0.43625700 1604831630',
             'hash'        => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
             'ip'          => '127.0.0.1',
-            'lang'        => KuveytPos::LANG_TR,
+            'lang'        => AbstractGateway::LANG_TR,
         ];
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
@@ -79,6 +81,32 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
+    public function testMapCurrency()
+    {
+        $this->assertEquals('0949', $this->requestDataMapper->mapCurrency('TRY'));
+        $this->assertEquals('0978', $this->requestDataMapper->mapCurrency('EUR'));
+    }
+
+    /**
+     * @param string|int|null $installment
+     * @param string|int      $expected
+     *
+     * @testWith ["0", 0]
+     *           ["1", 0]
+     *           ["2", 2]
+     *           [2, 2]
+     *
+     * @return void
+     */
+    public function testMapInstallment($installment, $expected)
+    {
+        $actual = $this->requestDataMapper->mapInstallment($installment);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * @return void
+     */
     public function testCompose3DFormData()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -87,17 +115,17 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $card    = $this->pos->getCard();
 
         $inputs = [
-            'APIVersion'          => KuveytPos::API_VERSION,
+            'APIVersion'          => KuveytPosRequestDataMapper::API_VERSION,
             'MerchantId'          => $account->getClientId(),
             'UserName'            => $account->getUsername(),
             'CustomerId'          => $account->getCustomerId(),
-            'HashData'            => $this->requestDataMapper->create3DHash($account, $order, 'Auth'),
+            'HashData'            => $this->requestDataMapper->create3DHash($account, $order, AbstractGateway::TX_PAY),
             'TransactionType'     => 'Sale',
             'TransactionSecurity' => 3,
             'InstallmentCount'    => $order->installment,
             'Amount'              => KuveytPosRequestDataMapper::amountFormat($order->amount),
             'DisplayAmount'       => KuveytPosRequestDataMapper::amountFormat($order->amount),
-            'CurrencyCode'        => $order->currency,
+            'CurrencyCode'        => '0949',
             'MerchantOrderId'     => $order->id,
             'OkUrl'               => $order->success_url,
             'FailUrl'             => $order->fail_url,
@@ -111,8 +139,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
             $inputs['CardExpireDateMonth'] = '01';
             $inputs['CardCVV2']            = $card->getCvv();
         }
-        $txType = 'Sale';
-        $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);
+
+        $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, AbstractGateway::TX_PAY, $card);
         $this->assertEquals($inputs, $result);
     }
 
@@ -121,11 +149,10 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentXML()
     {
-        $txType = 'Sale';
         $responseData = [
             'MD'          => '67YtBfBRTZ0XBKnAHi8c/A==',
             'VPosMessage' => [
-                'TransactionType'     => $txType,
+                'TransactionType'     => 'Sale',
                 'InstallmentCount'    => '0',
                 'Amount'              => '100',
                 'DisplayAmount'       => '100',
@@ -135,9 +162,9 @@ class KuveytPosRequestDataMapperTest extends TestCase
             ],
         ];
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->pos->getAccount(), $this->pos->getOrder(), $txType, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->pos->getAccount(), $this->pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
 
-        $expectedData = $this->getSample3DPaymentXMLData($this->pos, $txType, $responseData);
+        $expectedData = $this->getSample3DPaymentXMLData($this->pos, AbstractGateway::TX_PAY, $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -194,7 +221,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $hash    = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), $txType, true);
 
         return [
-            'APIVersion'                   => KuveytPos::API_VERSION,
+            'APIVersion'                   => KuveytPosRequestDataMapper::API_VERSION,
             'HashData'                     => $hash,
             'MerchantId'                   => $account->getClientId(),
             'CustomerId'                   => $account->getCustomerId(),

@@ -14,7 +14,7 @@ $order = [
     'email'       => $ord['email'],
     'amount'      => $ord['amount'],
     'currency'    => $ord['currency'],
-    'ref_ret_num' => '831803579226',
+    'ref_ret_num' => $session->get('ref_ret_num'),
 ];
 $transaction = AbstractGateway::TX_CANCEL;
 $pos->prepare($order, $transaction);

@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -7,13 +9,13 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Gateways\AbstractGateway;
-use Mews\Pos\Gateways\KuveytPos;
 
 /**
  * Creates request data for KuveytPos Gateway requests
  */
 class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 {
+    public const API_VERSION = '1.0.0';
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
 
@@ -60,6 +62,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * Amount Formatter
      * converts 100 to 10000, or 10.01 to 1001
+     *
      * @param float $amount
      *
      * @return int
@@ -70,18 +73,17 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param KuveytPosAccount $account
+     *
      * @inheritDoc
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
         $hash = $this->create3DHash($account, $order, $txType, true);
 
-        return [
-            'APIVersion'                   => KuveytPos::API_VERSION,
+        return $this->getRequestAccountData($account) + [
+            'APIVersion'                   => self::API_VERSION,
             'HashData'                     => $hash,
-            'MerchantId'                   => $account->getClientId(),
-            'CustomerId'                   => $account->getCustomerId(),
-            'UserName'                     => $account->getUsername(),
             'CustomerIPAddress'            => $order->ip,
             'KuveytTurkVPosAdditionalData' => [
                 'AdditionalData' => [
@@ -111,19 +113,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $hash = $this->create3DHash($account, $order, $txType);
 
-        $inputs = [
-            'APIVersion'          => KuveytPos::API_VERSION,
-            'MerchantId'          => $account->getClientId(),
-            'UserName'            => $account->getUsername(),
-            'CustomerId'          => $account->getCustomerId(),
+        $inputs = $this->getRequestAccountData($account) + [
+            'APIVersion'          => self::API_VERSION,
             'HashData'            => $hash,
-            'TransactionType'     => $txType,
+            'TransactionType'     => $this->mapTxType($txType),
             'TransactionSecurity' => $this->secureTypeMappings[$account->getModel()],
-            'InstallmentCount'    => $order->installment,
+            'InstallmentCount'    => $this->mapInstallment($order->installment),
             'Amount'              => self::amountFormat($order->amount),
             //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
             'DisplayAmount'       => self::amountFormat($order->amount),
-            'CurrencyCode'        => $order->currency,
+            'CurrencyCode'        => $this->mapCurrency($order->currency),
             'MerchantOrderId'     => $order->id,
             'OkUrl'               => $order->success_url,
             'FailUrl'             => $order->fail_url,
@@ -224,6 +223,14 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @inheritdoc
+     */
+    public function mapInstallment(?int $installment)
+    {
+        return $installment > 1 ? $installment : 0;
+    }
+
+    /**
      * @param AbstractPosAccount $account
      * @param                    $order
      * @param string             $hashedPassword
@@ -258,6 +265,20 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             $order->fail_url,
             $account->getUsername(),
             $hashedPassword,
+        ];
+    }
+
+    /**
+     * @param KuveytPosAccount $account
+     *
+     * @return array
+     */
+    private function getRequestAccountData(AbstractPosAccount $account): array
+    {
+        return [
+            'MerchantId' => $account->getClientId(),
+            'CustomerId' => $account->getCustomerId(),
+            'UserName'   => $account->getUsername(),
         ];
     }
 }

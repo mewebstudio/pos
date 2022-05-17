@@ -4,7 +4,6 @@
  */
 namespace Mews\Pos\DataMapper;
 
-use Exception;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -39,20 +38,6 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         AbstractCreditCard::CARD_TYPE_AMEX       => '400',
     ];
 
-    /**
-     * Currency mapping
-     *
-     * @var array
-     */
-    protected $currencyMappings = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
-    ];
-
     protected $recurringOrderFrequencyMapping = [
         'DAY'   => 'Day',
         'MONTH' => 'Month',
@@ -70,14 +55,11 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData, ?AbstractCreditCard $card = null): array
     {
-        $requestData = [
-            'MerchantId'              => $account->getClientId(),
-            'Password'                => $account->getPassword(),
-            'TerminalNo'              => $account->getTerminalId(),
-            'TransactionType'         => $txType,
+        $requestData = $this->getRequestAccountData($account) + [
+            'TransactionType'         => $this->mapTxType($txType),
             'TransactionId'           => $order->id,
             'CurrencyAmount'          => self::amountFormat($order->amount),
-            'CurrencyCode'            => $order->currency,
+            'CurrencyCode'            => $this->mapCurrency($order->currency),
             'CardHoldersName'         => $card->getHolderName(),
             'Cvv'                     => $card->getCvv(),
             'Pan'                     => $card->getNumber(),
@@ -92,7 +74,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         ];
 
         if ($order->installment) {
-            $requestData['NumberOfInstallments'] = $order->installment;
+            $requestData['NumberOfInstallments'] = $this->mapInstallment($order->installment);
         }
 
         return $requestData;
@@ -113,7 +95,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantType'              => $account->getMerchantType(),
             'PurchaseAmount'            => self::amountFormat($order->amount),
             'VerifyEnrollmentRequestId' => $order->rand,
-            'Currency'                  => $order->currency,
+            'Currency'                  => $this->mapCurrency($order->currency),
             'SuccessUrl'                => $order->success_url,
             'FailureUrl'                => $order->fail_url,
             'Pan'                       => $card->getNumber(),
@@ -122,7 +104,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'IsRecurring'               => 'false',
         ];
         if ($order->installment) {
-            $requestData['InstallmentCount'] = $order->installment;
+            $requestData['InstallmentCount'] = $this->mapInstallment($order->installment);
         }
         if (isset($order->extraData)) {
             $requestData['SessionInfo'] = $order->extraData;
@@ -157,14 +139,11 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
-        $requestData = [
-            'MerchantId'              => $account->getClientId(),
-            'Password'                => $account->getPassword(),
-            'TerminalNo'              => $account->getTerminalId(),
-            'TransactionType'         => $txType,
+        $requestData = $this->getRequestAccountData($account) + [
+            'TransactionType'         => $this->mapTxType($txType),
             'OrderId'                 => $order->id,
             'CurrencyAmount'          => self::amountFormat($order->amount),
-            'CurrencyCode'            => $order->currency,
+            'CurrencyCode'            => $this->mapCurrency($order->currency),
             'ClientIp'                => $order->ip,
             'TransactionDeviceSource' => 0,
         ];
@@ -187,14 +166,11 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
-        return [
-            'MerchantId'             => $account->getClientId(),
-            'Password'               => $account->getPassword(),
-            'TerminalNo'             => $account->getTerminalId(),
-            'TransactionType'        => $this->txTypeMappings[AbstractGateway::TX_POST_PAY],
+        return $this->getRequestAccountData($account) + [
+            'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
             'ReferenceTransactionId' => $order->id,
             'CurrencyAmount'         => self::amountFormat($order->amount),
-            'CurrencyCode'           => $order->currency,
+            'CurrencyCode'           => $this->mapCurrency($order->currency),
             'ClientIp'               => $order->ip,
         ];
     }
@@ -215,7 +191,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
-            'TransactionType'        => $this->txTypeMappings[AbstractGateway::TX_CANCEL],
+            'TransactionType'        => $this->mapTxType(AbstractGateway::TX_CANCEL),
             'ReferenceTransactionId' => $order->id,
             'ClientIp'               => $order->ip,
         ];
@@ -229,7 +205,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
-            'TransactionType'        => $this->txTypeMappings[AbstractGateway::TX_REFUND],
+            'TransactionType'        => $this->mapTxType(AbstractGateway::TX_REFUND),
             'ReferenceTransactionId' => $order->id,
             'ClientIp'               => $order->ip,
             'CurrencyAmount'         => self::amountFormat($order->amount),
@@ -245,49 +221,20 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param array $extraData
+     *
      * @inheritDoc
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = []): array
     {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @param array $data
-     *
-     * @return array
-     *
-     * @throws Exception
-     */
-    public function create3DFormDataFromEnrollmentResponse(array $data): array
-    {
-        $response = $data['Message']['VERes'];
-        /**
-         * Status values:
-         * Y:Kart 3-D Secure programına dâhil
-         * N:Kart 3-D Secure programına dâhil değil
-         * U:İşlem gerçekleştirilemiyor
-         * E:Hata durumu
-         */
-        if ('E' === $response['Status']) {
-            throw new Exception($data['ErrorMessage'], $data['MessageErrorCode']);
-        }
-        if ('N' === $response['Status']) {
-            // todo devam half secure olarak devam et yada satisi iptal et.
-            throw new Exception('Kart 3-D Secure programına dâhil değil');
-        }
-        if ('U' === $response['Status']) {
-            throw new Exception('İşlem gerçekleştirilemiyor');
-        }
-
         $inputs = [
-            'PaReq'   => $response['PaReq'],
-            'TermUrl' => $response['TermUrl'],
-            'MD'      => $response['MD'],
+            'PaReq'   => $extraData['PaReq'],
+            'TermUrl' => $extraData['TermUrl'],
+            'MD'      => $extraData['MD'],
         ];
 
         return [
-            'gateway' => $response['ACSUrl'],
+            'gateway' => $extraData['ACSUrl'],
             'inputs'  => $inputs,
         ];
     }
@@ -310,5 +257,27 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     public static function amountFormat(float $amount): string
     {
         return number_format($amount, 2, '.', '');
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function mapInstallment(?int $installment)
+    {
+        return $installment > 1 ? $installment : 0;
+    }
+
+    /**
+     * @param VakifBankAccount $account
+     *
+     * @return array
+     */
+    private function getRequestAccountData(AbstractPosAccount $account): array
+    {
+        return [
+            'MerchantId' => $account->getClientId(),
+            'Password'   => $account->getPassword(),
+            'TerminalNo' => $account->getTerminalId(),
+        ];
     }
 }

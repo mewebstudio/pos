@@ -1,7 +1,11 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Tests\Gateways;
 
+use Exception;
+use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
@@ -87,6 +91,8 @@ class VakifBankPosTest extends TestCase
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $this->assertEquals($this->card, $this->pos->getCard());
+
+        $this->pos->prepare($this->order, AbstractGateway::TX_POST_PAY);
     }
 
     /**
@@ -106,7 +112,7 @@ class VakifBankPosTest extends TestCase
             'SubMerchantName'           => null,
             'SubMerchantNumber'         => null,
             'PurchAmount'               => $preparedOrder['amount'] * 100,
-            'PurchCurrency'             => $preparedOrder['currency'],
+            'PurchCurrency'             => '949',
             'VerifyEnrollmentRequestId' => $preparedOrder['id'],
             'SessionInfo'               => $preparedOrder['extraData'],
             'InstallmentCount'          => null,
@@ -135,7 +141,7 @@ class VakifBankPosTest extends TestCase
             'HostDate'                => '20220404123456',
             'Rrn'                     => '209411062014',
             'CurrencyAmount'          => $preparedOrder['amount'],
-            'CurrencyCode'            => $preparedOrder['currency'],
+            'CurrencyCode'            => '949',
             'OrderId'                 => $preparedOrder['id'],
             'TLAmount'                => $preparedOrder['amount'],
             'ECI'                     => '02',
@@ -144,7 +150,7 @@ class VakifBankPosTest extends TestCase
             'BatchNo'                 => '1',
         ];
 
-        $method  = $this->getMethod('map3DPaymentData');
+        $method = $this->getMethod('map3DPaymentData');
         $result = $method->invoke($this->pos, $threeDResponse, (object) $provisionResponse);
 
         $expected = [
@@ -188,7 +194,7 @@ class VakifBankPosTest extends TestCase
             'SubMerchantName'           => null,
             'SubMerchantNumber'         => null,
             'PurchAmount'               => $preparedOrder['amount'] * 100,
-            'PurchCurrency'             => $preparedOrder['currency'],
+            'PurchCurrency'             => '949',
             'VerifyEnrollmentRequestId' => $preparedOrder['id'],
             'SessionInfo'               => $preparedOrder['extraData'],
             'InstallmentCount'          => null,
@@ -205,7 +211,7 @@ class VakifBankPosTest extends TestCase
 
         $provisionResponse = [];
 
-        $method  = $this->getMethod('map3DPaymentData');
+        $method = $this->getMethod('map3DPaymentData');
         $result = $method->invoke($this->pos, $threeDResponse, (object) $provisionResponse);
 
         $expected = [
@@ -222,7 +228,7 @@ class VakifBankPosTest extends TestCase
             'id'               => null,
             'trans_id'         => null,
             'host_ref_num'     => null,
-            'transaction_type' => 'Sale',
+            'transaction_type' => AbstractGateway::TX_PAY,
             'transaction'      => 'Sale',
             'proc_return_code' => null,
             'code'             => null,
@@ -232,9 +238,47 @@ class VakifBankPosTest extends TestCase
         $this->assertEquals($expected, (array) $result);
     }
 
+    /**
+     * @return void
+     *
+     * @throws Exception|GuzzleException
+     */
+    public function testGet3DFormDataEnrollmentFail()
+    {
+        $this->expectException(Exception::class);
+        $this->expectExceptionCode(2005);
+
+        $posMock = $this->getMockBuilder(VakifBankPos::class)
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(VakifBankPos::class)])
+            ->onlyMethods(['sendEnrollmentRequest'])
+            ->getMock();
+        $posMock->setTestMode(true);
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $posMock->expects($this->once())->method('sendEnrollmentRequest')->willReturn($this->getSampleEnrollmentFailResponseData());
+
+        $posMock->get3DFormData();
+    }
+
+    /**
+     * @return string[]
+     */
+    private function getSampleEnrollmentFailResponseData(): array
+    {
+        return [
+            'Message'                   => [
+                'VERes' => [
+                    'Status' => 'E',
+                ],
+            ],
+            'VerifyEnrollmentRequestId' => '0aebb0757acccae6fba75b2e4d78cecf',
+            'MessageErrorCode'          => '2005',
+            'ErrorMessage'              => 'Merchant cannot be found for this bank',
+        ];
+    }
+
     private static function getMethod(string $name): \ReflectionMethod
     {
-        $class = new ReflectionClass(VakifBankPos::class);
+        $class  = new ReflectionClass(VakifBankPos::class);
         $method = $class->getMethod($name);
         $method->setAccessible(true);
 

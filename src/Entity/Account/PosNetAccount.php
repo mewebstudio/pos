@@ -1,26 +1,18 @@
 <?php
-
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Entity\Account;
 
-
+/**
+ * PosNetAccount
+ */
 class PosNetAccount extends AbstractPosAccount
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     private $terminalId;
-    /**
-     * @var string
-     */
-    private $refundUsername;
-    /**
-     * @var string
-     */
-    private $refundPassword;
-    /**
-     * @var string
-     */
+
+    /** @var string */
     private $posNetId;
 
     public function __construct(
@@ -43,22 +35,6 @@ class PosNetAccount extends AbstractPosAccount
     /**
      * @return string
      */
-    public function getRefundPassword(): string
-    {
-        return $this->refundPassword;
-    }
-
-    /**
-     * @return string
-     */
-    public function getRefundUsername(): string
-    {
-        return $this->refundUsername;
-    }
-
-    /**
-     * @return string
-     */
     public function getTerminalId(): string
     {
         return $this->terminalId;
@@ -71,5 +47,4 @@ class PosNetAccount extends AbstractPosAccount
     {
         return $this->posNetId;
     }
-
 }

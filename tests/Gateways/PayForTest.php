@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\Entity\Account\PayForAccount;
@@ -10,32 +12,23 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PayForPos;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
+/**
+ * PayForTest
+ */
 class PayForTest extends TestCase
 {
-    /**
-     * @var PayForAccount
-     */
+    /** @var PayForAccount */
     private $threeDAccount;
 
     private $config;
 
-    /**
-     * @var AbstractCreditCard
-     */
+    /** @var AbstractCreditCard */
     private $card;
     private $order;
 
-    /**
-     * @var PayForPos
-     */
+    /** @var PayForPos */
     private $pos;
-
-    /**
-     * @var XmlEncoder
-     */
-    private $xmlDecoder;
 
     protected function setUp(): void
     {
@@ -62,28 +55,31 @@ class PayForTest extends TestCase
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
             'rand'        => '0.43625700 1604831630',
-            'hash'        => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
-            'lang'        => PayForPos::LANG_TR,
+            'lang'        => AbstractGateway::LANG_TR,
         ];
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
 
         $this->pos->setTestMode(true);
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
-
-        $this->xmlDecoder = new XmlEncoder();
     }
 
+    /**
+     * @return void
+     */
     public function testInit()
     {
         $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()], $this->pos->getConfig());
         $this->assertEquals($this->threeDAccount, $this->pos->getAccount());
         $this->assertNotEmpty($this->pos->getCurrencies());
+        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway_3d_host']['test'], $this->pos->get3DHostGatewayURL());
         $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'], $this->pos->get3DGatewayURL());
         $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['urls']['test'], $this->pos->getApiURL());
-
     }
 
+    /**
+     * @return void
+     */
     public function testSetTestMode()
     {
         $this->pos->setTestMode(false);
@@ -92,85 +88,25 @@ class PayForTest extends TestCase
         $this->assertTrue($this->pos->isTestMode());
     }
 
-
+    /**
+     * @return void
+     */
     public function testPrepare()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $this->assertEquals($this->card, $this->pos->getCard());
+        $this->assertNotEmpty($this->pos->getOrder());
+
+        $this->pos->prepare($this->order, AbstractGateway::TX_POST_PAY);
+
+        $this->pos->prepare($this->order, AbstractGateway::TX_CANCEL);
+
+        $this->pos->prepare($this->order, AbstractGateway::TX_REFUND);
     }
 
-    public function testGet3DFormDataWithCard()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $order = $this->pos->getOrder();
-        $form = [
-            'gateway' => $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'],
-            'inputs'  => [
-                'MbrId'            => PayForPos::MBR_ID,
-                'MerchantID'       => $this->threeDAccount->getClientId(),
-                'UserCode'         => $this->threeDAccount->getUsername(),
-                'OrderId'          => $order->id,
-                'Lang'             => $order->lang,
-                'SecureType'       => '3DModel',
-                'TxnType'          => 'Auth',
-                'PurchAmount'      => $order->amount,
-                'InstallmentCount' => $order->installment,
-                'Currency'         => $order->currency,
-                'OkUrl'            => $order->success_url,
-                'FailUrl'          => $order->fail_url,
-                'Rnd'              => $order->rand,
-                'Hash'             => $this->pos->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Auth'),
-                'CardHolderName'   => 'ahmet',
-                'Pan'              => '5555444433332222',
-                'Expiry'           => '0122',
-                'Cvv2'             => '123',
-            ],
-        ];
-        $this->assertEquals($form, $this->pos->get3DFormData());
-    }
-
-    public function testGet3DFormDataWithoutCard()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $order = $this->pos->getOrder();
-        $form = [
-            'gateway' => $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'],
-            'inputs'  => [
-                'MbrId'            => PayForPos::MBR_ID,
-                'MerchantID'       => $this->threeDAccount->getClientId(),
-                'UserCode'         => $this->threeDAccount->getUsername(),
-                'OrderId'          => $order->id,
-                'Lang'             => $order->lang,
-                'SecureType'       => '3DModel',
-                'TxnType'          => 'Auth',
-                'PurchAmount'      => $order->amount,
-                'InstallmentCount' => $order->installment,
-                'Currency'         => $order->currency,
-                'OkUrl'            => $order->success_url,
-                'FailUrl'          => $order->fail_url,
-                'Rnd'              => $order->rand,
-                'Hash'             => $this->pos->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Auth'),
-            ],
-        ];
-        $this->assertEquals($form, $this->pos->get3DFormData());
-    }
-
-    public function testCreate3DHash()
-    {
-        $order = [
-            'id'          => '2020110828BC',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-            'rand'        => '0.43625700 1604831630',
-        ];
-        $hash = 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=';
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_PAY);
-        $this->assertEquals($hash, $this->pos->create3DHash($pos->getAccount(), $pos->getOrder(), 'Auth'));
-    }
-
+    /**
+     * @return void
+     */
     public function testCheck3DHash()
     {
         $data = [
@@ -186,266 +122,5 @@ class PayForTest extends TestCase
 
         $data['3DStatus'] = '';
         $this->assertFalse($this->pos->check3DHash($this->pos->getAccount(), $data));
-    }
-
-    public function testCreateRegularPaymentXML()
-    {
-
-        $order = [
-            'id'          => '2020110828BC',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'currency'    => 'TRY',
-            'lang'        => PayForPos::LANG_TR,
-        ];
-
-        /**
-         * @var PayForPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->threeDAccount);
-        $card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
-        $pos->prepare($order, AbstractGateway::TX_PAY, $card);
-
-        $actualXML = $pos->createRegularPaymentXML();
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSampleRegularPaymentXMLData($pos->getOrder(), $pos->getCard(), $pos->getAccount());
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    public function testCreateRegularPostXML()
-    {
-        $order = [
-            'id'          => '2020110828BC',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'currency'    => 'TRY',
-            'lang'        => PayForPos::LANG_TR,
-        ];
-
-        /**
-         * @var PayForPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->threeDAccount);
-        $pos->prepare($order, AbstractGateway::TX_POST_PAY);
-
-        $actualXML = $pos->createRegularPostXML();
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSampleRegularPostXMLData($pos->getOrder(), $pos->getAccount());
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    public function testCreate3DPaymentXML()
-    {
-
-        $order = [
-            'id' => '2020110828BC',
-        ];
-        $responseData = ['RequestGuid' => '1000000057437884'];
-
-        /**
-         * @var PayForPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->threeDAccount);
-        $pos->prepare($order, AbstractGateway::TX_PAY);
-
-        $actualXML = $pos->create3DPaymentXML($responseData);
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSample3DPaymentXMLData($pos->getOrder(), $pos->getAccount(), $responseData);
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    public function testCreateStatusXML()
-    {
-        $order = [
-            'id' => '2020110828BC',
-        ];
-
-        /**
-         * @var PayForPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->threeDAccount);
-        $pos->prepare($order, AbstractGateway::TX_STATUS);
-
-        $actualXML = $pos->createStatusXML();
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSampleStatusXMLData($pos->getOrder(), $pos->getAccount());
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    public function testCreateCancelXML()
-    {
-        $order = [
-            'id'       => '2020110828BC',
-            'currency' => 'TRY',
-        ];
-
-        /**
-         * @var PayForPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->threeDAccount);
-        $pos->prepare($order, AbstractGateway::TX_CANCEL);
-
-        $actualXML = $pos->createCancelXML();
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSampleCancelXMLData($pos->getOrder(), $pos->getAccount());
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    public function testCreateRefundXML()
-    {
-        $order = [
-            'id'       => '2020110828BC',
-            'currency' => 'TRY',
-            'amount'   => 10.1,
-        ];
-
-        /**
-         * @var PayForPos $pos
-         */
-        $pos = PosFactory::createPosGateway($this->threeDAccount);
-        $pos->prepare($order, AbstractGateway::TX_REFUND);
-
-        $actualXML = $pos->createRefundXML();
-        $actualData = $this->xmlDecoder->decode($actualXML, 'xml');
-
-        $expectedData = $this->getSampleRefundXMLData($pos->getOrder(), $pos->getAccount());
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    /**
-     * @param                    $order
-     * @param AbstractCreditCard $card
-     * @param PayForAccount      $account
-     *
-     * @return array
-     */
-    private function getSampleRegularPaymentXMLData($order, $card, $account)
-    {
-        return [
-            'MbrId'            => PayForPos::MBR_ID,
-            'MerchantId'       => $account->getClientId(),
-            'UserCode'         => $account->getUsername(),
-            'UserPass'         => $account->getPassword(),
-            'MOTO'             => PayForPos::MOTO,
-            'OrderId'          => $order->id,
-            'SecureType'       => 'NonSecure',
-            'TxnType'          => 'Auth',
-            'PurchAmount'      => $order->amount,
-            'Currency'         => $order->currency,
-            'InstallmentCount' => $order->installment,
-            'Lang'             => 'tr',
-            'CardHolderName'   => $card->getHolderName(),
-            'Pan'              => $card->getNumber(),
-            'Expiry'           => '0122',
-            'Cvv2'             => $card->getCvv(),
-        ];
-    }
-
-    /**
-     * @param               $order
-     * @param PayForAccount $account
-     *
-     * @return array
-     */
-    private function getSampleRegularPostXMLData($order, $account)
-    {
-        return [
-            'MbrId'       => PayForPos::MBR_ID,
-            'MerchantId'  => $account->getClientId(),
-            'UserCode'    => $account->getUsername(),
-            'UserPass'    => $account->getPassword(),
-            'OrgOrderId'  => $order->id,
-            'SecureType'  => 'NonSecure',
-            'TxnType'     => 'PostAuth',
-            'PurchAmount' => $order->amount,
-            'Currency'    => $order->currency,
-            'Lang'        => 'tr',
-        ];
-    }
-
-    /**
-     * @param               $order
-     * @param PayForAccount $account
-     * @param array         $responseData
-     *
-     * @return array
-     */
-    private function getSample3DPaymentXMLData($order, $account, array $responseData)
-    {
-        return [
-            'RequestGuid' => $responseData['RequestGuid'],
-            'UserCode'    => $account->getUsername(),
-            'UserPass'    => $account->getPassword(),
-            'OrderId'     => $order->id,
-            'SecureType'  => '3DModelPayment',
-        ];
-    }
-
-    /**
-     * @param               $order
-     * @param PayForAccount $account
-     *
-     * @return array
-     */
-    private function getSampleStatusXMLData($order, $account)
-    {
-        return [
-            'MbrId'      => PayForPos::MBR_ID,
-            'MerchantId' => $account->getClientId(),
-            'UserCode'   => $account->getUsername(),
-            'UserPass'   => $account->getPassword(),
-            'OrgOrderId' => $order->id,
-            'SecureType' => 'Inquiry',
-            'Lang'       => 'tr',
-            'TxnType'    => 'OrderInquiry',
-        ];
-    }
-
-    /**
-     * @param               $order
-     * @param PayForAccount $account
-     *
-     * @return array
-     */
-    private function getSampleCancelXMLData($order, $account)
-    {
-        return [
-            'MbrId'      => PayForPos::MBR_ID,
-            'MerchantId' => $account->getClientId(),
-            'UserCode'   => $account->getUsername(),
-            'UserPass'   => $account->getPassword(),
-            'OrgOrderId' => $order->id,
-            'SecureType' => 'NonSecure',
-            'Lang'       => 'tr',
-            'TxnType'    => 'Void',
-            'Currency'   => $order->currency,
-        ];
-    }
-
-    /**
-     * @param               $order
-     * @param PayForAccount $account
-     *
-     * @return array
-     */
-    private function getSampleRefundXMLData($order, $account)
-    {
-        return [
-            'MbrId'       => PayForPos::MBR_ID,
-            'MerchantId'  => $account->getClientId(),
-            'UserCode'    => $account->getUsername(),
-            'UserPass'    => $account->getPassword(),
-            'OrgOrderId'  => $order->id,
-            'SecureType'  => 'NonSecure',
-            'Lang'        => 'tr',
-            'TxnType'     => 'Refund',
-            'PurchAmount' => $order->amount,
-            'Currency'    => $order->currency,
-        ];
     }
 }

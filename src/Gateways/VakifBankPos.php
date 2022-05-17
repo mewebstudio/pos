@@ -1,11 +1,15 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -43,22 +47,16 @@ class VakifBankPos extends AbstractGateway
     ];
 
     /** @var VakifBankPosRequestDataMapper */
-    private $requestDataMapper;
+    protected $requestDataMapper;
 
     /**
      * @inheritDoc
      *
      * @param VakifBankAccount $account
      */
-    public function __construct($config, $account, array $currencies)
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
-        $this->requestDataMapper              = new VakifBankPosRequestDataMapper($currencies);
-        $this->types                          = $this->requestDataMapper->getTxTypeMappings();
-        $this->currencies                     = $this->requestDataMapper->getCurrencyMappings();
-        $this->cardTypeMapping                = $this->requestDataMapper->getCardTypeMapping();
-        $this->recurringOrderFrequencyMapping = $this->requestDataMapper->getRecurringOrderFrequencyMapping();
-
-        parent::__construct($config, $account, $currencies);
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**
@@ -141,7 +139,26 @@ class VakifBankPos extends AbstractGateway
         $data = $this->sendEnrollmentRequest();
         $data = parent::emptyStringsToNull($data);
 
-        return $this->requestDataMapper->create3DFormDataFromEnrollmentResponse($data);
+        $status = $data['Message']['VERes']['Status'];
+        /**
+         * Status values:
+         * Y:Kart 3-D Secure programına dâhil
+         * N:Kart 3-D Secure programına dâhil değil
+         * U:İşlem gerçekleştirilemiyor
+         * E:Hata durumu
+         */
+        if ('E' === $status) {
+            throw new Exception($data['ErrorMessage'], $data['MessageErrorCode']);
+        }
+        if ('N' === $status) {
+            //half secure olarak devam et yada satisi iptal et.
+            throw new Exception('Kart 3-D Secure programına dâhil değil');
+        }
+        if ('U' === $status) {
+            throw new Exception('İşlem gerçekleştirilemiyor');
+        }
+
+        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, '', $data['Message']['VERes']);
     }
 
     /**
@@ -382,18 +399,9 @@ class VakifBankPos extends AbstractGateway
      */
     protected function preparePaymentOrder(array $order)
     {
-        // Installment
-        $installment = 0;
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = (int) $order['installment'];
-        }
-
-        $currency = $order['currency'] ?? 'TRY';
-
-        // Order
         return (object) array_merge($order, [
-            'installment' => $installment,
-            'currency'    => $this->mapCurrency($currency),
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
             'amount'      => $order['amount'],
         ]);
     }
@@ -406,7 +414,7 @@ class VakifBankPos extends AbstractGateway
         return (object) [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'currency' => $this->mapCurrency($order['currency']),
+            'currency' => $order['currency'] ?? 'TRY',
             'ip'       => $order['ip'],
         ];
     }
@@ -466,8 +474,8 @@ class VakifBankPos extends AbstractGateway
             'auth_code'        => null,
             'host_ref_num'     => null,
             'order_id'         => null,
-            'transaction'      => $this->type,
-            'transaction_type' => null,
+            'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
+            'transaction_type' => $this->type,
             'response'         => null,
             'eci'              => null,
             'proc_return_code' => $resultCode,

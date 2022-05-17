@@ -27,9 +27,10 @@ function getNewOrder(
     string $currency,
     \Symfony\Component\HttpFoundation\Session\Session $session,
     ?int $installment = 0,
-    bool $tekrarlanan = false
+    bool $tekrarlanan = false,
+    string $lang = AbstractGateway::LANG_TR
 ): array {
-    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, \Mews\Pos\Gateways\KuveytPos::LANG_TR);
+    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 }
 
 

@@ -1,8 +1,11 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
@@ -16,9 +19,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class InterPos extends AbstractGateway
 {
-    const LANG_TR = 'tr';
-    const LANG_EN = 'en';
-
     /**
      * @const string
      */
@@ -42,21 +42,16 @@ class InterPos extends AbstractGateway
     protected $card;
 
     /** @var InterPosRequestDataMapper */
-    private $requestDataMapper;
+    protected $requestDataMapper;
 
     /**
-     * @param array           $config
-     * @param InterPosAccount $account
-     * @param array           $currencies
+     * @inheritdoc
+     *
+     * @param InterPosAccount           $account
      */
-    public function __construct($config, $account, array $currencies = [])
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
-        $this->requestDataMapper = new InterPosRequestDataMapper($currencies);
-        $this->types             = $this->requestDataMapper->getTxTypeMappings();
-        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
-        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
-
-        parent::__construct($config, $account, $currencies);
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**
@@ -307,7 +302,7 @@ class InterPos extends AbstractGateway
             'month'                => null,
             'year'                 => null,
             'amount'               => $raw3DAuthResponseData['PurchAmount'],
-            'currency'             => array_search($raw3DAuthResponseData['Currency'], $this->currencies),
+            'currency'             => array_search($raw3DAuthResponseData['Currency'], $this->requestDataMapper->getCurrencyMappings()),
             'eci'                  => $raw3DAuthResponseData['Eci'],
             'tx_status'            => $raw3DAuthResponseData['TxnStat'],
             'cavv'                 => null,
@@ -468,15 +463,9 @@ class InterPos extends AbstractGateway
      */
     protected function preparePaymentOrder(array $order)
     {
-        // Installment
-        $installment = '';
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = (int) $order['installment'];
-        }
-
         return (object) array_merge($order, [
-            'installment' => $installment,
-            'currency'    => $this->mapCurrency($order['currency']),
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
         ]);
     }
 
@@ -488,7 +477,7 @@ class InterPos extends AbstractGateway
         return (object) [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'currency' => $order['currency'],
+            'currency' => $order['currency'] ?? 'TRY',
         ];
     }
 

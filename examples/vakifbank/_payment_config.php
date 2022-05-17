@@ -40,9 +40,10 @@ function getNewOrder(
     string $currency,
     \Symfony\Component\HttpFoundation\Session\Session $session,
     ?int $installment = 0,
-    bool $tekrarlanan = false
+    bool $tekrarlanan = false,
+    string $lang = AbstractGateway::LANG_TR
 ): array {
-    $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment);
+    $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 
     $order['extraData'] = $session->getId(); //optional, istekte SessionInfo degere atanir
     if ($tekrarlanan) {
@@ -53,6 +54,7 @@ function getNewOrder(
             //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
             'recurringInstallmentCount' => 4,
             'recurringEndDate'          => '202112', //optional
+            // yukardaki belirtilen ayarin anlami 3 ayda bir kesintip yap ve bunu toplam 4 kere tekrarla.
         ]);
     }
 

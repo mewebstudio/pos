@@ -1,12 +1,15 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Gateways\AbstractGateway;
 
 /**
- * todo move txType, currency, installment mapping to here from all gateways
  * AbstractRequestDataMapper
  */
 abstract class AbstractRequestDataMapper
@@ -25,18 +28,35 @@ abstract class AbstractRequestDataMapper
 
     protected $cardTypeMapping = [];
 
+    protected $langMappings = [
+        AbstractGateway::LANG_TR => 'tr',
+        AbstractGateway::LANG_EN => 'en',
+    ];
+
     /**
+     * default olarak ISO 4217 kodlar tanimliyoruz.
+     * fakat bazi banklar ISO standarti kullanmiyorlar.
      * Currency mapping
      *
      * @var array
      */
-    protected $currencyMappings = [];
+    protected $currencyMappings = [
+        'TRY' => 949,
+        'USD' => 840,
+        'EUR' => 978,
+        'GBP' => 826,
+        'JPY' => 392,
+        'RUB' => 643,
+    ];
 
     /**
      * period mapping for recurring orders
      * @var array
      */
     protected $recurringOrderFrequencyMapping = [];
+
+    /** @var bool */
+    protected $testMode = false;
 
     /**
      * @param array $currencyMappings
@@ -51,7 +71,7 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount $account
      * @param                    $order
-     * @param string             $txType       mapped value from AbstractGateway::TX_PAY
+     * @param string             $txType       ex: AbstractGateway::TX_PAY
      * @param array              $responseData gateway'den gelen cevap
      *
      * @return array
@@ -61,7 +81,7 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount      $account
      * @param                         $order
-     * @param string                  $txType  mapped value from AbstractGateway::TX_PAY
+     * @param string                  $txType  ex: AbstractGateway::TX_PAY
      * @param AbstractCreditCard|null $card
      *
      * @return array
@@ -104,7 +124,7 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount      $account
      * @param                         $order
-     * @param string                  $txType     mapped value from AbstractGateway::TX_PAY
+     * @param string                  $txType     ex: AbstractGateway::TX_PAY
      * @param string                  $gatewayURL
      * @param AbstractCreditCard|null $card
      *
@@ -115,7 +135,7 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount $account
      * @param                    $order
-     * @param string             $txType  mapped value from AbstractGateway::TX_PAY
+     * @param string             $txType  ex: AbstractGateway::TX_PAY
      *
      * @return string
      */
@@ -126,9 +146,17 @@ abstract class AbstractRequestDataMapper
      * @param                    $order
      * @param array              $extraData bankaya gore degisen ozel degerler
      *
-     * @return string
+     * @return array
      */
     abstract public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array;
+
+    /**
+     * @return bool
+     */
+    public function isTestMode(): bool
+    {
+        return $this->testMode;
+    }
 
     /**
      * @param string $period
@@ -172,6 +200,55 @@ abstract class AbstractRequestDataMapper
         return $this->currencyMappings;
     }
 
+
+    /**
+     * @param bool $testMode
+     *
+     * @return AbstractRequestDataMapper
+     */
+    public function setTestMode(bool $testMode): self
+    {
+        $this->testMode = $testMode;
+
+        return $this;
+    }
+
+    /**
+     * @param string $currency TRY, USD
+     *
+     * @return string currency code that is accepted by bank
+     */
+    public function mapCurrency(string $currency): string
+    {
+        return $this->currencyMappings[$currency] ?? $currency;
+    }
+
+    /**
+     * @param string $txType
+     *
+     * @return string
+     *
+     * @throws UnsupportedTransactionTypeException
+     */
+    public function mapTxType(string $txType): string
+    {
+        if (!$this->isSupportedTxType($txType)) {
+            throw new UnsupportedTransactionTypeException();
+        }
+
+        return $this->txTypeMappings[$txType];
+    }
+
+    /**
+     * @param string $txType
+     *
+     * @return bool
+     */
+    public function isSupportedTxType(string $txType): bool
+    {
+        return isset($this->txTypeMappings[$txType]);
+    }
+
     /**
      * @return array
      */
@@ -179,6 +256,13 @@ abstract class AbstractRequestDataMapper
     {
         return $this->recurringOrderFrequencyMapping;
     }
+
+    /**
+     * @param int|null $installment
+     *
+     * @return int|string
+     */
+    abstract public function mapInstallment(?int $installment);
 
     /**
      * @param string $str
@@ -202,9 +286,9 @@ abstract class AbstractRequestDataMapper
     protected function getLang(AbstractPosAccount $account, $order): string
     {
         if ($order && isset($order->lang)) {
-            return $order->lang;
+            return $this->langMappings[$order->lang];
         }
 
-        return $account->getLang();
+        return $this->langMappings[$account->getLang()];
     }
 }

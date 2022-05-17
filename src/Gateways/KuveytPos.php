@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Gateways;
 
 use DOMDocument;
@@ -7,6 +9,7 @@ use DOMNodeList;
 use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
@@ -19,11 +22,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class KuveytPos extends AbstractGateway
 {
-    const LANG_TR = 'tr';
-    const LANG_EN = 'en';
-
     public const NAME = 'KuveytPos';
-    public const API_VERSION = '1.0.0';
 
     /**
      * Response Codes
@@ -43,21 +42,16 @@ class KuveytPos extends AbstractGateway
     protected $card;
 
     /** @var KuveytPosRequestDataMapper */
-    private $requestDataMapper;
+    protected $requestDataMapper;
 
     /**
-     * @param array            $config
-     * @param KuveytPosAccount $account
-     * @param array            $currencies
+     * @inheritdoc
+     *
+     * @param KuveytPosAccount          $account
      */
-    public function __construct($config, $account, array $currencies = [])
+    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
     {
-        $this->requestDataMapper = new KuveytPosRequestDataMapper($currencies);
-        $this->types             = $this->requestDataMapper->getTxTypeMappings();
-        $this->currencies        = $this->requestDataMapper->getCurrencyMappings();
-        $this->cardTypeMapping   = $this->requestDataMapper->getCardTypeMapping();
-
-        parent::__construct($config, $account, $currencies);
+        parent::__construct($config, $account, $requestDataMapper);
     }
 
     /**
@@ -305,7 +299,7 @@ class KuveytPos extends AbstractGateway
         $result['order_id']      = $responseData['MerchantOrderId'];
         $result['host_ref_num']  = $responseData['RRN'];
         $result['amount']        = $responseData['VPosMessage']['Amount'];
-        $result['currency']      = array_search($responseData['VPosMessage']['CurrencyCode'], $this->currencies);
+        $result['currency']      = array_search($responseData['VPosMessage']['CurrencyCode'], $this->requestDataMapper->getCurrencyMappings());
         $result['masked_number'] = $responseData['VPosMessage']['CardNumber'];
 
         return $result;
@@ -356,15 +350,9 @@ class KuveytPos extends AbstractGateway
      */
     protected function preparePaymentOrder(array $order)
     {
-        // Installment
-        $installment = 0;
-        if (isset($order['installment']) && $order['installment'] > 1) {
-            $installment = (int) $order['installment'];
-        }
-
         return (object) array_merge($order, [
-            'installment' => $installment,
-            'currency'    => $this->mapCurrency($order['currency']),
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
         ]);
     }
 
@@ -523,7 +511,7 @@ class KuveytPos extends AbstractGateway
             'order_id'             => $orderId,
             'response'             => $response,
             'transaction_type'     => $this->type,
-            'transaction'          => $this->type,
+            'transaction'          => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'transaction_security' => $transactionSecurity,
             'proc_return_code'     => $procReturnCode,
             'code'                 => $procReturnCode,
@@ -545,7 +533,7 @@ class KuveytPos extends AbstractGateway
         if ('approved' === $status) {
             $default['hash'] = $raw3DAuthResponseData['VPosMessage']['HashData'];
             $default['amount'] = $raw3DAuthResponseData['VPosMessage']['Amount'];
-            $default['currency'] = array_search($raw3DAuthResponseData['VPosMessage']['CurrencyCode'], $this->currencies);
+            $default['currency'] = array_search($raw3DAuthResponseData['VPosMessage']['CurrencyCode'], $this->requestDataMapper->getCurrencyMappings());
             $default['masked_number'] = $raw3DAuthResponseData['VPosMessage']['CardNumber'];
         }
 
