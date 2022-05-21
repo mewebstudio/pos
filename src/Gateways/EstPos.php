@@ -9,6 +9,7 @@ use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -112,7 +113,7 @@ class EstPos extends AbstractGateway
     {
         $provisionResponse = null;
         if ($this->check3DHash($request->request->all())) {
-            if ($request->request->get('mdErrorMsg') !== 'Authenticated') {
+            if ($request->request->get('mdStatus') !== '1') {
                 /**
                  * TODO hata durumu ele alinmasi gerekiyor
                  * ornegin soyle bir hata donebilir
@@ -327,12 +328,12 @@ class EstPos extends AbstractGateway
             'tx_status'            => null,
             'cavv'                 => null,
             'xid'                  => $raw3DAuthResponseData['oid'],
-            'md_error_message'     => 'Authenticated' !== $raw3DAuthResponseData['mdErrorMsg'] ? $raw3DAuthResponseData['mdErrorMsg'] : null,
+            'md_error_message'     => '1' !== $raw3DAuthResponseData['mdStatus'] ? $raw3DAuthResponseData['mdErrorMsg'] : null,
             'name'                 => $raw3DAuthResponseData['firmaadi'],
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
-        if ('Authenticated' === $raw3DAuthResponseData['mdErrorMsg']) {
+        if ('1' === $raw3DAuthResponseData['mdStatus']) {
             $threeDResponse['eci'] = $raw3DAuthResponseData['eci'];
             $threeDResponse['cavv'] = $raw3DAuthResponseData['cavv'];
         }
@@ -347,7 +348,7 @@ class EstPos extends AbstractGateway
     {
         $status = 'declined';
 
-        if ($this->check3DHash($raw3DAuthResponseData) && $raw3DAuthResponseData['mdErrorMsg'] === 'Authenticated') {
+        if ($this->check3DHash($raw3DAuthResponseData)) {
             if (in_array($raw3DAuthResponseData['mdStatus'], [1, 2, 3, 4])) {
                 $status = 'approved';
             }
@@ -407,7 +408,7 @@ class EstPos extends AbstractGateway
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $status = 'declined';
 
-        if ($this->check3DHash($raw3DAuthResponseData) && 'Authenticated' === $raw3DAuthResponseData['mdErrorMsg']) {
+        if ($this->check3DHash($raw3DAuthResponseData)) {
             if (in_array($raw3DAuthResponseData['mdStatus'], [1, 2, 3, 4])) {
                 $status = 'approved';
             }
