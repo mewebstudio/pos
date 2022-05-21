@@ -10,14 +10,10 @@ $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
 
 $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-    'cookie_samesite' => 'None',
+    'cookie_samesite' => '',
 ]);
 $session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
-//banktan donuste eski session'a devam edemiyor, yeni session olusturuluyor
-//eski session'deki order bilgiler kayboluyor.
-//session id vererek, yeni session olusmasini engelliyoruz
-$session->setId('mbu0tkd5vkbkksrkk824f1ib4a');
-
+$session->start();
 
 $hostUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')."://$_SERVER[HTTP_HOST]";
 $subMenu = [];
