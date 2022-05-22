@@ -136,7 +136,7 @@ class EstPos extends AbstractGateway
      */
     public function make3DPayPayment(Request $request)
     {
-        $this->response = $this->map3DPayResponseData($request->request->all());
+        $this->response = (object) $this->map3DPayResponseData($request->request->all());
 
         return $this;
     }
@@ -348,6 +348,8 @@ class EstPos extends AbstractGateway
     {
         $status = 'declined';
 
+        $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
+
         if ($this->check3DHash($raw3DAuthResponseData)) {
             if (in_array($raw3DAuthResponseData['mdStatus'], [1, 2, 3, 4])) {
                 $status = 'approved';
@@ -362,21 +364,13 @@ class EstPos extends AbstractGateway
                 $transactionSecurity = 'Half 3D Secure';
             }
         }
+        $defaultResponse = $this->getDefaultPaymentResponse();
 
-        return (object) [
-            'id'                   => $raw3DAuthResponseData['AuthCode'],
-            'trans_id'             => $raw3DAuthResponseData['TransId'],
-            'auth_code'            => $raw3DAuthResponseData['AuthCode'],
-            'host_ref_num'         => $raw3DAuthResponseData['HostRefNum'],
-            'response'             => $raw3DAuthResponseData['Response'],
+        $response = [
             'order_id'             => $raw3DAuthResponseData['oid'],
-            'transaction_type'     => $this->type,
-            'transaction'          => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'transaction_security' => $transactionSecurity,
-            'code'                 => $raw3DAuthResponseData['ProcReturnCode'],
             'md_status'            => $raw3DAuthResponseData['mdStatus'],
             'status'               => $status,
-            'status_detail'        => isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
             'hash'                 => $raw3DAuthResponseData['HASH'],
             'rand'                 => $raw3DAuthResponseData['rnd'],
             'hash_params'          => $raw3DAuthResponseData['HASHPARAMS'],
@@ -385,19 +379,31 @@ class EstPos extends AbstractGateway
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
             'amount'               => $raw3DAuthResponseData['amount'],
-            'currency'             => $raw3DAuthResponseData['currency'],
+            'currency'             => array_search($raw3DAuthResponseData['currency'], $this->requestDataMapper->getCurrencyMappings()),
             'tx_status'            => null,
             'eci'                  => $raw3DAuthResponseData['eci'],
             'cavv'                 => $raw3DAuthResponseData['cavv'],
             'xid'                  => $raw3DAuthResponseData['oid'],
-            'error_code'           => isset($raw3DAuthResponseData['ErrMsg']) ? $raw3DAuthResponseData['ProcReturnCode'] : null,
-            'error_message'        => $raw3DAuthResponseData['ErrMsg'],
             'md_error_message'     => $raw3DAuthResponseData['mdErrorMsg'],
             'name'                 => $raw3DAuthResponseData['firmaadi'],
             'email'                => $raw3DAuthResponseData['Email'],
             'campaign_url'         => null,
             'all'                  => $raw3DAuthResponseData,
         ];
+
+        if ('1' === $raw3DAuthResponseData['mdStatus']) {
+            $response['id'] = $raw3DAuthResponseData['AuthCode'];
+            $response['auth_code'] = $raw3DAuthResponseData['AuthCode'];
+            $response['trans_id'] = $raw3DAuthResponseData['TransId'];
+            $response['host_ref_num'] = $raw3DAuthResponseData['HostRefNum'];
+            $response['response'] = $raw3DAuthResponseData['Response'];
+            $response['code'] = $raw3DAuthResponseData['ProcReturnCode'];
+            $response['status_detail'] = isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $raw3DAuthResponseData['ProcReturnCode'] : null;
+            $response['error_message'] = $raw3DAuthResponseData['ErrMsg'];
+            $response['error_code'] = isset($raw3DAuthResponseData['ErrMsg']) ? $raw3DAuthResponseData['ProcReturnCode'] : null;
+        }
+
+        return $this->mergeArraysPreferNonNullValues($defaultResponse, $response);
     }
 
     /**
