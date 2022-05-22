@@ -9,7 +9,6 @@ use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -126,7 +125,7 @@ class EstPos extends AbstractGateway
             }
         }
 
-        $this->response = $this->map3DPaymentData($request->request->all(), $provisionResponse);
+        $this->response = (object) $this->map3DPaymentData($request->request->all(), $provisionResponse);
 
         return $this;
     }
@@ -274,22 +273,28 @@ class EstPos extends AbstractGateway
     /**
      * Get ProcReturnCode
      *
+     * @param array|object $response
+     *
      * @return string|null
      */
-    protected function getProcReturnCode(): ?string
+    protected function getProcReturnCode($response): ?string
     {
-        return isset($this->data->ProcReturnCode) ? (string) $this->data->ProcReturnCode : null;
+        if (is_array($response)) {
+            return $response['ProcReturnCode'] ?? null;
+        }
+
+        return $response->ProcReturnCode ?? null;
     }
 
     /**
      * Get Status Detail Text
      *
+     * @param string|null $procReturnCode
+     *
      * @return string|null
      */
-    protected function getStatusDetail(): ?string
+    protected function getStatusDetail(?string $procReturnCode): ?string
     {
-        $procReturnCode = $this->getProcReturnCode();
-
         return $procReturnCode ? (isset($this->codes[$procReturnCode]) ? (string) $this->codes[$procReturnCode] : null) : null;
     }
 
@@ -299,20 +304,10 @@ class EstPos extends AbstractGateway
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-
-        $transactionSecurity = 'MPI fallback';
-        if ($this->getProcReturnCode() === '00') {
-            if ('1' === $raw3DAuthResponseData['mdStatus']) {
-                $transactionSecurity = 'Full 3D Secure';
-            } elseif (in_array($raw3DAuthResponseData['mdStatus'], [2, 3, 4])) {
-                $transactionSecurity = 'Half 3D Secure';
-            }
-        }
-
         $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData);
 
         $threeDResponse = [
-            'transaction_security' => $transactionSecurity,
+            'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['mdStatus']),
             'md_status'            => $raw3DAuthResponseData['mdStatus'],
             'hash'                 => $raw3DAuthResponseData['HASH'],
             'order_id'             => $raw3DAuthResponseData['oid'],
@@ -338,7 +333,7 @@ class EstPos extends AbstractGateway
             $threeDResponse['cavv'] = $raw3DAuthResponseData['cavv'];
         }
 
-        return (object) $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
+        return $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
     }
 
     /**
@@ -349,26 +344,18 @@ class EstPos extends AbstractGateway
         $status = 'declined';
 
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-
-        if ($this->check3DHash($raw3DAuthResponseData)) {
-            if (in_array($raw3DAuthResponseData['mdStatus'], [1, 2, 3, 4])) {
+        $procReturnCode = $this->getProcReturnCode($raw3DAuthResponseData);
+        if ($this->check3DHash($raw3DAuthResponseData) && '00' === $procReturnCode) {
+            if (in_array($raw3DAuthResponseData['mdStatus'], ['1', '2', '3', '4'])) {
                 $status = 'approved';
             }
         }
 
-        $transactionSecurity = 'MPI fallback';
-        if ('approved' === $status) {
-            if ('1' === $raw3DAuthResponseData['mdStatus']) {
-                $transactionSecurity = 'Full 3D Secure';
-            } elseif (in_array($raw3DAuthResponseData['mdStatus'], [2, 3, 4])) {
-                $transactionSecurity = 'Half 3D Secure';
-            }
-        }
         $defaultResponse = $this->getDefaultPaymentResponse();
 
         $response = [
             'order_id'             => $raw3DAuthResponseData['oid'],
-            'transaction_security' => $transactionSecurity,
+            'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['mdStatus']),
             'md_status'            => $raw3DAuthResponseData['mdStatus'],
             'status'               => $status,
             'hash'                 => $raw3DAuthResponseData['HASH'],
@@ -397,19 +384,21 @@ class EstPos extends AbstractGateway
             $response['trans_id'] = $raw3DAuthResponseData['TransId'];
             $response['host_ref_num'] = $raw3DAuthResponseData['HostRefNum'];
             $response['response'] = $raw3DAuthResponseData['Response'];
-            $response['code'] = $raw3DAuthResponseData['ProcReturnCode'];
-            $response['status_detail'] = isset($this->codes[$raw3DAuthResponseData['ProcReturnCode']]) ? $raw3DAuthResponseData['ProcReturnCode'] : null;
+            $response['code'] = $procReturnCode;
+            $response['status_detail'] = $this->getStatusDetail($procReturnCode);
             $response['error_message'] = $raw3DAuthResponseData['ErrMsg'];
-            $response['error_code'] = isset($raw3DAuthResponseData['ErrMsg']) ? $raw3DAuthResponseData['ProcReturnCode'] : null;
+            $response['error_code'] = isset($raw3DAuthResponseData['ErrMsg']) ? $procReturnCode : null;
         }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $response);
     }
 
     /**
-     * @inheritDoc
+     * @param array $raw3DAuthResponseData
+     *
+     * @return array
      */
-    protected function map3DHostResponseData($raw3DAuthResponseData)
+    protected function map3DHostResponseData(array $raw3DAuthResponseData): array
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $status = 'declined';
@@ -420,29 +409,13 @@ class EstPos extends AbstractGateway
             }
         }
 
-        $transactionSecurity = 'MPI fallback';
-        if ('approved' === $status) {
-            if ('1' === $raw3DAuthResponseData['mdStatus']) {
-                $transactionSecurity = 'Full 3D Secure';
-            } elseif (in_array($raw3DAuthResponseData['mdStatus'], [2, 3, 4])) {
-                $transactionSecurity = 'Half 3D Secure';
-            }
-        }
+        $defaultResponse = $this->getDefaultPaymentResponse();
 
-        return [
-            'id'                   => null,
-            'trans_id'             => null,
-            'auth_code'            => null,
-            'host_ref_num'         => null,
-            'response'             => null,
+        $response = [
             'order_id'             => $raw3DAuthResponseData['oid'],
-            'transaction_type'     => $this->type,
-            'transaction'          => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
-            'transaction_security' => $transactionSecurity,
-            'code'                 => null,
+            'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['mdStatus']),
             'md_status'            => $raw3DAuthResponseData['mdStatus'],
             'status'               => $status,
-            'status_detail'        => null,
             'hash'                 => $raw3DAuthResponseData['HASH'],
             'rand'                 => $raw3DAuthResponseData['rnd'],
             'hash_params'          => $raw3DAuthResponseData['HASHPARAMS'],
@@ -456,14 +429,14 @@ class EstPos extends AbstractGateway
             'eci'                  => $raw3DAuthResponseData['eci'],
             'cavv'                 => $raw3DAuthResponseData['cavv'],
             'xid'                  => $raw3DAuthResponseData['oid'],
-            'error_code'           => null,
-            'error_message'        => null,
             'md_error_message'     => 'approved' !== $status ? $raw3DAuthResponseData['mdErrorMsg'] : null,
             'name'                 => $raw3DAuthResponseData['firmaadi'],
             'email'                => $raw3DAuthResponseData['Email'],
             'campaign_url'         => null,
             'all'                  => $raw3DAuthResponseData,
         ];
+
+        return $this->mergeArraysPreferNonNullValues($defaultResponse, $response);
     }
 
     /**
@@ -472,8 +445,9 @@ class EstPos extends AbstractGateway
     protected function mapRefundResponse($rawResponseData)
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        $procReturnCode = $this->getProcReturnCode($rawResponseData);
         $status = 'declined';
-        if ($this->getProcReturnCode() === '00') {
+        if ('00' === $procReturnCode) {
             $status = 'approved';
         }
 
@@ -483,13 +457,13 @@ class EstPos extends AbstractGateway
             'response'         => $rawResponseData['Response'],
             'auth_code'        => $rawResponseData['AuthCode'],
             'host_ref_num'     => $rawResponseData['HostRefNum'],
-            'proc_return_code' => $rawResponseData['ProcReturnCode'],
+            'proc_return_code' => $procReturnCode,
             'trans_id'         => $rawResponseData['TransId'],
             'num_code'         => $rawResponseData['Extra']['NUMCODE'],
             'error_code'       => $rawResponseData['Extra']['ERRORCODE'],
             'error_message'    => $rawResponseData['ErrMsg'],
             'status'           => $status,
-            'status_detail'    => $this->getStatusDetail(),
+            'status_detail'    => $this->getStatusDetail($procReturnCode),
             'all'              => $rawResponseData,
         ];
     }
@@ -500,8 +474,9 @@ class EstPos extends AbstractGateway
     protected function mapCancelResponse($rawResponseData)
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        $procReturnCode = $this->getProcReturnCode($rawResponseData);
         $status = 'declined';
-        if ($this->getProcReturnCode() === '00') {
+        if ('00' === $procReturnCode) {
             $status = 'approved';
         }
 
@@ -511,13 +486,13 @@ class EstPos extends AbstractGateway
             'response'         => $rawResponseData['Response'],
             'auth_code'        => $rawResponseData['AuthCode'],
             'host_ref_num'     => $rawResponseData['HostRefNum'],
-            'proc_return_code' => $rawResponseData['ProcReturnCode'],
+            'proc_return_code' => $procReturnCode,
             'trans_id'         => $rawResponseData['TransId'],
             'error_code'       => $rawResponseData['Extra']['ERRORCODE'],
             'num_code'         => $rawResponseData['Extra']['NUMCODE'],
             'error_message'    => $rawResponseData['ErrMsg'],
             'status'           => $status,
-            'status_detail'    => $this->getStatusDetail(),
+            'status_detail'    => $this->getStatusDetail($procReturnCode),
             'all'              => $rawResponseData,
         ];
 
@@ -530,8 +505,9 @@ class EstPos extends AbstractGateway
     protected function mapStatusResponse($rawResponseData)
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        $procReturnCode = $this->getProcReturnCode($rawResponseData);
         $status = 'declined';
-        if ($this->getProcReturnCode() === '00') {
+        if ('00' === $procReturnCode) {
             $status = 'approved';
         }
 
@@ -539,7 +515,7 @@ class EstPos extends AbstractGateway
             'order_id'         => $rawResponseData['OrderId'],
             'auth_code'        => null,
             'response'         => $rawResponseData['Response'],
-            'proc_return_code' => $rawResponseData['ProcReturnCode'],
+            'proc_return_code' => $procReturnCode,
             'trans_id'         => $rawResponseData['TransId'],
             'error_message'    => $rawResponseData['ErrMsg'],
             'host_ref_num'     => null,
@@ -551,7 +527,7 @@ class EstPos extends AbstractGateway
             'capture_amount'   => null,
             'status'           => $status,
             'error_code'       => null,
-            'status_detail'    => $this->getStatusDetail(),
+            'status_detail'    => $this->getStatusDetail($procReturnCode),
             'capture'          => false,
             'all'              => $rawResponseData,
         ];
@@ -579,8 +555,9 @@ class EstPos extends AbstractGateway
         }
         $responseData = $this->emptyStringsToNull($responseData);
 
+        $procReturnCode = $this->getProcReturnCode($responseData);
         $status = 'declined';
-        if ($this->getProcReturnCode() === '00') {
+        if ('00' === $procReturnCode) {
             $status = 'approved';
         }
 
@@ -594,10 +571,10 @@ class EstPos extends AbstractGateway
             'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
             'auth_code'        => $responseData['AuthCode'],
             'host_ref_num'     => $responseData['HostRefNum'],
-            'proc_return_code' => $responseData['ProcReturnCode'],
-            'code'             => $responseData['ProcReturnCode'],
+            'proc_return_code' => $procReturnCode,
+            'code'             => $procReturnCode,
             'status'           => $status,
-            'status_detail'    => $this->getStatusDetail(),
+            'status_detail'    => $this->getStatusDetail($procReturnCode),
             'error_code'       => $responseData['Extra']['ERRORCODE'],
             'error_message'    => $responseData['ErrMsg'],
             'campaign_url'     => null,
@@ -612,22 +589,40 @@ class EstPos extends AbstractGateway
     protected function mapHistoryResponse($rawResponseData)
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        $procReturnCode = $this->getProcReturnCode($rawResponseData);
         $status = 'declined';
-        if ($this->getProcReturnCode() === '00') {
+        if ('00' === $procReturnCode) {
             $status = 'approved';
         }
 
         return (object) [
             'order_id'         => $rawResponseData['OrderId'],
             'response'         => $rawResponseData['Response'],
-            'proc_return_code' => $rawResponseData['ProcReturnCode'],
+            'proc_return_code' => $procReturnCode,
             'error_message'    => $rawResponseData['ErrMsg'],
             'num_code'         => $rawResponseData['Extra']['NUMCODE'],
             'trans_count'      => $rawResponseData['Extra']['TRXCOUNT'],
             'status'           => $status,
-            'status_detail'    => $this->getStatusDetail(),
+            'status_detail'    => $this->getStatusDetail($procReturnCode),
             'all'              => $rawResponseData,
         ];
+    }
+
+    /**
+     * @param string $mdStatus
+     *
+     * @return string
+     */
+    protected function mapResponseTransactionSecurity(string $mdStatus): string
+    {
+        $transactionSecurity = 'MPI fallback';
+        if ('1' === $mdStatus) {
+            $transactionSecurity = 'Full 3D Secure';
+        } elseif (in_array($mdStatus, ['2', '3', '4'])) {
+            $transactionSecurity = 'Half 3D Secure';
+        }
+
+        return $transactionSecurity;
     }
 
     /**

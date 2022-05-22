@@ -143,12 +143,11 @@ class EstPostTest extends TestCase
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->get3DMakePaymentPaymentFailResponseData());
         $posMock->expects($this->once())->method('check3DHash')->willReturn(true);
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
         $posMock->expects($this->once())->method('create3DPaymentXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -185,12 +184,11 @@ class EstPostTest extends TestCase
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->get3DMakePaymentPaymentSuccessResponseData());
         $posMock->expects($this->once())->method('check3DHash')->willReturn(true);
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
         $posMock->expects($this->once())->method('create3DPaymentXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -362,11 +360,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createStatusXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createStatusXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getStatusSuccessResponseData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
         $posMock->expects($this->once())->method('createStatusXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -395,11 +392,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createStatusXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createStatusXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getStatusFailResponseData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
         $posMock->expects($this->once())->method('createStatusXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -428,11 +424,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createHistoryXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createHistoryXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getHistorySuccessData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
         $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -459,11 +454,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createHistoryXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createHistoryXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getHistoryFailData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
         $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -472,9 +466,9 @@ class EstPostTest extends TestCase
         $result = $posMock->getResponse();
         $this->assertIsObject($result);
         $result = (array) $result;
-        $this->assertSame('approved', $result['status']);
+        $this->assertSame('declined', $result['status']);
         $this->assertSame(null, $result['order_id']);
-        $this->assertSame('approved', $result['status_detail']);
+        $this->assertSame('reject', $result['status_detail']);
         $this->assertSame('05', $result['proc_return_code']);
         $this->assertSame('No record found for', $result['error_message']);
         $this->assertSame('0', $result['num_code']);
@@ -490,11 +484,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createCancelXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createCancelXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getCancelSuccessData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
         $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -524,11 +517,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createCancelXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createCancelXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getCancelFailData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
         $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -558,11 +550,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createRefundXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createRefundXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getRefundFailData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
         $posMock->expects($this->once())->method('createRefundXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
