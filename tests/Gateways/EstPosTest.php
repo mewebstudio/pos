@@ -15,9 +15,9 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * EstPostTest
+ * EstPosTest
  */
-class EstPostTest extends TestCase
+class EstPosTest extends TestCase
 {
     /** @var EstPosAccount */
     private $account;
