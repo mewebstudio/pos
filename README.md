@@ -245,9 +245,8 @@ Fakat,
 
 ## Troubleshoots
 ### Session sıfırlanması
-Cookie session kullanığınızda, kullanıcı gatewayden geri websitenize yönlendirilidiğinde session'nin sıfırlanabilir.
-Bu durumda PHP header'de `samesite=None` set etmeyi deneyin. Bu header'ı set ettikten sonra,
-taraycıda yeni session oluşturun, çünkü bu değişiklik var olan session'i etkilemez.
+Cookie session kullanığınızda, kullanıcı gatewayden geri websitenize yönlendirilidiğinde session sıfırlanabilir.
+Response'da `samesite` değeri set etmeniz gerekiyor. [çözüm](https://stackoverflow.com/a/51128675/4896948).
 ### Shared hosting'lerde IP tanımsız hatası
 Shared hosting'lerde Cpanel'de gördüğünüz IP'den farklı olarak fiziksel sunucun bir tane daha IP'si olur.
 O IP adres Cpanel'de gözükmez, hosting firmanızdan sorup öğrenmeniz gerekmekte.

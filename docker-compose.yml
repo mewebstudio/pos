@@ -13,6 +13,3 @@ services:
       - ./.docker/php-xdebug.ini:/usr/local/etc/php/php.ini
     ports:
       - "80:80"
-  redis:
-    image: redis:alpine3.12
-    container_name: pos_redis

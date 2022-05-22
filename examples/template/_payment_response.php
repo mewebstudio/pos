@@ -16,7 +16,9 @@ if (AbstractGateway::TX_POST_PAY === $transaction) {
 } else {
     $order = $session->get('order');
 }
-
+if (!$order) {
+    throw new Exception('Sipariş bulunamadı, session sıfırlanmış olabilir.');
+}
 
 $pos->prepare($order, $transaction);
 

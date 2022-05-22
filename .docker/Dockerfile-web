@@ -1,16 +1,13 @@
 # Use image which contains apache with php
-FROM php:7.4.10-apache
+FROM php:7.2.5-apache
 
-RUN apt-get update && apt-get upgrade -y
+RUN apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y
 
 # Install packages needed to install php extensions
-RUN apt-get install git zlib1g-dev libxml2-dev libzip-dev zip unzip -y
+RUN apt-get install zlib1g-dev libxml2-dev libzip-dev zip unzip -y
 
 # Install PHP extensions
-RUN docker-php-ext-install zip intl pdo opcache
-
-# Install REDIS extensions
-RUN pecl install redis && docker-php-ext-enable redis
+RUN docker-php-ext-install zip
 
 # Install XDEBUG
 RUN pecl install xdebug-2.9.6 && docker-php-ext-enable xdebug

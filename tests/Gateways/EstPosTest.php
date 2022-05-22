@@ -15,9 +15,9 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * EstPostTest
+ * EstPosTest
  */
-class EstPostTest extends TestCase
+class EstPosTest extends TestCase
 {
     /** @var EstPosAccount */
     private $account;
@@ -143,12 +143,11 @@ class EstPostTest extends TestCase
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->get3DMakePaymentPaymentFailResponseData());
         $posMock->expects($this->once())->method('check3DHash')->willReturn(true);
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
         $posMock->expects($this->once())->method('create3DPaymentXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -185,12 +184,11 @@ class EstPostTest extends TestCase
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->get3DMakePaymentPaymentSuccessResponseData());
         $posMock->expects($this->once())->method('check3DHash')->willReturn(true);
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
         $posMock->expects($this->once())->method('create3DPaymentXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -287,15 +285,85 @@ class EstPostTest extends TestCase
     /**
      * @return void
      */
+    public function testMake3DPayPaymentSuccess()
+    {
+        $request = Request::create('', 'POST', $this->get3DPayPaymentSuccessResponseData());
+
+        $pos = $this->pos;
+        $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $pos->make3DHostPayment($request);
+        $result = $pos->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('approved', $result['status']);
+        $this->assertSame(null, $result['md_error_message']);
+        $this->assertSame('202205220386', $result['order_id']);
+        $this->assertSame('1', $result['md_status']);
+        $this->assertSame('GlAHT733ITdOZ1Lj5OJGvzAJlt8=', $result['hash']);
+        $this->assertSame('4355 08** **** 4358', $result['masked_number']);
+        $this->assertSame('12', $result['month']);
+        $this->assertSame('30', $result['year']);
+        $this->assertSame('1.01', $result['amount']);
+        $this->assertSame('TRY', $result['currency']);
+        $this->assertSame('Auth', $result['transaction']);
+        $this->assertSame(AbstractGateway::TX_PAY, $result['transaction_type']);
+        $this->assertSame(null, $result['auth_code']);
+        $this->assertSame(null, $result['host_ref_num']);
+        $this->assertSame(null, $result['status_detail']);
+        $this->assertSame(null, $result['error_code']);
+        $this->assertNotEmpty($result['all']);
+    }
+
+    /**
+     * @return void
+     */
+    public function testMake3DPayPayment3DAuthFail()
+    {
+        $request = Request::create('', 'POST', $this->get3DPayPaymentAuthFailResponseData());
+
+        $posMock = $this->getMockBuilder(EstPos::class)
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->onlyMethods(['send'])
+            ->getMock();
+
+        $posMock->expects($this->never())->method('send');
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $posMock->make3DPayment($request);
+        $result = $posMock->getResponse();
+        $this->assertIsObject($result);
+        $result = (array) $result;
+        $this->assertSame('declined', $result['status']);
+        $this->assertSame('Not authenticated', $result['md_error_message']);
+        $this->assertSame('202205222012', $result['order_id']);
+        $this->assertSame('0', $result['md_status']);
+        $this->assertSame('G1OJfCYcAbbrFHjF16heHTcP2Co=', $result['hash']);
+        $this->assertSame('4355 08** **** 4358', $result['masked_number']);
+        $this->assertSame('12', $result['month']);
+        $this->assertSame('30', $result['year']);
+        $this->assertSame('1.01', $result['amount']);
+        $this->assertSame('TRY', $result['currency']);
+        $this->assertSame('Auth', $result['transaction']);
+        $this->assertSame(AbstractGateway::TX_PAY, $result['transaction_type']);
+        $this->assertSame(null, $result['auth_code']);
+        $this->assertSame(null, $result['host_ref_num']);
+        $this->assertSame(null, $result['status_detail']);
+        $this->assertSame(null, $result['error_code']);
+        $this->assertNotEmpty($result['3d_all']);
+    }
+
+    /**
+     * @return void
+     */
     public function testStatusSuccess()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createStatusXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createStatusXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getStatusSuccessResponseData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
         $posMock->expects($this->once())->method('createStatusXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -324,11 +392,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createStatusXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createStatusXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getStatusFailResponseData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
         $posMock->expects($this->once())->method('createStatusXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -357,11 +424,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createHistoryXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createHistoryXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getHistorySuccessData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
         $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -388,11 +454,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createHistoryXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createHistoryXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getHistoryFailData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
         $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -401,9 +466,9 @@ class EstPostTest extends TestCase
         $result = $posMock->getResponse();
         $this->assertIsObject($result);
         $result = (array) $result;
-        $this->assertSame('approved', $result['status']);
+        $this->assertSame('declined', $result['status']);
         $this->assertSame(null, $result['order_id']);
-        $this->assertSame('approved', $result['status_detail']);
+        $this->assertSame('reject', $result['status_detail']);
         $this->assertSame('05', $result['proc_return_code']);
         $this->assertSame('No record found for', $result['error_message']);
         $this->assertSame('0', $result['num_code']);
@@ -419,11 +484,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createCancelXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createCancelXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getCancelSuccessData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('00');
         $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -453,11 +517,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createCancelXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createCancelXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getCancelFailData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
         $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -487,11 +550,10 @@ class EstPostTest extends TestCase
     {
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
-            ->onlyMethods(['send', 'createRefundXML', 'getProcReturnCode'])
+            ->onlyMethods(['send', 'createRefundXML'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn((object) $this->getRefundFailData());
-        $posMock->expects($this->any())->method('getProcReturnCode')->willReturn('99');
         $posMock->expects($this->once())->method('createRefundXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
@@ -783,6 +845,59 @@ class EstPostTest extends TestCase
     /**
      * @return string[]
      */
+    private function get3DPayPaymentAuthFailResponseData(): array
+    {
+        return [
+            'TRANID' => null,
+            'PAResSyntaxOK' => 'true',
+            'firmaadi' => 'John Doe',
+            'islemtipi' => 'Auth',
+            'lang' => 'tr',
+            'merchantID' => '700655000200',
+            'maskedCreditCard' => '4355 08** **** 4358',
+            'amount' => '1.01',
+            'sID' => '1',
+            'ACQBIN' => '406456',
+            'Ecom_Payment_Card_ExpDate_Year' => '30',
+            'Email' => 'mail@customer.com',
+            'MaskedPan' => '435508***4358',
+            'clientIp' => '89.244.149.137',
+            'iReqDetail' => null,
+            'okUrl' => 'http://localhost/akbank/3d-pay/response.php',
+            'md' => '435508:7F00F303E25EEA46F866AD14BD19D4F408C26E0FD6797C06ED0E334B61E320A1:3896:##700655000200',
+            'taksit' => null,
+            'vendorCode' => null,
+            'Ecom_Payment_Card_ExpDate_Month' => '12',
+            'storetype' => '3d_pay',
+            'iReqCode' => null,
+            'mdErrorMsg' => 'Not authenticated',
+            'PAResVerified' => 'false',
+            'cavv' => null,
+            'digest' => 'digest',
+            'callbackCall' => 'true',
+            'failUrl' => 'http://localhost/akbank/3d-pay/response.php',
+            'cavvAlgorithm' => null,
+            'xid' => '5hJlJeQBU6rnINPa4AZXiBbHC8s=',
+            'encoding' => 'ISO-8859-9',
+            'currency' => '949',
+            'oid' => '202205222012',
+            'mdStatus' => '0',
+            'dsId' => '1',
+            'eci' => null,
+            'version' => '2.0',
+            'clientid' => '700655000200',
+            'txstatus' => 'N',
+            '_charset_' => 'UTF-8',
+            'HASH' => 'G1OJfCYcAbbrFHjF16heHTcP2Co=',
+            'rnd' => '31CSYOlpJylTS4lGM5X5',
+            'HASHPARAMS' => 'clientid:oid:mdStatus:cavv:eci:md:rnd:',
+            'HASHPARAMSVAL' => '7006550002002022052220120435508:7F00F303E25EEA46F866AD14BD19D4F408C26E0FD6797C06ED0E334B61E320A1:3896:##70065500020031CSYOlpJylTS4lGM5X5'
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
     private function get3DHostPaymentSuccessResponseData(): array
     {
         return [
@@ -848,6 +963,75 @@ class EstPostTest extends TestCase
             'rnd' => 'iPz5dJrRadaSXVCyTtHC',
             'HASHPARAMS' => 'clientid:oid:mdStatus:cavv:eci:md:rnd:',
             'HASHPARAMSVAL' => '70065500020020220417FA2D1AAABCCAykgAAAAAwAjKSAAAAAAA=05435508:D126F5C4AB8882BBCF51CDC7912CDE26DBAE8FBD8EA7FC94A9209D92478E22F3:4881:##700655000200iPz5dJrRadaSXVCyTtHC',
+        ];
+    }
+
+    /**
+     * @return string[]
+     */
+    private function get3DPayPaymentSuccessResponseData(): array
+    {
+        return [
+            'ReturnOid' => '202205220386',
+            'TRANID' => '',
+            'EXTRA_MERCHANTID' => '655000200',
+            'PAResSyntaxOK' => 'true',
+            'EXTRA_HOSTDATE' => '0522-104635',
+            'firmaadi' => 'John Doe',
+            'islemtipi' => 'Auth',
+            'EXTRA_TERMINALID' => '00655020',
+            'lang' => 'tr',
+            'merchantID' => '700655000200',
+            'maskedCreditCard' => '4355 08** **** 4358',
+            'amount' => '1.01',
+            'sID' => '1',
+            'ACQBIN' => '406456',
+            'Ecom_Payment_Card_ExpDate_Year' => '30',
+            'EXTRA_CARDBRAND' => 'VISA',
+            'Email' => 'mail@customer.com',
+            'MaskedPan' => '435508***4358',
+            'acqStan' => '626247',
+            'clientIp' => '89.244.149.137',
+            'iReqDetail' => '',
+            'okUrl' => 'http://localhost/akbank/3d-pay/response.php',
+            'md' => '435508:09924180A54400523140B28560F171351C59BF7A937A6DE785D90CDF9CCD2153:3691:##700655000200',
+            'ProcReturnCode' => '00',
+            'payResults_dsId' => '1',
+            'taksit' => '2',
+            'vendorCode' => '',
+            'TransId' => '22142KugH13407',
+            'EXTRA_TRXDATE' => '20220522 10:46:31',
+            'Ecom_Payment_Card_ExpDate_Month' => '12',
+            'storetype' => '3d_pay',
+            'iReqCode' => '',
+            'Response' => 'Approved',
+            'SettleId' => '2127',
+            'mdErrorMsg' => 'Authenticated',
+            'ErrMsg' => '',
+            'PAResVerified' => 'false',
+            'cavv' => 'AAABBVApAgAAAAAwYCkCAAAAAAA=',
+            'digest' => 'digest',
+            'HostRefNum' => '214200626247',
+            'callbackCall' => 'true',
+            'AuthCode' => 'T96294',
+            'failUrl' => 'http://localhost/akbank/3d-pay/response.php',
+            'cavvAlgorithm' => '2',
+            'xid' => 'dC5wDSc3ayPDPeKHkN2SamHbTn4=',
+            'encoding' => 'ISO-8859-9',
+            'currency' => '949',
+            'oid' => '202205220386',
+            'mdStatus' => '1',
+            'dsId' => '1',
+            'eci' => '05',
+            'version' => '2.0',
+            'EXTRA_CARDISSUER' => 'AKBANK T.A.S.',
+            'clientid' => '700655000200',
+            'txstatus' => 'Y',
+            '_charset_' => 'UTF-8',
+            'HASH' => 'GlAHT733ITdOZ1Lj5OJGvzAJlt8=',
+            'rnd' => 'mEHdv+pi0OV0uDw7MrEB',
+            'HASHPARAMS' => 'clientid:oid:AuthCode:ProcReturnCode:Response:mdStatus:cavv:eci:md:rnd:',
+            'HASHPARAMSVAL' => '700655000200202205220386T9629400Approved1AAABBVApAgAAAAAwYCkCAAAAAAA=05435508:09924180A54400523140B28560F171351C59BF7A937A6DE785D90CDF9CCD2153:3691:##700655000200mEHdv+pi0OV0uDw7MrEB',
         ];
     }
 
