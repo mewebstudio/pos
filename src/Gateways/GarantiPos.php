@@ -236,7 +236,7 @@ class GarantiPos extends AbstractGateway
     {
         $mapped3DResponse = $this->map3DPayResponseData($raw3DAuthResponseData);
         $procReturnCode = $mapped3DResponse['proc_return_code'];
-        $paymentStatus = $mapped3DResponse['status'];
+        $paymentStatus = 'declined';
         $response = 'Declined';
         if ('approved' === $mapped3DResponse['status']) {
             if ($rawPaymentResponseData->Transaction->Response->ReasonCode === '00') {

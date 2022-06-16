@@ -191,6 +191,121 @@ class GarantiPosTest extends TestCase
         $this->assertSame(json_decode($expected, true), $result1);
     }
 
+    /**
+     * @return void
+     *
+     * @uses \Mews\Pos\Gateways\GarantiPos::map3DPaymentData()
+     */
+    public function testMap3DPaymentAuthSuccessPaymentFail()
+    {
+        $threeDResponse = [
+            'xid'                   => 'RszfrwEYe/8xb7rnrPuh6C9pZSQ=',
+            'mdstatus'              => '1',
+            'mderrormessage'        => 'Authenticated',
+            'txnstatus'             => 'Y',
+            'eci'                   => '02',
+            'cavv'                  => 'jCm0m+u/0hUfAREHBAMBcfN+pSo=',
+            'paressyntaxok'         => 'true',
+            'paresverified'         => 'true',
+            'version'               => '2.0',
+            'ireqcode'              => '',
+            'ireqdetail'            => '',
+            'vendorcode'            => '',
+            'cavvalgorithm'         => '3',
+            'md'                    => 'WnSgn5zoQegm4jJvQhQdor+UOT6z+QkIZ3R9y3vMs39AprOcGRdxi3TuHU9YaNYklgFLN+1t097EwC6+FXq7Hr2xiE98N2LcY9zaAbt1JdU3DHKyDh6mQH/QZZhVYoq9gg9mmxlGbElKlnbduNx4zj0c0vEoq9mj',
+            'terminalid'            => '30691297',
+            'oid'                   => '22061505230002_8EEB',
+            'authcode'              => '',
+            'response'              => '',
+            'errmsg'                => '',
+            'hostmsg'               => '',
+            'procreturncode'        => '',
+            'transid'               => '22061505230002_8EEB',
+            'hostrefnum'            => '',
+            'rnd'                   => 'VU6XvBbJr1QeyBu6g4Jg',
+            'hash'                  => 'yTSvdQilq/l/SSQpO4mBJxFCJIs=',
+            'hashparams'            => 'clientid:oid:authcode:procreturncode:response:mdstatus:cavv:eci:md:rnd:',
+            'hashparamsval'         => '3069129722061505230002_8EEB1jCm0m+u/0hUfAREHBAMBcfN+pSo=02WnSgn5zoQegm4jJvQhQdor+UOT6z+QkIZ3R9y3vMs39AprOcGRdxi3TuHU9YaNYklgFLN+1t097EwC6+FXq7Hr2xiE98N2LcY9zaAbt1JdU3DHKyDh6mQH/QZZhVYoq9gg9mmxlGbElKlnbduNx4zj0c0vEoq9mjVU6XvBbJr1QeyBu6g4Jg',
+            'clientid'              => '30691297',
+            'MaskedPan'             => '4050908481',
+            'apiversion'            => 'v0.01',
+            'orderid'               => '22061505230002_8EEB',
+            'txninstallmentcount'   => '',
+            'terminaluserid'        => 'PROVAUT',
+            'secure3dhash'          => 'D9E8323BC9E19867E615F72C7C70D01ED44C7576',
+            'secure3dsecuritylevel' => '3D',
+            'txncurrencycode'       => '949',
+            'customeremailaddress'  => 'test@test.com',
+            'errorurl'              => 'https://example.com/gs2',
+            'terminalmerchantid'    => '7000679',
+            'mode'                  => 'TEST',
+            'terminalprovuserid'    => 'PROVAUT',
+            'txnamount'             => '10000',
+            'successurl'            => 'https://example.com/gs1',
+            'customeripaddress'     => '188.119.3.229',
+            'txntype'               => 'sales',
+        ];
+
+        $paymentResponse = [
+            'Mode'        => '',
+            'Terminal'    => [
+                'ProvUserID' => 'PROVAUT',
+                'UserID'     => 'PROVAUT',
+                'ID'         => '30691297',
+                'MerchantID' => '7000679',
+            ],
+            'Customer'    => [
+                'IPAddress'    => '188.119.3.229',
+                'EmailAddress' => 'test@test.com',
+            ],
+            'Order'       => [
+                'OrderID' => '22061505230002_8EEB',
+                'GroupID' => '',
+            ],
+            'Transaction' => [
+                'Response'         => [
+                    'Source'     => 'HOST',
+                    'Code'       => '58',
+                    'ReasonCode' => '58',
+                    'Message'    => 'Declined',
+                    'ErrorMsg'   => '\u0130\u015fleminizi ger\u00e7ekle\u015ftiremiyoruz.Tekrar deneyiniz',
+                    'SysErrMsg'  => '15-015-SON KULLANIM TARIHI GECMIS',
+                ],
+                'RetrefNum'        => '216607526514',
+                'AuthCode'         => '',
+                'BatchNum'         => '004651',
+                'SequenceNum'      => '002321',
+                'ProvDate'         => '20220615 17:23:52',
+                'CardNumberMasked' => '405090******8481',
+                'CardHolderName'   => '',
+                'CardType'         => 'PREPAID',
+                'HashData'         => 'CB1A8579B8E7F0F612E6339E99507B18F18BB0C0',
+                'HostMsgList'      => '',
+                'RewardInqResult'  => [
+                    'RewardList' => '',
+                    'ChequeList' => '',
+                ],
+                'GarantiCardInd'   => 'Y',
+            ],
+        ];
+        $paymentResponse = json_encode($paymentResponse);
+        $paymentResponse = json_decode($paymentResponse);
+        $method          = $this->getMethod('map3DPaymentData');
+        $result1         = $method->invoke($this->pos, $threeDResponse, $paymentResponse);
+
+        $this->assertIsArray($result1);
+        $this->assertSame('declined', $result1['status']);
+        $this->assertSame('Declined', $result1['response']);
+        $this->assertSame('22061505230002_8EEB', $result1['order_id']);
+        $this->assertSame('', $result1['auth_code']);
+        $this->assertSame('216607526514', $result1['host_ref_num']);
+        $this->assertSame('1', $result1['md_status']);
+        $this->assertSame('10000', $result1['amount']);
+        //todo should be TRY
+        $this->assertSame('949', $result1['currency']);
+        $this->assertSame('Authenticated', $result1['md_error_message']);
+    }
+
     private static function getMethod(string $name): ReflectionMethod
     {
         $class  = new ReflectionClass(GarantiPos::class);
