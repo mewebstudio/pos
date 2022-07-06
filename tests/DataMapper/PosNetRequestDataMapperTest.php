@@ -242,7 +242,7 @@ class PosNetRequestDataMapperTest extends TestCase
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $expected = $this->getSample3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
-        $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), 'Sale', $pos->getCard());
+        $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $pos->getCard());
         $this->assertEquals($expected, $actual);
     }
 
