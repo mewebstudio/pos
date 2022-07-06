@@ -270,7 +270,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'installment'    => $this->mapInstallment($order->installment),
                 'XID'            => self::formatOrderId($order->id),
                 'cardHolderName' => $card->getHolderName(),
-                'tranType'       => $txType,
+                'tranType'       => $this->mapTxType($txType),
             ],
         ];
     }
