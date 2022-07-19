@@ -229,7 +229,6 @@ class GarantiPos extends AbstractGateway
     }
 
     /**
-     * todo use tDPayResponseCommon() method to map response
      * @inheritDoc
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
@@ -339,7 +338,7 @@ class GarantiPos extends AbstractGateway
             'md_status'            => $raw3DAuthResponseData['mdstatus'],
             'status'               => $status,
             'status_detail'        => isset($this->codes[$procReturnCode]) ? $procReturnCode : null,
-            'hash'                 => $raw3DAuthResponseData['secure3dhash'],
+            'hash'                 => $raw3DAuthResponseData['hash'],
             'rand'                 => null,
             'hash_params'          => null,
             'hash_params_val'      => null,
