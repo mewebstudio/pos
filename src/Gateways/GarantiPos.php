@@ -81,15 +81,48 @@ class GarantiPos extends AbstractGateway
     }
 
     /**
+     * Check 3D Hash
+     *
+     * @param array $data
+     *
+     * @return bool
+     */
+    public function check3DHash(array $data): bool
+    {
+        $hashParams = $data['hashparams'];
+        $hashParamsVal = $data['hashparamsval'];
+        $hashParam = $data['hash'];
+        $paramsVal = '';
+
+        $hashParamsArr = explode(':', $hashParams);
+        foreach ($hashParamsArr as $value) {
+            if (!empty($value) && isset($data[$value])) {
+                $paramsVal = $paramsVal.$data[$value];
+            }
+        }
+
+        $hashVal = $paramsVal.$this->account->getStoreKey();
+        $hash = $this->hashString($hashVal);
+
+        $return = false;
+        if ($hashParams && !($paramsVal !== $hashParamsVal || $hashParam !== $hash)) {
+            $return = true;
+        }
+
+        return $return;
+    }
+
+    /**
      * @inheritDoc
      */
     public function make3DPayment(Request $request)
     {
         $bankResponse = null;
-        //TODO add hash check
-        if (in_array($request->get('mdstatus'), [1, 2, 3, 4])) {
-            $contents = $this->create3DPaymentXML($request->request->all());
-            $bankResponse = $this->send($contents);
+        if ($this->check3DHash($request->request->all())) {
+            if (in_array($request->get('mdstatus'), [1, 2, 3, 4])) {
+                $contents     = $this->create3DPaymentXML($request->request->all());
+                $bankResponse = $this->send($contents);
+            }
         }
 
         $this->response = (object) $this->map3DPaymentData($request->request->all(), $bankResponse);

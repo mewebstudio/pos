@@ -194,6 +194,34 @@ class GarantiPosTest extends TestCase
 
     /**
      * @return void
+     */
+    public function testCheck3DHash()
+    {
+        $data = [
+            'mdstatus'              => '1',
+            'eci'                   => '02',
+            'cavv'                  => 'jCm0m+u/0hUfAREHBAMBcfN+pSo=',
+            'md'                    => 'WnSgn5zoQegm4jJvQhQdor+UOT6z+QkIZ3R9y3vMs39AprOcGRdxi3TuHU9YaNYklgFLN+1t097EwC6+FXq7Hr2xiE98N2LcY9zaAbt1JdU3DHKyDh6mQH/QZZhVYoq9gg9mmxlGbElKlnbduNx4zj0c0vEoq9mj',
+            'oid'                   => '22061505230002_8EEB',
+            'authcode'              => '',
+            'procreturncode'        => '',
+            'response'              => '',
+            'rnd'                   => 'VU6XvBbJr1QeyBu6g4Jg',
+            'hash'                  => 'yTSvdQilq/l/SSQpO4mBJxFCJIs=',
+            'hashparams'            => 'clientid:oid:authcode:procreturncode:response:mdstatus:cavv:eci:md:rnd:',
+            'hashparamsval'         => '3069129722061505230002_8EEB1jCm0m+u/0hUfAREHBAMBcfN+pSo=02WnSgn5zoQegm4jJvQhQdor+UOT6z+QkIZ3R9y3vMs39AprOcGRdxi3TuHU9YaNYklgFLN+1t097EwC6+FXq7Hr2xiE98N2LcY9zaAbt1JdU3DHKyDh6mQH/QZZhVYoq9gg9mmxlGbElKlnbduNx4zj0c0vEoq9mjVU6XvBbJr1QeyBu6g4Jg',
+            'clientid'              => '30691297',
+            'secure3dhash'          => 'D9E8323BC9E19867E615F72C7C70D01ED44C7576',
+        ];
+
+        $this->assertTrue($this->pos->check3DHash($data));
+
+        $data['mdstatus'] = '';
+        $this->assertFalse($this->pos->check3DHash($data));
+    }
+
+    /**
+     * @return void
      *
      * @uses \Mews\Pos\Gateways\GarantiPos::map3DPaymentData()
      */
