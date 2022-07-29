@@ -174,7 +174,7 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($postData, ?string $url = null)
+    public function send($contents, ?string $url = null)
     {
         $client = new Client();
 
@@ -182,10 +182,10 @@ class PayForPos extends AbstractGateway
             'headers' => [
                 'Content-Type' => 'text/xml; charset=UTF-8',
             ],
-            'body'    => $postData,
+            'body'    => $contents,
         ]);
 
-        $contents = $response->getBody()->getContents();
+        $response = $response->getBody()->getContents();
 
         /**
          * Finansbank XML Response some times are in following format:
@@ -196,13 +196,13 @@ class PayForPos extends AbstractGateway
          * </Hash>\r\n
          * redundant whitespaces causes non-empty value for response properties
          */
-        $contents = preg_replace('/\\r\\n\s*/', '', $contents);
+        $response = preg_replace('/\\r\\n\s*/', '', $response);
 
         try {
-            $this->data = $this->XMLStringToObject($contents);
+            $this->data = $this->XMLStringToObject($response);
         } catch (NotEncodableValueException $e) {
             //Finansbank's history request response is in JSON format
-            $this->data = (object) json_decode($contents);
+            $this->data = (object) json_decode($response);
         }
 
         return $this->data;
