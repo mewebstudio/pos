@@ -48,7 +48,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 Son yapılan değişiklikler için [`CHANGELOG`](./docs/CHANGELOG.md).
 
 ### Minimum Gereksinimler
-  - PHP >= 7.1.3
+  - PHP >= 7.2.5
   - ext-dom
   - ext-json
   - ext-openssl
