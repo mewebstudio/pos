@@ -152,10 +152,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $responseData = [
             'MD'          => '67YtBfBRTZ0XBKnAHi8c/A==',
             'VPosMessage' => [
-                'TransactionType'     => 'Sale',
                 'InstallmentCount'    => '0',
                 'Amount'              => '100',
-                'DisplayAmount'       => '100',
                 'CurrencyCode'        => '0949',
                 'MerchantOrderId'     => 'Order 123',
                 'TransactionSecurity' => '3',
@@ -233,10 +231,10 @@ class KuveytPosRequestDataMapperTest extends TestCase
                     'Data' => $responseData['MD'],
                 ],
             ],
-            'TransactionType'              => $responseData['VPosMessage']['TransactionType'],
+            'TransactionType'              => 'Sale',
             'InstallmentCount'             => $responseData['VPosMessage']['InstallmentCount'],
             'Amount'                       => $responseData['VPosMessage']['Amount'],
-            'DisplayAmount'                => $responseData['VPosMessage']['DisplayAmount'],
+            'DisplayAmount'                => 10000,
             'CurrencyCode'                 => $responseData['VPosMessage']['CurrencyCode'],
             'MerchantOrderId'              => $responseData['VPosMessage']['MerchantOrderId'],
             'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],
