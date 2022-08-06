@@ -1,7 +1,4 @@
 # Türk bankaları için sanal pos paketi (PHP)
-<p align="center">
-[![Monthly Downloads](https://poser.pugx.org/mews/pos/d/monthly.png)](https://packagist.org/packages/mews/pos)  
-</p>
 
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
 
