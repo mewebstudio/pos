@@ -1,5 +1,11 @@
 # Türk bankaları için sanal pos paketi (PHP)
 
+[![Version](http://poser.pugx.org/mews/pos/version)](https://packagist.org/packages/mews/pos)
+[![Monthly Downloads](http://poser.pugx.org/mews/pos/d/monthly)](https://packagist.org/packages/mews/pos)
+[![License](http://poser.pugx.org/mews/pos/license)](https://packagist.org/packages/mews/pos)
+[![PHP Version Require](http://poser.pugx.org/mews/pos/require/php)](https://packagist.org/packages/mews/pos)
+
+
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
 
 - **EST POS** (Asseco) altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Akbank, TEB ve Ziraat bankası test edilmiştir.
