@@ -126,40 +126,6 @@ class KuveytPosTest extends TestCase
     /**
      * @return void
      */
-    public function testGetCommon3DFormData()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $order = $this->pos->getOrder();
-
-        $failResponse = [
-            'gateway' => $order->fail_url,
-            'inputs'  => [
-                '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
-                '@xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema',
-                'IsEnrolled'      => 'true',
-                'IsVirtual'       => 'false',
-                'ResponseCode'    => 'HashDataError',
-                'ResponseMessage' => 'Şifrelenen veriler (Hashdata) uyuşmamaktadır.',
-                'OrderId'         => '0',
-                'TransactionTime' => '0001-01-01T00:00:00',
-                'MerchantOrderId' => '2020110828BC',
-                'ReferenceId'     => '6c66175eadfd4f31b00ac26f0d83761a',
-                'BusinessKey'     => '0',
-            ],
-        ];
-        $result       = $this->pos->get3DFormData();
-        $result = urldecode($result['inputs']['AuthenticationResponse']);
-        $encoder = new XmlEncoder();
-
-        $result = $encoder->decode($result, 'xml', []);
-        $failResponse['inputs']['ReferenceId'] = $result['ReferenceId'];
-
-        $this->assertEquals($failResponse['inputs'], $result);
-    }
-
-    /**
-     * @return void
-     */
     public function testGetCommon3DFormDataFailedResponse()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
