@@ -531,7 +531,7 @@ class KuveytPos extends AbstractGateway
         ];
 
         if ('approved' === $status) {
-            $default['hash'] = $raw3DAuthResponseData['VPosMessage']['HashData'];
+            $default['hash'] = $raw3DAuthResponseData['VPosMessage']['HashData'] ?? $raw3DAuthResponseData['HashData'];
             $default['amount'] = $raw3DAuthResponseData['VPosMessage']['Amount'];
             $default['currency'] = array_search($raw3DAuthResponseData['VPosMessage']['CurrencyCode'], $this->requestDataMapper->getCurrencyMappings());
             $default['masked_number'] = $raw3DAuthResponseData['VPosMessage']['CardNumber'];
