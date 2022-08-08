@@ -20,7 +20,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 - **InterPOS (Deniz bank)** destegi eklenmistir, test edildikce, sorunlari bulundukca hatalar giderilecek.
 
-- **Kuveyt POS** 3d secure ödeme desteği eklenmiştir, test edildikçe, sorunları bulundukça hatalar giderilecek.
+- **Kuveyt POS** 3d secure ödeme desteği eklenmiştir - testleri yapildi, calisiyor.
 
 ### Ana başlıklar
 - [Özellikler](#ozellikler)
