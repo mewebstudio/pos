@@ -126,7 +126,7 @@ class KuveytPosTest extends TestCase
     /**
      * @return void
      */
-    public function teGetCommon3DFormData()
+    public function testGetCommon3DFormData()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $order = $this->pos->getOrder();
@@ -134,6 +134,8 @@ class KuveytPosTest extends TestCase
         $failResponse = [
             'gateway' => $order->fail_url,
             'inputs'  => [
+                '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
+                '@xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema',
                 'IsEnrolled'      => 'true',
                 'IsVirtual'       => 'false',
                 'ResponseCode'    => 'HashDataError',
@@ -146,7 +148,13 @@ class KuveytPosTest extends TestCase
             ],
         ];
         $result       = $this->pos->get3DFormData();
-        $this->assertEquals($failResponse, $result);
+        $result = urldecode($result['inputs']['AuthenticationResponse']);
+        $encoder = new XmlEncoder();
+
+        $result = $encoder->decode($result, 'xml', []);
+        $failResponse['inputs']['ReferenceId'] = $result['ReferenceId'];
+
+        $this->assertEquals($failResponse['inputs'], $result);
     }
 
     /**
