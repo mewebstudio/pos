@@ -171,7 +171,9 @@ class KuveytPos extends AbstractGateway
      */
     public function create3DPaymentXML($responseData)
     {
-        return $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
+        $data = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
+
+        return $this->createXML($data);
     }
 
     /**
