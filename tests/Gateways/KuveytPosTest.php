@@ -198,6 +198,117 @@ class KuveytPosTest extends TestCase
         $this->assertSame($testGateway, $result['gateway']);
     }
 
+    public function testMap3DPaymentData3DAuthSuccessPaymentFail()
+    {
+        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
+
+        $threeDAuthSuccessResponse = [
+            '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
+            '@xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema',
+            'VPosMessage' => [
+                'OrderId' => '86483278',
+                'OkUrl' => 'https://www.example.com/testodeme',
+                'FailUrl' => 'https://www.example.com/testodeme',
+                'MerchantId' => '48544',
+                'SubMerchantId' => '0',
+                'CustomerId' => '123456',
+                'UserName' => 'fapapi',
+                'HashPassword' => 'Hiorgg24rNeRdHUvMCg//mOJn4U=',
+                'CardNumber' => '5124********1609',
+                'BatchID' => '1576',
+                'InstallmentCount' => '0',
+                'Amount' => '10',
+                'CancelAmount' => '0',
+                'MerchantOrderId' => 'MP-15',
+                'FECAmount' => '0',
+                'CurrencyCode' => '949',
+                'QeryId' => '0',
+                'DebtId' => '0',
+                'SurchargeAmount' => '0',
+                'SGKDebtAmount' => '0',
+                'TransactionSecurity' => '3',
+                'DeferringCount' => [
+                    '@xsi:nil' => 'true',
+                    '#' => '',
+                ],
+                'InstallmentMaturityCommisionFlag' => '0',
+                'PaymentId' => [
+                    '@xsi:nil' => 'true',
+                    '#' => '',
+                ],
+                'OrderPOSTransactionId' => [
+                    '@xsi:nil' => 'true',
+                    '#' => '',
+                ],
+                'TranDate' => [
+                    '@xsi:nil' => 'true',
+                    '#' => '',
+                ],
+                'TransactionUserId' => [
+                    '@xsi:nil' => 'true',
+                    '#' => '',
+                ],
+            ],
+            'IsEnrolled' => 'true',
+            'IsVirtual' => 'false',
+            'ResponseCode' => '00',
+            'ResponseMessage' => 'Kart doğrulandı.',
+            'OrderId' => '86483278',
+            'TransactionTime' => '0001-01-01T00:00:00',
+            'MerchantOrderId' => 'MP-15',
+            'HashData' => 'mOw0JGvy1JVWqDDmFyaDTvKz9Fk=',
+            'MD' => 'ktSVkYJHcHSYM1ibA/nM6nObr8WpWdcw34ziyRQRLv06g7UR2r5LrpLeNvwfBwPz',
+            'BusinessKey' => '202208456498416947',
+        ];
+
+        $paymentFailResponse = [
+            '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
+            '@xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema',
+            'IsEnrolled' => 'true',
+            'IsVirtual' => 'false',
+            'ResponseCode' => 'MetaDataNotFound',
+            'ResponseMessage' => 'Ödeme detayı bulunamadı.',
+            'OrderId' => '0',
+            'TransactionTime' => '0001-01-01T00:00:00',
+            'BusinessKey' => '0',
+        ];
+
+        $map3DPaymentData = self::getMethod('map3DPaymentData');
+        $result = $map3DPaymentData->invoke($this->pos, $threeDAuthSuccessResponse, $paymentFailResponse);
+        unset($result['3d_all']);
+        unset($result['all']);
+
+        $expected = [
+            'transaction_security' => 'MPI fallback',
+            'md_status' => null,
+            'hash' => 'mOw0JGvy1JVWqDDmFyaDTvKz9Fk=',
+            'rand' => null,
+            'hash_params' => null,
+            'hash_params_val' => null,
+            'amount' => '10',
+            'currency' => 'TRY',
+            'tx_status' => null,
+            'md_error_message' => null,
+            'masked_number' => '5124********1609',
+            'id' => null,
+            'trans_id' => null,
+            'auth_code' => null,
+            'host_ref_num' => null,
+            'error_message' => 'Ödeme detayı bulunamadı.',
+            'order_id' => 'MP-15',
+            'response' => 'Declined',
+            'transaction_type' => 'pay',
+            'transaction' => 'Sale',
+            'proc_return_code' => 'MetaDataNotFound',
+            'code' => 'MetaDataNotFound',
+            'status' => 'declined',
+            'status_detail' => 'MetaDataNotFound',
+            'error_code' => 'MetaDataNotFound',
+        ];
+
+        $this->assertSame($expected, $result);
+    }
+
     /**
      * @return void
      *
@@ -337,5 +448,15 @@ class KuveytPosTest extends TestCase
         $this->assertSame('lYJYMi/gVO9MWr32Pshaa/zAbSHY=', $result['hash']);
         $this->assertNotEmpty($result['all']);
         $this->assertNotEmpty($result['3d_all']);
+    }
+
+
+    protected static function getMethod(string $name)
+    {
+        $class = new \ReflectionClass(KuveytPos::class);
+        $method = $class->getMethod($name);
+        $method->setAccessible(true);
+
+        return $method;
     }
 }
