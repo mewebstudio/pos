@@ -150,16 +150,31 @@ class KuveytPosRequestDataMapperTest extends TestCase
     public function testCreate3DPaymentXML()
     {
         $responseData = [
-            'MD'          => '67YtBfBRTZ0XBKnAHi8c/A==',
-            'VPosMessage' => [
-                'TransactionType'     => 'Sale',
+            'MD'              => '67YtBfBRTZ0XBKnAHi8c/A==',
+            'VPosMessage'     => [
                 'InstallmentCount'    => '0',
                 'Amount'              => '100',
-                'DisplayAmount'       => '100',
                 'CurrencyCode'        => '0949',
+                'OkUrl'               => 'http://localhost/response',
+                'FailUrl'             => 'http://localhost/response',
+                'OrderId'             => '86297530',
                 'MerchantOrderId'     => 'Order 123',
                 'TransactionSecurity' => '3',
+                'MerchantId'          => '****',
+                'SubMerchantId'       => '0',
+                'CustomerId'          => '*****',
+                'UserName'            => 'fapapi',
+                'HashPassword'        => 'Hiorgg24rNeRdHUvMCg//mOJn4U=',
+                'CardNumber'          => '***********1609',
             ],
+            'IsEnrolled'      => 'true',
+            'IsVirtual'       => 'false',
+            'ResponseCode'    => '00',
+            'ResponseMessage' => 'Kart doğrulandı.',
+            'OrderId'         => '86297530',
+            'MerchantOrderId' => 'Order 123',
+            'HashData'        => 'ucejRvHjCbuPXagyoweFLnJfSJg=',
+            'BusinessKey'     => '20220845654324600000140459',
         ];
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
         $actual = $this->requestDataMapper->create3DPaymentRequestData($this->pos->getAccount(), $this->pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
@@ -233,10 +248,10 @@ class KuveytPosRequestDataMapperTest extends TestCase
                     'Data' => $responseData['MD'],
                 ],
             ],
-            'TransactionType'              => $responseData['VPosMessage']['TransactionType'],
+            'TransactionType'              => 'Sale',
             'InstallmentCount'             => $responseData['VPosMessage']['InstallmentCount'],
             'Amount'                       => $responseData['VPosMessage']['Amount'],
-            'DisplayAmount'                => $responseData['VPosMessage']['DisplayAmount'],
+            'DisplayAmount'                => 10000,
             'CurrencyCode'                 => $responseData['VPosMessage']['CurrencyCode'],
             'MerchantOrderId'              => $responseData['VPosMessage']['MerchantOrderId'],
             'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],

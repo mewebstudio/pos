@@ -171,7 +171,9 @@ class KuveytPos extends AbstractGateway
      */
     public function create3DPaymentXML($responseData)
     {
-        return $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
+        $data = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
+
+        return $this->createXML($data);
     }
 
     /**
@@ -243,7 +245,7 @@ class KuveytPos extends AbstractGateway
      */
     protected function getStatusDetail(?string $procReturnCode): ?string
     {
-        return $procReturnCode ? ($this->codes[$procReturnCode] ?? null) : null;
+        return $procReturnCode ? ($this->codes[$procReturnCode] ?? $procReturnCode) : null;
     }
 
     /**
@@ -291,6 +293,7 @@ class KuveytPos extends AbstractGateway
         if ('approved' !== $status) {
             $result['error_code']    = $procReturnCode;
             $result['error_message'] = $responseData['ResponseMessage'];
+            $result['response']      = 'Declined';
 
             return $result;
         }
@@ -531,7 +534,7 @@ class KuveytPos extends AbstractGateway
         ];
 
         if ('approved' === $status) {
-            $default['hash'] = $raw3DAuthResponseData['VPosMessage']['HashData'];
+            $default['hash'] = $raw3DAuthResponseData['VPosMessage']['HashData'] ?? $raw3DAuthResponseData['HashData'];
             $default['amount'] = $raw3DAuthResponseData['VPosMessage']['Amount'];
             $default['currency'] = array_search($raw3DAuthResponseData['VPosMessage']['CurrencyCode'], $this->requestDataMapper->getCurrencyMappings());
             $default['masked_number'] = $raw3DAuthResponseData['VPosMessage']['CardNumber'];
