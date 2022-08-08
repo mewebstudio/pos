@@ -243,7 +243,7 @@ class KuveytPos extends AbstractGateway
      */
     protected function getStatusDetail(?string $procReturnCode): ?string
     {
-        return $procReturnCode ? ($this->codes[$procReturnCode] ?? null) : null;
+        return $procReturnCode ? ($this->codes[$procReturnCode] ?? $procReturnCode) : null;
     }
 
     /**
@@ -291,6 +291,7 @@ class KuveytPos extends AbstractGateway
         if ('approved' !== $status) {
             $result['error_code']    = $procReturnCode;
             $result['error_message'] = $responseData['ResponseMessage'];
+            $result['response']      = 'Declined';
 
             return $result;
         }
