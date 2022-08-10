@@ -43,6 +43,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     protected $cardTypeMapping = [
         AbstractCreditCard::CARD_TYPE_VISA       => 'Visa',
         AbstractCreditCard::CARD_TYPE_MASTERCARD => 'MasterCard',
+        AbstractCreditCard::CARD_TYPE_TROY       => 'Troy',
     ];
 
     /**
