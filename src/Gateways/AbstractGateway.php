@@ -418,10 +418,7 @@ abstract class AbstractGateway implements PosInterface
     public function setTestMode(bool $testMode): self
     {
         $this->testMode = $testMode;
-        if (isset($this->requestDataMapper)) {
-            //todo remove if check after all gateways has requestDataMapper
-            $this->requestDataMapper->setTestMode($testMode);
-        }
+        $this->requestDataMapper->setTestMode($testMode);
 
         return $this;
     }
