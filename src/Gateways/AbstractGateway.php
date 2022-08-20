@@ -217,6 +217,7 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * Print Data
+     * @deprecated just use emptyStringsToNull()
      *
      * @param $data
      *
@@ -242,6 +243,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
+     * @deprecated use isSuccess()
      * Is error
      *
      * @return bool
