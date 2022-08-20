@@ -12,11 +12,12 @@
     ],
     "require": {
         "php": ">=7.2.5",
+        "ext-SimpleXML": "*",
         "ext-dom": "*",
         "ext-json": "*",
         "ext-openssl": "*",
-        "ext-SimpleXML": "*",
         "guzzlehttp/guzzle": "^6.0 || ^7.0",
+        "psr/log": "^1.1",
         "symfony/http-foundation": "^5.0",
         "symfony/serializer": "^5.0"
     },
@@ -31,9 +32,10 @@
         }
     },
     "require-dev": {
+        "escapestudios/symfony2-coding-standard": "^3.11",
+        "monolog/monolog": "^2.8",
         "phpunit/phpunit": "^8.3",
         "squizlabs/php_codesniffer": "^3.5",
-        "escapestudios/symfony2-coding-standard": "^3.11",
         "symfony/var-dumper": "^5.1"
     },
     "config": {
