@@ -13,6 +13,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PosNet;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * PosNetTest
@@ -102,7 +103,7 @@ class PosNetTest extends TestCase
         $this->expectExceptionCode(3);
 
         $posMock = $this->getMockBuilder(PosNet::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(PosNet::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(PosNet::class), new NullLogger()])
             ->onlyMethods(['getOosTransactionData'])
             ->getMock();
         $posMock->setTestMode(true);

@@ -24,6 +24,8 @@ use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\Gateways\VakifBankPos;
 use Mews\Pos\PosInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * PosFactory
@@ -31,16 +33,23 @@ use Mews\Pos\PosInterface;
 class PosFactory
 {
     /**
-     * @param AbstractPosAccount $posAccount
-     * @param array|string|null  $config     config path or config array
+     * @param AbstractPosAccount   $posAccount
+     * @param array|string|null    $config config path or config array
+     * @param LoggerInterface|null $logger
      *
      * @return PosInterface
      *
      * @throws BankClassNullException
      * @throws BankNotFoundException
      */
-    public static function createPosGateway(AbstractPosAccount $posAccount, $config = null): PosInterface
-    {
+    public static function createPosGateway(
+        AbstractPosAccount $posAccount,
+        $config = null,
+        LoggerInterface $logger = null
+    ): PosInterface {
+        if (!$logger) {
+            $logger = new NullLogger();
+        }
         if (is_string($config)) {
             $config = require $config;
         } elseif (empty($config)) {
@@ -65,7 +74,12 @@ class PosFactory
         }
 
         // Create Bank Class Object
-        return new $class($config['banks'][$posAccount->getBank()], $posAccount, self::getGatewayMapper($class, $currencies));
+        return new $class(
+            $config['banks'][$posAccount->getBank()],
+            $posAccount,
+            self::getGatewayMapper($class, $currencies),
+            $logger
+        );
     }
 
     /**

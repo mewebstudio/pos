@@ -21,7 +21,9 @@ $subMenu = [];
 function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mews\Pos\PosInterface
 {
     try {
-        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
+        $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
+        $logger = new \Monolog\Logger('pos', [$handler]);
+        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, $logger);
         $pos->setTestMode(true);
 
         return $pos;

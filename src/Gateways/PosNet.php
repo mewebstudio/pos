@@ -12,6 +12,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -69,16 +70,19 @@ class PosNet extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * PosNet constructor.
      * @inheritdoc
      *
      * @param PosNetAccount $account
      */
-    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
-    {
+    public function __construct(
+        array $config,
+        AbstractPosAccount $account,
+        AbstractRequestDataMapper $requestDataMapper,
+        LoggerInterface $logger
+    ) {
         $this->crypt = new PosNetCrypt();
 
-        parent::__construct($config, $account, $requestDataMapper);
+        parent::__construct($config, $account, $requestDataMapper, $logger);
     }
 
     /**

@@ -12,6 +12,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\EstPos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -104,7 +105,7 @@ class EstPosTest extends TestCase
         $request = Request::create('', 'POST', $this->get3DMakePaymentFailResponseData());
 
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send'])
             ->getMock();
 
@@ -142,7 +143,7 @@ class EstPosTest extends TestCase
         $request = Request::create('', 'POST', $this->get3DMakePaymentAuthSuccessResponseData());
 
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML'])
             ->getMock();
 
@@ -183,7 +184,7 @@ class EstPosTest extends TestCase
         $request = Request::create('', 'POST', $this->get3DMakePaymentAuthSuccessResponseData());
 
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send', 'check3DHash', 'create3DPaymentXML'])
             ->getMock();
 
@@ -323,7 +324,7 @@ class EstPosTest extends TestCase
         $request = Request::create('', 'POST', $this->get3DPayPaymentAuthFailResponseData());
 
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send'])
             ->getMock();
 
@@ -359,7 +360,7 @@ class EstPosTest extends TestCase
     public function testStatusSuccess()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send', 'createStatusXML'])
             ->getMock();
 
@@ -391,7 +392,7 @@ class EstPosTest extends TestCase
     public function testStatusFail()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send', 'createStatusXML'])
             ->getMock();
 
@@ -423,7 +424,7 @@ class EstPosTest extends TestCase
     public function testHistorySuccess()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send', 'createHistoryXML'])
             ->getMock();
 
@@ -453,7 +454,7 @@ class EstPosTest extends TestCase
     public function testHistoryFail()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send', 'createHistoryXML'])
             ->getMock();
 
@@ -483,7 +484,7 @@ class EstPosTest extends TestCase
     public function testCancelSuccess()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send', 'createCancelXML'])
             ->getMock();
 
@@ -516,7 +517,7 @@ class EstPosTest extends TestCase
     public function testCancelFail()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send', 'createCancelXML'])
             ->getMock();
 
@@ -549,7 +550,7 @@ class EstPosTest extends TestCase
     public function testRefundFail()
     {
         $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(EstPos::class), new NullLogger()])
             ->onlyMethods(['send', 'createRefundXML'])
             ->getMock();
 

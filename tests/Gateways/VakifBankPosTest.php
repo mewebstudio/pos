@@ -14,6 +14,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\VakifBankPos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use ReflectionClass;
 
 /**
@@ -249,7 +250,7 @@ class VakifBankPosTest extends TestCase
         $this->expectExceptionCode(2005);
 
         $posMock = $this->getMockBuilder(VakifBankPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(VakifBankPos::class)])
+            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(VakifBankPos::class), new NullLogger()])
             ->onlyMethods(['sendEnrollmentRequest'])
             ->getMock();
         $posMock->setTestMode(true);

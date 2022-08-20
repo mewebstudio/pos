@@ -9,6 +9,7 @@ use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -55,14 +56,17 @@ class EstPos extends AbstractGateway
     protected $card;
 
     /**
-     * EstPos constructor.
      * @inheritdoc
      *
-     * @param EstPosAccount             $account
+     * @param EstPosAccount $account
      */
-    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
-    {
-        parent::__construct($config, $account, $requestDataMapper);
+    public function __construct(
+        array $config,
+        AbstractPosAccount $account,
+        AbstractRequestDataMapper $requestDataMapper,
+        LoggerInterface $logger
+    ) {
+        parent::__construct($config, $account, $requestDataMapper, $logger);
     }
 
     /**

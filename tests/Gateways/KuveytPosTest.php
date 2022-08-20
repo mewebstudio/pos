@@ -15,6 +15,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\KuveytPos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -150,7 +151,7 @@ class KuveytPosTest extends TestCase
                 'gateway' => [
                     'test' => $testGateway,
                 ],
-            ], ], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class), ])
+            ], ], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class), new NullLogger()])
             ->onlyMethods(['send'])
             ->getMock();
         $posMock->setTestMode(true);
@@ -309,7 +310,7 @@ class KuveytPosTest extends TestCase
         ]);
 
         $posMock = $this->getMockBuilder(KuveytPos::class)
-            ->setConstructorArgs([[], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class)])
+            ->setConstructorArgs([[], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class), new NullLogger()])
             ->onlyMethods(['send', 'check3DHash'])
             ->getMock();
 
@@ -358,7 +359,7 @@ class KuveytPosTest extends TestCase
         ]);
 
         $posMock = $this->getMockBuilder(KuveytPos::class)
-            ->setConstructorArgs([[], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class)])
+            ->setConstructorArgs([[], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class), new NullLogger()])
             ->onlyMethods(['send', 'check3DHash'])
             ->getMock();
 

@@ -10,6 +10,8 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -21,6 +23,8 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
  */
 abstract class AbstractGateway implements PosInterface
 {
+    use LoggerAwareTrait;
+
     public const LANG_TR = 'tr';
     public const LANG_EN = 'en';
 
@@ -94,20 +98,21 @@ abstract class AbstractGateway implements PosInterface
     private $testMode = false;
 
     /**
-     * AbstractGateway constructor.
-     *
-     * @param array                     $config
-     * @param AbstractPosAccount        $account
-     * @param AbstractRequestDataMapper $requestDataMapper
+     * @inheritdoc
      */
-    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
-    {
+    public function __construct(
+        array $config,
+        AbstractPosAccount $account,
+        AbstractRequestDataMapper $requestDataMapper,
+        LoggerInterface $logger
+    ) {
         $this->requestDataMapper              = $requestDataMapper;
         $this->cardTypeMapping                = $requestDataMapper->getCardTypeMapping();
         $this->recurringOrderFrequencyMapping = $requestDataMapper->getRecurringOrderFrequencyMapping();
 
         $this->config = $config;
         $this->account = $account;
+        $this->logger = $logger;
     }
 
     /**
