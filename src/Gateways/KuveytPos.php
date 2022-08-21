@@ -49,6 +49,7 @@ class KuveytPos extends AbstractGateway
      * @inheritdoc
      *
      * @param KuveytPosAccount $account
+     * @param KuveytPosRequestDataMapper $requestDataMapper
      */
     public function __construct(
         array $config,

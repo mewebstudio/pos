@@ -6,6 +6,7 @@ namespace Mews\Pos\Gateways;
 
 use GuzzleHttp\Client;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
+use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -59,6 +60,7 @@ class EstPos extends AbstractGateway
      * @inheritdoc
      *
      * @param EstPosAccount $account
+     * @param EstPosRequestDataMapper $requestDataMapper
      */
     public function __construct(
         array $config,
@@ -101,7 +103,7 @@ class EstPos extends AbstractGateway
         $hashVal = $paramsVal.$this->account->getStoreKey();
         $hash = $this->hashString($hashVal);
 
-        $return = false;
+        //todo simplify this if check
         if ($hashParams && !($paramsVal !== $hashParamsVal || $hashParam !== $hash)) {
             $return = true;
         }

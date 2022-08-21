@@ -54,6 +54,7 @@ class VakifBankPos extends AbstractGateway
      * @inheritDoc
      *
      * @param VakifBankAccount $account
+     * @param VakifBankPosRequestDataMapper $requestDataMapper
      */
     public function __construct(
         array $config,

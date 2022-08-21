@@ -49,6 +49,7 @@ class InterPos extends AbstractGateway
      * @inheritdoc
      *
      * @param InterPosAccount $account
+     * @param InterPosRequestDataMapper $requestDataMapper
      */
     public function __construct(
         array $config,

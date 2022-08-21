@@ -58,6 +58,7 @@ class GarantiPos extends AbstractGateway
      * @inheritdoc
      *
      * @param GarantiPosAccount $account
+     * @param GarantiPosRequestDataMapper $requestDataMapper
      */
     public function __construct(
         array $config,
@@ -108,7 +109,7 @@ class GarantiPos extends AbstractGateway
         $hashVal = $paramsVal.$this->account->getStoreKey();
         $hash = $this->hashString($hashVal);
 
-        $return = false;
+        //todo simplify this if check
         if ($hashParams && !($paramsVal !== $hashParamsVal || $hashParam !== $hash)) {
             $return = true;
         }

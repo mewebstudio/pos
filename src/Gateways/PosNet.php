@@ -73,6 +73,7 @@ class PosNet extends AbstractGateway
      * @inheritdoc
      *
      * @param PosNetAccount $account
+     * @param PosNetRequestDataMapper $requestDataMapper
      */
     public function __construct(
         array $config,

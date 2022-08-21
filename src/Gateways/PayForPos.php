@@ -70,6 +70,7 @@ class PayForPos extends AbstractGateway
      * @inheritDoc
      *
      * @param PayForAccount $account
+     * @param PayForPosRequestDataMapper $requestDataMapper
      */
     public function __construct(
         array $config,
