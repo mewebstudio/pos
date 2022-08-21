@@ -72,7 +72,7 @@ class PosFactory
         if (isset($config['currencies'])) {
             $currencies = $config['currencies'];
         }
-
+        $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
         // Create Bank Class Object
         return new $class(
             $config['banks'][$posAccount->getBank()],

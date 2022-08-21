@@ -111,10 +111,17 @@ class GarantiPos extends AbstractGateway
 
         //todo simplify this if check
         if ($hashParams && !($paramsVal !== $hashParamsVal || $hashParam !== $hash)) {
-            $return = true;
-        }
+            $this->logger->debug('hash check is successful');
 
-        return $return;
+            return true;
+        }
+        $this->logger->error('hash check failed', [
+            'data' => $data,
+            'generated_hash' => $hash,
+            'expected_hash' => $hashParam
+        ]);
+
+        return false;
     }
 
     /**
@@ -122,15 +129,20 @@ class GarantiPos extends AbstractGateway
      */
     public function make3DPayment(Request $request)
     {
+        $request = $request->request;
         $bankResponse = null;
-        if ($this->check3DHash($request->request->all())) {
+        if ($this->check3DHash($request->all())) {
             if (in_array($request->get('mdstatus'), [1, 2, 3, 4])) {
-                $contents     = $this->create3DPaymentXML($request->request->all());
+                $this->logger->debug('finishing payment', ['md_status' => $request->get('mdstatus')]);
+                $contents     = $this->create3DPaymentXML($request->all());
                 $bankResponse = $this->send($contents);
+            } else {
+                $this->logger->error('3d auth fail', ['md_status' => $request->get('mdstatus')]);
             }
         }
 
-        $this->response = (object) $this->map3DPaymentData($request->request->all(), $bankResponse);
+        $this->response = (object) $this->map3DPaymentData($request->all(), $bankResponse);
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -165,11 +177,12 @@ class GarantiPos extends AbstractGateway
     public function send($contents, ?string $url = null)
     {
         $client = new Client();
-
-        $response = $client->request('POST', $this->getApiURL(), [
+        $url = $this->getApiURL();
+        $this->logger->debug('sending request', ['url' => $url]);
+        $response = $client->request('POST', $url, [
             'body' => $contents,
         ]);
-
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
         $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
         return $this->data;
@@ -181,8 +194,10 @@ class GarantiPos extends AbstractGateway
     public function get3DFormData(): array
     {
         if (!$this->order) {
+            $this->logger->error('tried to get 3D form data without setting order');
             return [];
         }
+        $this->logger->debug('preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card);
     }
@@ -271,6 +286,10 @@ class GarantiPos extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
+        $this->logger->debug('mapping 3D payment data', [
+            '3d_auth_response' => $raw3DAuthResponseData,
+            'provision_response' => $rawPaymentResponseData,
+        ]);
         $mapped3DResponse = $this->map3DPayResponseData($raw3DAuthResponseData);
         $procReturnCode = $mapped3DResponse['proc_return_code'];
         $paymentStatus = 'declined';
@@ -402,12 +421,13 @@ class GarantiPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData): array
     {
+        $this->logger->debug('mapping payment response', [$responseData]);
         $status = 'declined';
         if ($this->getProcReturnCode() === '00') {
             $status = 'approved';
         }
 
-        return [
+        $mappedResponse = [
             'id'               => isset($responseData->Transaction->AuthCode) ? $this->printData($responseData->Transaction->AuthCode) : null,
             'order_id'         => isset($responseData->Order->OrderID) ? $this->printData($responseData->Order->OrderID) : null,
             'group_id'         => isset($responseData->Order->GroupID) ? $this->printData($responseData->Order->GroupID) : null,
@@ -429,6 +449,10 @@ class GarantiPos extends AbstractGateway
             'extra'            => $responseData->Extra ?? null,
             'all'              => $responseData,
         ];
+
+        $this->logger->debug('mapped payment response', $mappedResponse);
+
+        return $mappedResponse;
     }
 
     /**

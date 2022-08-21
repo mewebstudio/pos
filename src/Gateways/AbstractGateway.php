@@ -143,6 +143,7 @@ abstract class AbstractGateway implements PosInterface
                 $this->order = $this->prepareHistoryOrder($order);
                 break;
         }
+        $this->logger->debug('gateway prepare - order is prepared', [$this->order]);
 
         $this->card = $card;
     }
@@ -315,6 +316,8 @@ abstract class AbstractGateway implements PosInterface
         $this->requestDataMapper->mapTxType($txType);
 
         $this->type = $txType;
+
+        $this->logger->debug('set transaction type', [$txType]);
     }
 
     /**
@@ -327,6 +330,10 @@ abstract class AbstractGateway implements PosInterface
 
         $model = $this->account->getModel();
 
+        $this->logger->debug('payment called', [
+            'card_provided' => !!$this->card,
+            'model' => $model,
+        ]);
         if (self::MODEL_NON_SECURE === $model) {
             $this->makeRegularPayment();
         } elseif (self::MODEL_3D_SECURE === $model) {
@@ -336,6 +343,7 @@ abstract class AbstractGateway implements PosInterface
         } elseif (self::MODEL_3D_HOST === $model) {
             $this->make3DHostPayment($request);
         } else {
+            $this->logger->error('unsupported payment model', ['model' => $model]);
             throw new UnsupportedPaymentModelException();
         }
 
@@ -347,6 +355,10 @@ abstract class AbstractGateway implements PosInterface
      */
     public function makeRegularPayment()
     {
+        $this->logger->debug('making payment', [
+            'model' => $this->account->getModel(),
+            'tx_type' => $this->type
+        ]);
         $contents = '';
         if (in_array($this->type, [self::TX_PAY, self::TX_PRE_PAY])) {
             $contents = $this->createRegularPaymentXML();
@@ -424,6 +436,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $this->testMode = $testMode;
         $this->requestDataMapper->setTestMode($testMode);
+        $this->logger->debug('switching mode', ['mode' => $this->getModeInWord()]);
 
         return $this;
     }

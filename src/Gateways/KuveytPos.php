@@ -83,10 +83,13 @@ class KuveytPos extends AbstractGateway
     {
         $client = new Client();
         $url = $url ?: $this->getApiURL();
+        $this->logger->debug('sending request', ['url' => $url]);
 
         $isXML = is_string($contents);
         $body = $isXML ? ['body' => $contents] : ['form_params' => $contents];
         $response = $client->request('POST', $url, $body);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
+
         $responseBody = $response->getBody()->getContents();
         try {
             $this->data = $this->XMLStringToArray($responseBody);
@@ -125,14 +128,19 @@ class KuveytPos extends AbstractGateway
         $procReturnCode  = $this->getProcReturnCode($gatewayResponse);
         if ($this->check3DHash($this->account, $gatewayResponse)) {
             if ('00' === $procReturnCode) {
+                $this->logger->debug('finishing payment');
+
                 $contents = $this->create3DPaymentXML($gatewayResponse);
 
                 $bankResponse = $this->send($contents);
+            } else {
+                $this->logger->error('3d auth fail', ['proc_return_code' => $procReturnCode]);
             }
         }
 
         $authorizationResponse = $this->emptyStringsToNull($bankResponse);
         $this->response        = (object) $this->map3DPaymentData($gatewayResponse, $authorizationResponse);
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -168,6 +176,7 @@ class KuveytPos extends AbstractGateway
     public function get3DFormData(): array
     {
         $gatewayUrl = $this->get3DGatewayURL();
+        $this->logger->debug('preparing 3D form data');
 
         return $this->getCommon3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);
     }
@@ -259,6 +268,10 @@ class KuveytPos extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData): array
     {
+        $this->logger->debug('mapping 3D payment data', [
+            '3d_auth_response' => $raw3DAuthResponseData,
+            'provision_response' => $rawPaymentResponseData,
+        ]);
         $threeDResponse = $this->tDPayResponseCommon($raw3DAuthResponseData);
 
         if (empty($rawPaymentResponseData)) {
@@ -275,6 +288,7 @@ class KuveytPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData): array
     {
+        $this->logger->debug('mapping payment response', [$responseData]);
 
         $responseData = (array) $responseData;
         if (isset($responseData['VPosMessage'])) {
@@ -300,6 +314,7 @@ class KuveytPos extends AbstractGateway
             $result['error_code']    = $procReturnCode;
             $result['error_message'] = $responseData['ResponseMessage'];
             $result['response']      = 'Declined';
+            $this->logger->debug('mapped payment response', $result);
 
             return $result;
         }
@@ -310,6 +325,8 @@ class KuveytPos extends AbstractGateway
         $result['amount']        = $responseData['VPosMessage']['Amount'];
         $result['currency']      = array_search($responseData['VPosMessage']['CurrencyCode'], $this->requestDataMapper->getCurrencyMappings());
         $result['masked_number'] = $responseData['VPosMessage']['CardNumber'];
+
+        $this->logger->debug('mapped payment response', $result);
 
         return $result;
     }

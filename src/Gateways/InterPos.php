@@ -75,11 +75,13 @@ class InterPos extends AbstractGateway
     {
         $client = new Client();
         $url = $url ?: $this->getApiURL();
-
+        $this->logger->debug('sending request', ['url' => $url]);
         $isXML = is_string($contents);
         $body = $isXML ? ['body' => $contents] : ['form_params' => $contents];
 
         $response = $client->request('POST', $url, $body);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
+
         //genelde ;; delimiter kullanilmis, ama bazen arasinda ;;; boyle delimiter de var.
         $resultValues = preg_split('/(;;;|;;)/', $response->getBody()->getContents());
         $result       = [];
@@ -118,7 +120,19 @@ class InterPos extends AbstractGateway
         $hashStr = $calculatedHashParamsVal.$account->getStoreKey();
         $hash    = $this->hashString($hashStr);
 
-        return $hashParams && !($calculatedHashParamsVal !== $actualHashParamsVal || $actualHash !== $hash);
+        if ($actualHash === $hash) {
+            $this->logger->debug('hash check is successful');
+
+            return true;
+        }
+
+        $this->logger->error('hash check failed', [
+            'data' => $data,
+            'generated_hash' => $hash,
+            'expected_hash' => $actualHash
+        ]);
+
+        return false;
     }
 
     /**
@@ -133,10 +147,12 @@ class InterPos extends AbstractGateway
         $procReturnCode  = $this->getProcReturnCode($gatewayResponse);
         if ($this->check3DHash($this->account, $gatewayResponse)) {
             if ('00' !== $procReturnCode) {
+                $this->logger->error('3d auth fail', ['proc_return_code' => $procReturnCode]);
                 /**
                  * TODO hata durumu ele alinmasi gerekiyor
                  */
             }
+            $this->logger->debug('finishing payment');
             $contents = $this->create3DPaymentXML($gatewayResponse);
             $bankResponse = $this->send($contents);
         }
@@ -144,6 +160,7 @@ class InterPos extends AbstractGateway
 
         $authorizationResponse = $this->emptyStringsToNull($bankResponse);
         $this->response        = (object) $this->map3DPaymentData($gatewayResponse, $authorizationResponse);
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -181,15 +198,17 @@ class InterPos extends AbstractGateway
      */
     public function get3DFormData(): array
     {
+        if (!$this->order) {
+            $this->logger->error('tried to get 3D form data without setting order');
+            return [];
+        }
         $gatewayUrl = $this->get3DHostGatewayURL();
         if (self::MODEL_3D_SECURE === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         } elseif (self::MODEL_3D_PAY === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         }
-        if (!$this->order) {
-            return [];
-        }
+        $this->logger->debug('preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);
     }
@@ -280,6 +299,10 @@ class InterPos extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
+        $this->logger->debug('mapping 3D payment data', [
+            '3d_auth_response' => $raw3DAuthResponseData,
+            'provision_response' => $rawPaymentResponseData,
+        ]);
         $status              = $raw3DAuthResponseData['mdStatus'];
         $transactionSecurity = 'MPI fallback';
         $procReturnCode      = $this->getProcReturnCode($raw3DAuthResponseData);
@@ -427,6 +450,7 @@ class InterPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData): array
     {
+        $this->logger->debug('mapping payment response', [$responseData]);
         $responseData   = $this->emptyStringsToNull($responseData);
         $status         = 'declined';
         $procReturnCode = $this->getProcReturnCode($responseData);
@@ -452,6 +476,8 @@ class InterPos extends AbstractGateway
         $result['host_ref_num']  = $responseData['HostRefNum'];
         $result['error_code']    = $responseData['ErrorCode'];
         $result['error_message'] = $responseData['ErrorMessage'];
+
+        $this->logger->debug('mapped payment response', $result);
 
         return $result;
     }
