@@ -49,14 +49,10 @@ abstract class AbstractGateway implements PosInterface
     /** @var array */
     private $config;
 
-    /**
-     * @var AbstractPosAccount
-     */
+    /** @var AbstractPosAccount */
     protected $account;
 
-    /**
-     * @var AbstractCreditCard
-     */
+    /** @var AbstractCreditCard */
     protected $card;
 
     /**
@@ -222,12 +218,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * Print Data
-     * @deprecated just use emptyStringsToNull()
-     *
-     * @param $data
-     *
-     * @return string|null
+     * @inheritdoc
      */
     public function printData($data): ?string
     {
@@ -249,10 +240,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @deprecated use isSuccess()
-     * Is error
-     *
-     * @return bool
+     * @inheritdoc
      */
     public function isError(): bool
     {

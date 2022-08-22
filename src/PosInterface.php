@@ -27,9 +27,7 @@ interface PosInterface
     public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false);
 
     /**
-     * Print Data
-     *
-     * @param $data
+     * @deprecated just use emptyStringsToNull()
      *
      * @return null|string
      */
@@ -151,7 +149,7 @@ interface PosInterface
     public function isSuccess();
 
     /**
-     * Is error
+     * @deprecated use isSuccess()
      *
      * @return bool
      */
