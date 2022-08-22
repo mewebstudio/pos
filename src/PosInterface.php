@@ -5,12 +5,9 @@
 namespace Mews\Pos;
 
 use GuzzleHttp\Exception\GuzzleException;
-use Mews\Pos\DataMapper\AbstractRequestDataMapper;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Gateways\AbstractGateway;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -18,21 +15,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 interface PosInterface
 {
-    /**
-     * PosInterface constructor.
-     *
-     * @param array                     $config
-     * @param AbstractPosAccount        $account
-     * @param AbstractRequestDataMapper $currencies
-     * @param LoggerInterface           $logger
-     */
-    public function __construct(
-        array $config,
-        AbstractPosAccount $account,
-        AbstractRequestDataMapper $currencies,
-        LoggerInterface $logger
-    );
-
     /**
      * Create XML DOM Document
      *
