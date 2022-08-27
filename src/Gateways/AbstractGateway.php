@@ -12,6 +12,7 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -139,7 +140,7 @@ abstract class AbstractGateway implements PosInterface
                 $this->order = $this->prepareHistoryOrder($order);
                 break;
         }
-        $this->logger->debug('gateway prepare - order is prepared', [$this->order]);
+        $this->logger->log(LogLevel::DEBUG, 'gateway prepare - order is prepared', [$this->order]);
 
         $this->card = $card;
     }
@@ -305,7 +306,7 @@ abstract class AbstractGateway implements PosInterface
 
         $this->type = $txType;
 
-        $this->logger->debug('set transaction type', [$txType]);
+        $this->logger->log(LogLevel::DEBUG, 'set transaction type', [$txType]);
     }
 
     /**
@@ -318,7 +319,7 @@ abstract class AbstractGateway implements PosInterface
 
         $model = $this->account->getModel();
 
-        $this->logger->debug('payment called', [
+        $this->logger->log(LogLevel::DEBUG, 'payment called', [
             'card_provided' => !!$this->card,
             'model' => $model,
         ]);
@@ -331,7 +332,7 @@ abstract class AbstractGateway implements PosInterface
         } elseif (self::MODEL_3D_HOST === $model) {
             $this->make3DHostPayment($request);
         } else {
-            $this->logger->error('unsupported payment model', ['model' => $model]);
+            $this->logger->log(LogLevel::ERROR, 'unsupported payment model', ['model' => $model]);
             throw new UnsupportedPaymentModelException();
         }
 
@@ -343,7 +344,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function makeRegularPayment()
     {
-        $this->logger->debug('making payment', [
+        $this->logger->log(LogLevel::DEBUG, 'making payment', [
             'model' => $this->account->getModel(),
             'tx_type' => $this->type
         ]);
@@ -424,7 +425,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $this->testMode = $testMode;
         $this->requestDataMapper->setTestMode($testMode);
-        $this->logger->debug('switching mode', ['mode' => $this->getModeInWord()]);
+        $this->logger->log(LogLevel::DEBUG, 'switching mode', ['mode' => $this->getModeInWord()]);
 
         return $this;
     }

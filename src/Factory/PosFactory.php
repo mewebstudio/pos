@@ -45,7 +45,7 @@ class PosFactory
     public static function createPosGateway(
         AbstractPosAccount $posAccount,
         $config = null,
-        LoggerInterface $logger = null
+        ?LoggerInterface $logger = null
     ): PosInterface {
         if (!$logger) {
             $logger = new NullLogger();

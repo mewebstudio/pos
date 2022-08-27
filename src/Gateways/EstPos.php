@@ -11,6 +11,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -105,12 +106,12 @@ class EstPos extends AbstractGateway
 
         //todo simplify this if check
         if ($hashParams && !($paramsVal !== $hashParamsVal || $hashParam !== $hash)) {
-            $this->logger->debug('hash check is successful');
+            $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
 
             return true;
         }
 
-        $this->logger->error('hash check failed', [
+        $this->logger->log(LogLevel::ERROR, 'hash check failed', [
             'data' => $data,
             'generated_hash' => $hash,
             'expected_hash' => $hashParam
@@ -128,7 +129,7 @@ class EstPos extends AbstractGateway
         $provisionResponse = null;
         if ($this->check3DHash($request->all())) {
             if ($request->get('mdStatus') !== '1') {
-                $this->logger->error('3d auth fail', ['md_status' => $request->get('mdStatus')]);
+                $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $request->get('mdStatus')]);
                 /**
                  * TODO hata durumu ele alinmasi gerekiyor
                  * ornegin soyle bir hata donebilir
@@ -136,14 +137,14 @@ class EstPos extends AbstractGateway
                  * "ErrMsg" => "Isyeri kullanim tipi desteklenmiyor.", "Response" => "Error", "ErrCode" => "3D-1007", ...]
                  */
             } else {
-                $this->logger->debug('finishing payment', ['md_status' => $request->get('mdStatus')]);
+                $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $request->get('mdStatus')]);
                 $contents = $this->create3DPaymentXML($request->all());
                 $provisionResponse = $this->send($contents);
             }
         }
 
         $this->response = (object) $this->map3DPaymentData($request->all(), $provisionResponse);
-        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
+        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -174,10 +175,10 @@ class EstPos extends AbstractGateway
     public function get3DFormData(): array
     {
         if (!$this->order) {
-            $this->logger->error('tried to get 3D form data without setting order');
+            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
             return [];
         }
-        $this->logger->debug('preparing 3D form data');
+        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card);
     }
@@ -189,11 +190,11 @@ class EstPos extends AbstractGateway
     {
         $client = new Client();
         $url = $this->getApiURL();
-        $this->logger->debug('sending request', ['url' => $url]);
+        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
         $response = $client->request('POST', $url, [
             'body' => $contents,
         ]);
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
         $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
         return $this->data;
@@ -324,7 +325,7 @@ class EstPos extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
-        $this->logger->debug('mapping 3D payment data', [
+        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
             '3d_auth_response' => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);
@@ -575,7 +576,7 @@ class EstPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData): array
     {
-        $this->logger->debug('mapping payment response', [$responseData]);
+        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$responseData]);
         if (empty($responseData)) {
             return $this->getDefaultPaymentResponse();
         }
@@ -608,7 +609,7 @@ class EstPos extends AbstractGateway
             'all'              => $responseData,
         ];
 
-        $this->logger->debug('mapped payment response', $mappedResponse);
+        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $mappedResponse);
 
         return $mappedResponse;
     }
