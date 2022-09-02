@@ -4,7 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
-use GuzzleHttp\Client;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -58,8 +58,6 @@ class EstPos extends AbstractGateway
     protected $card;
 
     /**
-     * @inheritdoc
-     *
      * @param EstPosAccount $account
      * @param EstPosRequestDataMapper $requestDataMapper
      */
@@ -67,9 +65,10 @@ class EstPos extends AbstractGateway
         array $config,
         AbstractPosAccount $account,
         AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
         LoggerInterface $logger
     ) {
-        parent::__construct($config, $account, $requestDataMapper, $logger);
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -188,12 +187,9 @@ class EstPos extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-        $response = $client->request('POST', $url, [
-            'body' => $contents,
-        ]);
+        $response = $this->client->post($url, ['body' => $contents]);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
         $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 

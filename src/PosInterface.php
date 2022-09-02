@@ -4,7 +4,6 @@
  */
 namespace Mews\Pos;
 
-use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Gateways\AbstractGateway;
@@ -37,8 +36,6 @@ interface PosInterface
      * Regular Payment
      *
      * @return AbstractGateway
-     *
-     * @throws GuzzleException
      */
     public function makeRegularPayment();
 
@@ -47,8 +44,6 @@ interface PosInterface
      * @param Request $request
      *
      * @return AbstractGateway
-     *
-     * @throws GuzzleException
      */
     public function make3DPayment(Request $request);
 
@@ -75,8 +70,6 @@ interface PosInterface
      * @param string|null  $url
      *
      * @return mixed
-     *
-     * @throws GuzzleException
      */
     public function send($contents, ?string $url = null);
 
@@ -99,7 +92,6 @@ interface PosInterface
      * @return AbstractGateway
      *
      * @throws UnsupportedPaymentModelException
-     * @throws GuzzleException
      */
     public function payment($card);
 
@@ -107,8 +99,6 @@ interface PosInterface
      * Refund Order
      *
      * @return AbstractGateway
-     *
-     * @throws GuzzleException
      */
     public function refund();
 
@@ -116,8 +106,6 @@ interface PosInterface
      * Cancel Order
      *
      * @return AbstractGateway
-     *
-     * @throws GuzzleException
      */
     public function cancel();
 
@@ -125,8 +113,6 @@ interface PosInterface
      * Order Status
      *
      * @return AbstractGateway
-     *
-     * @throws GuzzleException
      */
     public function status();
 
@@ -136,8 +122,6 @@ interface PosInterface
      * @param array $meta
      *
      * @return AbstractGateway
-     *
-     * @throws GuzzleException
      */
     public function history(array $meta);
 

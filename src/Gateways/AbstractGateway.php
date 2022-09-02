@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -89,18 +90,20 @@ abstract class AbstractGateway implements PosInterface
      */
     protected $data;
 
+    /** @var HttpClient */
+    protected $client;
+
     /** @var AbstractRequestDataMapper */
     protected $requestDataMapper;
 
     private $testMode = false;
 
-    /**
-     * @inheritdoc
-     */
+
     public function __construct(
         array $config,
         AbstractPosAccount $account,
         AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
         LoggerInterface $logger
     ) {
         $this->requestDataMapper              = $requestDataMapper;
@@ -109,6 +112,7 @@ abstract class AbstractGateway implements PosInterface
 
         $this->config = $config;
         $this->account = $account;
+        $this->client = $client;
         $this->logger = $logger;
     }
 
@@ -191,7 +195,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return mixed
+     * @return object
      */
     public function getOrder()
     {

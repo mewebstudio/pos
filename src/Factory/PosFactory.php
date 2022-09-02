@@ -5,6 +5,7 @@
 namespace Mews\Pos\Factory;
 
 use DomainException;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
@@ -35,6 +36,7 @@ class PosFactory
     /**
      * @param AbstractPosAccount   $posAccount
      * @param array|string|null    $config config path or config array
+     * @param HttpClient|null $client
      * @param LoggerInterface|null $logger
      *
      * @return PosInterface
@@ -45,10 +47,14 @@ class PosFactory
     public static function createPosGateway(
         AbstractPosAccount $posAccount,
         $config = null,
+        ?HttpClient $client = null,
         ?LoggerInterface $logger = null
     ): PosInterface {
         if (!$logger) {
             $logger = new NullLogger();
+        }
+        if (!$client) {
+            $client = HttpClientFactory::createDefaultHttpClient();
         }
         if (is_string($config)) {
             $config = require $config;
@@ -78,6 +84,7 @@ class PosFactory
             $config['banks'][$posAccount->getBank()],
             $posAccount,
             self::getGatewayMapper($class, $currencies),
+            $client,
             $logger
         );
     }

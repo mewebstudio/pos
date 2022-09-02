@@ -4,7 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
-use GuzzleHttp\Client;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -56,8 +56,6 @@ class GarantiPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @inheritdoc
-     *
      * @param GarantiPosAccount $account
      * @param GarantiPosRequestDataMapper $requestDataMapper
      */
@@ -65,9 +63,10 @@ class GarantiPos extends AbstractGateway
         array $config,
         AbstractPosAccount $account,
         AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
         LoggerInterface $logger
     ) {
-        parent::__construct($config, $account, $requestDataMapper, $logger);
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -177,12 +176,9 @@ class GarantiPos extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-        $response = $client->request('POST', $url, [
-            'body' => $contents,
-        ]);
+        $response = $this->client->post($url, ['body' => $contents]);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
         $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
@@ -472,7 +468,7 @@ class GarantiPos extends AbstractGateway
             'group_id'         => isset($rawResponseData->Order->GroupID) ? $this->printData($rawResponseData->Order->GroupID) : null,
             'trans_id'         => isset($rawResponseData->Transaction->AuthCode) ? $this->printData($rawResponseData->Transaction->AuthCode) : null,
             'response'         => isset($rawResponseData->Transaction->Response->Message) ? $this->printData($rawResponseData->Transaction->Response->Message) : null,
-            'auth_code'        => isset($rawResponseData->Transaction->AuthCode) ? $rawResponseData->Transaction->AuthCode : null,
+            'auth_code'        => $rawResponseData->Transaction->AuthCode ?? null,
             'host_ref_num'     => isset($rawResponseData->Transaction->RetrefNum) ? $this->printData($rawResponseData->Transaction->RetrefNum) : null,
             'ret_ref_num'      => isset($rawResponseData->Transaction->RetrefNum) ? $this->printData($rawResponseData->Transaction->RetrefNum) : null,
             'hash_data'        => isset($rawResponseData->Transaction->HashData) ? $this->printData($rawResponseData->Transaction->HashData) : null,

@@ -7,8 +7,7 @@ namespace Mews\Pos\Gateways;
 use DOMDocument;
 use DOMNodeList;
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -47,8 +46,6 @@ class KuveytPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @inheritdoc
-     *
      * @param KuveytPosAccount $account
      * @param KuveytPosRequestDataMapper $requestDataMapper
      */
@@ -56,9 +53,10 @@ class KuveytPos extends AbstractGateway
         array $config,
         AbstractPosAccount $account,
         AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
         LoggerInterface $logger
     ) {
-        parent::__construct($config, $account, $requestDataMapper, $logger);
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -82,13 +80,15 @@ class KuveytPos extends AbstractGateway
      */
     public function send($contents, string $url = null)
     {
-        $client = new Client();
         $url = $url ?: $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-
-        $isXML = is_string($contents);
-        $body = $isXML ? ['body' => $contents] : ['form_params' => $contents];
-        $response = $client->request('POST', $url, $body);
+        $body = [
+            'body' => $contents,
+            'headers' => [
+                'Content-Type' => 'text/xml; charset=UTF-8',
+            ]
+        ];
+        $response = $this->client->post($url, $body);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         $responseBody = $response->getBody()->getContents();
@@ -432,7 +432,7 @@ class KuveytPos extends AbstractGateway
      *
      * @return array
      *
-     * @throws GuzzleException
+     * @throws Exception
      */
     private function getCommon3DFormData(KuveytPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {

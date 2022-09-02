@@ -4,8 +4,8 @@
  */
 namespace Mews\Pos\Gateways;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Exception;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -71,8 +71,6 @@ class PosNet extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @inheritdoc
-     *
      * @param PosNetAccount $account
      * @param PosNetRequestDataMapper $requestDataMapper
      */
@@ -80,11 +78,12 @@ class PosNet extends AbstractGateway
         array $config,
         AbstractPosAccount $account,
         AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
         LoggerInterface $logger
     ) {
         $this->crypt = new PosNetCrypt();
 
-        parent::__construct($config, $account, $requestDataMapper, $logger);
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -107,8 +106,6 @@ class PosNet extends AbstractGateway
      * Get OOS transaction data
      * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
      * @return object
-     *
-     * @throws GuzzleException
      */
     public function getOosTransactionData()
     {
@@ -196,7 +193,7 @@ class PosNet extends AbstractGateway
 
         if ('0' === $data['approved']) {
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
-            throw new \Exception($data['respText'], $data['respCode']);
+            throw new Exception($data['respText'], $data['respCode']);
         }
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
@@ -208,16 +205,13 @@ class PosNet extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
-        $headers = [
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ];
-
-        $response = $client->request('POST', $url, [
-            'headers' => $headers,
+        $response = $this->client->post($url, [
+            'headers' => [
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ],
             'body'    => "xmldata=$contents",
         ]);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);

@@ -5,8 +5,7 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -52,8 +51,6 @@ class VakifBankPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @inheritDoc
-     *
      * @param VakifBankAccount $account
      * @param VakifBankPosRequestDataMapper $requestDataMapper
      */
@@ -61,9 +58,10 @@ class VakifBankPos extends AbstractGateway
         array $config,
         AbstractPosAccount $account,
         AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
         LoggerInterface $logger
     ) {
-        parent::__construct($config, $account, $requestDataMapper, $logger);
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -136,7 +134,7 @@ class VakifBankPos extends AbstractGateway
      *
      * @return array
      *
-     * @throws Exception|GuzzleException
+     * @throws Exception
      */
     public function get3DFormData(): array
     {
@@ -183,7 +181,7 @@ class VakifBankPos extends AbstractGateway
      *
      * @return object
      *
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function sendEnrollmentRequest()
     {
@@ -205,14 +203,13 @@ class VakifBankPos extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
         $url = $url ?: $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
         $isXML = is_string($contents);
         $body = $isXML ? ['form_params' => ['prmstr' => $contents]] : ['form_params' => $contents];
 
-        $response = $client->request('POST', $url, $body);
+        $response = $this->client->post($url, $body);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         $responseBody = $response->getBody()->getContents();

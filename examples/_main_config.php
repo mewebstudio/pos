@@ -23,7 +23,14 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mew
     try {
         $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
         $logger = new \Monolog\Logger('pos', [$handler]);
-        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, $logger);
+
+/*        $client = new HttpClient(
+            new \Http\Client\Curl\Client(),
+            new \Slim\Psr7\Factory\RequestFactory(),
+            new \Slim\Psr7\Factory\StreamFactory()
+        );*/
+
+        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
         $pos->setTestMode(true);
 
         return $pos;

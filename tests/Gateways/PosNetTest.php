@@ -9,6 +9,7 @@ use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PosNet;
@@ -103,7 +104,13 @@ class PosNetTest extends TestCase
         $this->expectExceptionCode(3);
 
         $posMock = $this->getMockBuilder(PosNet::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(PosNet::class), new NullLogger()])
+            ->setConstructorArgs([
+                [],
+                $this->account,
+                PosFactory::getGatewayMapper(PosNet::class),
+                HttpClientFactory::createDefaultHttpClient(),
+                new NullLogger()
+            ])
             ->onlyMethods(['getOosTransactionData'])
             ->getMock();
         $posMock->setTestMode(true);

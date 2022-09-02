@@ -4,7 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
-use GuzzleHttp\Client;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -47,8 +47,6 @@ class InterPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @inheritdoc
-     *
      * @param InterPosAccount $account
      * @param InterPosRequestDataMapper $requestDataMapper
      */
@@ -56,9 +54,10 @@ class InterPos extends AbstractGateway
         array $config,
         AbstractPosAccount $account,
         AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
         LoggerInterface $logger
     ) {
-        parent::__construct($config, $account, $requestDataMapper, $logger);
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -74,13 +73,9 @@ class InterPos extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
         $url = $url ?: $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-        $isXML = is_string($contents);
-        $body = $isXML ? ['body' => $contents] : ['form_params' => $contents];
-
-        $response = $client->request('POST', $url, $body);
+        $response = $this->client->post($url, ['form_params' => $contents]);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         //genelde ;; delimiter kullanilmis, ama bazen arasinda ;;; boyle delimiter de var.

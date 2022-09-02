@@ -4,7 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
-use GuzzleHttp\Client;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -68,8 +68,6 @@ class PayForPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @inheritDoc
-     *
      * @param PayForAccount $account
      * @param PayForPosRequestDataMapper $requestDataMapper
      */
@@ -77,9 +75,10 @@ class PayForPos extends AbstractGateway
         array $config,
         AbstractPosAccount $account,
         AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
         LoggerInterface $logger
     ) {
-        parent::__construct($config, $account, $requestDataMapper, $logger);
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -188,11 +187,9 @@ class PayForPos extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-
-        $response = $client->request('POST', $url, [
+        $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'text/xml; charset=UTF-8',
             ],

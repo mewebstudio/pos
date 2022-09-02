@@ -3,6 +3,7 @@
 namespace Mews\Pos\Factory;
 
 use DateTimeImmutable;
+use DomainException;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Exceptions\CardTypeNotSupportedException;
@@ -45,7 +46,7 @@ class CreditCardFactory
         $expDate  = DateTimeImmutable::createFromFormat('Ym', $expireYear.$expireMonth);
 
         if (!$expDate) {
-            throw new \DomainException('INVALID DATE FORMAT');
+            throw new DomainException('INVALID DATE FORMAT');
         }
         $supportedCardTypes = array_keys($pos->getCardTypeMapping());
         if (!empty($supportedCardTypes) && empty($cardType)) {

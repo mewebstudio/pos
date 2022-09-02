@@ -2,12 +2,13 @@
 
 namespace Mews\Pos\Exceptions;
 
+use DomainException;
 use Throwable;
 
 /**
  * thrown when card type is not supported by the gateway
  */
-class CardTypeNotSupportedException extends \DomainException
+class CardTypeNotSupportedException extends DomainException
 {
     private $type;
 
