@@ -46,8 +46,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'ISBANKAPI',
             'ISBANK07',
             AbstractGateway::MODEL_3D_SECURE,
-            'TRPS0200',
-            AbstractGateway::LANG_TR
+            'TRPS0200'
         );
 
         $this->order = [
@@ -350,8 +349,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'XXXXXXX',
             'XXXXXXX',
             AbstractGateway::MODEL_3D_HOST,
-            'VnM5WZ3sGrPusmWP',
-            AbstractGateway::LANG_TR
+            'VnM5WZ3sGrPusmWP'
         );
 
         /** @var EstPos $pos */
@@ -446,7 +444,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'IPAddress'               => $order->ip,
             'Email'                   => $order->email,
             'OrderId'                 => $order->id,
-            'UserId'                  => isset($order->user_id) ? $order->user_id : null,
+            'UserId'                  => $order->user_id ?? null,
             'Total'                   => 100.01,
             'Currency'                => '949',
             'Taksit'                  => '',

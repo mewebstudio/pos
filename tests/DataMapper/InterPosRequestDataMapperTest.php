@@ -52,8 +52,7 @@ class InterPosRequestDataMapperTest extends TestCase
             $userCode,
             $userPass,
             AbstractGateway::MODEL_3D_SECURE,
-            $merchantPass,
-            AbstractGateway::LANG_TR
+            $merchantPass
         );
 
         $this->order = [
@@ -264,8 +263,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'XXXXXXX',
             'XXXXXXX',
             AbstractGateway::MODEL_3D_HOST,
-            'VnM5WZ3sGrPusmWP',
-            AbstractGateway::LANG_TR
+            'VnM5WZ3sGrPusmWP'
         );
         /** @var InterPos $pos */
         $pos     = PosFactory::createPosGateway($account);

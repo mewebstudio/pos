@@ -2,6 +2,7 @@
 
 namespace Mews\Pos\Tests\Entity\Card;
 
+use DomainException;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use PHPUnit\Framework\TestCase;
 
@@ -18,7 +19,7 @@ class AbstractCreditCardTest extends TestCase
             'expireMonth' => '',
             'cvv' => '123',
         ];
-        $this->expectException(\DomainException::class);
+        $this->expectException(DomainException::class);
         $this->getMockForAbstractClass(AbstractCreditCard::class, $testData);
     }
 }
