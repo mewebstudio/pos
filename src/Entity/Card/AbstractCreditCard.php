@@ -3,7 +3,6 @@
 namespace Mews\Pos\Entity\Card;
 
 use DateTimeImmutable;
-use DomainException;
 
 /**
  * Class AbstractCreditCard
@@ -21,24 +20,13 @@ abstract class AbstractCreditCard
      */
     protected $number;
 
-    /**
-     * @var DateTimeImmutable
-     */
-    protected $expireYear;
+    /** @var DateTimeImmutable */
+    protected $expDate;
 
-    /**
-     * @var DateTimeImmutable
-     */
-    protected $expireMonth;
-
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $cvv;
 
-    /**
-     * @var string|null
-     */
+    /** @var string|null */
     protected $holderName;
 
     /**
@@ -50,27 +38,17 @@ abstract class AbstractCreditCard
     /**
      * AbstractCreditCard constructor.
      *
-     * @param string      $number         credit card number with or without spaces
-     * @param string      $expireYear     accepts year in 1, 2 and 4 digit format. accepted year formats '1' (2001), '02'
-     *                                    (2002), '20' (2020), '2024' (2024)
-     * @param string      $expireMonth    single digit or double digit month values are accepted
-     * @param string      $cvv
-     * @param string|null $cardHolderName
-     * @param string|null $cardType       examples values: 'visa', 'master', '1', '2'
+     * @param string            $number   credit card number with or without spaces
+     * @param DateTimeImmutable $expDate
+     * @param string            $cvv
+     * @param string|null       $cardHolderName
+     * @param string|null       $cardType examples values: 'visa', 'master', '1', '2'
      *
-     * @throws DomainException
      */
-    public function __construct(string $number, string $expireYear, string $expireMonth, string $cvv, ?string $cardHolderName = null, ?string $cardType = null)
+    public function __construct(string $number, DateTimeImmutable $expDate, string $cvv, ?string $cardHolderName = null, ?string $cardType = null)
     {
-        $this->number = preg_replace('/\s+/', '', $number);
-
-        $yearFormat        = 4 === strlen($expireYear) ? 'Y' : 'y';
-        $this->expireYear  = DateTimeImmutable::createFromFormat($yearFormat, $expireYear);
-        $this->expireMonth = DateTimeImmutable::createFromFormat('m', $expireMonth);
-        if (!$this->expireYear || !$this->expireMonth) {
-            throw new DomainException('INVALID DATE FORMAT');
-        }
-
+        $this->number     = preg_replace('/\s+/', '', $number);
+        $this->expDate    = $expDate;
         $this->cvv        = $cvv;
         $this->holderName = $cardHolderName;
         $this->type       = $cardType;
@@ -87,27 +65,39 @@ abstract class AbstractCreditCard
 
     /**
      * returns exp year in 2 digit format
+     *
+     * @param string $format
+     *
      * @return string
      */
-    public function getExpireYear(): string
+    public function getExpireYear(string $format = 'y'): string
     {
-        return $this->expireYear->format('y');
+        return $this->expDate->format($format);
     }
 
     /**
      * returns exp year in 2 digit format. i.e '01' '02' '12'
+     *
+     * @param string $format
+     *
      * @return string
      */
-    public function getExpireMonth(): string
+    public function getExpireMonth(string $format = 'm'): string
     {
-        return $this->expireMonth->format('m');
+        return $this->expDate->format($format);
     }
 
     /**
      * returns card exp date month and year combined.
+     *
+     * @param string $format
+     *
      * @return string
      */
-    abstract public function getExpirationDate(): string;
+    public function getExpirationDate(string $format = 'ym'): string
+    {
+        return $this->expDate->format($format);
+    }
 
     /**
      * @return string
