@@ -7,14 +7,15 @@ namespace Mews\Pos\Gateways;
 use DOMDocument;
 use DOMNodeList;
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -45,13 +46,17 @@ class KuveytPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @inheritdoc
-     *
-     * @param KuveytPosAccount          $account
+     * @param KuveytPosAccount $account
+     * @param KuveytPosRequestDataMapper $requestDataMapper
      */
-    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
-    {
-        parent::__construct($config, $account, $requestDataMapper);
+    public function __construct(
+        array $config,
+        AbstractPosAccount $account,
+        AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
+        LoggerInterface $logger
+    ) {
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -75,12 +80,17 @@ class KuveytPos extends AbstractGateway
      */
     public function send($contents, string $url = null)
     {
-        $client = new Client();
         $url = $url ?: $this->getApiURL();
+        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $body = [
+            'body' => $contents,
+            'headers' => [
+                'Content-Type' => 'text/xml; charset=UTF-8',
+            ]
+        ];
+        $response = $this->client->post($url, $body);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
-        $isXML = is_string($contents);
-        $body = $isXML ? ['body' => $contents] : ['form_params' => $contents];
-        $response = $client->request('POST', $url, $body);
         $responseBody = $response->getBody()->getContents();
         try {
             $this->data = $this->XMLStringToArray($responseBody);
@@ -119,14 +129,19 @@ class KuveytPos extends AbstractGateway
         $procReturnCode  = $this->getProcReturnCode($gatewayResponse);
         if ($this->check3DHash($this->account, $gatewayResponse)) {
             if ('00' === $procReturnCode) {
+                $this->logger->log(LogLevel::DEBUG, 'finishing payment');
+
                 $contents = $this->create3DPaymentXML($gatewayResponse);
 
                 $bankResponse = $this->send($contents);
+            } else {
+                $this->logger->log(LogLevel::ERROR, '3d auth fail', ['proc_return_code' => $procReturnCode]);
             }
         }
 
         $authorizationResponse = $this->emptyStringsToNull($bankResponse);
         $this->response        = (object) $this->map3DPaymentData($gatewayResponse, $authorizationResponse);
+        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -162,6 +177,7 @@ class KuveytPos extends AbstractGateway
     public function get3DFormData(): array
     {
         $gatewayUrl = $this->get3DGatewayURL();
+        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->getCommon3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);
     }
@@ -253,6 +269,10 @@ class KuveytPos extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData): array
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+            '3d_auth_response' => $raw3DAuthResponseData,
+            'provision_response' => $rawPaymentResponseData,
+        ]);
         $threeDResponse = $this->tDPayResponseCommon($raw3DAuthResponseData);
 
         if (empty($rawPaymentResponseData)) {
@@ -269,6 +289,7 @@ class KuveytPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData): array
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$responseData]);
 
         $responseData = (array) $responseData;
         if (isset($responseData['VPosMessage'])) {
@@ -294,6 +315,7 @@ class KuveytPos extends AbstractGateway
             $result['error_code']    = $procReturnCode;
             $result['error_message'] = $responseData['ResponseMessage'];
             $result['response']      = 'Declined';
+            $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $result);
 
             return $result;
         }
@@ -304,6 +326,8 @@ class KuveytPos extends AbstractGateway
         $result['amount']        = $responseData['VPosMessage']['Amount'];
         $result['currency']      = array_search($responseData['VPosMessage']['CurrencyCode'], $this->requestDataMapper->getCurrencyMappings());
         $result['masked_number'] = $responseData['VPosMessage']['CardNumber'];
+
+        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $result);
 
         return $result;
     }
@@ -408,7 +432,7 @@ class KuveytPos extends AbstractGateway
      *
      * @return array
      *
-     * @throws GuzzleException
+     * @throws Exception
      */
     private function getCommon3DFormData(KuveytPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {

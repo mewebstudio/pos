@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.9.0] - 2022-09-03
+### Changed
+- Eski Gateway'e özel (orn. CreditCardEstPos) Kredi Kart sınıfları kaldırıldı.
+`0.6.0` versiyonda tanıtılan `Mews\Pos\Entity\Card\CreditCard` kullanılacak.
+### New Features
+- `guzzlehttp/guzzle` hard coupling kaldırıldı.
+  Artık herhangi bir [PSR-18 HTTP Client](https://packagist.org/providers/psr/http-client-implementation) kullanılabılınır.
+  Bu degisiklikle beraber PSR-18 ve PSR-7 client kütüphaneleri kendiniz composer require ile yüklemeniz gerekiyor.
+
+  Örneğin:
+  ```shell
+  composer require php-http/curl-client nyholm/psr7 mews/pos
+  ```
+  Eğer projenizde zaten PSR-18 ve PSR-7 kütüphaneleri yüklü ise, otomatik onları bulur ve kullanır.
+  Kodda bir degişiklik gerektirmez.
+
+- Gateway sınıflara **PSR-3** logger desteği eklendi.
+  
+  Monolog logger kullanım örnegi:
+  ```shell
+  composer require monolog/monolog
+  ```
+  ```php
+  $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
+  $logger = new \Monolog\Logger('pos', [$handler]);
+  $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
+  ```
+
 ## [0.7.0] - 2022-05-18
 ### Changed
 - `\Mews\Pos\PosInterface::prepare()` method artık sipariş verilerini (_currency, id, amount, installment, transaction type_) değiştirmez/formatlamaz.

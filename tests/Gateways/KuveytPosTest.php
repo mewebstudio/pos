@@ -4,17 +4,20 @@
  */
 namespace Mews\Pos\Tests\Gateways;
 
-use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\KuveytPos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
+use ReflectionClass;
+use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -146,11 +149,19 @@ class KuveytPosTest extends TestCase
 
         $testGateway = 'https://boa.kuveytturk.com.tr/sanalposservice/Home/ThreeDModelPayGate';
         $posMock     = $this->getMockBuilder(KuveytPos::class)
-            ->setConstructorArgs([['urls' => [
-                'gateway' => [
-                    'test' => $testGateway,
+            ->setConstructorArgs([
+                [
+                    'urls' => [
+                        'gateway' => [
+                            'test' => $testGateway,
+                        ],
+                    ],
                 ],
-            ], ], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class), ])
+                $this->threeDAccount,
+                PosFactory::getGatewayMapper(KuveytPos::class),
+                HttpClientFactory::createDefaultHttpClient(),
+                new NullLogger(),
+            ])
             ->onlyMethods(['send'])
             ->getMock();
         $posMock->setTestMode(true);
@@ -277,8 +288,6 @@ class KuveytPosTest extends TestCase
 
     /**
      * @return void
-     *
-     * @throws GuzzleException
      */
     public function testMake3DPaymentAuthFail()
     {
@@ -297,8 +306,6 @@ class KuveytPosTest extends TestCase
 
     /**
      * @return void
-     *
-     * @throws GuzzleException
      */
     public function testMake3DPaymentAuthSuccessProvisionFail()
     {
@@ -309,7 +316,13 @@ class KuveytPosTest extends TestCase
         ]);
 
         $posMock = $this->getMockBuilder(KuveytPos::class)
-            ->setConstructorArgs([[], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class)])
+            ->setConstructorArgs([
+                [],
+                $this->threeDAccount,
+                PosFactory::getGatewayMapper(KuveytPos::class),
+                HttpClientFactory::createDefaultHttpClient(),
+                new NullLogger()
+            ])
             ->onlyMethods(['send', 'check3DHash'])
             ->getMock();
 
@@ -346,8 +359,6 @@ class KuveytPosTest extends TestCase
 
     /**
      * @return void
-     *
-     * @throws GuzzleException
      */
     public function testMake3DPaymentAuthSuccessProvisionSuccess()
     {
@@ -358,7 +369,13 @@ class KuveytPosTest extends TestCase
         ]);
 
         $posMock = $this->getMockBuilder(KuveytPos::class)
-            ->setConstructorArgs([[], $this->threeDAccount, PosFactory::getGatewayMapper(KuveytPos::class)])
+            ->setConstructorArgs([
+                [],
+                $this->threeDAccount,
+                PosFactory::getGatewayMapper(KuveytPos::class),
+                HttpClientFactory::createDefaultHttpClient(),
+                new NullLogger()
+            ])
             ->onlyMethods(['send', 'check3DHash'])
             ->getMock();
 
@@ -417,9 +434,9 @@ class KuveytPosTest extends TestCase
     }
 
 
-    protected static function getMethod(string $name)
+    protected static function getMethod(string $name): ReflectionMethod
     {
-        $class = new \ReflectionClass(KuveytPos::class);
+        $class  = new ReflectionClass(KuveytPos::class);
         $method = $class->getMethod($name);
         $method->setAccessible(true);
 

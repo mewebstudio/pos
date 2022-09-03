@@ -4,13 +4,15 @@
  */
 namespace Mews\Pos\Gateways;
 
-use GuzzleHttp\Client;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -45,13 +47,17 @@ class InterPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @inheritdoc
-     *
-     * @param InterPosAccount           $account
+     * @param InterPosAccount $account
+     * @param InterPosRequestDataMapper $requestDataMapper
      */
-    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
-    {
-        parent::__construct($config, $account, $requestDataMapper);
+    public function __construct(
+        array $config,
+        AbstractPosAccount $account,
+        AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
+        LoggerInterface $logger
+    ) {
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -67,13 +73,11 @@ class InterPos extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
         $url = $url ?: $this->getApiURL();
+        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $response = $this->client->post($url, ['form_params' => $contents]);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
-        $isXML = is_string($contents);
-        $body = $isXML ? ['body' => $contents] : ['form_params' => $contents];
-
-        $response = $client->request('POST', $url, $body);
         //genelde ;; delimiter kullanilmis, ama bazen arasinda ;;; boyle delimiter de var.
         $resultValues = preg_split('/(;;;|;;)/', $response->getBody()->getContents());
         $result       = [];
@@ -112,7 +116,19 @@ class InterPos extends AbstractGateway
         $hashStr = $calculatedHashParamsVal.$account->getStoreKey();
         $hash    = $this->hashString($hashStr);
 
-        return $hashParams && !($calculatedHashParamsVal !== $actualHashParamsVal || $actualHash !== $hash);
+        if ($actualHash === $hash) {
+            $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
+
+            return true;
+        }
+
+        $this->logger->log(LogLevel::ERROR, 'hash check failed', [
+            'data' => $data,
+            'generated_hash' => $hash,
+            'expected_hash' => $actualHash
+        ]);
+
+        return false;
     }
 
     /**
@@ -127,10 +143,12 @@ class InterPos extends AbstractGateway
         $procReturnCode  = $this->getProcReturnCode($gatewayResponse);
         if ($this->check3DHash($this->account, $gatewayResponse)) {
             if ('00' !== $procReturnCode) {
+                $this->logger->log(LogLevel::ERROR, '3d auth fail', ['proc_return_code' => $procReturnCode]);
                 /**
                  * TODO hata durumu ele alinmasi gerekiyor
                  */
             }
+            $this->logger->log(LogLevel::DEBUG, 'finishing payment');
             $contents = $this->create3DPaymentXML($gatewayResponse);
             $bankResponse = $this->send($contents);
         }
@@ -138,6 +156,7 @@ class InterPos extends AbstractGateway
 
         $authorizationResponse = $this->emptyStringsToNull($bankResponse);
         $this->response        = (object) $this->map3DPaymentData($gatewayResponse, $authorizationResponse);
+        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -175,15 +194,17 @@ class InterPos extends AbstractGateway
      */
     public function get3DFormData(): array
     {
+        if (!$this->order) {
+            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
+            return [];
+        }
         $gatewayUrl = $this->get3DHostGatewayURL();
         if (self::MODEL_3D_SECURE === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         } elseif (self::MODEL_3D_PAY === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         }
-        if (!$this->order) {
-            return [];
-        }
+        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);
     }
@@ -274,6 +295,10 @@ class InterPos extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+            '3d_auth_response' => $raw3DAuthResponseData,
+            'provision_response' => $rawPaymentResponseData,
+        ]);
         $status              = $raw3DAuthResponseData['mdStatus'];
         $transactionSecurity = 'MPI fallback';
         $procReturnCode      = $this->getProcReturnCode($raw3DAuthResponseData);
@@ -421,6 +446,7 @@ class InterPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData): array
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$responseData]);
         $responseData   = $this->emptyStringsToNull($responseData);
         $status         = 'declined';
         $procReturnCode = $this->getProcReturnCode($responseData);
@@ -446,6 +472,8 @@ class InterPos extends AbstractGateway
         $result['host_ref_num']  = $responseData['HostRefNum'];
         $result['error_code']    = $responseData['ErrorCode'];
         $result['error_message'] = $responseData['ErrorMessage'];
+
+        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $result);
 
         return $result;
     }

@@ -2,12 +2,13 @@
 
 namespace Mews\Pos\Exceptions;
 
+use DomainException;
 use Throwable;
 
 /**
  * thrown if card type is not provided
  */
-class CardTypeRequiredException extends \DomainException
+class CardTypeRequiredException extends DomainException
 {
     /**
      * @var string

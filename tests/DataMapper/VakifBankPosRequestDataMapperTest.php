@@ -412,7 +412,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return object
+     * @return array
      */
     private function getSampleEnrollmentSuccessResponseData(): array
     {

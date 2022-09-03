@@ -4,12 +4,14 @@
  */
 namespace Mews\Pos\Gateways;
 
-use GuzzleHttp\Client;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
@@ -66,13 +68,17 @@ class PayForPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @inheritDoc
-     *
      * @param PayForAccount $account
+     * @param PayForPosRequestDataMapper $requestDataMapper
      */
-    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
-    {
-        parent::__construct($config, $account, $requestDataMapper);
+    public function __construct(
+        array $config,
+        AbstractPosAccount $account,
+        AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
+        LoggerInterface $logger
+    ) {
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -88,15 +94,18 @@ class PayForPos extends AbstractGateway
      */
     public function make3DPayment(Request $request)
     {
+        $request = $request->request;
         $bankResponse = null;
         //if customer 3d verification passed finish payment
-        if ($this->check3DHash($this->account, $request->request->all()) && '1' === $request->get('3DStatus')) {
+        if ($this->check3DHash($this->account, $request->all()) && '1' === $request->get('3DStatus')) {
             //valid ProcReturnCode is V033 in case of success 3D Authentication
-            $contents = $this->create3DPaymentXML($request->request->all());
+            $contents = $this->create3DPaymentXML($request->all());
             $bankResponse = $this->send($contents);
+        } else {
+            $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $request->get('3DStatus')]);
         }
 
-        $this->response = $this->map3DPaymentData($request->request->all(), $bankResponse);
+        $this->response = $this->map3DPaymentData($request->all(), $bankResponse);
 
         return $this;
     }
@@ -159,8 +168,10 @@ class PayForPos extends AbstractGateway
     public function get3DFormData(): array
     {
         if (!$this->order) {
+            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
             return [];
         }
+        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         $gatewayURL = $this->get3DGatewayURL();
         if (self::MODEL_3D_HOST === $this->account->getModel()) {
@@ -176,14 +187,15 @@ class PayForPos extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
-
-        $response = $client->request('POST', $this->getApiURL(), [
+        $url = $this->getApiURL();
+        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'text/xml; charset=UTF-8',
             ],
             'body'    => $contents,
         ]);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         $response = $response->getBody()->getContents();
 
@@ -241,7 +253,19 @@ class PayForPos extends AbstractGateway
 
         $hash = $this->hashString($hashStr);
 
-        return $hash === $data['ResponseHash'];
+        if ($hash === $data['ResponseHash']) {
+            $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
+
+            return true;
+        }
+
+        $this->logger->log(LogLevel::ERROR, 'hash check failed', [
+            'data' => $data,
+            'generated_hash' => $hash,
+            'expected_hash' => $data['ResponseHash']
+        ]);
+
+        return false;
     }
 
     /**
@@ -319,6 +343,10 @@ class PayForPos extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+            '3d_auth_response' => $raw3DAuthResponseData,
+            'provision_response' => $rawPaymentResponseData,
+        ]);
         $threeDAuthStatus = ('1' === $raw3DAuthResponseData['3DStatus']) ? 'approved' : 'declined';
         $paymentResponseData = [];
 
@@ -441,12 +469,14 @@ class PayForPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData): array
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$responseData]);
+
         $status = 'declined';
         if ('00' === $responseData->ProcReturnCode) {
             $status = 'approved';
         }
 
-        return [
+        $mappedResponse = [
             'id'               => $responseData->AuthCode,
             'order_id'         => $responseData->TransId,
             'trans_id'         => $responseData->TransId,
@@ -462,6 +492,10 @@ class PayForPos extends AbstractGateway
             'error_message'    => ('declined' === $status) ? $responseData->ErrMsg : null,
             'all'              => $responseData,
         ];
+
+        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $mappedResponse);
+
+        return $mappedResponse;
     }
 
     /**

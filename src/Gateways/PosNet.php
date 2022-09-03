@@ -4,14 +4,16 @@
  */
 namespace Mews\Pos\Gateways;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Exception;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -69,16 +71,19 @@ class PosNet extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * PosNet constructor.
-     * @inheritdoc
-     *
      * @param PosNetAccount $account
+     * @param PosNetRequestDataMapper $requestDataMapper
      */
-    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
-    {
+    public function __construct(
+        array $config,
+        AbstractPosAccount $account,
+        AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
+        LoggerInterface $logger
+    ) {
         $this->crypt = new PosNetCrypt();
 
-        parent::__construct($config, $account, $requestDataMapper);
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -101,8 +106,6 @@ class PosNet extends AbstractGateway
      * Get OOS transaction data
      * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
      * @return object
-     *
-     * @throws GuzzleException
      */
     public function getOosTransactionData()
     {
@@ -118,12 +121,14 @@ class PosNet extends AbstractGateway
      */
     public function make3DPayment(Request $request)
     {
+        $request = $request->request;
         $bankResponse = null;
-        if ($this->check3DHash($request->request->all())) {
+        if ($this->check3DHash($request->all())) {
+            $this->logger->log(LogLevel::DEBUG, 'getting merchant request data');
             $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
                 $this->account,
                 $this->order,
-                $request->request->all()
+                $request->all()
             );
 
             $contents = $this->createXML($requestData);
@@ -143,13 +148,21 @@ class PosNet extends AbstractGateway
         if ($this->getProcReturnCode() === '00' && $this->getStatusDetail() === 'approved') {
             //if 3D Authentication is successful:
             if (in_array($bankResponse->oosResolveMerchantDataResponse->mdStatus, [1, 2, 3, 4])) {
-                $contents = $this->create3DPaymentXML($request->request->all());
+                $this->logger->log(LogLevel::DEBUG, 'finishing payment', [
+                    'md_status' => $bankResponse->oosResolveMerchantDataResponse->mdStatus,
+                ]);
+                $contents = $this->create3DPaymentXML($request->all());
                 $bankResponse = $this->send($contents);
+            } else {
+                $this->logger->log(LogLevel::ERROR, '3d auth fail', [
+                    'md_status' => $bankResponse->oosResolveMerchantDataResponse->mdStatus
+                ]);
             }
         }
 
         end:
-        $this->response = $this->map3DPaymentData($request->request->all(), $bankResponse);
+        $this->response = $this->map3DPaymentData($request->all(), $bankResponse);
+        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -168,6 +181,10 @@ class PosNet extends AbstractGateway
     public function get3DFormData(): array
     {
         if (!$this->card || !$this->order) {
+            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
+                'order' => $this->order,
+                'card_provided' => !!$this->card,
+            ]);
             return [];
         }
 
@@ -175,8 +192,10 @@ class PosNet extends AbstractGateway
         $data = parent::emptyStringsToNull($data);
 
         if ('0' === $data['approved']) {
-            throw new \Exception($data['respText'], $data['respCode']);
+            $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
+            throw new Exception($data['respText'], $data['respCode']);
         }
+        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card, $data['oosRequestDataResponse']);
     }
@@ -186,16 +205,16 @@ class PosNet extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
+        $url = $this->getApiURL();
+        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
-        $headers = [
-            'Content-Type' => 'application/x-www-form-urlencoded',
-        ];
-
-        $response = $client->request('POST', $this->getApiURL(), [
-            'headers' => $headers,
+        $response = $this->client->post($url, [
+            'headers' => [
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ],
             'body'    => "xmldata=$contents",
         ]);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
@@ -342,7 +361,17 @@ class PosNet extends AbstractGateway
             $decryptedData[4],
         ]);
 
-        return $originalData === $decryptedDataList;
+        if ($originalData === $decryptedDataList) {
+            $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
+
+            return true;
+        }
+
+        $this->logger->log(LogLevel::ERROR, 'hash check failed', [
+            'data' => $data,
+        ]);
+
+        return false;
     }
 
     /**
@@ -372,6 +401,10 @@ class PosNet extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+            '3d_auth_response' => $raw3DAuthResponseData,
+            'provision_response' => $rawPaymentResponseData,
+        ]);
         $status = 'declined';
         $transactionSecurity = '';
         if ($this->getProcReturnCode() === '00' && $this->getStatusDetail() === 'approved') {

@@ -4,11 +4,14 @@
  */
 namespace Mews\Pos\Gateways;
 
-use GuzzleHttp\Client;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
+use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -55,14 +58,17 @@ class EstPos extends AbstractGateway
     protected $card;
 
     /**
-     * EstPos constructor.
-     * @inheritdoc
-     *
-     * @param EstPosAccount             $account
+     * @param EstPosAccount $account
+     * @param EstPosRequestDataMapper $requestDataMapper
      */
-    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
-    {
-        parent::__construct($config, $account, $requestDataMapper);
+    public function __construct(
+        array $config,
+        AbstractPosAccount $account,
+        AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
+        LoggerInterface $logger
+    ) {
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -97,12 +103,20 @@ class EstPos extends AbstractGateway
         $hashVal = $paramsVal.$this->account->getStoreKey();
         $hash = $this->hashString($hashVal);
 
-        $return = false;
+        //todo simplify this if check
         if ($hashParams && !($paramsVal !== $hashParamsVal || $hashParam !== $hash)) {
-            $return = true;
+            $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
+
+            return true;
         }
 
-        return $return;
+        $this->logger->log(LogLevel::ERROR, 'hash check failed', [
+            'data' => $data,
+            'generated_hash' => $hash,
+            'expected_hash' => $hashParam
+        ]);
+
+        return false;
     }
 
     /**
@@ -110,9 +124,11 @@ class EstPos extends AbstractGateway
      */
     public function make3DPayment(Request $request)
     {
+        $request = $request->request;
         $provisionResponse = null;
-        if ($this->check3DHash($request->request->all())) {
-            if ($request->request->get('mdStatus') !== '1') {
+        if ($this->check3DHash($request->all())) {
+            if ($request->get('mdStatus') !== '1') {
+                $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $request->get('mdStatus')]);
                 /**
                  * TODO hata durumu ele alinmasi gerekiyor
                  * ornegin soyle bir hata donebilir
@@ -120,12 +136,14 @@ class EstPos extends AbstractGateway
                  * "ErrMsg" => "Isyeri kullanim tipi desteklenmiyor.", "Response" => "Error", "ErrCode" => "3D-1007", ...]
                  */
             } else {
-                $contents = $this->create3DPaymentXML($request->request->all());
+                $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $request->get('mdStatus')]);
+                $contents = $this->create3DPaymentXML($request->all());
                 $provisionResponse = $this->send($contents);
             }
         }
 
-        $this->response = (object) $this->map3DPaymentData($request->request->all(), $provisionResponse);
+        $this->response = (object) $this->map3DPaymentData($request->all(), $provisionResponse);
+        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -156,8 +174,10 @@ class EstPos extends AbstractGateway
     public function get3DFormData(): array
     {
         if (!$this->order) {
+            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
             return [];
         }
+        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card);
     }
@@ -167,12 +187,10 @@ class EstPos extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
-
-        $response = $client->request('POST', $this->getApiURL(), [
-            'body' => $contents,
-        ]);
-
+        $url = $this->getApiURL();
+        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $response = $this->client->post($url, ['body' => $contents]);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
         $this->data = $this->XMLStringToObject($response->getBody()->getContents());
 
         return $this->data;
@@ -303,6 +321,10 @@ class EstPos extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+            '3d_auth_response' => $raw3DAuthResponseData,
+            'provision_response' => $rawPaymentResponseData,
+        ]);
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData);
 
@@ -550,6 +572,7 @@ class EstPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData): array
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$responseData]);
         if (empty($responseData)) {
             return $this->getDefaultPaymentResponse();
         }
@@ -561,7 +584,7 @@ class EstPos extends AbstractGateway
             $status = 'approved';
         }
 
-        return [
+        $mappedResponse = [
             'id'               => $responseData['AuthCode'],
             'order_id'         => $responseData['OrderId'],
             'group_id'         => $responseData['GroupId'],
@@ -581,6 +604,10 @@ class EstPos extends AbstractGateway
             'extra'            => $responseData['Extra'],
             'all'              => $responseData,
         ];
+
+        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $mappedResponse);
+
+        return $mappedResponse;
     }
 
     /**

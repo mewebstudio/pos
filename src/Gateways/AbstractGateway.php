@@ -4,12 +4,16 @@
  */
 namespace Mews\Pos\Gateways;
 
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Psr\Log\LoggerAwareTrait;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -21,6 +25,8 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
  */
 abstract class AbstractGateway implements PosInterface
 {
+    use LoggerAwareTrait;
+
     public const LANG_TR = 'tr';
     public const LANG_EN = 'en';
 
@@ -45,14 +51,10 @@ abstract class AbstractGateway implements PosInterface
     /** @var array */
     private $config;
 
-    /**
-     * @var AbstractPosAccount
-     */
+    /** @var AbstractPosAccount */
     protected $account;
 
-    /**
-     * @var AbstractCreditCard
-     */
+    /** @var AbstractCreditCard */
     protected $card;
 
     /**
@@ -88,26 +90,30 @@ abstract class AbstractGateway implements PosInterface
      */
     protected $data;
 
+    /** @var HttpClient */
+    protected $client;
+
     /** @var AbstractRequestDataMapper */
     protected $requestDataMapper;
 
     private $testMode = false;
 
-    /**
-     * AbstractGateway constructor.
-     *
-     * @param array                     $config
-     * @param AbstractPosAccount        $account
-     * @param AbstractRequestDataMapper $requestDataMapper
-     */
-    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
-    {
+
+    public function __construct(
+        array $config,
+        AbstractPosAccount $account,
+        AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
+        LoggerInterface $logger
+    ) {
         $this->requestDataMapper              = $requestDataMapper;
         $this->cardTypeMapping                = $requestDataMapper->getCardTypeMapping();
         $this->recurringOrderFrequencyMapping = $requestDataMapper->getRecurringOrderFrequencyMapping();
 
         $this->config = $config;
         $this->account = $account;
+        $this->client = $client;
+        $this->logger = $logger;
     }
 
     /**
@@ -138,6 +144,7 @@ abstract class AbstractGateway implements PosInterface
                 $this->order = $this->prepareHistoryOrder($order);
                 break;
         }
+        $this->logger->log(LogLevel::DEBUG, 'gateway prepare - order is prepared', [$this->order]);
 
         $this->card = $card;
     }
@@ -188,7 +195,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return mixed
+     * @return object
      */
     public function getOrder()
     {
@@ -216,11 +223,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * Print Data
-     *
-     * @param $data
-     *
-     * @return string|null
+     * @inheritdoc
      */
     public function printData($data): ?string
     {
@@ -242,9 +245,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * Is error
-     *
-     * @return bool
+     * @inheritdoc
      */
     public function isError(): bool
     {
@@ -308,6 +309,8 @@ abstract class AbstractGateway implements PosInterface
         $this->requestDataMapper->mapTxType($txType);
 
         $this->type = $txType;
+
+        $this->logger->log(LogLevel::DEBUG, 'set transaction type', [$txType]);
     }
 
     /**
@@ -320,6 +323,10 @@ abstract class AbstractGateway implements PosInterface
 
         $model = $this->account->getModel();
 
+        $this->logger->log(LogLevel::DEBUG, 'payment called', [
+            'card_provided' => !!$this->card,
+            'model' => $model,
+        ]);
         if (self::MODEL_NON_SECURE === $model) {
             $this->makeRegularPayment();
         } elseif (self::MODEL_3D_SECURE === $model) {
@@ -329,6 +336,7 @@ abstract class AbstractGateway implements PosInterface
         } elseif (self::MODEL_3D_HOST === $model) {
             $this->make3DHostPayment($request);
         } else {
+            $this->logger->log(LogLevel::ERROR, 'unsupported payment model', ['model' => $model]);
             throw new UnsupportedPaymentModelException();
         }
 
@@ -340,6 +348,10 @@ abstract class AbstractGateway implements PosInterface
      */
     public function makeRegularPayment()
     {
+        $this->logger->log(LogLevel::DEBUG, 'making payment', [
+            'model' => $this->account->getModel(),
+            'tx_type' => $this->type
+        ]);
         $contents = '';
         if (in_array($this->type, [self::TX_PAY, self::TX_PRE_PAY])) {
             $contents = $this->createRegularPaymentXML();
@@ -416,10 +428,8 @@ abstract class AbstractGateway implements PosInterface
     public function setTestMode(bool $testMode): self
     {
         $this->testMode = $testMode;
-        if (isset($this->requestDataMapper)) {
-            //todo remove if check after all gateways has requestDataMapper
-            $this->requestDataMapper->setTestMode($testMode);
-        }
+        $this->requestDataMapper->setTestMode($testMode);
+        $this->logger->log(LogLevel::DEBUG, 'switching mode', ['mode' => $this->getModeInWord()]);
 
         return $this;
     }

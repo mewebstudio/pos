@@ -46,8 +46,7 @@ class InterPosTest extends TestCase
             $userCode,
             $userPass,
             AbstractGateway::MODEL_3D_SECURE,
-            $merchantPass,
-            AbstractGateway::LANG_TR
+            $merchantPass
         );
 
         $this->order = [

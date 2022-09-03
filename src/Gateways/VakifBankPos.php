@@ -5,14 +5,15 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Psr\Log\LoggerInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
@@ -50,13 +51,17 @@ class VakifBankPos extends AbstractGateway
     protected $requestDataMapper;
 
     /**
-     * @inheritDoc
-     *
      * @param VakifBankAccount $account
+     * @param VakifBankPosRequestDataMapper $requestDataMapper
      */
-    public function __construct(array $config, AbstractPosAccount $account, AbstractRequestDataMapper $requestDataMapper)
-    {
-        parent::__construct($config, $account, $requestDataMapper);
+    public function __construct(
+        array $config,
+        AbstractPosAccount $account,
+        AbstractRequestDataMapper $requestDataMapper,
+        HttpClient $client,
+        LoggerInterface $logger
+    ) {
+        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
     }
 
     /**
@@ -87,11 +92,12 @@ class VakifBankPos extends AbstractGateway
 
             return $this;
         }
-
+        $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $request->get('Status')]);
         $contents = $this->create3DPaymentXML($gatewayResponse);
         $bankResponse = $this->send($contents);
 
         $this->response = $this->map3DPaymentData($gatewayResponse, $bankResponse);
+        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -128,11 +134,15 @@ class VakifBankPos extends AbstractGateway
      *
      * @return array
      *
-     * @throws Exception|GuzzleException
+     * @throws Exception
      */
     public function get3DFormData(): array
     {
         if (!$this->card || !$this->order) {
+            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
+                'order' => $this->order,
+                'card_provided' => !!$this->card,
+            ]);
             return [];
         }
 
@@ -148,15 +158,19 @@ class VakifBankPos extends AbstractGateway
          * E:Hata durumu
          */
         if ('E' === $status) {
+            $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception($data['ErrorMessage'], $data['MessageErrorCode']);
         }
         if ('N' === $status) {
             //half secure olarak devam et yada satisi iptal et.
+            $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception('Kart 3-D Secure programına dâhil değil');
         }
         if ('U' === $status) {
+            $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception('İşlem gerçekleştirilemiyor');
         }
+        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, '', $data['Message']['VERes']);
     }
@@ -167,7 +181,7 @@ class VakifBankPos extends AbstractGateway
      *
      * @return object
      *
-     * @throws GuzzleException
+     * @throws Exception
      */
     public function sendEnrollmentRequest()
     {
@@ -189,13 +203,14 @@ class VakifBankPos extends AbstractGateway
      */
     public function send($contents, ?string $url = null)
     {
-        $client = new Client();
         $url = $url ?: $this->getApiURL();
+        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
         $isXML = is_string($contents);
         $body = $isXML ? ['form_params' => ['prmstr' => $contents]] : ['form_params' => $contents];
 
-        $response = $client->request('POST', $url, $body);
+        $response = $this->client->post($url, $body);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         $responseBody = $response->getBody()->getContents();
 
@@ -288,6 +303,10 @@ class VakifBankPos extends AbstractGateway
      */
     protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+            '3d_auth_response' => $raw3DAuthResponseData,
+            'provision_response' => $rawPaymentResponseData,
+        ]);
         $threeDAuthStatus = ('Y' === $raw3DAuthResponseData['Status']) ? 'approved' : 'declined';
         $paymentResponseData = [];
 
@@ -363,6 +382,8 @@ class VakifBankPos extends AbstractGateway
      */
     protected function mapPaymentResponse($responseData): array
     {
+        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$responseData]);
+
         $commonResponse = $this->getCommonPaymentResponse($responseData);
         if ('approved' === $commonResponse['status']) {
             $commonResponse['id'] = $responseData->AuthCode;
@@ -373,6 +394,8 @@ class VakifBankPos extends AbstractGateway
             $commonResponse['transaction_type'] = $responseData->TransactionType;
             $commonResponse['eci'] = $responseData->ECI;
         }
+
+        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $commonResponse);
 
         return $commonResponse;
     }

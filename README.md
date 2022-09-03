@@ -42,6 +42,8 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - Sipariş/Ödeme geçmişi sorgulama (`AbstractGateway::TX_HISTORY`)
   - Sipariş/Para iadesi yapma (`AbstractGateway::TX_REFUND`)
   - Sipariş iptal etme (`AbstractGateway::TX_CANCEL`)
+  - [PSR-3](https://www.php-fig.org/psr/psr-3/) logger desteği
+  - [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP Client desteği
 
 #### Farkli Gateway'ler Tek islem akisi
 * Farklı bankaya geçiş yapmak için sadece doğru `AccountFactory` method'u kullanarak account degistirmek yeterli.
@@ -59,14 +61,21 @@ Son yapılan değişiklikler için [`CHANGELOG`](./docs/CHANGELOG.md).
   - ext-json
   - ext-openssl
   - ext-SimpleXML
-  
+  - PSR-18 HTTP Client
 
 ### Kurulum
-Test sunucunuz üzerinde;
 ```sh
-$ mkdir pos-test && cd pos-test
 $ composer require mews/pos
 ```
+Kütüphane belli bir HTTP Client'ile zorunlu bağımlılığı yoktur.
+PSR-18 HTTP Client standarta uyan herhangi bir kütüphane kullanılabilinir.
+Projenizde zaten kurulu PSR-18 uygulaması varsa otomatik onu kullanır.
+
+Veya hızlı başlangıç için:
+```sh
+$ composer require php-http/curl-client nyholm/psr7 mews/pos
+```
+Diğer PSR-18 uygulamasını sağlayan kütühaneler: https://packagist.org/providers/psr/http-client-implementation
 
 ### Unit testler çalıştırma
 Projenin root klasoründe bu satırı çalıştırmanız gerekiyor
@@ -82,6 +91,7 @@ $ ./vendor/bin/phpunit tests
 require './vendor/autoload.php';
 
 // API kullanıcı bilgileri
+// AccountFactory kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
 'akbank', //pos config'deki ayarın index name'i
 'yourClientID', 
@@ -257,6 +267,20 @@ Response'da `samesite` değeri set etmeniz gerekiyor. [çözüm](https://stackov
 Shared hosting'lerde Cpanel'de gördüğünüz IP'den farklı olarak fiziksel sunucun bir tane daha IP'si olur.
 O IP adres Cpanel'de gözükmez, hosting firmanızdan sorup öğrenmeniz gerekmekte.
 Bu hatayı alırsanız hosting firmanın verdiği IP adrese'de banka gateway'i tarafından izin verilmesini sağlayın.
+
+### Debugging
+Kütühane [PSR-3](https://www.php-fig.org/psr/psr-3/) standarta uygun logger uygulamayı destekler.
+Örnekler: https://packagist.org/providers/psr/log-implementation .
+
+Monolog logger kullanım örnegi:
+```shell
+composer require monolog/monolog
+```
+```php
+$handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
+$logger = new \Monolog\Logger('pos', [$handler]);
+$pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
+```
 
 ## Genel Kultur
 ### NonSecure, 3D Secure, 3DPay ve 3DHost ödeme modeller arasındaki farklar

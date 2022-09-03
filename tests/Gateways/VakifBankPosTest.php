@@ -5,16 +5,18 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use Exception;
-use GuzzleHttp\Exception\GuzzleException;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\VakifBankPos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 use ReflectionClass;
+use ReflectionMethod;
 
 /**
  * VakifBankPosTest
@@ -241,7 +243,7 @@ class VakifBankPosTest extends TestCase
     /**
      * @return void
      *
-     * @throws Exception|GuzzleException
+     * @throws Exception
      */
     public function testGet3DFormDataEnrollmentFail()
     {
@@ -249,7 +251,13 @@ class VakifBankPosTest extends TestCase
         $this->expectExceptionCode(2005);
 
         $posMock = $this->getMockBuilder(VakifBankPos::class)
-            ->setConstructorArgs([[], $this->account, PosFactory::getGatewayMapper(VakifBankPos::class)])
+            ->setConstructorArgs([
+                [],
+                $this->account,
+                PosFactory::getGatewayMapper(VakifBankPos::class),
+                HttpClientFactory::createDefaultHttpClient(),
+                new NullLogger()
+            ])
             ->onlyMethods(['sendEnrollmentRequest'])
             ->getMock();
         $posMock->setTestMode(true);
@@ -276,7 +284,7 @@ class VakifBankPosTest extends TestCase
         ];
     }
 
-    private static function getMethod(string $name): \ReflectionMethod
+    private static function getMethod(string $name): ReflectionMethod
     {
         $class  = new ReflectionClass(VakifBankPos::class);
         $method = $class->getMethod($name);

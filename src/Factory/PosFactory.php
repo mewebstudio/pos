@@ -5,6 +5,7 @@
 namespace Mews\Pos\Factory;
 
 use DomainException;
+use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
@@ -24,6 +25,8 @@ use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\Gateways\VakifBankPos;
 use Mews\Pos\PosInterface;
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
 
 /**
  * PosFactory
@@ -31,16 +34,28 @@ use Mews\Pos\PosInterface;
 class PosFactory
 {
     /**
-     * @param AbstractPosAccount $posAccount
-     * @param array|string|null  $config     config path or config array
+     * @param AbstractPosAccount   $posAccount
+     * @param array|string|null    $config config path or config array
+     * @param HttpClient|null $client
+     * @param LoggerInterface|null $logger
      *
      * @return PosInterface
      *
      * @throws BankClassNullException
      * @throws BankNotFoundException
      */
-    public static function createPosGateway(AbstractPosAccount $posAccount, $config = null): PosInterface
-    {
+    public static function createPosGateway(
+        AbstractPosAccount $posAccount,
+        $config = null,
+        ?HttpClient $client = null,
+        ?LoggerInterface $logger = null
+    ): PosInterface {
+        if (!$logger) {
+            $logger = new NullLogger();
+        }
+        if (!$client) {
+            $client = HttpClientFactory::createDefaultHttpClient();
+        }
         if (is_string($config)) {
             $config = require $config;
         } elseif (empty($config)) {
@@ -63,9 +78,15 @@ class PosFactory
         if (isset($config['currencies'])) {
             $currencies = $config['currencies'];
         }
-
+        $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
         // Create Bank Class Object
-        return new $class($config['banks'][$posAccount->getBank()], $posAccount, self::getGatewayMapper($class, $currencies));
+        return new $class(
+            $config['banks'][$posAccount->getBank()],
+            $posAccount,
+            self::getGatewayMapper($class, $currencies),
+            $client,
+            $logger
+        );
     }
 
     /**
