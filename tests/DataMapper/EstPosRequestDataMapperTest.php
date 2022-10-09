@@ -407,6 +407,24 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @return void
+     */
+    public function testCreateRecurringStatusRequestData()
+    {
+        $order = [
+            'recurringId' => '2020110828BC',
+        ];
+
+        $pos = $this->pos;
+        $pos->prepare($order, AbstractGateway::TX_STATUS);
+
+        $actualData = $this->requestDataMapper->createStatusRequestData($pos->getAccount(), $pos->getOrder());
+
+        $expectedData = $this->getSampleRecurringStatusRequestData($pos->getAccount(), $pos->getOrder());
+        $this->assertEquals($expectedData, $actualData);
+    }
+
+    /**
      * todo
      * @return void
      */
@@ -552,6 +570,25 @@ class EstPosRequestDataMapperTest extends TestCase
             'OrderId'  => $order->id,
             'Extra'    => [
                 'ORDERSTATUS' => 'QUERY',
+            ],
+        ];
+    }
+
+    /**
+     * @param AbstractPosAccount $account
+     * @param                    $order
+     *
+     * @return array
+     */
+    private function getSampleRecurringStatusRequestData(AbstractPosAccount $account, $order): array
+    {
+        return [
+            'Name'     => $account->getUsername(),
+            'Password' => $account->getPassword(),
+            'ClientId' => $account->getClientId(),
+            'Extra'    => [
+                'ORDERSTATUS' => 'QUERY',
+                'RECURRINGID' => $order->recurringId,
             ],
         ];
     }

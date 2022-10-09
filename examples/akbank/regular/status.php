@@ -11,6 +11,14 @@ $ord = $session->get('order');
 $order = [
     'id' => $ord ? $ord['id'] : '973009309',
 ];
+
+//tekrarlanan odemenin durumunu sorgulamak icin:
+/*
+$order = [
+    'recurringId' => $ord ? $ord['id'] : '973009309',
+];
+*/
+
 $transaction = AbstractGateway::TX_STATUS;
 $pos->prepare($order, $transaction);
 // Query Order

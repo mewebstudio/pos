@@ -130,12 +130,19 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
-        return $this->getRequestAccountData($account) + [
-            'OrderId'  => $order->id,
-            'Extra'    => [
+        $statusRequestData = $this->getRequestAccountData($account) + [
+            'Extra' => [
                 $this->mapTxType(AbstractGateway::TX_STATUS) => 'QUERY',
             ],
         ];
+
+        if (isset($order->id)) {
+            $statusRequestData['OrderId'] = $order->id;
+        } else if (isset($order->recurringId)) {
+            $statusRequestData['Extra']['RECURRINGID'] = $order->recurringId;
+        }
+
+        return $statusRequestData;
     }
 
     /**
