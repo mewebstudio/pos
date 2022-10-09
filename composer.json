@@ -18,7 +18,7 @@
         "ext-openssl": "*",
         "php-http/discovery": "^1.14",
         "psr/http-client-implementation": "*",
-        "psr/log": "^1.1",
+        "psr/log": "^1.1 || ^2.0 || ^3.0",
         "symfony/http-foundation": "^5.0",
         "symfony/serializer": "^5.0"
     },
