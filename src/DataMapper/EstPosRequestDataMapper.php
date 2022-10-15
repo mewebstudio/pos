@@ -77,14 +77,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         }
 
         if (isset($order->recurringFrequency)) {
-            $requestData['PbOrder'] = [
-                'OrderType'              => 0,
-                // Periyodik İşlem Frekansı
-                'OrderFrequencyInterval' => $order->recurringFrequency,
-                //D|M|Y
-                'OrderFrequencyCycle'    => $this->mapRecurringFrequency($order->recurringFrequencyType),
-                'TotalNumberPayments'    => $order->recurringInstallmentCount,
-            ];
+            $requestData += $this->getRecurringRequestOrderData($order);
         }
 
         return  $requestData;
@@ -95,7 +88,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
-        return $this->getRequestAccountData($account) + [
+        $requestData =  $this->getRequestAccountData($account) + [
             'Type'      => $this->mapTxType($txType),
             'IPAddress' => $order->ip ?? null,
             'Email'     => $order->email,
@@ -112,6 +105,12 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
                 'Name' => $order->name ?: null,
             ],
         ];
+
+        if (isset($order->recurringFrequency)) {
+            $requestData += $this->getRecurringRequestOrderData($order);
+        }
+
+        return $requestData;
     }
 
     /**
@@ -269,6 +268,20 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'Name'     => $account->getUsername(),
             'Password' => $account->getPassword(),
             'ClientId' => $account->getClientId(),
+        ];
+    }
+
+    private function getRecurringRequestOrderData($order): array
+    {
+        return [
+            'PbOrder' => [
+                'OrderType'              => 0,
+                // Periyodik İşlem Frekansı
+                'OrderFrequencyInterval' => $order->recurringFrequency,
+                //D|M|Y
+                'OrderFrequencyCycle'    => $this->mapRecurringFrequency($order->recurringFrequencyType),
+                'TotalNumberPayments'    => $order->recurringInstallmentCount,
+            ],
         ];
     }
 }
