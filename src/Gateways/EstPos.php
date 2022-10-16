@@ -433,19 +433,27 @@ class EstPos extends AbstractGateway
             'status'               => $status,
             'hash'                 => $raw3DAuthResponseData['HASH'],
             'rand'                 => $raw3DAuthResponseData['rnd'],
-            'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
-            'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
-            'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
             'amount'               => $raw3DAuthResponseData['amount'],
             'currency'             => array_search($raw3DAuthResponseData['currency'], $this->requestDataMapper->getCurrencyMappings()),
             'tx_status'            => null,
-            'eci'                  => $raw3DAuthResponseData['eci'],
-            'cavv'                 => $raw3DAuthResponseData['cavv'],
+            'masked_number'        => null,
+            'month'                => null,
+            'year'                 => null,
+            'eci'                  => null,
+            'cavv'                 => null,
             'xid'                  => $raw3DAuthResponseData['oid'],
             'md_error_message'     => 'approved' !== $status ? $raw3DAuthResponseData['mdErrorMsg'] : null,
             'campaign_url'         => null,
             'all'                  => $raw3DAuthResponseData,
         ];
+
+        if (isset($raw3DAuthResponseData['maskedCreditCard'])) {
+            $response['masked_number'] = $raw3DAuthResponseData['maskedCreditCard'];
+            $response['month'] = $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'];
+            $response['year'] = $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'];
+            $response['eci'] = $raw3DAuthResponseData['eci'];
+            $response['cavv'] = $raw3DAuthResponseData['cavv'];
+        }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $response);
     }
