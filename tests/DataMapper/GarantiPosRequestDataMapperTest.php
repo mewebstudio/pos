@@ -172,12 +172,12 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateHashForCancelAndRefund()
+    public function testCreateHashForCancel()
     {
         $order = [
             'id' => '4499996',
             'ref_ret_num' => '446ss',
-            'amount' => '1.00',
+            'amount' => '2.02', //amount should not matter in this case
             'currency' => 'TRY',
         ];
         $expected = '9788649A0C3AE14C082783CEA6775E08A7EFB311';
@@ -185,6 +185,21 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $pos->prepare($order, AbstractGateway::TX_CANCEL);
         $actual = $this->requestDataMapper->createHash($pos->getAccount(), $pos->getOrder(), 'void');
         $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @return void
+     */
+    public function testCreateHashForRefund()
+    {
+        $order = [
+            'id' => '4499996',
+            'ref_ret_num' => '446ss',
+            'amount' => '2.02',
+            'currency' => 'TRY',
+        ];
+        $expected = 'D7094EAF4C444AAC429FB2424BEE7FC68470E0DE';
+        $pos = $this->pos;
 
         $pos->prepare($order, AbstractGateway::TX_REFUND);
         $actual = $this->requestDataMapper->createHash($pos->getAccount(), $pos->getOrder(), 'refund');
@@ -318,6 +333,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $order = [
             'id'          => '2020110828BC',
             'currency'    => 'TRY',
+            'amount'      => 123.1,
             'ref_ret_num' => '831803579226',
         ];
 
@@ -564,7 +580,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'Terminal'    => [
                 'ProvUserID' => $account->getRefundUsername(),
                 'UserID'     => $account->getRefundUsername(),
-                'HashData'   => '8DD74209DEEB7D333105E1C69998A827419A3B04',
+                'HashData'   => '01EA91D49CC3039D38894FBB6303EFDAAD7F964D',
                 'ID'         => $account->getTerminalId(),
                 'MerchantID' => $account->getClientId(),
             ],
@@ -578,7 +594,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'Transaction' => [
                 'Type'                  => 'refund',
                 'InstallmentCnt'        => '',
-                'Amount'                => 100,
+                'Amount'                => GarantiPosRequestDataMapper::amountFormat($order->amount),
                 'CurrencyCode'          => '949',
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => 'N',
