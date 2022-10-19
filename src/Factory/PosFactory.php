@@ -8,6 +8,7 @@ use DomainException;
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\EstPosRequestDataMapper;
+use Mews\Pos\DataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
@@ -18,6 +19,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
@@ -100,6 +102,8 @@ class PosFactory
         switch ($gatewayClass) {
             case EstPos::class:
                 return new EstPosRequestDataMapper($currencies);
+            case EstV3Pos::class:
+                return new EstV3PosRequestDataMapper($currencies);
             case GarantiPos::class:
                 return new GarantiPosRequestDataMapper($currencies);
             case InterPos::class:

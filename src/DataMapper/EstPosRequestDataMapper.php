@@ -188,14 +188,18 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        $hash = $this->create3DHash($account, $order, $txType);
+        $data = $this->create3DFormDataCommon($account, $order, $txType, $gatewayURL, $card);
+        unset($data['inputs']['hash']);
+        $data['inputs']['hash'] = $this->create3DHash($account, $order, $txType);
 
+        return $data;
+    }
+
+    public function create3DFormDataCommon(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    {
         $inputs = [
             'clientid'  => $account->getClientId(),
             'storetype' => $this->secureTypeMappings[$account->getModel()],
-            'hash'      => $hash,
-            'firmaadi'  => $order->name,
-            'Email'     => $order->email,
             'amount'    => $order->amount,
             'oid'       => $order->id,
             'okUrl'     => $order->success_url,
@@ -205,6 +209,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'currency'  => $this->mapCurrency($order->currency),
             'taksit'    => $this->mapInstallment($order->installment),
             'islemtipi' => $this->mapTxType($txType),
+            // custom data, any key value pairs can be used
+            'firmaadi'  => $order->name,
+            'Email'     => $order->email,
+            // todo add custom data dynamically instead of hard coding them
         ];
 
         if ($card) {
