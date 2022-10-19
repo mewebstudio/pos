@@ -648,6 +648,9 @@ class GarantiPos extends AbstractGateway
      */
     protected function prepareRefundOrder(array $order)
     {
-        return $this->prepareCancelOrder($order);
+        $refundOrder = $this->prepareCancelOrder($order);
+        $refundOrder->amount = $order['amount'];
+
+        return $refundOrder;
     }
 }
