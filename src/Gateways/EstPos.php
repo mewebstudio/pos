@@ -17,7 +17,9 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * todo cardType verisi dokumantasyona gore kontrol edilmesi gerekiyor.
  * cardType gondermeden de su an calisiyor.
- * Class EstPos
+ *
+ * @deprecated use Mews\Pos\Gateways\EstV3Pos.
+ * For security reasons this class which uses sha1 hashing algorithm is not recommended to use.
  */
 class EstPos extends AbstractGateway
 {
