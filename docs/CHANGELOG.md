@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0] - 2022-10-22
+### New Features
+- `Mews\Pos\Gateways\EstV3Pos` eklendi.
+   Bu yeni sınıf 3D ödemelerde Payten'nin `hashAlgorithm=v3`'i yani `SHA-512` ile hashlemeyi kullanır.
+   Eski `Mews\Pos\Gateways\EstPos` uygulamadan yenisine geçis yapmak icin ayarlar dosyasında (`/config/pos.php`) bu satırı:
+   ```php
+   'class' => Mews\Pos\Gateways\EstPos::class
+   ```
+   buna degiştirmeniz yeterli:
+   ```php
+   'class' => Mews\Pos\Gateways\EstV3Pos::class
+   ```
+- `EstPos` - **tekrarlanan** (recurring) ödemelerin durum sorgulama ve iptal işlem desteği eklendi.
+
+
 ## [0.9.0] - 2022-09-03
 ### Changed
 - Eski Gateway'e özel (orn. CreditCardEstPos) Kredi Kart sınıfları kaldırıldı.
