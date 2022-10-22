@@ -12,7 +12,9 @@
    ```php
    'class' => Mews\Pos\Gateways\EstV3Pos::class
    ```
-- `EstPos` - **tekrarlanan** (recurring) ödemelerin durum sorgulama ve iptal işlem desteği eklendi.
+   Güvenlik nedenlerle `EstV3Pos`'u kullanmanız tavsiye edilir. `EstPos` ilerki tarihlerde kaldırılacak.
+- Payten/Asseco - **tekrarlanan** (recurring) ödemelerin durum sorgulama ve iptal işlem desteği eklendi.
+  Kullanım örnekleri için `/examples/akbank/` altındaki kodları kontrol ediniz.
 
 
 ## [0.9.0] - 2022-09-03
