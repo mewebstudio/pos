@@ -1,5 +1,5 @@
 <?php if (\Mews\Pos\Gateways\AbstractGateway::TX_CANCEL === $transaction): ?>
-    <h5 class="text-center">NOT: Iptal işlemi 12 saat (bankaya gore degisir) <b>gecmemis</b> odeme icin yapilabilir</h5>
+    <h5 class="text-center">NOT: Iptal işlemi 12 saat (veya gün sonu kapatılmadan önce gerçekleştirilebilir. bankaya gore degisir) <b>gecmemis</b> odeme icin yapilabilir</h5>
 <?php endif; ?>
 <?php if (\Mews\Pos\Gateways\AbstractGateway::TX_REFUND === $transaction): ?>
     <h5 class="text-center">NOT: İade işlemi 12 saat (bankaya gore degisir) <b>gecmis</b> odeme icin yapilabilir</h5>

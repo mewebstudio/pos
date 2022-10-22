@@ -8,13 +8,13 @@
 
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
 
-- **EST POS** (Asseco) altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Akbank, TEB ve Ziraat bankası test edilmiştir.
+- **EST POS** (Asseco/Payten) altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Akbank, TEB ve Ziraat bankası test edilmiştir.
 
 - **Garanti Virtual POS** ödeme sistemi çalışmaktadır, fakat 3D ödeme kısmının üretim ortamında test edilmesi gerekiyor.
 
 - **YapıKredi PosNet** sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` işlemleri test edilmedi. 
 
-- **Finansbank PayFor** sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
+- **Finansbank PayFor** (Enpara dahil) sanal pos sistemini desteklemektedir, Finansbank'ın IP kısıtlaması olmadığı için localhost'ta test `examples` klasöründeki örnek kodları çalıştırabilirsiniz.
 
 - **VakifBank GET 7/24 MPI ve VPOS 7/24** 3D Secure ödemesi çalışır durumda, diğer işlemlerde sorunlar ortaya çıktıkça giderilecek.
 
@@ -42,6 +42,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - Sipariş/Ödeme geçmişi sorgulama (`AbstractGateway::TX_HISTORY`)
   - Sipariş/Para iadesi yapma (`AbstractGateway::TX_REFUND`)
   - Sipariş iptal etme (`AbstractGateway::TX_CANCEL`)
+  - Tekrarlanan (Recurring) ödeme talimatları
   - [PSR-3](https://www.php-fig.org/psr/psr-3/) logger desteği
   - [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP Client desteği
 
