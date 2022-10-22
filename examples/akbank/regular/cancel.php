@@ -8,9 +8,21 @@ require '../../template/_header.php';
 
 $ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
-$order = [
-    'id'       => $ord['id'],
-];
+if (isset($ord['recurringFrequency'])) {
+    //tekrarlanan odemenin durumunu sorgulamak icin:
+    $order = [
+        // tekrarlanan odeme sonucunda banktan donen deger: $response['Extra']['RECURRINGID']
+        'id' => $ord['id'],
+        //hangi taksidi iptal etmek istiyoruz:
+        'recurringOrderInstallmentNumber' => $ord['recurringInstallmentCount'],
+    ];
+    // Not: bu islem sadece bekleyen odemeyi iptal eder
+} else {
+    $order = [
+        'id' => $ord['id'],
+    ];
+}
+
 $transaction = AbstractGateway::TX_CANCEL;
 $pos->prepare($order, $transaction);
 

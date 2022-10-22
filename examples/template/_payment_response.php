@@ -29,6 +29,7 @@ $response = $pos->getResponse();
 if ($pos->isSuccess()) {
     $session->set('ref_ret_num', $response->host_ref_num);
 }
+$session->set('last_response', $response);
 ?>
 
     <div class="result">

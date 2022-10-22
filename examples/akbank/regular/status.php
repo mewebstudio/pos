@@ -7,17 +7,20 @@ require '_config.php';
 require '../../template/_header.php';
 
 $ord = $session->get('order');
+$lastResponse = $session->get('last_response');
 
-$order = [
-    'id' => $ord ? $ord['id'] : '973009309',
-];
+if (isset($ord['recurringFrequency']) && $lastResponse && $lastResponse->recurring_id) {
+    //tekrarlanan odemenin durumunu sorgulamak icin:
+    $order = [
+        // tekrarlanan odeme sonucunda banktan donen deger: $response['Extra']['RECURRINGID']
+        'recurringId' => $lastResponse->recurring_id,
+    ];
 
-//tekrarlanan odemenin durumunu sorgulamak icin:
-/*
-$order = [
-    'recurringId' => $ord ? $ord['id'] : '973009309',
-];
-*/
+} else {
+    $order = [
+        'id' => $ord ? $ord['id'] : '973009309',
+    ];
+}
 
 $transaction = AbstractGateway::TX_STATUS;
 $pos->prepare($order, $transaction);

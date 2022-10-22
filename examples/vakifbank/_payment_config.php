@@ -47,12 +47,13 @@ function getNewOrder(
 
     $order['extraData'] = $session->getId(); //optional, istekte SessionInfo degere atanir
     if ($tekrarlanan) {
+        $order['installment'] = 0; //Tekrarlayan ödemeler taksitli olamaz.
         $order = array_merge($order, [
             //tekrarlanan odemeler icin (optional):
             'recurringFrequency'        => 3,
             'recurringFrequencyType'    => 'MONTH', //DAY|MONTH|YEAR
             //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
-            'recurringInstallmentCount' => 4,
+            'recurringInstallmentCount' => $installment,
             'recurringEndDate'          => '202112', //optional
             // yukardaki belirtilen ayarin anlami 3 ayda bir kesintip yap ve bunu toplam 4 kere tekrarla.
         ]);

@@ -149,6 +149,23 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
+        if (isset($order->recurringOrderInstallmentNumber)) {
+            // this method cancels only pending recurring orders, it will not cancel already fulfilled transactions
+            $orderData['Extra']['RECORDTYPE'] = 'Order';
+                // cancel single installment
+                $orderData['Extra']['RECURRINGOPERATION'] = 'Cancel';
+                /**
+                 * the order ids of recurring order installments:
+                 * 'ORD_ID_1' => '202210121ABC',
+                 * 'ORD_ID_2' => '202210121ABC-2',
+                 * 'ORD_ID_3' => '202210121ABC-3',
+                 * ...
+                 */
+                $orderData['Extra']['RECORDID'] = $order->id . '-' . $order->recurringOrderInstallmentNumber;
+
+            return $this->getRequestAccountData($account) + $orderData;
+        }
+
         return $this->getRequestAccountData($account) + [
             'OrderId'  => $order->id,
             'Type'     => $this->mapTxType(AbstractGateway::TX_CANCEL),

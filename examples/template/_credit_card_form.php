@@ -74,6 +74,15 @@
                     <?php endforeach; ?>
                 </select>
             </div>
+            <div class="form-group col-md-4">
+                <div class="form-group">
+                    <label class="form-check-label" for="isRecurringPayment">
+                    <input type="checkbox" class="form-check-input" id="isRecurringPayment" name="is_recurring" value="1">
+                        Tekrarlanan Ödeme
+                    <small class="form-text text-muted">henuz butun gatewayler'e bu ozellik destegi eklenmedi.</small>
+                    </label>
+                </div>
+            </div>
         </div>
         <hr>
         <div class="form-group text-center">

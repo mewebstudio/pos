@@ -60,11 +60,12 @@ function getNewOrder(
     $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 
     if ($tekrarlanan) {
+        $order['installment'] = 0; //Tekrarlayan ödemeler taksitli olamaz.
         //tekrarlanan odemeler icin (optional):
         $order['recurringFrequency'] = 3;
         $order['recurringFrequencyType'] = 'MONTH'; //DAY|WEEK|MONTH|YEAR
         //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
-        $order['recurringInstallmentCount'] = 4;
+        $order['recurringInstallmentCount'] = $installment;
     }
 
     return $order;
@@ -83,9 +84,33 @@ function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\
 }
 
 $testCards = [
-    'visa1' => [
+    'visa2' => [
         'number' => '4355084355084358',
         'year' => '30',
+        'month' => '12',
+        'cvv' => '000',
+        'name' => 'John Doe',
+        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+    ],
+    'visaZiraat' => [
+        'number' => '4546711234567894',
+        'year' => '26',
+        'month' => '12',
+        'cvv' => '000',
+        'name' => 'John Doe',
+        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+    ],
+    'masterZiraat' => [
+        'number' => '5401341234567891',
+        'year' => '26',
+        'month' => '12',
+        'cvv' => '000',
+        'name' => 'John Doe',
+        'type' => AbstractCreditCard::CARD_TYPE_MASTERCARD,
+    ],
+    'visa1' => [
+        'number' => '4546711234567894',
+        'year' => '26',
         'month' => '12',
         'cvv' => '000',
         'name' => 'John Doe',

@@ -1226,4 +1226,96 @@ class EstPosTest extends TestCase
             'HASHPARAMSVAL' => '700655000200202204175A830435508:524D8E0D689F6F5E1DD0C737ED160B6073038B4FBBC73E6D7C69341793A2DC0E:3379:##700655000200g+XYZKbjrxFj5EgZNZFj',
         ];
     }
+
+    private function getSampleRecurringOrderStatusSuccessResponse(): array
+    {
+        return [
+            'ErrMsg' => 'Record(s) found for 22285WLzF11803',
+            'Extra'  => [
+                'AUTH_CODE_1'          => 'P81019',
+                'AUTH_DTTM_1'          => '2022-10-12 22:11:49.263',
+                'CAPTURE_AMT_1'        => '101',
+                'CAPTURE_DTTM_1'       => '2022-10-12 22:11:49.263',
+                'CAVV_3D_1'            => null,
+                'CHARGE_TYPE_CD_1'     => 'S',
+                'CHARGE_TYPE_CD_2'     => 'S',
+                'CHARGE_TYPE_CD_3'     => 'S',
+                'CHARGE_TYPE_CD_4'     => 'S',
+                'ECI_3D_1'             => null,
+                'HOSTDATE_1'           => '1012-221204',
+                'HOST_REF_NUM_1'       => '228500669757',
+                'MDSTATUS_1'           => null,
+                'NUMCODE'              => '0',
+                'ORDERSTATUS_1'        => "ORD_ID:202210121213\tCHARGE_TYPE_CD:S\tORIG_TRANS_AMT:101\tCAPTURE_AMT:101\tTRANS_STAT:C\tAUTH_DTTM:2022-10-12 22:11:49.263\tCAPTURE_DTTM:2022-10-12 22:11:49.263\tAUTH_CODE:P81019\tTRANS_ID:22285WL4A11804",
+                'ORDERSTATUS_2'        => "ORD_ID:202210121213-2\tCHARGE_TYPE_CD:S\tORIG_TRANS_AMT:101\tTRANS_STAT:PN\tPLANNED_START_DTTM:2023-01-12 22:11:49.263",
+                'ORDERSTATUS_3'        => "ORD_ID:202210121213-3\tCHARGE_TYPE_CD:S\tORIG_TRANS_AMT:101\tTRANS_STAT:PN\tPLANNED_START_DTTM:2023-04-12 22:11:49.263",
+                'ORDERSTATUS_4'        => "ORD_ID:202210121213-4\tCHARGE_TYPE_CD:S\tORIG_TRANS_AMT:101\tTRANS_STAT:PN\tPLANNED_START_DTTM:2023-07-12 22:11:49.263",
+                'ORD_ID_1'             => '202210121213',
+                'ORD_ID_2'             => '202210121213-2',
+                'ORD_ID_3'             => '202210121213-3',
+                'ORD_ID_4'             => '202210121213-4',
+                'ORIG_TRANS_AMT_1'     => '101',
+                'ORIG_TRANS_AMT_2'     => '101',
+                'ORIG_TRANS_AMT_3'     => '101',
+                'ORIG_TRANS_AMT_4'     => '101',
+                'PAN_1'                => '4355 08** **** 4358',
+                'PAN_2'                => '4355 08** **** 4358',
+                'PAN_3'                => '4355 08** **** 4358',
+                'PAN_4'                => '4355 08** **** 4358',
+                'PLANNED_START_DTTM_2' => '2023-01-12 22:11:49.263',
+                'PLANNED_START_DTTM_3' => '2023-04-12 22:11:49.263',
+                'PLANNED_START_DTTM_4' => '2023-07-12 22:11:49.263',
+                'PROC_RET_CD_1'        => '00',
+                'RECURRINGCOUNT'       => '4',
+                'RECURRINGID'          => '22285WLzF11803',
+                'SETTLEID_1'           => null,
+                'TRANS_ID_1'           => '22285WL4A11804',
+                'TRANS_STAT_1'         => 'C',  // C => complete
+                'TRANS_STAT_2'         => 'PN', // PN => Pending
+                'TRANS_STAT_3'         => 'PN', // bu taksit iptal edildiginde CNCL olur
+                'TRANS_STAT_4'         => 'PN',
+                'XID_3D_1'             => null,
+            ],
+        ];
+    }
+
+    private function getSampleRecurringOrderStatusFailNotFoundResponse(): array
+    {
+        return [
+            'ErrMsg' => 'No record found for 22288MAUC1646',
+            'Extra' => [
+                'NUMCODE' => '0',
+                'RECURRINGCOUNT' => '0',
+                'RECURRINGID' => '22288MAUC1646',
+            ]
+        ];
+    }
+
+    private function getSampleNonSecureRecurringPaymentSuccessResponse(): array
+    {
+        return [
+            'OrderId'        => '20221015469F',
+            'GroupId'        => '20221015469F',
+            'Response'       => 'Approved',
+            'AuthCode'       => 'P01979',
+            'HostRefNum'     => '228800669927',
+            'ProcReturnCode' => '00',
+            'TransId'        => '22288LQCG14604',
+            'ErrMsg'         => null,
+            'Extra'          => [
+                'SETTLEID'           => '2272',
+                'TRXDATE'            => '20221015 11:16:02',
+                'ERRORCODE'          => null,
+                'TERMINALID'         => '00655020',
+                'MERCHANTID'         => '655000200',
+                'CARDBRAND'          => 'VISA',
+                'CARDISSUER'         => 'AKBANK T.A.S.',
+                'AVSAPPROVE'         => 'Y',
+                'HOSTDATE'           => '1015-111603',
+                'RECURRINGID'        => '22288LQCF14603',
+                'AVSERRORCODEDETAIL' => 'avshatali-avshatali-avshatali-avshatali-',
+                'NUMCODE'            => '00',
+            ],
+        ];
+    }
 }

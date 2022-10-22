@@ -502,6 +502,19 @@ class EstPos extends AbstractGateway
             $status = 'approved';
         }
 
+        if (isset($rawResponseData['RECURRINGOPERATION'])) {
+            if ('Successfull' === $rawResponseData['RESULT']) {
+                $status = 'approved';
+            }
+            $result = [
+                'order_id' => $rawResponseData['RECORDID'],
+                'status'   => $status,
+                'all'      => $rawResponseData,
+            ];
+
+            return (object) $result;
+        }
+
         $result = [
             'order_id'         => $rawResponseData['OrderId'],
             'group_id'         => $rawResponseData['GroupId'],
@@ -532,6 +545,13 @@ class EstPos extends AbstractGateway
         if ('00' === $procReturnCode) {
             $status = 'approved';
         }
+        $extra = $rawResponseData['Extra'];
+
+        if (isset($extra['RECURRINGID'])) {
+            $result = $this->mapRecurringStatusResponse($rawResponseData);
+
+            return json_decode(json_encode($result));
+        }
 
         $result = [
             'order_id'         => $rawResponseData['OrderId'],
@@ -541,7 +561,7 @@ class EstPos extends AbstractGateway
             'trans_id'         => $rawResponseData['TransId'],
             'error_message'    => $rawResponseData['ErrMsg'],
             'host_ref_num'     => null,
-            'order_status'     => $rawResponseData['Extra']['ORDERSTATUS'],
+            'order_status'     => $extra['ORDERSTATUS'],
             'process_type'     => null,
             'masked_number'    => null,
             'num_code'         => null,
@@ -554,17 +574,60 @@ class EstPos extends AbstractGateway
             'all'              => $rawResponseData,
         ];
         if ('approved' === $status) {
-            $result['auth_code']      = $rawResponseData['Extra']['AUTH_CODE'];
-            $result['host_ref_num']   = $rawResponseData['Extra']['HOST_REF_NUM'];
-            $result['process_type']   = $rawResponseData['Extra']['CHARGE_TYPE_CD'];
-            $result['first_amount']   = $rawResponseData['Extra']['ORIG_TRANS_AMT'];
-            $result['capture_amount'] = $rawResponseData['Extra']['CAPTURE_AMT'];
-            $result['masked_number']  = $rawResponseData['Extra']['PAN'];
-            $result['num_code']       = $rawResponseData['Extra']['NUMCODE'];
+            $result['auth_code']      = $extra['AUTH_CODE'];
+            $result['host_ref_num']   = $extra['HOST_REF_NUM'];
+            $result['process_type']   = $extra['CHARGE_TYPE_CD'];
+            $result['first_amount']   = $extra['ORIG_TRANS_AMT'];
+            $result['capture_amount'] = $extra['CAPTURE_AMT'];
+            $result['masked_number']  = $extra['PAN'];
+            $result['num_code']       = $extra['NUMCODE'];
             $result['capture']        = $result['first_amount'] === $result['capture_amount'];
         }
 
         return (object) $result;
+    }
+
+    protected function mapRecurringStatusResponse(array $rawResponseData): array
+    {
+        $status = 'declined';
+        $extra = $rawResponseData['Extra'];
+        if (isset($extra['RECURRINGCOUNT']) && $extra['RECURRINGCOUNT'] > 0) {
+            // when order not found for the given recurring order id then RECURRINGCOUNT = 0
+            $status = 'approved';
+        }
+        $recurringOrderResponse = [
+            'recurringId' => $extra['RECURRINGID'],
+            'recurringInstallmentCount' => $extra['RECURRINGCOUNT'],
+            'status' => $status,
+            'num_code' => $extra['NUMCODE'],
+            'error_message' => $status !== 'approved' ? $rawResponseData['ErrMsg'] : null,
+            'all' => $rawResponseData,
+        ];
+
+        for ($i = 1; isset($extra["ORD_ID_$i"]); $i++) {
+            $recurringOrder = [
+                'order_id'      => $extra["ORD_ID_$i"],
+                'order_status'  => $extra["ORDERSTATUS_$i"],
+                'masked_number' => $extra["PAN_$i"],
+                'status'        => $extra["TRANS_STAT_$i"], //C => Completed, PN => Pending, CNCL => Canceled
+
+                // following fields are null until transaction is done for respective installment:
+                'auth_code'        => $extra["AUTH_CODE_$i"] ?? null,
+                'auth_time'        => $extra["AUTH_DTTM_$i"] ?? null,
+                'proc_return_code' => $extra["PROC_RET_CD_$i"] ?? null,
+                'trans_id'         => $extra["TRANS_ID_$i"] ?? null,
+                'host_ref_num'     => $extra["HOST_REF_NUM_$i"] ?? null,
+                'first_amount'     => $extra["ORIG_TRANS_AMT_$i"],
+                'capture_amount'   => $extra["CAPTURE_AMT_$i"] ?? null,
+                'capture_time'     => $extra["CAPTURE_DTTM_$i"] ?? null,
+            ];
+
+            $recurringOrder['capture'] = $recurringOrder['first_amount'] === $recurringOrder['capture_amount'];
+
+            $recurringOrderResponse['recurringOrders'][] = $recurringOrder;
+        }
+
+        return $recurringOrderResponse;
     }
 
     /**
@@ -601,6 +664,7 @@ class EstPos extends AbstractGateway
             'error_code'       => $responseData['Extra']['ERRORCODE'],
             'error_message'    => $responseData['ErrMsg'],
             'campaign_url'     => null,
+            'recurring_id'     => $responseData['Extra']['RECURRINGID'] ?? null, // set when recurring payment is made
             'extra'            => $responseData['Extra'],
             'all'              => $responseData,
         ];

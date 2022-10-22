@@ -55,9 +55,10 @@ function getNewOrder(
 ): array {
     $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
     if ($tekrarlanan) {
+        $order['installment'] = 0; //Tekrarlayan ödemeler taksitli olamaz.
         $order['recurringFrequencyType'] = 'MONTH';
         $order['recurringFrequency'] = 2;
-        $order['recurringInstallmentCount'] = 3;
+        $order['recurringInstallmentCount'] = $installment;
     }
 
     return $order;
