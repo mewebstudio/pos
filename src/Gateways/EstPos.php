@@ -334,8 +334,6 @@ class EstPos extends AbstractGateway
             'hash'                 => $raw3DAuthResponseData['HASH'],
             'order_id'             => $raw3DAuthResponseData['oid'],
             'rand'                 => $raw3DAuthResponseData['rnd'],
-            'hash_params'          => $raw3DAuthResponseData['HASHPARAMS'],
-            'hash_params_val'      => $raw3DAuthResponseData['HASHPARAMSVAL'],
             'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
@@ -346,7 +344,6 @@ class EstPos extends AbstractGateway
             'cavv'                 => null,
             'xid'                  => $raw3DAuthResponseData['oid'],
             'md_error_message'     => '1' !== $raw3DAuthResponseData['mdStatus'] ? $raw3DAuthResponseData['mdErrorMsg'] : null,
-            'name'                 => $raw3DAuthResponseData['firmaadi'],
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
@@ -382,8 +379,6 @@ class EstPos extends AbstractGateway
             'status'               => $status,
             'hash'                 => $raw3DAuthResponseData['HASH'],
             'rand'                 => $raw3DAuthResponseData['rnd'],
-            'hash_params'          => $raw3DAuthResponseData['HASHPARAMS'],
-            'hash_params_val'      => $raw3DAuthResponseData['HASHPARAMSVAL'],
             'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
@@ -394,8 +389,6 @@ class EstPos extends AbstractGateway
             'cavv'                 => $raw3DAuthResponseData['cavv'],
             'xid'                  => $raw3DAuthResponseData['oid'],
             'md_error_message'     => $raw3DAuthResponseData['mdErrorMsg'],
-            'name'                 => $raw3DAuthResponseData['firmaadi'],
-            'email'                => $raw3DAuthResponseData['Email'],
             'campaign_url'         => null,
             'all'                  => $raw3DAuthResponseData,
         ];
@@ -440,23 +433,27 @@ class EstPos extends AbstractGateway
             'status'               => $status,
             'hash'                 => $raw3DAuthResponseData['HASH'],
             'rand'                 => $raw3DAuthResponseData['rnd'],
-            'hash_params'          => $raw3DAuthResponseData['HASHPARAMS'],
-            'hash_params_val'      => $raw3DAuthResponseData['HASHPARAMSVAL'],
-            'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
-            'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
-            'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
             'amount'               => $raw3DAuthResponseData['amount'],
             'currency'             => array_search($raw3DAuthResponseData['currency'], $this->requestDataMapper->getCurrencyMappings()),
             'tx_status'            => null,
-            'eci'                  => $raw3DAuthResponseData['eci'],
-            'cavv'                 => $raw3DAuthResponseData['cavv'],
+            'masked_number'        => null,
+            'month'                => null,
+            'year'                 => null,
+            'eci'                  => null,
+            'cavv'                 => null,
             'xid'                  => $raw3DAuthResponseData['oid'],
             'md_error_message'     => 'approved' !== $status ? $raw3DAuthResponseData['mdErrorMsg'] : null,
-            'name'                 => $raw3DAuthResponseData['firmaadi'],
-            'email'                => $raw3DAuthResponseData['Email'],
             'campaign_url'         => null,
             'all'                  => $raw3DAuthResponseData,
         ];
+
+        if (isset($raw3DAuthResponseData['maskedCreditCard'])) {
+            $response['masked_number'] = $raw3DAuthResponseData['maskedCreditCard'];
+            $response['month'] = $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'];
+            $response['year'] = $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'];
+            $response['eci'] = $raw3DAuthResponseData['eci'];
+            $response['cavv'] = $raw3DAuthResponseData['cavv'];
+        }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $response);
     }

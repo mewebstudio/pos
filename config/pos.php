@@ -34,6 +34,26 @@ return [
                     'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/est3dgate',
                     'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
                 ],
+                'gateway_3d_host'       => [
+                    'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/est3dgate',
+                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                ],
+            ],
+        ],
+        'ziraatv3'    => [
+            'name'  => 'Ziraat Bankası',
+            'class' => Mews\Pos\Gateways\EstV3Pos::class,
+            'urls'  => [
+                'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/api',
+                'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+                'gateway'       => [
+                    'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/est3dgate',
+                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                ],
+                'gateway_3d_host'       => [
+                    'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/est3dgate',
+                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                ],
             ],
         ],
         'finansbank'    => [
