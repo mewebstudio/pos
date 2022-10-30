@@ -34,7 +34,7 @@ $session->set('last_response', $response);
 
     <div class="result">
         <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
-            <?php if (AbstractGateway::TX_PAY === $transaction) : ?>
+            <?php if (AbstractGateway::TX_PAY === $transaction || AbstractGateway::TX_POST_PAY === $transaction) : ?>
                 <?= $pos->isSuccess() ? 'Payment is successful!' : 'Payment is not successful!'; ?>
             <?php elseif (AbstractGateway::TX_PRE_PAY === $transaction) : ?>
                 <?= $pos->isSuccess() ? 'Pre Authorization is successful!' : 'Pre Authorization is not successful!'; ?>

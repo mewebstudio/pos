@@ -309,11 +309,11 @@ Post Otorizasyon İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_P
 
 ### Refund ve Cancel işlemler arasındaki farklar
 - **Refund** - Tamamlanan ödemeyi iade etmek için kullanılır.
-Bu işlemi yapabilmek için ödeme yapıldıktan belli bir süre _sonra_ (örn. 12 saat) yapılabilir.
+Bu işlem gün kapandıktan _sonra_ yapılabilir.
 İade işlemi için _miktar zorunlu_, çünkü ödenen ve iade edilen miktarı aynı olmayabilir.
 İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_REFUND`
 - **Cancel** - Tamamlanan ödemeyi iptal etmek için kullanılır.
-Belli bir süre _içinde_ (örn. 12 saat)  yapılması gerekir. Gateway'ler tarafında değişen bu süreyi geçerse `refund` işlemi kullanmak zorundasınız.
+Ödeme yapıldıktan sonra gün kapanmadan yapılabilir. Gün kapandıktan sonra `refund` işlemi kullanmak zorundasınız.
 Genel olarak _miktar_ bilgisi _istenmez_, ancak bazı Gateway'ler ister.
 İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_CANCEL`
 
