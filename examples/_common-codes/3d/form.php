@@ -16,7 +16,7 @@ $order = getNewOrder(
     $request->get('currency', 'TRY'),
     $session,
     $request->get('installment'),
-    false,
+    $request->get('is_recurring', 0) == 1,
     $request->get('lang', \Mews\Pos\Gateways\AbstractGateway::LANG_TR)
 );
 $session->set('order', $order);
