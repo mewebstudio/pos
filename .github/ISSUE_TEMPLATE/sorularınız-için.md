@@ -1,6 +1,6 @@
 ---
 name: Sorularınız için
-about: Sorularınızı bu yapıya göre sorarsanız çözülmesi daha hızlı olacaktır
+about: Sorularınızı daha hızlı cevaplamamız için bir rapor oluşturun
 title: ''
 labels: ''
 assignees: ''
