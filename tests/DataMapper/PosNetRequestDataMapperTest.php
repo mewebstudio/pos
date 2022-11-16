@@ -129,10 +129,20 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testFormatOrderIdd()
+    public function testFormatOrderId()
     {
         $this->assertSame('0010', PosNetRequestDataMapper::formatOrderId(10, 4));
-        $this->assertSame('12345', PosNetRequestDataMapper::formatOrderId(12345, 4));
+        $this->assertSame('12345', PosNetRequestDataMapper::formatOrderId(12345, 5));
+        $this->assertSame('123456789012345566fm', PosNetRequestDataMapper::formatOrderId('123456789012345566fm'));
+    }
+
+    /**
+     * @return void
+     */
+    public function testFormatOrderIdFail()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        PosNetRequestDataMapper::formatOrderId('123456789012345566fml');
     }
 
     /**
