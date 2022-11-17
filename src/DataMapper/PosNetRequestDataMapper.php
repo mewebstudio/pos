@@ -348,7 +348,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      */
     public static function amountFormat($amount): int
     {
-        return round($amount, 2) * 100;
+        return (int) (round($amount, 2) * 100);
     }
 
     /**
@@ -408,7 +408,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     public function mapInstallment(?int $installment)
     {
         if ($installment > 1) {
-            return str_pad($installment, 2, '0', STR_PAD_LEFT);
+            return str_pad((string) $installment, 2, '0', STR_PAD_LEFT);
         }
 
         return '00';
