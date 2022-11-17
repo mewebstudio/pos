@@ -53,7 +53,7 @@ class PosNetRequestDataMapperTest extends TestCase
         );
 
         $this->order = [
-            'id'          => 'YKB_TST_190620093100_024',
+            'id'          => 'TST_190620093100_024',
             'name'        => 'siparis veren',
             'email'       => 'test@test.com',
             'amount'      => '1.75',
@@ -129,10 +129,20 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testFormatOrderIdd()
+    public function testFormatOrderId()
     {
         $this->assertSame('0010', PosNetRequestDataMapper::formatOrderId(10, 4));
-        $this->assertSame('12345', PosNetRequestDataMapper::formatOrderId(12345, 4));
+        $this->assertSame('12345', PosNetRequestDataMapper::formatOrderId(12345, 5));
+        $this->assertSame('123456789012345566fm', PosNetRequestDataMapper::formatOrderId('123456789012345566fm'));
+    }
+
+    /**
+     * @return void
+     */
+    public function testFormatOrderIdFail()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        PosNetRequestDataMapper::formatOrderId('123456789012345566fml');
     }
 
     /**
@@ -178,7 +188,7 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreate3DHash()
     {
-        $expected = 'J/7/Xprj7F/KDf98luVfIGyUPRQzUCqGwpmvz3KT7oQ=';
+        $expected = 'nyeFSQ4J9NZVeCcEGCDomM8e2YIvoeIa/IDh2D3qaL4=';
         $pos      = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
         $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), '');
@@ -244,6 +254,20 @@ class PosNetRequestDataMapperTest extends TestCase
         $expected = $this->getSample3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $pos->getCard());
         $this->assertEquals($expected, $actual);
+    }
+
+
+    /**
+     * @return void
+     */
+    public function testCreate3DEnrollmentCheckRequestDataFailTooLongOrderId()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $pos = $this->pos;
+        $order = $this->order;
+        $order['id'] = 'd32458293945098y439244343';
+        $pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
+        $this->requestDataMapper->create3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $pos->getCard());
     }
 
     /**

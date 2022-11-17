@@ -348,7 +348,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      */
     public static function amountFormat($amount): int
     {
-        return round($amount, 2) * 100;
+        return (int) (round($amount, 2) * 100);
     }
 
     /**
@@ -388,6 +388,15 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         if (null === $padLength) {
             $padLength = self::ORDER_ID_LENGTH;
         }
+        if (strlen($orderId) > $padLength) {
+            throw new \InvalidArgumentException(sprintf(
+                // Banka tarafindan belirlenen kisitlama
+                'Saglanan siparis ID\'nin (%s) uzunlugu %d karakter. Siparis ID %d karakterden uzun olamaz!',
+                $orderId,
+                strlen($orderId),
+                $padLength
+            ));
+        }
 
         return str_pad($orderId, $padLength, '0', STR_PAD_LEFT);
     }
@@ -399,7 +408,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     public function mapInstallment(?int $installment)
     {
         if ($installment > 1) {
-            return str_pad($installment, 2, '0', STR_PAD_LEFT);
+            return str_pad((string) $installment, 2, '0', STR_PAD_LEFT);
         }
 
         return '00';

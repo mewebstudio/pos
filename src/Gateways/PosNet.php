@@ -193,7 +193,7 @@ class PosNet extends AbstractGateway
 
         if ('0' === $data['approved']) {
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
-            throw new Exception($data['respText'], $data['respCode']);
+            throw new Exception($data['respText']);
         }
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 

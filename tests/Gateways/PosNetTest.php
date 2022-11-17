@@ -101,7 +101,6 @@ class PosNetTest extends TestCase
     public function testGet3DFormDataOosTransactionFail()
     {
         $this->expectException(Exception::class);
-        $this->expectExceptionCode(3);
 
         $posMock = $this->getMockBuilder(PosNet::class)
             ->setConstructorArgs([
