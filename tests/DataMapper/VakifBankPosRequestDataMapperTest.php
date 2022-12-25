@@ -250,6 +250,40 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @return array
+     */
+    public function getSampleEnrollmentSuccessResponseData(): array
+    {
+        return [
+            'MessageErrorCode' => 'code',
+            'ErrorMessage' => 'some error',
+            'Message' => [
+                'VERes' => [
+                    'Status' => 'Y',
+                    'PaReq' => 'PaReq2',
+                    'TermUrl' => 'TermUrl2',
+                    'MD' => 'MD3',
+                    'ACSUrl' => 'http',
+                ],
+            ],
+        ];
+    }
+
+    public function getSampleEnrollmentFailResponseData(): array
+    {
+        return [
+            'Message'                   => [
+                'VERes' => [
+                    'Status' => 'E',
+                ],
+            ],
+            'VerifyEnrollmentRequestId' => '0aebb0757acccae6fba75b2e4d78cecf',
+            'MessageErrorCode'          => '2005',
+            'ErrorMessage'              => 'Merchant cannot be found for this bank',
+        ];
+    }
+
+    /**
      * @param AbstractPosAccount $account
      * @param array              $order
      *
@@ -408,26 +442,6 @@ class VakifBankPosRequestDataMapperTest extends TestCase
             'ReferenceTransactionId' => $order['id'],
             'ClientIp'               => $order['ip'],
             'CurrencyAmount'         => '1000.00',
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    private function getSampleEnrollmentSuccessResponseData(): array
-    {
-        return [
-            'MessageErrorCode' => 'code',
-            'ErrorMessage' => 'some error',
-            'Message' => [
-                'VERes' => [
-                    'Status' => 'Y',
-                    'PaReq' => 'PaReq2',
-                    'TermUrl' => 'TermUrl2',
-                    'MD' => 'MD3',
-                    'ACSUrl' => 'http',
-                ],
-            ],
         ];
     }
 

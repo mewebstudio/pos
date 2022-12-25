@@ -13,6 +13,7 @@ use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\VakifBankPos;
+use Mews\Pos\Tests\DataMapper\VakifBankPosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use ReflectionClass;
@@ -249,6 +250,7 @@ class VakifBankPosTest extends TestCase
     {
         $this->expectException(Exception::class);
         $this->expectExceptionCode(2005);
+        $vakifBankPosRequestDataMapperTest = new VakifBankPosRequestDataMapperTest();
 
         $posMock = $this->getMockBuilder(VakifBankPos::class)
             ->setConstructorArgs([
@@ -262,26 +264,43 @@ class VakifBankPosTest extends TestCase
             ->getMock();
         $posMock->setTestMode(true);
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $posMock->expects($this->once())->method('sendEnrollmentRequest')->willReturn($this->getSampleEnrollmentFailResponseData());
+        $posMock->expects($this->once())->method('sendEnrollmentRequest')
+            ->willReturn($vakifBankPosRequestDataMapperTest->getSampleEnrollmentFailResponseData());
 
         $posMock->get3DFormData();
     }
 
-    /**
-     * @return string[]
-     */
-    private function getSampleEnrollmentFailResponseData(): array
+    public function testGet3DFormDataSuccess()
     {
-        return [
-            'Message'                   => [
-                'VERes' => [
-                    'Status' => 'E',
-                ],
+        $vakifBankPosRequestDataMapperTest = new VakifBankPosRequestDataMapperTest();
+        $enrollmentResponse = $vakifBankPosRequestDataMapperTest->getSampleEnrollmentSuccessResponseData();
+
+        $posMock = $this->getMockBuilder(VakifBankPos::class)
+            ->setConstructorArgs([
+                [],
+                $this->account,
+                PosFactory::getGatewayMapper(VakifBankPos::class),
+                HttpClientFactory::createDefaultHttpClient(),
+                new NullLogger()
+            ])
+            ->onlyMethods(['sendEnrollmentRequest'])
+            ->getMock();
+        $posMock->setTestMode(true);
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $posMock->expects($this->once())->method('sendEnrollmentRequest')
+            ->willReturn($enrollmentResponse);
+
+        $result = $posMock->get3DFormData();
+        $expected = [
+            'gateway' => $enrollmentResponse['Message']['VERes']['ACSUrl'],
+            'inputs' => [
+                'PaReq'   => $enrollmentResponse['Message']['VERes']['PaReq'],
+                'TermUrl' => $enrollmentResponse['Message']['VERes']['TermUrl'],
+                'MD'      => $enrollmentResponse['Message']['VERes']['MD'],
             ],
-            'VerifyEnrollmentRequestId' => '0aebb0757acccae6fba75b2e4d78cecf',
-            'MessageErrorCode'          => '2005',
-            'ErrorMessage'              => 'Merchant cannot be found for this bank',
         ];
+
+        $this->assertSame($expected, $result);
     }
 
     private static function getMethod(string $name): ReflectionMethod
