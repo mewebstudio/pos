@@ -184,12 +184,18 @@ class PosNetTest extends TestCase
         $result = $pos->check3DHash($data);
         $this->assertTrue($result);
 
+        $order['installment'] = 1;
+        $pos->prepare($order, AbstractGateway::TX_PAY);
+        $result = $pos->check3DHash($data);
+        $this->assertTrue($result);
+        $order['installment'] = 0;
+
         $order['amount'] = 56.97;
         $pos->prepare($order, AbstractGateway::TX_PAY);
         $result = $pos->check3DHash($data);
         $this->assertFalse($result);
-
         $order['amount'] = 56.96;
+
         $pos->prepare($order, AbstractGateway::TX_PAY);
         $data['MerchantPacket'] = $data['MerchantPacket'].'2';
         $result = $pos->check3DHash($data);

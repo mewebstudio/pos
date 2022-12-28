@@ -349,7 +349,7 @@ class PosNet extends AbstractGateway
             $this->account->getClientId(),
             $this->account->getTerminalId(),
             $this->requestDataMapper::amountFormat($this->order->amount),
-            $this->order->installment,
+            ((int) $this->requestDataMapper->mapInstallment($this->order->installment)),
             $this->requestDataMapper::formatOrderId($this->order->id),
         ]);
 
