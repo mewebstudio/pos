@@ -493,6 +493,7 @@ class KuveytPos extends AbstractGateway
         foreach ($inputNodes as $el) {
             $key = null;
             $value = null;
+            // for each input element select name and value attribute values
             for ($i = 0; $i < $el->attributes->length; ++$i) {
                 if ('name' === $el->attributes->item($i)->name) {
                     $key = $el->attributes->item($i)->value;
@@ -501,11 +502,10 @@ class KuveytPos extends AbstractGateway
                     $value = $el->attributes->item($i)->value;
                 }
             }
-            if ($key && $value) {
+            if ($key && null !== $value && !in_array($key, ['submit', 'submitBtn'])) {
                 $inputs[$key] = $value;
             }
         }
-        unset($inputs['submit']);
 
         return $inputs;
     }
