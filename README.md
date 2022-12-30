@@ -265,9 +265,14 @@ Fakat,
 Cookie session kullanığınızda, kullanıcı gatewayden geri websitenize yönlendirilidiğinde session sıfırlanabilir.
 Response'da `samesite` değeri set etmeniz gerekiyor. [çözüm](https://stackoverflow.com/a/51128675/4896948).
 ### Shared hosting'lerde IP tanımsız hatası
-Shared hosting'lerde Cpanel'de gördüğünüz IP'den farklı olarak fiziksel sunucun bir tane daha IP'si olur.
+- Shared hosting'lerde Cpanel'de gördüğünüz IP'den farklı olarak fiziksel sunucun bir tane daha IP'si olur.
 O IP adres Cpanel'de gözükmez, hosting firmanızdan sorup öğrenmeniz gerekmekte.
 Bu hatayı alırsanız hosting firmanın verdiği IP adrese'de banka gateway'i tarafından izin verilmesini sağlayın.
+- kutuphane ortam degerini de kontrol etmeyi unutmayiniz, ortama gore bankanin URL'leri degisir.
+  - test ortam icin `$pos->setTestMode(true);`
+  - canli ortam icin `$pos->setTestMode(false);` (default olarak `false`)
+  
+  _ortam degeri hem bankaya istek gonderirken hem de gelen istegi islerken dogru deger olmasi gerekiyor._
 
 ### Debugging
 Kütühane [PSR-3](https://www.php-fig.org/psr/psr-3/) standarta uygun logger uygulamayı destekler.
