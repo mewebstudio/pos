@@ -397,7 +397,7 @@ class GarantiPos extends AbstractGateway
             'hash_params'          => null,
             'hash_params_val'      => null,
             'masked_number'        => null,
-            'amount'               => $raw3DAuthResponseData['txnamount'],
+            'amount'               => is_numeric($raw3DAuthResponseData['txnamount']) ? $raw3DAuthResponseData['txnamount'] / 100 : $raw3DAuthResponseData['txnamount'],
             'currency'             => $raw3DAuthResponseData['txncurrencycode'],
             'tx_status'            => null,
             'eci'                  => null,
