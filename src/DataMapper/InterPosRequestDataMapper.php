@@ -51,9 +51,9 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     protected $cardTypeMapping = [
         AbstractCreditCard::CARD_TYPE_VISA       => '0',
         AbstractCreditCard::CARD_TYPE_MASTERCARD => '1',
-        AbstractCreditCard::CARD_TYPE_AMEX       => '3',
+        AbstractCreditCard::CARD_TYPE_AMEX       => '2',
+        AbstractCreditCard::CARD_TYPE_TROY       => '3',
     ];
-
     /**
      * {@inheritDoc}
      */

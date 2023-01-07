@@ -10,7 +10,8 @@ $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
 $ip = $request->getClientIp();
 
 $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
-    'cookie_samesite' => '',
+    'cookie_samesite' => 'None',
+    'cookie_secure' => true,
 ]);
 $session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
 $session->start();

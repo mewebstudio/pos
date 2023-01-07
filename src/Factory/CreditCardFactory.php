@@ -44,7 +44,7 @@ class CreditCardFactory
         $expireYear =  str_pad($expireYear, 2, '0', STR_PAD_LEFT);
         $expireYear =  str_pad($expireYear, 4, '20', STR_PAD_LEFT);
         $expireMonth = str_pad($expireMonth, 2, '0', STR_PAD_LEFT);
-        $expDate  = DateTimeImmutable::createFromFormat('Ym', $expireYear.$expireMonth);
+        $expDate  = DateTimeImmutable::createFromFormat('Ymd', $expireYear.$expireMonth.'01');
 
         if (!$expDate) {
             throw new DomainException('INVALID DATE FORMAT');
