@@ -145,6 +145,7 @@ class PosNet extends AbstractGateway
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
+        /** @phpstan-ignore-next-line */
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/x-www-form-urlencoded',
