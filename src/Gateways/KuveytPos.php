@@ -293,14 +293,19 @@ class KuveytPos extends AbstractGateway
         $dom->loadHTML($response);
 
         $gatewayURL = '';
+        /** @var \DOMElement $formNode */
         $formNode   = $dom->getElementsByTagName('form')->item(0);
-        for ($i = 0; $i < $formNode->attributes->length; ++$i) {
-            if ('action' === $formNode->attributes->item($i)->name) {
+        /** @var \DOMNamedNodeMap $attributes */
+        $attributes = $formNode->attributes;
+        for ($i = 0; $i < $attributes->length; ++$i) {
+            /** @var \DOMAttr $attribute */
+            $attribute = $attributes->item($i);
+            if ('action' === $attribute->name) {
                 /**
                  * banka onayladiginda gatewayURL=bankanin gateway url
                  * onaylanmadiginda (hatali istek oldugunda) ise gatewayURL = istekte yer alan failURL
                  */
-                $gatewayURL = $formNode->attributes->item($i)->value;
+                $gatewayURL = $attribute->value;
                 break;
             }
         }
@@ -318,7 +323,7 @@ class KuveytPos extends AbstractGateway
      * html form'da gelen input degeleri array'e donusturur
      * @param DOMNodeList $inputNodes
      *
-     * @return array
+     * @return array<string, string>
      */
     private function builtInputsFromHTMLDoc(DOMNodeList $inputNodes): array
     {
@@ -329,9 +334,11 @@ class KuveytPos extends AbstractGateway
             // for each input element select name and value attribute values
             for ($i = 0; $i < $el->attributes->length; ++$i) {
                 if ('name' === $el->attributes->item($i)->name) {
+                    /** @var string|null $key */
                     $key = $el->attributes->item($i)->value;
                 }
                 if ('value' === $el->attributes->item($i)->name) {
+                    /** @var string|null $value */
                     $value = $el->attributes->item($i)->value;
                 }
             }

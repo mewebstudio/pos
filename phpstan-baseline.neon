@@ -1736,37 +1736,7 @@ parameters:
 			path: src/Gateways/InterPos.php
 
 		-
-			message: "#^Cannot access property \\$attributes on DOMElement\\|null\\.$#"
-			count: 3
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Cannot access property \\$length on DOMNamedNodeMap\\|null\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Cannot access property \\$name on DOMNode\\|null\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Cannot access property \\$value on DOMNode\\|null\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Cannot call method item\\(\\) on DOMNamedNodeMap\\|null\\.$#"
-			count: 2
-			path: src/Gateways/KuveytPos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:builtInputsFromHTMLDoc\\(\\) has parameter \\$inputNodes with generic class DOMNodeList but does not specify its types\\: TNode$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:builtInputsFromHTMLDoc\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
 
