@@ -10,6 +10,7 @@ use Psr\Http\Message\StreamFactoryInterface;
 use function http_build_query;
 
 /**
+ * @phpstan-type PostPayload array{body?: array<string, string>, headers?: array<string, string>, form_params?: array<string, string>}
  * PSR18 HTTP Client wrapper
  */
 class HttpClient
@@ -38,18 +39,27 @@ class HttpClient
         $this->streamFactory  = $streamFactory;
     }
 
+    /**
+     * @param PostPayload|null $payload
+     */
     public function post(string $path, ?array $payload = []): ResponseInterface
     {
         return $this->send('POST', $path, $payload);
     }
 
-    private function send(string $method, $path, ?array $payload = []): ResponseInterface
+    /**
+     * @param PostPayload|null $payload
+     */
+    private function send(string $method, string $path, ?array $payload = []): ResponseInterface
     {
         $request = $this->createRequest($method, $path, $payload);
 
         return $this->client->sendRequest($request);
     }
 
+    /**
+     * @param PostPayload|null $payload
+     */
     private function createRequest(string $method, string $url, ?array $payload = []): RequestInterface
     {
         $request = $this->requestFactory->createRequest($method, $url);
