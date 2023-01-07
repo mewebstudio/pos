@@ -14,6 +14,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\KuveytPos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * KuveytPosRequestDataMapperTest
@@ -75,7 +76,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
             AbstractCreditCard::CARD_TYPE_VISA
         );
 
-        $this->requestDataMapper = new KuveytPosRequestDataMapper();
+        $crypt = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
+        $this->requestDataMapper = new KuveytPosRequestDataMapper($crypt);
     }
 
     /**
@@ -119,7 +121,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'MerchantId'          => $account->getClientId(),
             'UserName'            => $account->getUsername(),
             'CustomerId'          => $account->getCustomerId(),
-            'HashData'            => $this->requestDataMapper->create3DHash($account, $order, AbstractGateway::TX_PAY),
+            'HashData'            => 'shFFBwp4ZxLZXkHA+Z4jarwf09s=',
             'TransactionType'     => 'Sale',
             'TransactionSecurity' => 3,
             'InstallmentCount'    => $order->installment,
@@ -179,65 +181,18 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
         $actual = $this->requestDataMapper->create3DPaymentRequestData($this->pos->getAccount(), $this->pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
 
-        $expectedData = $this->getSample3DPaymentXMLData($this->pos, AbstractGateway::TX_PAY, $responseData);
+        $expectedData = $this->getSample3DPaymentXMLData($this->pos, $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 
-    /**
-     * @return void
-     */
-    public function testCreate3DHashForProvision()
-    {
-        $order   = [
-            'id'          => 'ORDER-123',
-            'amount'      => 72.56,
-            'currency'    => 'TRY',
-            'installment' => '0',
-            'success_url' => 'http://localhost:44785/Home/Success',
-            'fail_url'    => 'http://localhost:44785/Home/Fail',
-        ];
-        $hash    = 'Bf+hZf2c1gf1pTXnEaSGxDpGRr0=';
-        $this->pos->prepare($order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Sale', true);
-        $this->assertEquals($hash, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DHashForAuthorization()
-    {
-        $order   = [
-            'id'          => 'ORDER-123',
-            'amount'      => 72.56,
-            'currency'    => 'TRY',
-            'installment' => '0',
-            'success_url' => 'http://localhost:44785/Home/Success',
-            'fail_url'    => 'http://localhost:44785/Home/Fail',
-        ];
-        $hash    = 'P3a0zjAklu2g8XDJfTx2qvwHH8g=';
-        $this->pos->prepare($order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($this->pos->getAccount(), $this->pos->getOrder(), 'Sale');
-        $this->assertEquals($hash, $actual);
-    }
-
-    /**
-     * @param KuveytPos $pos
-     * @param string    $txType
-     * @param           $responseData
-     *
-     * @return array
-     */
-    private function getSample3DPaymentXMLData(KuveytPos $pos, string $txType, $responseData): array
+    private function getSample3DPaymentXMLData(KuveytPos $pos, array $responseData): array
     {
         $account = $pos->getAccount();
         $order   = $pos->getOrder();
 
-        $hash    = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), $txType, true);
-
         return [
             'APIVersion'                   => KuveytPosRequestDataMapper::API_VERSION,
-            'HashData'                     => $hash,
+            'HashData'                     => 'zC6dm10450RhS8Xi9TuBjwkLUL0=',
             'MerchantId'                   => $account->getClientId(),
             'CustomerId'                   => $account->getCustomerId(),
             'UserName'                     => $account->getUsername(),

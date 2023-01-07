@@ -24,7 +24,7 @@ class CreditCardFactoryTest extends TestCase
     {
         $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()
             //just any method
-            ->onlyMethods(['send'])
+            ->onlyMethods(['send', 'getCardTypeMapping'])
             ->getMock();
 
         $card = CreditCardFactory::create(
@@ -52,7 +52,7 @@ class CreditCardFactoryTest extends TestCase
     {
         $pos = $this->getMockBuilder(GarantiPos::class)->disableOriginalConstructor()
             //just any method
-            ->onlyMethods(['send'])
+            ->onlyMethods(['send', 'getCardTypeMapping'])
             ->getMock();
 
         $card = CreditCardFactory::create(
@@ -114,7 +114,7 @@ class CreditCardFactoryTest extends TestCase
     {
         $pos = $this->getMockBuilder(GarantiPos::class)->disableOriginalConstructor()
             //just any method
-            ->onlyMethods(['send'])
+            ->onlyMethods(['send', 'getCardTypeMapping'])
             ->getMock();
 
         $card = CreditCardFactory::create(

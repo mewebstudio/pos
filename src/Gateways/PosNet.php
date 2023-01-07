@@ -5,14 +5,11 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
-use Mews\Pos\Client\HttpClient;
-use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -21,70 +18,17 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PosNet extends AbstractGateway
 {
-    protected const HASH_ALGORITHM = 'sha256';
-    protected const HASH_SEPARATOR = ';';
     public const NAME = 'PosNet';
-
-    /**
-     * Response Codes
-     *
-     * @var array
-     */
-    protected $codes = [
-        '0'    => 'declined',
-        '1'    => 'approved',
-        '2'    => 'declined',
-        '00'   => 'approved',
-        '0001' => 'bank_call',
-        '0005' => 'reject',
-        '0007' => 'bank_call',
-        '0012' => 'reject',
-        '0014' => 'reject',
-        '0030' => 'bank_call',
-        '0041' => 'reject',
-        '0043' => 'reject',
-        '0051' => 'reject',
-        '0053' => 'bank_call',
-        '0054' => 'reject',
-        '0057' => 'reject',
-        '0058' => 'reject',
-        '0062' => 'reject',
-        '0065' => 'reject',
-        '0091' => 'bank_call',
-        '0123' => 'transaction_not_found',
-        '0444' => 'bank_call',
-    ];
 
     /** @var PosNetAccount */
     protected $account;
 
-    /** @var AbstractCreditCard|null */
-    protected $card;
-
-    /** @var Request */
-    protected $request;
-
-    /** @var PosNetCrypt|null */
-    private $crypt;
-
     /** @var PosNetRequestDataMapper */
     protected $requestDataMapper;
 
-    /**
-     * @param PosNetAccount $account
-     * @param PosNetRequestDataMapper $requestDataMapper
-     */
-    public function __construct(
-        array $config,
-        AbstractPosAccount $account,
-        AbstractRequestDataMapper $requestDataMapper,
-        HttpClient $client,
-        LoggerInterface $logger
-    ) {
-        $this->crypt = new PosNetCrypt();
 
-        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
-    }
+    /** @var PosNetResponseDataMapper */
+    protected $responseDataMapper;
 
     /**
      * @inheritDoc
@@ -105,7 +49,7 @@ class PosNet extends AbstractGateway
     /**
      * Get OOS transaction data
      * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
-     * @return object
+     * @return array
      */
     public function getOosTransactionData()
     {
@@ -122,46 +66,40 @@ class PosNet extends AbstractGateway
     public function make3DPayment(Request $request)
     {
         $request = $request->request;
-        $bankResponse = null;
-        if ($this->check3DHash($request->all())) {
-            $this->logger->log(LogLevel::DEBUG, 'getting merchant request data');
-            $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
-                $this->account,
-                $this->order,
-                $request->all()
-            );
 
-            $contents = $this->createXML($requestData);
+        $this->logger->log(LogLevel::DEBUG, 'getting merchant request data');
+        $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
+            $this->account,
+            $this->order,
+            $request->all()
+        );
+
+        $contents = $this->createXML($requestData);
+        $userVerifyResponse = $this->send($contents);
+        $bankResponse = null;
+
+        if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $userVerifyResponse['approved']) {
+            goto end;
+        }
+
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $userVerifyResponse['oosResolveMerchantDataResponse'])) {
+            throw new HashMismatchException();
+        }
+
+        //if 3D Authentication is successful:
+        if (in_array($userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'], [1, 2, 3, 4])) {
+            $this->logger->log(LogLevel::DEBUG, 'finishing payment', [
+                'md_status' =>$userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
+            ]);
+            $contents = $this->create3DPaymentXML($request->all());
             $bankResponse = $this->send($contents);
         } else {
-            goto end;
+            $this->logger->log(LogLevel::ERROR, '3d auth fail', [
+                'md_status' => $userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
+            ]);
         }
-
-        if ($this->getProcReturnCode() !== '00') {
-            goto end;
-        }
-
-        if (!$this->verifyResponseMAC($this->account, $this->order, $bankResponse->oosResolveMerchantDataResponse)) {
-            goto end;
-        }
-
-        if ($this->getProcReturnCode() === '00' && $this->getStatusDetail() === 'approved') {
-            //if 3D Authentication is successful:
-            if (in_array($bankResponse->oosResolveMerchantDataResponse->mdStatus, [1, 2, 3, 4])) {
-                $this->logger->log(LogLevel::DEBUG, 'finishing payment', [
-                    'md_status' => $bankResponse->oosResolveMerchantDataResponse->mdStatus,
-                ]);
-                $contents = $this->create3DPaymentXML($request->all());
-                $bankResponse = $this->send($contents);
-            } else {
-                $this->logger->log(LogLevel::ERROR, '3d auth fail', [
-                    'md_status' => $bankResponse->oosResolveMerchantDataResponse->mdStatus
-                ]);
-            }
-        }
-
         end:
-        $this->response = $this->map3DPaymentData($request->all(), $bankResponse);
+        $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse);
         $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
@@ -189,9 +127,8 @@ class PosNet extends AbstractGateway
         }
 
         $data = $this->getOosTransactionData();
-        $data = parent::emptyStringsToNull($data);
 
-        if ('0' === $data['approved']) {
+        if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $data['approved']) {
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception($data['respText']);
         }
@@ -216,7 +153,7 @@ class PosNet extends AbstractGateway
         ]);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
-        $this->data = $this->XMLStringToObject($response->getBody()->getContents());
+        $this->data = $this->XMLStringToArray($response->getBody()->getContents());
 
         return $this->data;
     }
@@ -227,34 +164,6 @@ class PosNet extends AbstractGateway
     public function getAccount()
     {
         return $this->account;
-    }
-
-    /**
-     * verifies the if request came from bank
-     *
-     * @param PosNetAccount $account
-     * @param               $order
-     * @param mixed         $data    oosResolveMerchantDataResponse
-     *
-     * @return bool
-     */
-    public function verifyResponseMAC(PosNetAccount $account, $order, $data): bool
-    {
-        $hashStr = '';
-
-        if ($account->getModel() === self::MODEL_3D_SECURE || $account->getModel() === self::MODEL_3D_PAY) {
-            $secondHashData = [
-                $data->mdStatus,
-                $this->requestDataMapper::formatOrderId($order->id),
-                $this->requestDataMapper::amountFormat($order->amount),
-                $this->requestDataMapper->mapCurrency($order->currency),
-                $account->getClientId(),
-                $this->requestDataMapper->createSecurityData($account),
-            ];
-            $hashStr = implode(static::HASH_SEPARATOR, $secondHashData);
-        }
-
-        return $this->hashString($hashStr) === $data->mac;
     }
 
     /**
@@ -282,7 +191,9 @@ class PosNet extends AbstractGateway
      */
     public function create3DPaymentXML($responseData)
     {
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, '', $responseData);
+        // her hangi bir txType yeterli
+        $txType = AbstractGateway::TX_PAY;
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $txType, $responseData);
 
         return $this->createXML($requestData);
     }
@@ -295,7 +206,6 @@ class PosNet extends AbstractGateway
     {
         throw new NotImplementedException();
     }
-
 
     /**
      * @inheritDoc
@@ -328,412 +238,6 @@ class PosNet extends AbstractGateway
     }
 
     /**
-     * Check 3D Hash
-     *
-     * @param array $data
-     *
-     * @return bool
-     */
-    public function check3DHash(array $data): bool
-    {
-        if (!($this->crypt instanceof PosNetCrypt)) {
-            return false;
-        }
-        $decryptedString = $this->crypt->decrypt($data['MerchantPacket'], $this->account->getStoreKey());
-        if (!$decryptedString) {
-            return false;
-        }
-        $decryptedData = explode(';', $decryptedString);
-
-        $originalData = array_map('strval', [
-            $this->account->getClientId(),
-            $this->account->getTerminalId(),
-            $this->requestDataMapper::amountFormat($this->order->amount),
-            ((int) $this->requestDataMapper->mapInstallment($this->order->installment)),
-            $this->requestDataMapper::formatOrderId($this->order->id),
-        ]);
-
-        $decryptedDataList = array_map('strval', [
-            $decryptedData[0],
-            $decryptedData[1],
-            $decryptedData[2],
-            ((int) $decryptedData[3]),
-            $decryptedData[4],
-        ]);
-
-        if ($originalData === $decryptedDataList) {
-            $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
-
-            return true;
-        }
-
-        $this->logger->log(LogLevel::ERROR, 'hash check failed', [
-            'data' => $data,
-        ]);
-
-        return false;
-    }
-
-    /**
-     * Get ProcReturnCode
-     *
-     * @return string|null
-     */
-    protected function getProcReturnCode(): ?string
-    {
-        return (string) $this->data->approved == '1' ? '00' : $this->data->approved;
-    }
-
-    /**
-     * Get Status Detail Text
-     *
-     * @return string|null
-     */
-    protected function getStatusDetail(): ?string
-    {
-        $procReturnCode = $this->getProcReturnCode();
-
-        return isset($this->codes[$procReturnCode]) ? (string) $this->codes[$procReturnCode] : null;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
-    {
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
-            '3d_auth_response' => $raw3DAuthResponseData,
-            'provision_response' => $rawPaymentResponseData,
-        ]);
-        $status = 'declined';
-        $transactionSecurity = '';
-        if ($this->getProcReturnCode() === '00' && $this->getStatusDetail() === 'approved') {
-            if ($rawPaymentResponseData->oosResolveMerchantDataResponse->mdStatus == '1') {
-                $transactionSecurity = 'Full 3D Secure';
-                $status = 'approved';
-            } elseif (in_array($rawPaymentResponseData->oosResolveMerchantDataResponse->mdStatus, [2, 3, 4])) {
-                $transactionSecurity = 'Half 3D Secure';
-                $status = 'approved';
-            }
-        }
-
-        if ($rawPaymentResponseData->approved != 1) {
-            $status = 'declined';
-        }
-
-        return (object) [
-            'id'                   => isset($rawPaymentResponseData->authCode) ? $this->printData($rawPaymentResponseData->authCode) : null,
-            'order_id'             => isset($this->order->id) ? $this->printData($this->order->id) : null,
-            'group_id'             => isset($rawPaymentResponseData->groupID) ? $this->printData($rawPaymentResponseData->groupID) : null,
-            'trans_id'             => isset($rawPaymentResponseData->authCode) ? $this->printData($rawPaymentResponseData->authCode) : null,
-            'response'             => $this->getStatusDetail(),
-            'transaction_type'     => $this->type,
-            'transaction'          => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
-            'transaction_security' => $transactionSecurity,
-            'auth_code'            => isset($rawPaymentResponseData->authCode) ? $this->printData($rawPaymentResponseData->authCode) : null,
-            'host_ref_num'         => isset($rawPaymentResponseData->hostlogkey) ? $this->printData($rawPaymentResponseData->hostlogkey) : null,
-            'ret_ref_num'          => isset($rawPaymentResponseData->transaction->hostlogkey) ? $this->printData($rawPaymentResponseData->transaction->hostlogkey) : null,
-            'proc_return_code'     => $this->getProcReturnCode(),
-            'code'                 => $this->getProcReturnCode(),
-            'status'               => $status,
-            'status_detail'        => $this->getStatusDetail(),
-            'error_code'           => !empty($rawPaymentResponseData->respCode) ? $this->printData($rawPaymentResponseData->respCode) : null,
-            'error_message'        => !empty($rawPaymentResponseData->respText) ? $this->printData($rawPaymentResponseData->respText) : null,
-            'md_status'            => isset($rawPaymentResponseData->oosResolveMerchantDataResponse->mdStatus) ? $this->printData($rawPaymentResponseData->oosResolveMerchantDataResponse->mdStatus) : null,
-            'hash'                 => [
-                'merchant_packet' => $raw3DAuthResponseData['MerchantPacket'],
-                'bank_packet'     => $raw3DAuthResponseData['BankPacket'],
-                'sign'            => $raw3DAuthResponseData['Sign'],
-            ],
-            'xid'                  => $rawPaymentResponseData->oosResolveMerchantDataResponse->xid ?? null,
-            'md_error_message'     => $rawPaymentResponseData->oosResolveMerchantDataResponse->mdErrorMessage ?? null,
-            'campaign_url'         => null,
-            'all'                  => $rawPaymentResponseData,
-            '3d_all'               => $raw3DAuthResponseData,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function map3DPayResponseData($raw3DAuthResponseData)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapPaymentResponse($responseData): array
-    {
-        $status = 'declined';
-        $code = '1';
-        $procReturnCode = '01';
-        $errorCode = !empty($responseData->respCode) ? $responseData->respCode : null;
-
-        if ($this->getProcReturnCode() === '00' && $this->getStatusDetail() === 'approved' && $responseData && !$errorCode) {
-            $status = 'approved';
-            $code = $responseData->approved ?? null;
-            $procReturnCode = $this->getProcReturnCode();
-        }
-
-        return [
-            'id'               => isset($responseData->authCode) ? $this->printData($responseData->authCode) : null,
-            'order_id'         => $this->order->id,
-            'fixed_order_id'   => $this->requestDataMapper::formatOrderId($this->order->id),
-            'group_id'         => isset($responseData->groupID) ? $this->printData($responseData->groupID) : null,
-            'trans_id'         => isset($responseData->authCode) ? $this->printData($responseData->authCode) : null,
-            'response'         => $this->getStatusDetail(),
-            'transaction_type' => $this->type,
-            'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
-            'auth_code'        => isset($responseData->authCode) ? $this->printData($responseData->authCode) : null,
-            'host_ref_num'     => isset($responseData->hostlogkey) ? $this->printData($responseData->hostlogkey) : null,
-            'ret_ref_num'      => isset($responseData->hostlogkey) ? $this->printData($responseData->hostlogkey) : null,
-            'proc_return_code' => $procReturnCode,
-            'code'             => $code,
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail(),
-            'error_code'       => $errorCode,
-            'error_message'    => !empty($responseData->respText) ? $this->printData($responseData->respText) : null,
-            'campaign_url'     => null,
-            'extra'            => null,
-            'all'              => $responseData,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapRefundResponse($rawResponseData)
-    {
-        $status = 'declined';
-        $code = '1';
-        $procReturnCode = '01';
-        $errorCode = !empty($rawResponseData->respCode) ? $rawResponseData->respCode : null;
-
-        if ($this->getProcReturnCode() === '00' && $rawResponseData && !$errorCode) {
-            $status = 'approved';
-            $code = $rawResponseData->approved ?? null;
-            $procReturnCode = $this->getProcReturnCode();
-        }
-
-        $transaction = null;
-        $transactionType = null;
-        $state = $rawResponseData->state ?? null;
-        if ('Sale' === $state) {
-            $transaction = 'pay';
-            $transactionType = $this->requestDataMapper->mapTxType($transaction);
-        } elseif ('Authorization' === $state) {
-            $transaction = 'pre';
-            $transactionType = $this->requestDataMapper->mapTxType($transaction);
-        } elseif ('Capture' === $state) {
-            $transaction = 'post';
-            $transactionType = $this->requestDataMapper->mapTxType($transaction);
-        }
-
-        return (object) [
-            'id'               => isset($rawResponseData->transaction->authCode) ? $this->printData($rawResponseData->transaction->authCode) : null,
-            'order_id'         => isset($this->order->id) ? $this->printData($this->order->id) : null,
-            'fixed_order_id'   => isset($rawResponseData->transaction->orderID) ? $this->printData($rawResponseData->transaction->orderID) : null,
-            'group_id'         => isset($rawResponseData->transaction->groupID) ? $this->printData($rawResponseData->transaction->groupID) : null,
-            'trans_id'         => isset($rawResponseData->transaction->authCode) ? $this->printData($rawResponseData->transaction->authCode) : null,
-            'response'         => $this->getStatusDetail(),
-            'auth_code'        => isset($rawResponseData->transaction->authCode) ? $this->printData($rawResponseData->transaction->authCode) : null,
-            'host_ref_num'     => isset($rawResponseData->transaction->hostlogkey) ? $this->printData($rawResponseData->transaction->hostlogkey) : null,
-            'ret_ref_num'      => isset($rawResponseData->transaction->hostlogkey) ? $this->printData($rawResponseData->transaction->hostlogkey) : null,
-            'transaction'      => $transaction,
-            'transaction_type' => $transactionType,
-            'state'            => $state,
-            'date'             => isset($rawResponseData->transaction->tranDate) ? $this->printData($rawResponseData->transaction->tranDate) : null,
-            'proc_return_code' => $procReturnCode,
-            'code'             => $code,
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail(),
-            'error_code'       => $errorCode,
-            'error_message'    => !empty($rawResponseData->respText) ? $this->printData($rawResponseData->respText) : null,
-            'extra'            => null,
-            'all'              => $rawResponseData,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapCancelResponse($rawResponseData)
-    {
-        return $this->mapRefundResponse($rawResponseData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapStatusResponse($rawResponseData)
-    {
-        $status = 'declined';
-        $code = '1';
-        $procReturnCode = '01';
-        $errorCode = !empty($rawResponseData->respCode) ? $rawResponseData->respCode : null;
-
-        if ($this->getProcReturnCode() === '00' && isset($rawResponseData->transactions) && !$errorCode) {
-            $status = 'approved';
-            $code = $rawResponseData->transactions->approved ?? null;
-            $procReturnCode = $this->getProcReturnCode();
-        }
-
-        $transaction = null;
-        $transactionType = null;
-
-        $state = null;
-        $authCode = null;
-        if (isset($rawResponseData->transactions->transaction)) {
-            $state = $rawResponseData->transactions->transaction->state ?? null;
-
-            $authCode = isset($rawResponseData->transactions->transaction->authCode) ? $this->printData($rawResponseData->transactions->transaction->authCode) : null;
-
-            if (is_array($rawResponseData->transactions->transaction) && count($rawResponseData->transactions->transaction)) {
-                $state = $rawResponseData->transactions->transaction[0]->state;
-                $authCode = $rawResponseData->transactions->transaction[0]->authCode;
-            }
-        }
-
-        if ('Sale' === $state) {
-            $transaction = 'pay';
-            $state = $transaction;
-            $transactionType = $this->requestDataMapper->mapTxType($transaction);
-        } elseif ('Authorization' === $state) {
-            $transaction = 'pre';
-            $state = $transaction;
-            $transactionType = $this->requestDataMapper->mapTxType($transaction);
-        } elseif ('Capture' === $state) {
-            $transaction = 'post';
-            $state = $transaction;
-            $transactionType = $this->requestDataMapper->mapTxType($transaction);
-        } elseif ('Bonus_Reverse' === $state) {
-            $state = 'cancel';
-        } else {
-            $state = 'mixed';
-        }
-
-        return (object) [
-            'id'               => $authCode,
-            'order_id'         => isset($this->order->id) ? $this->printData($this->order->id) : null,
-            'fixed_order_id'   => $this->requestDataMapper::formatOrderId($this->order->id),
-            'group_id'         => isset($rawResponseData->transactions->transaction->groupID) ? $this->printData($rawResponseData->transactions->transaction->groupID) : null,
-            'trans_id'         => $authCode,
-            'response'         => $this->getStatusDetail(),
-            'auth_code'        => $authCode,
-            'host_ref_num'     => isset($rawResponseData->transactions->transaction->hostLogKey) ? $this->printData($rawResponseData->transactions->transaction->hostLogKey) : null,
-            'ret_ref_num'      => null,
-            'transaction'      => $transaction,
-            'transaction_type' => $transactionType,
-            'state'            => $state,
-            'date'             => isset($rawResponseData->transactions->transaction->tranDate) ? $this->printData($rawResponseData->transactions->transaction->tranDate) : null,
-            'proc_return_code' => $procReturnCode,
-            'code'             => $code,
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail(),
-            'error_code'       => $errorCode,
-            'error_message'    => !empty($rawResponseData->respText) ? $this->printData($rawResponseData->respText) : null,
-            'extra'            => null,
-            'all'              => $rawResponseData,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapHistoryResponse($rawResponseData)
-    {
-        $status = 'declined';
-        $code = '1';
-        $procReturnCode = '01';
-        $errorCode = !empty($rawResponseData->respCode) ? $rawResponseData->respCode : null;
-
-        if ($this->getProcReturnCode() === '00' && isset($rawResponseData->transactions) && !$errorCode) {
-            $status = 'approved';
-            $code = $rawResponseData->transactions->approved ?? null;
-            $procReturnCode = $this->getProcReturnCode();
-        }
-
-        $transaction = null;
-        $transactionType = null;
-
-        $state = null;
-        $authCode = null;
-        $refunds = [];
-        if (isset($rawResponseData->transactions->transaction)) {
-            $state = $rawResponseData->transactions->transaction->state ?? null;
-
-            $authCode = isset($rawResponseData->transactions->transaction->authCode) ? $this->printData($rawResponseData->transactions->transaction->authCode) : null;
-
-            if (is_array($rawResponseData->transactions->transaction) && count($rawResponseData->transactions->transaction)) {
-                $state = $rawResponseData->transactions->transaction[0]->state;
-                $authCode = $rawResponseData->transactions->transaction[0]->authCode;
-
-                if (count($rawResponseData->transactions->transaction) > 1) {
-                    $currencies = array_flip($this->requestDataMapper->getCurrencyMappings());
-
-                    foreach ($rawResponseData->transactions->transaction as $key => $_transaction) {
-                        if ($key > 0) {
-                            $currency = isset($currencies[$_transaction->currencyCode]) ?
-                                (string) $currencies[$_transaction->currencyCode] :
-                                $_transaction->currencyCode;
-                            $refunds[] = [
-                                'amount'    => (float) $_transaction->amount,
-                                'currency'  => $currency,
-                                'auth_code' => $_transaction->authCode,
-                                'date'      => $_transaction->tranDate,
-                            ];
-                        }
-                    }
-                }
-            }
-        }
-
-        if ('Sale' === $state) {
-            $transaction = 'pay';
-            $state = $transaction;
-            $transactionType = $this->requestDataMapper->mapTxType($transaction);
-        } elseif ('Authorization' === $state) {
-            $transaction = 'pre';
-            $state = $transaction;
-            $transactionType = $this->requestDataMapper->mapTxType($transaction);
-        } elseif ('Capture' === $state) {
-            $transaction = 'post';
-            $state = $transaction;
-            $transactionType = $this->requestDataMapper->mapTxType($transaction);
-        } elseif ('Bonus_Reverse' === $state) {
-            $state = 'cancel';
-        } else {
-            $state = 'mixed';
-        }
-
-        return (object) [
-            'id'               => $authCode,
-            'order_id'         => isset($this->order->id) ? $this->printData($this->order->id) : null,
-            'group_id'         => isset($rawResponseData->transactions->transaction->groupID) ? $this->printData($rawResponseData->transactions->transaction->groupID) : null,
-            'trans_id'         => $authCode,
-            'response'         => $this->getStatusDetail(),
-            'auth_code'        => $authCode,
-            'host_ref_num'     => isset($rawResponseData->transactions->transaction->hostLogKey) ? $this->printData($rawResponseData->transactions->transaction->hostLogKey) : null,
-            'ret_ref_num'      => null,
-            'transaction'      => $transaction,
-            'transaction_type' => $transactionType,
-            'state'            => $state,
-            'date'             => isset($rawResponseData->transactions->transaction->tranDate) ? $this->printData($rawResponseData->transactions->transaction->tranDate) : null,
-            'refunds'          => $refunds,
-            'proc_return_code' => $procReturnCode,
-            'code'             => $code,
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail(),
-            'error_code'       => $errorCode,
-            'error_message'    => !empty($rawResponseData->respText) ? $this->printData($rawResponseData->respText) : null,
-            'extra'            => null,
-            'all'              => $rawResponseData,
-        ];
-    }
-
-    /**
      * @inheritDoc
      */
     protected function preparePaymentOrder(array $order)
@@ -756,7 +260,7 @@ class PosNet extends AbstractGateway
             'amount'       => $order['amount'],
             'installment'  => $order['installment'] ?? 0,
             'currency'     => $order['currency'] ?? 'TRY',
-            'host_ref_num' => $order['host_ref_num'],
+            'ref_ret_num' => $order['ref_ret_num'],
         ];
     }
 
@@ -784,9 +288,9 @@ class PosNet extends AbstractGateway
     protected function prepareCancelOrder(array $order)
     {
         return (object) [
-            //id or host_ref_num
+            //id or ref_ret_num
             'id'           => $order['id'] ?? null,
-            'host_ref_num' => $order['host_ref_num'] ?? null,
+            'ref_ret_num' => $order['ref_ret_num'] ?? null,
             //optional
             'auth_code'    => $order['auth_code'] ?? null,
         ];
@@ -798,9 +302,9 @@ class PosNet extends AbstractGateway
     protected function prepareRefundOrder(array $order)
     {
         return (object) [
-            //id or host_ref_num
+            //id or ref_ret_num
             'id'           => $order['id'] ?? null,
-            'host_ref_num' => $order['host_ref_num'] ?? null,
+            'ref_ret_num' => $order['ref_ret_num'] ?? null,
             'amount'       => $order['amount'],
             'currency'     => $order['currency'] ?? 'TRY',
         ];

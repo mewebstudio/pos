@@ -8,6 +8,7 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Exceptions\CardTypeNotSupportedException;
 use Mews\Pos\Exceptions\CardTypeRequiredException;
+use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\PosInterface;
 
 /**
@@ -18,7 +19,7 @@ class CreditCardFactory
     /**
      * AbstractCreditCard constructor.
      *
-     * @param PosInterface $pos
+     * @param PosInterface|AbstractGateway $pos
      * @param string       $number         credit card number with or without spaces
      * @param string       $expireYear     accepts year in 1, 2 and 4 digit format. accepted year formats '1' (2001), '02'
      *                                     (2002), '20' (2020), '2024' (2024)

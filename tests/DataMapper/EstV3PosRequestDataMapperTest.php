@@ -15,6 +15,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 class EstV3PosRequestDataMapperTest extends TestCase
 {
@@ -64,61 +65,9 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
         $this->pos->setTestMode(true);
-        $this->requestDataMapper = new EstV3PosRequestDataMapper();
+        $crypt = PosFactory::getGatewayCrypt(EstV3Pos::class, new NullLogger());
+        $this->requestDataMapper = new EstV3PosRequestDataMapper($crypt);
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DHashFor3DPay()
-    {
-        $this->order['rand'] = 'rand';
-
-        $account  = AccountFactory::createEstPosAccount(
-            'ziraatv3',
-            'XXXXXXX',
-            'XXXXXXX',
-            'XXXXXXX',
-            AbstractGateway::MODEL_3D_PAY,
-            'VnM5WZ3sGrPusmWP'
-        );
-        $pos      = PosFactory::createPosGateway($account);
-        $expected = 'I2ekdqKF7544HATtmoXY+KpWR6d3CS5ix5GuhBeTI50MWHrcskMfi+14shFkhDuSY+vgtLwM0ITWLO5UPUb1MQ==';
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $formData = $pos->get3DFormData();
-
-        unset($formData['inputs']['hash']);
-        $actual = $this->requestDataMapper->create3DHash($account, $formData['inputs'], AbstractGateway::TX_PAY);
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DHashFor3DSecure()
-    {
-        $account = $this->threeDAccount;
-        $pos     = $this->pos;
-        $inputs  = [
-            'clientid'      => $account->getClientId(),
-            'storetype'     => $account->getModel(),
-            'amount'        => $this->order['amount'],
-            'oid'           => $this->order['id'],
-            'okUrl'         => $this->order['success_url'],
-            'failUrl'       => $this->order['fail_url'],
-            'rnd'           => 12345,
-            'hashAlgorithm' => 'ver3',
-            'lang'          => 'tr',
-            'currency'      => 949,
-            'islemtipi'     => 'Auth',
-            'taksit'        => '',
-        ];
-
-        $expected = '4aUsG5hqlIFLc9s8PKc5rWb2OLhmxDDewNgKa2XrwoYCIxlyVq8Fjl4IVaZzoqL983CfTseicmnTA0PjZr74xg==';
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $inputs, AbstractGateway::TX_PAY);
-        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -149,7 +98,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'taksit'        => '',
         ];
 
-        $hash           = $this->requestDataMapper->create3DHash($account, $inputs, $txType);
+        $hash           = $this->requestDataMapper->getCrypt()->create3DHash($account, $inputs, $txType);
         $inputs['hash'] = $hash;
         $form           = [
             'gateway' => $gatewayURL,
@@ -172,7 +121,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             $form['inputs']['cv2']                             = $card->getCvv();
         }
         unset($form['inputs']['hash']);
-        $form['inputs']['hash'] = $this->requestDataMapper->create3DHash($account, $form['inputs'], $txType);
+        $form['inputs']['hash'] = $this->requestDataMapper->getCrypt()->create3DHash($account, $form['inputs'], $txType);
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
@@ -201,7 +150,6 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $pos = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $order      = $pos->getOrder();
 
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway_3d_host']['test'];
         $inputs     = [
@@ -224,7 +172,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'gateway' => $gatewayURL,
             'inputs'  => $inputs,
         ];
-        $form['inputs']['hash']       = $this->requestDataMapper->create3DHash($account, $inputs, AbstractGateway::TX_PAY);
+        $form['inputs']['hash']       = $this->requestDataMapper->getCrypt()->create3DHash($account, $inputs, AbstractGateway::TX_PAY);
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $pos->getAccount(),

@@ -14,10 +14,9 @@ use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Tests\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
-use ReflectionClass;
-use ReflectionMethod;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
@@ -132,6 +131,9 @@ class KuveytPosTest extends TestCase
      */
     public function testGetCommon3DFormDataSuccessResponse(string $html, array $expected)
     {
+        $crypt = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
+        $requestMapper = PosFactory::getGatewayRequestMapper(KuveytPos::class, [], $crypt);
+        $responseMapper = PosFactory::getGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
         $posMock     = $this->getMockBuilder(KuveytPos::class)
             ->setConstructorArgs([
                 [
@@ -142,7 +144,8 @@ class KuveytPosTest extends TestCase
                     ],
                 ],
                 $this->threeDAccount,
-                PosFactory::getGatewayMapper(KuveytPos::class),
+                $requestMapper,
+                $responseMapper,
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger(),
             ])
@@ -153,117 +156,6 @@ class KuveytPosTest extends TestCase
         $posMock->method('send')->willReturn($html);
 
         $result = $posMock->get3DFormData();
-
-        $this->assertSame($expected, $result);
-    }
-
-    public function testMap3DPaymentData3DAuthSuccessPaymentFail()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-
-        $threeDAuthSuccessResponse = [
-            '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
-            '@xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema',
-            'VPosMessage' => [
-                'OrderId' => '86483278',
-                'OkUrl' => 'https://www.example.com/testodeme',
-                'FailUrl' => 'https://www.example.com/testodeme',
-                'MerchantId' => '48544',
-                'SubMerchantId' => '0',
-                'CustomerId' => '123456',
-                'UserName' => 'fapapi',
-                'HashPassword' => 'Hiorgg24rNeRdHUvMCg//mOJn4U=',
-                'CardNumber' => '5124********1609',
-                'BatchID' => '1576',
-                'InstallmentCount' => '0',
-                'Amount' => '10',
-                'CancelAmount' => '0',
-                'MerchantOrderId' => 'MP-15',
-                'FECAmount' => '0',
-                'CurrencyCode' => '949',
-                'QeryId' => '0',
-                'DebtId' => '0',
-                'SurchargeAmount' => '0',
-                'SGKDebtAmount' => '0',
-                'TransactionSecurity' => '3',
-                'DeferringCount' => [
-                    '@xsi:nil' => 'true',
-                    '#' => '',
-                ],
-                'InstallmentMaturityCommisionFlag' => '0',
-                'PaymentId' => [
-                    '@xsi:nil' => 'true',
-                    '#' => '',
-                ],
-                'OrderPOSTransactionId' => [
-                    '@xsi:nil' => 'true',
-                    '#' => '',
-                ],
-                'TranDate' => [
-                    '@xsi:nil' => 'true',
-                    '#' => '',
-                ],
-                'TransactionUserId' => [
-                    '@xsi:nil' => 'true',
-                    '#' => '',
-                ],
-            ],
-            'IsEnrolled' => 'true',
-            'IsVirtual' => 'false',
-            'ResponseCode' => '00',
-            'ResponseMessage' => 'Kart doğrulandı.',
-            'OrderId' => '86483278',
-            'TransactionTime' => '0001-01-01T00:00:00',
-            'MerchantOrderId' => 'MP-15',
-            'HashData' => 'mOw0JGvy1JVWqDDmFyaDTvKz9Fk=',
-            'MD' => 'ktSVkYJHcHSYM1ibA/nM6nObr8WpWdcw34ziyRQRLv06g7UR2r5LrpLeNvwfBwPz',
-            'BusinessKey' => '202208456498416947',
-        ];
-
-        $paymentFailResponse = [
-            '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
-            '@xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema',
-            'IsEnrolled' => 'true',
-            'IsVirtual' => 'false',
-            'ResponseCode' => 'MetaDataNotFound',
-            'ResponseMessage' => 'Ödeme detayı bulunamadı.',
-            'OrderId' => '0',
-            'TransactionTime' => '0001-01-01T00:00:00',
-            'BusinessKey' => '0',
-        ];
-
-        $map3DPaymentData = self::getMethod('map3DPaymentData');
-        $result = $map3DPaymentData->invoke($this->pos, $threeDAuthSuccessResponse, $paymentFailResponse);
-        unset($result['3d_all']);
-        unset($result['all']);
-
-        $expected = [
-            'transaction_security' => 'MPI fallback',
-            'md_status' => null,
-            'hash' => 'mOw0JGvy1JVWqDDmFyaDTvKz9Fk=',
-            'rand' => null,
-            'hash_params' => null,
-            'hash_params_val' => null,
-            'amount' => '10',
-            'currency' => 'TRY',
-            'tx_status' => null,
-            'md_error_message' => null,
-            'masked_number' => '5124********1609',
-            'id' => null,
-            'trans_id' => null,
-            'auth_code' => null,
-            'host_ref_num' => null,
-            'error_message' => 'Ödeme detayı bulunamadı.',
-            'order_id' => 'MP-15',
-            'response' => 'Declined',
-            'transaction_type' => 'pay',
-            'transaction' => 'Sale',
-            'proc_return_code' => 'MetaDataNotFound',
-            'code' => 'MetaDataNotFound',
-            'status' => 'declined',
-            'status_detail' => 'MetaDataNotFound',
-            'error_code' => 'MetaDataNotFound',
-        ];
 
         $this->assertSame($expected, $result);
     }
@@ -280,8 +172,7 @@ class KuveytPosTest extends TestCase
 
         $this->pos->make3DPayment($request);
         $result = $this->pos->getResponse();
-        $this->assertIsObject($result);
-        $result = (array) $result;
+        $this->assertIsArray($result);
         $this->assertSame('declined', $result['status']);
         $this->assertSame('Şifrelenen veriler (Hashdata) uyuşmamaktadır.', $result['md_error_message']);
     }
@@ -291,6 +182,10 @@ class KuveytPosTest extends TestCase
      */
     public function testMake3DPaymentAuthSuccessProvisionFail()
     {
+        $crypt = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
+        $requestMapper = PosFactory::getGatewayRequestMapper(KuveytPos::class, [], $crypt);
+        $responseMapper = PosFactory::getGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
+        $kuveytPosResponseDataMapperTest = new KuveytPosResponseDataMapperTest();
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $xml     = '<?xml version="1.0" encoding="UTF-8"?><VPosTransactionResponseContract><VPosMessage><APIVersion>1.0.0</APIVersion><OkUrl>http://localhost:44785/Home/Success</OkUrl><FailUrl>http://localhost:44785/Home/Fail</FailUrl><HashData>lYJYMi/gVO9MWr32Pshaa/zAbSHY=</HashData><MerchantId>80</MerchantId><SubMerchantId>0</SubMerchantId><CustomerId>400235</CustomerId><UserName>apiuser</UserName><CardNumber>4025502306586032</CardNumber><CardHolderName>afafa</CardHolderName><CardType>MasterCard</CardType><BatchID>0</BatchID><TransactionType>Sale</TransactionType><InstallmentCount>0</InstallmentCount><Amount>100</Amount><DisplayAmount>100</DisplayAmount><MerchantOrderId>Order 123</MerchantOrderId><FECAmount>0</FECAmount><CurrencyCode>0949</CurrencyCode><QeryId>0</QeryId><DebtId>0</DebtId><SurchargeAmount>0</SurchargeAmount><SGKDebtAmount>0</SGKDebtAmount><TransactionSecurity>3</TransactionSecurity><TransactionSide>Auto</TransactionSide><EntryGateMethod>VPOS_ThreeDModelPayGate</EntryGateMethod></VPosMessage><IsEnrolled>true</IsEnrolled><IsVirtual>false</IsVirtual><OrderId>0</OrderId><TransactionTime>0001-01-01T00:00:00</TransactionTime><ResponseCode>00</ResponseCode><ResponseMessage>HATATA</ResponseMessage><MD>67YtBfBRTZ0XBKnAHi8c/A==</MD><AuthenticationPacket>WYGDgSIrSHDtYwF/WEN+nfwX63sppA=</AuthenticationPacket><ACSURL>https://acs.bkm.com.tr/mdpayacs/pareq</ACSURL></VPosTransactionResponseContract>';
         $request = Request::create('', 'POST', [
@@ -301,40 +196,24 @@ class KuveytPosTest extends TestCase
             ->setConstructorArgs([
                 [],
                 $this->threeDAccount,
-                PosFactory::getGatewayMapper(KuveytPos::class),
+                $requestMapper,
+                $responseMapper,
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
-            ->onlyMethods(['send', 'check3DHash'])
+            ->onlyMethods(['send'])
             ->getMock();
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
-        $posMock->expects($this->once())->method('send')->willReturn([
-            'IsEnrolled'      => 'false',
-            'IsVirtual'       => 'false',
-            'ResponseCode'    => 'EmptyMDException',
-            'ResponseMessage' => 'Geçerli bir MD değeri giriniz.',
-            'OrderId'         => '0',
-            'TransactionTime' => '0001-01-01T00:00:00',
-            'BusinessKey'     => '0',
-        ]);
-        $posMock->expects($this->once())->method('check3DHash')->willReturn(true);
+        $paymentResponse = $kuveytPosResponseDataMapperTest->threeDPaymentDataProvider()['authSuccessPaymentFail2']['paymentData'];
+        $posMock->expects($this->once())->method('send')->willReturn($paymentResponse);
 
         $posMock->make3DPayment($request);
         $result = $posMock->getResponse();
-        $result = (array) $result;
-
+        $this->assertIsArray($result);
         $this->assertSame('declined', $result['status']);
         $this->assertSame('EmptyMDException', $result['proc_return_code']);
-        $this->assertSame('EmptyMDException', $result['error_code']);
-        $this->assertSame('Geçerli bir MD değeri giriniz.', $result['error_message']);
-        $this->assertSame('Order 123', $result['order_id']);
-        $this->assertSame('Sale', $result['transaction']);
-        $this->assertSame('4025502306586032', $result['masked_number']);
-        $this->assertSame('100', $result['amount']);
-        $this->assertSame('TRY', $result['currency']);
-        $this->assertSame('lYJYMi/gVO9MWr32Pshaa/zAbSHY=', $result['hash']);
         $this->assertNotEmpty($result['all']);
         $this->assertNotEmpty($result['3d_all']);
     }
@@ -344,6 +223,10 @@ class KuveytPosTest extends TestCase
      */
     public function testMake3DPaymentAuthSuccessProvisionSuccess()
     {
+        $crypt = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
+        $requestMapper = PosFactory::getGatewayRequestMapper(KuveytPos::class, [], $crypt);
+        $responseMapper = PosFactory::getGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
+        $kuveytPosResponseDataMapperTest = new KuveytPosResponseDataMapperTest();
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $xml     = '<?xml version="1.0" encoding="UTF-8"?><VPosTransactionResponseContract><VPosMessage><APIVersion>1.0.0</APIVersion><OkUrl>http://localhost:44785/Home/Success</OkUrl><FailUrl>http://localhost:44785/Home/Fail</FailUrl><HashData>lYJYMi/gVO9MWr32Pshaa/zAbSHY=</HashData><MerchantId>80</MerchantId><SubMerchantId>0</SubMerchantId><CustomerId>400235</CustomerId><UserName>apiuser</UserName><CardNumber>4025502306586032</CardNumber><CardHolderName>afafa</CardHolderName><CardType>MasterCard</CardType><BatchID>0</BatchID><TransactionType>Sale</TransactionType><InstallmentCount>0</InstallmentCount><Amount>100</Amount><DisplayAmount>100</DisplayAmount><MerchantOrderId>Order 123</MerchantOrderId><FECAmount>0</FECAmount><CurrencyCode>0949</CurrencyCode><QeryId>0</QeryId><DebtId>0</DebtId><SurchargeAmount>0</SurchargeAmount><SGKDebtAmount>0</SGKDebtAmount><TransactionSecurity>3</TransactionSecurity><TransactionSide>Auto</TransactionSide><EntryGateMethod>VPOS_ThreeDModelPayGate</EntryGateMethod></VPosMessage><IsEnrolled>true</IsEnrolled><IsVirtual>false</IsVirtual><OrderId>0</OrderId><TransactionTime>0001-01-01T00:00:00</TransactionTime><ResponseCode>00</ResponseCode><ResponseMessage>HATATA</ResponseMessage><MD>67YtBfBRTZ0XBKnAHi8c/A==</MD><AuthenticationPacket>WYGDgSIrSHDtYwF/WEN+nfwX63sppA=</AuthenticationPacket><ACSURL>https://acs.bkm.com.tr/mdpayacs/pareq</ACSURL></VPosTransactionResponseContract>';
         $request = Request::create('', 'POST', [
@@ -354,63 +237,24 @@ class KuveytPosTest extends TestCase
             ->setConstructorArgs([
                 [],
                 $this->threeDAccount,
-                PosFactory::getGatewayMapper(KuveytPos::class),
+                $requestMapper,
+                $responseMapper,
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
-            ->onlyMethods(['send', 'check3DHash'])
+            ->onlyMethods(['send'])
             ->getMock();
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $posMock->expects($this->once())->method('send')->willReturn([
-            'VPosMessage'     => [
-                'OrderId'             => '4480',
-                'OkUrl'               => 'http://localhost:10398//ThreeDModel/SuccessXml',
-                'FailUrl'             => 'http://localhost:10398//ThreeDModel/FailXml',
-                'MerchantId'          => '80',
-                'SubMerchantId'       => '0',
-                'CustomerId'          => '400235',
-                'HashPassword'        => 'c77dFssAnYSy6O2MJo+5tMYtGVc=',
-                'CardNumber'          => '4025502306586032',
-                'BatchID'             => '1906',
-                'InstallmentCount'    => '0',
-                'Amount'              => '100',
-                'MerchantOrderId'     => '660723214',
-                'FECAmount'           => '0',
-                'CurrencyCode'        => '949',
-                'QeryId'              => '0',
-                'DebtId'              => '0',
-                'SurchargeAmount'     => '0',
-                'SGKDebtAmount'       => '0',
-                'TransactionSecurity' => '0',
-            ],
-            'IsEnrolled'      => 'true',
-            'ProvisionNumber' => '896626',
-            'RRN'             => '904115005554',
-            'Stan'            => '005554',
-            'ResponseCode'    => '00',
-            'ResponseMessage' => 'OTORİZASYON VERİLDİ',
-            'OrderId'         => '4480',
-            'TransactionTime' => '0001-01-01T00:00:00',
-            'MerchantOrderId' => '660723214',
-            'HashData'        => 'I7H/6nwfydM6VcwXsl82mqeC83o=',
-        ]);
-
-        $posMock->expects($this->once())->method('check3DHash')->willReturn(true);
+        $paymentResponse = $kuveytPosResponseDataMapperTest->threeDPaymentDataProvider()['success1']['paymentData'];
+        $posMock->expects($this->once())->method('send')->willReturn($paymentResponse);
 
         $posMock->make3DPayment($request);
         $result = $posMock->getResponse();
-        $result = (array) $result;
 
+        $this->assertIsArray($result);
         $this->assertSame('approved', $result['status']);
         $this->assertSame('00', $result['proc_return_code']);
-        $this->assertNull($result['error_code']);
-        $this->assertSame('660723214', $result['order_id']);
-        $this->assertSame('Sale', $result['transaction']);
-        $this->assertSame('4025502306586032', $result['masked_number']);
-        $this->assertSame('100', $result['amount']);
-        $this->assertSame('TRY', $result['currency']);
-        $this->assertSame('lYJYMi/gVO9MWr32Pshaa/zAbSHY=', $result['hash']);
         $this->assertNotEmpty($result['all']);
         $this->assertNotEmpty($result['3d_all']);
     }
@@ -455,14 +299,5 @@ class KuveytPosTest extends TestCase
                 ],
             ],
         ];
-    }
-
-    protected static function getMethod(string $name): ReflectionMethod
-    {
-        $class  = new ReflectionClass(KuveytPos::class);
-        $method = $class->getMethod($name);
-        $method->setAccessible(true);
-
-        return $method;
     }
 }

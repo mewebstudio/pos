@@ -4,6 +4,8 @@
  */
 namespace Mews\Pos\DataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
+use Mews\Pos\Crypt\KuveytPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -13,33 +15,30 @@ use Mews\Pos\Gateways\AbstractGateway;
 /**
  * Creates request data for KuveytPos Gateway requests
  */
-class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
+class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     public const API_VERSION = '1.0.0';
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
 
+    /**
+     * {@inheritdoc}
+     */
     protected $secureTypeMappings = [
         AbstractGateway::MODEL_3D_SECURE  => 3,
-        //todo update null values with valid values
-        AbstractGateway::MODEL_3D_PAY     => null,
-        AbstractGateway::MODEL_3D_HOST    => null,
         AbstractGateway::MODEL_NON_SECURE => 0,
     ];
 
     /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     protected $txTypeMappings = [
         AbstractGateway::TX_PAY      => 'Sale',
-        //todo update null values with valid values
-        AbstractGateway::TX_PRE_PAY  => null,
-        AbstractGateway::TX_POST_PAY => null,
-        AbstractGateway::TX_CANCEL   => null,
-        AbstractGateway::TX_REFUND   => null,
-        AbstractGateway::TX_STATUS   => null,
     ];
 
+    /**
+     * {@inheritDoc}
+     */
     protected $cardTypeMapping = [
         AbstractCreditCard::CARD_TYPE_VISA       => 'Visa',
         AbstractCreditCard::CARD_TYPE_MASTERCARD => 'MasterCard',
@@ -49,7 +48,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * Currency mapping
      *
-     * @var array
+     * {@inheritdoc}
      */
     protected $currencyMappings = [
         'TRY' => '0949',
@@ -59,6 +58,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
         'JPY' => '0392',
         'RUB' => '0810',
     ];
+
+    /** @var CryptInterface|KuveytPosCrypt */
+    protected $crypt;
 
     /**
      * Amount Formatter
@@ -70,17 +72,19 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public static function amountFormat(float $amount): int
     {
-        return round($amount, 2) * 100;
+        return intval(round($amount, 2) * 100);
     }
 
     /**
      * @param KuveytPosAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
-        $hash = $this->create3DHash($account, $order, $txType, true);
+        $mappedOrder = (array) $order;
+        $mappedOrder['amount'] = self::amountFormat($order->amount);
+        $hash = $this->crypt->createHash($account, $mappedOrder, $this->mapTxType($txType));
 
         return $this->getRequestAccountData($account) + [
             'APIVersion'                   => self::API_VERSION,
@@ -103,16 +107,14 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param KuveytPosAccount        $account
-     * @param                         $order
-     * @param string                  $txType
-     * @param AbstractCreditCard|null $card
-     *
-     * @return array
+     * @param KuveytPosAccount      $account
+     * @param AbstractGateway::TX_* $txType
      */
     public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
-        $hash = $this->create3DHash($account, $order, $txType);
+        $mappedOrder = (array) $order;
+        $mappedOrder['amount'] = self::amountFormat($order->amount);
+        $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
         $inputs = $this->getRequestAccountData($account) + [
             'APIVersion'          => self::API_VERSION,
@@ -142,33 +144,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * Create 3D Hash
-     * todo Şifrelenen veriler (Hashdata) uyuşmamaktadır. hatasi aliyoruz
-     *
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param string             $txType
-     * @param bool               $forProvision
-     *
-     * @return string
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, string $txType, bool $forProvision = false): string
-    {
-        $hashedPassword = $this->hashString($account->getStoreKey());
-
-        if ($forProvision) {
-            $hashData = $this->createHashDataForAuthorization($account, $order, $hashedPassword);
-        } else {
-            $hashData = $this->createHashDataForProvision($account, $order, $hashedPassword);
-        }
-
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
-
-        return $this->hashString($hashStr);
-    }
-
-    /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
@@ -176,7 +152,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
@@ -184,7 +160,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
@@ -192,7 +168,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -200,7 +176,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -208,7 +184,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
@@ -216,7 +192,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
@@ -224,49 +200,11 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     public function mapInstallment(?int $installment)
     {
         return $installment > 1 ? $installment : 0;
-    }
-
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param string             $hashedPassword
-     *
-     * @return array
-     */
-    private function createHashDataForAuthorization(AbstractPosAccount $account, $order, string $hashedPassword): array
-    {
-        return [
-            $account->getClientId(),
-            $order->id,
-            self::amountFormat($order->amount),
-            $account->getUsername(),
-            $hashedPassword,
-        ];
-    }
-
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param string             $hashedPassword
-     *
-     * @return array
-     */
-    private function createHashDataForProvision(AbstractPosAccount $account, $order, string $hashedPassword): array
-    {
-        return [
-            $account->getClientId(),
-            $order->id,
-            self::amountFormat($order->amount),
-            $order->success_url,
-            $order->fail_url,
-            $account->getUsername(),
-            $hashedPassword,
-        ];
     }
 
     /**

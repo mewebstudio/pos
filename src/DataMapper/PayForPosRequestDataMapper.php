@@ -25,6 +25,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
 
+    /** {@inheritdoc} */
     protected $secureTypeMappings = [
         AbstractGateway::MODEL_3D_SECURE  => '3DModel',
         AbstractGateway::MODEL_3D_PAY     => '3DPay',
@@ -33,7 +34,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     protected $txTypeMappings = [
         AbstractGateway::TX_PAY      => 'Auth',
@@ -46,7 +47,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
@@ -60,7 +61,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
@@ -82,7 +83,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
@@ -98,7 +99,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
@@ -112,7 +113,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -127,7 +128,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -143,7 +144,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
@@ -166,11 +167,13 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        $hash = $this->create3DHash($account, $order, $txType);
+        $mappedOrder = (array) $order;
+        $mappedOrder['installment'] = $this->mapInstallment($order->installment);
+        $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
         $inputs = [
             'MbrId'            => self::MBR_ID,
@@ -203,28 +206,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
-    {
-        $hashData = [
-            self::MBR_ID,
-            $order->id,
-            $order->amount,
-            $order->success_url,
-            $order->fail_url,
-            $this->mapTxType($txType),
-            $this->mapInstallment($order->installment),
-            $order->rand,
-            $account->getStoreKey(),
-        ];
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
-
-        return $this->hashString($hashStr);
-    }
-
-    /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     public function mapInstallment(?int $installment)
     {

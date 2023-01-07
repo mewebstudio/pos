@@ -11,7 +11,7 @@ $order = [
     'amount'       => $order['amount'],
     'currency'     => $order['currency'],
     'installment'  => $order['installment'],
-    'host_ref_num' => '018711533790000181',
+    'ref_ret_num' => '018711533790000181',
 ];
 
 $session->set('post_order', $order);

@@ -14,6 +14,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\InterPos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * InterPosRequestDataMapperTest
@@ -63,13 +64,15 @@ class InterPosRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => AbstractGateway::LANG_TR,
-            'rand'        => microtime(true),
+            'rand'        => 'rand',
         ];
 
         $this->pos = PosFactory::createPosGateway($this->account);
         $this->pos->setTestMode(true);
 
-        $this->requestDataMapper = new InterPosRequestDataMapper();
+        $crypt = PosFactory::getGatewayCrypt(InterPos::class, new NullLogger());
+
+        $this->requestDataMapper = new InterPosRequestDataMapper($crypt);
 
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
@@ -139,19 +142,6 @@ class InterPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DHash()
-    {
-        $this->order['rand'] = 'rand';
-        $pos = $this->pos;
-        $expected = 'vEbwP8wnsGrBR9oCjfxP9wlho1g=';
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY);
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
     public function testCreateCancelRequestData()
     {
         $order = [
@@ -205,7 +195,7 @@ class InterPosRequestDataMapperTest extends TestCase
         $order   = (object) $this->order;
         $account = $this->account;
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $hash = $this->requestDataMapper->create3DHash($account, $this->pos->getOrder(), AbstractGateway::TX_PAY);
+
         $card   = $this->card;
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'];
 
@@ -213,7 +203,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'ShopCode'         => $account->getClientId(),
             'TxnType'          => 'Auth',
             'SecureType'       => '3DModel',
-            'Hash'             => $hash,
+            'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
             'PurchAmount'      => $order->amount,
             'OrderId'          => $order->id,
             'OkUrl'            => $order->success_url,
@@ -270,13 +260,13 @@ class InterPosRequestDataMapperTest extends TestCase
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
         $order = $pos->getOrder();
-        $hash = $this->requestDataMapper->create3DHash($account, $pos->getOrder(), AbstractGateway::TX_PAY);
+
         $gatewayURL = $this->config['banks'][$account->getBank()]['urls']['gateway_3d_host']['test'];
         $inputs = [
             'ShopCode'         => $account->getClientId(),
             'TxnType'          => 'Auth',
             'SecureType'       => '3DHost',
-            'Hash'             => $hash,
+            'Hash'             => 'zQJGquP0/PXt6LeutjN1Qxq32Zg=',
             'PurchAmount'      => $order->amount,
             'OrderId'          => $order->id,
             'OkUrl'            => $order->success_url,

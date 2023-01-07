@@ -13,6 +13,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PayForPos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * PayForPosRequestDataMapperTest
@@ -64,7 +65,8 @@ class PayForPosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
         $this->pos->setTestMode(true);
-        $this->requestDataMapper = new PayForPosRequestDataMapper();
+        $crypt = PosFactory::getGatewayCrypt(PayForPos::class, new NullLogger());
+        $this->requestDataMapper = new PayForPosRequestDataMapper($crypt);
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
@@ -135,26 +137,6 @@ class PayForPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DHash()
-    {
-        $order    = [
-            'id'          => '2020110828BC',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-            'rand'        => '0.43625700 1604831630',
-        ];
-        $expected = 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=';
-        $pos      = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY);
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
     public function testCreateCancelRequestData()
     {
         $order = [
@@ -212,12 +194,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     public function testGet3DFormData()
     {
         $order   = (object) $this->order;
-        $account = $this->threeDAccount;
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $hash       = $this->requestDataMapper->create3DHash($account, $this->pos->getOrder(), AbstractGateway::TX_PAY);
         $card       = $this->card;
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'];
-
         $inputs = [
             'MbrId'            => '5',
             'MerchantID'       => $this->threeDAccount->getClientId(),
@@ -232,7 +211,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             'OkUrl'            => $order->success_url,
             'FailUrl'          => $order->fail_url,
             'Rnd'              => $order->rand,
-            'Hash'             => $hash,
+            'Hash'             => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
         ];
         $form   = [
             'gateway' => $gatewayURL,
@@ -281,7 +260,6 @@ class PayForPosRequestDataMapperTest extends TestCase
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
         $order      = $pos->getOrder();
-        $hash       = $this->requestDataMapper->create3DHash($account, $order, AbstractGateway::TX_PAY);
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway_3d_host']['test'];
         $inputs     = [
             'MbrId'            => '5',
@@ -297,7 +275,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             'OkUrl'            => $order->success_url,
             'FailUrl'          => $order->fail_url,
             'Rnd'              => $order->rand,
-            'Hash'             => $hash,
+            'Hash'             => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
         ];
         $form       = [
             'gateway' => $gatewayURL,

@@ -6,26 +6,25 @@ namespace Mews\Pos\Gateways;
 
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\NonPaymentResponseMapperInterface;
+use Mews\Pos\DataMapper\ResponseDataMapper\PaymentResponseMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LoggerAwareTrait;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 /**
- * todo we need to update request data code base to return array instead of XML, because some providers does not use XML.
- *  for example createRefundXML() this method will be createRefund() and return array.
- *  Then it will be converted to XML in some other place if needed
- * Class AbstractGateway
+ * todo we need to update request data code base to return array instead of XML, because some providers does not use
+ * XML. for example createRefundXML() this method will be createRefund() and return array. Then it will be converted to
+ * XML in some other place if needed Class AbstractGateway
  */
 abstract class AbstractGateway implements PosInterface
 {
-    use LoggerAwareTrait;
 
     public const LANG_TR = 'tr';
     public const LANG_EN = 'en';
@@ -43,50 +42,38 @@ abstract class AbstractGateway implements PosInterface
     public const MODEL_3D_HOST = '3d_host';
     public const MODEL_NON_SECURE = 'regular';
 
-    protected const HASH_ALGORITHM = 'sha1';
-    protected const HASH_SEPARATOR = '';
-
-    protected $cardTypeMapping = [];
-
     /** @var array */
     private $config;
 
     /** @var AbstractPosAccount */
     protected $account;
 
-    /** @var AbstractCreditCard */
+    /** @var AbstractCreditCard|null */
     protected $card;
 
     /**
      * Transaction Type
      *
-     * @var string
+     * @var self::TX_*
      */
     protected $type;
 
     /**
-     * Recurring Order Frequency Type Mapping
-     *
-     * @var array
-     */
-    protected $recurringOrderFrequencyMapping = [];
-
-    /**
-     * @var object
+     * @var object|null
      */
     protected $order;
 
     /**
      * Processed Response Data
      *
-     * @var object
+     * @var array|null
      */
     protected $response;
 
     /**
-     * Raw Response Data
+     * Raw Response Data From Bank
      *
-     * @var object
+     * @var mixed
      */
     protected $data;
 
@@ -96,24 +83,31 @@ abstract class AbstractGateway implements PosInterface
     /** @var AbstractRequestDataMapper */
     protected $requestDataMapper;
 
+    /** @var PaymentResponseMapperInterface&NonPaymentResponseMapperInterface */
+    protected $responseDataMapper;
+
+    /** @var LoggerInterface */
+    protected $logger;
+
+    /** @var bool */
     private $testMode = false;
 
 
     public function __construct(
-        array $config,
-        AbstractPosAccount $account,
-        AbstractRequestDataMapper $requestDataMapper,
-        HttpClient $client,
-        LoggerInterface $logger
+        array                          $config,
+        AbstractPosAccount             $account,
+        AbstractRequestDataMapper      $requestDataMapper,
+        PaymentResponseMapperInterface $responseDataMapper,
+        HttpClient                     $client,
+        LoggerInterface                $logger
     ) {
-        $this->requestDataMapper              = $requestDataMapper;
-        $this->cardTypeMapping                = $requestDataMapper->getCardTypeMapping();
-        $this->recurringOrderFrequencyMapping = $requestDataMapper->getRecurringOrderFrequencyMapping();
+        $this->requestDataMapper  = $requestDataMapper;
+        $this->responseDataMapper = $responseDataMapper;
 
-        $this->config = $config;
+        $this->config  = $config;
         $this->account = $account;
-        $this->client = $client;
-        $this->logger = $logger;
+        $this->client  = $client;
+        $this->logger  = $logger;
     }
 
     /**
@@ -150,9 +144,9 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return object
+     * @return array|null
      */
-    public function getResponse()
+    public function getResponse(): ?array
     {
         return $this->response;
     }
@@ -208,8 +202,8 @@ abstract class AbstractGateway implements PosInterface
     public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false): string
     {
         $rootNodeName = array_keys($nodes)[0];
-        $encoder = new XmlEncoder();
-        $context = [
+        $encoder      = new XmlEncoder();
+        $context      = [
             XmlEncoder::ROOT_NODE_NAME => $rootNodeName,
             XmlEncoder::ENCODING       => $encoding,
         ];
@@ -223,48 +217,13 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @inheritdoc
-     */
-    public function printData($data): ?string
-    {
-        if ((is_object($data) || is_array($data)) && !count((array) $data)) {
-            $data = null;
-        }
-
-        return (string) $data;
-    }
-
-    /**
      * Is success
      *
      * @return bool
      */
     public function isSuccess(): bool
     {
-        return isset($this->response->status) && 'approved' === $this->response->status;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isError(): bool
-    {
-        return !$this->isSuccess();
-    }
-
-    /**
-     * Converts XML string to object
-     *
-     * @param string $data
-     *
-     * @return object
-     */
-    public function XMLStringToObject($data)
-    {
-        $encoder = new XmlEncoder();
-        $xml = $encoder->decode($data, 'xml');
-
-        return (object) json_decode(json_encode($xml));
+        return isset($this->response['status']) && $this->responseDataMapper::TX_APPROVED === $this->response['status'];
     }
 
     /**
@@ -300,7 +259,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @param string $txType
+     * @param self::TX_* $txType
      *
      * @throws UnsupportedTransactionTypeException
      */
@@ -318,14 +277,14 @@ abstract class AbstractGateway implements PosInterface
      */
     public function payment($card = null)
     {
-        $request = Request::createFromGlobals();
+        $request    = Request::createFromGlobals();
         $this->card = $card;
 
         $model = $this->account->getModel();
 
         $this->logger->log(LogLevel::DEBUG, 'payment called', [
             'card_provided' => !!$this->card,
-            'model' => $model,
+            'model'         => $model,
         ]);
         if (self::MODEL_NON_SECURE === $model) {
             $this->makeRegularPayment();
@@ -349,8 +308,8 @@ abstract class AbstractGateway implements PosInterface
     public function makeRegularPayment()
     {
         $this->logger->log(LogLevel::DEBUG, 'making payment', [
-            'model' => $this->account->getModel(),
-            'tx_type' => $this->type
+            'model'   => $this->account->getModel(),
+            'tx_type' => $this->type,
         ]);
         $contents = '';
         if (in_array($this->type, [self::TX_PAY, self::TX_PRE_PAY])) {
@@ -361,7 +320,7 @@ abstract class AbstractGateway implements PosInterface
 
         $bankResponse = $this->send($contents);
 
-        $this->response = (object) $this->mapPaymentResponse($bankResponse);
+        $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse);
 
         return $this;
     }
@@ -371,10 +330,10 @@ abstract class AbstractGateway implements PosInterface
      */
     public function refund()
     {
-        $xml = $this->createRefundXML();
+        $xml          = $this->createRefundXML();
         $bankResponse = $this->send($xml);
 
-        $this->response = $this->mapRefundResponse($bankResponse);
+        $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
 
         return $this;
     }
@@ -384,10 +343,10 @@ abstract class AbstractGateway implements PosInterface
      */
     public function cancel()
     {
-        $xml = $this->createCancelXML();
+        $xml          = $this->createCancelXML();
         $bankResponse = $this->send($xml);
 
-        $this->response = $this->mapCancelResponse($bankResponse);
+        $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
 
         return $this;
     }
@@ -401,7 +360,7 @@ abstract class AbstractGateway implements PosInterface
 
         $bankResponse = $this->send($xml);
 
-        $this->response = $this->mapStatusResponse($bankResponse);
+        $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
 
         return $this;
     }
@@ -415,7 +374,7 @@ abstract class AbstractGateway implements PosInterface
 
         $bankResponse = $this->send($xml);
 
-        $this->response = $this->mapHistoryResponse($bankResponse);
+        $this->response = $this->responseDataMapper->mapHistoryResponse($bankResponse);
 
         return $this;
     }
@@ -435,21 +394,11 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @param string $period
-     *
-     * @return string
-     */
-    public function mapRecurringFrequency(string $period): string
-    {
-        return $this->recurringOrderFrequencyMapping[$period] ?? $period;
-    }
-
-    /**
-     * @return array
+     * {@inheritDoc}
      */
     public function getCardTypeMapping(): array
     {
-        return $this->cardTypeMapping;
+        return $this->requestDataMapper->getCardTypeMapping();
     }
 
     /**
@@ -463,14 +412,14 @@ abstract class AbstractGateway implements PosInterface
     /**
      * Create Regular Payment XML
      *
-     * @return string
+     * @return string|array
      */
     abstract public function createRegularPaymentXML();
 
     /**
      * Create Regular Payment Post XML
      *
-     * @return string
+     * @return string|array
      */
     abstract public function createRegularPostXML();
 
@@ -479,32 +428,32 @@ abstract class AbstractGateway implements PosInterface
      *
      * @param array $customQueryData
      *
-     * @return string
+     * @return array|string
      */
     abstract public function createHistoryXML($customQueryData);
 
     /**
      * Creates XML string for order status inquiry
-     * @return mixed
+     * @return array|string
      */
     abstract public function createStatusXML();
 
     /**
      * Creates XML string for order cancel operation
-     * @return string
+     * @return array|string
      */
     abstract public function createCancelXML();
 
     /**
      * Creates XML string for order refund operation
-     * @return mixed
+     * @return array|string
      */
     abstract public function createRefundXML();
 
     /**
      * Creates 3D Payment XML
      *
-     * @param $responseData
+     * @param array<string, string> $responseData
      *
      * @return string|array
      */
@@ -572,84 +521,6 @@ abstract class AbstractGateway implements PosInterface
     abstract protected function prepareRefundOrder(array $order);
 
     /**
-     * @param array        $raw3DAuthResponseData  response from 3D authentication
-     * @param object|array $rawPaymentResponseData
-     *
-     * @return object
-     */
-    abstract protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData);
-
-    /**
-     * @param array $raw3DAuthResponseData response from 3D authentication
-     *
-     * @return object
-     */
-    abstract protected function map3DPayResponseData($raw3DAuthResponseData);
-
-    /**
-     * Processes regular payment response data
-     *
-     * @param object|array $responseData
-     *
-     * @return array
-     */
-    abstract protected function mapPaymentResponse($responseData): array;
-
-    /**
-     * @param $rawResponseData
-     *
-     * @return object
-     */
-    abstract protected function mapRefundResponse($rawResponseData);
-
-    /**
-     * @param $rawResponseData
-     *
-     * @return object
-     */
-    abstract protected function mapCancelResponse($rawResponseData);
-
-    /**
-     * @param object $rawResponseData
-     *
-     * @return object
-     */
-    abstract protected function mapStatusResponse($rawResponseData);
-
-    /**
-     * @param object $rawResponseData
-     *
-     * @return mixed
-     */
-    abstract protected function mapHistoryResponse($rawResponseData);
-
-    /**
-     * Returns payment default response data
-     *
-     * @return array
-     */
-    protected function getDefaultPaymentResponse(): array
-    {
-        return [
-            'id'               => null,
-            'order_id'         => null,
-            'trans_id'         => null,
-            'transaction_type' => $this->type,
-            'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
-            'auth_code'        => null,
-            'host_ref_num'     => null,
-            'proc_return_code' => null,
-            'code'             => null,
-            'status'           => 'declined',
-            'status_detail'    => null,
-            'error_code'       => null,
-            'error_message'    => null,
-            'response'         => null,
-            'all'              => null,
-        ];
-    }
-
-    /**
      * @param string $str
      *
      * @return bool
@@ -657,35 +528,6 @@ abstract class AbstractGateway implements PosInterface
     protected function isHTML($str): bool
     {
         return $str !== strip_tags($str);
-    }
-
-    /**
-     * @param string $str
-     *
-     * @return string
-     */
-    protected function hashString(string $str): string
-    {
-        return base64_encode(hash(static::HASH_ALGORITHM, $str, true));
-    }
-
-    /**
-     * if 2 arrays has common keys, then non-null value preferred,
-     * if both arrays has the non-null values for the same key then value of $arr2 is preferred.
-     * @param array $arr1
-     * @param array $arr2
-     *
-     * @return array
-     */
-    protected function mergeArraysPreferNonNullValues(array $arr1, array $arr2): array
-    {
-        $resultArray = array_diff_key($arr1, $arr2) + array_diff_key($arr2, $arr1);
-        $commonArrayKeys = array_keys(array_intersect_key($arr1, $arr2));
-        foreach ($commonArrayKeys as $key) {
-            $resultArray[$key] = $arr2[$key] ?: $arr1[$key];
-        }
-
-        return $resultArray;
     }
 
     /**
@@ -701,30 +543,6 @@ abstract class AbstractGateway implements PosInterface
         $encoder = new XmlEncoder();
 
         return $encoder->decode($data, 'xml', $context);
-    }
-
-    /**
-     * bankadan gelen response'da bos string degerler var.
-     * bu metod ile bos string'leri null deger olarak degistiriyoruz
-     *
-     * @param string|object|array $data
-     *
-     * @return string|array
-     */
-    protected function emptyStringsToNull($data)
-    {
-        $result = [];
-        if (is_string($data)) {
-            $result = '' === $data ? null : $data;
-        } elseif (is_numeric($data)) {
-            $result = $data;
-        } elseif (is_array($data) || is_object($data)) {
-            foreach ($data as $key => $value) {
-                $result[$key] = self::emptyStringsToNull($value);
-            }
-        }
-
-        return $result;
     }
 
     /**

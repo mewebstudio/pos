@@ -4,14 +4,11 @@
  */
 namespace Mews\Pos\Gateways;
 
-use Mews\Pos\Client\HttpClient;
-use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\Entity\Account\InterPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -26,39 +23,14 @@ class InterPos extends AbstractGateway
      */
     public const NAME = 'InterPos';
 
-    /**
-     * Response Codes
-     * @var array
-     */
-    protected $codes = [
-        '00'  => 'approved',
-        '81'  => 'bank_call',
-        'E31' => 'invalid_transaction',
-        'E39' => 'invalid_transaction',
-    ];
-
     /** @var InterPosAccount */
     protected $account;
-
-    /** @var AbstractCreditCard|null */
-    protected $card;
 
     /** @var InterPosRequestDataMapper */
     protected $requestDataMapper;
 
-    /**
-     * @param InterPosAccount $account
-     * @param InterPosRequestDataMapper $requestDataMapper
-     */
-    public function __construct(
-        array $config,
-        AbstractPosAccount $account,
-        AbstractRequestDataMapper $requestDataMapper,
-        HttpClient $client,
-        LoggerInterface $logger
-    ) {
-        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
-    }
+    /** @var InterPosResponseDataMapper */
+    protected $responseDataMapper;
 
     /**
      * @return InterPosAccount
@@ -92,70 +64,31 @@ class InterPos extends AbstractGateway
     }
 
     /**
-     * Check 3D Hash
-     *
-     * @param AbstractPosAccount $account
-     * @param array              $data
-     *
-     * @return bool
-     */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
-    {
-        $hashParams              = $data['HASHPARAMS'];
-        $actualHashParamsVal     = $data['HASHPARAMSVAL'];
-        $actualHash              = $data['HASH'];
-        $calculatedHashParamsVal = '';
-
-        $hashParamsArr = explode(':', $hashParams);
-        foreach ($hashParamsArr as $value) {
-            if (!empty($value) && isset($data[$value])) {
-                $calculatedHashParamsVal .= $data[$value];
-            }
-        }
-
-        $hashStr = $calculatedHashParamsVal.$account->getStoreKey();
-        $hash    = $this->hashString($hashStr);
-
-        if ($actualHash === $hash) {
-            $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
-
-            return true;
-        }
-
-        $this->logger->log(LogLevel::ERROR, 'hash check failed', [
-            'data' => $data,
-            'generated_hash' => $hash,
-            'expected_hash' => $actualHash
-        ]);
-
-        return false;
-    }
-
-    /**
      * @inheritDoc
      */
     public function make3DPayment(Request $request)
     {
         $bankResponse    = null;
         $request         = $request->request;
-        $gatewayResponse = $this->emptyStringsToNull($request->all());
+        $gatewayResponse = $request->all();
 
-        $procReturnCode  = $this->getProcReturnCode($gatewayResponse);
-        if ($this->check3DHash($this->account, $gatewayResponse)) {
-            if ('00' !== $procReturnCode) {
-                $this->logger->log(LogLevel::ERROR, '3d auth fail', ['proc_return_code' => $procReturnCode]);
-                /**
-                 * TODO hata durumu ele alinmasi gerekiyor
-                 */
-            }
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
+            throw new HashMismatchException();
+        }
+
+        if ('1' !== $request->get('3DStatus')) {
+            $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $request->get('3DStatus')]);
+            /**
+             * TODO hata durumu ele alinmasi gerekiyor
+             */
+        } else {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment');
-            $contents = $this->create3DPaymentXML($gatewayResponse);
+            $contents     = $this->create3DPaymentXML($gatewayResponse);
             $bankResponse = $this->send($contents);
         }
 
 
-        $authorizationResponse = $this->emptyStringsToNull($bankResponse);
-        $this->response        = (object) $this->map3DPaymentData($gatewayResponse, $authorizationResponse);
+        $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse);
         $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
@@ -166,8 +99,7 @@ class InterPos extends AbstractGateway
      */
     public function make3DPayPayment(Request $request)
     {
-        $gatewayResponse = $this->emptyStringsToNull($request->request->all());
-        $this->response  = $this->map3DPayResponseData($gatewayResponse);
+        $this->response  = $this->responseDataMapper->map3DPayResponseData($request->request->all());
 
         return $this;
     }
@@ -266,227 +198,6 @@ class InterPos extends AbstractGateway
     }
 
     /**
-     * Get ProcReturnCode
-     *
-     * @param $response
-     *
-     * @return string|null
-     */
-    protected function getProcReturnCode($response): ?string
-    {
-        return $response['ProcReturnCode'] ?? null;
-    }
-
-    /**
-     * Get Status Detail Text
-     *
-     * @param string|null $procReturnCode
-     *
-     * @return string|null
-     */
-    protected function getStatusDetail(?string $procReturnCode): ?string
-    {
-        return $procReturnCode ? ($this->codes[$procReturnCode] ?? null) : null;
-    }
-
-    /**
-     * todo test with success
-     * @inheritDoc
-     */
-    protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
-    {
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
-            '3d_auth_response' => $raw3DAuthResponseData,
-            'provision_response' => $rawPaymentResponseData,
-        ]);
-        $status              = $raw3DAuthResponseData['mdStatus'];
-        $transactionSecurity = 'MPI fallback';
-        $procReturnCode      = $this->getProcReturnCode($raw3DAuthResponseData);
-        if ($this->getProcReturnCode($rawPaymentResponseData) === '00') {
-            if ('1' === $status) {
-                $transactionSecurity = 'Full 3D Secure';
-            } elseif (in_array($status, ['2', '3', '4'])) {
-                $transactionSecurity = 'Half 3D Secure';
-            }
-        }
-
-        $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData);
-
-        $threeDResponse = [
-            'order_id'             => $paymentResponseData['order_id'] ?? $raw3DAuthResponseData['OrderId'],
-            'proc_return_code'     => $paymentResponseData['proc_return_code'] ?? $procReturnCode,
-            'code'                 => $paymentResponseData['proc_return_code'] ?? $procReturnCode,
-            'host_ref_num'         => $paymentResponseData['host_ref_num'] ?? $raw3DAuthResponseData['HostRefNum'],
-            'transaction_security' => $transactionSecurity,
-            'md_status'            => $status,
-            'hash'                 => $raw3DAuthResponseData['HASH'],
-            'rand'                 => null,
-            'hash_params'          => $raw3DAuthResponseData['HASHPARAMS'],
-            'hash_params_val'      => $raw3DAuthResponseData['HASHPARAMSVAL'],
-            'masked_number'        => $raw3DAuthResponseData['Pan'],
-            'month'                => null,
-            'year'                 => null,
-            'amount'               => $raw3DAuthResponseData['PurchAmount'],
-            'currency'             => array_search($raw3DAuthResponseData['Currency'], $this->requestDataMapper->getCurrencyMappings()),
-            'eci'                  => $raw3DAuthResponseData['Eci'],
-            'tx_status'            => $raw3DAuthResponseData['TxnStat'],
-            'cavv'                 => null,
-            'xid'                  => $raw3DAuthResponseData['OrderId'],
-            'md_error_message'     => $raw3DAuthResponseData['ErrorMessage'],
-            'error_code'           => $paymentResponseData['error_code'] ?? $raw3DAuthResponseData['ErrorCode'],
-            'error_message'        => $paymentResponseData['error_message'] ?? $raw3DAuthResponseData['ErrorMessage'],
-            'status_detail'        => $paymentResponseData['status_detail'] ?? $this->getStatusDetail($procReturnCode),
-            '3d_all'               => $raw3DAuthResponseData,
-        ];
-
-        return array_merge($paymentResponseData, $threeDResponse);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function map3DPayResponseData($raw3DAuthResponseData)
-    {
-        return (object) $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapRefundResponse($rawResponseData)
-    {
-        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
-        $procReturnCode  = $this->getProcReturnCode($rawResponseData);
-        $status          = 'declined';
-        if ('00' === $procReturnCode) {
-            $status = 'approved';
-        }
-
-        return (object) [
-            'order_id'         => $rawResponseData['OrderId'],
-            'group_id'         => null,
-            'response'         => null,
-            'auth_code'        => null,
-            'host_ref_num'     => $rawResponseData['HostRefNum'],
-            'proc_return_code' => $procReturnCode,
-            'code'             => $procReturnCode,
-            'trans_id'         => $rawResponseData['TransId'],
-            'error_code'       => $rawResponseData['ErrorCode'],
-            'error_message'    => $rawResponseData['ErrorMessage'],
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'all'              => $rawResponseData,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapCancelResponse($rawResponseData)
-    {
-        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
-        $status          = 'declined';
-        $procReturnCode  = $this->getProcReturnCode($rawResponseData);
-        if ('00' === $procReturnCode) {
-            $status = 'approved';
-        }
-
-        return (object) [
-            'order_id'         => $rawResponseData['OrderId'],
-            'group_id'         => null,
-            'response'         => null,
-            'auth_code'        => $rawResponseData['AuthCode'],
-            'host_ref_num'     => $rawResponseData['HostRefNum'],
-            'proc_return_code' => $procReturnCode,
-            'code'             => $procReturnCode,
-            'trans_id'         => $rawResponseData['TransId'],
-            'error_code'       => $rawResponseData['ErrorCode'],
-            'error_message'    => $rawResponseData['ErrorMessage'],
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'all'              => $rawResponseData,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapStatusResponse($rawResponseData)
-    {
-        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
-        $procReturnCode  = $this->getProcReturnCode($rawResponseData);
-        $status          = 'declined';
-        if ('00' === $procReturnCode) {
-            $status = 'approved';
-        }
-
-        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
-
-        return (object) [
-            'order_id'         => $rawResponseData['OrderId'],
-            'response'         => null,
-            'proc_return_code' => $procReturnCode,
-            'code'             => $procReturnCode,
-            'trans_id'         => $rawResponseData['TransId'],
-            'error_message'    => $rawResponseData['ErrorMessage'],
-            'host_ref_num'     => null,
-            'order_status'     => null, //todo success cevap alindiginda eklenecek
-            'refund_amount'    => $rawResponseData['RefundedAmount'],
-            'capture_amount'   => null, //todo success cevap alindiginda eklenecek
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'capture'          => null, //todo success cevap alindiginda eklenecek
-            'all'              => $rawResponseData,
-        ];
-    }
-
-    /**
-     * todo test for success
-     * @inheritDoc
-     */
-    protected function mapPaymentResponse($responseData): array
-    {
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$responseData]);
-        $responseData   = $this->emptyStringsToNull($responseData);
-        $status         = 'declined';
-        $procReturnCode = $this->getProcReturnCode($responseData);
-        if ('00' === $procReturnCode) {
-            $status = 'approved';
-        }
-
-        $result = $this->getDefaultPaymentResponse();
-
-        $result['proc_return_code'] = $procReturnCode;
-        $result['code']             = $procReturnCode;
-        $result['status']           = $status;
-        $result['status_detail']    = $this->getStatusDetail($procReturnCode);
-        $result['all']              = $responseData;
-
-        if (!$responseData) {
-            return $result;
-        }
-        $result['id']            = $responseData['AuthCode'];
-        $result['order_id']      = $responseData['OrderId'];
-        $result['trans_id']      = $responseData['TransId'];
-        $result['auth_code']     = $responseData['AuthCode'];
-        $result['host_ref_num']  = $responseData['HostRefNum'];
-        $result['error_code']    = $responseData['ErrorCode'];
-        $result['error_message'] = $responseData['ErrorMessage'];
-
-        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $result);
-
-        return $result;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapHistoryResponse($rawResponseData)
-    {
-        return $rawResponseData;
-    }
-
-    /**
      * @inheritDoc
      */
     protected function preparePaymentOrder(array $order)
@@ -539,26 +250,5 @@ class InterPos extends AbstractGateway
     protected function prepareRefundOrder(array $order)
     {
         return (object) $order;
-    }
-
-    /**
-     * bankadan gelen response'da bos string degerler var.
-     * bu metod ile bos string'leri null deger olarak degistiriyoruz
-     *
-     * @param string|object|array $data
-     *
-     * @return string|object|array
-     */
-    protected function emptyStringsToNull($data)
-    {
-        if (is_string($data)) {
-            $data = '' === $data ? null : $data;
-        } elseif (is_array($data)) {
-            foreach ($data as $key => $value) {
-                $data[$key] = '' === $value ? null : $value;
-            }
-        }
-
-        return $data;
     }
 }
