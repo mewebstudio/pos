@@ -331,15 +331,20 @@ class KuveytPos extends AbstractGateway
         foreach ($inputNodes as $el) {
             $key   = null;
             $value = null;
+
+            /** @var \DOMNamedNodeMap $attributes */
+            $attributes = $el->attributes;
             // for each input element select name and value attribute values
-            for ($i = 0; $i < $el->attributes->length; ++$i) {
-                if ('name' === $el->attributes->item($i)->name) {
+            for ($i = 0; $i < $attributes->length; ++$i) {
+                /** @var \DOMAttr $attribute */
+                $attribute = $attributes->item($i);
+                if ('name' === $attribute->name) {
                     /** @var string|null $key */
-                    $key = $el->attributes->item($i)->value;
+                    $key = $attribute->value;
                 }
-                if ('value' === $el->attributes->item($i)->name) {
+                if ('value' === $attribute->name) {
                     /** @var string|null $value */
-                    $value = $el->attributes->item($i)->value;
+                    $value = $attribute->value;
                 }
             }
             if ($key && null !== $value && !in_array($key, ['submit', 'submitBtn'])) {
