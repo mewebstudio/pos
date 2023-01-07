@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.11.0] - 2023-01-08
+### Changed
+- Response formatı **object** yerine artık **array** olarak değiştirildi, `$pos->getResponse();` kod artık array döner.
+  - Ödeme response içeriği basitleştirildi, aşağıda listelenen alanlar response'dan **kaldırıldı**
+    - `id` - bu alanın değeri hep `auth_code` ile aynıydi, yerine `auth_code`'u kullanmaya devam edebilirsiniz,
+    - `host_ref_num` - bu alanın değeri hep `ref_ret_num` ile aynıydı, `ref_ret_num`'u kullanmaya devam edebilirsiniz,
+    - `code`
+    - `response`
+    - `xid`
+    - `campaign_url`
+    - `hash`
+    - `hash_data`
+    - `rand`
+  - `amount` alanı çoğu gateway responselarında normalize edildi ("1.000,1" => 1000.1), ve artık **float** deger döner.
+- 3D ödemede hash değeri (`check3DHash()`) dogurlanamazsa artık `Mews\Pos\Exceptions\HashMismatchException` exception fırlatır.
+- Bankadan gelen response'ları normalize eden kodlar yeni oluşturulan sınıflara tasındı.
+    orn: `Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper`
+- Hash oluşturma ve dogrulama kodlar yeni olusturulan Crypt sınıflara taşındı. örn: `Mews\Pos\Crypt\EstPosCrypt`
+- `Mews\Pos\Gateways\PosNetCrypt` sınıf tamamen kaldırıldı.
+
 ## [0.10.0] - 2022-10-22
 ### New Features
 - `Mews\Pos\Gateways\EstV3Pos` eklendi.
