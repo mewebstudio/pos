@@ -6,6 +6,14 @@ namespace Mews\Pos\Factory;
 
 use DomainException;
 use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Crypt\CryptInterface;
+use Mews\Pos\Crypt\EstPosCrypt;
+use Mews\Pos\Crypt\EstV3PosCrypt;
+use Mews\Pos\Crypt\GarantiPosCrypt;
+use Mews\Pos\Crypt\InterPosCrypt;
+use Mews\Pos\Crypt\KuveytPosCrypt;
+use Mews\Pos\Crypt\PayForPosCrypt;
+use Mews\Pos\Crypt\PosNetCrypt;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\EstV3PosRequestDataMapper;
@@ -118,5 +126,33 @@ class PosFactory
                 return new VakifBankPosRequestDataMapper($currencies);
         }
         throw new DomainException('unsupported gateway');
+    }
+
+    /**
+     * @param class-string    $gatewayClass
+     * @param LoggerInterface $logger
+     *
+     * @return CryptInterface|null
+     */
+    public static function getGatewayCrypt(string $gatewayClass, LoggerInterface $logger): ?CryptInterface
+    {
+        switch ($gatewayClass) {
+            case EstV3Pos::class:
+                return new EstV3PosCrypt($logger);
+            case EstPos::class:
+                return new EstPosCrypt($logger);
+            case GarantiPos::class:
+                return new GarantiPosCrypt($logger);
+            case InterPos::class:
+                return new InterPosCrypt($logger);
+            case KuveytPos::class:
+                return new KuveytPosCrypt($logger);
+            case PayForPos::class:
+                return new PayForPosCrypt($logger);
+            case PosNet::class:
+                return new PosNetCrypt($logger);
+            default:
+                return null;
+        }
     }
 }
