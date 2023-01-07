@@ -84,6 +84,9 @@ class KuveytPos extends AbstractGateway
     public function make3DPayment(Request $request)
     {
         $gatewayResponse = $request->request->get('AuthenticationResponse');
+        if (!is_string($gatewayResponse)) {
+            throw new \LogicException('AuthenticationResponse is missing');
+        }
         $gatewayResponse = urldecode($gatewayResponse);
         $gatewayResponse = $this->XMLStringToArray($gatewayResponse);
         $bankResponse    = null;

@@ -1891,11 +1891,6 @@ parameters:
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^Parameter \\#1 \\$str of function urldecode expects string, bool\\|float\\|int\\|string\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
 			message: "#^Parameter \\#2 \\$payload of method Mews\\\\Pos\\\\Client\\\\HttpClient\\:\\:post\\(\\) expects array\\{body\\?\\: array\\<string, string\\>, headers\\?\\: array\\<string, string\\>, form_params\\?\\: array\\<string, string\\>\\}\\|null, array\\{body\\: array\\|string, headers\\: array\\{Content\\-Type\\: 'text/xml; charset…'\\}\\} given\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
