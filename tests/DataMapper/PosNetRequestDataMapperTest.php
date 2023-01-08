@@ -5,6 +5,7 @@
 namespace Mews\Pos\Tests\DataMapper;
 
 use Exception;
+use InvalidArgumentException;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
@@ -15,15 +16,13 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PosNet;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * PosNetRequestDataMapperTest
  */
 class PosNetRequestDataMapperTest extends TestCase
 {
-    /** @var AbstractPosAccount */
-    private $threeDAccount;
-
     /** @var PosNet */
     private $pos;
 
@@ -41,7 +40,7 @@ class PosNetRequestDataMapperTest extends TestCase
 
         $this->config = require __DIR__.'/../../config/pos.php';
 
-        $this->threeDAccount = AccountFactory::createPosNetAccount(
+        $threeDAccount = AccountFactory::createPosNetAccount(
             'yapikredi',
             '6706598320',
             'XXXXXX',
@@ -65,9 +64,10 @@ class PosNetRequestDataMapperTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->threeDAccount);
+        $this->pos = PosFactory::createPosGateway($threeDAccount);
         $this->pos->setTestMode(true);
-        $this->requestDataMapper = new PosNetRequestDataMapper();
+        $crypt = PosFactory::getGatewayCrypt(PosNet::class, new NullLogger());
+        $this->requestDataMapper = new PosNetRequestDataMapper($crypt);
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
@@ -121,14 +121,6 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateSecurityData()
-    {
-        $this->assertSame('c1PPl+2UcdixyhgLYnf4VfJyFGaNQNOwE0uMkci7Uag=', $this->requestDataMapper->createSecurityData($this->threeDAccount));
-    }
-
-    /**
-     * @return void
-     */
     public function testFormatOrderId()
     {
         $this->assertSame('0010', PosNetRequestDataMapper::formatOrderId(10, 4));
@@ -141,7 +133,7 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testFormatOrderIdFail()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         PosNetRequestDataMapper::formatOrderId('123456789012345566fml');
     }
 
@@ -152,7 +144,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'           => '2020110828BC',
-            'host_ref_num' => '019676067890000191',
+            'ref_ret_num' => '019676067890000191',
             'amount'       => 10.02,
             'currency'     => 'TRY',
             'installment'  => '2',
@@ -186,18 +178,6 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DHash()
-    {
-        $expected = 'nyeFSQ4J9NZVeCcEGCDomM8e2YIvoeIa/IDh2D3qaL4=';
-        $pos      = $this->pos;
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), '');
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
     public function testCreateCancelRequestData()
     {
         $pos   = $this->pos;
@@ -210,7 +190,7 @@ class PosNetRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedData, $actual);
 
         $order = [
-            'host_ref_num' => '2020110828BCNUM',
+            'ref_ret_num' => '2020110828BCNUM',
         ];
         $pos->prepare($order, AbstractGateway::TX_CANCEL);
         $actual       = $this->requestDataMapper->createCancelRequestData($pos->getAccount(), $pos->getOrder());
@@ -238,9 +218,9 @@ class PosNetRequestDataMapperTest extends TestCase
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_PAY);
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), '', $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
 
-        $expectedData = $this->getSample3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), $responseData);
+        $expectedData = $this->getSample3DPaymentRequestData($pos->getAccount(), $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -262,7 +242,7 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreate3DEnrollmentCheckRequestDataFailTooLongOrderId()
     {
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidArgumentException::class);
         $pos = $this->pos;
         $order = $this->order;
         $order['id'] = 'd32458293945098y439244343';
@@ -335,7 +315,7 @@ class PosNetRequestDataMapperTest extends TestCase
 
         $actualData = $this->requestDataMapper->createStatusRequestData($pos->getAccount(), $pos->getOrder());
 
-        $expectedData = $this->getSampleStatusRequestData($pos->getAccount(), $pos->getOrder());
+        $expectedData = $this->getSampleStatusRequestData($pos->getAccount());
         $this->assertEquals($expectedData, $actualData);
     }
 
@@ -406,12 +386,11 @@ class PosNetRequestDataMapperTest extends TestCase
 
     /**
      * @param PosNetAccount $account
-     * @param               $order
      * @param array         $responseData
      *
      * @return array
      */
-    private function getSample3DPaymentRequestData(AbstractPosAccount $account, $order, array $responseData): array
+    private function getSample3DPaymentRequestData(AbstractPosAccount $account, array $responseData): array
     {
         return [
             'mid'         => $account->getClientId(),
@@ -421,7 +400,7 @@ class PosNetRequestDataMapperTest extends TestCase
                 'merchantData' => $responseData['MerchantPacket'],
                 'sign'         => $responseData['Sign'],
                 'wpAmount'     => 0,
-                'mac'          => $this->requestDataMapper->create3DHash($account, $order, ''),
+                'mac'          => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
             ],
         ];
     }
@@ -444,8 +423,8 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
 
         //either will work
-        if (isset($order->host_ref_num)) {
-            $requestData['reverse']['hostLogKey'] = $order->host_ref_num;
+        if (isset($order->ref_ret_num)) {
+            $requestData['reverse']['hostLogKey'] = $order->ref_ret_num;
         } else {
             $requestData['reverse']['orderID'] = 'TDSC000000002020110828BC';
         }
@@ -491,7 +470,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'tid'              => $account->getTerminalId(),
             'tranDateRequired' => '1',
             'capt'             => [
-                'hostLogKey'   => $order->host_ref_num,
+                'hostLogKey'   => $order->ref_ret_num,
                 'amount'       => 1002,
                 'currencyCode' => 'TL',
                 'installment'  => '02',
@@ -501,11 +480,10 @@ class PosNetRequestDataMapperTest extends TestCase
 
     /**
      * @param PosNetAccount $account
-     * @param               $order
      *
      * @return array
      */
-    private function getSampleStatusRequestData(AbstractPosAccount $account, $order): array
+    private function getSampleStatusRequestData(AbstractPosAccount $account): array
     {
         return [
             'mid'       => $account->getClientId(),
@@ -534,8 +512,8 @@ class PosNetRequestDataMapperTest extends TestCase
             ],
         ];
 
-        if (isset($order->host_ref_num)) {
-            $requestData['return']['hostLogKey'] = $order->host_ref_num;
+        if (isset($order->ref_ret_num)) {
+            $requestData['return']['hostLogKey'] = $order->ref_ret_num;
         } else {
             $requestData['return']['orderID'] = 'TDSC000000002020110828BC';
         }

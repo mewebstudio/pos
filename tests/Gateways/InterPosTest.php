@@ -11,6 +11,7 @@ use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\InterPos;
+use Mews\Pos\Tests\DataMapper\ResponseDataMapper\InterPosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -88,94 +89,19 @@ class InterPosTest extends TestCase
     /**
      * @return void
      */
-    public function testCheck3DHash()
-    {
-        $data = [
-            'Version'        => '',
-            'PurchAmount'    => 320,
-            'Exponent'       => '',
-            'Currency'       => '949',
-            'OkUrl'          => 'https://localhost/pos/examples/interpos/3d/success.php',
-            'FailUrl'        => 'https://localhost/pos/examples/interpos/3d/fail.php',
-            'MD'             => '',
-            'OrderId'        => '20220327140D',
-            'ProcReturnCode' => '81',
-            'Response'       => '',
-            'mdStatus'       => '0',
-            'HASH'           => '9DZVckklZFjuoA7sl4MN0l7VDMo=',
-            'HASHPARAMS'     => 'Version:PurchAmount:Exponent:Currency:OkUrl:FailUrl:MD:OrderId:ProcReturnCode:Response:mdStatus:',
-            'HASHPARAMSVAL'  => '320949https://localhost/pos/examples/interpos/3d/success.phphttps://localhost/pos/examples/interpos/3d/fail.php20220327140D810',
-        ];
-
-        $this->assertTrue($this->pos->check3DHash($this->account, $data));
-
-        $data['mdStatus'] = '';
-        $this->assertFalse($this->pos->check3DHash($this->account, $data));
-    }
-
-    /**
-     * @return void
-     */
     public function testMake3DPaymentAuthFail()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $request = Request::create('', 'POST', [
-            'Version' => '',
-            'MerchantID' => '',
-            'ShopCode' => '3123',
-            'TxnStat' => 'N',
-            'MD' => '',
-            'RetCode' => '',
-            'RetDet' => '',
-            'VenderCode' => '',
-            'Eci' => '',
-            'PayerAuthenticationCode' => '',
-            'PayerTxnId' => '',
-            'CavvAlg' => '',
-            'PAResVerified' => 'False',
-            'PAResSyntaxOK' => 'False',
-            'Expiry' => '****',
-            'Pan' => '409070******0057',
-            'OrderId' => '202204155912',
-            'PurchAmount' => '30',
-            'Exponent' => '',
-            'Description' => '',
-            'Description2' => '',
-            'Currency' => '949',
-            'OkUrl' => 'http://localhost/interpos/3d/response.php',
-            'FailUrl' => 'http://localhost/interpos/3d/response.php',
-            '3DStatus' => '0',
-            'AuthCode' => '',
-            'HostRefNum' => 'hostid',
-            'TransId' => '',
-            'TRXDATE' => '',
-            'CardHolderName' => '',
-            'mdStatus' => '0',
-            'ProcReturnCode' => '81',
-            'TxnResult' => '',
-            'ErrorMessage' => 'Terminal Aktif Degil',
-            'ErrorCode' => 'B810002',
-            'Response' => '',
-            'HASH' => '4hSLIFy/RNlEdB7sUYNnP7kAqzM=',
-            'HASHPARAMS' => 'Version:PurchAmount:Exponent:Currency:OkUrl:FailUrl:MD:OrderId:ProcReturnCode:Response:mdStatus:',
-            'HASHPARAMSVAL' => '30949http://localhost/interpos/3d/response.phphttp://localhost/interpos/3d/response.php202204155912810',
-        ]);
+        $interPosResponseDataMapperTest = new InterPosResponseDataMapperTest();
+        $gatewayResponse = $interPosResponseDataMapperTest->threeDPaymentDataProvider()['authFail1']['threeDResponseData'];
+        $request = Request::create('', 'POST', $gatewayResponse);
 
         $this->pos->make3DPayment($request);
         $result = $this->pos->getResponse();
-        $this->assertIsObject($result);
-        $result = (array) $result;
+        $this->assertIsArray($result);
 
         $this->assertSame('declined', $result['status']);
         $this->assertSame('81', $result['proc_return_code']);
-        $this->assertSame('B810002', $result['error_code']);
-        $this->assertSame('202204155912', $result['order_id']);
-        $this->assertSame('Auth', $result['transaction']);
-        $this->assertSame('409070******0057', $result['masked_number']);
-        $this->assertSame('30', $result['amount']);
-        $this->assertSame('TRY', $result['currency']);
-        $this->assertSame('4hSLIFy/RNlEdB7sUYNnP7kAqzM=', $result['hash']);
-        $this->assertSame('Terminal Aktif Degil', $result['error_message']);
         $this->assertNotEmpty($result['3d_all']);
         $this->assertEmpty($result['all']);
     }
@@ -186,63 +112,16 @@ class InterPosTest extends TestCase
     public function testMake3DPayPaymentFail()
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $request = Request::create('', 'POST', [
-            'Version' => '',
-            'MerchantID' => '',
-            'ShopCode' => '3123',
-            'TxnStat' => 'N',
-            'MD' => '',
-            'RetCode' => '',
-            'RetDet' => '',
-            'VenderCode' => '',
-            'Eci' => '',
-            'PayerAuthenticationCode' => '',
-            'PayerTxnId' => '',
-            'CavvAlg' => '',
-            'PAResVerified' => 'False',
-            'PAResSyntaxOK' => 'False',
-            'Expiry' => '****',
-            'Pan' => '409070******0057',
-            'OrderId' => '202204155912',
-            'PurchAmount' => '30',
-            'Exponent' => '',
-            'Description' => '',
-            'Description2' => '',
-            'Currency' => '949',
-            'OkUrl' => 'http://localhost/interpos/3d-pay/response.php',
-            'FailUrl' => 'http://localhost/interpos/3d-pay/response.php',
-            '3DStatus' => '0',
-            'AuthCode' => '',
-            'HostRefNum' => 'hostid',
-            'TransId' => '',
-            'TRXDATE' => '',
-            'CardHolderName' => '',
-            'mdStatus' => '0',
-            'ProcReturnCode' => '81',
-            'TxnResult' => '',
-            'ErrorMessage' => 'Terminal Aktif Degil',
-            'ErrorCode' => 'B810002',
-            'Response' => '',
-            'HASH' => 'klXFUEWTgMc6pRZJFsQRMTOa9us=',
-            'HASHPARAMS' => 'Version:PurchAmount:Exponent:Currency:OkUrl:FailUrl:MD:OrderId:ProcReturnCode:Response:mdStatus:',
-            'HASHPARAMSVAL' => '30949http://localhost/interpos/3d-pay/response.phphttp://localhost/interpos/3d-pay/response.php20220415D7F8810',
-        ]);
+        $interPosResponseDataMapperTest = new InterPosResponseDataMapperTest();
+        $gatewayResponse = $interPosResponseDataMapperTest->threeDPayPaymentDataProvider()['authFail1']['paymentData'];
+        $request = Request::create('', 'POST', $gatewayResponse);
 
         $this->pos->make3DPayment($request);
         $result = $this->pos->getResponse();
-        $this->assertIsObject($result);
-        $result = (array) $result;
+        $this->assertIsArray($result);
 
         $this->assertSame('declined', $result['status']);
         $this->assertSame('81', $result['proc_return_code']);
-        $this->assertSame('B810002', $result['error_code']);
-        $this->assertSame('202204155912', $result['order_id']);
-        $this->assertSame('Auth', $result['transaction']);
-        $this->assertSame('409070******0057', $result['masked_number']);
-        $this->assertSame('30', $result['amount']);
-        $this->assertSame('TRY', $result['currency']);
-        $this->assertSame('klXFUEWTgMc6pRZJFsQRMTOa9us=', $result['hash']);
-        $this->assertSame('Terminal Aktif Degil', $result['error_message']);
         $this->assertNotEmpty($result['3d_all']);
         $this->assertEmpty($result['all']);
     }

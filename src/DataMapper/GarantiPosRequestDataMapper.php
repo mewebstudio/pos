@@ -4,6 +4,8 @@
  */
 namespace Mews\Pos\DataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
+use Mews\Pos\Crypt\GarantiPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -12,7 +14,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 /**
  * Creates request data for GarantiPos Gateway requests
  */
-class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
+class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     public const API_VERSION = 'v0.01';
 
@@ -20,16 +22,16 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
 
+    /**
+     * {@inheritDoc}
+     */
     protected $secureTypeMappings = [
         AbstractGateway::MODEL_3D_SECURE  => '3D',
         AbstractGateway::MODEL_3D_PAY     => '3D_PAY',
-        AbstractGateway::MODEL_3D_HOST    => null, //todo
-        AbstractGateway::MODEL_NON_SECURE => null,
     ];
 
-
     /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     protected $txTypeMappings = [
         AbstractGateway::TX_PAY      => 'sales',
@@ -49,14 +51,21 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         'MONTH' => 'M',
     ];
 
+    /** @var CryptInterface|GarantiPosCrypt|null */
+    protected $crypt;
+
     /**
      * @param GarantiPosAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
-        $hash = $this->createHash($account, $order, $txType);
+        $hashData = [
+            'id' => $order->id,
+            'amount' => self::amountFormat($order->amount),
+        ];
+        $hash = $this->crypt->createHash($account, $hashData);
 
         $result = [
             'Mode'        => $this->getMode(),
@@ -96,11 +105,15 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param GarantiPosAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
-        $hash = $this->createHash($account, $order, $txType, $card);
+        $hashData = [
+            'id' => $order->id,
+            'amount' => self::amountFormat($order->amount),
+        ];
+        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType($txType), $card);
 
         $result = [
             'Mode'        => $this->getMode(),
@@ -135,11 +148,15 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param GarantiPosAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
-        $hash = $this->createHash($account, $order, AbstractGateway::TX_POST_PAY, $card);
+        $hashData = [
+            'id' => $order->id,
+            'amount' => self::amountFormat($order->amount),
+        ];
+        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_POST_PAY), $card);
 
         return [
             'Mode'        => $this->getMode(),
@@ -164,11 +181,15 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param GarantiPosAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
-        $hash = $this->createHash($account, $order, AbstractGateway::TX_STATUS);
+        $hashData = [
+            'id' => $order->id,
+            'amount' => self::amountFormat($order->amount),
+        ];
+        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_STATUS));
 
         return [
             'Mode'        => $this->getMode(),
@@ -195,11 +216,15 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param GarantiPosAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
-        $hash = $this->createHash($account, $order, AbstractGateway::TX_CANCEL);
+        $hashData = [
+            'id' => $order->id,
+            'amount' => self::amountFormat($order->amount),
+        ];
+        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_CANCEL));
 
         return [
             'Mode'        => $this->getMode(),
@@ -227,11 +252,15 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param GarantiPosAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
-        $hash = $this->createHash($account, $order, AbstractGateway::TX_REFUND);
+        $hashData = [
+            'id' => $order->id,
+            'amount' => self::amountFormat($order->amount),
+        ];
+        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_REFUND));
 
         return [
             'Mode'        => $this->getMode(),
@@ -259,11 +288,15 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param GarantiPosAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
-        $hash = $this->createHash($account, $order, AbstractGateway::TX_HISTORY);
+        $hashData = [
+            'id' => $order->id,
+            'amount' => self::amountFormat($order->amount),
+        ];
+        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_HISTORY));
 
         return [
             'Mode'        => $this->getMode(),
@@ -289,11 +322,12 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
 
 
     /**
-     * @inheritDoc
+     * @param GarantiPosAccount $account
+     * {@inheritDoc}
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        $hashData = $this->create3DHash($account, $order, $txType);
+        $mappedOrder = $this->mapPaymentOrder($order);
 
         $inputs = [
             'secure3dsecuritylevel' => $this->secureTypeMappings[$account->getModel()],
@@ -304,16 +338,17 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'terminalmerchantid'    => $account->getClientId(),
             'terminalid'            => $account->getTerminalId(),
             'txntype'               => $this->mapTxType($txType),
-            'txnamount'             => self::amountFormat($order->amount),
-            'txncurrencycode'       => $this->mapCurrency($order->currency),
-            'txninstallmentcount'   => $this->mapInstallment($order->installment),
-            'orderid'               => $order->id,
-            'successurl'            => $order->success_url,
-            'errorurl'              => $order->fail_url,
-            'customeremailaddress'  => $order->email ?? null,
-            'customeripaddress'     => $order->ip,
-            'secure3dhash'          => $hashData,
+            'txnamount'             => $mappedOrder['amount'],
+            'txncurrencycode'       => $mappedOrder['currency'],
+            'txninstallmentcount'   => $mappedOrder['installment'],
+            'orderid'               => $mappedOrder['id'],
+            'successurl'            => $mappedOrder['success_url'],
+            'errorurl'              => $mappedOrder['fail_url'],
+            'customeremailaddress'  => $mappedOrder['email'] ?? null,
+            'customeripaddress'     => $mappedOrder['ip'],
         ];
+
+        $inputs['secure3dhash'] = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
         if ($card) {
             $inputs['cardnumber'] = $card->getNumber();
@@ -329,52 +364,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param GarantiPosAccount $account
-     *
-     * @inheritDoc
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
-    {
-        $map = [
-            $account->getTerminalId(),
-            $order->id,
-            self::amountFormat($order->amount),
-            $order->success_url,
-            $order->fail_url,
-            $this->mapTxType($txType),
-            $this->mapInstallment($order->installment),
-            $account->getStoreKey(),
-            $this->createSecurityData($account, $txType),
-        ];
-
-        return $this->hashString(implode(static::HASH_SEPARATOR, $map));
-    }
-
-    /**
-     * Make Hash Data
-     *
-     * @param GarantiPosAccount       $account
-     * @param                         $order
-     * @param string                  $txType
-     * @param AbstractCreditCard|null $card
-     *
-     * @return string
-     */
-    public function createHash(GarantiPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): string
-    {
-        $map = [
-            $order->id,
-            $account->getTerminalId(),
-            isset($card) ? $card->getNumber() : null,
-            self::amountFormat($order->amount),
-            $this->createSecurityData($account, $txType),
-        ];
-
-        return $this->hashString(implode(static::HASH_SEPARATOR, $map));
-    }
-
-    /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     public function mapInstallment(?int $installment)
     {
@@ -390,17 +380,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public static function amountFormat($amount): int
     {
-        return round($amount, 2) * 100;
-    }
-
-    /**
-     * @param string $str
-     *
-     * @return string
-     */
-    protected function hashString(string $str): string
-    {
-        return strtoupper(hash(static::HASH_ALGORITHM, $str));
+        return intval(round($amount, 2) * 100);
     }
 
     /**
@@ -409,30 +389,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     private function getMode(): string
     {
         return !$this->isTestMode() ? 'PROD' : 'TEST';
-    }
-
-    /**
-     * Make Security Data
-     *
-     * @param GarantiPosAccount $account
-     * @param string            $txType
-     *
-     * @return string
-     */
-    private function createSecurityData(AbstractPosAccount $account, string $txType): string
-    {
-        if (AbstractGateway::TX_REFUND === $txType || AbstractGateway::TX_CANCEL === $txType) {
-            $password = $account->getRefundPassword();
-        } else {
-            $password = $account->getPassword();
-        }
-
-        $map = [
-            $password,
-            str_pad((int) $account->getTerminalId(), 9, 0, STR_PAD_LEFT),
-        ];
-
-        return $this->hashString(implode(static::HASH_SEPARATOR, $map));
     }
 
     /**
@@ -527,5 +483,15 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Type' => $order->recurringType ?? 'R', //R:Sabit Tutarli   G:Degisken Tuta
             'StartDate' => $order->startDate ?? '',
         ];
+    }
+
+    private function mapPaymentOrder($order): array
+    {
+        $mappedOrder = (array) $order;
+        $mappedOrder['amount'] = self::amountFormat($mappedOrder['amount']);
+        $mappedOrder['currency'] = $this->mapCurrency($mappedOrder['currency']);
+        $mappedOrder['installment'] = $this->mapInstallment($mappedOrder['installment']);
+
+        return $mappedOrder;
     }
 }

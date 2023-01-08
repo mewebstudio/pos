@@ -5,6 +5,7 @@
 namespace Mews\Pos\DataMapper;
 
 use Exception;
+use InvalidArgumentException;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -14,19 +15,16 @@ use Mews\Pos\Gateways\AbstractGateway;
 /**
  * Creates request data for PosNet Gateway requests
  */
-class PosNetRequestDataMapper extends AbstractRequestDataMapper
+class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
-
-    protected const HASH_ALGORITHM = 'sha256';
-    protected const HASH_SEPARATOR = ';';
 
     /**
      * PosNet requires order id with specific length
      */
     private const ORDER_ID_LENGTH = 20;
     /**
-     * order Id total length including prefix;
+     * order id total length including prefix;
      */
     private const ORDER_ID_TOTAL_LENGTH = 24;
 
@@ -35,7 +33,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     private const ORDER_ID_REGULAR_PREFIX = '';  //?
 
     /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     protected $txTypeMappings = [
         AbstractGateway::TX_PAY      => 'Sale',
@@ -47,7 +45,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     protected $currencyMappings = [
         'TRY' => 'TL',
@@ -61,10 +59,17 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param PosNetAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
+        $mappedOrder             = (array) $order;
+        $mappedOrder['id']       = self::formatOrderId($order->id);
+        $mappedOrder['amount']   = self::amountFormat($order->amount);
+        $mappedOrder['currency'] = $this->mapCurrency($order->currency);
+
+        $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
+
         return [
             'mid'         => $account->getClientId(),
             'tid'         => $account->getTerminalId(),
@@ -73,7 +78,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'merchantData' => $responseData['MerchantPacket'],
                 'sign'         => $responseData['Sign'],
                 'wpAmount'     => 0,
-                'mac'          => $this->create3DHash($account, $order, $txType),
+                'mac'          => $hash,
             ],
         ];
     }
@@ -81,14 +86,14 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param PosNetAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
         $requestData = [
-            'mid'               => $account->getClientId(),
-            'tid'               => $account->getTerminalId(),
-            'tranDateRequired'  => '1',
+            'mid'                                 => $account->getClientId(),
+            'tid'                                 => $account->getTerminalId(),
+            'tranDateRequired'                    => '1',
             strtolower($this->mapTxType($txType)) => [
                 'orderID'      => self::formatOrderId($order->id),
                 'installment'  => $this->mapInstallment($order->installment),
@@ -110,16 +115,16 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param PosNetAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
         return [
-            'mid'                                                           => $account->getClientId(),
-            'tid'                                                           => $account->getTerminalId(),
-            'tranDateRequired'                                              => '1',
+            'mid'                                                      => $account->getClientId(),
+            'tid'                                                      => $account->getTerminalId(),
+            'tranDateRequired'                                         => '1',
             strtolower($this->mapTxType(AbstractGateway::TX_POST_PAY)) => [
-                'hostLogKey'   => $order->host_ref_num,
+                'hostLogKey'   => $order->ref_ret_num,
                 'amount'       => self::amountFormat($order->amount),
                 'currencyCode' => $this->mapCurrency($order->currency),
                 'installment'  => $this->mapInstallment($order->installment),
@@ -130,7 +135,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param PosNetAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
@@ -148,7 +153,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param PosNetAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -167,8 +172,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         }
 
         //either will work
-        if (isset($order->host_ref_num)) {
-            $requestData[$txType]['hostLogKey'] = $order->host_ref_num;
+        if (isset($order->ref_ret_num)) {
+            $requestData[$txType]['hostLogKey'] = $order->ref_ret_num;
         } else {
             $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
         }
@@ -179,7 +184,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param PosNetAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -194,8 +199,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             ],
         ];
 
-        if (isset($order->host_ref_num)) {
-            $requestData[$txType]['hostLogKey'] = $order->host_ref_num;
+        if (isset($order->ref_ret_num)) {
+            $requestData[$txType]['hostLogKey'] = $order->ref_ret_num;
         } else {
             $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
         }
@@ -204,7 +209,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
@@ -215,7 +220,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param PosNetAccount $account
      *
-     * @inheritDoc
+     * {@inheritDoc}
      *
      * @throws Exception
      */
@@ -244,12 +249,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param PosNetAccount      $account
-     * @param                    $order
-     * @param string             $txType
-     * @param AbstractCreditCard $card
-     *
-     * @return array
+     * @param PosNetAccount         $account
+     * @param AbstractGateway::TX_* $txType
      */
     public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, $order, string $txType, AbstractCreditCard $card): array
     {
@@ -284,6 +285,13 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      */
     public function create3DResolveMerchantRequestData(AbstractPosAccount $account, $order, array $responseData): array
     {
+        $mappedOrder             = (array) $order;
+        $mappedOrder['id']       = self::formatOrderId($order->id);
+        $mappedOrder['amount']   = self::amountFormat($order->amount);
+        $mappedOrder['currency'] = $this->mapCurrency($order->currency);
+
+        $hash = $this->crypt->create3DHash($account, $mappedOrder);
+
         return [
             'mid'                    => $account->getClientId(),
             'tid'                    => $account->getTerminalId(),
@@ -291,51 +299,9 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'bankData'     => $responseData['BankPacket'],
                 'merchantData' => $responseData['MerchantPacket'],
                 'sign'         => $responseData['Sign'],
-                'mac'          => $this->create3DHash($account, $order, ''),
+                'mac'          => $hash,
             ],
         ];
-    }
-
-
-    /**
-     * @param PosNetAccount $account
-     *
-     * @inheritDoc
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
-    {
-        if ($account->getModel() === AbstractGateway::MODEL_3D_SECURE || $account->getModel() === AbstractGateway::MODEL_3D_PAY) {
-            $secondHashData = [
-                self::formatOrderId($order->id),
-                self::amountFormat($order->amount),
-                $this->mapCurrency($order->currency),
-                $account->getClientId(),
-                $this->createSecurityData($account),
-            ];
-            $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
-
-            return $this->hashString($hashStr);
-        }
-
-        return '';
-    }
-
-    /**
-     * Make Security Data
-     *
-     * @param PosNetAccount $account
-     *
-     * @return string
-     */
-    public function createSecurityData(PosNetAccount $account): string
-    {
-        $hashData = [
-            $account->getStoreKey(),
-            $account->getTerminalId(),
-        ];
-        $hashStr  = implode(static::HASH_SEPARATOR, $hashData);
-
-        return $this->hashString($hashStr);
     }
 
     /**
@@ -389,8 +355,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             $padLength = self::ORDER_ID_LENGTH;
         }
         if (strlen($orderId) > $padLength) {
-            throw new \InvalidArgumentException(sprintf(
-                // Banka tarafindan belirlenen kisitlama
+            throw new InvalidArgumentException(sprintf(
+            // Banka tarafindan belirlenen kisitlama
                 'Saglanan siparis ID\'nin (%s) uzunlugu %d karakter. Siparis ID %d karakterden uzun olamaz!',
                 $orderId,
                 strlen($orderId),
@@ -403,7 +369,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * formats installment in 00, 02, 06 format
-     * @inheritdoc
+     * {@inheritDoc}
      */
     public function mapInstallment(?int $installment)
     {

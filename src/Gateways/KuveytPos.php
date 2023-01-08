@@ -7,14 +7,12 @@ namespace Mews\Pos\Gateways;
 use DOMDocument;
 use DOMNodeList;
 use Exception;
-use Mews\Pos\Client\HttpClient;
-use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -25,39 +23,14 @@ class KuveytPos extends AbstractGateway
 {
     public const NAME = 'KuveytPos';
 
-    /**
-     * Response Codes
-     * @var array
-     */
-    protected $codes = [
-        '00'                => 'approved',
-        'ApiUserNotDefined' => 'invalid_transaction',
-        'EmptyMDException'  => 'invalid_transaction',
-        'HashDataError'     => 'invalid_transaction',
-    ];
-
     /** @var KuveytPosAccount */
     protected $account;
-
-    /** @var AbstractCreditCard|null */
-    protected $card;
 
     /** @var KuveytPosRequestDataMapper */
     protected $requestDataMapper;
 
-    /**
-     * @param KuveytPosAccount $account
-     * @param KuveytPosRequestDataMapper $requestDataMapper
-     */
-    public function __construct(
-        array $config,
-        AbstractPosAccount $account,
-        AbstractRequestDataMapper $requestDataMapper,
-        HttpClient $client,
-        LoggerInterface $logger
-    ) {
-        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
-    }
+    /** @var KuveytPosResponseDataMapper */
+    protected $responseDataMapper;
 
     /**
      * @inheritDoc
@@ -82,11 +55,11 @@ class KuveytPos extends AbstractGateway
     {
         $url = $url ?: $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-        $body = [
-            'body' => $contents,
+        $body     = [
+            'body'    => $contents,
             'headers' => [
                 'Content-Type' => 'text/xml; charset=UTF-8',
-            ]
+            ],
         ];
         $response = $this->client->post($url, $body);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
@@ -106,41 +79,33 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * todo implement method
-     * @param AbstractPosAccount $account
-     * @param array              $data
-     *
-     * @return bool
-     */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
-    {
-        return true;
-    }
-
-    /**
      * @inheritDoc
      */
     public function make3DPayment(Request $request)
     {
         $gatewayResponse = $request->request->get('AuthenticationResponse');
+        if (!is_string($gatewayResponse)) {
+            throw new \LogicException('AuthenticationResponse is missing');
+        }
         $gatewayResponse = urldecode($gatewayResponse);
         $gatewayResponse = $this->XMLStringToArray($gatewayResponse);
-        $bankResponse = null;
-        $procReturnCode  = $this->getProcReturnCode($gatewayResponse);
-        if ($this->check3DHash($this->account, $gatewayResponse)) {
-            if ('00' === $procReturnCode) {
-                $this->logger->log(LogLevel::DEBUG, 'finishing payment');
+        $bankResponse    = null;
+        $procReturnCode  = $gatewayResponse['ResponseCode'];
 
-                $contents = $this->create3DPaymentXML($gatewayResponse);
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
+            throw new HashMismatchException();
+        }
+        if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $this->logger->log(LogLevel::DEBUG, 'finishing payment');
 
-                $bankResponse = $this->send($contents);
-            } else {
-                $this->logger->log(LogLevel::ERROR, '3d auth fail', ['proc_return_code' => $procReturnCode]);
-            }
+            $contents = $this->create3DPaymentXML($gatewayResponse);
+
+            $bankResponse = $this->send($contents);
+        } else {
+            $this->logger->log(LogLevel::ERROR, '3d auth fail', ['proc_return_code' => $procReturnCode]);
         }
 
-        $authorizationResponse = $this->emptyStringsToNull($bankResponse);
-        $this->response        = (object) $this->map3DPaymentData($gatewayResponse, $authorizationResponse);
+        $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse);
         $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
@@ -241,138 +206,6 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * Get ProcReturnCode
-     *
-     * @param array $response
-     *
-     * @return string|null
-     */
-    protected function getProcReturnCode(array $response): ?string
-    {
-        return $response['ResponseCode'] ?? null;
-    }
-
-    /**
-     * Get Status Detail Text
-     *
-     * @param string|null $procReturnCode
-     *
-     * @return string|null
-     */
-    protected function getStatusDetail(?string $procReturnCode): ?string
-    {
-        return $procReturnCode ? ($this->codes[$procReturnCode] ?? $procReturnCode) : null;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData): array
-    {
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
-            '3d_auth_response' => $raw3DAuthResponseData,
-            'provision_response' => $rawPaymentResponseData,
-        ]);
-        $threeDResponse = $this->tDPayResponseCommon($raw3DAuthResponseData);
-
-        if (empty($rawPaymentResponseData)) {
-            return array_merge($this->getDefaultPaymentResponse(), $threeDResponse);
-        }
-
-        $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData);
-
-        return $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapPaymentResponse($responseData): array
-    {
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$responseData]);
-
-        $responseData = (array) $responseData;
-        if (isset($responseData['VPosMessage'])) {
-            $responseData['VPosMessage'] = (array) $responseData['VPosMessage'];
-        }
-        $responseData   = $this->emptyStringsToNull($responseData);
-        $status         = 'declined';
-        $procReturnCode = $this->getProcReturnCode($responseData);
-
-        if ('00' === $procReturnCode) {
-            $status = 'approved';
-        }
-
-        $result = $this->getDefaultPaymentResponse();
-
-        $result['proc_return_code'] = $procReturnCode;
-        $result['code']             = $procReturnCode;
-        $result['status']           = $status;
-        $result['status_detail']    = $this->getStatusDetail($procReturnCode);
-        $result['all']              = $responseData;
-
-        if ('approved' !== $status) {
-            $result['error_code']    = $procReturnCode;
-            $result['error_message'] = $responseData['ResponseMessage'];
-            $result['response']      = 'Declined';
-            $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $result);
-
-            return $result;
-        }
-        $result['id']            = $responseData['ProvisionNumber'];
-        $result['auth_code']     = $responseData['ProvisionNumber'];
-        $result['order_id']      = $responseData['MerchantOrderId'];
-        $result['host_ref_num']  = $responseData['RRN'];
-        $result['amount']        = $responseData['VPosMessage']['Amount'];
-        $result['currency']      = array_search($responseData['VPosMessage']['CurrencyCode'], $this->requestDataMapper->getCurrencyMappings());
-        $result['masked_number'] = $responseData['VPosMessage']['CardNumber'];
-
-        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $result);
-
-        return $result;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function map3DPayResponseData($raw3DAuthResponseData)
-    {
-        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapRefundResponse($rawResponseData)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapCancelResponse($rawResponseData)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapStatusResponse($rawResponseData)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapHistoryResponse($rawResponseData)
-    {
-        return $rawResponseData;
-    }
-
-    /**
      * @inheritDoc
      */
     protected function preparePaymentOrder(array $order)
@@ -426,7 +259,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @param KuveytPosAccount        $account
      * @param                         $order
-     * @param string                  $txType
+     * @param self::TX_*              $txType
      * @param string                  $gatewayURL
      * @param AbstractCreditCard|null $card
      *
@@ -440,8 +273,8 @@ class KuveytPos extends AbstractGateway
             return [];
         }
 
-        $formData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);
-        $xml = $this->createXML($formData);
+        $formData     = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);
+        $xml          = $this->createXML($formData);
         $bankResponse = $this->send($xml, $gatewayURL);
 
         return $this->transformReceived3DFormData($bankResponse);
@@ -460,19 +293,24 @@ class KuveytPos extends AbstractGateway
         $dom->loadHTML($response);
 
         $gatewayURL = '';
-        $formNode = $dom->getElementsByTagName('form')->item(0);
-        for ($i = 0; $i < $formNode->attributes->length; ++$i) {
-            if ('action' === $formNode->attributes->item($i)->name) {
+        /** @var \DOMElement $formNode */
+        $formNode   = $dom->getElementsByTagName('form')->item(0);
+        /** @var \DOMNamedNodeMap $attributes */
+        $attributes = $formNode->attributes;
+        for ($i = 0; $i < $attributes->length; ++$i) {
+            /** @var \DOMAttr $attribute */
+            $attribute = $attributes->item($i);
+            if ('action' === $attribute->name) {
                 /**
                  * banka onayladiginda gatewayURL=bankanin gateway url
                  * onaylanmadiginda (hatali istek oldugunda) ise gatewayURL = istekte yer alan failURL
                  */
-                $gatewayURL = $formNode->attributes->item($i)->value;
+                $gatewayURL = $attribute->value;
                 break;
             }
         }
 
-        $els = $dom->getElementsByTagName('input');
+        $els    = $dom->getElementsByTagName('input');
         $inputs = $this->builtInputsFromHTMLDoc($els);
 
         return [
@@ -485,21 +323,28 @@ class KuveytPos extends AbstractGateway
      * html form'da gelen input degeleri array'e donusturur
      * @param DOMNodeList $inputNodes
      *
-     * @return array
+     * @return array<string, string>
      */
     private function builtInputsFromHTMLDoc(DOMNodeList $inputNodes): array
     {
         $inputs = [];
         foreach ($inputNodes as $el) {
-            $key = null;
+            $key   = null;
             $value = null;
+
+            /** @var \DOMNamedNodeMap $attributes */
+            $attributes = $el->attributes;
             // for each input element select name and value attribute values
-            for ($i = 0; $i < $el->attributes->length; ++$i) {
-                if ('name' === $el->attributes->item($i)->name) {
-                    $key = $el->attributes->item($i)->value;
+            for ($i = 0; $i < $attributes->length; ++$i) {
+                /** @var \DOMAttr $attribute */
+                $attribute = $attributes->item($i);
+                if ('name' === $attribute->name) {
+                    /** @var string|null $key */
+                    $key = $attribute->value;
                 }
-                if ('value' === $el->attributes->item($i)->name) {
-                    $value = $el->attributes->item($i)->value;
+                if ('value' === $attribute->name) {
+                    /** @var string|null $value */
+                    $value = $attribute->value;
                 }
             }
             if ($key && null !== $value && !in_array($key, ['submit', 'submitBtn'])) {
@@ -508,62 +353,5 @@ class KuveytPos extends AbstractGateway
         }
 
         return $inputs;
-    }
-
-    /**
-     * @param array $raw3DAuthResponseData
-     *
-     * @return array
-     */
-    private function tDPayResponseCommon(array $raw3DAuthResponseData): array
-    {
-        $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $procReturnCode = $this->getProcReturnCode($raw3DAuthResponseData);
-        $status = 'declined';
-        $response = 'Declined';
-        if ('00' === $procReturnCode) {
-            $status = 'approved';
-            $response = 'Approved';
-        }
-
-        $transactionSecurity = 'MPI fallback';
-
-        if (isset($raw3DAuthResponseData['VPosMessage'])) {
-            $orderId = $raw3DAuthResponseData['VPosMessage']['MerchantOrderId'];
-        } else {
-            $orderId = $raw3DAuthResponseData['MerchantOrderId'];
-        }
-
-        $default = [
-            'order_id'             => $orderId,
-            'response'             => $response,
-            'transaction_type'     => $this->type,
-            'transaction'          => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
-            'transaction_security' => $transactionSecurity,
-            'proc_return_code'     => $procReturnCode,
-            'code'                 => $procReturnCode,
-            'md_status'            => null,
-            'status'               => $status,
-            'status_detail'        => $this->getStatusDetail($procReturnCode),
-            'hash'                 => null,
-            'rand'                 => null,
-            'hash_params'          => null,
-            'hash_params_val'      => null,
-            'amount'               => null,
-            'currency'             => null,
-            'tx_status'            => null,
-            'error_code'           => 'approved' !== $status ? $procReturnCode : null,
-            'md_error_message'     => 'approved' !== $status ? $raw3DAuthResponseData['ResponseMessage'] : null,
-            '3d_all'               => $raw3DAuthResponseData,
-        ];
-
-        if ('approved' === $status) {
-            $default['hash'] = $raw3DAuthResponseData['VPosMessage']['HashData'] ?? $raw3DAuthResponseData['HashData'];
-            $default['amount'] = $raw3DAuthResponseData['VPosMessage']['Amount'];
-            $default['currency'] = array_search($raw3DAuthResponseData['VPosMessage']['CurrencyCode'], $this->requestDataMapper->getCurrencyMappings());
-            $default['masked_number'] = $raw3DAuthResponseData['VPosMessage']['CardNumber'];
-        }
-
-        return $default;
     }
 }

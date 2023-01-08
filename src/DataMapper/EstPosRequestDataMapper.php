@@ -11,14 +11,14 @@ use Mews\Pos\Gateways\AbstractGateway;
 /**
  * Creates request data for EstPos Gateway requests
  */
-class EstPosRequestDataMapper extends AbstractRequestDataMapper
+class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'm/y';
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
 
     /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     protected $txTypeMappings = [
         AbstractGateway::TX_PAY      => 'Auth',
@@ -30,11 +30,17 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         AbstractGateway::TX_HISTORY  => 'ORDERHISTORY',
     ];
 
+    /**
+     * {@inheritdoc}
+     */
     protected $cardTypeMapping = [
         AbstractCreditCard::CARD_TYPE_VISA       => '1',
         AbstractCreditCard::CARD_TYPE_MASTERCARD => '2',
     ];
 
+    /**
+     * {@inheritdoc}
+     */
     protected $recurringOrderFrequencyMapping = [
         'DAY'   => 'D',
         'WEEK'  => 'W',
@@ -42,6 +48,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         'YEAR'  => 'Y',
     ];
 
+    /**
+     * {@inheritdoc}
+     */
     protected $secureTypeMappings = [
         AbstractGateway::MODEL_3D_SECURE  => '3d',
         AbstractGateway::MODEL_3D_PAY     => '3d_pay',
@@ -50,7 +59,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
@@ -84,7 +93,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
@@ -114,7 +123,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
@@ -125,7 +134,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
@@ -145,7 +154,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -173,7 +182,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -191,7 +200,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
@@ -207,17 +216,24 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
 
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         $data = $this->create3DFormDataCommon($account, $order, $txType, $gatewayURL, $card);
         unset($data['inputs']['hash']);
-        $data['inputs']['hash'] = $this->create3DHash($account, $order, $txType);
+
+        $orderMapped = clone $order;
+        $orderMapped->installment = $this->mapInstallment($order->installment);
+
+        $data['inputs']['hash'] = $this->crypt->create3DHash($account, (array) $orderMapped, $this->mapTxType($txType));
 
         return $data;
     }
 
+    /**
+     * @param AbstractGateway::TX_* $txType
+     */
     public function create3DFormDataCommon(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         $inputs = [
@@ -253,29 +269,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
-    {
-        $hashData = [
-            $account->getClientId(),
-            $order->id,
-            $order->amount,
-            $order->success_url,
-            $order->fail_url,
-            $this->mapTxType($txType),
-            $this->mapInstallment($order->installment),
-            $order->rand,
-            $account->getStoreKey(),
-        ];
-
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
-
-        return $this->hashString($hashStr);
-    }
-
-    /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     public function mapInstallment(?int $installment)
     {

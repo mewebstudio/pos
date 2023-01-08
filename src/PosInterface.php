@@ -26,13 +26,6 @@ interface PosInterface
     public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false);
 
     /**
-     * @deprecated just use emptyStringsToNull()
-     *
-     * @return null|string
-     */
-    public function printData($data);
-
-    /**
      * Regular Payment
      *
      * @return AbstractGateway
@@ -69,7 +62,7 @@ interface PosInterface
      * @param array|string $contents
      * @param string|null  $url
      *
-     * @return mixed
+     * @return string|array|null
      */
     public function send($contents, ?string $url = null);
 
@@ -77,12 +70,12 @@ interface PosInterface
      * Prepare Order
      *
      * @param array                   $order
-     * @param string                  $txType //txTypes from AbstractGateway
+     * @param AbstractGateway::TX_*   $txType
      * @param AbstractCreditCard|null $card   need when 3DFormData requested
      *
      * @return void
      */
-    public function prepare(array $order, string $txType, $card = null);
+    public function prepare(array $order, string $txType, AbstractCreditCard $card = null);
 
     /**
      * Make Payment
@@ -133,13 +126,6 @@ interface PosInterface
     public function isSuccess();
 
     /**
-     * @deprecated use isSuccess()
-     *
-     * @return bool
-     */
-    public function isError();
-
-    /**
      * Enable/Disable test mode
      *
      * @param bool $testMode
@@ -154,4 +140,9 @@ interface PosInterface
      * @return bool
      */
     public function isTestMode();
+
+    /**
+     * @return array<AbstractCreditCard::CARD_TYPE_*, string>
+     */
+    public function getCardTypeMapping(): array;
 }

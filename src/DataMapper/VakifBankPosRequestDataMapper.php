@@ -19,7 +19,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
 
     /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     protected $txTypeMappings = [
         AbstractGateway::TX_PAY      => 'Sale',
@@ -31,6 +31,9 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         AbstractGateway::TX_STATUS   => 'OrderInquiry',
     ];
 
+    /**
+     * {@inheritdoc}
+     */
     protected $cardTypeMapping = [
         AbstractCreditCard::CARD_TYPE_VISA       => '100',
         AbstractCreditCard::CARD_TYPE_MASTERCARD => '200',
@@ -38,6 +41,9 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         AbstractCreditCard::CARD_TYPE_AMEX       => '400',
     ];
 
+    /**
+     * {@inheritdoc}
+     */
     protected $recurringOrderFrequencyMapping = [
         'DAY'   => 'Day',
         'MONTH' => 'Month',
@@ -45,13 +51,8 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @param VakifBankAccount        $account
-     * @param                         $order
-     * @param string                  $txType
-     * @param array                   $responseData
-     * @param AbstractCreditCard|null $card
-     *
-     * @return array
+     * @param VakifBankAccount $account
+     * {@inheritDoc}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData, ?AbstractCreditCard $card = null): array
     {
@@ -82,7 +83,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @param VakifBankAccount   $account
-     * @param                    $order
+     * @param object             $order
      * @param AbstractCreditCard $card
      *
      * @return array
@@ -131,11 +132,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @param VakifBankAccount        $account
-     * @param                         $order
-     * @param string                  $txType
-     * @param AbstractCreditCard|null $card
-     *
-     * @return array
+     * {@inheritDoc}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
@@ -176,7 +173,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
@@ -184,7 +181,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -198,7 +195,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -213,7 +210,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
@@ -223,7 +220,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param array $extraData
      *
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = []): array
     {
@@ -240,14 +237,6 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
      * Amount Formatter
      *
      * @param float $amount
@@ -260,7 +249,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     public function mapInstallment(?int $installment)
     {

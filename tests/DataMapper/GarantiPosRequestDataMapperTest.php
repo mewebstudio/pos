@@ -14,6 +14,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\GarantiPos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * GarantiPosRequestDataMapperTest
@@ -68,7 +69,8 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
         $this->pos->setTestMode(true);
-        $this->requestDataMapper = new GarantiPosRequestDataMapper();
+        $crypt = PosFactory::getGatewayCrypt(GarantiPos::class, new NullLogger());
+        $this->requestDataMapper = new GarantiPosRequestDataMapper($crypt);
         $this->requestDataMapper->setTestMode(true);
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
@@ -139,71 +141,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $this->assertEquals($expectedData, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DHash()
-    {
-        $expected = '1D319D5EA945F5730FF5BCC970FF96690993F4BD';
-        $pos = $this->pos;
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY);
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreateHash()
-    {
-        $expected = '00CD5B6C29D4CEA1F3002D785A9F9B09974AD51D';
-        $pos = $this->pos;
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->createHash($pos->getAccount(), $pos->getOrder(), 'sales');
-        $this->assertEquals($expected, $actual);
-
-        $pos->prepare($this->order, AbstractGateway::TX_PRE_PAY);
-        $actual = $this->requestDataMapper->createHash($pos->getAccount(), $pos->getOrder(), 'preauth');
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreateHashForCancel()
-    {
-        $order = [
-            'id' => '4499996',
-            'ref_ret_num' => '446ss',
-            'amount' => '2.02', //amount should not matter in this case
-            'currency' => 'TRY',
-        ];
-        $expected = '9788649A0C3AE14C082783CEA6775E08A7EFB311';
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_CANCEL);
-        $actual = $this->requestDataMapper->createHash($pos->getAccount(), $pos->getOrder(), 'void');
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreateHashForRefund()
-    {
-        $order = [
-            'id' => '4499996',
-            'ref_ret_num' => '446ss',
-            'amount' => '2.02',
-            'currency' => 'TRY',
-        ];
-        $expected = 'D7094EAF4C444AAC429FB2424BEE7FC68470E0DE';
-        $pos = $this->pos;
-
-        $pos->prepare($order, AbstractGateway::TX_REFUND);
-        $actual = $this->requestDataMapper->createHash($pos->getAccount(), $pos->getOrder(), 'refund');
-        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -604,7 +541,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param GarantiPosAccount $account
      * @param                    $order
      *
      * @return array

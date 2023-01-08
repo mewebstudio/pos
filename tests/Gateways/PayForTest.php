@@ -103,24 +103,4 @@ class PayForTest extends TestCase
 
         $this->pos->prepare($this->order, AbstractGateway::TX_REFUND);
     }
-
-    /**
-     * @return void
-     */
-    public function testCheck3DHash()
-    {
-        $data = [
-            "OrderId"        => '2020110828BC',
-            "AuthCode"       => "",
-            "3DStatus"       => "1",
-            "ProcReturnCode" => "V033",
-            "ResponseRnd"    => "PF637404392360825218",
-            "ResponseHash"   => "ogupUOYY6vQ4+opqDqgLk3DLK7I=",
-        ];
-
-        $this->assertTrue($this->pos->check3DHash($this->pos->getAccount(), $data));
-
-        $data['3DStatus'] = '';
-        $this->assertFalse($this->pos->check3DHash($this->pos->getAccount(), $data));
-    }
 }

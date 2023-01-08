@@ -13,6 +13,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\EstPos;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\NullLogger;
 
 /**
  * EstPosRequestDataMapperTest
@@ -60,12 +61,12 @@ class EstPosRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => 'tr',
-            'rand'        => microtime(),
+            'rand'        => 'rand',
         ];
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
         $this->pos->setTestMode(true);
-        $this->requestDataMapper = new EstPosRequestDataMapper();
+        $this->requestDataMapper = new EstPosRequestDataMapper(PosFactory::getGatewayCrypt(EstPos::class, new NullLogger()));
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 
@@ -136,42 +137,6 @@ class EstPosRequestDataMapperTest extends TestCase
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $this->assertEquals($expectedData, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DHashFor3DSecure()
-    {
-        $this->order['rand'] = 'rand';
-        $pos                 = $this->pos;
-
-        $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY);
-        $this->assertEquals($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DHashForNon3DSecure()
-    {
-        $this->order['rand'] = 'rand';
-
-        $account  = AccountFactory::createEstPosAccount(
-            'akbank',
-            'XXXXXXX',
-            'XXXXXXX',
-            'XXXXXXX',
-            AbstractGateway::MODEL_3D_PAY,
-            'VnM5WZ3sGrPusmWP'
-        );
-        $pos      = PosFactory::createPosGateway($account);
-        $expected = 'zQJGquP0/PXt6LeutjN1Qxq32Zg=';
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DHash($account, $pos->getOrder(), AbstractGateway::TX_PAY);
-        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -306,14 +271,13 @@ class EstPosRequestDataMapperTest extends TestCase
         $account = $this->threeDAccount;
         $txType = AbstractGateway::TX_PAY;
         $this->pos->prepare($this->order, $txType);
-        $hash       = $this->requestDataMapper->create3DHash($account, $this->pos->getOrder(), $txType);
         $card       = $this->card;
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'];
 
         $inputs = [
             'clientid'  => $account->getClientId(),
             'storetype' => $account->getModel(),
-            'hash'      => $hash,
+            'hash'      => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
             'firmaadi'  => $this->order['name'],
             'Email'     => $this->order['email'],
             'amount'    => $this->order['amount'],
@@ -357,7 +321,6 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * todo
      * @return void
      */
     public function testGet3DHostFormData()
@@ -375,13 +338,11 @@ class EstPosRequestDataMapperTest extends TestCase
         $pos = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $order      = $pos->getOrder();
-        $hash       = $this->requestDataMapper->create3DHash($account, $order, AbstractGateway::TX_PAY);
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway_3d_host']['test'];
         $inputs     = [
             'clientid'  => $account->getClientId(),
             'storetype' => $account->getModel(),
-            'hash'      => $hash,
+            'hash'      => 'zQJGquP0/PXt6LeutjN1Qxq32Zg=',
             'firmaadi'  => $this->order['name'],
             'Email'     => $this->order['email'],
             'amount'    => $this->order['amount'],
@@ -444,7 +405,6 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * todo
      * @return void
      */
     public function testCreateRefundRequestData()
@@ -664,7 +624,7 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     private function getSampleHistoryRequestData(AbstractPosAccount $account, $customQueryData): array
     {
-        $requestData = [
+        return [
             'Name'     => $account->getUsername(),
             'Password' => $account->getPassword(),
             'ClientId' => $account->getClientId(),
@@ -673,7 +633,5 @@ class EstPosRequestDataMapperTest extends TestCase
                 'ORDERHISTORY' => 'QUERY',
             ],
         ];
-
-        return $requestData;
     }
 }

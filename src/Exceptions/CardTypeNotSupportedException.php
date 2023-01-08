@@ -10,6 +10,7 @@ use Throwable;
  */
 class CardTypeNotSupportedException extends DomainException
 {
+    /** @var string */
     private $type;
 
     /**

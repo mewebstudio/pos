@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos\DataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
@@ -14,18 +15,19 @@ use Mews\Pos\Gateways\AbstractGateway;
  */
 abstract class AbstractRequestDataMapper
 {
-    protected const HASH_ALGORITHM = 'sha1';
-    protected const HASH_SEPARATOR = '';
-
+    /**
+     * @var array<AbstractGateway::MODEL_*, string>
+     */
     protected $secureTypeMappings = [];
 
     /**
      * Transaction Types
      *
-     * @var array
+     * @var array<AbstractGateway::TX_*, string>
      */
     protected $txTypeMappings = [];
 
+    /** @var array<AbstractCreditCard::CARD_TYPE_*, string> */
     protected $cardTypeMapping = [];
 
     protected $langMappings = [
@@ -51,27 +53,33 @@ abstract class AbstractRequestDataMapper
 
     /**
      * period mapping for recurring orders
-     * @var array
+     * @var array<'DAY'|'WEEK'|'MONTH'|'YEAR', string>
      */
     protected $recurringOrderFrequencyMapping = [];
 
     /** @var bool */
     protected $testMode = false;
 
+    /** @var CryptInterface|null */
+    protected $crypt;
+
     /**
-     * @param array $currencyMappings
+     * @param CryptInterface|null $crypt
+     * @param array               $currencyMappings
      */
-    public function __construct(array $currencyMappings = [])
+    public function __construct(?CryptInterface $crypt = null, array $currencyMappings = [])
     {
-        if (!empty($currencyMappings)) {
+        $this->crypt = $crypt;
+        if (count($currencyMappings) > 0) {
             $this->currencyMappings = $currencyMappings;
         }
     }
 
     /**
+     * @phpstan-param AbstractGateway::TX_* $txType
+     *
      * @param AbstractPosAccount $account
      * @param                    $order
-     * @param string             $txType       ex: AbstractGateway::TX_PAY
      * @param array              $responseData gateway'den gelen cevap
      *
      * @return array
@@ -79,9 +87,10 @@ abstract class AbstractRequestDataMapper
     abstract public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array;
 
     /**
+     * @phpstan-param AbstractGateway::TX_* $txType
+     *
      * @param AbstractPosAccount      $account
      * @param                         $order
-     * @param string                  $txType  ex: AbstractGateway::TX_PAY
      * @param AbstractCreditCard|null $card
      *
      * @return array
@@ -107,7 +116,7 @@ abstract class AbstractRequestDataMapper
 
     /**
      * @param AbstractPosAccount $account
-     * @param                    $order
+     * @param object             $order
      *
      * @return array
      */
@@ -122,10 +131,12 @@ abstract class AbstractRequestDataMapper
     abstract public function createRefundRequestData(AbstractPosAccount $account, $order): array;
 
     /**
+     * @phpstan-param AbstractGateway::TX_* $txType
+     *
      * @param AbstractPosAccount      $account
      * @param                         $order
-     * @param string                  $txType     ex: AbstractGateway::TX_PAY
      * @param string                  $gatewayURL
+     * @param string                  $txType
      * @param AbstractCreditCard|null $card
      *
      * @return array
@@ -135,20 +146,19 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount $account
      * @param                    $order
-     * @param string             $txType  ex: AbstractGateway::TX_PAY
-     *
-     * @return string
-     */
-    abstract public function create3DHash(AbstractPosAccount $account, $order, string $txType): string;
-
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
      * @param array              $extraData bankaya gore degisen ozel degerler
      *
      * @return array
      */
     abstract public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array;
+
+    /**
+     * @return CryptInterface
+     */
+    public function getCrypt(): CryptInterface
+    {
+        return $this->crypt;
+    }
 
     /**
      * @return bool
@@ -169,7 +179,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @return array
+     * @return array<AbstractCreditCard::CARD_TYPE_*, string>
      */
     public function getCardTypeMapping(): array
     {
@@ -177,7 +187,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @return array
+     * @return array<AbstractGateway::MODEL_*, string>
      */
     public function getSecureTypeMappings(): array
     {
@@ -185,7 +195,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @return array
+     * @return array<AbstractGateway::TX_*, string>
      */
     public function getTxTypeMappings(): array
     {
@@ -224,7 +234,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @param string $txType
+     * @phpstan-param AbstractGateway::TX_* $txType
      *
      * @return string
      *
@@ -250,7 +260,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @return array
+     * @return array<'DAY'|'WEEK'|'MONTH'|'YEAR', string>
      */
     public function getRecurringOrderFrequencyMapping(): array
     {
@@ -263,16 +273,6 @@ abstract class AbstractRequestDataMapper
      * @return int|string
      */
     abstract public function mapInstallment(?int $installment);
-
-    /**
-     * @param string $str
-     *
-     * @return string
-     */
-    protected function hashString(string $str): string
-    {
-        return base64_encode(hash(static::HASH_ALGORITHM, $str, true));
-    }
 
     /**
      * bank returns error messages for specified language value

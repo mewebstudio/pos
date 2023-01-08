@@ -17,5 +17,8 @@ jobs:
       - name: Install dependencies
         run: composer install --no-progress --no-suggest
 
+      - name: PHPStan
+        run: vendor/bin/phpstan
+
       - name: Run test suite
         run: vendor/bin/phpunit

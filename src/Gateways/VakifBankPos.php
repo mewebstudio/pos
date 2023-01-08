@@ -5,14 +5,10 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
-use Mews\Pos\Client\HttpClient;
-use Mews\Pos\DataMapper\AbstractRequestDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankPosResponseDataMapper;
 use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
-use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -32,37 +28,11 @@ class VakifBankPos extends AbstractGateway
      */
     protected $account;
 
-    /**
-     * @var AbstractCreditCard
-     */
-    protected $card;
-
-    /**
-     * Response Codes
-     *
-     * @var array
-     */
-    protected $codes = [
-        '0000' => 'approved',
-        // TODO map other codes
-    ];
-
     /** @var VakifBankPosRequestDataMapper */
     protected $requestDataMapper;
 
-    /**
-     * @param VakifBankAccount $account
-     * @param VakifBankPosRequestDataMapper $requestDataMapper
-     */
-    public function __construct(
-        array $config,
-        AbstractPosAccount $account,
-        AbstractRequestDataMapper $requestDataMapper,
-        HttpClient $client,
-        LoggerInterface $logger
-    ) {
-        parent::__construct($config, $account, $requestDataMapper, $client, $logger);
-    }
+    /** @var VakifBankPosResponseDataMapper */
+    protected $responseDataMapper;
 
     /**
      * @return VakifBankAccount
@@ -78,25 +48,25 @@ class VakifBankPos extends AbstractGateway
     public function make3DPayment(Request $request)
     {
         $request = $request->request;
-        $gatewayResponse = $this->emptyStringsToNull($request->all());
+        $status = $request->get('Status');
         // 3D authorization failed
-        if ('Y' !== $gatewayResponse['Status'] && 'A' !== $gatewayResponse['Status']) {
-            $this->response = $this->map3DPaymentData($gatewayResponse, (object) []);
+        if ('Y' !== $status && 'A' !== $status) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), []);
 
             return $this;
         }
 
-        if ('A' === $gatewayResponse['Status']) {
+        if ('A' === $status) {
             // TODO Half 3D Secure
-            $this->response = $this->map3DPaymentData($gatewayResponse, (object) []);
+            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), []);
 
             return $this;
         }
-        $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $request->get('Status')]);
-        $contents = $this->create3DPaymentXML($gatewayResponse);
+        $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $status]);
+        $contents = $this->create3DPaymentXML($request->all());
         $bankResponse = $this->send($contents);
 
-        $this->response = $this->map3DPaymentData($gatewayResponse, $bankResponse);
+        $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse);
         $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
@@ -147,7 +117,6 @@ class VakifBankPos extends AbstractGateway
         }
 
         $data = $this->sendEnrollmentRequest();
-        $data = parent::emptyStringsToNull($data);
 
         $status = $data['Message']['VERes']['Status'];
         /**
@@ -179,7 +148,7 @@ class VakifBankPos extends AbstractGateway
      * Müşteriden kredi kartı bilgilerini aldıktan sonra GET 7/24 MPI’a kart “Kredi Kartı Kayıt Durumu”nun
      * (Enrollment Status) sorulması, yani kart 3-D Secure programına dâhil mi yoksa değil mi sorgusu
      *
-     * @return object
+     * @return array
      *
      * @throws Exception
      */
@@ -215,16 +184,14 @@ class VakifBankPos extends AbstractGateway
         $responseBody = $response->getBody()->getContents();
 
         try {
-            $this->data = $this->XMLStringToObject($responseBody);
+            $this->data = $this->XMLStringToArray($responseBody);
         } catch (NotEncodableValueException $e) {
             if ($this->isHTML($responseBody)) {
                 // if something wrong server responds with HTML content
                 throw new Exception($responseBody);
             }
-            $this->data = (object) json_decode($responseBody);
+            $this->data = json_decode($responseBody, true);
         }
-
-        $this->data = $this->emptyStringsToNull($this->data);
 
         return $this->data;
     }
@@ -266,7 +233,7 @@ class VakifBankPos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
+        return $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
     }
 
     /**
@@ -275,7 +242,7 @@ class VakifBankPos extends AbstractGateway
      */
     public function createHistoryXML($customQueryData)
     {
-        $this->requestDataMapper->createHistoryRequestData($this->account, $this->order, $customQueryData);
+        return $this->requestDataMapper->createHistoryRequestData($this->account, $this->order, $customQueryData);
     }
 
     /**
@@ -296,125 +263,6 @@ class VakifBankPos extends AbstractGateway
         $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function map3DPaymentData($raw3DAuthResponseData, $rawPaymentResponseData)
-    {
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
-            '3d_auth_response' => $raw3DAuthResponseData,
-            'provision_response' => $rawPaymentResponseData,
-        ]);
-        $threeDAuthStatus = ('Y' === $raw3DAuthResponseData['Status']) ? 'approved' : 'declined';
-        $paymentResponseData = [];
-
-        if ('approved' === $threeDAuthStatus) {
-            $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData);
-        }
-
-        $threeDResponse = [
-            'id'            => null,
-            'eci'           => $raw3DAuthResponseData['Eci'],
-            'cavv'          => $raw3DAuthResponseData['Cavv'],
-            'auth_code'     => null,
-            'order_id'      => $raw3DAuthResponseData['VerifyEnrollmentRequestId'],
-            'status'        => $threeDAuthStatus,
-            'status_detail' => null,
-            'error_code'    => 'declined' === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorCode'] : null,
-            'error_message' => 'declined' === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorMessage'] : null,
-            'all'           => $rawPaymentResponseData,
-            '3d_all'        => $raw3DAuthResponseData,
-        ];
-
-        if (empty($paymentResponseData)) {
-            return (object) array_merge($this->getDefaultPaymentResponse(), $threeDResponse);
-        }
-
-        return (object) array_merge($threeDResponse, $paymentResponseData);
-    }
-
-    /**
-     * TODO
-     * @inheritDoc
-     */
-    protected function map3DPayResponseData($raw3DAuthResponseData)
-    {
-        return [];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapRefundResponse($rawResponseData)
-    {
-        return $this->mapCancelResponse($rawResponseData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapCancelResponse($rawResponseData)
-    {
-        $status = 'declined';
-        $resultCode = $rawResponseData->ResultCode;
-        if ('0000' === $resultCode) {
-            $status = 'approved';
-        }
-
-        return (object) [
-            'order_id'         => $rawResponseData->TransactionId ?? null,
-            'auth_code'        => ('declined' !== $status) ? $rawResponseData->AuthCode : null,
-            'host_ref_num'     => $rawResponseData->Rrn ?? null,
-            'proc_return_code' => $resultCode,
-            'trans_id'         => $rawResponseData->TransactionId ?? null,
-            'error_code'       => ('declined' === $status) ? $rawResponseData->ResultDetail : null,
-            'error_message'    => ('declined' === $status) ? $rawResponseData->ResultDetail : null,
-            'status'           => $status,
-            'status_detail'    => $rawResponseData->ResultDetail,
-            'all'              => $rawResponseData,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapPaymentResponse($responseData): array
-    {
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$responseData]);
-
-        $commonResponse = $this->getCommonPaymentResponse($responseData);
-        if ('approved' === $commonResponse['status']) {
-            $commonResponse['id'] = $responseData->AuthCode;
-            $commonResponse['trans_id'] = $responseData->TransactionId;
-            $commonResponse['auth_code'] = $responseData->AuthCode;
-            $commonResponse['host_ref_num'] = $responseData->Rrn;
-            $commonResponse['order_id'] = $responseData->OrderId;
-            $commonResponse['transaction_type'] = $responseData->TransactionType;
-            $commonResponse['eci'] = $responseData->ECI;
-        }
-
-        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $commonResponse);
-
-        return $commonResponse;
-    }
-
-    /**
-     * TODO
-     * @inheritDoc
-     */
-    protected function mapStatusResponse($rawResponseData)
-    {
-        return [];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function mapHistoryResponse($rawResponseData)
-    {
-        return $rawResponseData;
     }
 
     /**
@@ -476,63 +324,5 @@ class VakifBankPos extends AbstractGateway
     protected function prepareRefundOrder(array $order)
     {
         return (object) $order;
-    }
-
-    /**
-     * @param $responseData
-     *
-     * @return array
-     */
-    private function getCommonPaymentResponse($responseData): array
-    {
-        $status = 'declined';
-        $resultCode = $responseData->ResultCode;
-        if ('0000' === $resultCode) {
-            $status = 'approved';
-        }
-
-        return [
-            'id'               => null,
-            'trans_id'         => null,
-            'auth_code'        => null,
-            'host_ref_num'     => null,
-            'order_id'         => null,
-            'transaction'      => empty($this->type) ? null : $this->requestDataMapper->mapTxType($this->type),
-            'transaction_type' => $this->type,
-            'response'         => null,
-            'eci'              => null,
-            'proc_return_code' => $resultCode,
-            'code'             => $resultCode,
-            'status'           => $status,
-            'status_detail'    => $responseData->ResultDetail,
-            'error_code'       => ('declined' === $status) ? $resultCode : null,
-            'error_message'    => ('declined' === $status) ? $responseData->ResultDetail : null,
-            'all'              => $responseData,
-        ];
-    }
-
-    /**
-     * bankadan gelen response'da bos string degerler var.
-     * bu metod ile bos string'leri null deger olarak degistiriyoruz
-     *
-     * @param string|object|array $data
-     *
-     * @return string|object|array
-     */
-    protected function emptyStringsToNull($data)
-    {
-        if (is_string($data)) {
-            $data = '' === $data ? null : $data;
-        } elseif (is_array($data)) {
-            foreach ($data as $key => $value) {
-                $data[$key] = '' === $value ? null : $value;
-            }
-        } elseif (is_object($data)) {
-            foreach ($data as $key => $value) {
-                $data->{$key} = '' === $value ? null : $value;
-            }
-        }
-
-        return $data;
     }
 }

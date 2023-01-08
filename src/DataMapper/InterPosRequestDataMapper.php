@@ -12,7 +12,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 /**
  * Creates request data for KuveytPos Gateway requests
  */
-class InterPosRequestDataMapper extends AbstractRequestDataMapper
+class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
 
@@ -21,6 +21,9 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
      */
     protected const MOTO = '0';
 
+    /**
+     * {@inheritdoc}
+     */
     protected $secureTypeMappings = [
         AbstractGateway::MODEL_3D_SECURE  => '3DModel',
         AbstractGateway::MODEL_3D_PAY     => '3DPay',
@@ -31,7 +34,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * Transaction Types
      *
-     * @var array
+     * {@inheritdoc}
      */
     protected $txTypeMappings = [
         AbstractGateway::TX_PAY      => 'Auth',
@@ -42,6 +45,9 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         AbstractGateway::TX_STATUS   => 'StatusHistory',
     ];
 
+    /**
+     * {@inheritdoc}
+     */
     protected $cardTypeMapping = [
         AbstractCreditCard::CARD_TYPE_VISA       => '0',
         AbstractCreditCard::CARD_TYPE_MASTERCARD => '1',
@@ -49,7 +55,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         AbstractCreditCard::CARD_TYPE_TROY       => '3',
     ];
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
@@ -70,7 +76,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
@@ -96,7 +102,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
@@ -112,7 +118,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
@@ -126,7 +132,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -140,7 +146,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -156,7 +162,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
@@ -165,11 +171,14 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
 
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        $hash = $this->create3DHash($account, $order, $txType);
+        $mappedOrder = (array) $order;
+        $mappedOrder['installment'] = $this->mapInstallment($order->installment);
+
+        $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
         $inputs = [
             'ShopCode'         => $account->getClientId(),
@@ -200,29 +209,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
-     */
-    public function create3DHash(AbstractPosAccount $account, $order, string $txType): string
-    {
-        $hashData = [
-            $account->getClientId(),
-            $order->id,
-            $order->amount,
-            $order->success_url,
-            $order->fail_url,
-            $this->mapTxType($txType),
-            $this->mapInstallment($order->installment),
-            $order->rand,
-            $account->getStoreKey(),
-        ];
-
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
-
-        return $this->hashString($hashStr);
-    }
-
-    /**
-     * @inheritdoc
+     * {@inheritDoc}
      */
     public function mapInstallment(?int $installment)
     {

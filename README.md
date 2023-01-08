@@ -18,9 +18,9 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 - **VakifBank GET 7/24 MPI ve VPOS 7/24** 3D Secure ödemesi çalışır durumda, diğer işlemlerde sorunlar ortaya çıktıkça giderilecek.
 
-- **InterPOS (Deniz bank)** destegi eklenmistir, test edildikce, sorunlari bulundukca hatalar giderilecek.
+- **InterPOS (Deniz bank)** destegi eklenmiştir, test edildikçe, sorunlar bulundukça hatalar giderilecek.
 
-- **Kuveyt POS** 3d secure ödeme desteği eklenmiştir - testleri yapildi, calisiyor.
+- **Kuveyt POS** 3d secure ödeme desteği eklenmiştir - testleri yapıldı, calışıyor.
 
 ### Ana başlıklar
 - [Özellikler](#ozellikler)
@@ -81,7 +81,7 @@ Diğer PSR-18 uygulamasını sağlayan kütühaneler: https://packagist.org/prov
 ### Unit testler çalıştırma
 Projenin root klasoründe bu satırı çalıştırmanız gerekiyor
 ```sh
-$ ./vendor/bin/phpunit tests
+$ ./vendor/bin/phpunit
 ```
 
 ### Örnek ödeme kodu
@@ -178,16 +178,20 @@ $pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 // Ödeme tamamlanıyor,
 // Ödeme modeli (3D Secure, 3D Pay, 3D Host, Non Secure) $account tarafında belirlenir.
 // $card değeri Non Secure modelde ve Vakıfbank için 3DPay ve 3DSecure ödemede zorunlu.
-$pos->payment($card);
-
-// Ödeme başarılı mı?
-$pos->isSuccess();
-
-// Sonuç çıktısı
-dump($pos->getResponse());
-//response içeriği için /examples/template/_payment_response.php dosyaya bakınız.
+try  {
+    $pos->payment($card);
+    
+    // Ödeme başarılı mı?
+    $pos->isSuccess();
+    
+    // Sonuç çıktısı 
+    dump($pos->getResponse());
+    // response içeriği için /examples/template/_payment_response.php dosyaya bakınız.
+} catch (Mews\Pos\Exceptions\HashMismatchException $e) {
+   // todo
+}
 ````
-### Farkli Banka Sanal Poslarini Eklemek
+### Farkli Banka Sanal Poslarını Eklemek
 Kendi projenizin dizinindeyken
 ```sh
 $ cp ./vendor/mews/pos/config/pos.php ./pos_ayarlar.php
@@ -211,7 +215,7 @@ return [
     'banks'         => [
         'akbank'    => [
             'name'  => 'AKBANK T.A.S.',
-            'class' => \Mews\Pos\Gateways\EstPos::class,
+            'class' => \Mews\Pos\Gateways\EstV3Pos::class,
             'urls'  => [
                 'production'    => 'https://www.sanalakpos.com/fim/api',
                 'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
@@ -225,7 +229,7 @@ return [
         // Yeni eklenen banka
         'isbank'    => [
             'name'  => 'İŞ BANKASI .A.S.',
-            'class' => \Mews\Pos\Gateways\EstPos::class, // Altyapı sınıfı
+            'class' => \Mews\Pos\Gateways\EstV3Pos::class, // Altyapı sınıfı
             'urls'  => [
                 'production'    => 'xxxx', // API Url
                 'test'          => 'xxxx', // API Test Url
@@ -247,7 +251,7 @@ $yeni_ayarlar = require './pos_ayarlar.php';
 $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeni_ayarlar);
 ```
 
-## Ornek Kodlar
+## Örnek Kodlar
 `/examples` dizini içerisinde.
 
 3D ödeme örnek kodlar genel olarak kart bilgilerini website sunucusuna POST eder (`index.php` => `form.php`),
@@ -288,7 +292,7 @@ $logger = new \Monolog\Logger('pos', [$handler]);
 $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
 ```
 
-## Genel Kultur
+## Genel Kültür
 ### NonSecure, 3D Secure, 3DPay ve 3DHost ödeme modeller arasındaki farklar
 - **3D** - Bankaya göre farklı isimler verilebilir, örn. 3D Full. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödemeyi tamamlamak için banka gateway'ne 1 istek daha (_provizyon_ isteği) gönderir.
 Bu isteği göndermeden ödeme tamamlanmaz.
@@ -328,9 +332,6 @@ Projenin root klasöründe `docker-compose up` komutu çalıştırmanız yeterli
 **Note**: localhost port 80 boş olması gerekiyor.
 Sorunsuz çalışması durumda kod örneklerine http://localhost/akbank/3d/index.php şekilde erişebilirsiniz.
 http://localhost/ URL projenin `examples` klasörünün içine bakar.
-
-## Yol Haritası
-  - Dökümantasyon hazırlanacak
 
 > Değerli yorum, öneri ve katkılarınızı 
 > 
