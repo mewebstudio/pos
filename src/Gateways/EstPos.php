@@ -78,6 +78,19 @@ class EstPos extends AbstractGateway
         $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
 
         return $this;
+
+
+    }/**
+     * @inheritDoc
+     */
+    public function make3DPayHostingPayment(Request $request)
+    {
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())) {
+            throw new HashMismatchException();
+        }
+        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
+
+        return $this;
     }
 
     /**

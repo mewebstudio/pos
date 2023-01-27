@@ -155,6 +155,22 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
+    public function testMake3DPayHostingPaymentSuccess()
+    {
+        $request = Request::create('', 'POST', $this->responseMapTest->threeDPayPaymentDataProvider()['success1']['paymentData']);
+
+        $pos = $this->pos;
+        $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+
+        $pos->make3DPayHostingPayment($request);
+        $result = $pos->getResponse();
+        $this->assertIsArray($result);
+        $this->assertTrue($pos->isSuccess());
+    }
+
+    /**
+     * @return void
+     */
     public function testMake3DPayPayment3DAuthFail()
     {
         $request = Request::create('', 'POST', $this->responseMapTest->threeDPayPaymentDataProvider()['authFail1']['paymentData']);
