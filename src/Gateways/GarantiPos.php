@@ -9,6 +9,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -109,6 +110,14 @@ class GarantiPos extends AbstractGateway
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function make3DPayHostingPayment(Request $request)
+    {
+        throw new UnsupportedPaymentModelException();
     }
 
     /**

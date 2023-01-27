@@ -13,6 +13,7 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -117,6 +118,14 @@ class KuveytPos extends AbstractGateway
     public function make3DPayPayment(Request $request)
     {
         throw new NotImplementedException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function make3DPayHostingPayment(Request $request)
+    {
+        throw new UnsupportedPaymentModelException();
     }
 
     /**
