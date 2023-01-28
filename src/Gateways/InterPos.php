@@ -9,7 +9,6 @@ use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 

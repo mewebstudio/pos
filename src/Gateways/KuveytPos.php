@@ -13,7 +13,6 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 

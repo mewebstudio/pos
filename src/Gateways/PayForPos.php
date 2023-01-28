@@ -8,7 +8,6 @@ use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Exceptions\HashMismatchException;
-use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
