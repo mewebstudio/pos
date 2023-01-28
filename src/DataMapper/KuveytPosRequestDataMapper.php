@@ -25,8 +25,8 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritdoc}
      */
     protected $secureTypeMappings = [
-        AbstractGateway::MODEL_3D_SECURE  => 3,
-        AbstractGateway::MODEL_NON_SECURE => 0,
+        AbstractGateway::MODEL_3D_SECURE  => '3',
+        AbstractGateway::MODEL_NON_SECURE => '0',
     ];
 
     /**

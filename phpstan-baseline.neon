@@ -636,11 +636,6 @@ parameters:
 			path: src/DataMapper/KuveytPosRequestDataMapper.php
 
 		-
-			message: "#^Property Mews\\\\Pos\\\\DataMapper\\\\KuveytPosRequestDataMapper\\:\\:\\$secureTypeMappings \\(array\\<'3d'\\|'3d_host'\\|'3d_pay'\\|'regular', string\\>\\) does not accept default value of type array\\{3d\\: 3, regular\\: 0\\}\\.$#"
-			count: 1
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
 			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
 			count: 1
 			path: src/DataMapper/PayForPosRequestDataMapper.php
