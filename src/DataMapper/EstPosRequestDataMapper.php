@@ -52,10 +52,11 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritdoc}
      */
     protected $secureTypeMappings = [
-        AbstractGateway::MODEL_3D_SECURE  => '3d',
-        AbstractGateway::MODEL_3D_PAY     => '3d_pay',
-        AbstractGateway::MODEL_3D_HOST    => '3d_host',
-        AbstractGateway::MODEL_NON_SECURE => 'regular',
+        AbstractGateway::MODEL_3D_SECURE        => '3d',
+        AbstractGateway::MODEL_3D_PAY           => '3d_pay',
+        AbstractGateway::MODEL_3D_PAY_HOSTING   => '3d_pay_hosting',
+        AbstractGateway::MODEL_3D_HOST          => '3d_host',
+        AbstractGateway::MODEL_NON_SECURE       => 'regular',
     ];
 
     /**

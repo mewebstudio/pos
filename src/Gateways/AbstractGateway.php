@@ -39,6 +39,7 @@ abstract class AbstractGateway implements PosInterface
 
     public const MODEL_3D_SECURE = '3d';
     public const MODEL_3D_PAY = '3d_pay';
+    public const MODEL_3D_PAY_HOSTING = '3d_pay_hosting';
     public const MODEL_3D_HOST = '3d_host';
     public const MODEL_NON_SECURE = 'regular';
 
@@ -290,7 +291,7 @@ abstract class AbstractGateway implements PosInterface
             $this->makeRegularPayment();
         } elseif (self::MODEL_3D_SECURE === $model) {
             $this->make3DPayment($request);
-        } elseif (self::MODEL_3D_PAY === $model) {
+        } elseif (self::MODEL_3D_PAY === $model || self::MODEL_3D_PAY_HOSTING === $model) {
             $this->make3DPayPayment($request);
         } elseif (self::MODEL_3D_HOST === $model) {
             $this->make3DHostPayment($request);

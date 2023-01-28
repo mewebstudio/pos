@@ -15,6 +15,10 @@ $subMenu = [
         'path' => '/3d-pay/index.php',
         'label' => '3D Pay Ödeme',
     ],
+    AbstractGateway::MODEL_3D_PAY_HOSTING => [
+        'path' => '/3d-pay-hosting/index.php',
+        'label' => '3D Pay Hosting Ödeme',
+    ],
     AbstractGateway::MODEL_3D_HOST => [
         'path' => '/3d-host/index.php',
         'label' => '3D Host Ödeme',
