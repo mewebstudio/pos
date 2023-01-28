@@ -78,8 +78,6 @@ class EstPos extends AbstractGateway
         $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
 
         return $this;
-
-
     }/**
 
     /**
