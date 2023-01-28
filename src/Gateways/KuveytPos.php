@@ -123,14 +123,6 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayHostingPayment(Request $request)
-    {
-        throw new UnsupportedPaymentModelException();
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function make3DHostPayment(Request $request)
     {
         return $this->make3DPayPayment($request);

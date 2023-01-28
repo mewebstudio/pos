@@ -49,14 +49,6 @@ interface PosInterface
     public function make3DPayPayment(Request $request);
 
     /**
-     * Make 3D Pay Hosting Payment
-     * @param Request $request
-     *
-     * @return AbstractGateway
-     */
-    public function make3DPayHostingPayment(Request $request);
-
-    /**
      * Just returns formatted data of host payment response
      * @param Request $request
      *

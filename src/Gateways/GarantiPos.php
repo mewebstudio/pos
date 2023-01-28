@@ -113,14 +113,6 @@ class GarantiPos extends AbstractGateway
     }
 
     /**
-     * @inheritDoc
-     */
-    public function make3DPayHostingPayment(Request $request)
-    {
-        throw new UnsupportedPaymentModelException();
-    }
-
-    /**
      * TODO implement
      * @inheritDoc
      */

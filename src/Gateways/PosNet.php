@@ -117,14 +117,6 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayHostingPayment(Request $request)
-    {
-        throw new UnsupportedPaymentModelException();
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function get3DFormData(): array
     {
         if (!$this->card || !$this->order) {
