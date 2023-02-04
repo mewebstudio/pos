@@ -91,7 +91,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'Lang'             => $this->getLang($account, $order),
             ];
 
-        if ($card) {
+        if ($card !== null) {
             $requestData['CardType'] = $this->cardTypeMapping[$card->getType()];
             $requestData['Pan']      = $card->getNumber();
             $requestData['Expiry']   = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
@@ -195,7 +195,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'InstallmentCount' => $this->mapInstallment($order->installment),
         ];
 
-        if ($card) {
+        if ($card !== null) {
             $inputs['CardType'] = $this->cardTypeMapping[$card->getType()];
             $inputs['Pan']      = $card->getNumber();
             $inputs['Expiry']   = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);

@@ -111,7 +111,7 @@ class VakifBankPos extends AbstractGateway
         if (!$this->card || !$this->order) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
                 'order' => $this->order,
-                'card_provided' => !!$this->card,
+                'card_provided' => (bool) $this->card,
             ]);
             return [];
         }
@@ -188,7 +188,7 @@ class VakifBankPos extends AbstractGateway
         } catch (NotEncodableValueException $e) {
             if ($this->isHTML($responseBody)) {
                 // if something wrong server responds with HTML content
-                throw new Exception($responseBody);
+                throw new Exception($responseBody, $e->getCode(), $e);
             }
             $this->data = json_decode($responseBody, true);
         }

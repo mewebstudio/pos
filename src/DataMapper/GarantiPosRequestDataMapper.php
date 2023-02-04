@@ -350,7 +350,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $inputs['secure3dhash'] = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
-        if ($card) {
+        if ($card !== null) {
             $inputs['cardnumber'] = $card->getNumber();
             $inputs['cardexpiredatemonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
             $inputs['cardexpiredateyear'] = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
@@ -380,7 +380,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public static function amountFormat($amount): int
     {
-        return intval(round($amount, 2) * 100);
+        return (int) (round($amount, 2) * 100);
     }
 
     /**
@@ -388,7 +388,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     private function getMode(): string
     {
-        return !$this->isTestMode() ? 'PROD' : 'TEST';
+        return $this->isTestMode() ? 'TEST' : 'PROD';
     }
 
     /**
@@ -416,7 +416,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     private function getCardData(?AbstractCreditCard $card = null): array
     {
-        if ($card) {
+        if ($card !== null) {
             return [
                 'Number'     => $card->getNumber(),
                 'ExpireDate' => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),

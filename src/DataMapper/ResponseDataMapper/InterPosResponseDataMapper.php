@@ -24,7 +24,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper implements P
     public function mapPaymentResponse(array $rawPaymentResponseData): array
     {
         $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
-        if (empty($rawPaymentResponseData)) {
+        if ($rawPaymentResponseData === []) {
             return $this->getDefaultPaymentResponse();
         }
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);

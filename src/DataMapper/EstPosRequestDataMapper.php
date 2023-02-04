@@ -147,7 +147,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         if (isset($order->id)) {
             $statusRequestData['OrderId'] = $order->id;
-        } else if (isset($order->recurringId)) {
+        } elseif (isset($order->recurringId)) {
             $statusRequestData['Extra']['RECURRINGID'] = $order->recurringId;
         }
 
@@ -255,7 +255,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             // todo add custom data dynamically instead of hard coding them
         ];
 
-        if ($card) {
+        if ($card !== null) {
             $inputs['cardType'] = $this->cardTypeMapping[$card->getType()];
             $inputs['pan'] = $card->getNumber();
             $inputs['Ecom_Payment_Card_ExpDate_Month'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);

@@ -248,7 +248,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function get3DHostGatewayURL(): ?string
     {
-        return isset($this->config['urls']['gateway_3d_host'][$this->getModeInWord()]) ? $this->config['urls']['gateway_3d_host'][$this->getModeInWord()] : null;
+        return $this->config['urls']['gateway_3d_host'][$this->getModeInWord()] ?? null;
     }
 
     /**
@@ -284,7 +284,7 @@ abstract class AbstractGateway implements PosInterface
         $model = $this->account->getModel();
 
         $this->logger->log(LogLevel::DEBUG, 'payment called', [
-            'card_provided' => !!$this->card,
+            'card_provided' => (bool) $this->card,
             'model'         => $model,
         ]);
         if (self::MODEL_NON_SECURE === $model) {
@@ -552,6 +552,6 @@ abstract class AbstractGateway implements PosInterface
      */
     private function getModeInWord(): string
     {
-        return !$this->isTestMode() ? 'production' : 'test';
+        return $this->isTestMode() ? 'test' : 'production';
     }
 }

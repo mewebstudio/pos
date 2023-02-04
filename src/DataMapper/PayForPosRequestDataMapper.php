@@ -16,12 +16,12 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * Kurum kodudur. (Banka tarafından verilir)
      */
-    const MBR_ID = '5';
+    public const MBR_ID = '5';
 
     /**
      * MOTO (Mail Order Telephone Order) 0 for false, 1 for true
      */
-    const MOTO = '0';
+    public const MOTO = '0';
 
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
 
@@ -192,7 +192,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'Hash'             => $hash,
         ];
 
-        if ($card) {
+        if ($card !== null) {
             $inputs['CardHolderName'] = $card->getHolderName();
             $inputs['Pan'] = $card->getNumber();
             $inputs['Expiry'] = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);

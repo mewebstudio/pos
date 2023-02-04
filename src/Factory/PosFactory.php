@@ -69,10 +69,10 @@ class PosFactory
         ?LoggerInterface   $logger = null
     ): PosInterface
     {
-        if (!$logger) {
+        if ($logger === null) {
             $logger = new NullLogger();
         }
-        if (!$client) {
+        if ($client === null) {
             $client = HttpClientFactory::createDefaultHttpClient();
         }
         if (is_string($config)) {
@@ -141,9 +141,8 @@ class PosFactory
                     return new PosNetRequestDataMapper($crypt, $currencies);
             }
         }
-        switch ($gatewayClass) {
-            case VakifBankPos::class:
-                return new VakifBankPosRequestDataMapper(null, $currencies);
+        if ($gatewayClass === VakifBankPos::class) {
+            return new VakifBankPosRequestDataMapper(null, $currencies);
         }
         throw new DomainException('unsupported gateway');
     }

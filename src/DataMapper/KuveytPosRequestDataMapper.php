@@ -72,7 +72,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public static function amountFormat(float $amount): int
     {
-        return intval(round($amount, 2) * 100);
+        return (int) (round($amount, 2) * 100);
     }
 
     /**
@@ -131,7 +131,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'FailUrl'             => $order->fail_url,
         ];
 
-        if ($card) {
+        if ($card !== null) {
             $inputs['CardHolderName']      = $card->getHolderName();
             $inputs['CardType']            = $this->cardTypeMapping[$card->getType()];
             $inputs['CardNumber']          = $card->getNumber();

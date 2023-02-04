@@ -42,7 +42,7 @@ class EstPosCrypt extends AbstractCrypt
         $hashParamsArr = explode(':', $hashParams);
         foreach ($hashParamsArr as $value) {
             if (isset($data[$value])) {
-                $paramsVal = $paramsVal.$data[$value];
+                $paramsVal .= $data[$value];
             }
         }
 

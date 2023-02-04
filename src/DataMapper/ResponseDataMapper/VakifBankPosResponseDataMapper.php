@@ -46,7 +46,7 @@ class VakifBankPosResponseDataMapper extends AbstractResponseDataMapper implemen
             '3d_all'        => $raw3DAuthResponseData,
         ];
 
-        if (empty($paymentResponseData)) {
+        if ($paymentResponseData === []) {
             return array_merge($this->getDefaultPaymentResponse(), $threeDResponse);
         }
 

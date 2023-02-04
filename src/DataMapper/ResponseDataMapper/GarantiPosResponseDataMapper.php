@@ -136,11 +136,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
         $commonResult = $this->map3DCommonResponseData($raw3DAuthResponseData);
         if (self::TX_APPROVED === $commonResult['status']) {
             $procReturnCode = $raw3DAuthResponseData['procreturncode'];
-            if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-                $commonResult['status']   = self::TX_APPROVED;
-            } else {
-                $commonResult['status']   = self::TX_DECLINED;
-            }
+            $commonResult['status'] = self::PROCEDURE_SUCCESS_CODE === $procReturnCode ? self::TX_APPROVED : self::TX_DECLINED;
         }
         if (in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'])) {
             $commonResult['auth_code']     = $raw3DAuthResponseData['authcode'];

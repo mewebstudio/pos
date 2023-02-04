@@ -38,7 +38,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
     public function mapPaymentResponse(array $rawPaymentResponseData): array
     {
         $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
-        if (empty($rawPaymentResponseData)) {
+        if ($rawPaymentResponseData === []) {
             return $this->getDefaultPaymentResponse();
         }
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
@@ -119,10 +119,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
 
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-            if (in_array($raw3DAuthResponseData['mdStatus'], ['1', '2', '3', '4'])) {
-                $status = self::TX_APPROVED;
-            }
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && in_array($raw3DAuthResponseData['mdStatus'], ['1', '2', '3', '4'])) {
+            $status = self::TX_APPROVED;
         }
 
         $defaultResponse = $this->getDefaultPaymentResponse();

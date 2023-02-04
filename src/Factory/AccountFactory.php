@@ -172,9 +172,13 @@ class AccountFactory
      */
     private static function checkParameters(string $model, ?string $storeKey)
     {
-        if (AbstractGateway::MODEL_NON_SECURE !== $model && null === $storeKey) {
-            throw new MissingAccountInfoException("$model requires storeKey!");
+        if (AbstractGateway::MODEL_NON_SECURE === $model) {
+            return;
         }
+        if (null !== $storeKey) {
+            return;
+        }
+        throw new MissingAccountInfoException("$model requires storeKey!");
     }
 
     /**

@@ -44,7 +44,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
     {
         $status = self::TX_DECLINED;
         $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
-        if (empty($rawPaymentResponseData)) {
+        if ($rawPaymentResponseData === []) {
             return $this->getDefaultPaymentResponse();
         }
 

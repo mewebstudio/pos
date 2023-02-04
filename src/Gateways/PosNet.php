@@ -121,7 +121,7 @@ class PosNet extends AbstractGateway
         if (!$this->card || !$this->order) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
                 'order' => $this->order,
-                'card_provided' => !!$this->card,
+                'card_provided' => (bool) $this->card,
             ]);
             return [];
         }

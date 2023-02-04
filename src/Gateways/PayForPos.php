@@ -122,7 +122,7 @@ class PayForPos extends AbstractGateway
      */
     public function get3DFormData(): array
     {
-        if (!$this->order) {
+        if ($this->order === null) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
             return [];
         }

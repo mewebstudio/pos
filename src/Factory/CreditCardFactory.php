@@ -46,14 +46,14 @@ class CreditCardFactory
         $expireMonth = str_pad($expireMonth, 2, '0', STR_PAD_LEFT);
         $expDate  = DateTimeImmutable::createFromFormat('Ymd', $expireYear.$expireMonth.'01');
 
-        if (!$expDate) {
+        if (! $expDate instanceof DateTimeImmutable) {
             throw new DomainException('INVALID DATE FORMAT');
         }
         $supportedCardTypes = array_keys($pos->getCardTypeMapping());
-        if (!empty($supportedCardTypes) && empty($cardType)) {
+        if ($supportedCardTypes !== [] && empty($cardType)) {
             throw new CardTypeRequiredException($pos::NAME);
         }
-        if (!empty($supportedCardTypes) && !in_array($cardType, $supportedCardTypes)) {
+        if ($supportedCardTypes !== [] && !in_array($cardType, $supportedCardTypes)) {
             throw new CardTypeNotSupportedException($cardType);
         }
 
