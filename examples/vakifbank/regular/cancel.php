@@ -6,7 +6,7 @@ require '_config.php';
 $templateTitle = 'Cancel Order';
 require '../../template/_header.php';
 
-$order = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
+$order = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
 $order = [
     'id' => $order['id'], //ReferenceTransactionId

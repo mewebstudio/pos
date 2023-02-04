@@ -6,7 +6,7 @@ $templateTitle = 'Refund Order';
 require '_config.php';
 require '../../template/_header.php';
 
-$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
+$ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
 // Refund Order
 $order = [

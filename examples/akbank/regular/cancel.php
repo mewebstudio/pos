@@ -6,7 +6,7 @@ $templateTitle = 'Cancel Order';
 require '_config.php';
 require '../../template/_header.php';
 
-$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
+$ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
 if (isset($ord['recurringFrequency'])) {
     //tekrarlanan odemenin durumunu sorgulamak icin:

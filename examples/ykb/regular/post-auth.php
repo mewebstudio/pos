@@ -4,7 +4,7 @@ require '_config.php';
 
 $templateTitle = 'Post Auth Order (ön provizyonu tamamlama)';
 
-$order = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
+$order = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
 $order = [
     'id'           => $order['id'],
