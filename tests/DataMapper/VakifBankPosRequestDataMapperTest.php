@@ -19,6 +19,10 @@ use PHPUnit\Framework\TestCase;
  */
 class VakifBankPosRequestDataMapperTest extends TestCase
 {
+    /**
+     * @var VakifBankAccount
+     */
+    public $account;
     /** @var AbstractGateway */
     private $pos;
 
@@ -33,8 +37,6 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->config = require __DIR__.'/../../config/pos.php';
 
         $this->account = AccountFactory::createVakifBankAccount(
             'vakifbank',
@@ -119,9 +121,9 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         $pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
         $txType = AbstractGateway::TX_PAY;
         $gatewayResponse = [
-            'Eci'                       => (string) rand(1, 100),
-            'Cavv'                      => (string) rand(1, 100),
-            'VerifyEnrollmentRequestId' => (string) rand(1, 100),
+            'Eci'                       => (string) random_int(1, 100),
+            'Cavv'                      => (string) random_int(1, 100),
+            'VerifyEnrollmentRequestId' => (string) random_int(1, 100),
         ];
 
         $expectedValue = $this->getSample3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), $txType, $gatewayResponse, $pos->getCard());

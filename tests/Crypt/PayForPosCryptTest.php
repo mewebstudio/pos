@@ -3,6 +3,7 @@
 namespace Mews\Pos\Tests\Crypt;
 
 use Mews\Pos\Crypt\PayForPosCrypt;
+use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use PHPUnit\Framework\TestCase;
@@ -11,7 +12,17 @@ use Psr\Log\NullLogger;
 class PayForPosCryptTest extends TestCase
 {
     /**
+     * @var array<string, string>|array<string, float>
+     */
+    public $order;
+
+    /**
      * @var PayForPosCrypt
+     */
+    public $crypt;
+
+    /**
+     * @var PayForAccount
      */
     private $threeDAccount;
 

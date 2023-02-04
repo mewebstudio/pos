@@ -18,7 +18,6 @@ use Mews\Pos\Tests\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapperTest
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Encoder\XmlEncoder;
 
 /**
  * KuveytPosTest
@@ -88,8 +87,6 @@ class KuveytPosTest extends TestCase
             'John Doe',
             AbstractCreditCard::CARD_TYPE_VISA
         );
-
-        $this->xmlDecoder = new XmlEncoder();
     }
 
     /**

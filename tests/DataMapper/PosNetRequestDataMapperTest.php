@@ -38,8 +38,6 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
-
         $threeDAccount = AccountFactory::createPosNetAccount(
             'yapikredi',
             '6706598320',

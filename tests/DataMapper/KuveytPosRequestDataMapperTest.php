@@ -5,6 +5,7 @@
 namespace Mews\Pos\Tests\DataMapper;
 
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
@@ -21,6 +22,11 @@ use Psr\Log\NullLogger;
  */
 class KuveytPosRequestDataMapperTest extends TestCase
 {
+    /**
+     * @var KuveytPosAccount
+     */
+    public $threeDAccount;
+
     /** @var AbstractCreditCard */
     private $card;
 
@@ -133,7 +139,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'FailUrl'             => $order->fail_url,
         ];
 
-        if ($card) {
+        if ($card !== null) {
             $inputs['CardHolderName']      = $card->getHolderName();
             $inputs['CardType']            = 'Visa';
             $inputs['CardNumber']          = $card->getNumber();
