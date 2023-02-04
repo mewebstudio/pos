@@ -69,7 +69,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'CAVV'                    => $responseData['Cavv'],
             'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
             'OrderId'                 => $order->id,
-            'OrderDescription'        => $this->order->description ?? null,
+            'OrderDescription'        => $order->description ?? null,
             'ClientIp'                => $order->ip,
             'TransactionDeviceSource' => 0, // ECommerce
         ];
@@ -145,7 +145,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'TransactionDeviceSource' => 0,
         ];
 
-        if ($card) {
+        if ($card !== null) {
             $requestData['Pan']      = $card->getNumber();
             $requestData['Expiry']   = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT);
             $requestData['Cvv']      = $card->getCvv();
