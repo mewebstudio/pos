@@ -102,7 +102,7 @@ return static function (RectorConfig $rectorConfig): void {
         \Rector\Php71\Rector\FuncCall\CountOnNullRector::class,
         \Rector\Php71\Rector\TryCatch\MultiExceptionCatchRector::class,
         \Rector\Php73\Rector\FuncCall\ArrayKeyFirstLastRector::class,
-        \Rector\Privatization\Rector\Class_\FinalizeClassesWithoutChildrenRector::class,
+        //\Rector\Privatization\Rector\Class_\FinalizeClassesWithoutChildrenRector::class,
         \Rector\TypeDeclaration\Rector\ClassMethod\ArrayShapeFromConstantArrayReturnRector::class,
 
         \Rector\Php74\Rector\FuncCall\ArraySpreadInsteadOfArrayMergeRector::class,
