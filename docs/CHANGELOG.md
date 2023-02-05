@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.12.0] - 2023-02-06
+### Changed
+- **EstPos** - `MODEL_3D_PAY_HOSTING` desteği eklendi @umuttaymaz.
+- `get3DFormData()` - artık gereken _kart_ veya _sipariş_ bilgileri olmadan çağrıldığında istisna fırlatır.
+- `VakifBankPosRequestDataMapper` - `OrderDescription` tanımsız olma durumu giderildi.
+
 ## [0.11.0] - 2023-01-08
 ### Changed
 - Response formatı **object** yerine artık **array** olarak değiştirildi, `$pos->getResponse();` kod artık array döner.
