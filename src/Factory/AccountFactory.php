@@ -126,9 +126,11 @@ class AccountFactory
         if (AbstractGateway::MODEL_NON_SECURE === $model) {
             return;
         }
+        
         if (null !== $storeKey) {
             return;
         }
+        
         throw new MissingAccountInfoException("$model requires storeKey!");
     }
 
@@ -142,6 +144,7 @@ class AccountFactory
         if (VakifBankAccount::MERCHANT_TYPE_SUB_DEALER === $merchantType && empty($subMerchantId)) {
             throw new MissingAccountInfoException('SubMerchantId is required for sub branches!');
         }
+        
         if (!in_array($merchantType, VakifBankAccount::getMerchantTypes())) {
             throw new MissingAccountInfoException('Invalid MerchantType!');
         }

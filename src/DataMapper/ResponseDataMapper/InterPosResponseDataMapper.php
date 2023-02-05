@@ -27,6 +27,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper implements P
         if ($rawPaymentResponseData === []) {
             return $this->getDefaultPaymentResponse();
         }
+        
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
         $status                 = self::TX_DECLINED;
         $procReturnCode         = $this->getProcReturnCode($rawPaymentResponseData);

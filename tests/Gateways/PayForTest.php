@@ -25,6 +25,7 @@ class PayForTest extends TestCase
 
     /** @var AbstractCreditCard */
     private $card;
+    
     private $order;
 
     /** @var PayForPos */

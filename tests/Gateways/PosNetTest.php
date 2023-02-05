@@ -30,7 +30,9 @@ class PosNetTest extends TestCase
 
     /** @var AbstractCreditCard */
     private $card;
+    
     private $order;
+    
     /** @var PosNet */
     private $pos;
 

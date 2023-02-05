@@ -65,9 +65,11 @@ class HttpClient
                 $request         = $request->withHeader('Content-Type', 'application/x-www-form-urlencoded');
                 $payload['body'] = http_build_query($payload['form_params']);
             }
+            
             if (isset($payload['body'])) {
                 $body = $this->streamFactory->createStream($payload['body']);
             }
+            
             $request = $request->withBody($body);
         }
 

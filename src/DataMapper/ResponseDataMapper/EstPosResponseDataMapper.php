@@ -41,6 +41,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
         if ($rawPaymentResponseData === []) {
             return $this->getDefaultPaymentResponse();
         }
+        
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
 
         $procReturnCode = $this->getProcReturnCode($rawPaymentResponseData);
@@ -341,6 +342,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
             // when order not found for the given recurring order id then RECURRINGCOUNT = 0
             $status = self::TX_APPROVED;
         }
+
         $recurringOrderResponse = [
             'recurringId'               => $extra['RECURRINGID'],
             'recurringInstallmentCount' => $extra['RECURRINGCOUNT'],
@@ -388,6 +390,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
 
     /**
      * @param PaymentStatusModel $rawResponseData
+     *
      * {@inheritDoc}
      */
     public function mapHistoryResponse(array $rawResponseData): array

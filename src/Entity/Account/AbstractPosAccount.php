@@ -10,6 +10,7 @@ abstract class AbstractPosAccount
 {
     /** @var string */
     protected $clientId;
+    
     /**
      * account models: regular, 3d, 3d_pay, 3d_host
      * @var AbstractGateway::MODEL_*
@@ -21,6 +22,7 @@ abstract class AbstractPosAccount
 
     /** @var string */
     protected $password;
+    
     /**
      * required for non regular account models
      * @var string|null
@@ -29,6 +31,7 @@ abstract class AbstractPosAccount
 
     /** @var string */
     protected $lang;
+    
     /**
      * bank key name used in configuration file
      *

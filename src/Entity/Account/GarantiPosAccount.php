@@ -11,8 +11,10 @@ class GarantiPosAccount extends AbstractPosAccount
 {
     /** @var string */
     private $terminalId;
+    
     /** @var string */
     private $refundUsername;
+    
     /** @var string */
     private $refundPassword;
 

@@ -20,10 +20,12 @@ class GarantiPosTest extends TestCase
 {
     /** @var GarantiPosAccount */
     private $account;
+    
     private $config;
 
     /** @var AbstractCreditCard */
     private $card;
+    
     private $order;
 
     /** @var GarantiPos */

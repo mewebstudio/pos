@@ -16,6 +16,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
 {
     public const CREDIT_CARD_EXP_DATE_LONG_FORMAT = 'Ym';
+    
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
 
     /**
@@ -107,12 +108,15 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         if ($order->installment) {
             $requestData['InstallmentCount'] = $this->mapInstallment($order->installment);
         }
+        
         if (isset($order->extraData)) {
             $requestData['SessionInfo'] = $order->extraData;
         }
+        
         if ($account->isSubBranch()) {
             $requestData['SubMerchantId'] = $account->getSubMerchantId();
         }
+        
         if (isset($order->recurringFrequency)) {
             $requestData['IsRecurring'] = 'true';
             // Periyodik İşlem Frekansı

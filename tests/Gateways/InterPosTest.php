@@ -22,12 +22,15 @@ class InterPosTest extends TestCase
 {
     /** @var InterPosAccount */
     private $account;
+    
     /** @var InterPos */
     private $pos;
+    
     /** @var AbstractCreditCard */
     private $card;
 
     private $config;
+    
     private $order;
 
     protected function setUp(): void

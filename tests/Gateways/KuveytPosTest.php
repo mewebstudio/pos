@@ -31,6 +31,7 @@ class KuveytPosTest extends TestCase
 
     /** @var AbstractCreditCard */
     private $card;
+
     private $order;
 
     /** @var KuveytPos */

@@ -24,12 +24,15 @@ class EstPosTest extends TestCase
 {
     /** @var EstPosAccount */
     private $account;
+    
     /** @var EstPos */
     private $pos;
+    
     private $config;
 
     /** @var AbstractCreditCard */
     private $card;
+    
     private $order;
 
     /** @var EstPosResponseDataMapperTest */

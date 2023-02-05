@@ -18,7 +18,9 @@ use Mews\Pos\Gateways\AbstractGateway;
 class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     public const API_VERSION = '1.0.0';
+    
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
+    
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
 
     /**

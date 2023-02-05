@@ -129,15 +129,18 @@ class InterPos extends AbstractGateway
 
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
+        
         $gatewayUrl = $this->get3DHostGatewayURL();
         if (self::MODEL_3D_SECURE === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         } elseif (self::MODEL_3D_PAY === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         }
+        
         if (null === $gatewayUrl) {
             throw new LogicException('Gateway URL\' bulunamadı!');
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);

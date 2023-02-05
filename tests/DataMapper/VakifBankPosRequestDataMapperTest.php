@@ -21,6 +21,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
 {
     /** @var VakifBankAccount */
     public $account;
+    
     /** @var AbstractGateway */
     private $pos;
 

@@ -49,6 +49,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+        
         $transaction = $rawPaymentResponseData['Transaction'];
 
         $mappedResponse = [
@@ -139,6 +140,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
             $procReturnCode = $raw3DAuthResponseData['procreturncode'];
             $commonResult['status'] = self::PROCEDURE_SUCCESS_CODE === $procReturnCode ? self::TX_APPROVED : self::TX_DECLINED;
         }
+        
         if (in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'])) {
             $commonResult['auth_code']     = $raw3DAuthResponseData['authcode'];
             $commonResult['trans_id']      = $raw3DAuthResponseData['transid'];
@@ -182,6 +184,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+        
         $transaction = $rawResponseData['Transaction'];
 
 
@@ -214,6 +217,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+        
         $transaction = $rawResponseData['Transaction'];
 
         return [
@@ -301,6 +305,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
                 return 'Half 3D Secure';
             }
         }
+        
         return 'MPI fallback';
     }
 

@@ -8,7 +8,9 @@ use Psr\Log\LoggerInterface;
 abstract class AbstractResponseDataMapper
 {
     public const TX_APPROVED = 'approved';
+    
     public const TX_DECLINED = 'declined';
+    
     public const PROCEDURE_SUCCESS_CODE = '00';
 
     /** @var LoggerInterface */

@@ -12,6 +12,7 @@ use Psr\Log\LogLevel;
 class PosNetCrypt extends AbstractCrypt
 {
     protected const HASH_ALGORITHM = 'sha256';
+    
     protected const HASH_SEPARATOR = ';';
 
     /**

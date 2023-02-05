@@ -61,6 +61,7 @@ class VakifBankPos extends AbstractGateway
 
             return $this;
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $status]);
         $contents = $this->create3DPaymentXML($request->all());
         $bankResponse = $this->send($contents);
@@ -126,15 +127,18 @@ class VakifBankPos extends AbstractGateway
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception($data['ErrorMessage'], $data['MessageErrorCode']);
         }
+        
         if ('N' === $status) {
             //half secure olarak devam et yada satisi iptal et.
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception('Kart 3-D Secure programına dâhil değil');
         }
+        
         if ('U' === $status) {
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception('İşlem gerçekleştirilemiyor');
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, '', null, $data['Message']['VERes']);
@@ -186,6 +190,7 @@ class VakifBankPos extends AbstractGateway
                 // if something wrong server responds with HTML content
                 throw new Exception($responseBody, $e->getCode(), $e);
             }
+            
             $this->data = json_decode($responseBody, true);
         }
 

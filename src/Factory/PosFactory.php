@@ -67,9 +67,11 @@ class PosFactory
         if ($logger === null) {
             $logger = new NullLogger();
         }
+        
         if ($client === null) {
             $client = HttpClientFactory::createDefaultHttpClient();
         }
+        
         if (is_string($config)) {
             $config = require $config;
         } elseif (empty($config)) {
@@ -92,6 +94,7 @@ class PosFactory
         if (isset($config['currencies'])) {
             $currencies = $config['currencies'];
         }
+        
         $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
 
         $crypt              = self::getGatewayCrypt($class, $logger);
@@ -133,9 +136,11 @@ class PosFactory
                     return new PosNetRequestDataMapper($crypt, $currencies);
             }
         }
+        
         if ($gatewayClass === VakifBankPos::class) {
             return new VakifBankPosRequestDataMapper(null, $currencies);
         }
+        
         throw new DomainException('unsupported gateway');
     }
 
@@ -163,6 +168,7 @@ class PosFactory
             case VakifBankPos::class:
                 return new VakifBankPosResponseDataMapper($currencyMappings, $txMappings, $logger);
         }
+        
         throw new DomainException('unsupported gateway');
     }
 

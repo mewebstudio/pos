@@ -10,6 +10,7 @@ use Psr\Log\LogLevel;
 class EstV3PosCrypt extends AbstractCrypt
 {
     protected const HASH_ALGORITHM = 'sha512';
+    
     protected const HASH_SEPARATOR = '|';
 
     /**
@@ -24,6 +25,7 @@ class EstV3PosCrypt extends AbstractCrypt
                 unset($requestData[$key]);
             }
         }
+        
         $requestData[] = $account->getStoreKey();
         // escape | and \ characters
         $data = str_replace("\\", "\\\\", array_values($requestData));

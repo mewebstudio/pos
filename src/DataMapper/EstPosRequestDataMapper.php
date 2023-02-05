@@ -15,7 +15,9 @@ use Mews\Pos\Gateways\AbstractGateway;
 class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'm/y';
+    
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
+    
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
 
     /**

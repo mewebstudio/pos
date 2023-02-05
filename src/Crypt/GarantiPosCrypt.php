@@ -53,6 +53,7 @@ class GarantiPosCrypt extends AbstractCrypt
 
             return true;
         }
+        
         $this->logger->log(LogLevel::ERROR, 'hash check failed', [
             'data'           => $data,
             'generated_hash' => $actualHash,

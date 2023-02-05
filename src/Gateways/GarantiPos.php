@@ -59,6 +59,7 @@ class GarantiPos extends AbstractGateway
             // todo mdstatus 7 oldugunda hash, hashparam deger gelmiyor, check3dhash calismiyor
             throw new HashMismatchException();
         }
+        
         if (in_array($request->get('mdstatus'), [1, 2, 3, 4])) {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $request->get('mdstatus')]);
             $contents     = $this->create3DPaymentXML($request->all());
@@ -108,6 +109,7 @@ class GarantiPos extends AbstractGateway
 
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card);

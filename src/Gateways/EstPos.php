@@ -74,6 +74,7 @@ class EstPos extends AbstractGateway
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())) {
             throw new HashMismatchException();
         }
+        
         $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
 
         return $this;
@@ -87,6 +88,7 @@ class EstPos extends AbstractGateway
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())) {
             throw new HashMismatchException();
         }
+        
         $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all());
 
         return $this;
@@ -102,6 +104,7 @@ class EstPos extends AbstractGateway
 
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card);

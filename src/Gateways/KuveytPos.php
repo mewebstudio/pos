@@ -69,6 +69,7 @@ class KuveytPos extends AbstractGateway
             if (!$this->isHTML($responseBody)) {
                 throw new Exception($responseBody, $e->getCode(), $e);
             }
+            
             //icinde form olan HTML response dondu
             $this->data = $responseBody;
         }
@@ -85,6 +86,7 @@ class KuveytPos extends AbstractGateway
         if (!is_string($gatewayResponse)) {
             throw new \LogicException('AuthenticationResponse is missing');
         }
+        
         $gatewayResponse = urldecode($gatewayResponse);
         $gatewayResponse = $this->XMLStringToArray($gatewayResponse);
         $bankResponse    = null;
@@ -93,6 +95,7 @@ class KuveytPos extends AbstractGateway
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
             throw new HashMismatchException();
         }
+        
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment');
 
@@ -334,11 +337,13 @@ class KuveytPos extends AbstractGateway
                     /** @var string|null $key */
                     $key = $attribute->value;
                 }
+                
                 if ('value' === $attribute->name) {
                     /** @var string|null $value */
                     $value = $attribute->value;
                 }
             }
+            
             if ($key && null !== $value && !in_array($key, ['submit', 'submitBtn'])) {
                 $inputs[$key] = $value;
             }

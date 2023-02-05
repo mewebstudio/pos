@@ -32,6 +32,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
     private $requestDataMapper;
 
     private $order;
+    
     private $config;
 
     protected function setUp(): void
@@ -120,6 +121,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             $form['inputs']['Ecom_Payment_Card_ExpDate_Year']  = '22';
             $form['inputs']['cv2']                             = $card->getCvv();
         }
+        
         unset($form['inputs']['hash']);
         $form['inputs']['hash'] = $this->requestDataMapper->getCrypt()->create3DHash($account, $form['inputs'], $txType);
 

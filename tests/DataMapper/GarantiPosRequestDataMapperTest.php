@@ -34,6 +34,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     private $requestDataMapper;
 
     private $order;
+    
     private $config;
 
     protected function setUp(): void
