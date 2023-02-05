@@ -23,7 +23,6 @@ abstract class AbstractResponseDataMapper
     /**
      * @param array<string, string>                $currencyMappings
      * @param array<AbstractGateway::TX_*, string> $txTypeMappings
-     * @param LoggerInterface                      $logger
      */
     public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)
     {
@@ -40,11 +39,6 @@ abstract class AbstractResponseDataMapper
         return $this->txTypeMappings;
     }
 
-    /**
-     * @param string $txType
-     *
-     * @return string
-     */
     public function mapTxType(string $txType): string
     {
         return $this->txTypeMappings[$txType] ?? $txType;
@@ -52,20 +46,12 @@ abstract class AbstractResponseDataMapper
 
     /**
      * "1000.01" => 1000.01
-     * @param string $amount
-     *
-     * @return float
      */
     public static function amountFormat(string $amount): float
     {
         return (float) $amount;
     }
 
-    /**
-     * @param string $mdStatus
-     *
-     * @return string
-     */
     protected abstract function mapResponseTransactionSecurity(string $mdStatus): string;
 
     /**
@@ -101,7 +87,7 @@ abstract class AbstractResponseDataMapper
     /**
      * Returns default payment response data
      *
-     * @return array<string, string|null>
+     * @return array{order_id: null, trans_id: null, auth_code: null, ref_ret_num: null, proc_return_code: null, status: string, status_detail: null, error_code: null, error_message: null, all: null}
      */
     protected function getDefaultPaymentResponse(): array
     {

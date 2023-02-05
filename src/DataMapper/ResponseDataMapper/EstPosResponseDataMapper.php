@@ -203,6 +203,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
 
     /**
      * @param PaymentStatusModel $rawResponseData
+     *
      * {@inheritdoc}
      */
     public function mapRefundResponse(array $rawResponseData): array
@@ -378,9 +379,6 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
     /**
      * "100001" => 1000.01 odeme durum sorgulandiginda gelen amount format
      * "1000.01" => 1000.01 odeme yapildiginda gelen amount format
-     * @param string $amount
-     *
-     * @return float
      */
     public static function amountFormat(string $amount): float
     {
@@ -415,11 +413,6 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
         ];
     }
 
-    /**
-     * @param string $mdStatus
-     *
-     * @return string
-     */
     protected function mapResponseTransactionSecurity(string $mdStatus): string
     {
         $transactionSecurity = 'MPI fallback';
@@ -434,10 +427,6 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
 
     /**
      * Get Status Detail Text
-     *
-     * @param string|null $procReturnCode
-     *
-     * @return string|null
      */
     protected function getStatusDetail(?string $procReturnCode): ?string
     {
@@ -448,8 +437,6 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
      * Get ProcReturnCode
      *
      * @param array<string, mixed> $response
-     *
-     * @return string|null
      */
     protected function getProcReturnCode(array $response): ?string
     {

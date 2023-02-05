@@ -169,11 +169,6 @@ class VakifBankPosResponseDataMapper extends AbstractResponseDataMapper implemen
         return $this->emptyStringsToNull($rawResponseData);
     }
 
-    /**
-     * @param string $mdStatus
-     *
-     * @return string
-     */
     protected function mapResponseTransactionSecurity(string $mdStatus): string
     {
         return 'MPI fallback';
@@ -183,8 +178,6 @@ class VakifBankPosResponseDataMapper extends AbstractResponseDataMapper implemen
      * Get ProcReturnCode
      *
      * @param array<string, string> $response
-     *
-     * @return string|null
      */
     protected function getProcReturnCode(array $response): ?string
     {

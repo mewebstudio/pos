@@ -366,7 +366,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'error_code' => null,
                     'masked_number' => '4025502306586032',
                 ]
-            ]
+            ],
         ];
     }
 }
