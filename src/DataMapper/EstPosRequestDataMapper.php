@@ -269,12 +269,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function mapInstallment(?int $installment)
+    public function mapInstallment(?int $installment): string
     {
-        return $installment > 1 ? $installment : '';
+        return $installment > 1 ? (string) $installment : '';
     }
 
     /**

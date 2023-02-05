@@ -248,12 +248,9 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         return number_format($amount, 2, '.', '');
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function mapInstallment(?int $installment)
+    public function mapInstallment(?int $installment): string
     {
-        return $installment > 1 ? $installment : 0;
+        return $installment > 1 ? (string) $installment : '0';
     }
 
     /**

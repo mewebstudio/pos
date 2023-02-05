@@ -92,8 +92,8 @@ class InterPosRequestDataMapperTest extends TestCase
      *
      * @testWith ["0", ""]
      *           ["1", ""]
-     *           ["2", 2]
-     *           [2, 2]
+     *           ["2", "2"]
+     *           [2, "2"]
      *
      * @return void
      */

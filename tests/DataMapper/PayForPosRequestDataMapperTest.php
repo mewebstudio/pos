@@ -83,10 +83,10 @@ class PayForPosRequestDataMapperTest extends TestCase
      * @param string|int|null $installment
      * @param string|int      $expected
      *
-     * @testWith ["0", 0]
-     *           ["1", 0]
-     *           ["2", 2]
-     *           [2, 2]
+     * @testWith ["0", "0"]
+     *           ["1", "0"]
+     *           ["2", "2"]
+     *           [2, "2"]
      *
      * @return void
      */

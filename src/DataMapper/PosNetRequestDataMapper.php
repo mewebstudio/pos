@@ -369,9 +369,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * formats installment in 00, 02, 06 format
-     * {@inheritDoc}
      */
-    public function mapInstallment(?int $installment)
+    public function mapInstallment(?int $installment): string
     {
         if ($installment > 1) {
             return str_pad((string) $installment, 2, '0', STR_PAD_LEFT);
