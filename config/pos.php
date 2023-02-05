@@ -3,8 +3,8 @@
 return [
     //if you need to use custom keys for currency mapping, otherwise leave empty
     'currencies'    => [
-//        'TRY'       => 949,
-//        'USD'       => 840,
+//        'TRY'       => '949',
+//        'USD'       => '840',
     ],
     // Banks
     'banks'         => [
