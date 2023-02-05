@@ -267,12 +267,7 @@ abstract class AbstractRequestDataMapper
         return $this->recurringOrderFrequencyMapping;
     }
 
-    /**
-     * @param int|null $installment
-     *
-     * @return int|string
-     */
-    abstract public function mapInstallment(?int $installment);
+    abstract public function mapInstallment(?int $installment): string;
 
     /**
      * bank returns error messages for specified language value
