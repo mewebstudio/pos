@@ -239,7 +239,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
         ];
 
         if (isset($order->koiCode) && $order->koiCode > 0) {
-            $inputs['useJokerVadaa'] = 1;
+            $inputs['useJokerVadaa'] = '1';
         }
 
         return [
