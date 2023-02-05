@@ -7,6 +7,7 @@ namespace Mews\Pos\Gateways;
 use DOMDocument;
 use DOMNodeList;
 use Exception;
+use LogicException;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
@@ -263,7 +264,7 @@ class KuveytPos extends AbstractGateway
     private function getCommon3DFormData(KuveytPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         if (!$order) {
-            return [];
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
         $formData     = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);

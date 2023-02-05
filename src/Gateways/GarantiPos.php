@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
+use LogicException;
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
@@ -104,7 +105,8 @@ class GarantiPos extends AbstractGateway
     {
         if ($this->order === null) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
-            return [];
+
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 

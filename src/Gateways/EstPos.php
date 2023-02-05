@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
+use LogicException;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Psr\Log\LogLevel;
@@ -98,7 +99,8 @@ class EstPos extends AbstractGateway
     {
         if ($this->order === null) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
-            return [];
+
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 

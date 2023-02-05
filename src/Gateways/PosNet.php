@@ -5,6 +5,7 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
+use LogicException;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\Entity\Account\PosNetAccount;
@@ -123,7 +124,8 @@ class PosNet extends AbstractGateway
                 'order' => $this->order,
                 'card_provided' => (bool) $this->card,
             ]);
-            return [];
+
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
         $data = $this->getOosTransactionData();

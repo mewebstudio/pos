@@ -5,6 +5,7 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
+use LogicException;
 use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankPosResponseDataMapper;
 use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
 use Mews\Pos\Entity\Account\VakifBankAccount;
@@ -107,7 +108,8 @@ class VakifBankPos extends AbstractGateway
                 'order' => $this->order,
                 'card_provided' => (bool) $this->card,
             ]);
-            return [];
+
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
         $data = $this->sendEnrollmentRequest();
@@ -205,6 +207,10 @@ class VakifBankPos extends AbstractGateway
      */
     public function createRegularPostXML()
     {
+        if (null === $this->order) {
+            throw new LogicException('sipariş bilgileri eksik!');
+        }
+
         $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
