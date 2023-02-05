@@ -424,13 +424,6 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedData, $actual);
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param array              $responseData
-     *
-     * @return array
-     */
     private function getSample3DPaymentRequestData(AbstractPosAccount $account, $order, array $responseData): array
     {
         $requestData = [
@@ -469,12 +462,6 @@ class EstPosRequestDataMapperTest extends TestCase
         return $requestData;
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
-     */
     private function getSampleCancelXMLData(AbstractPosAccount $account, $order): array
     {
         return [
@@ -486,12 +473,6 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
-     */
     private function getSampleRecurringOrderCancelXMLData(AbstractPosAccount $account, $order): array
     {
         return [
@@ -506,13 +487,6 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param AbstractCreditCard $card
-     *
-     * @return array
-     */
     private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, $order, AbstractCreditCard $card): array
     {
         return [
@@ -537,12 +511,6 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
-     */
     private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, $order): array
     {
         return [
@@ -554,12 +522,6 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
-     */
     private function getSampleStatusRequestData(AbstractPosAccount $account, $order): array
     {
         return [
@@ -573,12 +535,6 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
-     */
     private function getSampleRecurringStatusRequestData(AbstractPosAccount $account, $order): array
     {
         return [
@@ -592,12 +548,6 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
-     */
     private function getSampleRefundXMLData(AbstractPosAccount $account, $order): array
     {
         $data = [
@@ -616,13 +566,7 @@ class EstPosRequestDataMapperTest extends TestCase
         return $data;
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $customQueryData
-     *
-     * @return array
-     */
-    private function getSampleHistoryRequestData(AbstractPosAccount $account, $customQueryData): array
+    private function getSampleHistoryRequestData(AbstractPosAccount $account, array $customQueryData): array
     {
         return [
             'Name'     => $account->getUsername(),

@@ -48,6 +48,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     *
+     * @return array{RequestGuid: mixed, UserCode: string, UserPass: string, OrderId: mixed, SecureType: string}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
@@ -62,6 +64,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     *
+     * @return array{MbrId: string, MOTO: string, OrderId: mixed, SecureType: string, TxnType: string, PurchAmount: mixed, Currency: string, InstallmentCount: string, Lang: string, CardHolderName: string|null, Pan: string, Expiry: string, Cvv2: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
@@ -83,7 +87,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * {@inheritDoc}
+     * @return array{MbrId: string, OrgOrderId: mixed, SecureType: string, TxnType: string, PurchAmount: mixed, Currency: string, Lang: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
@@ -99,7 +103,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * {@inheritDoc}
+     * @return array{MbrId: string, OrgOrderId: mixed, SecureType: string, Lang: string, TxnType: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
@@ -114,6 +118,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     *
+     * @return array{MbrId: string, OrgOrderId: mixed, SecureType: string, TxnType: string, Currency: string, Lang: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -128,7 +134,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * {@inheritDoc}
+     * @return array{MbrId: string, SecureType: string, Lang: string, OrgOrderId: mixed, TxnType: string, PurchAmount: mixed, Currency: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -211,9 +217,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param AbstractPosAccount $account
-     *
-     * @return array
+     * @return array{MerchantId: string, UserCode: string, UserPass: string}
      */
     private function getRequestAccountData(AbstractPosAccount $account): array
     {

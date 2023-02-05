@@ -22,19 +22,13 @@ use Psr\Log\NullLogger;
  */
 class VakifBankPosTest extends TestCase
 {
-    /**
-     * @var VakifBankAccount
-     */
+    /** @var VakifBankAccount */
     private $account;
-    /**
-     * @var VakifBankPos
-     */
+    /** @var VakifBankPos */
     private $pos;
     private $config;
 
-    /**
-     * @var AbstractCreditCard
-     */
+    /** @var AbstractCreditCard */
     private $card;
 
     /** @var array */

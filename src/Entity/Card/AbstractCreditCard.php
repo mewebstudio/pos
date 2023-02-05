@@ -31,19 +31,15 @@ abstract class AbstractCreditCard
 
     /**
      * visa, master, troy, amex, ...
-     * @var string|null
+     * @var self::CARD_TYPE_*|null
      */
     protected $type;
 
     /**
      * AbstractCreditCard constructor.
      *
-     * @param string            $number   credit card number with or without spaces
-     * @param DateTimeImmutable $expDate
-     * @param string            $cvv
-     * @param string|null       $cardHolderName
-     * @param string|null       $cardType examples values: 'visa', 'master', '1', '2'
-     *
+     * @param string                 $number   credit card number with or without spaces
+     * @param self::CARD_TYPE_*|null $cardType
      */
     public function __construct(string $number, DateTimeImmutable $expDate, string $cvv, ?string $cardHolderName = null, ?string $cardType = null)
     {
@@ -56,7 +52,6 @@ abstract class AbstractCreditCard
 
     /**
      * returns card number without white spaces
-     * @return string
      */
     public function getNumber(): string
     {
@@ -64,11 +59,7 @@ abstract class AbstractCreditCard
     }
 
     /**
-     * returns exp year in 2 digit format
-     *
-     * @param string $format
-     *
-     * @return string
+     * @return string year by default in 2 digit format.
      */
     public function getExpireYear(string $format = 'y'): string
     {
@@ -76,11 +67,7 @@ abstract class AbstractCreditCard
     }
 
     /**
-     * returns exp year in 2 digit format. i.e '01' '02' '12'
-     *
-     * @param string $format
-     *
-     * @return string
+     * @return string month number, by default in 2 digit format. i.e '01' '02' '12'
      */
     public function getExpireMonth(string $format = 'm'): string
     {
@@ -88,43 +75,30 @@ abstract class AbstractCreditCard
     }
 
     /**
-     * returns card exp date month and year combined.
-     *
-     * @param string $format
-     *
-     * @return string
+     * @return string card exp date month and year combined.
      */
     public function getExpirationDate(string $format = 'ym'): string
     {
         return $this->expDate->format($format);
     }
 
-    /**
-     * @return string
-     */
     public function getCvv(): string
     {
         return $this->cvv;
     }
 
-    /**
-     * @return string|null
-     */
     public function getHolderName(): ?string
     {
         return $this->holderName;
     }
 
-    /**
-     * @param string|null $name
-     */
     public function setHolderName(?string $name)
     {
         $this->holderName = $name;
     }
 
     /**
-     * @return string|null
+     * @return self::CARD_TYPE_*|null
      */
     public function getType(): ?string
     {

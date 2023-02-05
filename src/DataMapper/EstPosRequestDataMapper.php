@@ -6,6 +6,7 @@ namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\AbstractGateway;
 
 /**
@@ -234,6 +235,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * @param AbstractGateway::TX_* $txType
+     *
+     * @return array{gateway: string, inputs: array<string, string>}
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function create3DFormDataCommon(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
@@ -275,9 +280,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
-     * @param AbstractPosAccount $account
-     *
-     * @return array
+     * @return array{Name: string, Password: string, ClientId: string}
      */
     private function getRequestAccountData(AbstractPosAccount $account): array
     {
@@ -288,6 +291,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         ];
     }
 
+    /**
+     * @return array{PbOrder: array{OrderType: int, OrderFrequencyInterval: mixed, OrderFrequencyCycle: string, TotalNumberPayments: mixed}}
+     */
     private function getRecurringRequestOrderData($order): array
     {
         return [

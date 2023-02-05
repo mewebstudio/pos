@@ -15,9 +15,7 @@ use Mews\Pos\Gateways\AbstractGateway;
  */
 abstract class AbstractRequestDataMapper
 {
-    /**
-     * @var array<AbstractGateway::MODEL_*, string>
-     */
+    /** @var array<AbstractGateway::MODEL_*, string> */
     protected $secureTypeMappings = [];
 
     /**
@@ -40,15 +38,15 @@ abstract class AbstractRequestDataMapper
      * fakat bazi banklar ISO standarti kullanmiyorlar.
      * Currency mapping
      *
-     * @var array
+     * @var non-empty-array<string, string>
      */
     protected $currencyMappings = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
+        'TRY' => '949',
+        'USD' => '840',
+        'EUR' => '978',
+        'GBP' => '826',
+        'JPY' => '392',
+        'RUB' => '643',
     ];
 
     /**
@@ -64,8 +62,7 @@ abstract class AbstractRequestDataMapper
     protected $crypt;
 
     /**
-     * @param CryptInterface|null $crypt
-     * @param array               $currencyMappings
+     * @param array<string, string> $currencyMappings
      */
     public function __construct(?CryptInterface $crypt = null, array $currencyMappings = [])
     {
@@ -78,101 +75,52 @@ abstract class AbstractRequestDataMapper
     /**
      * @phpstan-param AbstractGateway::TX_* $txType
      *
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param array              $responseData gateway'den gelen cevap
-     *
-     * @return array
+     * @param       $order
+     * @param array $responseData gateway'den gelen cevap
      */
     abstract public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array;
 
     /**
-     * @phpstan-param AbstractGateway::TX_* $txType
-     *
-     * @param AbstractPosAccount      $account
-     * @param                         $order
-     * @param AbstractCreditCard|null $card
-     *
-     * @return array
+     * @param AbstractGateway::TX_* $txType
+     * @param                       $order
      */
     abstract public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array;
 
-    /**
-     * @param AbstractPosAccount      $account
-     * @param                         $order
-     * @param AbstractCreditCard|null $card
-     *
-     * @return array
-     */
     abstract public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array;
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
-     */
     abstract public function createStatusRequestData(AbstractPosAccount $account, $order): array;
 
     /**
-     * @param AbstractPosAccount $account
-     * @param object             $order
-     *
-     * @return array
+     * @param object $order
      */
     abstract public function createCancelRequestData(AbstractPosAccount $account, $order): array;
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return array
-     */
     abstract public function createRefundRequestData(AbstractPosAccount $account, $order): array;
 
     /**
-     * @phpstan-param AbstractGateway::TX_* $txType
+     * @param AbstractGateway::TX_* $txType
+     * @param                       $order
      *
-     * @param AbstractPosAccount      $account
-     * @param                         $order
-     * @param string                  $gatewayURL
-     * @param string                  $txType
-     * @param AbstractCreditCard|null $card
-     *
-     * @return array
+     * @return array{gateway: string, inputs: array<string, string>}
      */
     abstract public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array;
 
     /**
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     * @param array              $extraData bankaya gore degisen ozel degerler
-     *
-     * @return array
+     * @param       $order
+     * @param array $extraData bankaya gore degisen ozel degerler
      */
     abstract public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array;
 
-    /**
-     * @return CryptInterface
-     */
     public function getCrypt(): CryptInterface
     {
         return $this->crypt;
     }
 
-    /**
-     * @return bool
-     */
     public function isTestMode(): bool
     {
         return $this->testMode;
     }
 
-    /**
-     * @param string $period
-     *
-     * @return string
-     */
     public function mapRecurringFrequency(string $period): string
     {
         return $this->recurringOrderFrequencyMapping[$period] ?? $period;
@@ -203,19 +151,13 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @return array
+     * @return non-empty-array<string, string>
      */
     public function getCurrencyMappings(): array
     {
         return $this->currencyMappings;
     }
 
-
-    /**
-     * @param bool $testMode
-     *
-     * @return AbstractRequestDataMapper
-     */
     public function setTestMode(bool $testMode): self
     {
         $this->testMode = $testMode;
@@ -236,8 +178,6 @@ abstract class AbstractRequestDataMapper
     /**
      * @phpstan-param AbstractGateway::TX_* $txType
      *
-     * @return string
-     *
      * @throws UnsupportedTransactionTypeException
      */
     public function mapTxType(string $txType): string
@@ -249,11 +189,6 @@ abstract class AbstractRequestDataMapper
         return $this->txTypeMappings[$txType];
     }
 
-    /**
-     * @param string $txType
-     *
-     * @return bool
-     */
     public function isSupportedTxType(string $txType): bool
     {
         return isset($this->txTypeMappings[$txType]);
@@ -272,11 +207,6 @@ abstract class AbstractRequestDataMapper
     /**
      * bank returns error messages for specified language value
      * usually accepted values are tr,en
-     *
-     * @param AbstractPosAccount $account
-     * @param                    $order
-     *
-     * @return string
      */
     protected function getLang(AbstractPosAccount $account, $order): string
     {

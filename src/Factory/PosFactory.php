@@ -52,12 +52,7 @@ use Psr\Log\NullLogger;
 class PosFactory
 {
     /**
-     * @param AbstractPosAccount   $posAccount
-     * @param array|string|null    $config config path or config array
-     * @param HttpClient|null      $client
-     * @param LoggerInterface|null $logger
-     *
-     * @return PosInterface
+     * @param array|string|null $config config path or config array
      *
      * @throws BankClassNullException
      * @throws BankNotFoundException
@@ -115,11 +110,8 @@ class PosFactory
     }
 
     /**
-     * @param class-string        $gatewayClass
-     * @param array               $currencies
-     * @param CryptInterface|null $crypt
-     *
-     * @return AbstractRequestDataMapper
+     * @param class-string $gatewayClass
+     * @param array<string, string> $currencies
      */
     public static function getGatewayRequestMapper(string $gatewayClass, array $currencies = [], ?CryptInterface $crypt = null): AbstractRequestDataMapper
     {
@@ -148,11 +140,7 @@ class PosFactory
     }
 
     /**
-     * @param class-string              $gatewayClass
-     * @param AbstractRequestDataMapper $requestDataMapper
-     * @param LoggerInterface           $logger
-     *
-     * @return AbstractResponseDataMapper
+     * @param class-string $gatewayClass
      */
     public static function getGatewayResponseMapper(string $gatewayClass, AbstractRequestDataMapper $requestDataMapper, LoggerInterface $logger): AbstractResponseDataMapper
     {
@@ -179,10 +167,7 @@ class PosFactory
     }
 
     /**
-     * @param class-string    $gatewayClass
-     * @param LoggerInterface $logger
-     *
-     * @return CryptInterface|null
+     * @param class-string $gatewayClass
      */
     public static function getGatewayCrypt(string $gatewayClass, LoggerInterface $logger): ?CryptInterface
     {

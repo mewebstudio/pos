@@ -4,33 +4,30 @@
 namespace Mews\Pos\Entity\Account;
 
 
+use Mews\Pos\Gateways\AbstractGateway;
+
 abstract class AbstractPosAccount
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $clientId;
     /**
      * account models: regular, 3d, 3d_pay, 3d_host
-     * @var string
+     * @var AbstractGateway::MODEL_*
      */
     protected $model;
-    /**
-     * @var string
-     */
+
+    /** @var string */
     protected $username;
-    /**
-     * @var string
-     */
+
+    /** @var string */
     protected $password;
     /**
      * required for non regular account models
      * @var string|null
      */
     protected $storeKey;
-    /**
-     * @var string
-     */
+
+    /** @var string */
     protected $lang;
     /**
      * bank key name used in configuration file
@@ -41,13 +38,8 @@ abstract class AbstractPosAccount
 
     /**
      * AbstractPosAccount constructor.
-     * @param string $bank
-     * @param string $model
-     * @param string $clientId
-     * @param string $username
-     * @param string $password
-     * @param string $lang
-     * @param string|null $storeKey
+     *
+     * @param AbstractGateway::MODEL_* $model
      */
     public function __construct(string $bank, string $model, string $clientId, string $username, string $password, string $lang, ?string $storeKey = null)
     {
@@ -60,57 +52,39 @@ abstract class AbstractPosAccount
         $this->bank = $bank;
     }
 
-    /**
-     * @return string
-     */
     public function getClientId(): string
     {
         return $this->clientId;
     }
 
     /**
-     * @return string
+     * @return AbstractGateway::MODEL_*
      */
     public function getModel(): string
     {
         return $this->model;
     }
 
-    /**
-     * @return string
-     */
     public function getUsername(): string
     {
         return $this->username;
     }
 
-    /**
-     * @return string
-     */
     public function getPassword(): string
     {
         return $this->password;
     }
 
-    /**
-     * @return string|null
-     */
     public function getStoreKey(): ?string
     {
         return $this->storeKey;
     }
 
-    /**
-     * @return string
-     */
     public function getLang(): string
     {
         return $this->lang;
     }
 
-    /**
-     * @return string
-     */
     public function getBank(): string
     {
         return $this->bank;

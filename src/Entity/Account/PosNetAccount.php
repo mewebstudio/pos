@@ -32,17 +32,11 @@ class PosNetAccount extends AbstractPosAccount
         $this->posNetId = $posNetId;
     }
 
-    /**
-     * @return string
-     */
     public function getTerminalId(): string
     {
         return $this->terminalId;
     }
 
-    /**
-     * @return string
-     */
     public function getPosNetId(): string
     {
         return $this->posNetId;

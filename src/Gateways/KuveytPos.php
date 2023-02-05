@@ -40,9 +40,6 @@ class KuveytPos extends AbstractGateway
         return parent::createXML(['KuveytTurkVPosMessage' => $nodes], $encoding, $ignorePiNode);
     }
 
-    /**
-     * @return KuveytPosAccount
-     */
     public function getAccount(): KuveytPosAccount
     {
         return $this->account;
@@ -257,13 +254,9 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @param KuveytPosAccount        $account
-     * @param                         $order
-     * @param self::TX_*              $txType
-     * @param string                  $gatewayURL
-     * @param AbstractCreditCard|null $card
+     * @param self::TX_* $txType
      *
-     * @return array
+     * @return array{gateway: string, inputs: array<string, string>}
      *
      * @throws Exception
      */
@@ -283,9 +276,8 @@ class KuveytPos extends AbstractGateway
     /**
      * Diger Gateway'lerden farkli olarak bu gateway HTML form olan bir response doner.
      * Kutupahenin islem akisina uymasi icin bu HTML form verilerini array'e donusturup, kendimiz post ediyoruz.
-     * @param string $response
      *
-     * @return array
+     * @return array{gateway: string, inputs: array<string, string>}
      */
     private function transformReceived3DFormData(string $response): array
     {
@@ -321,7 +313,6 @@ class KuveytPos extends AbstractGateway
 
     /**
      * html form'da gelen input degeleri array'e donusturur
-     * @param DOMNodeList $inputNodes
      *
      * @return array<string, string>
      */

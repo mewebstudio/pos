@@ -17,9 +17,7 @@ interface PosInterface
     /**
      * Create XML DOM Document
      *
-     * @param array  $nodes
-     * @param string $encoding
-     * @param bool   $ignorePiNode when true it will not wrap it with this node <?xml version="1.0" encoding="UTF-8"?>
+     * @param bool $ignorePiNode when true it will not wrap it with this node <?xml version="1.0" encoding="UTF-8"?>
      *
      * @return string the XML, or false if an error occurred.
      */
@@ -34,7 +32,6 @@ interface PosInterface
 
     /**
      * Make 3D Payment
-     * @param Request $request
      *
      * @return AbstractGateway
      */
@@ -42,7 +39,6 @@ interface PosInterface
 
     /**
      * Make 3D Pay Payment
-     * @param Request $request
      *
      * @return AbstractGateway
      */
@@ -50,7 +46,6 @@ interface PosInterface
 
     /**
      * Just returns formatted data of host payment response
-     * @param Request $request
      *
      * @return AbstractGateway
      */
@@ -60,7 +55,6 @@ interface PosInterface
      * Send contents to WebService
      *
      * @param array|string $contents
-     * @param string|null  $url
      *
      * @return string|array|null
      */
@@ -69,7 +63,6 @@ interface PosInterface
     /**
      * Prepare Order
      *
-     * @param array                   $order
      * @param AbstractGateway::TX_*   $txType
      * @param AbstractCreditCard|null $card   need when 3DFormData requested
      *
@@ -112,8 +105,6 @@ interface PosInterface
     /**
      * Order History
      *
-     * @param array $meta
-     *
      * @return AbstractGateway
      */
     public function history(array $meta);
@@ -127,8 +118,6 @@ interface PosInterface
 
     /**
      * Enable/Disable test mode
-     *
-     * @param bool $testMode
      *
      * @return AbstractGateway
      */

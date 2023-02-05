@@ -12,6 +12,9 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
  */
 class EstV3PosRequestDataMapper extends EstPosRequestDataMapper
 {
+    /**
+     * @inheritDoc
+     */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         $data = $this->create3DFormDataCommon($account, $order, $txType, $gatewayURL, $card);

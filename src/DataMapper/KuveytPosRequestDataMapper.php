@@ -65,10 +65,6 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * Amount Formatter
      * converts 100 to 10000, or 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
      */
     public static function amountFormat(float $amount): int
     {
@@ -79,6 +75,8 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param KuveytPosAccount $account
      *
      * {@inheritDoc}
+     *
+     * @return array{APIVersion: string, HashData: string, CustomerIPAddress: mixed, KuveytTurkVPosAdditionalData: array{AdditionalData: array{Key: string, Data: mixed}}, TransactionType: string, InstallmentCount: mixed, Amount: mixed, DisplayAmount: int, CurrencyCode: mixed, MerchantOrderId: mixed, TransactionSecurity: mixed, MerchantId: string, CustomerId: string, UserName: string}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
@@ -107,7 +105,6 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
-     * @param KuveytPosAccount      $account
      * @param AbstractGateway::TX_* $txType
      */
     public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
@@ -207,7 +204,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param KuveytPosAccount $account
      *
-     * @return array
+     * @return array{MerchantId: string, CustomerId: string, UserName: string}
      */
     private function getRequestAccountData(AbstractPosAccount $account): array
     {

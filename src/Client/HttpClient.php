@@ -24,11 +24,6 @@ class HttpClient
     /** @var StreamFactoryInterface */
     protected $streamFactory;
 
-    /**
-     * @param ClientInterface         $client
-     * @param RequestFactoryInterface $requestFactory
-     * @param StreamFactoryInterface  $streamFactory
-     */
     public function __construct(
         ClientInterface         $client,
         RequestFactoryInterface $requestFactory,

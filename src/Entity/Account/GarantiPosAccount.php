@@ -9,17 +9,11 @@ namespace Mews\Pos\Entity\Account;
  */
 class GarantiPosAccount extends AbstractPosAccount
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     private $terminalId;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $refundUsername;
-    /**
-     * @var string
-     */
+    /** @var string */
     private $refundPassword;
 
     public function __construct(
@@ -41,25 +35,16 @@ class GarantiPosAccount extends AbstractPosAccount
         $this->refundPassword = $refundPassword;
     }
 
-    /**
-     * @return string
-     */
     public function getRefundPassword(): string
     {
         return $this->refundPassword;
     }
 
-    /**
-     * @return string
-     */
     public function getRefundUsername(): string
     {
         return $this->refundUsername;
     }
 
-    /**
-     * @return string
-     */
     public function getTerminalId(): string
     {
         return $this->terminalId;

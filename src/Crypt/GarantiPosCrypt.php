@@ -85,9 +85,6 @@ class GarantiPosCrypt extends AbstractCrypt
      * Make Security Data
      *
      * @param GarantiPosAccount $account
-     * @param string|null       $txType
-     *
-     * @return string
      */
     private function createSecurityData(AbstractPosAccount $account, ?string $txType = null): string
     {
@@ -101,11 +98,6 @@ class GarantiPosCrypt extends AbstractCrypt
         return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map));
     }
 
-    /**
-     * @param string $str
-     *
-     * @return string
-     */
     protected function hashStringUpperCase(string $str): string
     {
         return strtoupper(hash(static::HASH_ALGORITHM, $str));
