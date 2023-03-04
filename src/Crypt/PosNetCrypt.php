@@ -83,6 +83,8 @@ class PosNetCrypt extends AbstractCrypt
      * Make Security Data
      *
      * @param PosNetAccount $account
+     *
+     * @return string
      */
     public function createSecurityData(AbstractPosAccount $account): string
     {

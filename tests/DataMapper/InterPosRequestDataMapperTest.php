@@ -328,6 +328,13 @@ class InterPosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedData, $actual);
     }
 
+    /**
+     * @param                 $order
+     * @param InterPosAccount $account
+     * @param array           $responseData
+     *
+     * @return array
+     */
     private function getSample3DPaymentRequestData($order, InterPosAccount $account, array $responseData): array
     {
         return [
@@ -349,6 +356,12 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    /**
+     * @param                 $order
+     * @param InterPosAccount $account
+     *
+     * @return array
+     */
     private function getSampleCancelXMLData($order, InterPosAccount $account): array
     {
         return [
@@ -363,6 +376,13 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    /**
+     * @param                    $order
+     * @param AbstractCreditCard $card
+     * @param InterPosAccount    $account
+     *
+     * @return array
+     */
     private function getSampleNonSecurePaymentRequestData($order, AbstractCreditCard $card, InterPosAccount $account): array
     {
         $requestData = [
@@ -387,6 +407,12 @@ class InterPosRequestDataMapperTest extends TestCase
         return $requestData;
     }
 
+    /**
+     * @param                 $order
+     * @param InterPosAccount $account
+     *
+     * @return array
+     */
     private function getSampleNonSecurePaymentPostRequestData($order, InterPosAccount $account): array
     {
         return [
@@ -403,6 +429,12 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    /**
+     * @param                 $order
+     * @param InterPosAccount $account
+     *
+     * @return array
+     */
     private function getSampleStatusRequestData($order, InterPosAccount $account): array
     {
         return [
@@ -417,6 +449,12 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    /**
+     * @param                 $order
+     * @param InterPosAccount $account
+     *
+     * @return array
+     */
     private function getSampleRefundXMLData($order, InterPosAccount $account): array
     {
         return [

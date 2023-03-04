@@ -24,10 +24,10 @@ class VakifBankPosTest extends TestCase
 {
     /** @var VakifBankAccount */
     private $account;
-    
+
     /** @var VakifBankPos */
     private $pos;
-    
+
     private $config;
 
     /** @var AbstractCreditCard */

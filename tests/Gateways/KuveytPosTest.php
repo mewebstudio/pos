@@ -24,20 +24,28 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class KuveytPosTest extends TestCase
 {
-    /** @var KuveytPosAccount */
+    /**
+     * @var KuveytPosAccount
+     */
     private $threeDAccount;
 
     private $config;
 
-    /** @var AbstractCreditCard */
+    /**
+     * @var AbstractCreditCard
+     */
     private $card;
 
     private $order;
 
-    /** @var KuveytPos */
+    /**
+     * @var KuveytPos
+     */
     private $pos;
 
     /**
+     * @return void
+     *
      * @throws BankClassNullException
      * @throws BankNotFoundException
      */

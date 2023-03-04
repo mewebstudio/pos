@@ -338,11 +338,14 @@ class PosNetRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param PosNetAccount         $account
-     * @param                       $order
-     * @param array<string, string> $oosTxResponseData
+     * @param PosNetAccount $account
+     * @param               $order
+     * @param               $oosTxResponseData
+     * @param string        $gatewayURL
+     *
+     * @return array
      */
-    private function getSample3DFormData(AbstractPosAccount $account, $order, array $oosTxResponseData, string $gatewayURL): array
+    private function getSample3DFormData(AbstractPosAccount $account, $order, $oosTxResponseData, string $gatewayURL): array
     {
         $inputs = [
             'posnetData'        => $oosTxResponseData['data1'],
@@ -362,6 +365,9 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
     }
 
+    /**
+     * @return array
+     */
     private function getSample3DEnrollmentCheckResponseData(): array
     {
         return [
@@ -376,7 +382,13 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSample3DPaymentRequestData(PosNetAccount $account, array $responseData): array
+    /**
+     * @param PosNetAccount $account
+     * @param array         $responseData
+     *
+     * @return array
+     */
+    private function getSample3DPaymentRequestData(AbstractPosAccount $account, array $responseData): array
     {
         return [
             'mid'         => $account->getClientId(),
@@ -391,7 +403,13 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleCancelXMLData(PosNetAccount $account, $order): array
+    /**
+     * @param PosNetAccount $account
+     * @param               $order
+     *
+     * @return array
+     */
+    private function getSampleCancelXMLData(AbstractPosAccount $account, $order): array
     {
         $requestData = [
             'mid'              => $account->getClientId(),
@@ -412,7 +430,14 @@ class PosNetRequestDataMapperTest extends TestCase
         return $requestData;
     }
 
-    private function getSampleNonSecurePaymentRequestData(PosNetAccount $account, $order, AbstractCreditCard $card): array
+    /**
+     * @param PosNetAccount      $account
+     * @param                    $order
+     * @param AbstractCreditCard $card
+     *
+     * @return array
+     */
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, $order, AbstractCreditCard $card): array
     {
         return [
             'mid'              => $account->getClientId(),
@@ -430,7 +455,13 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleNonSecurePaymentPostRequestData(PosNetAccount $account, $order): array
+    /**
+     * @param PosNetAccount $account
+     * @param               $order
+     *
+     * @return array
+     */
+    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, $order): array
     {
         return [
             'mid'              => $account->getClientId(),
@@ -445,7 +476,12 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleStatusRequestData(PosNetAccount $account): array
+    /**
+     * @param PosNetAccount $account
+     *
+     * @return array
+     */
+    private function getSampleStatusRequestData(AbstractPosAccount $account): array
     {
         return [
             'mid'       => $account->getClientId(),
@@ -456,7 +492,13 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleRefundXMLData(PosNetAccount $account, $order): array
+    /**
+     * @param PosNetAccount $account
+     * @param               $order
+     *
+     * @return array
+     */
+    private function getSampleRefundXMLData(AbstractPosAccount $account, $order): array
     {
         $requestData = [
             'mid'              => $account->getClientId(),
@@ -477,6 +519,13 @@ class PosNetRequestDataMapperTest extends TestCase
         return $requestData;
     }
 
+    /**
+     * @param PosNetAccount      $account
+     * @param                    $order
+     * @param AbstractCreditCard $card
+     *
+     * @return array
+     */
     private function getSample3DEnrollmentCheckRequestData(PosNetAccount $account, $order, AbstractCreditCard $card): array
     {
         return [
@@ -497,7 +546,13 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleResolveMerchantDataXMLData(PosNetAccount $account, array $responseData): array
+    /**
+     * @param PosNetAccount $account
+     * @param array         $responseData
+     *
+     * @return array
+     */
+    private function getSampleResolveMerchantDataXMLData(AbstractPosAccount $account, array $responseData): array
     {
         return [
             'mid'                    => $account->getClientId(),

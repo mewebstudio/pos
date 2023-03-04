@@ -16,6 +16,7 @@ abstract class AbstractRequestDataMapperCrypt extends AbstractRequestDataMapper
     protected $crypt;
 
     /**
+     * @param CryptInterface        $crypt
      * @param array<string, string> $currencyMappings
      */
     public function __construct(CryptInterface $crypt, array $currencyMappings = [])
@@ -23,6 +24,9 @@ abstract class AbstractRequestDataMapperCrypt extends AbstractRequestDataMapper
         parent::__construct($crypt, $currencyMappings);
     }
 
+    /**
+     * @return CryptInterface
+     */
     public function getCrypt(): CryptInterface
     {
         return $this->crypt;

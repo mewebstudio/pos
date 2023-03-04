@@ -19,13 +19,16 @@ class CreditCardFactory
     /**
      * AbstractCreditCard constructor.
      *
-     * @param PosInterface|AbstractGateway         $pos
-     * @param string                               $number      credit card number with or without spaces
-     * @param string                               $expireYear  accepts year in 1, 2 and 4 digit format. accepted year
-     *                                                          formats '1' (2001), '02'
-     *                                                          (2002), '20' (2020), '2024' (2024)
-     * @param string                               $expireMonth single digit or double digit month values are accepted
-     * @param AbstractCreditCard::CARD_TYPE_*|null $cardType    bankaya gore zorunlu
+     * @param PosInterface|AbstractGateway $pos
+     * @param string       $number         credit card number with or without spaces
+     * @param string       $expireYear     accepts year in 1, 2 and 4 digit format. accepted year formats '1' (2001), '02'
+     *                                     (2002), '20' (2020), '2024' (2024)
+     * @param string       $expireMonth    single digit or double digit month values are accepted
+     * @param string       $cvv
+     * @param string|null  $cardHolderName
+     * @param string|null  $cardType       examples values: visa, master. bankaya gore zorunlu
+     *
+     * @return AbstractCreditCard
      */
     public static function create(
         PosInterface $pos,

@@ -60,8 +60,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param GarantiPosAccount $account
      *
      * {@inheritDoc}
-     *
-     * @return array{Mode: string, Version: string, Terminal: mixed[], Customer: array{IPAddress: mixed, EmailAddress: mixed}, Order: array{OrderID: mixed, AddressList: mixed[]}, Transaction: array{Type: mixed, InstallmentCnt: int|string, Amount: mixed, CurrencyCode: mixed, CardholderPresentCode: string, MotoInd: string, Secure3D: array{AuthenticationCode: mixed, SecurityLevel: mixed, TxnID: mixed, Md: mixed}}, Recurring?: mixed[]}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
@@ -110,8 +108,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param GarantiPosAccount $account
      *
      * {@inheritDoc}
-     *
-     * @return array{Mode: string, Version: string, Terminal: mixed[], Customer: array{IPAddress: mixed, EmailAddress: mixed}, Card: mixed[], Order: array{OrderID: mixed, AddressList: mixed[]}, Transaction: array{Type: string, InstallmentCnt: int|string, Amount: int, CurrencyCode: string, CardholderPresentCode: string, MotoInd: string}, Recurring?: mixed[]}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
@@ -154,7 +150,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param GarantiPosAccount $account
      *
-     * @return array{Mode: string, Version: string, Terminal: mixed[], Customer: array{IPAddress: mixed, EmailAddress: mixed}, Order: array{OrderID: mixed}, Transaction: array{Type: string, Amount: int, CurrencyCode: string, OriginalRetrefNum: mixed}}
+     * {@inheritDoc}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
@@ -187,7 +183,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param GarantiPosAccount $account
      *
-     * @return array{Mode: string, Version: string, Terminal: mixed[], Customer: array{IPAddress: mixed, EmailAddress: mixed}, Order: array{OrderID: mixed}, Transaction: array{Type: string, InstallmentCnt: int|string, Amount: int, CurrencyCode: string, CardholderPresentCode: string, MotoInd: string}}
+     * {@inheritDoc}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
@@ -223,8 +219,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param GarantiPosAccount $account
      *
      * {@inheritDoc}
-     *
-     * @return array{Mode: string, Version: string, Terminal: mixed[], Customer: array{IPAddress: mixed, EmailAddress: mixed}, Order: array{OrderID: mixed}, Transaction: array{Type: string, InstallmentCnt: int|string, Amount: int, CurrencyCode: string, CardholderPresentCode: string, MotoInd: string, OriginalRetrefNum: mixed}}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -260,7 +254,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param GarantiPosAccount $account
      *
-     * @return array{Mode: string, Version: string, Terminal: mixed[], Customer: array{IPAddress: mixed, EmailAddress: mixed}, Order: array{OrderID: mixed}, Transaction: array{Type: string, InstallmentCnt: int|string, Amount: int, CurrencyCode: string, CardholderPresentCode: string, MotoInd: string, OriginalRetrefNum: mixed}}
+     * {@inheritDoc}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -297,8 +291,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param GarantiPosAccount $account
      *
      * {@inheritDoc}
-     *
-     * @return array{Mode: string, Version: string, Terminal: mixed[], Customer: array{IPAddress: mixed, EmailAddress: mixed}, Order: array{OrderID: mixed}, Transaction: array{Type: string, InstallmentCnt: int|string, Amount: int, CurrencyCode: string, CardholderPresentCode: string, MotoInd: string}}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
@@ -333,10 +325,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * @param GarantiPosAccount $account
-     *
      * {@inheritDoc}
-     *
-     * @return array{gateway: string, inputs: array{secure3dsecuritylevel: string, mode: string, apiversion: string, terminalprovuserid: string, terminaluserid: string, terminalmerchantid: string, terminalid: string, txntype: string, txnamount: mixed, txncurrencycode: mixed, txninstallmentcount: mixed, orderid: mixed, successurl: mixed, errorurl: mixed, customeremailaddress: mixed, customeripaddress: mixed, secure3dhash: string}|array{secure3dsecuritylevel: string, mode: string, apiversion: string, terminalprovuserid: string, terminaluserid: string, terminalmerchantid: string, terminalid: string, txntype: string, txnamount: mixed, txncurrencycode: mixed, txninstallmentcount: mixed, orderid: mixed, successurl: mixed, errorurl: mixed, customeremailaddress: mixed, customeripaddress: mixed, secure3dhash: string, cardnumber: string, cardexpiredatemonth: string, cardexpiredateyear: string, cardcvv2: string}}
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
@@ -385,12 +374,17 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * Amount Formatter
      * converts 100 to 10000, or 10.01 to 1001
      * @param float $amount
+     *
+     * @return int
      */
     public static function amountFormat($amount): int
     {
         return (int) (round($amount, 2) * 100);
     }
 
+    /**
+     * @return string
+     */
     private function getMode(): string
     {
         return $this->isTestMode() ? 'TEST' : 'PROD';
@@ -398,8 +392,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * @param GarantiPosAccount $account
+     * @param string            $hash
+     * @param bool              $isRefund
      *
-     * @return array{ProvUserID: string, UserID: string, HashData: string, ID: string, MerchantID: string}
+     * @return array
      */
     private function getTerminalData(AbstractPosAccount $account, string $hash, bool $isRefund = false): array
     {
@@ -412,6 +408,11 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         ];
     }
 
+    /**
+     * @param AbstractCreditCard|null $card
+     *
+     * @return array
+     */
     private function getCardData(?AbstractCreditCard $card = null): array
     {
         if ($card !== null) {
@@ -430,9 +431,9 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
-     * @param object $order
+     * @param $order
      *
-     * @return array{Address: array{Type: string, Name: mixed, LastName: string, Company: string, Text: string, District: string, City: string, PostalCode: string, Country: string, PhoneNumber: string}}
+     * @return array
      */
     private function getOrderAddressData($order): array
     {
@@ -468,9 +469,9 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *       </Payment>
      *   </PaymentList>
      * </Recurring>
-     * @param object $order
+     * @param $order
      *
-     * @return array{TotalPaymentNum: mixed, FrequencyType: string, FrequencyInterval: mixed, Type: mixed, StartDate: mixed}
+     * @return array
      */
     private function createRecurringData($order): array
     {

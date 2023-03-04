@@ -11,10 +11,10 @@ class GarantiPosAccount extends AbstractPosAccount
 {
     /** @var string */
     private $terminalId;
-    
+
     /** @var string */
     private $refundUsername;
-    
+
     /** @var string */
     private $refundPassword;
 
@@ -37,16 +37,25 @@ class GarantiPosAccount extends AbstractPosAccount
         $this->refundPassword = $refundPassword;
     }
 
+    /**
+     * @return string
+     */
     public function getRefundPassword(): string
     {
         return $this->refundPassword;
     }
 
+    /**
+     * @return string
+     */
     public function getRefundUsername(): string
     {
         return $this->refundUsername;
     }
 
+    /**
+     * @return string
+     */
     public function getTerminalId(): string
     {
         return $this->terminalId;

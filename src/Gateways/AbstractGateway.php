@@ -69,7 +69,9 @@ abstract class AbstractGateway implements PosInterface
      */
     protected $type;
 
-    /** @var object|null */
+    /**
+     * @var object|null
+     */
     protected $order;
 
     /**
@@ -153,13 +155,16 @@ abstract class AbstractGateway implements PosInterface
         $this->card = $card;
     }
 
+    /**
+     * @return array|null
+     */
     public function getResponse(): ?array
     {
         return $this->response;
     }
 
     /**
-     * @return non-empty-array<string, string>
+     * @return array
      */
     public function getCurrencies(): array
     {
@@ -179,11 +184,17 @@ abstract class AbstractGateway implements PosInterface
      */
     abstract public function getAccount();
 
+    /**
+     * @return AbstractCreditCard|null
+     */
     public function getCard(): ?AbstractCreditCard
     {
         return $this->card;
     }
 
+    /**
+     * @param AbstractCreditCard|null $card
+     */
     public function setCard(?AbstractCreditCard $card)
     {
         $this->card = $card;
@@ -219,27 +230,41 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * Is success
+     *
+     * @return bool
      */
     public function isSuccess(): bool
     {
         return isset($this->response['status']) && $this->responseDataMapper::TX_APPROVED === $this->response['status'];
     }
 
+    /**
+     * @return string
+     */
     public function getApiURL(): string
     {
         return $this->config['urls'][$this->getModeInWord()];
     }
 
+    /**
+     * @return string
+     */
     public function get3DGatewayURL(): string
     {
         return $this->config['urls']['gateway'][$this->getModeInWord()];
     }
 
+    /**
+     * @return string|null
+     */
     public function get3DHostGatewayURL(): ?string
     {
         return $this->config['urls']['gateway_3d_host'][$this->getModeInWord()] ?? null;
     }
 
+    /**
+     * @return bool
+     */
     public function isTestMode(): bool
     {
         return $this->testMode;
@@ -367,6 +392,8 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
+     * @param bool $testMode
+     *
      * @return $this
      */
     public function setTestMode(bool $testMode): self
@@ -447,12 +474,14 @@ abstract class AbstractGateway implements PosInterface
     /**
      * returns form data, key values, necessary for 3D payment
      *
-     * @return array{gateway: string, inputs: array<string, string>}
+     * @return array
      */
     abstract public function get3DFormData(): array;
 
     /**
      * prepares order for payment request
+     *
+     * @param array $order
      *
      * @return object
      */
@@ -461,12 +490,16 @@ abstract class AbstractGateway implements PosInterface
     /**
      * prepares order for TX_POST_PAY type request
      *
+     * @param array $order
+     *
      * @return object
      */
     abstract protected function preparePostPaymentOrder(array $order);
 
     /**
      * prepares order for order status request
+     *
+     * @param array $order
      *
      * @return object
      */
@@ -475,12 +508,16 @@ abstract class AbstractGateway implements PosInterface
     /**
      * prepares order for history request
      *
+     * @param array $order
+     *
      * @return object
      */
     abstract protected function prepareHistoryOrder(array $order);
 
     /**
      * prepares order for cancel request
+     *
+     * @param array $order
      *
      * @return object
      */
@@ -489,12 +526,16 @@ abstract class AbstractGateway implements PosInterface
     /**
      * prepares order for refund request
      *
+     * @param array $order
+     *
      * @return object
      */
     abstract protected function prepareRefundOrder(array $order);
 
     /**
      * @param string $str
+     *
+     * @return bool
      */
     protected function isHTML($str): bool
     {
@@ -503,6 +544,11 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * Converts XML string to array
+     *
+     * @param string $data
+     * @param array  $context
+     *
+     * @return array
      */
     protected function XMLStringToArray(string $data, array $context = []): array
     {
@@ -513,6 +559,7 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * return values are used as a key in config file
+     * @return string
      */
     private function getModeInWord(): string
     {

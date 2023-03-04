@@ -10,14 +10,18 @@ class VakifBankAccount extends AbstractPosAccount
     
     public const MERCHANT_TYPE_SUB_DEALER = 2;
 
-    /** @var int[] */
+    /**
+     * @var int[]
+     */
     private static $merchantTypes = [
         self::MERCHANT_TYPE_STANDARD,
         self::MERCHANT_TYPE_MAIN_DEALER,
         self::MERCHANT_TYPE_SUB_DEALER,
     ];
 
-    /** @var string */
+    /**
+     * @var string
+     */
     private $terminalId;
 
     /**
@@ -41,9 +45,12 @@ class VakifBankAccount extends AbstractPosAccount
     /**
      * VakifBankAccount constructor.
      *
+     * @param string      $bank
+     * @param string      $model
      * @param string      $merchantId Isyeri No
      * @param string      $password   Isyeri Sifre
      * @param string      $terminalId Terminal No
+     * @param int         $merchantType
      * @param string|null $subMerchantId
      */
     public function __construct(
@@ -62,21 +69,33 @@ class VakifBankAccount extends AbstractPosAccount
         $this->subMerchantId = $subMerchantId;
     }
 
+    /**
+     * @return string
+     */
     public function getTerminalId(): string
     {
         return $this->terminalId;
     }
 
+    /**
+     * @return int
+     */
     public function getMerchantType(): int
     {
         return $this->merchantType;
     }
 
+    /**
+     * @return string|null
+     */
     public function getSubMerchantId(): ?string
     {
         return $this->subMerchantId;
     }
 
+    /**
+     * @return bool
+     */
     public function isSubBranch(): bool
     {
         return self::MERCHANT_TYPE_SUB_DEALER === $this->merchantType;

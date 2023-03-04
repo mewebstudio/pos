@@ -33,6 +33,9 @@ class InterPos extends AbstractGateway
     /** @var InterPosResponseDataMapper */
     protected $responseDataMapper;
 
+    /**
+     * @return InterPosAccount
+     */
     public function getAccount(): InterPosAccount
     {
         return $this->account;

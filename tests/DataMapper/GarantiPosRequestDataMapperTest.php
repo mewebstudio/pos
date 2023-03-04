@@ -284,7 +284,14 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedData, $actual);
     }
 
-    private function getSample3DPaymentRequestData(GarantiPosAccount $account, $order, array $responseData): array
+    /**
+     * @param GarantiPosAccount $account
+     * @param                   $order
+     * @param array             $responseData
+     *
+     * @return array
+     */
+    private function getSample3DPaymentRequestData(AbstractPosAccount $account, $order, array $responseData): array
     {
         return [
             'Mode'        => 'TEST',
@@ -334,7 +341,13 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleCancelXMLData(GarantiPosAccount $account, $order): array
+    /**
+     * @param GarantiPosAccount $account
+     * @param                   $order
+     *
+     * @return array
+     */
+    private function getSampleCancelXMLData(AbstractPosAccount $account, $order): array
     {
         return [
             'Mode'        => 'TEST',
@@ -365,7 +378,14 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleNonSecurePaymentRequestData(GarantiPosAccount $account, $order, AbstractCreditCard $card): array
+    /**
+     * @param GarantiPosAccount  $account
+     * @param                    $order
+     * @param AbstractCreditCard $card
+     *
+     * @return array
+     */
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, $order, AbstractCreditCard $card): array
     {
         return [
             'Mode'        => 'TEST',
@@ -414,7 +434,13 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleNonSecurePaymentPostRequestData(GarantiPosAccount $account, $order): array
+    /**
+     * @param GarantiPosAccount $account
+     * @param                   $order
+     *
+     * @return array
+     */
+    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, $order): array
     {
         return [
             'Mode'        => 'TEST',
@@ -442,7 +468,13 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleStatusRequestData(GarantiPosAccount $account, $order): array
+    /**
+     * @param GarantiPosAccount $account
+     * @param                   $order
+     *
+     * @return array
+     */
+    private function getSampleStatusRequestData(AbstractPosAccount $account, $order): array
     {
         return [
             'Mode'        => 'TEST',
@@ -472,7 +504,13 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleRefundXMLData(GarantiPosAccount $account, $order): array
+    /**
+     * @param GarantiPosAccount $account
+     * @param                   $order
+     *
+     * @return array
+     */
+    private function getSampleRefundXMLData(AbstractPosAccount $account, $order): array
     {
         return [
             'Mode'        => 'TEST',
@@ -503,7 +541,13 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleHistoryRequestData(GarantiPosAccount $account, $order): array
+    /**
+     * @param GarantiPosAccount $account
+     * @param                    $order
+     *
+     * @return array
+     */
+    private function getSampleHistoryRequestData(AbstractPosAccount $account, $order): array
     {
         return [
             'Mode'        => 'TEST',

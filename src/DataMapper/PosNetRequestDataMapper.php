@@ -218,9 +218,9 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
 
 
     /**
-     * {@inheritDoc}
-     *
      * @param PosNetAccount $account
+     *
+     * {@inheritDoc}
      *
      * @throws Exception
      */

@@ -10,12 +10,17 @@ use Throwable;
  */
 class CardTypeRequiredException extends DomainException
 {
-    /** @var string */
+    /**
+     * @var string
+     */
     private $gatewayName;
 
     /**
      * BankNotFoundException constructor.
      *
+     * @param string         $gatewayName
+     * @param string         $message
+     * @param int            $code
      * @param Throwable|null $previous
      */
     public function __construct(string $gatewayName, string $message = 'Card type is required for this gateway!', int $code = 73, Throwable $previous = null)
@@ -24,6 +29,9 @@ class CardTypeRequiredException extends DomainException
         $this->gatewayName = $gatewayName;
     }
 
+    /**
+     * @return string
+     */
     public function getGatewayName(): string
     {
         return $this->gatewayName;

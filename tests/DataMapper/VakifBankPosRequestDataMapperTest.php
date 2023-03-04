@@ -19,7 +19,9 @@ use PHPUnit\Framework\TestCase;
  */
 class VakifBankPosRequestDataMapperTest extends TestCase
 {
-    /** @var VakifBankAccount */
+    /**
+     * @var VakifBankAccount
+     */
     public $account;
     
     /** @var AbstractGateway */
@@ -250,6 +252,9 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedValue, $actualData);
     }
 
+    /**
+     * @return array
+     */
     public function getSampleEnrollmentSuccessResponseData(): array
     {
         return [
@@ -281,6 +286,12 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    /**
+     * @param AbstractPosAccount $account
+     * @param array              $order
+     *
+     * @return array
+     */
     private function getSampleCancelRequestData(AbstractPosAccount $account, array $order): array
     {
         return [
@@ -292,7 +303,16 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSample3DPaymentRequestData(VakifBankAccount $account, $order, string $txType, array $responseData, ?AbstractCreditCard $card): array
+    /**
+     * @param VakifBankAccount        $account
+     * @param                         $order
+     * @param string                  $txType
+     * @param array                   $responseData
+     * @param AbstractCreditCard|null $card
+     *
+     * @return array
+     */
+    private function getSample3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData, ?AbstractCreditCard $card): array
     {
         $expectedValue = [
             'MerchantId'              => $account->getClientId(),
@@ -321,7 +341,15 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         return $expectedValue;
     }
 
-    private function getSample3DEnrollmentRequestData(VakifBankAccount $account, $order, ?AbstractCreditCard $card): array
+
+    /**
+     * @param VakifBankAccount        $account
+     * @param                         $order
+     * @param AbstractCreditCard|null $card
+     *
+     * @return array
+     */
+    private function getSample3DEnrollmentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card): array
     {
         $expectedValue = [
             'MerchantId'                => $account->getClientId(),
@@ -356,7 +384,15 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         return $expectedValue;
     }
 
-    private function getSampleNonSecurePaymentRequestData(VakifBankAccount $account, $order, string $txType, AbstractCreditCard $card): array
+    /**
+     * @param VakifBankAccount   $account
+     * @param                    $order
+     * @param string             $txType
+     * @param AbstractCreditCard $card
+     *
+     * @return array
+     */
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, AbstractCreditCard $card): array
     {
         return [
             'MerchantId'              => $account->getClientId(),
@@ -374,7 +410,13 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleNonSecurePaymentPostRequestData(VakifBankAccount $account, array $order): array
+    /**
+     * @param VakifBankAccount $account
+     * @param array            $order
+     *
+     * @return array
+     */
+    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, array $order): array
     {
         return [
             'MerchantId'             => $account->getClientId(),
@@ -388,6 +430,12 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    /**
+     * @param AbstractPosAccount $account
+     * @param array              $order
+     *
+     * @return array
+     */
     private function getSampleRefundRequestData(AbstractPosAccount $account, array $order): array
     {
         return [
@@ -400,6 +448,9 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    /**
+     * @return array
+     */
     private function getSample3DFormDataFromEnrollmentResponse(): array
     {
         $inputs = [

@@ -15,10 +15,14 @@ class KuveytPosAccount extends AbstractPosAccount
     protected $subMerchantId;
 
     /**
+     * @param string      $bank
      * @param string      $merchantId    Mağaza Numarası
      * @param string      $username      POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı oluşturulmalıdır
      * @param string      $customerId    CustomerNumber, Müşteri No
      * @param string      $storeKey      Oluşturulan APİ kullanıcısının şifre bilgisidir.
+     * @param string      $model
+     * @param string      $lang
+     * @param string|null $subMerchantId
      */
     public function __construct(
         string $bank,
@@ -34,11 +38,17 @@ class KuveytPosAccount extends AbstractPosAccount
         $this->subMerchantId = $subMerchantId;
     }
 
+    /**
+     * @return string
+     */
     public function getCustomerId(): string
     {
         return $this->password;
     }
 
+    /**
+     * @return string|null
+     */
     public function getSubMerchantId(): ?string
     {
         return $this->subMerchantId;
