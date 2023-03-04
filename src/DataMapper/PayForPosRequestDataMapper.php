@@ -7,7 +7,6 @@ namespace Mews\Pos\DataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Gateways\AbstractGateway;
-use function _PHPStan_4dd92cd93\Symfony\Component\String\s;
 
 /**
  * Creates request data for PayForPos Gateway requests
