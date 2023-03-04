@@ -99,7 +99,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
-     * @return array{PbOrder?: array{OrderType: int, OrderFrequencyInterval: mixed, OrderFrequencyCycle: string, TotalNumberPayments: mixed}, Type: string, IPAddress: mixed, Email: mixed, OrderId: mixed, UserId: mixed, Total: mixed, Currency: string, Taksit: string, Number: string, Expires: string, Cvv2Val: string, Mode: string, BillTo: array{Name: mixed}, Name: string, Password: string, ClientId: string}
+     * @return array{PbOrder?: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}, Type: string, IPAddress: mixed, Email: mixed, OrderId: mixed, UserId: mixed, Total: mixed, Currency: string, Taksit: string, Number: string, Expires: string, Cvv2Val: string, Mode: string, BillTo: array{Name: mixed}, Name: string, Password: string, ClientId: string}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
@@ -299,18 +299,18 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
-     * @return array{PbOrder: array{OrderType: int, OrderFrequencyInterval: mixed, OrderFrequencyCycle: string, TotalNumberPayments: mixed}}
+     * @return array{PbOrder: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}}
      */
     private function getRecurringRequestOrderData($order): array
     {
         return [
             'PbOrder' => [
-                'OrderType'              => 0,
+                'OrderType'              => '0',
                 // Periyodik İşlem Frekansı
-                'OrderFrequencyInterval' => $order->recurringFrequency,
+                'OrderFrequencyInterval' => (string) $order->recurringFrequency,
                 //D|M|Y
                 'OrderFrequencyCycle'    => $this->mapRecurringFrequency($order->recurringFrequencyType),
-                'TotalNumberPayments'    => $order->recurringInstallmentCount,
+                'TotalNumberPayments'    => (string) $order->recurringInstallmentCount,
             ],
         ];
     }

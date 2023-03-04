@@ -471,14 +471,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * </Recurring>
      * @param $order
      *
-     * @return array{TotalPaymentNum: mixed, FrequencyType: string, FrequencyInterval: mixed, Type: mixed, StartDate: mixed}
+     * @return array{TotalPaymentNum: string, FrequencyType: string, FrequencyInterval: string, Type: mixed, StartDate: string}
      */
     private function createRecurringData($order): array
     {
         return [
-            'TotalPaymentNum' => $order->recurringInstallmentCount, //kac kere tekrarlanacak
+            'TotalPaymentNum' => (string) $order->recurringInstallmentCount, //kac kere tekrarlanacak
             'FrequencyType' => $this->mapRecurringFrequency($order->recurringFrequencyType), //Monthly, weekly, daily
-            'FrequencyInterval' => $order->recurringFrequency,
+            'FrequencyInterval' => (string) $order->recurringFrequency,
             'Type' => $order->recurringType ?? 'R', //R:Sabit Tutarli   G:Degisken Tuta
             'StartDate' => $order->startDate ?? '',
         ];
