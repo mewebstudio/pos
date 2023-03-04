@@ -19,9 +19,7 @@ use PHPUnit\Framework\TestCase;
  */
 class VakifBankPosRequestDataMapperTest extends TestCase
 {
-    /**
-     * @var VakifBankAccount
-     */
+    /** @var VakifBankAccount */
     public $account;
     
     /** @var AbstractGateway */

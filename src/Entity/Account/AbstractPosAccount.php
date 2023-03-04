@@ -6,9 +6,7 @@ namespace Mews\Pos\Entity\Account;
 
 abstract class AbstractPosAccount
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $clientId;
     
     /**
@@ -16,13 +14,11 @@ abstract class AbstractPosAccount
      * @var string
      */
     protected $model;
-    /**
-     * @var string
-     */
+    
+    /** @var string */
     protected $username;
-    /**
-     * @var string
-     */
+    
+    /** @var string */
     protected $password;
     
     /**
@@ -30,9 +26,8 @@ abstract class AbstractPosAccount
      * @var string|null
      */
     protected $storeKey;
-    /**
-     * @var string
-     */
+    
+    /** @var string */
     protected $lang;
     
     /**

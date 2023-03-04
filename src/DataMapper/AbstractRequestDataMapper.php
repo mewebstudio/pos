@@ -15,9 +15,7 @@ use Mews\Pos\Gateways\AbstractGateway;
  */
 abstract class AbstractRequestDataMapper
 {
-    /**
-     * @var array<AbstractGateway::MODEL_*, string>
-     */
+    /** @var array<AbstractGateway::MODEL_*, string> */
     protected $secureTypeMappings = [];
 
     /**
@@ -40,15 +38,15 @@ abstract class AbstractRequestDataMapper
      * fakat bazi banklar ISO standarti kullanmiyorlar.
      * Currency mapping
      *
-     * @var array
+     * @var non-empty-array<string, string>
      */
     protected $currencyMappings = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
+        'TRY' => '949',
+        'USD' => '840',
+        'EUR' => '978',
+        'GBP' => '826',
+        'JPY' => '392',
+        'RUB' => '643',
     ];
 
     /**
@@ -64,8 +62,8 @@ abstract class AbstractRequestDataMapper
     protected $crypt;
 
     /**
-     * @param CryptInterface|null $crypt
-     * @param array               $currencyMappings
+     * @param CryptInterface|null   $crypt
+     * @param array<string, string> $currencyMappings
      */
     public function __construct(?CryptInterface $crypt = null, array $currencyMappings = [])
     {
@@ -139,7 +137,7 @@ abstract class AbstractRequestDataMapper
      * @param string                  $txType
      * @param AbstractCreditCard|null $card
      *
-     * @return array
+     * @return array{gateway: string, inputs: array<string, mixed>}
      */
     abstract public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array;
 
@@ -203,7 +201,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @return array
+     * @return non-empty-array<string, string>
      */
     public function getCurrencyMappings(): array
     {

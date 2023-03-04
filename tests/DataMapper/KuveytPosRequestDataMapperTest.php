@@ -22,9 +22,7 @@ use Psr\Log\NullLogger;
  */
 class KuveytPosRequestDataMapperTest extends TestCase
 {
-    /**
-     * @var KuveytPosAccount
-     */
+    /** @var KuveytPosAccount */
     public $threeDAccount;
 
     /** @var AbstractCreditCard */

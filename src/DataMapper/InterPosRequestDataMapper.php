@@ -217,7 +217,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param AbstractPosAccount $account
      *
-     * @return array
+     * @return array{UserCode: string, UserPass: string, ShopCode: string}
      */
     private function getRequestAccountData(AbstractPosAccount $account): array
     {

@@ -23,9 +23,7 @@ class PayForPos extends AbstractGateway
      */
     public const NAME = 'PayForPOS';
 
-    /**
-     * @var PayForAccount
-     */
+    /** @var PayForAccount */
     protected $account;
 
     /** @var PayForPosRequestDataMapper */
@@ -120,7 +118,7 @@ class PayForPos extends AbstractGateway
     /**
      * returns form data needed for 3d, 3d_pay and 3d_host models
      *
-     * @return array
+     * @return array{gateway: string, inputs: array<string, string>}
      */
     public function get3DFormData(): array
     {

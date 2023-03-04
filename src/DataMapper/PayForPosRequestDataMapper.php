@@ -7,6 +7,7 @@ namespace Mews\Pos\DataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Gateways\AbstractGateway;
+use function _PHPStan_4dd92cd93\Symfony\Component\String\s;
 
 /**
  * Creates request data for PayForPos Gateway requests
@@ -48,6 +49,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{RequestGuid: mixed, UserCode: string, UserPass: string, OrderId: mixed, SecureType: string}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
@@ -179,16 +181,16 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'MbrId'            => self::MBR_ID,
             'MerchantID'       => $account->getClientId(),
             'UserCode'         => $account->getUsername(),
-            'OrderId'          => $order->id,
+            'OrderId'          => (string) $order->id,
             'Lang'             => $this->getLang($account, $order),
             'SecureType'       => $this->secureTypeMappings[$account->getModel()],
             'TxnType'          => $this->mapTxType($txType),
-            'PurchAmount'      => $order->amount,
+            'PurchAmount'      => (string) $order->amount,
             'InstallmentCount' => $this->mapInstallment($order->installment),
             'Currency'         => $this->mapCurrency($order->currency),
-            'OkUrl'            => $order->success_url,
-            'FailUrl'          => $order->fail_url,
-            'Rnd'              => $order->rand,
+            'OkUrl'            => (string) $order->success_url,
+            'FailUrl'          => (string) $order->fail_url,
+            'Rnd'              => (string) $order->rand,
             'Hash'             => $hash,
         ];
 
@@ -213,7 +215,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount $account
      *
-     * @return array
+     * @return array{MerchantId: string, UserCode: string, UserPass: string}
      */
     private function getRequestAccountData(AbstractPosAccount $account): array
     {

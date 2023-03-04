@@ -209,7 +209,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param KuveytPosAccount $account
      *
-     * @return array
+     * @return array{MerchantId: string, CustomerId: string, UserName: string}
      */
     private function getRequestAccountData(AbstractPosAccount $account): array
     {

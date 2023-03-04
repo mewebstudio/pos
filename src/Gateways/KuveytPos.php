@@ -267,7 +267,7 @@ class KuveytPos extends AbstractGateway
      * @param string                  $gatewayURL
      * @param AbstractCreditCard|null $card
      *
-     * @return array
+     * @return array{gateway: string, inputs: array<string, string>}
      *
      * @throws Exception
      */
@@ -289,7 +289,7 @@ class KuveytPos extends AbstractGateway
      * Kutupahenin islem akisina uymasi icin bu HTML form verilerini array'e donusturup, kendimiz post ediyoruz.
      * @param string $response
      *
-     * @return array
+     * @return array{gateway: string, inputs: array<string, string>}
      */
     private function transformReceived3DFormData(string $response): array
     {

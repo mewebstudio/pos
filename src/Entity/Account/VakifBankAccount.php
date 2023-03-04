@@ -10,18 +10,14 @@ class VakifBankAccount extends AbstractPosAccount
     
     public const MERCHANT_TYPE_SUB_DEALER = 2;
 
-    /**
-     * @var int[]
-     */
+    /** @var int[] */
     private static $merchantTypes = [
         self::MERCHANT_TYPE_STANDARD,
         self::MERCHANT_TYPE_MAIN_DEALER,
         self::MERCHANT_TYPE_SUB_DEALER,
     ];
 
-    /**
-     * @var string
-     */
+    /** @var string */
     private $terminalId;
 
     /**

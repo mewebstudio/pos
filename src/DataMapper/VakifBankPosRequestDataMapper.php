@@ -186,6 +186,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MerchantId: string, Password: string, TransactionType: string, ReferenceTransactionId: mixed, ClientIp: mixed}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -200,6 +201,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MerchantId: string, Password: string, TransactionType: string, ReferenceTransactionId: mixed, ClientIp: mixed, CurrencyAmount: string}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -222,9 +224,11 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param array $extraData
-     *
      * {@inheritDoc}
+     *
+     * @param array{PaReq: string, TermUrl: string, MD: string, ACSUrl: string} $extraData
+     *
+     * @return array{gateway: string, inputs: array{PaReq: string, TermUrl: string, MD: string}}
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = []): array
     {
@@ -260,7 +264,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param VakifBankAccount $account
      *
-     * @return array
+     * @return array{MerchantId: string, Password: string, TerminalNo: string}
      */
     private function getRequestAccountData(AbstractPosAccount $account): array
     {

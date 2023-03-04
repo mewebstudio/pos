@@ -471,7 +471,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * </Recurring>
      * @param $order
      *
-     * @return array
+     * @return array{TotalPaymentNum: mixed, FrequencyType: string, FrequencyInterval: mixed, Type: mixed, StartDate: mixed}
      */
     private function createRecurringData($order): array
     {

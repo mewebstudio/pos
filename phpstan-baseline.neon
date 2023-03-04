@@ -246,26 +246,6 @@ parameters:
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
 		-
-			message: "#^Access to an undefined property object\\:\\:\\$name\\.$#"
-			count: 1
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$recurringFrequency\\.$#"
-			count: 1
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$recurringFrequencyType\\.$#"
-			count: 1
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$recurringInstallmentCount\\.$#"
-			count: 1
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
 			message: "#^Access to an undefined property object\\:\\:\\$ref_ret_num\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
@@ -296,6 +276,16 @@ parameters:
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
 		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createCancelRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) has parameter \\$extraData with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
@@ -306,7 +296,17 @@ parameters:
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
 		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
@@ -316,7 +316,22 @@ parameters:
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
 		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createNonSecurePostAuthPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createRecurringData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createRefundRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createRefundRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
@@ -326,7 +341,27 @@ parameters:
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
 		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createStatusRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:getCardData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:getOrderAddressData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:getOrderAddressData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:getTerminalData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
@@ -366,6 +401,16 @@ parameters:
 			path: src/DataMapper/InterPosRequestDataMapper.php
 
 		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/InterPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createCancelRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/InterPosRequestDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) has parameter \\$extraData with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/InterPosRequestDataMapper.php
@@ -396,12 +441,27 @@ parameters:
 			path: src/DataMapper/InterPosRequestDataMapper.php
 
 		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createNonSecurePostAuthPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/InterPosRequestDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createRefundRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
 			count: 1
 			path: src/DataMapper/InterPosRequestDataMapper.php
 
 		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createRefundRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/InterPosRequestDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createStatusRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/InterPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createStatusRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/InterPosRequestDataMapper.php
 
@@ -427,6 +487,11 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\KuveytPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$responseData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/KuveytPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\KuveytPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/KuveytPosRequestDataMapper.php
 
@@ -531,17 +596,17 @@ parameters:
 			path: src/DataMapper/PayForPosRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:create3DFormData\\(\\) should return array\\{gateway\\: string, inputs\\: array\\<string, string\\>\\} but returns array\\{gateway\\: string, inputs\\: array\\{MbrId\\: '5', MerchantID\\: string, UserCode\\: string, OrderId\\: mixed, Lang\\: string, SecureType\\: string, TxnType\\: string, PurchAmount\\: mixed, \\.\\.\\.\\}\\|array\\{MbrId\\: '5', MerchantID\\: string, UserCode\\: string, OrderId\\: mixed, Lang\\: string, SecureType\\: string, TxnType\\: string, PurchAmount\\: mixed, \\.\\.\\.\\}\\}\\.$#"
-			count: 1
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
 			count: 1
 			path: src/DataMapper/PayForPosRequestDataMapper.php
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$responseData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PayForPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:createCancelRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/PayForPosRequestDataMapper.php
 
@@ -566,7 +631,17 @@ parameters:
 			path: src/DataMapper/PayForPosRequestDataMapper.php
 
 		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PayForPosRequestDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:createNonSecurePostAuthPaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/PayForPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:createNonSecurePostAuthPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/PayForPosRequestDataMapper.php
 
@@ -576,7 +651,17 @@ parameters:
 			path: src/DataMapper/PayForPosRequestDataMapper.php
 
 		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:createRefundRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PayForPosRequestDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:createStatusRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/PayForPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:createStatusRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/PayForPosRequestDataMapper.php
 
@@ -792,12 +877,12 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 2
+			count: 1
 			path: src/DataMapper/VakifBankPosRequestDataMapper.php
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
-			count: 2
+			count: 1
 			path: src/DataMapper/VakifBankPosRequestDataMapper.php
 
 		-
@@ -807,7 +892,7 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 2
+			count: 1
 			path: src/DataMapper/VakifBankPosRequestDataMapper.php
 
 		-
@@ -817,7 +902,7 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$ip\\.$#"
-			count: 2
+			count: 1
 			path: src/DataMapper/VakifBankPosRequestDataMapper.php
 
 		-
@@ -861,12 +946,12 @@ parameters:
 			path: src/DataMapper/VakifBankPosRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankPosRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			message: "#^Default value of the parameter \\#6 \\$extraData \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\VakifBankPosRequestDataMapper\\:\\:create3DFormData\\(\\) is incompatible with type array\\{PaReq\\: string, TermUrl\\: string, MD\\: string, ACSUrl\\: string\\}\\.$#"
 			count: 1
 			path: src/DataMapper/VakifBankPosRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankPosRequestDataMapper\\:\\:create3DFormData\\(\\) has parameter \\$extraData with no value type specified in iterable type array\\.$#"
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankPosRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/VakifBankPosRequestDataMapper.php
 
@@ -882,6 +967,11 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$responseData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/VakifBankPosRequestDataMapper.php
 
@@ -907,6 +997,16 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankPosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankPosRequestDataMapper\\:\\:createNonSecurePostAuthPaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankPosRequestDataMapper\\:\\:createNonSecurePostAuthPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/VakifBankPosRequestDataMapper.php
 

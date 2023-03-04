@@ -69,9 +69,7 @@ abstract class AbstractGateway implements PosInterface
      */
     protected $type;
 
-    /**
-     * @var object|null
-     */
+    /** @var object|null */
     protected $order;
 
     /**
@@ -164,7 +162,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return array
+     * @return non-empty-array<string, string>
      */
     public function getCurrencies(): array
     {
@@ -474,7 +472,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * returns form data, key values, necessary for 3D payment
      *
-     * @return array
+     * @return array{gateway: string, inputs: array<string, string>}
      */
     abstract public function get3DFormData(): array;
 

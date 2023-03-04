@@ -24,9 +24,7 @@ class VakifBankPos extends AbstractGateway
      */
     public const NAME = 'VakifPOS';
 
-    /**
-     * @var VakifBankAccount
-     */
+    /** @var VakifBankAccount */
     protected $account;
 
     /** @var VakifBankPosRequestDataMapper */
@@ -104,7 +102,7 @@ class VakifBankPos extends AbstractGateway
     /**
      * returns form data needed for 3d model
      *
-     * @return array
+     * @return array{gateway: string, inputs: array<string, string>}
      *
      * @throws Exception
      */

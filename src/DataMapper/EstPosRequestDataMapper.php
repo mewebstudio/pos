@@ -161,6 +161,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
+        $orderData = [];
         if (isset($order->recurringOrderInstallmentNumber)) {
             // this method cancels only pending recurring orders, it will not cancel already fulfilled transactions
             $orderData['Extra']['RECORDTYPE'] = 'Order';
@@ -235,6 +236,8 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * @param AbstractGateway::TX_* $txType
+     *
+     * @return array{gateway: string, inputs: array<string, string>}
      */
     public function create3DFormDataCommon(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
@@ -278,7 +281,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param AbstractPosAccount $account
      *
-     * @return array
+     * @return array{Name: string, Password: string, ClientId: string}
      */
     private function getRequestAccountData(AbstractPosAccount $account): array
     {
@@ -289,6 +292,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         ];
     }
 
+    /**
+     * @return array{PbOrder: array{OrderType: int, OrderFrequencyInterval: mixed, OrderFrequencyCycle: string, TotalNumberPayments: mixed}}
+     */
     private function getRecurringRequestOrderData($order): array
     {
         return [

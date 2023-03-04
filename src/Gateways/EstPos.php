@@ -24,9 +24,7 @@ class EstPos extends AbstractGateway
      */
     public const NAME = 'EstPos';
 
-    /**
-     * @var EstPosAccount
-     */
+    /** @var EstPosAccount */
     protected $account;
 
     /**

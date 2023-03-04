@@ -88,8 +88,6 @@ return static function (RectorConfig $rectorConfig): void {
         \Rector\DeadCode\Rector\If_\RemoveUnusedNonEmptyArrayBeforeForeachRector::class,
         \Rector\DeadCode\Rector\If_\SimplifyIfElseWithSameContentRector::class,
         \Rector\DeadCode\Rector\Ternary\TernaryToBooleanOrFalseToBooleanAndRector::class,
-        \Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector::class,
-        \Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector::class,
         \Rector\DeadCode\Rector\Property\RemoveUselessVarTagRector::class,
 
         \Rector\EarlyReturn\Rector\If_\ChangeIfElseValueAssignToEarlyReturnRector::class,
