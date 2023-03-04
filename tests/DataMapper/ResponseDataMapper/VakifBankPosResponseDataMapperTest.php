@@ -131,7 +131,7 @@ class VakifBankPosResponseDataMapperTest extends TestCase
                     'proc_return_code' => '0000',
                     'transaction_type' => 'pay',
                 ]
-            ],
+            ]
         ];
     }
 }

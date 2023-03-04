@@ -106,6 +106,8 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
      * Get ProcReturnCode
      *
      * @param array<string, string> $response
+     *
+     * @return string|null
      */
     protected function getProcReturnCode(array $response): ?string
     {
@@ -113,6 +115,11 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
     }
 
 
+    /**
+     * @param string $mdStatus
+     *
+     * @return string
+     */
     protected function mapResponseTransactionSecurity(string $mdStatus): string
     {
         // todo implement
@@ -121,6 +128,10 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
 
     /**
      * Get Status Detail Text
+     *
+     * @param string|null $procReturnCode
+     *
+     * @return string|null
      */
     protected function getStatusDetail(?string $procReturnCode): ?string
     {

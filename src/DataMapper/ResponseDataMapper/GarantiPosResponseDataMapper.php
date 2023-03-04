@@ -36,7 +36,6 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
 
     /**
      * @param PaymentStatusModel|array<string, string|float|null> $rawPaymentResponseData
-     *
      * {@inheritDoc}
      */
     public function mapPaymentResponse(array $rawPaymentResponseData): array
@@ -172,7 +171,6 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
 
     /**
      * @param PaymentStatusModel|array<string, string> $rawResponseData
-     *
      * {@inheritdoc}
      */
     public function mapCancelResponse(array $rawResponseData): array
@@ -205,7 +203,6 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
 
     /**
      * @param PaymentStatusModel|array<string, string> $rawResponseData
-     *
      * {@inheritdoc}
      */
     public function mapStatusResponse(array $rawResponseData): array
@@ -289,12 +286,20 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
 
     /**
      * 100001 => 1000.01
+     * @param string $amount
+     *
+     * @return float
      */
     public static function amountFormat(string $amount): float
     {
         return ((float) $amount) / 100;
     }
 
+    /**
+     * @param string $mdStatus
+     *
+     * @return string
+     */
     protected function mapResponseTransactionSecurity(string $mdStatus): string
     {
         if (in_array($mdStatus, ['1', '2', '3', '4'])) {
@@ -311,6 +316,10 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
 
     /**
      * Get Status Detail Text
+     *
+     * @param string|null $procReturnCode
+     *
+     * @return string|null
      */
     protected function getStatusDetail(?string $procReturnCode): ?string
     {
@@ -321,6 +330,8 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
      * Get ProcReturnCode
      *
      * @param PaymentStatusModel $response
+     *
+     * @return string|null
      */
     protected function getProcReturnCode(array $response): ?string
     {

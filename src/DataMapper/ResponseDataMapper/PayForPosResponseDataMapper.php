@@ -246,6 +246,11 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper implements 
         ];
     }
 
+    /**
+     * @param string $mdStatus
+     *
+     * @return string
+     */
     protected function mapResponseTransactionSecurity(string $mdStatus): string
     {
         $transactionSecurity = 'MPI fallback';
@@ -260,6 +265,10 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper implements 
 
     /**
      * Get Status Detail Text
+     *
+     * @param string|null $procReturnCode
+     *
+     * @return string|null
      */
     protected function getStatusDetail(?string $procReturnCode): ?string
     {
@@ -270,6 +279,8 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper implements 
      * Get ProcReturnCode
      *
      * @param array<string, mixed> $response
+     *
+     * @return string|null
      */
     protected function getProcReturnCode(array $response): ?string
     {

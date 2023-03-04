@@ -316,6 +316,11 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
         return array_merge($results, $txResults);
     }
 
+    /**
+     * @param string $mdStatus
+     *
+     * @return string
+     */
     protected function mapResponseTransactionSecurity(string $mdStatus): string
     {
         $transactionSecurity = 'MPI fallback';
@@ -330,6 +335,10 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
 
     /**
      * Get Status Detail Text
+     *
+     * @param string|null $procReturnCode
+     *
+     * @return string|null
      */
     protected function getStatusDetail(?string $procReturnCode): ?string
     {
@@ -340,6 +349,8 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
      * Get ProcReturnCode
      *
      * @param array<string, string> $response
+     *
+     * @return string|null
      */
     protected function getProcReturnCode(array $response): ?string
     {

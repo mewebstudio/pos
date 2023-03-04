@@ -112,8 +112,6 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper implements P
 
     /**
      * {@inheritdoc}
-     *
-     * @return array{order_id: mixed, group_id: null, auth_code: null, ref_ret_num: mixed, proc_return_code: string|null, trans_id: mixed, error_code: mixed, error_message: mixed, status: string, status_detail: string|null, all: mixed}
      */
     public function mapRefundResponse(array $rawResponseData): array
     {
@@ -141,8 +139,6 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper implements P
 
     /**
      * {@inheritdoc}
-     *
-     * @return array{order_id: mixed, group_id: null, auth_code: mixed, ref_ret_num: mixed, proc_return_code: string|null, trans_id: mixed, error_code: mixed, error_message: mixed, status: string, status_detail: string|null, all: mixed}
      */
     public function mapCancelResponse($rawResponseData): array
     {
@@ -170,8 +166,6 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper implements P
 
     /**
      * {@inheritdoc}
-     *
-     * @return array{order_id: mixed, proc_return_code: string|null, trans_id: mixed, error_message: mixed, ref_ret_num: null, order_status: null, refund_amount: float, capture_amount: null, status: string, status_detail: string|null, capture: null, all: mixed}
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
@@ -209,12 +203,20 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper implements P
     /**
      * 0 => 0.0
      * 1.056,2 => 1056.2
+     * @param string $amount
+     *
+     * @return float
      */
     public static function amountFormat(string $amount): float
     {
         return (float) str_replace(',', '.', str_replace('.', '', $amount));
     }
 
+    /**
+     * @param string $mdStatus
+     *
+     * @return string
+     */
     protected function mapResponseTransactionSecurity(string $mdStatus): string
     {
         $transactionSecurity = 'MPI fallback';
@@ -229,6 +231,10 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper implements P
 
     /**
      * Get Status Detail Text
+     *
+     * @param string|null $procReturnCode
+     *
+     * @return string|null
      */
     protected function getStatusDetail(?string $procReturnCode): ?string
     {
@@ -239,6 +245,8 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper implements P
      * Get ProcReturnCode
      *
      * @param array<string, string> $response
+     *
+     * @return string|null
      */
     protected function getProcReturnCode(array $response): ?string
     {
