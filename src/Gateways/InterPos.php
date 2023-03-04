@@ -160,6 +160,7 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     * @return array{TxnType: string, SecureType: string, OrderId: null, orgOrderId: mixed, PurchAmount: mixed, Currency: string, MOTO: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createRegularPostXML()
     {
@@ -186,6 +187,7 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     * @return array{OrderId: null, orgOrderId: string, TxnType: string, SecureType: string, Lang: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createStatusXML()
     {
@@ -194,6 +196,7 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     * @return array{OrderId: null, orgOrderId: string, TxnType: string, SecureType: string, Lang: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createCancelXML()
     {
@@ -202,6 +205,7 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     * @return array{OrderId: null, orgOrderId: string, PurchAmount: string, TxnType: string, SecureType: string, Lang: string, MOTO: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createRefundXML()
     {

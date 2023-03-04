@@ -53,13 +53,15 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @param VakifBankAccount $account
+     * @param array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $responseData
+     *
      * {@inheritDoc}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData, ?AbstractCreditCard $card = null): array
     {
         $requestData = $this->getRequestAccountData($account) + [
             'TransactionType'         => $this->mapTxType($txType),
-            'TransactionId'           => $order->id,
+            'TransactionId'           => (string) $order->id,
             'CurrencyAmount'          => self::amountFormat($order->amount),
             'CurrencyCode'            => $this->mapCurrency($order->currency),
             'CardHoldersName'         => $card->getHolderName(),
@@ -69,10 +71,10 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'ECI'                     => $responseData['Eci'],
             'CAVV'                    => $responseData['Cavv'],
             'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
-            'OrderId'                 => $order->id,
-            'OrderDescription'        => $order->description ?? null,
-            'ClientIp'                => $order->ip,
-            'TransactionDeviceSource' => 0, // ECommerce
+            'OrderId'                 => (string) $order->id,
+            'OrderDescription'        => (string) ($order->description ?? ''),
+            'ClientIp'                => (string) $order->ip,
+            'TransactionDeviceSource' => '0', // ECommerce
         ];
 
         if ($order->installment) {

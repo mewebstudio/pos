@@ -63,7 +63,9 @@ class VakifBankPos extends AbstractGateway
         }
         
         $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $status]);
-        $contents = $this->create3DPaymentXML($request->all());
+        /** @var array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $requestData */
+        $requestData = $request->all();
+        $contents = $this->create3DPaymentXML($requestData);
         $bankResponse = $this->send($contents);
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse);
@@ -224,6 +226,8 @@ class VakifBankPos extends AbstractGateway
     /**
      * NOT: diger gatewaylerden farkli olarak vakifbank kredit bilgilerini bu asamada da istiyor.
      * @inheritDoc
+     *
+     * @param array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $responseData
      */
     public function create3DPaymentXML($responseData)
     {

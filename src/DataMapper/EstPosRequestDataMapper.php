@@ -63,16 +63,18 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     *
+     * @param array{md: string, xid: string, eci: string, cavv: string} $responseData
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
         $requestData = $this->getRequestAccountData($account) + [
             'Type'                    => $this->mapTxType($txType),
-            'IPAddress'               => $order->ip ?? null,
-            'Email'                   => $order->email,
-            'OrderId'                 => $order->id,
-            'UserId'                  => $order->user_id ?? null,
-            'Total'                   => $order->amount,
+            'IPAddress'               => (string) ($order->ip ?? ''),
+            'Email'                   => (string) $order->email,
+            'OrderId'                 => (string) $order->id,
+            'UserId'                  => (string) ($order->user_id ?? ''),
+            'Total'                   => (string) $order->amount,
             'Currency'                => $this->mapCurrency($order->currency),
             'Taksit'                  => $this->mapInstallment($order->installment),
             'Number'                  => $responseData['md'],
@@ -84,7 +86,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         if ($order->name) {
             $requestData['BillTo'] = [
-                'Name' => $order->name,
+                'Name' => (string) $order->name,
             ];
         }
 
@@ -97,16 +99,17 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     * @return array{PbOrder?: array{OrderType: int, OrderFrequencyInterval: mixed, OrderFrequencyCycle: string, TotalNumberPayments: mixed}, Type: string, IPAddress: mixed, Email: mixed, OrderId: mixed, UserId: mixed, Total: mixed, Currency: string, Taksit: string, Number: string, Expires: string, Cvv2Val: string, Mode: string, BillTo: array{Name: mixed}, Name: string, Password: string, ClientId: string}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
         $requestData =  $this->getRequestAccountData($account) + [
             'Type'      => $this->mapTxType($txType),
-            'IPAddress' => $order->ip ?? null,
-            'Email'     => $order->email,
-            'OrderId'   => $order->id,
-            'UserId'    => $order->user_id ?? null,
-            'Total'     => $order->amount,
+            'IPAddress' => (string) ($order->ip ?? ''),
+            'Email'     => (string) $order->email,
+            'OrderId'   => (string) $order->id,
+            'UserId'    => (string) ($order->user_id ?? ''),
+            'Total'     => (string) $order->amount,
             'Currency'  => $this->mapCurrency($order->currency),
             'Taksit'    => $this->mapInstallment($order->installment),
             'Number'    => $card->getNumber(),
@@ -114,7 +117,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Cvv2Val'   => $card->getCvv(),
             'Mode'      => 'P',
             'BillTo'    => [
-                'Name' => $order->name ?: null,
+                'Name' => (string) ($order->name ?? ''),
             ],
         ];
 

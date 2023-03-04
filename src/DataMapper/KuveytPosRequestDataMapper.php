@@ -81,6 +81,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param KuveytPosAccount $account
      *
      * {@inheritDoc}
+     * @return array{APIVersion: string, HashData: string, CustomerIPAddress: mixed, KuveytTurkVPosAdditionalData: array{AdditionalData: array{Key: string, Data: mixed}}, TransactionType: string, InstallmentCount: mixed, Amount: mixed, DisplayAmount: int, CurrencyCode: mixed, MerchantOrderId: mixed, TransactionSecurity: mixed, MerchantId: string, CustomerId: string, UserName: string}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
