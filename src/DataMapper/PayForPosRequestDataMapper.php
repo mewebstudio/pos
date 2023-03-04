@@ -199,7 +199,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         ];
 
         if ($card !== null) {
-            $inputs['CardHolderName'] = $card->getHolderName();
+            $inputs['CardHolderName'] = $card->getHolderName() ?? '';
             $inputs['Pan'] = $card->getNumber();
             $inputs['Expiry'] = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
             $inputs['Cvv2'] = $card->getCvv();

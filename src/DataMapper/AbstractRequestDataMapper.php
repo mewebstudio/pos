@@ -137,7 +137,7 @@ abstract class AbstractRequestDataMapper
      * @param string                  $txType
      * @param AbstractCreditCard|null $card
      *
-     * @return array{gateway: string, inputs: array<string, mixed>}
+     * @return array{gateway: string, inputs: array<string, string>}
      */
     abstract public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array;
 
