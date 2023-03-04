@@ -64,16 +64,17 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MbrId: string, MOTO: string, OrderId: string, SecureType: string, TxnType: string, PurchAmount: string, Currency: string, InstallmentCount: string, Lang: string, CardHolderName: string|null, Pan: string, Expiry: string, Cvv2: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
         return $this->getRequestAccountData($account) + [
             'MbrId'            => self::MBR_ID,
             'MOTO'             => self::MOTO,
-            'OrderId'          => $order->id,
+            'OrderId'          => (string) $order->id,
             'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'          => $this->mapTxType($txType),
-            'PurchAmount'      => $order->amount,
+            'PurchAmount'      => (string) $order->amount,
             'Currency'         => $this->mapCurrency($order->currency),
             'InstallmentCount' => $this->mapInstallment($order->installment),
             'Lang'             => $this->getLang($account, $order),
@@ -86,15 +87,16 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MbrId: string, OrgOrderId: string, SecureType: string, TxnType: string, PurchAmount: string, Currency: string, Lang: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
         return $this->getRequestAccountData($account) + [
             'MbrId'       => self::MBR_ID,
-            'OrgOrderId'  => $order->id,
+            'OrgOrderId'  => (string) $order->id,
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-            'PurchAmount' => $order->amount,
+            'PurchAmount' => (string) $order->amount,
             'Currency'    => $this->mapCurrency($order->currency),
             'Lang'        => $this->getLang($account, $order),
         ];
@@ -102,12 +104,13 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MbrId: string, OrgOrderId: string, SecureType: string, Lang: string, TxnType: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
         return $this->getRequestAccountData($account) + [
             'MbrId'      => self::MBR_ID,
-            'OrgOrderId' => $order->id,
+            'OrgOrderId' => (string) $order->id,
             'SecureType' => 'Inquiry',
             'Lang'       => $this->getLang($account, $order),
             'TxnType'    => $this->mapTxType(AbstractGateway::TX_STATUS),
@@ -116,12 +119,13 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MbrId: string, OrgOrderId: string, SecureType: string, TxnType: string, Currency: string, Lang: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
         return $this->getRequestAccountData($account) + [
             'MbrId'      => self::MBR_ID,
-            'OrgOrderId' => $order->id,
+            'OrgOrderId' => (string) $order->id,
             'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'    => $this->mapTxType(AbstractGateway::TX_CANCEL),
             'Currency'   => $this->mapCurrency($order->currency),
@@ -131,6 +135,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MbrId: string, SecureType: string, Lang: string, OrgOrderId: string, TxnType: string, PurchAmount: string, Currency: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -138,9 +143,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'MbrId'       => self::MBR_ID,
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'Lang'        => $this->getLang($account, $order),
-            'OrgOrderId'  => $order->id,
+            'OrgOrderId'  => (string) $order->id,
             'TxnType'     => $this->mapTxType(AbstractGateway::TX_REFUND),
-            'PurchAmount' => $order->amount,
+            'PurchAmount' => (string) $order->amount,
             'Currency'    => $this->mapCurrency($order->currency),
         ];
     }

@@ -71,6 +71,7 @@ class InterPos extends AbstractGateway
     {
         $bankResponse    = null;
         $request         = $request->request;
+        /** @var array{MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $gatewayResponse */
         $gatewayResponse = $request->all();
 
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
@@ -167,6 +168,8 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @param array{MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $responseData
      */
     public function create3DPaymentXML($responseData)
     {

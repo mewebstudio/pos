@@ -57,14 +57,16 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     
     /**
      * {@inheritDoc}
+     *
+     * @param array{MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $responseData
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
         return $this->getRequestAccountData($account) + [
                 'TxnType'                 => $this->mapTxType($txType),
                 'SecureType'              => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
-                'OrderId'                 => $order->id,
-                'PurchAmount'             => $order->amount,
+                'OrderId'                 => (string) $order->id,
+                'PurchAmount'             => (string) $order->amount,
                 'Currency'                => $this->mapCurrency($order->currency),
                 'InstallmentCount'        => $this->mapInstallment($order->installment),
                 'MD'                      => $responseData['MD'],
@@ -104,6 +106,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     * @return array{TxnType: string, SecureType: string, OrderId: null, orgOrderId: mixed, PurchAmount: mixed, Currency: string, MOTO: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
@@ -111,8 +114,8 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'TxnType'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
                 'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
                 'OrderId'     => null,
-                'orgOrderId'  => $order->id,
-                'PurchAmount' => $order->amount,
+                'orgOrderId'  => (string) $order->id,
+                'PurchAmount' => (string) $order->amount,
                 'Currency'    => $this->mapCurrency($order->currency),
                 'MOTO'        => self::MOTO,
             ];
@@ -120,12 +123,13 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     * @return array{OrderId: null, orgOrderId: string, TxnType: string, SecureType: string, Lang: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
         return $this->getRequestAccountData($account) + [
                 'OrderId'    => null, //todo buraya hangi deger verilecek?
-                'orgOrderId' => $order->id,
+                'orgOrderId' => (string) $order->id,
                 'TxnType'    => $this->mapTxType(AbstractGateway::TX_STATUS),
                 'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
                 'Lang'       => $this->getLang($account, $order),
@@ -134,12 +138,13 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     * @return array{OrderId: null, orgOrderId: string, TxnType: string, SecureType: string, Lang: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
         return $this->getRequestAccountData($account) + [
                 'OrderId'    => null, //todo buraya hangi deger verilecek?
-                'orgOrderId' => $order->id,
+                'orgOrderId' => (string) $order->id,
                 'TxnType'    => $this->mapTxType(AbstractGateway::TX_CANCEL),
                 'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
                 'Lang'       => $this->getLang($account, $order),
@@ -148,13 +153,14 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     * @return array{OrderId: null, orgOrderId: string, PurchAmount: string, TxnType: string, SecureType: string, Lang: string, MOTO: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
         return $this->getRequestAccountData($account) + [
                 'OrderId'     => null,
-                'orgOrderId'  => $order->id,
-                'PurchAmount' => $order->amount,
+                'orgOrderId'  => (string) $order->id,
+                'PurchAmount' => (string) $order->amount,
                 'TxnType'     => $this->mapTxType(AbstractGateway::TX_REFUND),
                 'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
                 'Lang'        => $this->getLang($account, $order),

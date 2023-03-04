@@ -100,11 +100,7 @@ class VakifBankPos extends AbstractGateway
     }
 
     /**
-     * returns form data needed for 3d model
-     *
-     * @return array{gateway: string, inputs: array<string, string>}
-     *
-     * @throws Exception
+     * {@inheritDoc}
      */
     public function get3DFormData(): array
     {

@@ -127,12 +127,14 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     *
+     * @return array{Type: string, OrderId: string, Name: string, Password: string, ClientId: string}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
         return $this->getRequestAccountData($account) + [
             'Type'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-            'OrderId'  => $order->id,
+            'OrderId'  => (string) $order->id,
         ];
     }
 
@@ -187,17 +189,18 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     * @return array{OrderId: string, Currency: string, Type: string, Total?: string, Name: string, Password: string, ClientId: string}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
         $requestData = [
-            'OrderId'  => $order->id,
+            'OrderId'  => (string) $order->id,
             'Currency' => $this->mapCurrency($order->currency),
             'Type'     => $this->mapTxType(AbstractGateway::TX_REFUND),
         ];
 
         if (isset($order->amount)) {
-            $requestData['Total'] = $order->amount;
+            $requestData['Total'] = (string) $order->amount;
         }
 
         return $this->getRequestAccountData($account) + $requestData;
@@ -209,7 +212,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {
         $requestData = [
-            'OrderId'  => $extraData['order_id'], //todo orderId ya da id olarak degistirilecek, Payfor'da orderId, Garanti'de id
+            'OrderId'  => (string) $extraData['order_id'], //todo orderId ya da id olarak degistirilecek, Payfor'da orderId, Garanti'de id
             'Extra'    => [
                 $this->mapTxType(AbstractGateway::TX_HISTORY) => 'QUERY',
             ],

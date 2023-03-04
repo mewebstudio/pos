@@ -155,7 +155,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
         $hashData = [
-            'id' => $order->id,
+            'id' => (string) $order->id,
             'amount' => self::amountFormat($order->amount),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_POST_PAY), $card);
@@ -395,7 +395,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param string            $hash
      * @param bool              $isRefund
      *
-     * @return array
+     * @return array{ProvUserID: string, UserID: string, HashData: string, ID: string, MerchantID: string}
      */
     private function getTerminalData(AbstractPosAccount $account, string $hash, bool $isRefund = false): array
     {
@@ -433,14 +433,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param $order
      *
-     * @return array
+     * @return array{Address: array{Type: string, Name: string, LastName: string, Company: string, Text: string, District: string, City: string, PostalCode: string, Country: string, PhoneNumber: string}}
      */
     private function getOrderAddressData($order): array
     {
         return [
             'Address' => [
                 'Type'        => 'B', //S - shipping, B - billing
-                'Name'        => $order->name,
+                'Name'        => (string) $order->name,
                 'LastName'    => '',
                 'Company'     => '',
                 'Text'        => '',

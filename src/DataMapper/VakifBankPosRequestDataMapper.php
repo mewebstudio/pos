@@ -163,16 +163,16 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      * @param                         $order
      * @param AbstractCreditCard|null $card
      *
-     * @return array
+     * @return array{TransactionType: string, ReferenceTransactionId: string, CurrencyAmount: string, CurrencyCode: string, ClientIp: string, MerchantId: string, Password: string, TerminalNo: string}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
         return $this->getRequestAccountData($account) + [
             'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-            'ReferenceTransactionId' => $order->id,
+            'ReferenceTransactionId' => (string) $order->id,
             'CurrencyAmount'         => self::amountFormat($order->amount),
             'CurrencyCode'           => $this->mapCurrency($order->currency),
-            'ClientIp'               => $order->ip,
+            'ClientIp'               => (string) $order->ip,
         ];
     }
 
