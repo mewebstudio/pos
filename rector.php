@@ -8,7 +8,6 @@ use Rector\Set\ValueObject\LevelSetList;
 return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->paths([
         __DIR__.'/config',
-        __DIR__.'/examples',
         __DIR__.'/src',
         __DIR__.'/tests',
     ]);
@@ -67,7 +66,7 @@ return static function (RectorConfig $rectorConfig): void {
         \Rector\CodeQuality\Rector\Assign\CombinedAssignRector::class,
 
         \Rector\CodingStyle\Rector\If_\NullableCompareToNullRector::class,
-        \Rector\CodingStyle\Rector\MethodCall\PreferThisOrSelfMethodCallRector::class,
+        //\Rector\CodingStyle\Rector\MethodCall\PreferThisOrSelfMethodCallRector::class,
         \Rector\CodingStyle\Rector\Ternary\TernaryConditionVariableAssignmentRector::class,
         \Rector\CodingStyle\Rector\String_\SymplifyQuoteEscapeRector::class,
         \Rector\CodingStyle\Rector\Plus\UseIncrementAssignRector::class,
