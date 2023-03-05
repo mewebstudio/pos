@@ -207,6 +207,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
         return [
             'gateway' => $gatewayURL, //to be filled by the caller
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }

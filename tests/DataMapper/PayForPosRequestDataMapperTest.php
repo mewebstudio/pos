@@ -216,6 +216,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
         $form   = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
         //test without card
@@ -280,6 +281,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
         $form       = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
 

@@ -361,6 +361,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }

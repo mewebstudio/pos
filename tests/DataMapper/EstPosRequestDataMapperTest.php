@@ -293,6 +293,7 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
         $form   = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
         //test without card
@@ -358,6 +359,7 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
         $form       = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
 

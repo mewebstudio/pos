@@ -231,6 +231,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $form = [
             'inputs' => $inputs,
+            'method'  => 'POST',
             'gateway' => $gatewayURL,
         ];
 

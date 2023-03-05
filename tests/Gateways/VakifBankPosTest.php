@@ -152,7 +152,8 @@ class VakifBankPosTest extends TestCase
         $result = $posMock->get3DFormData();
         $expected = [
             'gateway' => $enrollmentResponse['Message']['VERes']['ACSUrl'],
-            'inputs' => [
+            'method'  => 'POST',
+            'inputs'  => [
                 'PaReq'   => $enrollmentResponse['Message']['VERes']['PaReq'],
                 'TermUrl' => $enrollmentResponse['Message']['VERes']['TermUrl'],
                 'MD'      => $enrollmentResponse['Message']['VERes']['MD'],

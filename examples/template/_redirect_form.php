@@ -1,4 +1,4 @@
-<form method="post" action="<?= $formData['gateway']; ?>"  class="redirect-form" role="form">
+<form method="<?= $formData['method']; ?>" action="<?= $formData['gateway']; ?>"  class="redirect-form" role="form">
     <?php foreach ($formData['inputs'] as $key => $value) : ?>
         <input type="hidden" name="<?= $key; ?>" value="<?= $value; ?>">
     <?php endforeach; ?>

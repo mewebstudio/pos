@@ -459,6 +459,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
 
         return [
             'gateway' => 'http',
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }

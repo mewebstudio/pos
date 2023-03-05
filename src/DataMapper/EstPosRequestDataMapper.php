@@ -243,7 +243,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param AbstractGateway::TX_* $txType
      *
-     * @return array{gateway: string, inputs: array<string, string>}
+     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
     public function create3DFormDataCommon(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
@@ -275,6 +275,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }

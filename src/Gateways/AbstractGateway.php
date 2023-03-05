@@ -472,7 +472,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * returns form data, key values, necessary for 3D payment
      *
-     * @return array{gateway: string, inputs: array<string, string>}
+     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
     abstract public function get3DFormData(): array;
 

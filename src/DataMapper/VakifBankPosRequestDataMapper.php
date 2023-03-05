@@ -230,7 +230,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @param array{PaReq: string, TermUrl: string, MD: string, ACSUrl: string} $extraData
      *
-     * @return array{gateway: string, inputs: array{PaReq: string, TermUrl: string, MD: string}}
+     * @return array{gateway: string, method: 'POST', inputs: array{PaReq: string, TermUrl: string, MD: string}}
      */
     public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = []): array
     {
@@ -242,6 +242,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
 
         return [
             'gateway' => $extraData['ACSUrl'],
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }

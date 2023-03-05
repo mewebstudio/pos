@@ -216,6 +216,7 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
         $form = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
         //test without card
@@ -279,6 +280,7 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
         $form = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
 

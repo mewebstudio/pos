@@ -361,6 +361,7 @@ class PosNetRequestDataMapperTest extends TestCase
 
         return [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }
