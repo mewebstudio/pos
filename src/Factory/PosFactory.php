@@ -14,6 +14,7 @@ use Mews\Pos\Crypt\InterPosCrypt;
 use Mews\Pos\Crypt\KuveytPosCrypt;
 use Mews\Pos\Crypt\PayForPosCrypt;
 use Mews\Pos\Crypt\PosNetCrypt;
+use Mews\Pos\Crypt\VakifBankCPCrypt;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\EstV3PosRequestDataMapper;
@@ -29,7 +30,9 @@ use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankCPPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankPosResponseDataMapper;
+use Mews\Pos\DataMapper\VakifBankCPPosRequestDataMapper;
 use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\BankClassNullException;
@@ -41,6 +44,7 @@ use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
+use Mews\Pos\Gateways\VakifBankCPPos;
 use Mews\Pos\Gateways\VakifBankPos;
 use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
@@ -142,6 +146,8 @@ class PosFactory
                     return new PayForPosRequestDataMapper($crypt, $currencies);
                 case PosNet::class:
                     return new PosNetRequestDataMapper($crypt, $currencies);
+                case VakifBankCPPos::class:
+                    return new VakifBankCPPosRequestDataMapper($crypt, $currencies);
             }
         }
         
@@ -179,6 +185,8 @@ class PosFactory
                 return new PosNetResponseDataMapper($currencyMappings, $txMappings, $logger);
             case VakifBankPos::class:
                 return new VakifBankPosResponseDataMapper($currencyMappings, $txMappings, $logger);
+            case VakifBankCPPos::class:
+                return new VakifBankCPPosResponseDataMapper($currencyMappings, $txMappings, $logger);
         }
         
         throw new DomainException('unsupported gateway');
@@ -207,6 +215,8 @@ class PosFactory
                 return new PayForPosCrypt($logger);
             case PosNet::class:
                 return new PosNetCrypt($logger);
+            case VakifBankCPPos::class:
+                return new VakifBankCPCrypt($logger);
             default:
                 return null;
         }

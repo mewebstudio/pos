@@ -54,7 +54,7 @@ abstract class AbstractGateway implements PosInterface
     public const MODEL_NON_SECURE = 'regular';
 
     /** @var array */
-    private $config;
+    protected $config;
 
     /** @var AbstractPosAccount */
     protected $account;
@@ -559,7 +559,7 @@ abstract class AbstractGateway implements PosInterface
      * return values are used as a key in config file
      * @return string
      */
-    private function getModeInWord(): string
+    protected function getModeInWord(): string
     {
         return $this->isTestMode() ? 'test' : 'production';
     }

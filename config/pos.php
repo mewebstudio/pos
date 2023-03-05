@@ -160,6 +160,22 @@ return [
                 ],
             ],
         ],
+        'vakifbank-cp' => [
+            'name'  => 'VakifBank-POS-Common-Payment',
+            'class' => Mews\Pos\Gateways\VakifBankCPPos::class,
+            'urls'  => [
+                'production'    => 'https://cpweb.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
+                'test'          => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
+                'gateway'       => [
+                    'production'    => 'https://cpweb.vakifbank.com.tr/CommonPayment/SecurePayment',
+                    'test'          => 'https://cptest.vakifbank.com.tr/CommonPayment/SecurePayment',
+                ],
+                'query'       => [
+                    'production'    => 'https://cpweb.vakifbank.com.tr/CommonPayment/api/VposTransaction',
+                    'test'          => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
+                ],
+            ],
+        ],
         'denizbank' => [
             'name'  => 'DenizBank-InterPos',
             'class' => Mews\Pos\Gateways\InterPos::class,

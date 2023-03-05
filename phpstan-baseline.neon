@@ -787,6 +787,106 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
+			count: 2
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
+			count: 2
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$fail_url\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
+			count: 2
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$installment\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$ip\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$success_url\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Default value of the parameter \\#6 \\$extraData \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:create3DFormData\\(\\) is incompatible with type array\\{CommonPaymentUrl\\: string, PaymentToken\\: string\\}\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:create3DFormData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$responseData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) has parameter \\$extraData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:createNonSecurePostAuthPaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:createRefundRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:createStatusRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:createStatusRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
 			count: 1
 			path: src/DataMapper/VakifBankPosRequestDataMapper.php
 
@@ -1784,6 +1884,106 @@ parameters:
 			message: "#^Parameter \\#4 \\$card of method Mews\\\\Pos\\\\DataMapper\\\\PosNetRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) expects Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard, Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/PosNet.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:createRefundXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:createRegularPostXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:createStatusXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:history\\(\\) has parameter \\$meta with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:registerPayment\\(\\) should return array\\{CommonPaymentUrl\\: string\\|null, PaymentToken\\: string\\|null, ErrorCode\\: string\\|null, ResponseMessage\\: string\\|null\\} but returns array\\|string\\|null\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankCPPos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
+			message: "#^Parameter \\#6 \\$extraData of method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:create3DFormData\\(\\) expects array\\{CommonPaymentUrl\\: string, PaymentToken\\: string\\}, array\\{CommonPaymentUrl\\: string\\|null, PaymentToken\\: string\\|null, ErrorCode\\: null, ResponseMessage\\: string\\|null\\} given\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\VakifBankPos\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
