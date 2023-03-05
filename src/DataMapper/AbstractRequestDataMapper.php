@@ -28,6 +28,7 @@ abstract class AbstractRequestDataMapper
     /** @var array<AbstractCreditCard::CARD_TYPE_*, string> */
     protected $cardTypeMapping = [];
 
+    /** @var array<AbstractGateway::LANG_*, string> */
     protected $langMappings = [
         AbstractGateway::LANG_TR => 'tr',
         AbstractGateway::LANG_EN => 'en',

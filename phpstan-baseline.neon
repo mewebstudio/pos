@@ -106,11 +106,6 @@ parameters:
 			path: src/DataMapper/AbstractRequestDataMapper.php
 
 		-
-			message: "#^Property Mews\\\\Pos\\\\DataMapper\\\\AbstractRequestDataMapper\\:\\:\\$langMappings has no type specified\\.$#"
-			count: 1
-			path: src/DataMapper/AbstractRequestDataMapper.php
-
-		-
 			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
 			count: 2
 			path: src/DataMapper/EstPosRequestDataMapper.php
