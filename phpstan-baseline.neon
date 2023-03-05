@@ -1256,11 +1256,6 @@ parameters:
 			path: src/Gateways/EstPos.php
 
 		-
-			message: "#^Parameter \\#2 \\$payload of method Mews\\\\Pos\\\\Client\\\\HttpClient\\:\\:post\\(\\) expects array\\{body\\?\\: array\\<string, string\\>, headers\\?\\: array\\<string, string\\>, form_params\\?\\: array\\<string, string\\>\\}\\|null, array\\{body\\: array\\|string\\} given\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
 			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PaymentResponseMapperInterface\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/EstPos.php
@@ -1356,11 +1351,6 @@ parameters:
 			path: src/Gateways/GarantiPos.php
 
 		-
-			message: "#^Parameter \\#2 \\$payload of method Mews\\\\Pos\\\\Client\\\\HttpClient\\:\\:post\\(\\) expects array\\{body\\?\\: array\\<string, string\\>, headers\\?\\: array\\<string, string\\>, form_params\\?\\: array\\<string, string\\>\\}\\|null, array\\{body\\: array\\|string\\} given\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
 			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\{Order\\: array\\<string, array\\<string, string\\|null\\>\\|string\\>, Response\\: array\\<string, string\\>, Transaction\\: array\\<string, array\\<string, string\\>\\|string\\>\\}\\|null, array\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/GarantiPos.php
@@ -1437,11 +1427,6 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Parameter \\#2 \\$payload of method Mews\\\\Pos\\\\Client\\\\HttpClient\\:\\:post\\(\\) expects array\\{body\\?\\: array\\<string, string\\>, headers\\?\\: array\\<string, string\\>, form_params\\?\\: array\\<string, string\\>\\}\\|null, array\\{form_params\\: array\\|string\\} given\\.$#"
 			count: 1
 			path: src/Gateways/InterPos.php
 
@@ -1561,11 +1546,6 @@ parameters:
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^Parameter \\#2 \\$payload of method Mews\\\\Pos\\\\Client\\\\HttpClient\\:\\:post\\(\\) expects array\\{body\\?\\: array\\<string, string\\>, headers\\?\\: array\\<string, string\\>, form_params\\?\\: array\\<string, string\\>\\}\\|null, array\\{body\\: array\\|string, headers\\: array\\{Content\\-Type\\: 'text/xml; charset…'\\}\\} given\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
 			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\KuveytPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
@@ -1672,11 +1652,6 @@ parameters:
 
 		-
 			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Parameter \\#2 \\$payload of method Mews\\\\Pos\\\\Client\\\\HttpClient\\:\\:post\\(\\) expects array\\{body\\?\\: array\\<string, string\\>, headers\\?\\: array\\<string, string\\>, form_params\\?\\: array\\<string, string\\>\\}\\|null, array\\{headers\\: array\\{Content\\-Type\\: 'text/xml; charset…'\\}, body\\: array\\|string\\} given\\.$#"
 			count: 1
 			path: src/Gateways/PayForPos.php
 
@@ -1807,11 +1782,6 @@ parameters:
 
 		-
 			message: "#^Parameter \\#4 \\$card of method Mews\\\\Pos\\\\DataMapper\\\\PosNetRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) expects Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard, Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Part \\$contents \\(array\\|string\\) of encapsed string cannot be cast to string\\.$#"
 			count: 1
 			path: src/Gateways/PosNet.php
 

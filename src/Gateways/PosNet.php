@@ -149,13 +149,17 @@ class PosNet extends AbstractGateway
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
-        /** @phpstan-ignore-next-line */
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
-            'body'    => "xmldata=$contents",
-        ]);
+        if (is_string($contents)) {
+            $response = $this->client->post($url, [
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+                'body'    => "xmldata=$contents",
+            ]);
+        } else {
+            $response = $this->client->post($url, ['form_params' => $contents]);
+        }
+
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         $this->data = $this->XMLStringToArray($response->getBody()->getContents());

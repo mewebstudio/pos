@@ -10,7 +10,7 @@ use Psr\Http\Message\StreamFactoryInterface;
 use function http_build_query;
 
 /**
- * @phpstan-type PostPayload array{body?: array<string, string>, headers?: array<string, string>, form_params?: array<string, string>}
+ * @phpstan-type PostPayload array{body?: array<string, string>|string, headers?: array<string, string>, form_params?: array<string, string>}
  * PSR18 HTTP Client wrapper
  */
 class HttpClient

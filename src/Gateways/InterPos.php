@@ -48,7 +48,8 @@ class InterPos extends AbstractGateway
     {
         $url = $url ?: $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-        $response = $this->client->post($url, ['form_params' => $contents]);
+        $payload = is_array($contents) ? ['form_params' => $contents] : ['body' => $contents];
+        $response = $this->client->post($url, $payload);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         //genelde ;; delimiter kullanilmis, ama bazen arasinda ;;; boyle delimiter de var.
