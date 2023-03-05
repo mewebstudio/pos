@@ -5,9 +5,9 @@ namespace Mews\Pos\Entity\Account;
 class VakifBankAccount extends AbstractPosAccount
 {
     public const MERCHANT_TYPE_STANDARD = 0;
-    
+
     public const MERCHANT_TYPE_MAIN_DEALER = 1;
-    
+
     public const MERCHANT_TYPE_SUB_DEALER = 2;
 
     /** @var int[] */
@@ -22,7 +22,7 @@ class VakifBankAccount extends AbstractPosAccount
 
     /**
      * Banka tarafından Üye işyerine iletilmektedir
-     * @var int
+     * @var self::MERCHANT_TYPE_*
      */
     private $merchantType;
 
@@ -41,13 +41,13 @@ class VakifBankAccount extends AbstractPosAccount
     /**
      * VakifBankAccount constructor.
      *
-     * @param string      $bank
-     * @param string      $model
-     * @param string      $merchantId Isyeri No
-     * @param string      $password   Isyeri Sifre
-     * @param string      $terminalId Terminal No
-     * @param int         $merchantType
-     * @param string|null $subMerchantId
+     * @param string                $bank
+     * @param string                $model
+     * @param string                $merchantId Isyeri No
+     * @param string                $password   Isyeri Sifre
+     * @param string                $terminalId Terminal No
+     * @param self::MERCHANT_TYPE_* $merchantType
+     * @param string|null           $subMerchantId
      */
     public function __construct(
         string $bank,
@@ -55,13 +55,14 @@ class VakifBankAccount extends AbstractPosAccount
         string $merchantId,
         string $password,
         string $terminalId,
-        int $merchantType = self::MERCHANT_TYPE_STANDARD,
+        int    $merchantType = self::MERCHANT_TYPE_STANDARD,
         string $subMerchantId = null
-    ) {
+    )
+    {
         parent::__construct($bank, $model, $merchantId, '', $password, 'tr');
-        $this->model = $model;
-        $this->terminalId = $terminalId;
-        $this->merchantType = $merchantType;
+        $this->model         = $model;
+        $this->terminalId    = $terminalId;
+        $this->merchantType  = $merchantType;
         $this->subMerchantId = $subMerchantId;
     }
 

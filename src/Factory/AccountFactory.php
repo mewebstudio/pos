@@ -123,13 +123,13 @@ class AccountFactory
     }
 
     /**
-     * @param string $bank
-     * @param string $merchantId    Üye işyeri numarası
-     * @param string $password      Üye işyeri şifres
-     * @param string $terminalNo    İşlemin hangi terminal üzerinden gönderileceği bilgisi. VB007000...
-     * @param string $model
-     * @param int    $merchantType
-     * @param null   $subMerchantId
+     * @param string                            $bank
+     * @param string                            $merchantId Üye işyeri numarası
+     * @param string                            $password   Üye işyeri şifres
+     * @param string                            $terminalNo İşlemin hangi terminal üzerinden gönderileceği bilgisi. VB007000...
+     * @param string                            $model
+     * @param VakifBankAccount::MERCHANT_TYPE_* $merchantType
+     * @param null                              $subMerchantId
      *
      * @return VakifBankAccount
      *
