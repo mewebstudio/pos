@@ -16,7 +16,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
 {
     public const CREDIT_CARD_EXP_DATE_LONG_FORMAT = 'Ym';
-    
+
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
 
     /**
@@ -52,7 +52,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @param VakifBankAccount $account
+     * @param VakifBankAccount                                                    $account
      * @param array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $responseData
      *
      * {@inheritDoc}
@@ -60,22 +60,22 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData, ?AbstractCreditCard $card = null): array
     {
         $requestData = $this->getRequestAccountData($account) + [
-            'TransactionType'         => $this->mapTxType($txType),
-            'TransactionId'           => (string) $order->id,
-            'CurrencyAmount'          => self::amountFormat($order->amount),
-            'CurrencyCode'            => $this->mapCurrency($order->currency),
-            'CardHoldersName'         => $card->getHolderName(),
-            'Cvv'                     => $card->getCvv(),
-            'Pan'                     => $card->getNumber(),
-            'Expiry'                  => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
-            'ECI'                     => $responseData['Eci'],
-            'CAVV'                    => $responseData['Cavv'],
-            'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
-            'OrderId'                 => (string) $order->id,
-            'OrderDescription'        => (string) ($order->description ?? ''),
-            'ClientIp'                => (string) $order->ip,
-            'TransactionDeviceSource' => '0', // ECommerce
-        ];
+                'TransactionType'         => $this->mapTxType($txType),
+                'TransactionId'           => (string) $order->id,
+                'CurrencyAmount'          => self::amountFormat($order->amount),
+                'CurrencyCode'            => $this->mapCurrency($order->currency),
+                'CardHoldersName'         => $card->getHolderName(),
+                'Cvv'                     => $card->getCvv(),
+                'Pan'                     => $card->getNumber(),
+                'Expiry'                  => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
+                'ECI'                     => $responseData['Eci'],
+                'CAVV'                    => $responseData['Cavv'],
+                'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
+                'OrderId'                 => (string) $order->id,
+                'OrderDescription'        => (string) ($order->description ?? ''),
+                'ClientIp'                => (string) $order->ip,
+                'TransactionDeviceSource' => '0', // ECommerce
+            ];
 
         if ($order->installment) {
             $requestData['NumberOfInstallments'] = $this->mapInstallment($order->installment);
@@ -110,15 +110,15 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         if ($order->installment) {
             $requestData['InstallmentCount'] = $this->mapInstallment($order->installment);
         }
-        
+
         if (isset($order->extraData)) {
             $requestData['SessionInfo'] = $order->extraData;
         }
-        
+
         if ($account->isSubBranch()) {
             $requestData['SubMerchantId'] = $account->getSubMerchantId();
         }
-        
+
         if (isset($order->recurringFrequency)) {
             $requestData['IsRecurring'] = 'true';
             // Periyodik İşlem Frekansı
@@ -137,24 +137,24 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param VakifBankAccount        $account
+     * @param VakifBankAccount $account
      * {@inheritDoc}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
         $requestData = $this->getRequestAccountData($account) + [
-            'TransactionType'         => $this->mapTxType($txType),
-            'OrderId'                 => $order->id,
-            'CurrencyAmount'          => self::amountFormat($order->amount),
-            'CurrencyCode'            => $this->mapCurrency($order->currency),
-            'ClientIp'                => $order->ip,
-            'TransactionDeviceSource' => 0,
-        ];
+                'TransactionType'         => $this->mapTxType($txType),
+                'OrderId'                 => (string) $order->id,
+                'CurrencyAmount'          => self::amountFormat($order->amount),
+                'CurrencyCode'            => $this->mapCurrency($order->currency),
+                'ClientIp'                => (string) $order->ip,
+                'TransactionDeviceSource' => '0',
+            ];
 
-        if ($card !== null) {
-            $requestData['Pan']      = $card->getNumber();
-            $requestData['Expiry']   = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT);
-            $requestData['Cvv']      = $card->getCvv();
+        if ($card instanceof AbstractCreditCard) {
+            $requestData['Pan']    = $card->getNumber();
+            $requestData['Expiry'] = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT);
+            $requestData['Cvv']    = $card->getCvv();
         }
 
         return $requestData;
@@ -165,17 +165,24 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      * @param                         $order
      * @param AbstractCreditCard|null $card
      *
-     * @return array{TransactionType: string, ReferenceTransactionId: string, CurrencyAmount: string, CurrencyCode: string, ClientIp: string, MerchantId: string, Password: string, TerminalNo: string}
+     * @return array{TransactionType: string,
+     *     ReferenceTransactionId: string,
+     *     CurrencyAmount: string,
+     *     CurrencyCode: string,
+     *     ClientIp: string,
+     *     MerchantId: string,
+     *     Password: string,
+     *     TerminalNo: string}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
         return $this->getRequestAccountData($account) + [
-            'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-            'ReferenceTransactionId' => (string) $order->id,
-            'CurrencyAmount'         => self::amountFormat($order->amount),
-            'CurrencyCode'           => $this->mapCurrency($order->currency),
-            'ClientIp'               => (string) $order->ip,
-        ];
+                'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
+                'ReferenceTransactionId' => (string) $order->id,
+                'CurrencyAmount'         => self::amountFormat($order->amount),
+                'CurrencyCode'           => $this->mapCurrency($order->currency),
+                'ClientIp'               => (string) $order->ip,
+            ];
     }
 
     /**
@@ -188,7 +195,8 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
-     * @return array{MerchantId: string, Password: string, TransactionType: string, ReferenceTransactionId: mixed, ClientIp: mixed}
+     * @return array{MerchantId: string, Password: string, TransactionType: string,
+     *     ReferenceTransactionId: string, ClientIp: string}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
@@ -196,14 +204,15 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
             'TransactionType'        => $this->mapTxType(AbstractGateway::TX_CANCEL),
-            'ReferenceTransactionId' => $order->id,
-            'ClientIp'               => $order->ip,
+            'ReferenceTransactionId' => (string) $order->id,
+            'ClientIp'               => (string) $order->ip,
         ];
     }
 
     /**
      * {@inheritDoc}
-     * @return array{MerchantId: string, Password: string, TransactionType: string, ReferenceTransactionId: mixed, ClientIp: mixed, CurrencyAmount: string}
+     * @return array{MerchantId: string, Password: string, TransactionType: string, ReferenceTransactionId: string,
+     *     ClientIp: string, CurrencyAmount: string}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -211,8 +220,8 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
             'TransactionType'        => $this->mapTxType(AbstractGateway::TX_REFUND),
-            'ReferenceTransactionId' => $order->id,
-            'ClientIp'               => $order->ip,
+            'ReferenceTransactionId' => (string) $order->id,
+            'ClientIp'               => (string) $order->ip,
             'CurrencyAmount'         => self::amountFormat($order->amount),
         ];
     }
