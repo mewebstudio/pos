@@ -44,18 +44,10 @@ class VakifBankCPPosResponseDataMapper extends AbstractResponseDataMapper implem
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
 
-        /**
-         * Bir işlem sanal posa gönderilemeden hatayla sonuçlandıysa response'da ErrorCode degeri yer alacak.
-         */
-        $errorCode = $raw3DAuthResponseData['ErrorCode'] ?? null;
-        if (null !== $errorCode) {
-            $paymentResponse               = $this->getDefaultPaymentResponse();
-            $paymentResponse['error_code'] = $errorCode;
-
-            return $paymentResponse;
-        }
-
         $paymentResponse = $this->getCommonPaymentResponse($raw3DAuthResponseData);
+        $paymentResponse['md_status'] = null;
+        $paymentResponse['md_error_message'] = null;
+        $paymentResponse['transaction_security'] = null;
 
         $paymentResponse['trans_id']      = $raw3DAuthResponseData['TransactionId'];
         $paymentResponse['masked_number'] = $raw3DAuthResponseData['MaskedPan'];
@@ -63,11 +55,7 @@ class VakifBankCPPosResponseDataMapper extends AbstractResponseDataMapper implem
         if (self::TX_APPROVED === $paymentResponse['status']) {
             $paymentResponse['auth_code']   = $raw3DAuthResponseData['AuthCode'];
             $paymentResponse['ref_ret_num'] = $raw3DAuthResponseData['TransactionId'];
-        } else {
-            /**
-             * Sanal POS gönderilmiş ve hata oluşmuş
-             */
-            $paymentResponse['error_message'] = $raw3DAuthResponseData['Message'];
+            $paymentResponse['order_id'] = $raw3DAuthResponseData['OrderID'];
         }
 
         return $paymentResponse;
@@ -106,7 +94,7 @@ class VakifBankCPPosResponseDataMapper extends AbstractResponseDataMapper implem
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
 
-        $response = $this->getCommonPaymentResponse($rawResponseData);
+        $response = $this->getCommonNonSecureResponse($rawResponseData);
 
         if (self::TX_APPROVED === $response['status']) {
             $response['order_id'] = $rawResponseData['TransactionId'];
@@ -158,6 +146,44 @@ class VakifBankCPPosResponseDataMapper extends AbstractResponseDataMapper implem
      *     error_message: string|null, all: array<string, string|null>}
      */
     private function getCommonPaymentResponse(array $responseData): array
+    {
+        $status     = self::TX_DECLINED;
+        $resultCode = $this->getProcReturnCode($responseData);
+
+        $errorCode       = $responseData['ErrorCode'] ?? null;
+        $errorMsg    = null;
+        if (null !== $errorCode) {
+            $resultCode   = $errorCode;
+            $errorMsg = $responseData['Message'];
+        } else {
+            if (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
+                $status = self::TX_APPROVED;
+            } else {
+                $errorMsg = $responseData['Message'];
+            }
+        }
+
+        $response = $this->getDefaultPaymentResponse();
+
+        $response['proc_return_code'] = $resultCode;
+        $response['status'] = $status;
+        $response['status_detail'] = null;
+        $response['error_code'] = (self::TX_DECLINED === $status) ? $resultCode : null;
+        $response['error_message'] = $errorMsg;
+        $response['all'] = $responseData;
+
+        return $response;
+    }
+
+    /**
+     * @param array<string, string> $responseData
+     *
+     * @return array{order_id: string|null, trans_id: string|null, auth_code: string|null,
+     *     ref_ret_num: string|null, proc_return_code: string|null,
+     *     status: string, status_detail: string|null, error_code: string|null,
+     *     error_message: string|null, all: array<string, string|null>}
+     */
+    private function getCommonNonSecureResponse(array $responseData): array
     {
         $status     = self::TX_DECLINED;
         $resultCode = $this->getProcReturnCode($responseData);

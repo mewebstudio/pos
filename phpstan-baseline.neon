@@ -1981,6 +1981,11 @@ parameters:
 			path: src/Gateways/VakifBankCPPos.php
 
 		-
+			message: "#^Parameter \\#1 \\$raw3DAuthResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\VakifBankCPPosResponseDataMapper\\:\\:map3DPayResponseData\\(\\) expects array\\{ErrorCode\\: string\\}\\|array\\{Rc\\: string, AuthCode\\: string, TransactionId\\: string, PaymentToken\\: string, MaskedPan\\: string\\}\\|array\\{Rc\\: string, Message\\: string, TransactionId\\: string, PaymentToken\\: string\\}, array given\\.$#"
+			count: 1
+			path: src/Gateways/VakifBankCPPos.php
+
+		-
 			message: "#^Parameter \\#6 \\$extraData of method Mews\\\\Pos\\\\DataMapper\\\\VakifBankCPPosRequestDataMapper\\:\\:create3DFormData\\(\\) expects array\\{CommonPaymentUrl\\: string, PaymentToken\\: string\\}, array\\{CommonPaymentUrl\\: string\\|null, PaymentToken\\: string\\|null, ErrorCode\\: null, ResponseMessage\\: string\\|null\\} given\\.$#"
 			count: 1
 			path: src/Gateways/VakifBankCPPos.php

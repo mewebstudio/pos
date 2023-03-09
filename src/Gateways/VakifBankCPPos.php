@@ -16,8 +16,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 /**
- * ORTAK ÖDEME
- * Class VakifBankCommonPaymentPos
+ * ORTAK ÖDEME (Common Payment) API
  */
 class VakifBankCPPos extends AbstractGateway
 {
@@ -33,7 +32,7 @@ class VakifBankCPPos extends AbstractGateway
     protected $responseDataMapper;
 
     /** @return VakifBankAccount */
-    public function getAccount()
+    public function getAccount(): VakifBankAccount
     {
         return $this->account;
     }
@@ -48,29 +47,25 @@ class VakifBankCPPos extends AbstractGateway
     }
 
     /**
-     * TODO check if it is working
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request)
+    public function make3DPayPayment(Request $request): self
     {
-        $errorCode = $request->query->get('RC');
-        $errorMsg = $request->query->get('MSG');
-        if (null !== $errorCode) {
+        $resultCode = $request->query->get('Rc');
+        if (null !== $resultCode && $this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $resultCode) {
             $this->logger->error('received error response from the bank', $request->query->all());
-            $bankResponse = [
-                'ErrorCode' => (string) $errorCode,
-            ];
-            $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse);
+            $this->response = $this->responseDataMapper->map3DPayResponseData($request->query->all());
 
             return $this;
         }
 
-        /** @var array{TransactionId: string, Ptkn: string} $queryParams */
+        /** @var array{TransactionId: string, PaymentToken: string} $queryParams */
         $queryParams = $request->query->all();
 
         $statusRequestData = $this->requestDataMapper->create3DPaymentStatusRequestData($this->account, $queryParams);
-
-        /** @var array{ErrorCode: string}|array{
+        /**
+         * sending request to make sure that payment was successful
+         * @var array{ErrorCode: string}|array{
          *     Rc: string,
          *     AuthCode: string,
          *     TransactionId: string,
@@ -92,7 +87,7 @@ class VakifBankCPPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request)
+    public function make3DHostPayment(Request $request): self
     {
         return $this->make3DPayPayment($request);
     }

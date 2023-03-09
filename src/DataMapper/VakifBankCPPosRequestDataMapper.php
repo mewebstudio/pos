@@ -72,7 +72,7 @@ class VakifBankCPPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * @param VakifBankAccount                           $account
-     * @param array{TransactionId: string, Ptkn: string} $responseData
+     * @param array{TransactionId: string, PaymentToken: string} $responseData
      *
      * @return array{HostMerchantId: string, Password: string, TransactionId: string, PaymentToken: string}
      */
@@ -82,7 +82,7 @@ class VakifBankCPPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'HostMerchantId' => $account->getClientId(),
                 'Password'       => $account->getPassword(),
                 'TransactionId'  => $responseData['TransactionId'],
-                'PaymentToken'   => $responseData['Ptkn'],
+                'PaymentToken'   => $responseData['PaymentToken'],
             ];
     }
 
@@ -109,13 +109,14 @@ class VakifBankCPPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'AmountCode'           => $this->mapCurrency($order->currency),
             'Amount'               => self::amountFormat($order->amount),
             'OrderID'              => (string) $order->id,
-            'OrderDescription'     => '',
+            'OrderDescription'     => (string) ($order->description ?? null),
             'IsSecure'             => 'true', // Işlemin 3D yapılıp yapılmayacağına dair flag, alabileceği değerler: 'true', 'false'
             /**
-             * Kart sahibi 3D Secure programına dahil değil
-             * ise işlemin Vposa gönderilip
-             * gönderilmeyeceği ile ilgili flag.
-             * Alabileceği değerler: 'true', 'false'
+             * 3D Programına Dahil Olmayan Kartlar ile İşlem Yapma Flagi: "3D İşlem Flagi" (IsSecure) "true" gönderilmiş
+             * işlemler için bir alt seçenektir. Kart sahibi "3D Secure" programına dahil değilse Ortak Ödemenin işlemi
+             * Sanal Pos'a gönderip göndermeyeceğini belirtir. "true" gönderilmesi durumunda kart sahibi
+             * 3D Secure programına dahil olmasa bile işlemi Sanal Pos'a gönderecektir.
+             * Bu tür işlemler "Half Secure" olarak işaretlenecektir.
              */
             'AllowNotEnrolledCard' => 'false',
             'SuccessUrl'           => (string) $order->success_url,
