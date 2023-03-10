@@ -5,6 +5,8 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use Exception;
+use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankCPPosResponseDataMapper;
+use Mews\Pos\DataMapper\VakifBankCPPosRequestDataMapper;
 use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
@@ -13,8 +15,7 @@ use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\VakifBankCPPos;
-use Mews\Pos\Gateways\VakifBankPos;
-use Mews\Pos\Tests\DataMapper\VakifBankPosRequestDataMapperTest;
+use Mews\Pos\Tests\DataMapper\VakifBankCPPosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -90,49 +91,13 @@ class VakifBankCPPosTest extends TestCase
         $this->pos->prepare($this->order, AbstractGateway::TX_POST_PAY);
     }
 
-    /**
-     * @return void
-     *
-     * @throws Exception
-     */
-    public function testGet3DFormDataEnrollmentFail(): void
-    {
-        $this->expectException(Exception::class);
-        $this->expectExceptionCode(2005);
-        $vakifBankPosRequestDataMapperTest = new VakifBankPosRequestDataMapperTest();
-
-        $requestMapper = PosFactory::getGatewayRequestMapper(VakifBankPos::class);
-        $responseMapper = PosFactory::getGatewayResponseMapper(VakifBankPos::class, $requestMapper, new NullLogger());
-
-        $posMock = $this->getMockBuilder(VakifBankPos::class)
-            ->setConstructorArgs([
-                [],
-                $this->account,
-                $requestMapper,
-                $responseMapper,
-                HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
-            ])
-            ->onlyMethods(['sendEnrollmentRequest'])
-            ->getMock();
-        $posMock->setTestMode(true);
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $posMock->expects($this->once())->method('sendEnrollmentRequest')
-            ->willReturn($vakifBankPosRequestDataMapperTest->getSampleEnrollmentFailResponseData());
-
-        $posMock->get3DFormData();
-    }
-
-
     public function testGet3DFormDataSuccess(): void
     {
-        $vakifBankPosRequestDataMapperTest = new VakifBankPosRequestDataMapperTest();
-        $enrollmentResponse = $vakifBankPosRequestDataMapperTest->getSampleEnrollmentSuccessResponseData();
+        $crypt          = PosFactory::getGatewayCrypt(VakifBankCPPos::class, new NullLogger());
+        $requestMapper  = PosFactory::getGatewayRequestMapper(VakifBankCPPos::class, [], $crypt);
+        $responseMapper = PosFactory::getGatewayResponseMapper(VakifBankCPPos::class, $requestMapper, new NullLogger());
 
-        $requestMapper = PosFactory::getGatewayRequestMapper(VakifBankPos::class);
-        $responseMapper = PosFactory::getGatewayResponseMapper(VakifBankPos::class, $requestMapper, new NullLogger());
-
-        $posMock = $this->getMockBuilder(VakifBankPos::class)
+        $posMock = $this->getMockBuilder(VakifBankCPPos::class)
             ->setConstructorArgs([
                 [],
                 $this->account,
@@ -141,24 +106,42 @@ class VakifBankCPPosTest extends TestCase
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
-            ->onlyMethods(['sendEnrollmentRequest'])
+            ->onlyMethods(['registerPayment'])
             ->getMock();
         $posMock->setTestMode(true);
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $posMock->expects($this->once())->method('sendEnrollmentRequest')
-            ->willReturn($enrollmentResponse);
+        $posMock->expects($this->once())->method('registerPayment')
+            ->willReturn(VakifBankCPPosRequestDataMapperTest::threeDFormDataProvider()->current()['queryParams']);
 
         $result = $posMock->get3DFormData();
-        $expected = [
-            'gateway' => $enrollmentResponse['Message']['VERes']['ACSUrl'],
-            'method'  => 'POST',
-            'inputs'  => [
-                'PaReq'   => $enrollmentResponse['Message']['VERes']['PaReq'],
-                'TermUrl' => $enrollmentResponse['Message']['VERes']['TermUrl'],
-                'MD'      => $enrollmentResponse['Message']['VERes']['MD'],
-            ],
-        ];
 
-        $this->assertSame($expected, $result);
+        $this->assertSame(VakifBankCPPosRequestDataMapperTest::threeDFormDataProvider()->current()['expected'], $result);
+    }
+
+    public function testGet3DFormDataFail(): void
+    {
+        $this->expectException(Exception::class);
+        $posMock = $this->getMockBuilder(VakifBankCPPos::class)
+            ->setConstructorArgs([
+                [],
+                $this->account,
+                $this->createMock(VakifBankCPPosRequestDataMapper::class),
+                $this->createMock(VakifBankCPPosResponseDataMapper::class),
+                HttpClientFactory::createDefaultHttpClient(),
+                new NullLogger()
+            ])
+            ->onlyMethods(['registerPayment'])
+            ->getMock();
+        $posMock->setTestMode(true);
+        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $posMock->expects($this->once())->method('registerPayment')
+            ->willReturn([
+                'CommonPaymentUrl' => null,
+                'PaymentToken'     => null,
+                'ErrorCode'        => '5007',
+                'ResponseMessage'  => 'Güvenlik Numarası Hatalı',
+            ]);
+
+        $posMock->get3DFormData();
     }
 }
