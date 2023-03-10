@@ -76,10 +76,10 @@ function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\
 
 $testCards = [
     'visa1' => [
-        'number' => '4543600299100712',
-        'year' => '23',
+        'number' => '4938460158754205',
+        'year' => '24',
         'month' => '11',
-        'cvv' => '454',
+        'cvv' => '715',
         'name' => 'John Doe',
         'type' => AbstractCreditCard::CARD_TYPE_VISA,
     ],

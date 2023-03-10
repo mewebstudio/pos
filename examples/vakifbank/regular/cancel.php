@@ -6,11 +6,9 @@ require '_config.php';
 $templateTitle = 'Cancel Order';
 require '../../template/_header.php';
 
-$order = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
-
 $order = [
-    'id' => $order['id'], //ReferenceTransactionId
-    'ip' => $order['ip'],
+    'id' => $session->get('ref_ret_num'), //ReferenceTransactionId
+    'ip' => $request->getClientIp(),
 ];
 $transaction = AbstractGateway::TX_CANCEL;
 $pos->prepare($order, $transaction);

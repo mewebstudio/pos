@@ -776,16 +776,6 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/VakifBankPosResponseDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\VakifBankPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) should return array\\<string, float\\|string\\|null\\> but returns array\\<string, array\\<string, string\\>\\|float\\|string\\|null\\>\\.$#"
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/VakifBankPosResponseDataMapper.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\VakifBankPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) should return array\\<string, float\\|string\\|null\\> but returns array\\<string, array\\<string, string\\>\\|string\\|null\\>\\.$#"
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/VakifBankPosResponseDataMapper.php
-
-		-
 			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
 			count: 2
 			path: src/DataMapper/VakifBankCPPosRequestDataMapper.php

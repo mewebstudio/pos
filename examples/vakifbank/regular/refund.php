@@ -9,9 +9,9 @@ require '../../template/_header.php';
 $order = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 // Refund Order
 $order = [
-    'id'     => $order['id'], //ReferenceTransactionId
+    'id' => $session->get('ref_ret_num'), //ReferenceTransactionId
+    'ip' => $request->getClientIp(),
     'amount' => $order['amount'],
-    'ip'     => $order['ip'],
 ];
 $transaction = AbstractGateway::TX_REFUND;
 $pos->prepare($order, $transaction);
