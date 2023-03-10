@@ -262,15 +262,15 @@ class VakifBankCPPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @return array{gateway: string, method: 'GET', inputs: array{Ptkn: string}}
      */
     public function create3DFormData(
-        AbstractPosAccount  $account,
-                            $order,
-        string              $txType,
-        string              $gatewayURL,
-        ?AbstractCreditCard $card = null,
-        array               $extraData = []): array
+        ?AbstractPosAccount  $account,
+                             $order,
+        ?string              $txType,
+        ?string              $gatewayURL,
+        ?AbstractCreditCard  $card = null,
+        array                $extraData = []): array
     {
         return [
-            'gateway' => $gatewayURL,
+            'gateway' => $extraData['CommonPaymentUrl'],
             'method'  => 'GET',
             'inputs'  => [
                 'Ptkn' => $extraData['PaymentToken'],

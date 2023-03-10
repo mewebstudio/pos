@@ -123,16 +123,13 @@ class VakifBankCPPos extends AbstractGateway
             throw new Exception('İşlem gerçekleştirilemiyor');
         }
 
-        /** @var string $gatewayUrl */
-        $gatewayUrl = $data['CommonPaymentUrl'];
-
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $this->order,
-            $this->type,
-            $gatewayUrl,
+            null,
+            null,
+            null,
+            null,
             null,
             $data
         );
@@ -332,7 +329,7 @@ class VakifBankCPPos extends AbstractGateway
      *
      * @throws Exception
      */
-    private function registerPayment(): array
+    public function registerPayment(): array
     {
         if (null === $this->order) {
             $this->logger->log(LogLevel::ERROR, 'register payment without setting order', [
