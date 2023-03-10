@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Factory;
 
 use DomainException;
@@ -76,11 +77,11 @@ class PosFactory
         if ($logger === null) {
             $logger = new NullLogger();
         }
-        
+
         if ($client === null) {
             $client = HttpClientFactory::createDefaultHttpClient();
         }
-        
+
         if (is_string($config)) {
             $config = require $config;
         } elseif (empty($config)) {
@@ -92,10 +93,10 @@ class PosFactory
             throw new BankNotFoundException();
         }
 
-        /** @var class-string $class Gateway Class*/
-        $class = $config['banks'][$posAccount->getBank()]['class'];
+        /** @var class-string|null $class Gateway Class */
+        $class = $config['banks'][$posAccount->getBank()]['class'] ?? null;
 
-        if (!$class) {
+        if (null === $class) {
             throw new BankClassNullException();
         }
 
@@ -103,7 +104,7 @@ class PosFactory
         if (isset($config['currencies'])) {
             $currencies = $config['currencies'];
         }
-        
+
         $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
 
         $crypt              = self::getGatewayCrypt($class, $logger);
@@ -130,31 +131,28 @@ class PosFactory
      */
     public static function getGatewayRequestMapper(string $gatewayClass, array $currencies = [], ?CryptInterface $crypt = null): AbstractRequestDataMapper
     {
-        if (null !== $crypt) {
-            switch ($gatewayClass) {
-                case EstPos::class:
-                    return new EstPosRequestDataMapper($crypt, $currencies);
-                case EstV3Pos::class:
-                    return new EstV3PosRequestDataMapper($crypt, $currencies);
-                case GarantiPos::class:
-                    return new GarantiPosRequestDataMapper($crypt, $currencies);
-                case InterPos::class:
-                    return new InterPosRequestDataMapper($crypt, $currencies);
-                case KuveytPos::class:
-                    return new KuveytPosRequestDataMapper($crypt, $currencies);
-                case PayForPos::class:
-                    return new PayForPosRequestDataMapper($crypt, $currencies);
-                case PosNet::class:
-                    return new PosNetRequestDataMapper($crypt, $currencies);
-                case VakifBankCPPos::class:
-                    return new VakifBankCPPosRequestDataMapper($crypt, $currencies);
+        $classMappings = [
+            EstPos::class         => EstPosRequestDataMapper::class,
+            EstV3Pos::class       => EstV3PosRequestDataMapper::class,
+            GarantiPos::class     => GarantiPosRequestDataMapper::class,
+            InterPos::class       => InterPosRequestDataMapper::class,
+            KuveytPos::class      => KuveytPosRequestDataMapper::class,
+            PayForPos::class      => PayForPosRequestDataMapper::class,
+            PosNet::class         => PosNetRequestDataMapper::class,
+            VakifBankCPPos::class => VakifBankCPPosRequestDataMapper::class,
+        ];
+        if (isset($classMappings[$gatewayClass])) {
+            if (null === $crypt) {
+                throw new \InvalidArgumentException(sprintf('Gateway %s requires Crypt instance', $gatewayClass));
             }
+
+            return new $classMappings[$gatewayClass]($crypt, $currencies);
         }
-        
+
         if ($gatewayClass === VakifBankPos::class) {
             return new VakifBankPosRequestDataMapper(null, $currencies);
         }
-        
+
         throw new DomainException('unsupported gateway');
     }
 
@@ -167,28 +165,26 @@ class PosFactory
      */
     public static function getGatewayResponseMapper(string $gatewayClass, AbstractRequestDataMapper $requestDataMapper, LoggerInterface $logger): AbstractResponseDataMapper
     {
-        $currencyMappings = $requestDataMapper->getCurrencyMappings();
-        $txMappings       = $requestDataMapper->getTxTypeMappings();
-        switch ($gatewayClass) {
-            case EstV3Pos::class:
-            case EstPos::class:
-                return new EstPosResponseDataMapper($currencyMappings, $txMappings, $logger);
-            case GarantiPos::class:
-                return new GarantiPosResponseDataMapper($currencyMappings, $txMappings, $logger);
-            case InterPos::class:
-                return new InterPosResponseDataMapper($currencyMappings, $txMappings, $logger);
-            case KuveytPos::class:
-                return new KuveytPosResponseDataMapper($currencyMappings, $txMappings, $logger);
-            case PayForPos::class:
-                return new PayForPosResponseDataMapper($currencyMappings, $txMappings, $logger);
-            case PosNet::class:
-                return new PosNetResponseDataMapper($currencyMappings, $txMappings, $logger);
-            case VakifBankPos::class:
-                return new VakifBankPosResponseDataMapper($currencyMappings, $txMappings, $logger);
-            case VakifBankCPPos::class:
-                return new VakifBankCPPosResponseDataMapper($currencyMappings, $txMappings, $logger);
+        $classMappings = [
+            EstV3Pos::class       => EstPosResponseDataMapper::class,
+            EstPos::class         => EstPosResponseDataMapper::class,
+            GarantiPos::class     => GarantiPosResponseDataMapper::class,
+            InterPos::class       => InterPosResponseDataMapper::class,
+            KuveytPos::class      => KuveytPosResponseDataMapper::class,
+            PayForPos::class      => PayForPosResponseDataMapper::class,
+            PosNet::class         => PosNetResponseDataMapper::class,
+            VakifBankPos::class   => VakifBankPosResponseDataMapper::class,
+            VakifBankCPPos::class => VakifBankCPPosResponseDataMapper::class,
+        ];
+
+        if (isset($classMappings[$gatewayClass])) {
+            return new $classMappings[$gatewayClass](
+                $requestDataMapper->getCurrencyMappings(),
+                $requestDataMapper->getTxTypeMappings(),
+                $logger
+            );
         }
-        
+
         throw new DomainException('unsupported gateway');
     }
 
@@ -200,25 +196,21 @@ class PosFactory
      */
     public static function getGatewayCrypt(string $gatewayClass, LoggerInterface $logger): ?CryptInterface
     {
-        switch ($gatewayClass) {
-            case EstV3Pos::class:
-                return new EstV3PosCrypt($logger);
-            case EstPos::class:
-                return new EstPosCrypt($logger);
-            case GarantiPos::class:
-                return new GarantiPosCrypt($logger);
-            case InterPos::class:
-                return new InterPosCrypt($logger);
-            case KuveytPos::class:
-                return new KuveytPosCrypt($logger);
-            case PayForPos::class:
-                return new PayForPosCrypt($logger);
-            case PosNet::class:
-                return new PosNetCrypt($logger);
-            case VakifBankCPPos::class:
-                return new VakifBankCPCrypt($logger);
-            default:
-                return null;
+        $classMappings = [
+            EstV3Pos::class       => EstV3PosCrypt::class,
+            EstPos::class         => EstPosCrypt::class,
+            GarantiPos::class     => GarantiPosCrypt::class,
+            InterPos::class       => InterPosCrypt::class,
+            KuveytPos::class      => KuveytPosCrypt::class,
+            PayForPos::class      => PayForPosCrypt::class,
+            PosNet::class         => PosNetCrypt::class,
+            VakifBankCPPos::class => VakifBankCPCrypt::class,
+        ];
+
+        if (isset($classMappings[$gatewayClass])) {
+            return new $classMappings[$gatewayClass]($logger);
         }
+
+        return null;
     }
 }
