@@ -17,4 +17,4 @@ $session->set('post_order', $order);
 $transaction = \Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY;
 $card = null;
 
-require '../../template/_payment_response.php';
+require '../../_templates/_payment_response.php';

@@ -3,7 +3,7 @@
 $templateTitle = 'History Order';
 
 require '_config.php';
-require '../../template/_header.php';
+require '../../_templates/_header.php';
 
 $ord = $session->get('order');
 
@@ -16,5 +16,5 @@ $transaction = \Mews\Pos\Gateways\AbstractGateway::TX_HISTORY;
 $query = $pos->history($order);
 
 $response = $query->getResponse();
-require '../../template/_simple_response_dump.php';
-require '../../template/_footer.php';
+require '../../_templates/_simple_response_dump.php';
+require '../../_templates/_footer.php';

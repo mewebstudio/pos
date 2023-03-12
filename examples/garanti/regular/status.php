@@ -2,7 +2,7 @@
 
 require '_config.php';
 $templateTitle = 'Order Status';
-require '../../template/_header.php';
+require '../../_templates/_header.php';
 
 use Mews\Pos\Gateways\AbstractGateway;
 
@@ -19,5 +19,5 @@ $pos->prepare($order, $transaction);
 $pos->status();
 
 $response = $pos->getResponse();
-require '../../template/_simple_response_dump.php';
-require '../../template/_footer.php';
+require '../../_templates/_simple_response_dump.php';
+require '../../_templates/_footer.php';

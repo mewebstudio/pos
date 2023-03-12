@@ -5,4 +5,4 @@ require './_config.php';
 $savedCard = $session->get('card');
 $card = createCard($pos, $savedCard);
 
-require '../../template/_payment_response.php';
+require '../../_templates/_payment_response.php';

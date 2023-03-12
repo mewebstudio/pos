@@ -16,4 +16,4 @@ $transaction = $request->get('tx', \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 
 $card = createCard($pos, $request->request->all());
 
-require '../../template/_payment_response.php';
+require '../../_templates/_payment_response.php';
