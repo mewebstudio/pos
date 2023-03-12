@@ -32,6 +32,7 @@ class EstV3PosCrypt extends AbstractCrypt
         // escape | and \ characters
         $data = str_replace("\\", "\\\\", array_values($requestData));
         $data = str_replace(self::HASH_SEPARATOR, "\\".self::HASH_SEPARATOR, $data);
+        
         $hashStr = implode(self::HASH_SEPARATOR, $data);
 
         return $this->hashString($hashStr);

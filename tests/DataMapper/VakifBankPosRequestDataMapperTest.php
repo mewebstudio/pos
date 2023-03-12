@@ -62,6 +62,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->account);
         $this->pos->setTestMode(true);
+        
         $this->requestDataMapper = new VakifBankPosRequestDataMapper();
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
@@ -118,6 +119,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         $order['amount'] = 10.1;
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
+        
         $txType = AbstractGateway::TX_PAY;
         $gatewayResponse = [
             'Eci'                       => (string) random_int(1, 100),
@@ -143,6 +145,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        
         $expectedValue = $this->getSample3DEnrollmentRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $this->assertEquals($expectedValue, $actual);
@@ -237,6 +240,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        
         $expectedValue = $this->getSample3DFormDataFromEnrollmentResponse();
         $actualData = $this->requestDataMapper->create3DFormData(
             $pos->getAccount(),

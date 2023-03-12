@@ -66,6 +66,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
         $this->pos->setTestMode(true);
+        
         $crypt = PosFactory::getGatewayCrypt(EstV3Pos::class, new NullLogger());
         $this->requestDataMapper = new EstV3PosRequestDataMapper($crypt);
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);

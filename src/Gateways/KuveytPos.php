@@ -93,6 +93,7 @@ class KuveytPos extends AbstractGateway
         
         $gatewayResponse = urldecode($gatewayResponse);
         $gatewayResponse = $this->XMLStringToArray($gatewayResponse);
+        
         $bankResponse    = null;
         $procReturnCode  = $gatewayResponse['ResponseCode'];
 

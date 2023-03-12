@@ -62,6 +62,7 @@ class PayForTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
 
         $this->pos->setTestMode(true);
+        
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 

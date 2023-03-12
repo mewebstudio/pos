@@ -73,6 +73,7 @@ class KuveytPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
 
         $this->pos->setTestMode(true);
+        
         $this->card = CreditCardFactory::create(
             $this->pos,
             '4155650100416111',
@@ -238,6 +239,7 @@ class KuveytPosTest extends TestCase
             ->getMock();
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        
         $paymentResponse = $kuveytPosResponseDataMapperTest->threeDPaymentDataProvider()['success1']['paymentData'];
         $posMock->expects($this->once())->method('send')->willReturn($paymentResponse);
 

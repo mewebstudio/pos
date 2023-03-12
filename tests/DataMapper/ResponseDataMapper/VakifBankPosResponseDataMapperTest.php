@@ -172,6 +172,7 @@ class VakifBankPosResponseDataMapperTest extends TestCase
             ],
         ];
     }
+    
     public static function paymentDataProvider(): iterable
     {
         yield 'success_1' => [
@@ -254,6 +255,7 @@ class VakifBankPosResponseDataMapperTest extends TestCase
             ],
         ];
     }
+    
     public static function threeDPaymentDataProvider(): array
     {
         return [

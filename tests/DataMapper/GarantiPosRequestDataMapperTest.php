@@ -70,9 +70,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
         $this->pos->setTestMode(true);
+        
         $crypt = PosFactory::getGatewayCrypt(GarantiPos::class, new NullLogger());
         $this->requestDataMapper = new GarantiPosRequestDataMapper($crypt);
         $this->requestDataMapper->setTestMode(true);
+        
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
@@ -172,6 +174,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $order = $this->order;
         $pos   = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_HISTORY);
+        
         $actual = $this->requestDataMapper->createHistoryRequestData($pos->getAccount(), $pos->getOrder());
 
         $expectedData = $this->getSampleHistoryRequestData($pos->getAccount(), $pos->getOrder());
@@ -201,6 +204,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $pos = $this->pos;
+        
         $account = $pos->getAccount();
         $order = $pos->getOrder();
         $card = $pos->getCard();

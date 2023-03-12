@@ -70,6 +70,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
 
         $this->pos->setTestMode(true);
+        
         $this->card = CreditCardFactory::create(
             $this->pos,
             '4155650100416111',

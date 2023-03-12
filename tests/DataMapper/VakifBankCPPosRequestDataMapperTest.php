@@ -31,6 +31,7 @@ class VakifBankCPPosRequestDataMapperTest extends TestCase
 
     /** @var VakifBankCPPosRequestDataMapper */
     private $requestDataMapper;
+    
     protected function setUp(): void
     {
         parent::setUp();
@@ -45,6 +46,7 @@ class VakifBankCPPosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->account);
         $this->pos->setTestMode(true);
+        
         $crypt                   = PosFactory::getGatewayCrypt(VakifBankCPPos::class, new NullLogger());
         $this->requestDataMapper = new VakifBankCPPosRequestDataMapper($crypt);
     }
@@ -99,6 +101,7 @@ class VakifBankCPPosRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
+        
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $pos->getOrder(), $txType, $card);
         $this->assertEquals($expectedData, $actual);
     }
@@ -146,6 +149,7 @@ class VakifBankCPPosRequestDataMapperTest extends TestCase
 
         $pos = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
+        
         $card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
         yield 'with_card_1' => [

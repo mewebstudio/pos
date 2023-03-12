@@ -13,9 +13,7 @@ use Psr\Log\NullLogger;
 
 class VakifBankCPPosResponseDataMapperTest extends TestCase
 {
-    /**
-     * @var VakifBankCPPosResponseDataMapper
-     */
+    /** @var VakifBankCPPosResponseDataMapper */
     private $responseDataMapper;
 
     protected function setUp(): void

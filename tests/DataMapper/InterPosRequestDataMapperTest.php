@@ -261,6 +261,7 @@ class InterPosRequestDataMapperTest extends TestCase
         $pos     = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
+        
         $order = $pos->getOrder();
 
         $gatewayURL = $this->config['banks'][$account->getBank()]['urls']['gateway_3d_host']['test'];
