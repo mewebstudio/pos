@@ -315,7 +315,7 @@ class VakifBankCPPos extends AbstractGateway
     /**
      * @return string
      */
-    private function getQueryAPIUrl(): string
+    public function getQueryAPIUrl(): string
     {
         return $this->config['urls']['query'][$this->getModeInWord()];
     }
