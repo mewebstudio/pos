@@ -69,7 +69,7 @@ abstract class AbstractRequestDataMapper
     public function __construct(?CryptInterface $crypt = null, array $currencyMappings = [])
     {
         $this->crypt = $crypt;
-        if (count($currencyMappings) > 0) {
+        if ($currencyMappings !== []) {
             $this->currencyMappings = $currencyMappings;
         }
     }

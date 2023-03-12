@@ -265,7 +265,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
             $authCode = $transactionDetails['authCode'] ?? null;
 
             if (is_array($transactionDetails)) {
-                if (count($transactionDetails) > 0) {
+                if ($transactionDetails !== []) {
                     $state    = $transactionDetails[0]['state'];
                     $authCode = $transactionDetails[0]['authCode'];
                 }
