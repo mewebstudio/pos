@@ -169,7 +169,7 @@ class PayForPos extends AbstractGateway
 
         try {
             $this->data = $this->XMLStringToArray($response);
-        } catch (NotEncodableValueException $e) {
+        } catch (NotEncodableValueException $notEncodableValueException) {
             //Finansbank's history request response is in JSON format
             $this->data = json_decode($response, true);
         }

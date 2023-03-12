@@ -69,9 +69,9 @@ class KuveytPos extends AbstractGateway
         $responseBody = $response->getBody()->getContents();
         try {
             $this->data = $this->XMLStringToArray($responseBody);
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             if (!$this->isHTML($responseBody)) {
-                throw new Exception($responseBody, $e->getCode(), $e);
+                throw new Exception($responseBody, $exception->getCode(), $exception);
             }
             
             //icinde form olan HTML response dondu

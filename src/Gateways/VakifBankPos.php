@@ -185,10 +185,10 @@ class VakifBankPos extends AbstractGateway
 
         try {
             $this->data = $this->XMLStringToArray($responseBody);
-        } catch (NotEncodableValueException $e) {
+        } catch (NotEncodableValueException $notEncodableValueException) {
             if ($this->isHTML($responseBody)) {
                 // if something wrong server responds with HTML content
-                throw new Exception($responseBody, $e->getCode(), $e);
+                throw new Exception($responseBody, $notEncodableValueException->getCode(), $notEncodableValueException);
             }
             
             $this->data = json_decode($responseBody, true);
