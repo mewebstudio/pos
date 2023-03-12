@@ -156,12 +156,10 @@ class VakifBankCPPosResponseDataMapper extends AbstractResponseDataMapper implem
         if (null !== $errorCode) {
             $resultCode   = $errorCode;
             $errorMsg = $responseData['Message'];
+        } elseif (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
+            $status = self::TX_APPROVED;
         } else {
-            if (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
-                $status = self::TX_APPROVED;
-            } else {
-                $errorMsg = $responseData['Message'];
-            }
+            $errorMsg = $responseData['Message'];
         }
 
         $response = $this->getDefaultPaymentResponse();
@@ -194,12 +192,10 @@ class VakifBankCPPosResponseDataMapper extends AbstractResponseDataMapper implem
         if (null !== $errorCode) {
             $resultCode   = $errorCode;
             $statusDetail = $responseData['ResponseMessage'];
+        } elseif (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
+            $status = self::TX_APPROVED;
         } else {
-            if (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
-                $status = self::TX_APPROVED;
-            } else {
-                $statusDetail = $responseData['ResultDetail'];
-            }
+            $statusDetail = $responseData['ResultDetail'];
         }
 
         $response = $this->getDefaultPaymentResponse();

@@ -302,16 +302,16 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
      */
     protected function mapResponseTransactionSecurity(string $mdStatus): string
     {
-        if (in_array($mdStatus, ['1', '2', '3', '4'])) {
-            if ('1' === $mdStatus) {
-                return 'Full 3D Secure';
-            } else {
-                // ['2', '3', '4']
-                return 'Half 3D Secure';
-            }
+        if (!in_array($mdStatus, ['1', '2', '3', '4'])) {
+            return 'MPI fallback';
         }
-        
-        return 'MPI fallback';
+
+        if ('1' === $mdStatus) {
+            return 'Full 3D Secure';
+        }
+
+        // ['2', '3', '4']
+        return 'Half 3D Secure';
     }
 
     /**
