@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 /**
- * Class VakifBankPos
+ * Vakifbank VPOS 7/24 gateway'i destekler
  */
 class VakifBankPos extends AbstractGateway
 {

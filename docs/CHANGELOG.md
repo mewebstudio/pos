@@ -1,10 +1,19 @@
 # Changelog
 
-## [0.12.0] - 2023-02-06
+## [0.12.0] - 2023-03-13
+### New Features
+- Vakıfbank Common Payment (Ortak Ödeme) gateway desteği eklendi (`VakifBankCPPos`).
+  Sadece **3DPay** ve **3DHost** ödeme destekleri eklendi.
+  Örnek kodlar "examples/vakifbank-cp." altında yer almaktadır.
+
 ### Changed
 - **EstPos** - `MODEL_3D_PAY_HOSTING` desteği eklendi @umuttaymaz.
 - `get3DFormData()` - artık gereken _kart_ veya _sipariş_ bilgileri olmadan çağrıldığında istisna fırlatır.
+- `get3DFormData()` - dönen değere artık HTTP methodu eklendi. Örn: `'method' => 'POST'` (ya da GET);
 - `VakifBankPosRequestDataMapper` - `OrderDescription` tanımsız olma durumu giderildi.
+
+### Fixed
+- **Vakifbank** - bazı _undefined index_ hatalar giderildi.
 
 ## [0.11.0] - 2023-01-08
 ### Changed
