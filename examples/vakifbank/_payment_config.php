@@ -76,6 +76,7 @@ function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\
 
 $testCards = [
     'visa1' => [
+        // NOTE: 3D Secure sifre 123456
         'number' => '4938460158754205',
         'year' => '24',
         'month' => '11',
