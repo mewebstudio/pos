@@ -34,7 +34,7 @@ class VakifBankPosTest extends TestCase
     private $card;
 
     /** @var array */
-    private $order;
+    private $order = [];
 
     protected function setUp(): void
     {

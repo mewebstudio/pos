@@ -12,7 +12,7 @@ use Psr\Log\NullLogger;
 class PayForPosCryptTest extends TestCase
 {
     /** @var array<string, string>|array<string, float> */
-    public $order;
+    public $order = [];
 
     /** @var PayForPosCrypt */
     public $crypt;
