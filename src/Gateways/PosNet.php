@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PosNet extends AbstractGateway
 {
+    /** @var string */
     public const NAME = 'PosNet';
 
     /** @var PosNetAccount */

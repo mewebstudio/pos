@@ -19,9 +19,7 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
  */
 class VakifBankPos extends AbstractGateway
 {
-    /**
-     * @const string
-     */
+    /** @var string */
     public const NAME = 'VakifPOS';
 
     /** @var VakifBankAccount */

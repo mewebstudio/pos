@@ -16,6 +16,7 @@ use Mews\Pos\Gateways\AbstractGateway;
  */
 class VakifBankCPPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
+    /** @var string */
     public const CREDIT_CARD_EXP_DATE_LONG_FORMAT = 'Ym';
 
     /**

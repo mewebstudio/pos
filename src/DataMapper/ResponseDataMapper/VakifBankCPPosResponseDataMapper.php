@@ -7,6 +7,7 @@ use Psr\Log\LogLevel;
 
 class VakifBankCPPosResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
 {
+    /** @var string */
     public const PROCEDURE_SUCCESS_CODE = '0000';
 
     /**

@@ -16,13 +16,20 @@ use Mews\Pos\Gateways\AbstractGateway;
  */
 class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
+    /** @var string */
     public const API_VERSION = 'v0.01';
 
+    /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
     
+    /** @var string */
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
     
+    /** @var string */
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
+
+    /** @var string */
+    private const MOTO = 'N';
 
     /**
      * {@inheritDoc}
@@ -44,8 +51,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         AbstractGateway::TX_HISTORY  => 'orderhistoryinq',
         AbstractGateway::TX_STATUS   => 'orderinq',
     ];
-
-    private const MOTO = 'N';
 
     protected $recurringOrderFrequencyMapping = [
         'DAY'   => 'D',

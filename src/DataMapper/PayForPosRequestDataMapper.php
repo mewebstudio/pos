@@ -15,14 +15,17 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /**
      * Kurum kodudur. (Banka tarafından verilir)
+     * @var string
      */
     public const MBR_ID = '5';
 
     /**
      * MOTO (Mail Order Telephone Order) 0 for false, 1 for true
+     * @var string
      */
     public const MOTO = '0';
 
+    /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
 
     /** {@inheritdoc} */

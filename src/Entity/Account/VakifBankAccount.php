@@ -4,10 +4,13 @@ namespace Mews\Pos\Entity\Account;
 
 class VakifBankAccount extends AbstractPosAccount
 {
+    /** @var int */
     public const MERCHANT_TYPE_STANDARD = 0;
 
+    /** @var int */
     public const MERCHANT_TYPE_MAIN_DEALER = 1;
 
+    /** @var int */
     public const MERCHANT_TYPE_SUB_DEALER = 2;
 
     /** @var int[] */

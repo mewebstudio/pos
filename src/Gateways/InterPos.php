@@ -19,9 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class InterPos extends AbstractGateway
 {
-    /**
-     * @const string
-     */
+    /** @var string */
     public const NAME = 'InterPos';
 
     /** @var InterPosAccount */

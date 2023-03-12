@@ -6,6 +6,7 @@ use Psr\Log\LogLevel;
 
 class PosNetResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
 {
+    /** @var string */
     public const PROCEDURE_SUCCESS_CODE = '1';
 
     /**

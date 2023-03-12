@@ -9,12 +9,16 @@ use DateTimeImmutable;
  */
 abstract class AbstractCreditCard
 {
+    /** @var string */
     public const CARD_TYPE_VISA = 'visa';
     
+    /** @var string */
     public const CARD_TYPE_MASTERCARD = 'master';
     
+    /** @var string */
     public const CARD_TYPE_AMEX = 'amex';
     
+    /** @var string */
     public const CARD_TYPE_TROY = 'troy';
 
     /**

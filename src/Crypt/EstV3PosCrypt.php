@@ -9,8 +9,10 @@ use Psr\Log\LogLevel;
 
 class EstV3PosCrypt extends AbstractCrypt
 {
+    /** @var string */
     protected const HASH_ALGORITHM = 'sha512';
     
+    /** @var string */
     protected const HASH_SEPARATOR = '|';
 
     /**

@@ -14,10 +14,12 @@ use Mews\Pos\Gateways\AbstractGateway;
  */
 class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
+    /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
 
     /**
      * MOTO (Mail Order Telephone Order) 0 for false, 1 for true
+     * @var string
      */
     protected const MOTO = '0';
 

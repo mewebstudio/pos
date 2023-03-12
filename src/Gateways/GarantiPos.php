@@ -18,9 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class GarantiPos extends AbstractGateway
 {
-    /**
-     * @const string
-     */
+    /** @var string */
     public const NAME = 'GarantiPay';
 
     /** @var GarantiPosAccount */

@@ -19,9 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class EstPos extends AbstractGateway
 {
-    /**
-     * @const string
-     */
+    /** @var string */
     public const NAME = 'EstPos';
 
     /** @var EstPosAccount */

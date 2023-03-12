@@ -25,32 +25,46 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
  */
 abstract class AbstractGateway implements PosInterface
 {
+    /** @var string */
     public const LANG_TR = 'tr';
     
+    /** @var string */
     public const LANG_EN = 'en';
 
+    /** @var string */
     public const TX_PAY = 'pay';
     
+    /** @var string */
     public const TX_PRE_PAY = 'pre';
     
+    /** @var string */
     public const TX_POST_PAY = 'post';
     
+    /** @var string */
     public const TX_CANCEL = 'cancel';
     
+    /** @var string */
     public const TX_REFUND = 'refund';
     
+    /** @var string */
     public const TX_STATUS = 'status';
     
+    /** @var string */
     public const TX_HISTORY = 'history';
 
+    /** @var string */
     public const MODEL_3D_SECURE = '3d';
     
+    /** @var string */
     public const MODEL_3D_PAY = '3d_pay';
     
+    /** @var string */
     public const MODEL_3D_PAY_HOSTING = '3d_pay_hosting';
     
+    /** @var string */
     public const MODEL_3D_HOST = '3d_host';
     
+    /** @var string */
     public const MODEL_NON_SECURE = 'regular';
 
     /** @var array */
