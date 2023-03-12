@@ -180,7 +180,7 @@ class AccountFactory
             return;
         }
         
-        throw new MissingAccountInfoException("$model requires storeKey!");
+        throw new MissingAccountInfoException(sprintf('%s requires storeKey!', $model));
     }
 
     /**

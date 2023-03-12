@@ -351,22 +351,22 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
             'all'                       => $rawResponseData,
         ];
 
-        for ($i = 1; isset($extra["ORD_ID_$i"]); $i++) {
+        for ($i = 1; isset($extra[sprintf('ORD_ID_%d', $i)]); ++$i) {
             $recurringOrder = [
-                'order_id'         => $extra["ORD_ID_$i"],
-                'order_status'     => $extra["ORDERSTATUS_$i"],
-                'masked_number'    => $extra["PAN_$i"],
-                'status'           => $extra["TRANS_STAT_$i"], //C => Completed, PN => Pending, CNCL => Canceled
+                'order_id'         => $extra[sprintf('ORD_ID_%d', $i)],
+                'order_status'     => $extra[sprintf('ORDERSTATUS_%d', $i)],
+                'masked_number'    => $extra[sprintf('PAN_%d', $i)],
+                'status'           => $extra[sprintf('TRANS_STAT_%d', $i)], //C => Completed, PN => Pending, CNCL => Canceled
 
                 // following fields are null until transaction is done for respective installment:
-                'auth_code'        => $extra["AUTH_CODE_$i"] ?? null,
-                'auth_time'        => $extra["AUTH_DTTM_$i"] ?? null,
-                'proc_return_code' => $extra["PROC_RET_CD_$i"] ?? null,
-                'trans_id'         => $extra["TRANS_ID_$i"] ?? null,
-                'ref_ret_num'      => $extra["HOST_REF_NUM_$i"] ?? null,
-                'first_amount'     => $extra["ORIG_TRANS_AMT_$i"],
-                'capture_amount'   => $extra["CAPTURE_AMT_$i"] ?? null,
-                'capture_time'     => $extra["CAPTURE_DTTM_$i"] ?? null,
+                'auth_code'        => $extra[sprintf('AUTH_CODE_%d', $i)] ?? null,
+                'auth_time'        => $extra[sprintf('AUTH_DTTM_%d', $i)] ?? null,
+                'proc_return_code' => $extra[sprintf('PROC_RET_CD_%d', $i)] ?? null,
+                'trans_id'         => $extra[sprintf('TRANS_ID_%d', $i)] ?? null,
+                'ref_ret_num'      => $extra[sprintf('HOST_REF_NUM_%d', $i)] ?? null,
+                'first_amount'     => $extra[sprintf('ORIG_TRANS_AMT_%d', $i)],
+                'capture_amount'   => $extra[sprintf('CAPTURE_AMT_%d', $i)] ?? null,
+                'capture_time'     => $extra[sprintf('CAPTURE_DTTM_%d', $i)] ?? null,
             ];
 
             $recurringOrder['capture'] = $recurringOrder['first_amount'] === $recurringOrder['capture_amount'];

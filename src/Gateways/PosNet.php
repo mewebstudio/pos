@@ -155,7 +155,7 @@ class PosNet extends AbstractGateway
                 'headers' => [
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 ],
-                'body'    => "xmldata=$contents",
+                'body'    => sprintf('xmldata=%s', $contents),
             ]);
         } else {
             $response = $this->client->post($url, ['form_params' => $contents]);
