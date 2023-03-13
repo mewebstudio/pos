@@ -41,7 +41,7 @@ class GarantiPosCrypt extends AbstractCrypt
         $hashParamsArr = explode(':', $hashParams);
         foreach ($hashParamsArr as $value) {
             if (isset($data[$value])) {
-                $paramsVal = $paramsVal.$data[$value];
+                $paramsVal .= $data[$value];
             }
         }
 
@@ -53,6 +53,7 @@ class GarantiPosCrypt extends AbstractCrypt
 
             return true;
         }
+        
         $this->logger->log(LogLevel::ERROR, 'hash check failed', [
             'data'           => $data,
             'generated_hash' => $actualHash,
@@ -91,11 +92,7 @@ class GarantiPosCrypt extends AbstractCrypt
      */
     private function createSecurityData(AbstractPosAccount $account, ?string $txType = null): string
     {
-        if ('void' === $txType || 'refund' === $txType) {
-            $password = $account->getRefundPassword();
-        } else {
-            $password = $account->getPassword();
-        }
+        $password = 'void' === $txType || 'refund' === $txType ? $account->getRefundPassword() : $account->getPassword();
 
         $map = [
             $password,

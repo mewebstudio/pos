@@ -5,6 +5,7 @@
 namespace Mews\Pos\Tests\DataMapper;
 
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
@@ -21,6 +22,9 @@ use Psr\Log\NullLogger;
  */
 class KuveytPosRequestDataMapperTest extends TestCase
 {
+    /** @var KuveytPosAccount */
+    public $threeDAccount;
+
     /** @var AbstractCreditCard */
     private $card;
 
@@ -66,6 +70,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
 
         $this->pos->setTestMode(true);
+        
         $this->card = CreditCardFactory::create(
             $this->pos,
             '4155650100416111',
@@ -93,10 +98,10 @@ class KuveytPosRequestDataMapperTest extends TestCase
      * @param string|int|null $installment
      * @param string|int      $expected
      *
-     * @testWith ["0", 0]
-     *           ["1", 0]
-     *           ["2", 2]
-     *           [2, 2]
+     * @testWith ["0", "0"]
+     *           ["1", "0"]
+     *           ["2", "2"]
+     *           [2, "2"]
      *
      * @return void
      */
@@ -133,7 +138,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'FailUrl'             => $order->fail_url,
         ];
 
-        if ($card) {
+        if ($card !== null) {
             $inputs['CardHolderName']      = $card->getHolderName();
             $inputs['CardType']            = 'Visa';
             $inputs['CardNumber']          = $card->getNumber();

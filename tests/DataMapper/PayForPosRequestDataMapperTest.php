@@ -33,6 +33,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     private $requestDataMapper;
 
     private $order;
+    
     private $config;
 
     protected function setUp(): void
@@ -65,6 +66,7 @@ class PayForPosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
         $this->pos->setTestMode(true);
+        
         $crypt = PosFactory::getGatewayCrypt(PayForPos::class, new NullLogger());
         $this->requestDataMapper = new PayForPosRequestDataMapper($crypt);
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
@@ -83,10 +85,10 @@ class PayForPosRequestDataMapperTest extends TestCase
      * @param string|int|null $installment
      * @param string|int      $expected
      *
-     * @testWith ["0", 0]
-     *           ["1", 0]
-     *           ["2", 2]
-     *           [2, 2]
+     * @testWith ["0", "0"]
+     *           ["1", "0"]
+     *           ["2", "2"]
+     *           [2, "2"]
      *
      * @return void
      */
@@ -215,6 +217,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
         $form   = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
         //test without card
@@ -259,6 +262,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         $pos = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
+        
         $order      = $pos->getOrder();
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway_3d_host']['test'];
         $inputs     = [
@@ -279,6 +283,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
         $form       = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
 

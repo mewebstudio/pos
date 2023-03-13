@@ -7,7 +7,10 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 require_once '_config.php';
 require '../../template/_header.php';
 
-if ($request->getMethod() !== 'POST' && AbstractGateway::TX_POST_PAY !== $transaction) {
+if (($request->getMethod() !== 'POST' && AbstractGateway::TX_POST_PAY !== $transaction)
+    // Vakifbank-CP GET request ile cevapliyor
+    && ($request->getMethod() === 'GET' && [] === $request->query->all())
+) {
     echo new RedirectResponse($baseUrl);
     exit();
 }

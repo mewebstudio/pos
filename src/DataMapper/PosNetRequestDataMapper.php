@@ -239,11 +239,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
         ];
 
         if (isset($order->koiCode) && $order->koiCode > 0) {
-            $inputs['useJokerVadaa'] = 1;
+            $inputs['useJokerVadaa'] = '1';
         }
 
         return [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }
@@ -369,9 +370,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * formats installment in 00, 02, 06 format
-     * {@inheritDoc}
      */
-    public function mapInstallment(?int $installment)
+    public function mapInstallment(?int $installment): string
     {
         if ($installment > 1) {
             return str_pad((string) $installment, 2, '0', STR_PAD_LEFT);

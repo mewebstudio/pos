@@ -19,6 +19,9 @@ use PHPUnit\Framework\TestCase;
  */
 class VakifBankPosRequestDataMapperTest extends TestCase
 {
+    /** @var VakifBankAccount */
+    public $account;
+    
     /** @var AbstractGateway */
     private $pos;
 
@@ -33,8 +36,6 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->config = require __DIR__.'/../../config/pos.php';
 
         $this->account = AccountFactory::createVakifBankAccount(
             'vakifbank',
@@ -61,6 +62,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->account);
         $this->pos->setTestMode(true);
+        
         $this->requestDataMapper = new VakifBankPosRequestDataMapper();
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
@@ -95,10 +97,10 @@ class VakifBankPosRequestDataMapperTest extends TestCase
      * @param string|int|null $installment
      * @param string|int      $expected
      *
-     * @testWith ["0", 0]
-     *           ["1", 0]
-     *           ["2", 2]
-     *           [2, 2]
+     * @testWith ["0", "0"]
+     *           ["1", "0"]
+     *           ["2", "2"]
+     *           [2, "2"]
      *
      * @return void
      */
@@ -117,11 +119,12 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         $order['amount'] = 10.1;
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
+        
         $txType = AbstractGateway::TX_PAY;
         $gatewayResponse = [
-            'Eci'                       => (string) rand(1, 100),
-            'Cavv'                      => (string) rand(1, 100),
-            'VerifyEnrollmentRequestId' => (string) rand(1, 100),
+            'Eci'                       => (string) random_int(1, 100),
+            'Cavv'                      => (string) random_int(1, 100),
+            'VerifyEnrollmentRequestId' => (string) random_int(1, 100),
         ];
 
         $expectedValue = $this->getSample3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), $txType, $gatewayResponse, $pos->getCard());
@@ -142,6 +145,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        
         $expectedValue = $this->getSample3DEnrollmentRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $this->assertEquals($expectedValue, $actual);
@@ -236,6 +240,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        
         $expectedValue = $this->getSample3DFormDataFromEnrollmentResponse();
         $actualData = $this->requestDataMapper->create3DFormData(
             $pos->getAccount(),
@@ -458,6 +463,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
 
         return [
             'gateway' => 'http',
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }

@@ -6,6 +6,7 @@ use Psr\Log\LogLevel;
 
 class PosNetResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
 {
+    /** @var string */
     public const PROCEDURE_SUCCESS_CODE = '1';
 
     /**
@@ -44,7 +45,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
     {
         $status = self::TX_DECLINED;
         $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
-        if (empty($rawPaymentResponseData)) {
+        if ($rawPaymentResponseData === []) {
             return $this->getDefaultPaymentResponse();
         }
 
@@ -88,6 +89,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $this->getStatusDetail($procReturnCode) === self::TX_APPROVED) {
             $status = self::TX_APPROVED;
         }
+        
         /** @var array<string, string> $oosResolveMerchantDataResponse */
         $oosResolveMerchantDataResponse = $raw3DAuthResponseData['oosResolveMerchantDataResponse'];
 
@@ -154,6 +156,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
         if (null !== $state) {
             $transactionType = $this->mapTxType($state);
         }
+        
         $results = [
             'auth_code'        => null,
             'trans_id'         => null,
@@ -219,6 +222,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
         if (null !== $state) {
             $transactionType = $this->mapTxType($state);
         }
+        
         $results = [
             'auth_code'        => null,
             'trans_id'         => null,
@@ -261,10 +265,11 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
             $authCode = $transactionDetails['authCode'] ?? null;
 
             if (is_array($transactionDetails)) {
-                if (count($transactionDetails) > 0) {
+                if ($transactionDetails !== []) {
                     $state    = $transactionDetails[0]['state'];
                     $authCode = $transactionDetails[0]['authCode'];
                 }
+                
                 if (count($transactionDetails) > 1) {
                     foreach ($transactionDetails as $key => $_transaction) {
                         if ($key > 0) {

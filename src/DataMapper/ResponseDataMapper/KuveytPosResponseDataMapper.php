@@ -30,6 +30,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         if (empty($rawPaymentResponseData)) {
             return $result;
         }
+        
         $status         = self::TX_DECLINED;
         $procReturnCode = $this->getProcReturnCode($rawPaymentResponseData);
 
@@ -49,6 +50,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
 
             return $result;
         }
+        
         /** @var array<string, string> $vPosMessage */
         $vPosMessage = $rawPaymentResponseData['VPosMessage'];
 

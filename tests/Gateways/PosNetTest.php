@@ -30,7 +30,9 @@ class PosNetTest extends TestCase
 
     /** @var AbstractCreditCard */
     private $card;
+    
     private $order;
+    
     /** @var PosNet */
     private $pos;
 
@@ -68,6 +70,7 @@ class PosNetTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->account);
 
         $this->pos->setTestMode(true);
+        
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet');
     }
 
@@ -156,6 +159,7 @@ class PosNetTest extends TestCase
             ->getMock();
         $posMock->setTestMode(true);
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        
         $bankResponses = $responseMapperTest->threeDPaymentDataProvider()['success1'];
         $posMock->expects($this->exactly(2))->method('send')->will(
             $this->onConsecutiveCalls(

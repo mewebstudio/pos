@@ -48,6 +48,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+        
         $transaction = $rawPaymentResponseData['Transaction'];
 
         $mappedResponse = [
@@ -136,12 +137,9 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
         $commonResult = $this->map3DCommonResponseData($raw3DAuthResponseData);
         if (self::TX_APPROVED === $commonResult['status']) {
             $procReturnCode = $raw3DAuthResponseData['procreturncode'];
-            if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-                $commonResult['status']   = self::TX_APPROVED;
-            } else {
-                $commonResult['status']   = self::TX_DECLINED;
-            }
+            $commonResult['status'] = self::PROCEDURE_SUCCESS_CODE === $procReturnCode ? self::TX_APPROVED : self::TX_DECLINED;
         }
+        
         if (in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'])) {
             $commonResult['auth_code']     = $raw3DAuthResponseData['authcode'];
             $commonResult['trans_id']      = $raw3DAuthResponseData['transid'];
@@ -184,6 +182,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+        
         $transaction = $rawResponseData['Transaction'];
 
 
@@ -215,6 +214,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+        
         $transaction = $rawResponseData['Transaction'];
 
         return [
@@ -302,15 +302,16 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
      */
     protected function mapResponseTransactionSecurity(string $mdStatus): string
     {
-        if (in_array($mdStatus, ['1', '2', '3', '4'])) {
-            if ('1' === $mdStatus) {
-                return 'Full 3D Secure';
-            } else {
-                // ['2', '3', '4']
-                return 'Half 3D Secure';
-            }
+        if (!in_array($mdStatus, ['1', '2', '3', '4'])) {
+            return 'MPI fallback';
         }
-        return 'MPI fallback';
+
+        if ('1' === $mdStatus) {
+            return 'Full 3D Secure';
+        }
+
+        // ['2', '3', '4']
+        return 'Half 3D Secure';
     }
 
     /**

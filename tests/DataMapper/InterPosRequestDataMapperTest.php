@@ -34,6 +34,7 @@ class InterPosRequestDataMapperTest extends TestCase
     private $requestDataMapper;
 
     private $order;
+    
     private $config;
 
     protected function setUp(): void
@@ -92,8 +93,8 @@ class InterPosRequestDataMapperTest extends TestCase
      *
      * @testWith ["0", ""]
      *           ["1", ""]
-     *           ["2", 2]
-     *           [2, 2]
+     *           ["2", "2"]
+     *           [2, "2"]
      *
      * @return void
      */
@@ -215,6 +216,7 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
         $form = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
         //test without card
@@ -259,6 +261,7 @@ class InterPosRequestDataMapperTest extends TestCase
         $pos     = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
+        
         $order = $pos->getOrder();
 
         $gatewayURL = $this->config['banks'][$account->getBank()]['urls']['gateway_3d_host']['test'];
@@ -278,6 +281,7 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
         $form = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
 

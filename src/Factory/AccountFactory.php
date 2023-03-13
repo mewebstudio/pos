@@ -123,13 +123,13 @@ class AccountFactory
     }
 
     /**
-     * @param string $bank
-     * @param string $merchantId    Üye işyeri numarası
-     * @param string $password      Üye işyeri şifres
-     * @param string $terminalNo    İşlemin hangi terminal üzerinden gönderileceği bilgisi. VB007000...
-     * @param string $model
-     * @param int    $merchantType
-     * @param null   $subMerchantId
+     * @param string                            $bank
+     * @param string                            $merchantId Üye işyeri numarası
+     * @param string                            $password   Üye işyeri şifres
+     * @param string                            $terminalNo İşlemin hangi terminal üzerinden gönderileceği bilgisi. VB007000...
+     * @param string                            $model
+     * @param VakifBankAccount::MERCHANT_TYPE_* $merchantType
+     * @param null                              $subMerchantId
      *
      * @return VakifBankAccount
      *
@@ -172,9 +172,15 @@ class AccountFactory
      */
     private static function checkParameters(string $model, ?string $storeKey)
     {
-        if (AbstractGateway::MODEL_NON_SECURE !== $model && null === $storeKey) {
-            throw new MissingAccountInfoException("$model requires storeKey!");
+        if (AbstractGateway::MODEL_NON_SECURE === $model) {
+            return;
         }
+        
+        if (null !== $storeKey) {
+            return;
+        }
+        
+        throw new MissingAccountInfoException(sprintf('%s requires storeKey!', $model));
     }
 
     /**
@@ -190,6 +196,7 @@ class AccountFactory
         if (VakifBankAccount::MERCHANT_TYPE_SUB_DEALER === $merchantType && empty($subMerchantId)) {
             throw new MissingAccountInfoException('SubMerchantId is required for sub branches!');
         }
+        
         if (!in_array($merchantType, VakifBankAccount::getMerchantTypes())) {
             throw new MissingAccountInfoException('Invalid MerchantType!');
         }

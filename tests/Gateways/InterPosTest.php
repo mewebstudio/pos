@@ -22,12 +22,15 @@ class InterPosTest extends TestCase
 {
     /** @var InterPosAccount */
     private $account;
+    
     /** @var InterPos */
     private $pos;
+    
     /** @var AbstractCreditCard */
     private $card;
 
     private $config;
+    
     private $order;
 
     protected function setUp(): void
@@ -64,6 +67,7 @@ class InterPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->account);
 
         $this->pos->setTestMode(true);
+        
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 

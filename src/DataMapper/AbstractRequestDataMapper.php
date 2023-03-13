@@ -15,9 +15,7 @@ use Mews\Pos\Gateways\AbstractGateway;
  */
 abstract class AbstractRequestDataMapper
 {
-    /**
-     * @var array<AbstractGateway::MODEL_*, string>
-     */
+    /** @var array<AbstractGateway::MODEL_*, string> */
     protected $secureTypeMappings = [];
 
     /**
@@ -30,6 +28,7 @@ abstract class AbstractRequestDataMapper
     /** @var array<AbstractCreditCard::CARD_TYPE_*, string> */
     protected $cardTypeMapping = [];
 
+    /** @var array<AbstractGateway::LANG_*, string> */
     protected $langMappings = [
         AbstractGateway::LANG_TR => 'tr',
         AbstractGateway::LANG_EN => 'en',
@@ -40,15 +39,15 @@ abstract class AbstractRequestDataMapper
      * fakat bazi banklar ISO standarti kullanmiyorlar.
      * Currency mapping
      *
-     * @var array
+     * @var non-empty-array<string, string>
      */
     protected $currencyMappings = [
-        'TRY' => 949,
-        'USD' => 840,
-        'EUR' => 978,
-        'GBP' => 826,
-        'JPY' => 392,
-        'RUB' => 643,
+        'TRY' => '949',
+        'USD' => '840',
+        'EUR' => '978',
+        'GBP' => '826',
+        'JPY' => '392',
+        'RUB' => '643',
     ];
 
     /**
@@ -64,13 +63,13 @@ abstract class AbstractRequestDataMapper
     protected $crypt;
 
     /**
-     * @param CryptInterface|null $crypt
-     * @param array               $currencyMappings
+     * @param CryptInterface|null   $crypt
+     * @param array<string, string> $currencyMappings
      */
     public function __construct(?CryptInterface $crypt = null, array $currencyMappings = [])
     {
         $this->crypt = $crypt;
-        if (count($currencyMappings) > 0) {
+        if ($currencyMappings !== []) {
             $this->currencyMappings = $currencyMappings;
         }
     }
@@ -139,7 +138,7 @@ abstract class AbstractRequestDataMapper
      * @param string                  $txType
      * @param AbstractCreditCard|null $card
      *
-     * @return array
+     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
     abstract public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array;
 
@@ -203,7 +202,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @return array
+     * @return non-empty-array<string, string>
      */
     public function getCurrencyMappings(): array
     {
@@ -267,12 +266,7 @@ abstract class AbstractRequestDataMapper
         return $this->recurringOrderFrequencyMapping;
     }
 
-    /**
-     * @param int|null $installment
-     *
-     * @return int|string
-     */
-    abstract public function mapInstallment(?int $installment);
+    abstract public function mapInstallment(?int $installment): string;
 
     /**
      * bank returns error messages for specified language value

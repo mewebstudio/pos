@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
+use LogicException;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\Entity\Account\InterPosAccount;
@@ -18,9 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class InterPos extends AbstractGateway
 {
-    /**
-     * @const string
-     */
+    /** @var string */
     public const NAME = 'InterPos';
 
     /** @var InterPosAccount */
@@ -47,7 +46,8 @@ class InterPos extends AbstractGateway
     {
         $url = $url ?: $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-        $response = $this->client->post($url, ['form_params' => $contents]);
+        $payload = is_array($contents) ? ['form_params' => $contents] : ['body' => $contents];
+        $response = $this->client->post($url, $payload);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         //genelde ;; delimiter kullanilmis, ama bazen arasinda ;;; boyle delimiter de var.
@@ -70,6 +70,7 @@ class InterPos extends AbstractGateway
     {
         $bankResponse    = null;
         $request         = $request->request;
+        /** @var array{MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $gatewayResponse */
         $gatewayResponse = $request->all();
 
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
@@ -126,16 +127,23 @@ class InterPos extends AbstractGateway
      */
     public function get3DFormData(): array
     {
-        if (!$this->order) {
+        if ($this->order === null) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
-            return [];
+
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
+        
         $gatewayUrl = $this->get3DHostGatewayURL();
         if (self::MODEL_3D_SECURE === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         } elseif (self::MODEL_3D_PAY === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         }
+        
+        if (null === $gatewayUrl) {
+            throw new LogicException('Gateway URL\' bulunamadı!');
+        }
+        
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);
@@ -151,6 +159,7 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     * @return array{TxnType: string, SecureType: string, OrderId: null, orgOrderId: mixed, PurchAmount: mixed, Currency: string, MOTO: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createRegularPostXML()
     {
@@ -159,6 +168,8 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @param array{MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $responseData
      */
     public function create3DPaymentXML($responseData)
     {
@@ -175,6 +186,7 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     * @return array{OrderId: null, orgOrderId: string, TxnType: string, SecureType: string, Lang: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createStatusXML()
     {
@@ -183,6 +195,7 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     * @return array{OrderId: null, orgOrderId: string, TxnType: string, SecureType: string, Lang: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createCancelXML()
     {
@@ -191,6 +204,7 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     * @return array{OrderId: null, orgOrderId: string, PurchAmount: string, TxnType: string, SecureType: string, Lang: string, MOTO: string, UserCode: string, UserPass: string, ShopCode: string}
      */
     public function createRefundXML()
     {

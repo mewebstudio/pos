@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
+use LogicException;
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
@@ -17,9 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class GarantiPos extends AbstractGateway
 {
-    /**
-     * @const string
-     */
+    /** @var string */
     public const NAME = 'GarantiPay';
 
     /** @var GarantiPosAccount */
@@ -58,6 +57,7 @@ class GarantiPos extends AbstractGateway
             // todo mdstatus 7 oldugunda hash, hashparam deger gelmiyor, check3dhash calismiyor
             throw new HashMismatchException();
         }
+        
         if (in_array($request->get('mdstatus'), [1, 2, 3, 4])) {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $request->get('mdstatus')]);
             $contents     = $this->create3DPaymentXML($request->all());
@@ -102,10 +102,12 @@ class GarantiPos extends AbstractGateway
      */
     public function get3DFormData(): array
     {
-        if (!$this->order) {
+        if ($this->order === null) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
-            return [];
+
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card);

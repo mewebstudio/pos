@@ -9,7 +9,10 @@ use Psr\Log\LogLevel;
 
 class EstV3PosCrypt extends AbstractCrypt
 {
+    /** @var string */
     protected const HASH_ALGORITHM = 'sha512';
+    
+    /** @var string */
     protected const HASH_SEPARATOR = '|';
 
     /**
@@ -18,16 +21,18 @@ class EstV3PosCrypt extends AbstractCrypt
     public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
     {
         ksort($requestData, SORT_NATURAL | SORT_FLAG_CASE);
-        foreach ($requestData as $key => $value) {
+        foreach (array_keys($requestData) as $key) {
             // this part is needed only to create hash from the bank response
             if (in_array(strtolower($key), ['hash', 'encoding']))  {
                 unset($requestData[$key]);
             }
         }
+        
         $requestData[] = $account->getStoreKey();
         // escape | and \ characters
         $data = str_replace("\\", "\\\\", array_values($requestData));
         $data = str_replace(self::HASH_SEPARATOR, "\\".self::HASH_SEPARATOR, $data);
+        
         $hashStr = implode(self::HASH_SEPARATOR, $data);
 
         return $this->hashString($hashStr);

@@ -7,6 +7,7 @@ namespace Mews\Pos\Gateways;
 use DOMDocument;
 use DOMNodeList;
 use Exception;
+use LogicException;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
@@ -21,6 +22,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class KuveytPos extends AbstractGateway
 {
+    /** @var string */
     public const NAME = 'KuveytPos';
 
     /** @var KuveytPosAccount */
@@ -67,10 +69,11 @@ class KuveytPos extends AbstractGateway
         $responseBody = $response->getBody()->getContents();
         try {
             $this->data = $this->XMLStringToArray($responseBody);
-        } catch (Exception $e) {
+        } catch (Exception $exception) {
             if (!$this->isHTML($responseBody)) {
-                throw new Exception($responseBody);
+                throw new Exception($responseBody, $exception->getCode(), $exception);
             }
+            
             //icinde form olan HTML response dondu
             $this->data = $responseBody;
         }
@@ -87,14 +90,17 @@ class KuveytPos extends AbstractGateway
         if (!is_string($gatewayResponse)) {
             throw new \LogicException('AuthenticationResponse is missing');
         }
+        
         $gatewayResponse = urldecode($gatewayResponse);
         $gatewayResponse = $this->XMLStringToArray($gatewayResponse);
+        
         $bankResponse    = null;
         $procReturnCode  = $gatewayResponse['ResponseCode'];
 
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
             throw new HashMismatchException();
         }
+        
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment');
 
@@ -263,14 +269,14 @@ class KuveytPos extends AbstractGateway
      * @param string                  $gatewayURL
      * @param AbstractCreditCard|null $card
      *
-     * @return array
+     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      *
      * @throws Exception
      */
     private function getCommon3DFormData(KuveytPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         if (!$order) {
-            return [];
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
         $formData     = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);
@@ -285,7 +291,7 @@ class KuveytPos extends AbstractGateway
      * Kutupahenin islem akisina uymasi icin bu HTML form verilerini array'e donusturup, kendimiz post ediyoruz.
      * @param string $response
      *
-     * @return array
+     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
     private function transformReceived3DFormData(string $response): array
     {
@@ -315,6 +321,7 @@ class KuveytPos extends AbstractGateway
 
         return [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }
@@ -342,11 +349,13 @@ class KuveytPos extends AbstractGateway
                     /** @var string|null $key */
                     $key = $attribute->value;
                 }
+                
                 if ('value' === $attribute->name) {
                     /** @var string|null $value */
                     $value = $attribute->value;
                 }
             }
+            
             if ($key && null !== $value && !in_array($key, ['submit', 'submitBtn'])) {
                 $inputs[$key] = $value;
             }

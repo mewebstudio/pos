@@ -11,9 +11,13 @@ use Psr\Log\NullLogger;
 
 class KuveytPosCryptTest extends TestCase
 {
-    /**
-     * @var KuveytPosAccount
-     */
+    /** @var array<string, string>|array<string, float> */
+    public $order = [];
+    
+    /** @var KuveytPosCrypt */
+    public $crypt;
+    
+    /** @var KuveytPosAccount */
     private $threeDAccount;
 
     protected function setUp(): void

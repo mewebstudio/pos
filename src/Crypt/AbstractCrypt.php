@@ -6,7 +6,10 @@ use Psr\Log\LoggerInterface;
 
 abstract class AbstractCrypt implements CryptInterface
 {
+    /** @var string */
     protected const HASH_ALGORITHM = 'sha1';
+    
+    /** @var string */
     protected const HASH_SEPARATOR = '';
 
     /** @var LoggerInterface */

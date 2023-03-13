@@ -4,7 +4,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 
 $templateTitle = 'Order Status';
 require '_config.php';
-require '../../template/_header.php';
+require '../../_templates/_header.php';
 
 $ord = $session->get('order');
 $lastResponse = $session->get('last_response');
@@ -28,5 +28,5 @@ $pos->prepare($order, $transaction);
 $pos->status();
 
 $response = $pos->getResponse();
-require '../../template/_simple_response_dump.php';
-require '../../template/_footer.php';
+require '../../_templates/_simple_response_dump.php';
+require '../../_templates/_footer.php';

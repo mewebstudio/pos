@@ -17,8 +17,13 @@ use Mews\Pos\Gateways\AbstractGateway;
  */
 class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
+    /** @var string */
     public const API_VERSION = '1.0.0';
+    
+    /** @var string */
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
+    
+    /** @var string */
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
 
     /**
@@ -72,13 +77,14 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public static function amountFormat(float $amount): int
     {
-        return intval(round($amount, 2) * 100);
+        return (int) (round($amount, 2) * 100);
     }
 
     /**
      * @param KuveytPosAccount $account
      *
      * {@inheritDoc}
+     * @return array{APIVersion: string, HashData: string, CustomerIPAddress: mixed, KuveytTurkVPosAdditionalData: array{AdditionalData: array{Key: string, Data: mixed}}, TransactionType: string, InstallmentCount: mixed, Amount: mixed, DisplayAmount: int, CurrencyCode: mixed, MerchantOrderId: mixed, TransactionSecurity: mixed, MerchantId: string, CustomerId: string, UserName: string}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
@@ -131,7 +137,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'FailUrl'             => $order->fail_url,
         ];
 
-        if ($card) {
+        if ($card !== null) {
             $inputs['CardHolderName']      = $card->getHolderName();
             $inputs['CardType']            = $this->cardTypeMapping[$card->getType()];
             $inputs['CardNumber']          = $card->getNumber();
@@ -199,18 +205,15 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         throw new NotImplementedException();
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function mapInstallment(?int $installment)
+    public function mapInstallment(?int $installment): string
     {
-        return $installment > 1 ? $installment : 0;
+        return $installment > 1 ? (string) $installment : '0';
     }
 
     /**
      * @param KuveytPosAccount $account
      *
-     * @return array
+     * @return array{MerchantId: string, CustomerId: string, UserName: string}
      */
     private function getRequestAccountData(AbstractPosAccount $account): array
     {

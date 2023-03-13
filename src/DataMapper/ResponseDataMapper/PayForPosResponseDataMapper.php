@@ -97,7 +97,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper implements 
             'error_message'    => self::TX_APPROVED !== $threeDAuthStatus ? $raw3DAuthResponseData['ErrMsg'] : null,
         ];
 
-        if (empty($paymentResponseData)) {
+        if ($paymentResponseData === []) {
             return array_merge($this->getDefaultPaymentResponse(), $threeDResponse, $this->map3DCommonResponseData($raw3DAuthResponseData));
         }
 

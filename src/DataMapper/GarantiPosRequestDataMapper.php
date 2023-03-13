@@ -16,11 +16,20 @@ use Mews\Pos\Gateways\AbstractGateway;
  */
 class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
+    /** @var string */
     public const API_VERSION = 'v0.01';
 
+    /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
+    
+    /** @var string */
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
+    
+    /** @var string */
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
+
+    /** @var string */
+    private const MOTO = 'N';
 
     /**
      * {@inheritDoc}
@@ -42,8 +51,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         AbstractGateway::TX_HISTORY  => 'orderhistoryinq',
         AbstractGateway::TX_STATUS   => 'orderinq',
     ];
-
-    private const MOTO = 'N';
 
     protected $recurringOrderFrequencyMapping = [
         'DAY'   => 'D',
@@ -153,7 +160,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
         $hashData = [
-            'id' => $order->id,
+            'id' => (string) $order->id,
             'amount' => self::amountFormat($order->amount),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_POST_PAY), $card);
@@ -350,7 +357,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $inputs['secure3dhash'] = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
-        if ($card) {
+        if ($card !== null) {
             $inputs['cardnumber'] = $card->getNumber();
             $inputs['cardexpiredatemonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
             $inputs['cardexpiredateyear'] = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
@@ -359,16 +366,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function mapInstallment(?int $installment)
+    public function mapInstallment(?int $installment): string
     {
-        return $installment > 1 ? $installment : '';
+        return $installment > 1 ? (string) $installment : '';
     }
 
     /**
@@ -380,7 +385,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public static function amountFormat($amount): int
     {
-        return intval(round($amount, 2) * 100);
+        return (int) (round($amount, 2) * 100);
     }
 
     /**
@@ -388,7 +393,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     private function getMode(): string
     {
-        return !$this->isTestMode() ? 'PROD' : 'TEST';
+        return $this->isTestMode() ? 'TEST' : 'PROD';
     }
 
     /**
@@ -396,7 +401,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param string            $hash
      * @param bool              $isRefund
      *
-     * @return array
+     * @return array{ProvUserID: string, UserID: string, HashData: string, ID: string, MerchantID: string}
      */
     private function getTerminalData(AbstractPosAccount $account, string $hash, bool $isRefund = false): array
     {
@@ -416,7 +421,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     private function getCardData(?AbstractCreditCard $card = null): array
     {
-        if ($card) {
+        if ($card !== null) {
             return [
                 'Number'     => $card->getNumber(),
                 'ExpireDate' => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
@@ -434,14 +439,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param $order
      *
-     * @return array
+     * @return array{Address: array{Type: string, Name: string, LastName: string, Company: string, Text: string, District: string, City: string, PostalCode: string, Country: string, PhoneNumber: string}}
      */
     private function getOrderAddressData($order): array
     {
         return [
             'Address' => [
                 'Type'        => 'B', //S - shipping, B - billing
-                'Name'        => $order->name,
+                'Name'        => (string) $order->name,
                 'LastName'    => '',
                 'Company'     => '',
                 'Text'        => '',
@@ -472,14 +477,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * </Recurring>
      * @param $order
      *
-     * @return array
+     * @return array{TotalPaymentNum: string, FrequencyType: string, FrequencyInterval: string, Type: mixed, StartDate: string}
      */
     private function createRecurringData($order): array
     {
         return [
-            'TotalPaymentNum' => $order->recurringInstallmentCount, //kac kere tekrarlanacak
+            'TotalPaymentNum' => (string) $order->recurringInstallmentCount, //kac kere tekrarlanacak
             'FrequencyType' => $this->mapRecurringFrequency($order->recurringFrequencyType), //Monthly, weekly, daily
-            'FrequencyInterval' => $order->recurringFrequency,
+            'FrequencyInterval' => (string) $order->recurringFrequency,
             'Type' => $order->recurringType ?? 'R', //R:Sabit Tutarli   G:Degisken Tuta
             'StartDate' => $order->startDate ?? '',
         ];

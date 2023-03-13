@@ -25,26 +25,50 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
  */
 abstract class AbstractGateway implements PosInterface
 {
-
+    /** @var string */
     public const LANG_TR = 'tr';
+    
+    /** @var string */
     public const LANG_EN = 'en';
 
+    /** @var string */
     public const TX_PAY = 'pay';
+    
+    /** @var string */
     public const TX_PRE_PAY = 'pre';
+    
+    /** @var string */
     public const TX_POST_PAY = 'post';
+    
+    /** @var string */
     public const TX_CANCEL = 'cancel';
+    
+    /** @var string */
     public const TX_REFUND = 'refund';
+    
+    /** @var string */
     public const TX_STATUS = 'status';
+    
+    /** @var string */
     public const TX_HISTORY = 'history';
 
+    /** @var string */
     public const MODEL_3D_SECURE = '3d';
+    
+    /** @var string */
     public const MODEL_3D_PAY = '3d_pay';
+    
+    /** @var string */
     public const MODEL_3D_PAY_HOSTING = '3d_pay_hosting';
+    
+    /** @var string */
     public const MODEL_3D_HOST = '3d_host';
+    
+    /** @var string */
     public const MODEL_NON_SECURE = 'regular';
 
     /** @var array */
-    private $config;
+    protected $config;
 
     /** @var AbstractPosAccount */
     protected $account;
@@ -59,9 +83,7 @@ abstract class AbstractGateway implements PosInterface
      */
     protected $type;
 
-    /**
-     * @var object|null
-     */
+    /** @var object|null */
     protected $order;
 
     /**
@@ -139,6 +161,7 @@ abstract class AbstractGateway implements PosInterface
                 $this->order = $this->prepareHistoryOrder($order);
                 break;
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'gateway prepare - order is prepared', [$this->order]);
 
         $this->card = $card;
@@ -153,7 +176,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return array
+     * @return non-empty-array<string, string>
      */
     public function getCurrencies(): array
     {
@@ -248,7 +271,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function get3DHostGatewayURL(): ?string
     {
-        return isset($this->config['urls']['gateway_3d_host'][$this->getModeInWord()]) ? $this->config['urls']['gateway_3d_host'][$this->getModeInWord()] : null;
+        return $this->config['urls']['gateway_3d_host'][$this->getModeInWord()] ?? null;
     }
 
     /**
@@ -284,7 +307,7 @@ abstract class AbstractGateway implements PosInterface
         $model = $this->account->getModel();
 
         $this->logger->log(LogLevel::DEBUG, 'payment called', [
-            'card_provided' => !!$this->card,
+            'card_provided' => (bool) $this->card,
             'model'         => $model,
         ]);
         if (self::MODEL_NON_SECURE === $model) {
@@ -463,7 +486,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * returns form data, key values, necessary for 3D payment
      *
-     * @return array
+     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
     abstract public function get3DFormData(): array;
 
@@ -550,8 +573,8 @@ abstract class AbstractGateway implements PosInterface
      * return values are used as a key in config file
      * @return string
      */
-    private function getModeInWord(): string
+    protected function getModeInWord(): string
     {
-        return !$this->isTestMode() ? 'production' : 'test';
+        return $this->isTestMode() ? 'test' : 'production';
     }
 }

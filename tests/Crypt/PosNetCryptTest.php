@@ -3,6 +3,7 @@
 namespace Mews\Pos\Tests\Crypt;
 
 use Mews\Pos\Crypt\PosNetCrypt;
+use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Gateways\AbstractGateway;
 use PHPUnit\Framework\TestCase;
@@ -10,9 +11,10 @@ use Psr\Log\NullLogger;
 
 class PosNetCryptTest extends TestCase
 {
-    /**
-     * @var PosNetCrypt
-     */
+    /** @var PosNetCrypt */
+    public $crypt;
+
+    /** @var PosNetAccount */
     private $threeDAccount;
 
     protected function setUp(): void

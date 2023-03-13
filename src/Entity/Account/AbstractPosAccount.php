@@ -6,32 +6,30 @@ namespace Mews\Pos\Entity\Account;
 
 abstract class AbstractPosAccount
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     protected $clientId;
+    
     /**
      * account models: regular, 3d, 3d_pay, 3d_host
      * @var string
      */
     protected $model;
-    /**
-     * @var string
-     */
+    
+    /** @var string */
     protected $username;
-    /**
-     * @var string
-     */
+    
+    /** @var string */
     protected $password;
+    
     /**
      * required for non regular account models
      * @var string|null
      */
     protected $storeKey;
-    /**
-     * @var string
-     */
+    
+    /** @var string */
     protected $lang;
+    
     /**
      * bank key name used in configuration file
      *

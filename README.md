@@ -18,6 +18,8 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 - **VakifBank GET 7/24 MPI ve VPOS 7/24** 3D Secure ödemesi çalışır durumda, diğer işlemlerde sorunlar ortaya çıktıkça giderilecek.
 
+- **VakifBank Common Payment (Ortak Ödeme)** 3DPay ve 3DHost ödeme desteği eklendi.
+
 - **InterPOS (Deniz bank)** destegi eklenmiştir, test edildikçe, sorunlar bulundukça hatalar giderilecek.
 
 - **Kuveyt POS** 3d secure ödeme desteği eklenmiştir - testleri yapıldı, calışıyor.

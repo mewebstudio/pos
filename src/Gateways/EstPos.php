@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
+use LogicException;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Psr\Log\LogLevel;
@@ -18,14 +19,10 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class EstPos extends AbstractGateway
 {
-    /**
-     * @const string
-     */
+    /** @var string */
     public const NAME = 'EstPos';
 
-    /**
-     * @var EstPosAccount
-     */
+    /** @var EstPosAccount */
     protected $account;
 
     /**
@@ -75,6 +72,7 @@ class EstPos extends AbstractGateway
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())) {
             throw new HashMismatchException();
         }
+        
         $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
 
         return $this;
@@ -88,6 +86,7 @@ class EstPos extends AbstractGateway
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())) {
             throw new HashMismatchException();
         }
+        
         $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all());
 
         return $this;
@@ -98,10 +97,12 @@ class EstPos extends AbstractGateway
      */
     public function get3DFormData(): array
     {
-        if (!$this->order) {
+        if ($this->order === null) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
-            return [];
+
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card);

@@ -24,12 +24,15 @@ class EstPosTest extends TestCase
 {
     /** @var EstPosAccount */
     private $account;
+    
     /** @var EstPos */
     private $pos;
+    
     private $config;
 
     /** @var AbstractCreditCard */
     private $card;
+    
     private $order;
 
     /** @var EstPosResponseDataMapperTest */
@@ -115,6 +118,7 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->make3DPayment($request);
+        
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());
@@ -131,6 +135,7 @@ class EstPosTest extends TestCase
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $pos->make3DHostPayment($request);
+        
         $result = $pos->getResponse();
         $this->assertIsArray($result);
         $this->assertTrue($pos->isSuccess());
@@ -147,6 +152,7 @@ class EstPosTest extends TestCase
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $pos->make3DHostPayment($request);
+        
         $result = $pos->getResponse();
         $this->assertIsArray($result);
         $this->assertTrue($pos->isSuccess());
@@ -179,6 +185,7 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->make3DPayment($request);
+        
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());
@@ -213,6 +220,7 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->status();
+        
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertTrue($posMock->isSuccess());
@@ -247,6 +255,7 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->status();
+        
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());
@@ -281,6 +290,7 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->history([]);
+        
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertTrue($posMock->isSuccess());
@@ -315,6 +325,7 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->history([]);
+        
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());
@@ -349,6 +360,7 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->cancel();
+        
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertTrue($posMock->isSuccess());
@@ -383,6 +395,7 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->cancel();
+        
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());
@@ -417,6 +430,7 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->refund();
+        
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());

@@ -4,9 +4,9 @@ use Mews\Pos\Gateways\AbstractGateway;
 
 require '_config.php';
 $templateTitle = 'Order Status';
-require '../../template/_header.php';
+require '../../_templates/_header.php';
 
-$ord = $session->get('order') ? $session->get('order') : getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
+$ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
 $order = [
     'id' => $ord['id'],
@@ -18,5 +18,5 @@ $pos->prepare($order, $transaction);
 $pos->status();
 
 $response = $pos->getResponse();
-require '../../template/_simple_response_dump.php';
-require '../../template/_footer.php';
+require '../../_templates/_simple_response_dump.php';
+require '../../_templates/_footer.php';

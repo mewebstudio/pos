@@ -10,9 +10,7 @@ use Throwable;
  */
 class CardTypeRequiredException extends DomainException
 {
-    /**
-     * @var string
-     */
+    /** @var string */
     private $gatewayName;
 
     /**

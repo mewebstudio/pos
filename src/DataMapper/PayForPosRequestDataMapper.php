@@ -15,14 +15,17 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /**
      * Kurum kodudur. (Banka tarafından verilir)
+     * @var string
      */
-    const MBR_ID = '5';
+    public const MBR_ID = '5';
 
     /**
      * MOTO (Mail Order Telephone Order) 0 for false, 1 for true
+     * @var string
      */
-    const MOTO = '0';
+    public const MOTO = '0';
 
+    /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
 
     /** {@inheritdoc} */
@@ -48,6 +51,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{RequestGuid: mixed, UserCode: string, UserPass: string, OrderId: mixed, SecureType: string}
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
@@ -62,16 +66,17 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MbrId: string, MOTO: string, OrderId: string, SecureType: string, TxnType: string, PurchAmount: string, Currency: string, InstallmentCount: string, Lang: string, CardHolderName: string|null, Pan: string, Expiry: string, Cvv2: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
         return $this->getRequestAccountData($account) + [
             'MbrId'            => self::MBR_ID,
             'MOTO'             => self::MOTO,
-            'OrderId'          => $order->id,
+            'OrderId'          => (string) $order->id,
             'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'          => $this->mapTxType($txType),
-            'PurchAmount'      => $order->amount,
+            'PurchAmount'      => (string) $order->amount,
             'Currency'         => $this->mapCurrency($order->currency),
             'InstallmentCount' => $this->mapInstallment($order->installment),
             'Lang'             => $this->getLang($account, $order),
@@ -84,15 +89,16 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MbrId: string, OrgOrderId: string, SecureType: string, TxnType: string, PurchAmount: string, Currency: string, Lang: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
         return $this->getRequestAccountData($account) + [
             'MbrId'       => self::MBR_ID,
-            'OrgOrderId'  => $order->id,
+            'OrgOrderId'  => (string) $order->id,
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-            'PurchAmount' => $order->amount,
+            'PurchAmount' => (string) $order->amount,
             'Currency'    => $this->mapCurrency($order->currency),
             'Lang'        => $this->getLang($account, $order),
         ];
@@ -100,12 +106,13 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MbrId: string, OrgOrderId: string, SecureType: string, Lang: string, TxnType: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
         return $this->getRequestAccountData($account) + [
             'MbrId'      => self::MBR_ID,
-            'OrgOrderId' => $order->id,
+            'OrgOrderId' => (string) $order->id,
             'SecureType' => 'Inquiry',
             'Lang'       => $this->getLang($account, $order),
             'TxnType'    => $this->mapTxType(AbstractGateway::TX_STATUS),
@@ -114,12 +121,13 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MbrId: string, OrgOrderId: string, SecureType: string, TxnType: string, Currency: string, Lang: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
         return $this->getRequestAccountData($account) + [
             'MbrId'      => self::MBR_ID,
-            'OrgOrderId' => $order->id,
+            'OrgOrderId' => (string) $order->id,
             'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'    => $this->mapTxType(AbstractGateway::TX_CANCEL),
             'Currency'   => $this->mapCurrency($order->currency),
@@ -129,6 +137,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MbrId: string, SecureType: string, Lang: string, OrgOrderId: string, TxnType: string, PurchAmount: string, Currency: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
@@ -136,9 +145,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'MbrId'       => self::MBR_ID,
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'Lang'        => $this->getLang($account, $order),
-            'OrgOrderId'  => $order->id,
+            'OrgOrderId'  => (string) $order->id,
             'TxnType'     => $this->mapTxType(AbstractGateway::TX_REFUND),
-            'PurchAmount' => $order->amount,
+            'PurchAmount' => (string) $order->amount,
             'Currency'    => $this->mapCurrency($order->currency),
         ];
     }
@@ -179,21 +188,21 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'MbrId'            => self::MBR_ID,
             'MerchantID'       => $account->getClientId(),
             'UserCode'         => $account->getUsername(),
-            'OrderId'          => $order->id,
+            'OrderId'          => (string) $order->id,
             'Lang'             => $this->getLang($account, $order),
             'SecureType'       => $this->secureTypeMappings[$account->getModel()],
             'TxnType'          => $this->mapTxType($txType),
-            'PurchAmount'      => $order->amount,
+            'PurchAmount'      => (string) $order->amount,
             'InstallmentCount' => $this->mapInstallment($order->installment),
             'Currency'         => $this->mapCurrency($order->currency),
-            'OkUrl'            => $order->success_url,
-            'FailUrl'          => $order->fail_url,
-            'Rnd'              => $order->rand,
+            'OkUrl'            => (string) $order->success_url,
+            'FailUrl'          => (string) $order->fail_url,
+            'Rnd'              => (string) $order->rand,
             'Hash'             => $hash,
         ];
 
-        if ($card) {
-            $inputs['CardHolderName'] = $card->getHolderName();
+        if ($card !== null) {
+            $inputs['CardHolderName'] = $card->getHolderName() ?? '';
             $inputs['Pan'] = $card->getNumber();
             $inputs['Expiry'] = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
             $inputs['Cvv2'] = $card->getCvv();
@@ -201,22 +210,20 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
         return [
             'gateway' => $gatewayURL, //to be filled by the caller
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    public function mapInstallment(?int $installment)
+    public function mapInstallment(?int $installment): string
     {
-        return $installment > 1 ? $installment : 0;
+        return $installment > 1 ? (string) $installment : '0';
     }
 
     /**
      * @param AbstractPosAccount $account
      *
-     * @return array
+     * @return array{MerchantId: string, UserCode: string, UserPass: string}
      */
     private function getRequestAccountData(AbstractPosAccount $account): array
     {

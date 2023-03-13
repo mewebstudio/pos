@@ -22,23 +22,19 @@ use Psr\Log\NullLogger;
  */
 class VakifBankPosTest extends TestCase
 {
-    /**
-     * @var VakifBankAccount
-     */
+    /** @var VakifBankAccount */
     private $account;
-    /**
-     * @var VakifBankPos
-     */
+
+    /** @var VakifBankPos */
     private $pos;
+
     private $config;
 
-    /**
-     * @var AbstractCreditCard
-     */
+    /** @var AbstractCreditCard */
     private $card;
 
     /** @var array */
-    private $order;
+    private $order = [];
 
     protected function setUp(): void
     {
@@ -72,6 +68,7 @@ class VakifBankPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->account);
 
         $this->pos->setTestMode(true);
+        
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 
@@ -156,7 +153,8 @@ class VakifBankPosTest extends TestCase
         $result = $posMock->get3DFormData();
         $expected = [
             'gateway' => $enrollmentResponse['Message']['VERes']['ACSUrl'],
-            'inputs' => [
+            'method'  => 'POST',
+            'inputs'  => [
                 'PaReq'   => $enrollmentResponse['Message']['VERes']['PaReq'],
                 'TermUrl' => $enrollmentResponse['Message']['VERes']['TermUrl'],
                 'MD'      => $enrollmentResponse['Message']['VERes']['MD'],

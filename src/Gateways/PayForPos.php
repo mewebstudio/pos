@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
+use LogicException;
 use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\Entity\Account\PayForAccount;
@@ -17,14 +18,10 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
  */
 class PayForPos extends AbstractGateway
 {
-    /**
-     * @const string
-     */
+    /** @var string */
     public const NAME = 'PayForPOS';
 
-    /**
-     * @var PayForAccount
-     */
+    /** @var PayForAccount */
     protected $account;
 
     /** @var PayForPosRequestDataMapper */
@@ -51,6 +48,7 @@ class PayForPos extends AbstractGateway
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
             throw new HashMismatchException();
         }
+        
         //if customer 3d verification passed finish payment
         if ('1' === $request->get('3DStatus')) {
             //valid ProcReturnCode is V033 in case of success 3D Authentication
@@ -116,21 +114,25 @@ class PayForPos extends AbstractGateway
 
 
     /**
-     * returns form data needed for 3d, 3d_pay and 3d_host models
-     *
-     * @return array
+     * {@inheritDoc}
      */
     public function get3DFormData(): array
     {
-        if (!$this->order) {
+        if ($this->order === null) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
-            return [];
+
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         $gatewayURL = $this->get3DGatewayURL();
         if (self::MODEL_3D_HOST === $this->account->getModel()) {
             $gatewayURL = $this->get3DHostGatewayURL();
+        }
+        
+        if (null === $gatewayURL) {
+            throw new LogicException('Gateway URL\' bulunamadı!');
         }
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayURL, $this->card);
@@ -167,7 +169,7 @@ class PayForPos extends AbstractGateway
 
         try {
             $this->data = $this->XMLStringToArray($response);
-        } catch (NotEncodableValueException $e) {
+        } catch (NotEncodableValueException $notEncodableValueException) {
             //Finansbank's history request response is in JSON format
             $this->data = json_decode($response, true);
         }

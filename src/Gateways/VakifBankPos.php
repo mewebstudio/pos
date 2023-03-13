@@ -5,6 +5,7 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
+use LogicException;
 use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankPosResponseDataMapper;
 use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
 use Mews\Pos\Entity\Account\VakifBankAccount;
@@ -14,18 +15,14 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 /**
- * Class VakifBankPos
+ * Vakifbank VPOS 7/24 gateway'i destekler
  */
 class VakifBankPos extends AbstractGateway
 {
-    /**
-     * @const string
-     */
+    /** @var string */
     public const NAME = 'VakifPOS';
 
-    /**
-     * @var VakifBankAccount
-     */
+    /** @var VakifBankAccount */
     protected $account;
 
     /** @var VakifBankPosRequestDataMapper */
@@ -62,8 +59,11 @@ class VakifBankPos extends AbstractGateway
 
             return $this;
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $status]);
-        $contents = $this->create3DPaymentXML($request->all());
+        /** @var array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $requestData */
+        $requestData = $request->all();
+        $contents = $this->create3DPaymentXML($requestData);
         $bankResponse = $this->send($contents);
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse);
@@ -100,20 +100,17 @@ class VakifBankPos extends AbstractGateway
     }
 
     /**
-     * returns form data needed for 3d model
-     *
-     * @return array
-     *
-     * @throws Exception
+     * {@inheritDoc}
      */
     public function get3DFormData(): array
     {
         if (!$this->card || !$this->order) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
                 'order' => $this->order,
-                'card_provided' => !!$this->card,
+                'card_provided' => (bool) $this->card,
             ]);
-            return [];
+
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
         $data = $this->sendEnrollmentRequest();
@@ -130,15 +127,18 @@ class VakifBankPos extends AbstractGateway
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception($data['ErrorMessage'], $data['MessageErrorCode']);
         }
+        
         if ('N' === $status) {
             //half secure olarak devam et yada satisi iptal et.
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception('Kart 3-D Secure programına dâhil değil');
         }
+        
         if ('U' === $status) {
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception('İşlem gerçekleştirilemiyor');
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, '', null, $data['Message']['VERes']);
@@ -185,11 +185,12 @@ class VakifBankPos extends AbstractGateway
 
         try {
             $this->data = $this->XMLStringToArray($responseBody);
-        } catch (NotEncodableValueException $e) {
+        } catch (NotEncodableValueException $notEncodableValueException) {
             if ($this->isHTML($responseBody)) {
                 // if something wrong server responds with HTML content
-                throw new Exception($responseBody);
+                throw new Exception($responseBody, $notEncodableValueException->getCode(), $notEncodableValueException);
             }
+            
             $this->data = json_decode($responseBody, true);
         }
 
@@ -211,6 +212,10 @@ class VakifBankPos extends AbstractGateway
      */
     public function createRegularPostXML()
     {
+        if (null === $this->order) {
+            throw new LogicException('sipariş bilgileri eksik!');
+        }
+
         $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
@@ -219,6 +224,8 @@ class VakifBankPos extends AbstractGateway
     /**
      * NOT: diger gatewaylerden farkli olarak vakifbank kredit bilgilerini bu asamada da istiyor.
      * @inheritDoc
+     *
+     * @param array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $responseData
      */
     public function create3DPaymentXML($responseData)
     {

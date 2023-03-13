@@ -1,4 +1,4 @@
 <?php
 
 $card = null;
-require '../../template/_payment_response.php';
+require '../../_templates/_payment_response.php';

@@ -32,6 +32,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
     private $requestDataMapper;
 
     private $order;
+    
     private $config;
 
     protected function setUp(): void
@@ -65,6 +66,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
         $this->pos->setTestMode(true);
+        
         $crypt = PosFactory::getGatewayCrypt(EstV3Pos::class, new NullLogger());
         $this->requestDataMapper = new EstV3PosRequestDataMapper($crypt);
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
@@ -102,6 +104,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $inputs['hash'] = $hash;
         $form           = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
         //test without card
@@ -113,13 +116,12 @@ class EstV3PosRequestDataMapperTest extends TestCase
         ));
 
         //test with card
-        if ($card) {
-            $form['inputs']['cardType']                        = '1';
-            $form['inputs']['pan']                             = $card->getNumber();
-            $form['inputs']['Ecom_Payment_Card_ExpDate_Month'] = '01';
-            $form['inputs']['Ecom_Payment_Card_ExpDate_Year']  = '22';
-            $form['inputs']['cv2']                             = $card->getCvv();
-        }
+        $form['inputs']['cardType']                        = '1';
+        $form['inputs']['pan']                             = $card->getNumber();
+        $form['inputs']['Ecom_Payment_Card_ExpDate_Month'] = '01';
+        $form['inputs']['Ecom_Payment_Card_ExpDate_Year']  = '22';
+        $form['inputs']['cv2']                             = $card->getCvv();
+        
         unset($form['inputs']['hash']);
         $form['inputs']['hash'] = $this->requestDataMapper->getCrypt()->create3DHash($account, $form['inputs'], $txType);
 
@@ -170,6 +172,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         ];
         $form       = [
             'gateway' => $gatewayURL,
+            'method'  => 'POST',
             'inputs'  => $inputs,
         ];
         $form['inputs']['hash']       = $this->requestDataMapper->getCrypt()->create3DHash($account, $inputs, AbstractGateway::TX_PAY);

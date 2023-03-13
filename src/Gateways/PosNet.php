@@ -5,6 +5,7 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
+use LogicException;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\Entity\Account\PosNetAccount;
@@ -18,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PosNet extends AbstractGateway
 {
+    /** @var string */
     public const NAME = 'PosNet';
 
     /** @var PosNetAccount */
@@ -98,6 +100,7 @@ class PosNet extends AbstractGateway
                 'md_status' => $userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
             ]);
         }
+        
         end:
         $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse);
         $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
@@ -121,9 +124,10 @@ class PosNet extends AbstractGateway
         if (!$this->card || !$this->order) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
                 'order' => $this->order,
-                'card_provided' => !!$this->card,
+                'card_provided' => (bool) $this->card,
             ]);
-            return [];
+
+            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
         $data = $this->getOosTransactionData();
@@ -132,6 +136,7 @@ class PosNet extends AbstractGateway
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
             throw new Exception($data['respText']);
         }
+        
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card, $data['oosRequestDataResponse']);
@@ -145,13 +150,17 @@ class PosNet extends AbstractGateway
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
-        /** @phpstan-ignore-next-line */
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
-            'body'    => "xmldata=$contents",
-        ]);
+        if (is_string($contents)) {
+            $response = $this->client->post($url, [
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+                'body'    => sprintf('xmldata=%s', $contents),
+            ]);
+        } else {
+            $response = $this->client->post($url, ['form_params' => $contents]);
+        }
+
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         $this->data = $this->XMLStringToArray($response->getBody()->getContents());

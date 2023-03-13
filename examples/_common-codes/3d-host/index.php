@@ -1,7 +1,7 @@
 <?php
 
 require '_config.php';
-require '../../template/_header.php';
+require '../../_templates/_header.php';
 
 $order = getNewOrder(
     $baseUrl,
@@ -18,5 +18,5 @@ $pos->prepare($order, $transaction);
 
 $formData = $pos->get3DFormData();
 
-require '../../template/_redirect_form.php';
-require '../../template/_footer.php';
+require '../../_templates/_redirect_form.php';
+require '../../_templates/_footer.php';

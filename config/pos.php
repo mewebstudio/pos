@@ -3,8 +3,8 @@
 return [
     //if you need to use custom keys for currency mapping, otherwise leave empty
     'currencies'    => [
-//        'TRY'       => 949,
-//        'USD'       => 840,
+//        'TRY'       => '949',
+//        'USD'       => '840',
     ],
     // Banks
     'banks'         => [
@@ -157,6 +157,22 @@ return [
                 'gateway'       => [
                     'production'    => 'https://3dsecure.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspx',
                     'test'          => 'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspx',
+                ],
+            ],
+        ],
+        'vakifbank-cp' => [
+            'name'  => 'VakifBank-POS-Common-Payment',
+            'class' => Mews\Pos\Gateways\VakifBankCPPos::class,
+            'urls'  => [
+                'production'    => 'https://cpweb.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
+                'test'          => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
+                'gateway'       => [
+                    'production'    => 'https://cpweb.vakifbank.com.tr/CommonPayment/SecurePayment',
+                    'test'          => 'https://cptest.vakifbank.com.tr/CommonPayment/SecurePayment',
+                ],
+                'query'       => [
+                    'production'    => 'https://cpweb.vakifbank.com.tr/CommonPayment/api/VposTransaction',
+                    'test'          => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
                 ],
             ],
         ],

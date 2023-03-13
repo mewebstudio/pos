@@ -10,7 +10,7 @@ use Psr\Http\Message\StreamFactoryInterface;
 use function http_build_query;
 
 /**
- * @phpstan-type PostPayload array{body?: array<string, string>, headers?: array<string, string>, form_params?: array<string, string>}
+ * @phpstan-type PostPayload array{body?: array<string, string>|string, headers?: array<string, string>, form_params?: array<string, string>}
  * PSR18 HTTP Client wrapper
  */
 class HttpClient
@@ -70,9 +70,11 @@ class HttpClient
                 $request         = $request->withHeader('Content-Type', 'application/x-www-form-urlencoded');
                 $payload['body'] = http_build_query($payload['form_params']);
             }
+            
             if (isset($payload['body'])) {
                 $body = $this->streamFactory->createStream($payload['body']);
             }
+            
             $request = $request->withBody($body);
         }
 

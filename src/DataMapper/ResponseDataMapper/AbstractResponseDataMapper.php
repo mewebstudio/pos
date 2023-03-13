@@ -7,8 +7,13 @@ use Psr\Log\LoggerInterface;
 
 abstract class AbstractResponseDataMapper
 {
+    /** @var string */
     public const TX_APPROVED = 'approved';
+    
+    /** @var string */
     public const TX_DECLINED = 'declined';
+    
+    /** @var string */
     public const PROCEDURE_SUCCESS_CODE = '00';
 
     /** @var LoggerInterface */
@@ -101,7 +106,8 @@ abstract class AbstractResponseDataMapper
     /**
      * Returns default payment response data
      *
-     * @return array<string, string|null>
+     * @return array{order_id: null, trans_id: null, auth_code: null, ref_ret_num: null, proc_return_code: null,
+     *     status: string, status_detail: null, error_code: null, error_message: null, all: null}
      */
     protected function getDefaultPaymentResponse(): array
     {
