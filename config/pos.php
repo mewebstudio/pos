@@ -125,10 +125,10 @@ return [
             'class' => Mews\Pos\Gateways\GarantiPos::class,
             'urls'  => [
                 'production'    => 'https://sanalposprov.garanti.com.tr/VPServlet',
-                'test'          => 'https://sanalposprovtest.garanti.com.tr/VPServlet',
+                'test'          => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
                 'gateway'       => [
                     'production'    => 'https://sanalposprov.garanti.com.tr/servlet/gt3dengine',
-                    'test'          => 'https://sanalposprovtest.garanti.com.tr/servlet/gt3dengine',
+                    'test'          => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
                 ],
             ],
         ],
