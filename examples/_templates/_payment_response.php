@@ -5,7 +5,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 require_once '_config.php';
-require '../../template/_header.php';
+require '../../_templates/_header.php';
 
 if (($request->getMethod() !== 'POST' && AbstractGateway::TX_POST_PAY !== $transaction)
     // Vakifbank-CP GET request ile cevapliyor
