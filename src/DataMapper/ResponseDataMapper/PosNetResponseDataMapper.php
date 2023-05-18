@@ -89,15 +89,20 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $this->getStatusDetail($procReturnCode) === self::TX_APPROVED) {
             $status = self::TX_APPROVED;
         }
-        
-        /** @var array<string, string> $oosResolveMerchantDataResponse */
+
+        /** @var array<string, string|null> $oosResolveMerchantDataResponse */
         $oosResolveMerchantDataResponse = $raw3DAuthResponseData['oosResolveMerchantDataResponse'];
 
         $mdStatus = $oosResolveMerchantDataResponse['mdStatus'];
-
+        $transactionSecurity = null;
+        if (null === $mdStatus) {
+            $this->logger->error('mdStatus boş döndü. Sağlanan banka API bilgileri eksik/yanlış olabilir.');
+        } else {
+            $transactionSecurity = $this->mapResponseTransactionSecurity($mdStatus);
+        }
         $threeDResponse = [
             'order_id'             => $oosResolveMerchantDataResponse['xid'] ?? null,
-            'transaction_security' => $this->mapResponseTransactionSecurity($mdStatus),
+            'transaction_security' => $transactionSecurity,
             'proc_return_code'     => $procReturnCode,
             'status'               => $status,
             'status_detail'        => $this->getStatusDetail($procReturnCode),
@@ -156,7 +161,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
         if (null !== $state) {
             $transactionType = $this->mapTxType($state);
         }
-        
+
         $results = [
             'auth_code'        => null,
             'trans_id'         => null,
@@ -222,7 +227,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
         if (null !== $state) {
             $transactionType = $this->mapTxType($state);
         }
-        
+
         $results = [
             'auth_code'        => null,
             'trans_id'         => null,
@@ -269,7 +274,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
                     $state    = $transactionDetails[0]['state'];
                     $authCode = $transactionDetails[0]['authCode'];
                 }
-                
+
                 if (count($transactionDetails) > 1) {
                     foreach ($transactionDetails as $key => $_transaction) {
                         if ($key > 0) {

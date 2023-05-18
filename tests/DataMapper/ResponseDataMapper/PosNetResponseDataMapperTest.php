@@ -236,6 +236,38 @@ class PosNetResponseDataMapperTest extends TestCase
                     'status_detail'        => null,
                 ],
             ],
+            'fail2-md-empty'    => [
+                // 3D Auth fail case
+                'threeDResponseData' => [
+                    'oosResolveMerchantDataResponse' => [
+                        'xid'            => 'YKB_0000080603153823',
+                        'amount'         => '5696',
+                        'currency'       => 'TL',
+                        'installment'    => '00',
+                        'point'          => '0',
+                        'pointAmount'    => '0',
+                        'txStatus'       => 'N',
+                        'mdStatus'       => '',
+                        'mdErrorMessage' => 'None 3D - Secure Transaction',
+                        'mac'            => 'ED7254A3ABC264QOP67MN',
+                    ],
+                ],
+                'paymentData'        => [],
+                'expectedData'       => [
+                    'transaction_security' => null,
+                    'md_status'            => null,
+                    'md_error_message'     => 'None 3D - Secure Transaction',
+                    'trans_id'             => null,
+                    'auth_code'            => null,
+                    'ref_ret_num'          => null,
+                    'error_code'           => null,
+                    'error_message'        => null,
+                    'order_id'             => 'YKB_0000080603153823',
+                    'proc_return_code'     => null,
+                    'status'               => 'declined',
+                    'status_detail'        => null,
+                ],
+            ],
         ];
     }
 
