@@ -56,6 +56,19 @@ return [
                 ],
             ],
         ],
+        'ziraat-vpos' => [
+            'name' => 'Ziraat',
+            'class' => Mews\Pos\Gateways\VakifBankPos::class,
+            'urls' => [
+                'production' => 'https://sanalpos.ziraatbank.com.tr/v4/v3/Vposreq.aspx',
+                'status_production' => 'https://sanalpos.ziraatbank.com.tr/v4/UIWebService/Search.aspx',
+                'test' => 'https://preprod.payflex.com.tr/Ziraatbank/VposWeb/v3/Vposreq.aspx',
+                'gateway' => [
+                    'production' => 'https://mpi.ziraatbank.com.tr/Enrollment.aspx',
+                    'test' => 'https://preprod.payflex.com.tr/ZiraatBank/MpiWeb/MPI_Enrollment.aspx',
+                ],
+            ],
+        ],
         'finansbank'    => [
             'name'  => 'QNB Finansbank',
             'class' => Mews\Pos\Gateways\EstPos::class,
