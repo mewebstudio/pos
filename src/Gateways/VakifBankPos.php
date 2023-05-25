@@ -240,7 +240,7 @@ class VakifBankPos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        return $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
+        return parent::createXML($this->requestDataMapper->createStatusRequestData($this->account, $this->order));
     }
 
     /**
