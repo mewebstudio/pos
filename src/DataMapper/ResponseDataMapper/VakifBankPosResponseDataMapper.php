@@ -110,7 +110,33 @@ class VakifBankPosResponseDataMapper extends AbstractResponseDataMapper implemen
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
-        return $this->emptyStringsToNull($rawResponseData);
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        $extra = $rawResponseData['TransactionSearchResultInfo']['TransactionSearchResultInfo'];
+        $status = self::TX_DECLINED;
+        if ($extra['IsCanceled'] == 'false' && $extra['IsReversed'] == 'false' && $extra['IsRefunded'] == 'false') {
+            $status = self::TX_APPROVED;
+        }
+
+        $result = [
+            'order_id' => $extra['OrderId'],
+            'auth_code' => null,
+            'proc_return_code' => $procReturnCode,
+            'trans_id' => $extra['TransactionId'],
+            'error_message' => $extra['ErrMsg'],
+            'ref_ret_num' => null,
+            'order_status' => $extra['ORDERSTATUS'],
+            'transaction_type' => null,
+            'masked_number' => null,
+            'num_code' => null,
+            'first_amount' => null,
+            'capture_amount' => null,
+            'status' => $status,
+            'error_code' => null,
+            'status_detail' => $extra['ResponseMessage'],
+            'capture' => false,
+            'all' => $rawResponseData,
+        ];
+        return $result;
     }
 
     /**
