@@ -273,6 +273,14 @@ abstract class AbstractGateway implements PosInterface
     {
         return $this->config['urls']['gateway_3d_host'][$this->getModeInWord()] ?? null;
     }
+    
+     /**
+     * @return ?string
+     */
+    public function getStatusUrl(): ?string
+    {
+        return $this->config['urls']['status_'.$this->getModeInWord()]??null;
+    }
 
     /**
      * @return bool
@@ -382,7 +390,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $xml = $this->createStatusXML();
 
-        $bankResponse = $this->send($xml);
+        $bankResponse = $this->send($xml,$this->getStatusUrl());
 
         $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
 
