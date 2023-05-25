@@ -192,7 +192,20 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
-        throw new NotImplementedException();
+        return
+            [
+                'SearchRequest' => [
+                    'MerchantCriteria' => [
+                        'HostMerchantId' => $account->getClientId(),
+                        'MerchantPassword' => $account->getPassword(),
+                    ],
+                    'TransactionCriteria' => [
+                        'TransactionId' => '',
+                        'OrderId' => $order->id,
+                        'AuthCode' => ''
+                    ]
+                ]
+            ];
     }
 
     /**
