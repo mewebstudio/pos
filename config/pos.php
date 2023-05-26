@@ -56,6 +56,19 @@ return [
                 ],
             ],
         ],
+         'ziraat-vpos' => [
+            'name' => 'Ziraat',
+            'class' => Mews\Pos\Gateways\VakifBankPos::class,
+            'urls' => [
+                'production' => 'https://sanalpos.ziraatbank.com.tr/v4/v3/Vposreq.aspx',
+                'status_production' => 'https://sanalpos.ziraatbank.com.tr/v4/UIWebService/Search.aspx',
+                'test' => 'https://preprod.payflex.com.tr/Ziraatbank/VposWeb/v3/Vposreq.aspx',
+                'gateway' => [
+                    'production' => 'https://mpi.ziraatbank.com.tr/Enrollment.aspx',
+                    'test' => 'https://preprod.payflex.com.tr/ZiraatBank/MpiWeb/MPI_Enrollment.aspx',
+                ],
+            ],
+        ],
         'finansbank'    => [
             'name'  => 'QNB Finansbank',
             'class' => Mews\Pos\Gateways\EstPos::class,
@@ -105,6 +118,22 @@ return [
                 'gateway_3d_host'       => [
                     'production'    => 'https://sanalpos.isbank.com.tr/fim/est3Dgate',
                     'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                ],
+            ],
+        ],
+        'sekerbank' => [
+            'name' => 'Şeker Bank',
+            'class' => Mews\Pos\Gateways\EstPos::class,
+            'urls' => [
+                'production' => 'https://sanalpos.sekerbank.com.tr/fim/api',
+                'test' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+                'gateway' => [
+                    'production' => 'https://sanalpos.sekerbank.com.tr/fim/est3Dgate',
+                    'test' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                ],
+                'gateway_3d_host' => [
+                    'production' => 'https://sanalpos.sekerbank.com.tr/fim/est3Dgate',
+                    'test' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
                 ],
             ],
         ],
