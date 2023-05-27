@@ -92,6 +92,22 @@ return [
                 ],
             ],
         ],
+        'sekerbank' => [
+            'name' => 'Şeker Bank',
+            'class' => Mews\Pos\Gateways\EstV3Pos::class,
+            'urls' => [
+                'production' => 'https://sanalpos.sekerbank.com.tr/fim/api',
+                'test' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+                'gateway' => [
+                    'production' => 'https://sanalpos.sekerbank.com.tr/fim/est3Dgate',
+                    'test' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                ],
+                'gateway_3d_host' => [
+                    'production' => 'https://sanalpos.sekerbank.com.tr/fim/est3Dgate',
+                    'test' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                ],
+            ],
+        ],
         'yapikredi' => [
             'name'  => 'Yapıkredi',
             'class' => Mews\Pos\Gateways\PosNet::class,
