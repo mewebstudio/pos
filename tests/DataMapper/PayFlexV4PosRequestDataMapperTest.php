@@ -4,9 +4,9 @@
  */
 namespace Mews\Pos\Tests\DataMapper;
 
-use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
+use Mews\Pos\DataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Account\VakifBankAccount;
+use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -15,20 +15,20 @@ use Mews\Pos\Gateways\AbstractGateway;
 use PHPUnit\Framework\TestCase;
 
 /**
- * VakifBankPosRequestDataMapperTest
+ * PayFlexV4PosRequestDataMapperTest
  */
-class VakifBankPosRequestDataMapperTest extends TestCase
+class PayFlexV4PosRequestDataMapperTest extends TestCase
 {
-    /** @var VakifBankAccount */
+    /** @var PayFlexAccount */
     public $account;
-    
+
     /** @var AbstractGateway */
     private $pos;
 
     /** @var AbstractCreditCard */
     private $card;
 
-    /** @var VakifBankPosRequestDataMapper */
+    /** @var PayFlexV4PosRequestDataMapper */
     private $requestDataMapper;
 
     private $order;
@@ -37,7 +37,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $this->account = AccountFactory::createVakifBankAccount(
+        $this->account = AccountFactory::createPayFlexAccount(
             'vakifbank',
             '000000000111111',
             '3XTgER89as',
@@ -62,8 +62,8 @@ class VakifBankPosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->account);
         $this->pos->setTestMode(true);
-        
-        $this->requestDataMapper = new VakifBankPosRequestDataMapper();
+
+        $this->requestDataMapper = new PayFlexV4PosRequestDataMapper();
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 
@@ -72,7 +72,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
      */
     public function testAmountFormat()
     {
-        $this->assertEquals('1000.00', VakifBankPosRequestDataMapper::amountFormat(1000));
+        $this->assertEquals('1000.00', PayFlexV4PosRequestDataMapper::amountFormat(1000));
     }
 
     /**
@@ -119,7 +119,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         $order['amount'] = 10.1;
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_PAY, $this->card);
-        
+
         $txType = AbstractGateway::TX_PAY;
         $gatewayResponse = [
             'Eci'                       => (string) random_int(1, 100),
@@ -145,7 +145,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        
+
         $expectedValue = $this->getSample3DEnrollmentRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $this->assertEquals($expectedValue, $actual);
@@ -240,7 +240,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        
+
         $expectedValue = $this->getSample3DFormDataFromEnrollmentResponse();
         $actualData = $this->requestDataMapper->create3DFormData(
             $pos->getAccount(),
@@ -248,7 +248,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
             '',
             '',
             $pos->getCard(),
-            $this->getSampleEnrollmentSuccessResponseData()['Message']['VERes']
+            $this->getSampleEnrollmentSuccessResponseDataProvider()['Message']['VERes']
         );
 
         $this->assertEquals($expectedValue, $actualData);
@@ -257,7 +257,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     /**
      * @return array
      */
-    public function getSampleEnrollmentSuccessResponseData(): array
+    public static function getSampleEnrollmentSuccessResponseDataProvider(): array
     {
         return [
             'MessageErrorCode' => 'code',
@@ -274,7 +274,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    public function getSampleEnrollmentFailResponseData(): array
+    public static function getSampleEnrollmentFailResponseDataProvider(): array
     {
         return [
             'Message'                   => [
@@ -306,7 +306,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param VakifBankAccount        $account
+     * @param PayFlexAccount          $account
      * @param                         $order
      * @param string                  $txType
      * @param array                   $responseData
@@ -345,7 +345,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
 
 
     /**
-     * @param VakifBankAccount        $account
+     * @param PayFlexAccount          $account
      * @param                         $order
      * @param AbstractCreditCard|null $card
      *
@@ -387,7 +387,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param VakifBankAccount   $account
+     * @param PayFlexAccount     $account
      * @param                    $order
      * @param string             $txType
      * @param AbstractCreditCard $card
@@ -413,7 +413,7 @@ class VakifBankPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param VakifBankAccount $account
+     * @param PayFlexAccount   $account
      * @param array            $order
      *
      * @return array

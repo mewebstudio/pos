@@ -22,6 +22,7 @@ use Mews\Pos\DataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper;
@@ -29,6 +30,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankCPPosResponseDataMapper;
@@ -43,6 +45,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\Gateways\VakifBankCPPos;
@@ -153,6 +156,10 @@ class PosFactory
             return new VakifBankPosRequestDataMapper(null, $currencies);
         }
 
+        if ($gatewayClass === PayFlexV4Pos::class) {
+            return new PayFlexV4PosRequestDataMapper(null, $currencies);
+        }
+
         throw new DomainException('unsupported gateway');
     }
 
@@ -173,6 +180,7 @@ class PosFactory
             KuveytPos::class      => KuveytPosResponseDataMapper::class,
             PayForPos::class      => PayForPosResponseDataMapper::class,
             PosNet::class         => PosNetResponseDataMapper::class,
+            PayFlexV4Pos::class   => PayFlexV4PosResponseDataMapper::class,
             VakifBankPos::class   => VakifBankPosResponseDataMapper::class,
             VakifBankCPPos::class => VakifBankCPPosResponseDataMapper::class,
         ];

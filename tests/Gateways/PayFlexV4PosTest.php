@@ -5,27 +5,27 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use Exception;
-use Mews\Pos\Entity\Account\VakifBankAccount;
+use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
-use Mews\Pos\Gateways\VakifBankPos;
-use Mews\Pos\Tests\DataMapper\VakifBankPosRequestDataMapperTest;
+use Mews\Pos\Gateways\PayFlexV4Pos;
+use Mews\Pos\Tests\DataMapper\PayFlexV4PosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 /**
- * VakifBankPosTest
+ * PayFlexV4PosTest
  */
-class VakifBankPosTest extends TestCase
+class PayFlexV4PosTest extends TestCase
 {
-    /** @var VakifBankAccount */
+    /** @var PayFlexAccount */
     private $account;
 
-    /** @var VakifBankPos */
+    /** @var PayFlexV4Pos */
     private $pos;
 
     private $config;
@@ -42,7 +42,7 @@ class VakifBankPosTest extends TestCase
 
         $this->config = require __DIR__.'/../../config/pos.php';
 
-        $this->account = AccountFactory::createVakifBankAccount(
+        $this->account = AccountFactory::createPayFlexAccount(
             'vakifbank',
             '000000000111111',
             '3XTgER89as',
@@ -68,7 +68,7 @@ class VakifBankPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->account);
 
         $this->pos->setTestMode(true);
-        
+
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 
@@ -102,12 +102,11 @@ class VakifBankPosTest extends TestCase
     {
         $this->expectException(Exception::class);
         $this->expectExceptionCode(2005);
-        $vakifBankPosRequestDataMapperTest = new VakifBankPosRequestDataMapperTest();
 
-        $requestMapper = PosFactory::getGatewayRequestMapper(VakifBankPos::class);
-        $responseMapper = PosFactory::getGatewayResponseMapper(VakifBankPos::class, $requestMapper, new NullLogger());
+        $requestMapper = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class);
+        $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
 
-        $posMock = $this->getMockBuilder(VakifBankPos::class)
+        $posMock = $this->getMockBuilder(PayFlexV4Pos::class)
             ->setConstructorArgs([
                 [],
                 $this->account,
@@ -121,20 +120,19 @@ class VakifBankPosTest extends TestCase
         $posMock->setTestMode(true);
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $posMock->expects($this->once())->method('sendEnrollmentRequest')
-            ->willReturn($vakifBankPosRequestDataMapperTest->getSampleEnrollmentFailResponseData());
+            ->willReturn(PayFlexV4PosRequestDataMapperTest::getSampleEnrollmentFailResponseDataProvider());
 
         $posMock->get3DFormData();
     }
 
     public function testGet3DFormDataSuccess()
     {
-        $vakifBankPosRequestDataMapperTest = new VakifBankPosRequestDataMapperTest();
-        $enrollmentResponse = $vakifBankPosRequestDataMapperTest->getSampleEnrollmentSuccessResponseData();
+        $enrollmentResponse = PayFlexV4PosRequestDataMapperTest::getSampleEnrollmentSuccessResponseDataProvider();
 
-        $requestMapper = PosFactory::getGatewayRequestMapper(VakifBankPos::class);
-        $responseMapper = PosFactory::getGatewayResponseMapper(VakifBankPos::class, $requestMapper, new NullLogger());
+        $requestMapper = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class);
+        $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
 
-        $posMock = $this->getMockBuilder(VakifBankPos::class)
+        $posMock = $this->getMockBuilder(PayFlexV4Pos::class)
             ->setConstructorArgs([
                 [],
                 $this->account,

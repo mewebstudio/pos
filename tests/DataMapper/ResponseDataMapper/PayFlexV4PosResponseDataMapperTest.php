@@ -2,22 +2,22 @@
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankPosResponseDataMapper;
-use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
+use Mews\Pos\DataMapper\PayFlexV4PosRequestDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
-class VakifBankPosResponseDataMapperTest extends TestCase
+class PayFlexV4PosResponseDataMapperTest extends TestCase
 {
-    /** @var VakifBankPosResponseDataMapper */
+    /** @var PayFlexV4PosRequestDataMapper */
     private $responseDataMapper;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $requestDataMapper  = new VakifBankPosRequestDataMapper();
-        $this->responseDataMapper = new VakifBankPosResponseDataMapper(
+        $requestDataMapper  = new PayFlexV4PosRequestDataMapper();
+        $this->responseDataMapper = new PayFlexV4PosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
             new NullLogger()

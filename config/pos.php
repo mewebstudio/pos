@@ -134,7 +134,7 @@ return [
         ],
         'vakifbank' => [
             'name'  => 'VakifBank-VPOS',
-            'class' => Mews\Pos\Gateways\VakifBankPos::class,
+            'class' => Mews\Pos\Gateways\PayFlexV4Pos::class,
             'urls'  => [
                 'production'    => 'https://onlineodeme.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
                 'test'          => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
@@ -151,7 +151,7 @@ return [
         ],
         'ziraat-vpos' => [
             'name'  => 'Ziraat Bankası',
-            'class' => Mews\Pos\Gateways\VakifBankPos::class,
+            'class' => Mews\Pos\Gateways\PayFlexV4Pos::class,
             'urls'  => [
                 'production'    => 'https://sanalpos.ziraatbank.com.tr/v4/v3/Vposreq.aspx',
                 'test'          => 'https://preprod.payflex.com.tr/Ziraatbank/VposWeb/v3/Vposreq.aspx',
