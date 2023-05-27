@@ -394,6 +394,7 @@ abstract class AbstractGateway implements PosInterface
         if (!is_array($bankResponse)) {
             throw new \RuntimeException('Status isteği başarısız');
         }
+        
         $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
 
         return $this;

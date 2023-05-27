@@ -214,6 +214,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     * @return array{OrderId: string, Extra: array<string, string>&mixed[], Name: string, Password: string, ClientId: string}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {

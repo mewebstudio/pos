@@ -137,6 +137,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper implemen
                 'all'              => $rawResponseData,
             ];
         }
+        
         $txResultInfo = $rawResponseData['TransactionSearchResultInfo']['TransactionSearchResultInfo'];
         $orderProcCode = $this->getProcReturnCode($txResultInfo);
 

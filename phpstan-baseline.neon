@@ -161,11 +161,6 @@ parameters:
 			path: src/DataMapper/EstPosRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\EstPosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\EstPosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
 			count: 1
 			path: src/DataMapper/EstPosRequestDataMapper.php
@@ -602,11 +597,6 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:createStatusRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
-			count: 1
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:createStatusRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
 

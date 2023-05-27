@@ -191,6 +191,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     * @return array{MerchantCriteria: array{HostMerchantId: string, MerchantPassword: string}, TransactionCriteria: array{TransactionId: string, OrderId: string, AuthCode: string}}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {

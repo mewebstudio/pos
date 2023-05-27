@@ -100,6 +100,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
         } else {
             $transactionSecurity = $this->mapResponseTransactionSecurity($mdStatus);
         }
+
         $threeDResponse = [
             'order_id'             => $oosResolveMerchantDataResponse['xid'] ?? null,
             'transaction_security' => $transactionSecurity,
