@@ -167,7 +167,7 @@ class VakifBankCPPos extends AbstractGateway
                 // if something wrong server responds with HTML content
                 throw new Exception($responseBody, $notEncodableValueException->getCode(), $notEncodableValueException);
             }
-            
+
             $this->data = json_decode($responseBody, true);
         }
 
@@ -247,7 +247,7 @@ class VakifBankCPPos extends AbstractGateway
 
             throw new LogicException('Sipariş bilgileri eksik!');
         }
-        
+
         $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
 
         return $this->createXML($requestData);
@@ -311,16 +311,6 @@ class VakifBankCPPos extends AbstractGateway
     {
         return (object) $order;
     }
-
-
-    /**
-     * @return string
-     */
-    public function getQueryAPIUrl(): string
-    {
-        return $this->config['urls']['query'][$this->getModeInWord()];
-    }
-
 
     /**
      * ORTAK ÖDEME SİSTEMİNE İŞLEM KAYDETME

@@ -24,24 +24,8 @@ return [
                 ],
             ],
         ],
-        'ziraat'    => [
-            'name'  => 'Ziraat Bankası',
-            'class' => Mews\Pos\Gateways\EstPos::class,
-            'urls'  => [
-                'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/api',
-                'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
-                'gateway'       => [
-                    'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/est3dgate',
-                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
-                ],
-                'gateway_3d_host'       => [
-                    'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/est3dgate',
-                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
-                ],
-            ],
-        ],
-        'ziraatv3'    => [
-            'name'  => 'Ziraat Bankası',
+        'akbankv3'    => [
+            'name'  => 'Akbank  T.A.S.',
             'class' => Mews\Pos\Gateways\EstV3Pos::class,
             'urls'  => [
                 'production'    => 'https://sanalpos2.ziraatbank.com.tr/fim/api',
@@ -157,6 +141,28 @@ return [
                 'gateway'       => [
                     'production'    => 'https://3dsecure.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspx',
                     'test'          => 'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspx',
+                ],
+                'query'       => [
+                    // todo update with the correct ones
+                    'production'    => 'https://sanalpos.vakifbank.com.tr/v4/UIWebService/Search.aspx',
+                    'test'          => 'https://sanalpos.vakifbank.com.tr/v4/UIWebService/Search.aspx',
+                ],
+            ],
+        ],
+        'ziraat-vpos' => [
+            'name'  => 'Ziraat Bankası',
+            'class' => Mews\Pos\Gateways\VakifBankPos::class,
+            'urls'  => [
+                'production'    => 'https://sanalpos.ziraatbank.com.tr/v4/v3/Vposreq.aspx',
+                'test'          => 'https://preprod.payflex.com.tr/Ziraatbank/VposWeb/v3/Vposreq.aspx',
+                'gateway'       => [
+                    'production'    => 'https://mpi.ziraatbank.com.tr/Enrollment.aspx',
+                    'test'          => 'https://preprod.payflex.com.tr/ZiraatBank/MpiWeb/MPI_Enrollment.aspx',
+                ],
+                'query'       => [
+                    'production'    => 'https://sanalpos.ziraatbank.com.tr/v4/UIWebService/Search.aspx',
+                    // todo update with the correct one
+                    'test'          => 'https://sanalpos.ziraatbank.com.tr/v4/UIWebService/Search.aspx',
                 ],
             ],
         ],

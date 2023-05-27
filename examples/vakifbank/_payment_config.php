@@ -24,6 +24,10 @@ $subMenu = [
         'path' => '/regular/refund.php',
         'label' => 'İade',
     ],
+    AbstractGateway::TX_STATUS => [
+        'path' => '/regular/status.php',
+        'label' => 'Status',
+    ],
 ];
 
 

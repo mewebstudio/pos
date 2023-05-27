@@ -106,11 +106,56 @@ class VakifBankPosResponseDataMapper extends AbstractResponseDataMapper implemen
     }
 
     /**
+     * @param array{TransactionSearchResultInfo: null|array{TransactionSearchResultInfo: array<string, string>}, ResponseInfo: array{ResponseCode: string, ResponseMessage: string, ResponseDateTime: string, Status: 'Success'|'Error'}} $rawResponseData
+     *
      * {@inheritdoc}
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
-        return $this->emptyStringsToNull($rawResponseData);
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        /**
+         * @var array{ResponseCode: string, ResponseMessage: string, ResponseDateTime: string, Status: 'Success'|'Error'} $responseInfo
+         */
+        $responseInfo = $rawResponseData['ResponseInfo'];
+        $procReturnCode = $responseInfo['ResponseCode'];
+        if (self::PROCEDURE_SUCCESS_CODE !== $procReturnCode) {
+            // istek basarisiz durum
+            return [
+                'order_id'         => null,
+                'auth_code'        => null,
+                'proc_return_code' => $procReturnCode,
+                'trans_id'         => null,
+                'transaction_type' => null,
+                'ref_ret_num'      => null,
+                'order_status'     => null,
+                'capture_amount'   => null,
+                'currency'         => null,
+                'status'           => $responseInfo['Status'],
+                'status_detail'    => $responseInfo['ResponseMessage'],
+                'error_code'       => $procReturnCode,
+                'error_message'    => $responseInfo['ResponseMessage'],
+                'all'              => $rawResponseData,
+            ];
+        }
+        $txResultInfo = $rawResponseData['TransactionSearchResultInfo']['TransactionSearchResultInfo'];
+        $orderProcCode = $this->getProcReturnCode($txResultInfo);
+
+        return [
+            'order_id' => $txResultInfo['OrderId'],
+            'auth_code' => $txResultInfo['AuthCode'],
+            'proc_return_code' => $orderProcCode,
+            'trans_id' => $txResultInfo['TransactionId'],
+            'ref_ret_num' => $txResultInfo['Rrn'],
+            'order_status' => null,
+            'transaction_type' => $this->mapTxType($txResultInfo['TransactionType']),
+            'capture_amount' => $txResultInfo['CurrencyAmount'],
+            'currency'         => $this->mapCurrency($txResultInfo['CurrencyCode']),
+            'status' => self::PROCEDURE_SUCCESS_CODE === $orderProcCode ? self::TX_APPROVED : self::TX_DECLINED,
+            'status_detail' => $txResultInfo['ResponseMessage'],
+            'error_code' => self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['HostResultCode'] : null,
+            'error_message' => self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['ResponseMessage'] : null,
+            'all' => $rawResponseData,
+        ];
     }
 
     /**

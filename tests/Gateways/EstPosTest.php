@@ -24,19 +24,16 @@ class EstPosTest extends TestCase
 {
     /** @var EstPosAccount */
     private $account;
-    
+
     /** @var EstPos */
     private $pos;
-    
+
     private $config;
 
     /** @var AbstractCreditCard */
     private $card;
-    
-    private $order;
 
-    /** @var EstPosResponseDataMapperTest */
-    private $responseMapTest;
+    private $order;
 
     protected function setUp(): void
     {
@@ -67,7 +64,6 @@ class EstPosTest extends TestCase
         ];
 
         $this->pos             = PosFactory::createPosGateway($this->account);
-        $this->responseMapTest = new EstPosResponseDataMapperTest();
         $this->pos->setTestMode(true);
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
@@ -96,7 +92,7 @@ class EstPosTest extends TestCase
      */
     public function testMake3DPaymentAuthFail()
     {
-        $request = Request::create('', 'POST', $this->responseMapTest->threeDPayPaymentDataProvider()['authFail1']['paymentData']);
+        $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['authFail1']['paymentData']);
 
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
@@ -118,7 +114,7 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->make3DPayment($request);
-        
+
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());
@@ -129,13 +125,13 @@ class EstPosTest extends TestCase
      */
     public function testMake3DHostPaymentSuccess()
     {
-        $request = Request::create('', 'POST', $this->responseMapTest->threeDHostPaymentDataProvider()['success1']['paymentData']);
+        $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['paymentData']);
 
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $pos->make3DHostPayment($request);
-        
+
         $result = $pos->getResponse();
         $this->assertIsArray($result);
         $this->assertTrue($pos->isSuccess());
@@ -146,13 +142,13 @@ class EstPosTest extends TestCase
      */
     public function testMake3DPayPaymentSuccess()
     {
-        $request = Request::create('', 'POST', $this->responseMapTest->threeDPayPaymentDataProvider()['success1']['paymentData']);
+        $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']);
 
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
-        $pos->make3DHostPayment($request);
-        
+        $pos->make3DPayPayment($request);
+
         $result = $pos->getResponse();
         $this->assertIsArray($result);
         $this->assertTrue($pos->isSuccess());
@@ -163,7 +159,7 @@ class EstPosTest extends TestCase
      */
     public function testMake3DPayPayment3DAuthFail()
     {
-        $request = Request::create('', 'POST', $this->responseMapTest->threeDPayPaymentDataProvider()['authFail1']['paymentData']);
+        $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['authFail1']['paymentData']);
 
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
@@ -185,16 +181,16 @@ class EstPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->make3DPayment($request);
-        
+
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());
     }
 
     /**
-     * @return void
+     * @dataProvider statusDataProvider
      */
-    public function testStatusSuccess()
+    public function testStatus(array $testData, bool $isSuccess): void
     {
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
@@ -209,56 +205,20 @@ class EstPosTest extends TestCase
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
-            ->onlyMethods(['send', 'createStatusXML'])
+            ->onlyMethods(['send', 'createStatusXML', 'getQueryAPIUrl'])
             ->getMock();
 
-        $posMock->expects($this->once())->method('send')->willReturn(
-            $this->responseMapTest->statusTestDataProvider()['success1']['responseData']
-        );
+        $posMock->expects($this->once())->method('send')->willReturn($testData);
         $posMock->expects($this->once())->method('createStatusXML')->willReturn('');
+        $posMock->expects($this->once())->method('getQueryAPIUrl')->willReturn('');
 
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
+        $posMock->prepare($this->order, AbstractGateway::TX_STATUS);
 
         $posMock->status();
-        
+
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
-        $this->assertTrue($posMock->isSuccess());
-    }
-
-    /**
-     * @return void
-     */
-    public function testStatusFail()
-    {
-        $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
-        $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
-
-        $posMock = $this->getMockBuilder(EstPos::class)
-            ->setConstructorArgs([
-                [],
-                $this->account,
-                $requestMapper,
-                $responseMapper,
-                HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
-            ])
-            ->onlyMethods(['send', 'createStatusXML'])
-            ->getMock();
-
-        $posMock->expects($this->once())->method('send')->willReturn(
-            $this->responseMapTest->statusTestDataProvider()['fail1']['responseData']
-        );
-        $posMock->expects($this->once())->method('createStatusXML')->willReturn('');
-
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-
-        $posMock->status();
-        
-        $result = $posMock->getResponse();
-        $this->assertIsArray($result);
-        $this->assertFalse($posMock->isSuccess());
+        $this->assertSame($isSuccess, $posMock->isSuccess());
     }
 
     /**
@@ -283,14 +243,14 @@ class EstPosTest extends TestCase
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
-            $this->responseMapTest->historyTestDataProvider()['success1']['responseData']
+            EstPosResponseDataMapperTest::historyTestDataProvider()['success1']['responseData']
         );
         $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->history([]);
-        
+
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertTrue($posMock->isSuccess());
@@ -318,14 +278,14 @@ class EstPosTest extends TestCase
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
-            $this->responseMapTest->historyTestDataProvider()['fail1']['responseData']
+            EstPosResponseDataMapperTest::historyTestDataProvider()['fail1']['responseData']
         );
         $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->history([]);
-        
+
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());
@@ -353,14 +313,14 @@ class EstPosTest extends TestCase
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
-            $this->responseMapTest->cancelTestDataProvider()['success1']['responseData']
+            EstPosResponseDataMapperTest::cancelTestDataProvider()['success1']['responseData']
         );
         $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->cancel();
-        
+
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertTrue($posMock->isSuccess());
@@ -388,14 +348,14 @@ class EstPosTest extends TestCase
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
-            $this->responseMapTest->cancelTestDataProvider()['fail1']['responseData']
+            EstPosResponseDataMapperTest::cancelTestDataProvider()['fail1']['responseData']
         );
         $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->cancel();
-        
+
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());
@@ -423,17 +383,29 @@ class EstPosTest extends TestCase
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
-            $this->responseMapTest->refundTestDataProvider()['fail1']['responseData']
+            EstPosResponseDataMapperTest::refundTestDataProvider()['fail1']['responseData']
         );
         $posMock->expects($this->once())->method('createRefundXML')->willReturn('');
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $posMock->refund();
-        
+
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertFalse($posMock->isSuccess());
-
     }
+
+    public static function statusDataProvider(): iterable
+    {
+        yield [
+            'responseData' => EstPosResponseDataMapperTest::statusTestDataProvider()['fail1']['responseData'],
+            'isSuccess' => false,
+        ];
+        yield [
+            'responseData' => EstPosResponseDataMapperTest::statusTestDataProvider()['success1']['responseData'],
+            'isSuccess' => true,
+        ];
+    }
+
 }

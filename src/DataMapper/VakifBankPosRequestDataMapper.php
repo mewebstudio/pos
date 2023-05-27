@@ -30,8 +30,7 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
         AbstractGateway::TX_POST_PAY => 'Capture',
         AbstractGateway::TX_CANCEL   => 'Cancel',
         AbstractGateway::TX_REFUND   => 'Refund',
-        AbstractGateway::TX_HISTORY  => 'TxnHistory',
-        AbstractGateway::TX_STATUS   => 'OrderInquiry',
+        AbstractGateway::TX_STATUS   => 'status',
     ];
 
     /**
@@ -192,7 +191,24 @@ class VakifBankPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
-        throw new NotImplementedException();
+        return [
+            'MerchantCriteria' => [
+                'HostMerchantId' => $account->getClientId(),
+                'MerchantPassword' => $account->getPassword(),
+            ],
+            'TransactionCriteria' => [
+                /**
+                 * TransactionId alanına sorgulanmak istenen işlemin TransactionId bilgisi yazılmalıdır.
+                 * TransactionId ya da OrderId alanlarının biri zorunludur.
+                 * Hem TransactionId hem de OrderId gönderilerek yapılan bir sorgulamada,
+                 * TransactionId dikkate alınmaktadır.
+                 * OrderID ile sorgulamada bu OrderId ile başarılı işlem varsa başarılı işlem, yoksa son gönderilen işlem raporda görüntülenecektir
+                 */
+                'TransactionId' => '',
+                'OrderId' => (string) $order->id,
+                'AuthCode' => ''
+            ],
+        ];
     }
 
     /**

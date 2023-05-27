@@ -65,6 +65,103 @@ class VakifBankPosResponseDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actualData);
     }
 
+    /**
+     * @dataProvider statusTestDataProvider
+     */
+    public function testMapStatusResponse(array $responseData, array $expectedData): void
+    {
+        $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
+        unset($actualData['all']);
+        $this->assertSame($expectedData, $actualData);
+    }
+
+    public static function statusTestDataProvider(): iterable
+    {
+        yield 'fail1' => [
+            'responseData' => [
+                'ResponseInfo' => [
+                    'Status' => 'Error',
+                    'ResponseCode' => '9065',
+                    'ResponseMessage' => 'Üye isyeri bulunamadi',
+                    'ResponseDateTime' => '2023-05-27T13:58:53.0340773+03:00',
+                    'IsIdempotent' => 'false',
+                ],
+            ],
+            'expectedData' => [
+                'order_id' => null,
+                'auth_code' => null,
+                'proc_return_code' => '9065',
+                'trans_id' => null,
+                'transaction_type' => null,
+                'ref_ret_num' => null,
+                'order_status' => null,
+                'capture_amount' => null,
+                'currency' => null,
+                'status' => 'Error',
+                'status_detail' => 'Üye isyeri bulunamadi',
+                'error_code' => '9065',
+                'error_message' => 'Üye isyeri bulunamadi',
+            ],
+        ];
+
+        yield 'success1' => [
+            'responseData' => [
+                'ResponseInfo' => [
+                    'Status' => 'Success',
+                    'ResponseCode' => '0000',
+                    'ResponseMessage' => 'Succeeded.',
+                    'ResponseDateTime' => '2023-05-27T13:58:53.0340773+03:00',
+                    'IsIdempotent' => 'false',
+                ],
+                'PageIndex' => 1,
+                'PageSize' => 10,
+                'TotalItemCount' => 1,
+                'TransactionSearchResultInfo' => [
+                    'TransactionSearchResultInfo' => [
+                        'MerchantId' => '655500056',
+                        'TransactionType' => 'Sale',
+                        'TransactionId' => 'b2d71cc5-d242-4b01-8479-d56eb8f74d7c',
+                        'OrderId' => 'z2d71cc5-d242-4b01-8479-d56eb8f74d7',
+                        'ResultCode' => '0000',
+                        'ResponseMessage' => 'İŞLEM BAŞARILI',
+                        'HostResultCode' => '000',
+                        'AuthCode' => '11234',
+                        'HostDate' => '1130145930',
+                        'Rrn' => '201101240006',
+                        'CurrencyAmount' => '90.50',
+                        'CurrencyCode' => '949',
+                        'ThreeDSecureType' => '1',
+                        'GainedPoint' => '0',
+                        'TotalPoint' => '100',
+                        'SurchargeAmount' => '92.50',
+                        'Extract' => '090020304',
+                        'CustomItems' => [
+                            'CustomItem' => [
+                              'Name' => 'Kontrol1',
+                              'Value' => '01',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'order_id' => 'z2d71cc5-d242-4b01-8479-d56eb8f74d7',
+                'auth_code' => '11234',
+                'proc_return_code' => '0000',
+                'trans_id' => 'b2d71cc5-d242-4b01-8479-d56eb8f74d7c',
+                'ref_ret_num' => '201101240006',
+                'order_status' => null,
+                'transaction_type' => 'pay',
+                'capture_amount' => '90.50',
+                'currency' => 'TRY',
+                'status' => 'approved',
+                'status_detail' => 'İŞLEM BAŞARILI',
+                'error_code' => null,
+                'error_message' => null,
+            ],
+        ];
+    }
+
     public static function refundDataProvider(): iterable
     {
         yield 'success_1' => [
@@ -172,7 +269,7 @@ class VakifBankPosResponseDataMapperTest extends TestCase
             ],
         ];
     }
-    
+
     public static function paymentDataProvider(): iterable
     {
         yield 'success_1' => [
@@ -255,7 +352,7 @@ class VakifBankPosResponseDataMapperTest extends TestCase
             ],
         ];
     }
-    
+
     public static function threeDPaymentDataProvider(): array
     {
         return [
