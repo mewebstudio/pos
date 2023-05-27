@@ -16,6 +16,7 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 /**
  * PayFlex MPI ISD v4 gateway'i destekler (INNOVA BİLİŞİM ÇÖZÜMLERİ A.Ş)
+ * Dokumanlar: http://sanalpos.innova.com.tr/
  */
 class PayFlexV4Pos extends AbstractGateway
 {

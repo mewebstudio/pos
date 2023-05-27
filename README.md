@@ -8,21 +8,70 @@
 
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos sistemlerinin kullanılabilmesidir.
 
-- **EST POS** (Asseco/Payten) altyapısı tam olarak test edilmiş ve kullanıma hazırdır. Akbank, TEB ve Ziraat bankası test edilmiştir.
+### Deskteklenen Payment Gateway'ler / Bankalar:
 
-- **Garanti Virtual POS** ödeme sistemi çalışmaktadır.
+- **EST POS** (Asseco/Payten) Akbank, TEB, İşbank, Şekerbank, Halkbankın kullandığı alt yapı.
 
-- **YapıKredi PosNet** sistemi 3D ödeme çalışmaktadır, fakat `cancel`, `refund` işlemleri test edilmedi. 
+    Desteklenen özellikler:
+    - NonSecure, 3DSecure, 3DHost ve 3DPay ödeme
+    - Ödeme İptal ve İade
+    - Ödeme durum sorgulama
+    - Tarihçe sorgulama
 
-- **Finansbank PayFor** (Enpara dahil) sanal pos sistemini desteklemektedir.
 
-- **VakifBank GET 7/24 MPI ve VPOS 7/24** 3D Secure ödemesi çalışır durumda, diğer işlemlerde sorunlar ortaya çıktıkça giderilecek.
+- **PayFlex VPOS V4** Ziraat, Vakıfbank ve İşbankın kullandığı alt yapı.
 
-- **VakifBank Common Payment (Ortak Ödeme)** 3DPay ve 3DHost ödeme desteği eklendi.
+  Desteklenen özellikler:
+    - NonSecure, 3DSecure ödeme
+    - Ödeme İptal ve İade
+    - Ödeme durum sorgulama
 
-- **InterPOS (Deniz bank)** destegi eklenmiştir, test edildikçe, sorunlar bulundukça hatalar giderilecek.
 
-- **Kuveyt POS** 3d secure ödeme desteği eklenmiştir - testleri yapıldı, calışıyor.
+- **PayFlex Common Payment V4 (Ortak Ödeme)** Ziraat, Vakıfbank ve İşbankın kullandığı alt yapı.
+
+  Desteklenen özellikler:
+    - NonSecure, 3DHost ve 3DPay ödeme
+    - Ödeme İptal ve İade
+
+
+- **Garanti Virtual POS**
+
+  Desteklenen özellikler:
+    - NonSecure, 3DSecure, 3DHost ve 3DPay ödeme
+    - Ödeme İptal ve İade
+    - Ödeme durum sorgulama
+    - Tarihçe sorgulama
+
+
+- **YapıKredi PosNet**
+
+  Desteklenen özellikler:
+    - NonSecure, 3DSecure ödeme
+    - Ödeme İptal ve İade
+    - Ödeme durum sorgulama
+
+
+- **Finansbank PayFor** (Enpara dahil)
+
+  Desteklenen özellikler:
+    - NonSecure, 3DSecure, 3DHost ve 3DPay ödeme
+    - Ödeme İptal ve İade
+    - Ödeme durum sorgulama
+    - Tarihçe sorgulama
+
+
+- **InterPOS (Deniz bank)**
+
+  Desteklenen özellikler:
+    - NonSecure, 3DSecure, 3DHost ve 3DPay ödeme
+    - Ödeme İptal ve İade
+    - Ödeme durum sorgulama
+
+
+- **Kuveyt POS**
+
+  Desteklenen özellikler:
+    - 3DSecure ödeme
 
 ### Ana başlıklar
 - [Özellikler](#ozellikler)
@@ -52,7 +101,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 * Farklı bankaya geçiş yapmak için sadece doğru `AccountFactory` method'u kullanarak account degistirmek yeterli.
 * **3D**, **3DPay**, **3DHost** ödemeler arasında geçiş yapmak için tek yapmanız gereken Account konfigurasyonunda account tipini değiştirmek (`AbstractGateway::MODEL_3D_PAY` vs.). İşlem akışı aynı olduğu için kod değiştirmenize gerek kalmıyor.
 * Aynı tip işlem için farklı POS Gateway'lerden dönen değerler aynı formata normalize edilmiş durumda. Yani kod güncellemenize gerek yok.
-* Aynı tip işlem için farklı Gateway gönderilecek değerler de genel olarak aynı formatta olacak şekilde normalize edişmiştir. 
+* Aynı tip işlem için farklı Gateway gönderilecek değerler de genel olarak aynı formatta olacak şekilde normalize edişmiştir.
 
 ### Latest updates
 
@@ -97,7 +146,7 @@ require './vendor/autoload.php';
 // AccountFactory kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
 'akbank', //pos config'deki ayarın index name'i
-'yourClientID', 
+'yourClientID',
 'yourKullaniciAdi',
 'yourSifre',
 AbstractGateway::MODEL_3D_SECURE, //storetype
@@ -114,7 +163,7 @@ try {
     dd($e));
 }
 ```
- 
+
 **form.php (kullanıcıdan kredi kart bilgileri alındıktan sonra çalışacak kod)**
 ```php
 <?php
@@ -139,12 +188,12 @@ $order = [
     'name'        => 'John Doe', // EstPos, Garanti
     'user_id'     => 'Müşteri ID', // EstPos
     'rand'        => md5(uniqid(time())), // EstPos, Garanti, PayFor, InterPos, VakifBank. Rastegele değer.
-    
+
     //lang degeri verilmezse account (EstPosAccount) dili kullanılacak
     'lang' => AbstractGateway::LANG_TR, //LANG_TR|LANG_EN. Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
 $session->set('order', $order);
-    
+
 // Kredi kartı bilgieri
 $card = \Mews\Pos\Factory\CreditCardFactory::create(
     $pos,
@@ -182,11 +231,11 @@ $pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 // $card değeri Non Secure modelde ve Vakıfbank için 3DPay ve 3DSecure ödemede zorunlu.
 try  {
     $pos->payment($card);
-    
+
     // Ödeme başarılı mı?
     $pos->isSuccess();
-    
-    // Sonuç çıktısı 
+
+    // Sonuç çıktısı
     dump($pos->getResponse());
     // response içeriği için /examples/template/_payment_response.php dosyaya bakınız.
 } catch (Mews\Pos\Exceptions\HashMismatchException $e) {
@@ -206,7 +255,7 @@ Projenizde bir ayar dosyası oluşturup (pos_ayarlar.php gibi), paket içerisind
 <?php
 
 return [
-    
+
     //param birimleri Gateway'ler icinde tanımlıdır, özel bir mapping istemediğiniz sürece boş bırakınız
     'currencies'    => [
 //        'TRY'       => 949,
@@ -277,7 +326,7 @@ Bu hatayı alırsanız hosting firmanın verdiği IP adrese'de banka gateway'i t
 - kutuphane ortam degerini de kontrol etmeyi unutmayiniz, ortama gore bankanin URL'leri degisir.
   - test ortam icin `$pos->setTestMode(true);`
   - canli ortam icin `$pos->setTestMode(false);` (default olarak `false`)
-  
+
   _ortam degeri hem bankaya istek gonderirken hem de gelen istegi islerken dogru deger olmasi gerekiyor._
 
 ### Debugging
@@ -299,7 +348,7 @@ $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $log
 - **3D** - Bankaya göre farklı isimler verilebilir, örn. 3D Full. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödemeyi tamamlamak için banka gateway'ne 1 istek daha (_provizyon_ isteği) gönderir.
 Bu isteği göndermeden ödeme tamamlanmaz.
 - **3DPay** - Bankaya göre farklı isimler verilebilir, örn. 3D Half. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödeme bitmiş sayılır. 3D ödeme yapıldığı gibi ekstra provizyon istek gönderilmez.
-- **3DHost** - Kredi kart girişi için kullanıcı bankanın sayfasına yönledirilir, kredi kart bilgileri girdikten sonra bankanın 3D gateway sayfasına yönlendirilir, ordan da websitenize geri yönlendirilir. Yönlendirme sonucunda ödeme tamanlanmış olur. 
+- **3DHost** - Kredi kart girişi için kullanıcı bankanın sayfasına yönledirilir, kredi kart bilgileri girdikten sonra bankanın 3D gateway sayfasına yönlendirilir, ordan da websitenize geri yönlendirilir. Yönlendirme sonucunda ödeme tamanlanmış olur.
 - **NonSecure** - Ödeme işlemi kullanıcı 3D onay işlemi yapmadan gerçekleşir.
 - **NonSecure, 3D ve 3DPay** - Ödemede kredi kart bilgisi websiteniz tarafından alınır. **3DHost** ödemede ise banka websayfasından alınır.
 
@@ -335,8 +384,8 @@ Projenin root klasöründe `docker-compose up` komutu çalıştırmanız yeterli
 Sorunsuz çalışması durumda kod örneklerine http://localhost/akbank/3d/index.php şekilde erişebilirsiniz.
 http://localhost/ URL projenin `examples` klasörünün içine bakar.
 
-> Değerli yorum, öneri ve katkılarınızı 
-> 
+> Değerli yorum, öneri ve katkılarınızı
+>
 > Sorun bulursanız veya eklenmesi gereken POS sistemi varsa lütfen issue oluşturun.
 
 License
