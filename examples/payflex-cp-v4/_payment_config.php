@@ -5,7 +5,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 
 require __DIR__.'/../_main_config.php';
 
-$bankTestsUrl = $hostUrl.'/vakifbank-cp';
+$bankTestsUrl = $hostUrl.'/payflex-cp-v4';
 
 $subMenu = [
     AbstractGateway::MODEL_3D_SECURE => [
@@ -58,7 +58,7 @@ function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\
 {
     if (\Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY !== $transaction) {
         /**
-         * diger banklaradan farkli olarak 3d islemler icin de Vakifbank bu asamada kredi kart bilgileri istiyor
+         * diger banklaradan farkli olarak 3d islemler icin de PayFlex bu asamada kredi kart bilgileri istiyor
          */
         $pos->payment($card);
     } else {

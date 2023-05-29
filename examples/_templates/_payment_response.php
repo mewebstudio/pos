@@ -8,7 +8,7 @@ require_once '_config.php';
 require '../../_templates/_header.php';
 
 if (($request->getMethod() !== 'POST' && AbstractGateway::TX_POST_PAY !== $transaction)
-    // Vakifbank-CP GET request ile cevapliyor
+    // PayFlex-CP GET request ile cevapliyor
     && ($request->getMethod() === 'GET' && [] === $request->query->all())
 ) {
     echo new RedirectResponse($baseUrl);

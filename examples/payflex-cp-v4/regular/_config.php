@@ -8,7 +8,7 @@ $hostMerchantId = '000100000013506';
 $hostTerminalId = 'VP000579';
 $merchantPassword  = '123456';
 //account bilgileri kendi account bilgilerinizle degistiriniz
-$account = \Mews\Pos\Factory\AccountFactory::createVakifBankAccount(
+$account = \Mews\Pos\Factory\AccountFactory::createPayFlexAccount(
     'vakifbank-cp',
     $hostMerchantId,
     $merchantPassword,
