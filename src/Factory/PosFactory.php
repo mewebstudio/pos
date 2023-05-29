@@ -15,13 +15,14 @@ use Mews\Pos\Crypt\InterPosCrypt;
 use Mews\Pos\Crypt\KuveytPosCrypt;
 use Mews\Pos\Crypt\PayForPosCrypt;
 use Mews\Pos\Crypt\PosNetCrypt;
-use Mews\Pos\Crypt\VakifBankCPCrypt;
+use Mews\Pos\Crypt\PayFlexCPV4Crypt;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
@@ -30,6 +31,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
@@ -45,6 +47,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
@@ -142,6 +145,7 @@ class PosFactory
             KuveytPos::class      => KuveytPosRequestDataMapper::class,
             PayForPos::class      => PayForPosRequestDataMapper::class,
             PosNet::class         => PosNetRequestDataMapper::class,
+            PayFlexCPV4Pos::class => PayFlexCPV4PosRequestDataMapper::class,
             VakifBankCPPos::class => VakifBankCPPosRequestDataMapper::class,
         ];
         if (isset($classMappings[$gatewayClass])) {
@@ -183,6 +187,7 @@ class PosFactory
             PayFlexV4Pos::class   => PayFlexV4PosResponseDataMapper::class,
             VakifBankPos::class   => VakifBankPosResponseDataMapper::class,
             VakifBankCPPos::class => VakifBankCPPosResponseDataMapper::class,
+            PayFlexCPV4Pos::class => PayFlexCPV4PosResponseDataMapper::class,
         ];
 
         if (isset($classMappings[$gatewayClass])) {
@@ -212,7 +217,8 @@ class PosFactory
             KuveytPos::class      => KuveytPosCrypt::class,
             PayForPos::class      => PayForPosCrypt::class,
             PosNet::class         => PosNetCrypt::class,
-            VakifBankCPPos::class => VakifBankCPCrypt::class,
+            VakifBankCPPos::class => PayFlexCPV4Crypt::class,
+            PayFlexCPV4Pos::class => PayFlexCPV4Crypt::class,
         ];
 
         if (isset($classMappings[$gatewayClass])) {

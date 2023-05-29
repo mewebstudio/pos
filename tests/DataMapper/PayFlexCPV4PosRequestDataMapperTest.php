@@ -5,38 +5,38 @@
 
 namespace Mews\Pos\Tests\DataMapper;
 
-use Mews\Pos\DataMapper\VakifBankCPPosRequestDataMapper;
+use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Account\VakifBankAccount;
+use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AbstractGateway;
-use Mews\Pos\Gateways\VakifBankCPPos;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 /**
- * VakifBankCPPosRequestDataMapperTest
+ * PayFlexCPV4PosRequestDataMapperTest
  */
-class VakifBankCPPosRequestDataMapperTest extends TestCase
+class PayFlexCPV4PosRequestDataMapperTest extends TestCase
 {
-    /** @var VakifBankAccount */
+    /** @var PayFlexAccount */
     public $account;
 
     /** @var AbstractGateway */
     private $pos;
 
-    /** @var VakifBankCPPosRequestDataMapper */
+    /** @var PayFlexCPV4PosRequestDataMapper */
     private $requestDataMapper;
-    
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->account = AccountFactory::createVakifBankAccount(
+        $this->account = AccountFactory::createPayFlexAccount(
             'vakifbank-cp',
             '000000000111111',
             '3XTgER89as',
@@ -46,9 +46,9 @@ class VakifBankCPPosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->account);
         $this->pos->setTestMode(true);
-        
-        $crypt                   = PosFactory::getGatewayCrypt(VakifBankCPPos::class, new NullLogger());
-        $this->requestDataMapper = new VakifBankCPPosRequestDataMapper($crypt);
+
+        $crypt                   = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
+        $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($crypt);
     }
 
     /**
@@ -56,7 +56,7 @@ class VakifBankCPPosRequestDataMapperTest extends TestCase
      */
     public function testAmountFormat()
     {
-        $this->assertEquals('1000.00', VakifBankCPPosRequestDataMapper::amountFormat(1000));
+        $this->assertEquals('1000.00', PayFlexCPV4PosRequestDataMapper::amountFormat(1000));
     }
 
     /**
@@ -101,7 +101,7 @@ class VakifBankCPPosRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_PAY, $card);
-        
+
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $pos->getOrder(), $txType, $card);
         $this->assertEquals($expectedData, $actual);
     }
@@ -125,7 +125,7 @@ class VakifBankCPPosRequestDataMapperTest extends TestCase
 
     public static function registerDataProvider(): iterable
     {
-        $account = AccountFactory::createVakifBankAccount(
+        $account = AccountFactory::createPayFlexAccount(
             'vakifbank-cp',
             '000000000111111',
             '3XTgER89as',
@@ -149,7 +149,7 @@ class VakifBankCPPosRequestDataMapperTest extends TestCase
 
         $pos = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
-        
+
         $card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
         yield 'with_card_1' => [

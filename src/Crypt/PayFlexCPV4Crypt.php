@@ -6,7 +6,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 
-class VakifBankCPCrypt extends AbstractCrypt
+class PayFlexCPV4Crypt extends AbstractCrypt
 {
     /**
      * todo "ErrorCode" => "5029"

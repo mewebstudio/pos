@@ -3,26 +3,26 @@
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
 use Generator;
-use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankCPPosResponseDataMapper;
-use Mews\Pos\DataMapper\VakifBankCPPosRequestDataMapper;
+use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\VakifBankCPPos;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 
-class VakifBankCPPosResponseDataMapperTest extends TestCase
+class PayFlexCPV4PosResponseDataMapperTest extends TestCase
 {
-    /** @var VakifBankCPPosResponseDataMapper */
+    /** @var PayFlexCPV4PosResponseDataMapper */
     private $responseDataMapper;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $crypt                    = PosFactory::getGatewayCrypt(VakifBankCPPos::class, new NullLogger());
-        $requestDataMapper        = new VakifBankCPPosRequestDataMapper($crypt);
-        $this->responseDataMapper = new VakifBankCPPosResponseDataMapper(
+        $crypt                    = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
+        $requestDataMapper        = new PayFlexCPV4PosRequestDataMapper($crypt);
+        $this->responseDataMapper = new PayFlexCPV4PosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
             new NullLogger()

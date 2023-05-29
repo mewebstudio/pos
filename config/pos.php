@@ -183,8 +183,8 @@ return [
             ],
         ],
         'vakifbank-cp' => [
-            'name'  => 'VakifBank-POS-Common-Payment',
-            'class' => Mews\Pos\Gateways\VakifBankCPPos::class,
+            'name'  => 'VakifBank-PayFlex-Common-Payment',
+            'class' => Mews\Pos\Gateways\PayFlexCPV4Pos::class,
             'urls'  => [
                 'production'    => 'https://cpweb.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
                 'test'          => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
