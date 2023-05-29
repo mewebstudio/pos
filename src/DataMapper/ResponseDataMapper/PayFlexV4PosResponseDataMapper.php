@@ -150,7 +150,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper implemen
             'order_status' => null,
             'transaction_type' => $this->mapTxType($txResultInfo['TransactionType']),
             'capture_amount' => $txResultInfo['CurrencyAmount'],
-            'currency'         => $this->mapCurrency($txResultInfo['CurrencyCode']),
+            'currency'         => $this->mapCurrency($txResultInfo['AmountCode']),
             'status' => self::PROCEDURE_SUCCESS_CODE === $orderProcCode ? self::TX_APPROVED : self::TX_DECLINED,
             'status_detail' => $txResultInfo['ResponseMessage'],
             'error_code' => self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['HostResultCode'] : null,
