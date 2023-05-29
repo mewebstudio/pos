@@ -10,8 +10,9 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 ### Deskteklenen Payment Gateway'ler / Bankalar:
 
-- **EST POS** (Asseco/Payten) Akbank, TEB, İşbank, Şekerbank, Halkbankın kullandığı alt yapı.
+- **EST POS** (Asseco/Payten)
 
+    Desktekleyen bankalar: Akbank, TEB, İşbank, Şekerbank, Halkbank ve Finansbank
     Desteklenen özellikler:
     - NonSecure, 3DSecure, 3DHost ve 3DPay ödeme
     - Ödeme İptal ve İade
@@ -19,7 +20,12 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
     - Tarihçe sorgulama
 
 
-- **PayFlex VPOS V4** Ziraat, Vakıfbank ve İşbankın kullandığı alt yapı.
+- **EST POS V3** EstPos altyapının daha güvenli (sha512) hash algoritmasıyla uygulaması.
+
+   Desktekleyen bankalar: Akbank, TEB, ~~İşbank,~~ Şekerbank, Halkbank ve Finansbank.
+
+
+- **PayFlex MPI VPOS V4** Ziraat, Vakıfbank ve İşbankın kullandığı alt yapı.
 
   Desteklenen özellikler:
     - NonSecure, 3DSecure ödeme
