@@ -137,9 +137,18 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper implemen
                 'all'              => $rawResponseData,
             ];
         }
-        
+
         $txResultInfo = $rawResponseData['TransactionSearchResultInfo']['TransactionSearchResultInfo'];
         $orderProcCode = $this->getProcReturnCode($txResultInfo);
+
+        $orderStatus = 'COMPLETED';
+        if ('true' === $txResultInfo['IsCanceled']) {
+            $orderStatus = 'CANCELED';
+        } elseif('true' === $txResultInfo['IsReversed']) {
+            $orderStatus = 'REVERSED';
+        } elseif('true' === $txResultInfo['IsRefunded']) {
+            $orderStatus = 'REFUNDED';
+        }
 
         return [
             'order_id' => $txResultInfo['OrderId'],
@@ -147,10 +156,10 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper implemen
             'proc_return_code' => $orderProcCode,
             'trans_id' => $txResultInfo['TransactionId'],
             'ref_ret_num' => $txResultInfo['Rrn'],
-            'order_status' => null,
+            'order_status' => $orderStatus,
             'transaction_type' => $this->mapTxType($txResultInfo['TransactionType']),
             'capture_amount' => $txResultInfo['CurrencyAmount'],
-            'currency'         => $this->mapCurrency($txResultInfo['CurrencyCode']),
+            'currency'         => $this->mapCurrency($txResultInfo['AmountCode']),
             'status' => self::PROCEDURE_SUCCESS_CODE === $orderProcCode ? self::TX_APPROVED : self::TX_DECLINED,
             'status_detail' => $txResultInfo['ResponseMessage'],
             'error_code' => self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['HostResultCode'] : null,
