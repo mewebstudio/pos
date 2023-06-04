@@ -326,16 +326,19 @@ Redirection yapmadan iframe üzerinden veya Popup window içinde ödeme akışı
 `/examples/` içinde 3D ödeme ile örnek PHP ve JS kodlar yer almaktadır.
 Özellikle şu alttaki dosyalarda:
 - [_redirect_iframe_or_popup_window_form.php](examples%2F_templates%2F_redirect_iframe_or_popup_window_form.php) -
-  bu dosyanin içerigi Popup Window'da veya iframe içinde yüklenir.
+  bu dosyanin içerigi Popup Window'da veya iframe içinde yüklenir
+  ve JS ile içindeki form bankanın 3D gatewayine gönderilermek üzere otomatik olarak submit edilir.
 - [form.php](examples%2F_common-codes%2F3d%2Fform.php) - kullanıcıdan
-   kredi kart bilgileri ve ödeme akiş tercihi (iframe, popup window) alındıktan sonra
+   kredi kart bilgileri ve ödeme akış tercihi (iframe, popup window) alındıktan sonra
    bu dosyada tercih edilen odeme akışa göre
   - redirekt yapılır
   - popup window açılır
   - bootstrap modal box içinde iframe açılır
-- [_payment_response.php](examples%2F_templates%2F_payment_response.php) - banktan dönüşde bu dosyadaki kodlar calışır.
-  JS ile current window'un iframe'de mı veya popup window'da mı oldugunu kontrol eder.
-  Popup window'da ve iframe'de ise parent window'a (yani `form.php`'ye)
+- [_payment_response.php](examples%2F_templates%2F_payment_response.php) -
+  banktan dönüşde bu dosyadaki kodlar çalışır. Eğer _iframe/popup window_
+  üzerinden ödeme yapılıyorsa bu dosyanın içeriği de *iframe/popup window*da çalışır ve
+  JS ile current window'un _iframe_'de mı veya _popup window_'da mı oldugunu kontrol eder.
+  Popup window'da ve iframe'de ise _parent_ window'a (yani `form.php`'ye)
   `postMessage` API ile banktan dönen cevabı gönderir.
   `form.php` postMessage API'dan gelen mesaji işler ve kullanıcıya gösterir.
 
