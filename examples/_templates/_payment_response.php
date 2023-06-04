@@ -132,4 +132,15 @@ $session->set('last_response', $response);
         </div>
     </div>
 
-<?php require __DIR__.'/_footer.php';
+<script>
+    if (window.opener && window.opener !== window) {
+        // you are in a popup
+        // send result data to parent window
+        window.opener.parent.postMessage(`<?= json_encode($response); ?>`);
+    } else if (window.parent) {
+        // you are in iframe
+        // send result data to parent window
+        window.parent.postMessage(`<?= json_encode($response); ?>`);
+    }
+</script>
+<?php require __DIR__.'/_footer.php'; ?>

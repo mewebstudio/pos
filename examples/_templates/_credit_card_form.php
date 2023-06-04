@@ -83,6 +83,11 @@
                     </label>
                 </div>
             </div>
+            <div class="form-group col-xs-12">
+                <label class="radio-inline"><input type="radio" name="payment_flow_type" value="by_redirection" checked>Redirektli ödeme</label>
+                <label class="radio-inline"><input type="radio" name="payment_flow_type" value="by_iframe">Modal box'da ödeme</label>
+                <label class="radio-inline"><input type="radio" name="payment_flow_type" value="by_popup_window">Popup Windowda ödeme</label>
+            </div>
         </div>
         <hr>
         <div class="form-group text-center">
