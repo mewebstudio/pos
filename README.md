@@ -85,7 +85,8 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - [Minimum Gereksinimler](#minimum-gereksinimler)
 - [Kurulum](#kurulum)
 - [Farklı Banka Sanal Poslarını Eklemek](#farkli-gatewayler-tek-islem-akisi)
-- [Örnek Kodlar](#ornek-kodlar)
+- [Ornek Kodlar](#ornek-kodlar)
+- [Popup Windowda veya Iframe icinde odeme yapma](#popup-windowda-veya-iframe-icinde-odeme-yapma)
 - [Troubleshoots](#troubleshoots)
 - [Genel Kültür](#genel-kultur)
 - [Docker ile test ortamı](#docker-ile-test-ortami)
@@ -308,7 +309,7 @@ $yeni_ayarlar = require './pos_ayarlar.php';
 $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeni_ayarlar);
 ```
 
-## Örnek Kodlar
+## Ornek Kodlar
 `/examples` dizini içerisinde.
 
 3D ödeme örnek kodlar genel olarak kart bilgilerini website sunucusuna POST eder (`index.php` => `form.php`),
@@ -320,6 +321,27 @@ Fakat,
 - birden fazla bank seçenegi olunca veya müşteri banka degiştirmek istediginde kart bilgi formunu ona göre güncellemeniz gerekecek.
 - üstelik YKB POSNet ve VakıfBank POS kart bilgilerini website sunucusu tarafından POST edilmesini gerektiriyor.
 
+### Popup Windowda veya Iframe icinde odeme yapma
+Redirection yapmadan iframe üzerinden veya Popup window içinde ödeme akışı
+`/examples/` içinde 3D ödeme ile örnek PHP ve JS kodlar yer almaktadır.
+Özellikle şu alttaki dosyalarda:
+- [_redirect_iframe_or_popup_window_form.php](examples%2F_templates%2F_redirect_iframe_or_popup_window_form.php) -
+  bu dosyanin içerigi Popup Window'da veya iframe içinde yüklenir.
+- [form.php](examples%2F_common-codes%2F3d%2Fform.php) - kullanıcıdan
+   kredi kart bilgileri ve ödeme akiş tercihi (iframe, popup window) alındıktan sonra
+   bu dosyada tercih edilen odeme akışa göre
+  - redirekt yapılır
+  - popup window açılır
+  - bootstrap modal box içinde iframe açılır
+- [_payment_response.php](examples%2F_templates%2F_payment_response.php) - banktan dönüşde bu dosyadaki kodlar calışır.
+  JS ile current window'un iframe'de mı veya popup window'da mı oldugunu kontrol eder.
+  Popup window'da ve iframe'de ise parent window'a (yani `form.php`'ye)
+  `postMessage` API ile banktan dönen cevabı gönderir.
+  `form.php` postMessage API'dan gelen mesaji işler ve kullanıcıya gösterir.
+
+#### Dikkkat edilmesi gerekenler
+- Popup window tarayci tarafindan engellenebilir bu yözden onun yerine
+  modal box içinde iframe kullanılması tavsiye edilir.
 
 ## Troubleshoots
 ### Session sıfırlanması
