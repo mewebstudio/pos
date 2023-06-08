@@ -21,7 +21,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
 
-class PayFlexCPv4PosTest extends TestCase
+class PayFlexCPV4PosTest extends TestCase
 {
     /** @var PayFlexAccount */
     private $account;
