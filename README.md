@@ -343,7 +343,7 @@ Redirection yapmadan iframe üzerinden veya Popup window içinde ödeme akışı
   `form.php` postMessage API'dan gelen mesaji işler ve kullanıcıya gösterir.
 
 #### Dikkkat edilmesi gerekenler
-- Popup window tarayci tarafindan engellenebilir bu yözden onun yerine
+- Popup window taraycı tarafından engellenebilir bu yüzden onun yerine
   modal box içinde iframe kullanılması tavsiye edilir.
 
 ## Troubleshoots
