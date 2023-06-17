@@ -120,6 +120,18 @@ return [
                 ],
             ],
         ],
+        'albaraka' => [
+            'name'  => 'Albaraka',
+            'class' => Mews\Pos\Gateways\PosNetV1Pos::class,
+            'urls'  => [
+                'production'    => 'https://epos.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
+                'test'          => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
+                'gateway'       => [
+                    'production'    => 'https://epos.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx',
+                    'test'          => 'https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx',
+                ],
+            ],
+        ],
         'garanti' => [
             'name'  => 'Garanti',
             'class' => Mews\Pos\Gateways\GarantiPos::class,

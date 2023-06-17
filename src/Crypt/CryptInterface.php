@@ -31,10 +31,10 @@ interface CryptInterface
     /**
      * create hash for non-3D actions
      *
-     * @param AbstractPosAccount      $account
-     * @param array<string, string>   $requestData
-     * @param string|null             $txType
-     * @param AbstractCreditCard|null $card
+     * @param AbstractPosAccount                          $account
+     * @param array<string, string|array<string, string>> $requestData
+     * @param string|null                                 $txType
+     * @param AbstractCreditCard|null                     $card
      *
      * @return string
      */
