@@ -10,7 +10,7 @@ if ($request->getMethod() !== 'POST') {
     exit();
 }
 $transaction = $request->get('tx', \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
-$order = getNewOrder(
+$order       = getNewOrder(
     $baseUrl,
     $ip,
     $request->get('currency', 'TRY'),
@@ -24,7 +24,8 @@ $session->set('order', $order);
 $card = createCard($pos, $request->request->all());
 
 /**
- * Vakifbank'ta provizyonu (odemeyi) tamamlamak icin tekrar kredi kart bilgileri isteniyor, bu yuzden kart bilgileri kaydediyoruz
+ * PayFlex'te provizyonu (odemeyi) tamamlamak icin tekrar kredi kart bilgileri isteniyor,
+ * bu yuzden kart bilgileri kaydediyoruz
  */
 $session->set('card', $request->request->all());
 
