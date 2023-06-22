@@ -6,7 +6,7 @@ namespace Mews\Pos\Gateways;
 
 use LogicException;
 use Mews\Pos\DataMapper\PosNetV1PosRequestDataMapper;
-use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -25,7 +25,7 @@ class PosNetV1Pos extends AbstractGateway
     protected $requestDataMapper;
 
 
-    /** @var PosNetResponseDataMapper */
+    /** @var PosNetV1PosResponseDataMapper */
     protected $responseDataMapper;
 
     /**
@@ -80,6 +80,7 @@ class PosNetV1Pos extends AbstractGateway
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $mdStatus]);
             $contents = $this->create3DPaymentXML($request->all());
             $provisionResponse = $this->send($contents);
+            $this->logger->log(LogLevel::DEBUG, 'send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
         }
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $provisionResponse);
@@ -123,23 +124,19 @@ class PosNetV1Pos extends AbstractGateway
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
-        if (is_string($contents)) {
-            $response = $this->client->post($url, [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                ],
-                'body'    => json_encode($contents),
-            ]);
-        } else {
-            $response = $this->client->post($url, ['form_params' => $contents]);
-        }
+        $response = $this->client->post($url, [
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+            'body'    => json_encode($contents),
+        ]);
 
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         try {
             $this->data = json_decode($response->getBody(), true);
         } catch (\Throwable $e) {
-            $this->logger->log(LogLevel::ERROR, ' parsing bank JSON response failed', [
+            $this->logger->log(LogLevel::ERROR, 'parsing bank JSON response failed', [
                 'status_code' => $response->getStatusCode(),
                 'response' => $response->getBody(),
                 'message' => $e->getMessage(),

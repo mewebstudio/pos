@@ -39,6 +39,17 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper implement
     ];
 
     /**
+     * "100001" => 1000.01
+     * @param string $amount
+     *
+     * @return float
+     */
+    public static function amountFormat(string $amount): float
+    {
+        return $amount / 100;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function mapPaymentResponse(array $rawPaymentResponseData): array
@@ -90,14 +101,16 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper implement
         $threeDResponse = [
             'order_id'             => $raw3DAuthResponseData['OrderId'] ?? null,
             'transaction_security' => $transactionSecurity,
+            'masked_number'        => $raw3DAuthResponseData['CCPrefix'], // Kredi Kartı Numarası ön eki: 450634
             'proc_return_code'     => null,
             'status'               => self::TX_DECLINED,
             'md_status'            => $mdStatus,
             'md_error_message'     => '1' !== $mdStatus ? $raw3DAuthResponseData['MdErrorMessage'] : null,
+            'amount'               => self::amountFormat($raw3DAuthResponseData['Amount']),
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
-        $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData);
+        $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData ?? []);
 
         return $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
     }
