@@ -34,7 +34,7 @@ class PosNetV1Pos extends AbstractGateway
     public function getApiURL(): string
     {
         if (null !== $this->type) {
-            return parent::getApiURL() . '/' . $this->responseDataMapper->mapTxType($this->type);
+            return parent::getApiURL() . '/' . $this->requestDataMapper->mapTxType($this->type);
         }
 
         return parent::getApiURL();
@@ -137,9 +137,9 @@ class PosNetV1Pos extends AbstractGateway
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         try {
-            $this->data = $this->XMLStringToArray($response->getBody());
+            $this->data = json_decode($response->getBody(), true);
         } catch (\Throwable $e) {
-            $this->logger->log(LogLevel::ERROR, ' parsing bank XML response failed', [
+            $this->logger->log(LogLevel::ERROR, ' parsing bank JSON response failed', [
                 'status_code' => $response->getStatusCode(),
                 'response' => $response->getBody(),
                 'message' => $e->getMessage(),
