@@ -946,6 +946,111 @@ parameters:
 			path: src/DataMapper/PosNetRequestDataMapper.php
 
 		-
+			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$transaction_type\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:create3DFormData\\(\\) has parameter \\$extraData with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:create3DFormData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$responseData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createCancelRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) has parameter \\$extraData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createNonSecurePostAuthPaymentRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createNonSecurePostAuthPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createRefundRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createRefundRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createStatusRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createStatusRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Parameter \\#1 \\$storeKey of method Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\:\\:hashFromParams\\(\\) expects string, string\\|null given\\.$#"
+			count: 5
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Parameter \\#2 \\$requestData of method Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\:\\:createHash\\(\\) expects array\\<string, string\\>, array\\<string, array\\<string, mixed\\>\\|int\\|string\\> given\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
 			message: "#^Argument of an invalid type array\\|object supplied for foreach, only iterables are supported\\.$#"
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/AbstractResponseDataMapper.php
@@ -2064,6 +2169,96 @@ parameters:
 			message: "#^Parameter \\#4 \\$card of method Mews\\\\Pos\\\\DataMapper\\\\PosNetRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) expects Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard, Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/PosNet.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:createRefundXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:createRegularPostXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:createStatusXML\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
+
+		-
+			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PosNetV1PosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
+			count: 1
+			path: src/Gateways/PosNetV1Pos.php
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\PosInterface\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"

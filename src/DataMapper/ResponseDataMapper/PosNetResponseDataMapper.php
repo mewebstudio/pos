@@ -235,7 +235,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
             'ref_ret_num'      => null,
             'group_id'         => null,
             'date'             => null,
-            'transaction_type'          => $transactionType,
+            'transaction_type' => $transactionType,
             'proc_return_code' => $procReturnCode,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),

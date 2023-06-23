@@ -29,12 +29,20 @@ class PosNetV1Pos extends AbstractGateway
     protected $responseDataMapper;
 
     /**
+     * @return PosNetAccount
+     */
+    public function getAccount()
+    {
+        return $this->account;
+    }
+
+    /**
      * @inheritDoc
      */
     public function getApiURL(): string
     {
         if (null !== $this->type) {
-            return parent::getApiURL() . '/' . $this->requestDataMapper->mapTxType($this->type);
+            return parent::getApiURL().'/'.$this->requestDataMapper->mapTxType($this->type);
         }
 
         return parent::getApiURL();
@@ -54,7 +62,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function make3DPayment(Request $request)
     {
-        $request = $request->request;
+        $request           = $request->request;
         $provisionResponse = null;
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
             throw new HashMismatchException();
@@ -78,7 +86,7 @@ class PosNetV1Pos extends AbstractGateway
             $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $mdStatus]);
         } else {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $mdStatus]);
-            $contents = $this->create3DPaymentXML($request->all());
+            $contents          = $this->create3DPaymentXML($request->all());
             $provisionResponse = $this->send($contents);
             $this->logger->log(LogLevel::DEBUG, 'send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
         }
@@ -104,7 +112,7 @@ class PosNetV1Pos extends AbstractGateway
     {
         if (null === $this->order) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
-                'order' => $this->order,
+                'order'         => $this->order,
                 'card_provided' => (bool) $this->card,
             ]);
 
@@ -124,36 +132,33 @@ class PosNetV1Pos extends AbstractGateway
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
+        $body = json_encode($contents);
+        if (false === $body) {
+            throw new \DomainException('Invalid data provided');
+        }
+
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/json',
             ],
-            'body'    => json_encode($contents),
+            'body'    => $body,
         ]);
 
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         try {
             $this->data = json_decode($response->getBody(), true);
-        } catch (\Throwable $e) {
+        } catch (\Throwable $throwable) {
             $this->logger->log(LogLevel::ERROR, 'parsing bank JSON response failed', [
                 'status_code' => $response->getStatusCode(),
-                'response' => $response->getBody(),
-                'message' => $e->getMessage(),
+                'response'    => $response->getBody(),
+                'message'     => $throwable->getMessage(),
             ]);
 
-            throw $e;
+            throw $throwable;
         }
 
         return $this->data;
-    }
-
-    /**
-     * @return PosNetAccount
-     */
-    public function getAccount()
-    {
-        return $this->account;
     }
 
     /**
@@ -161,9 +166,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function createRegularPaymentXML()
     {
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
-
-        return $this->createXML($requestData);
+        return $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
     }
 
     /**
@@ -171,9 +174,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function createRegularPostXML()
     {
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
-
-        return $this->createXML($requestData);
+        return $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
     }
 
     /**
@@ -198,9 +199,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
-
-        return $this->createXML($requestData);
+        return $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
     }
 
     /**
@@ -208,9 +207,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function createCancelXML()
     {
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
-
-        return $this->createXML($requestData);
+        return $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
     }
 
     /**
@@ -218,9 +215,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function createRefundXML()
     {
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
-
-        return $this->createXML($requestData);
+        return $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
     }
 
     /**
@@ -242,10 +237,10 @@ class PosNetV1Pos extends AbstractGateway
     protected function preparePostPaymentOrder(array $order)
     {
         return (object) [
-            'id'           => $order['id'],
-            'amount'       => $order['amount'],
-            'installment'  => $order['installment'] ?? 0,
-            'currency'     => $order['currency'] ?? 'TRY',
+            'id'          => $order['id'],
+            'amount'      => $order['amount'],
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
             'ref_ret_num' => $order['ref_ret_num'],
         ];
     }
@@ -275,10 +270,9 @@ class PosNetV1Pos extends AbstractGateway
     {
         return (object) [
             //id or ref_ret_num
-            'id'           => $order['id'] ?? null,
-            'ref_ret_num' => $order['ref_ret_num'] ?? null,
-            //optional
-            'auth_code'    => $order['auth_code'] ?? null,
+            'id'               => $order['id'] ?? null,
+            'ref_ret_num'      => $order['ref_ret_num'] ?? null,
+            'transaction_type' => $order['transaction_type'] ?? AbstractGateway::TX_PAY,
         ];
     }
 
@@ -289,10 +283,11 @@ class PosNetV1Pos extends AbstractGateway
     {
         return (object) [
             //id or ref_ret_num
-            'id'           => $order['id'] ?? null,
-            'ref_ret_num' => $order['ref_ret_num'] ?? null,
-            'amount'       => $order['amount'],
-            'currency'     => $order['currency'] ?? 'TRY',
+            'id'               => $order['id'] ?? null,
+            'ref_ret_num'      => $order['ref_ret_num'] ?? null,
+            'transaction_type' => $order['transaction_type'] ?? AbstractGateway::TX_PAY,
+            'amount'           => $order['amount'],
+            'currency'         => $order['currency'] ?? 'TRY',
         ];
     }
 }

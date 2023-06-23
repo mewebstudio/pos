@@ -40,10 +40,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     protected $txTypeMappings = [
         AbstractGateway::TX_PAY      => 'Sale',
         AbstractGateway::TX_PRE_PAY  => 'Auth',
-        AbstractGateway::TX_POST_PAY => 'Capt',
-        AbstractGateway::TX_CANCEL   => 'reverse',
-        AbstractGateway::TX_REFUND   => 'return',
-        AbstractGateway::TX_STATUS   => 'agreement',
+        AbstractGateway::TX_POST_PAY => 'Capture',
+        AbstractGateway::TX_CANCEL   => 'Reverse',
+        AbstractGateway::TX_REFUND   => 'Return',
+        AbstractGateway::TX_STATUS   => 'TransactionInquiry',
     ];
 
     /**
@@ -66,28 +66,33 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
     {
         $requestData = [
-            'ApiType' => 'JSON',
-            'ApiVersion' => self::API_VERSION,
-            'MerchantNo' => $account->getClientId(),
-            'TerminalNo' => $account->getTerminalId(),
+            'ApiType'               => 'JSON',
+            'ApiVersion'            => self::API_VERSION,
+            'MerchantNo'            => $account->getClientId(),
+            'TerminalNo'            => $account->getTerminalId(),
             'PaymentInstrumentType' => 'CARD',
-            'IsEncrypted' => 'N',
-            'IsTDSecureMerchant' => 'Y',
-            'IsMailOrder' => 'N',
-            'ThreeDSecureData' => [
+            'IsEncrypted'           => 'N',
+            'IsTDSecureMerchant'    => 'Y',
+            'IsMailOrder'           => 'N',
+            'ThreeDSecureData'      => [
                 'SecureTransactionId' => $responseData['SecureTransactionId'],
-                'CavvData' => $responseData['CAVV'],
-                'Eci' => $responseData['ECI'],
-                'MdStatus' => (int) $responseData['MdStatus'],
-                'MD' => $responseData['MD'],
+                'CavvData'            => $responseData['CAVV'],
+                'Eci'                 => $responseData['ECI'],
+                'MdStatus'            => (int) $responseData['MdStatus'],
+                'MD'                  => $responseData['MD'],
             ],
-            'MACParams' => 'MerchantNo:TerminalNo:SecureTransactionId:CavvData:Eci:MdStatus',
-            'Amount' => self::amountFormat($order->amount),
-            'CurrencyCode' => self::mapCurrency($order->currency),
-            'PointAmount' => 0,
-            'OrderId' => self::formatOrderId($order->id),
-            'InstallmentCount' => $this->mapInstallment($order->installment),
+            'MACParams'             => 'MerchantNo:TerminalNo:SecureTransactionId:CavvData:Eci:MdStatus',
+            'Amount'                => self::amountFormat($order->amount),
+            'CurrencyCode'          => self::mapCurrency($order->currency),
+            'PointAmount'           => 0,
+            'OrderId'               => self::formatOrderId($order->id),
+            'InstallmentCount'      => $this->mapInstallment($order->installment),
+            'InstallmentType'       => 'N',
         ];
+
+        if ($order->installment > 1) {
+            $requestData['InstallmentType'] = 'Y';
+        }
 
         $requestData['MAC'] = $this->crypt->createHash($account, $requestData);
 
@@ -101,23 +106,49 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
     {
+        if (null === $card) {
+            throw new \LogicException('Eksik kart bilgileri!');
+        }
         $requestData = [
-            'mid'                                 => $account->getClientId(),
-            'tid'                                 => $account->getTerminalId(),
-            'tranDateRequired'                    => '1',
-            strtolower($this->mapTxType($txType)) => [
-                'orderID'      => self::formatOrderId($order->id),
-                'installment'  => $this->mapInstallment($order->installment),
-                'amount'       => self::amountFormat($order->amount),
-                'currencyCode' => $this->mapCurrency($order->currency),
-                'ccno'         => $card->getNumber(),
-                'expDate'      => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-                'cvc'          => $card->getCvv(),
+            'ApiType'                => 'JSON',
+            'ApiVersion'             => self::API_VERSION,
+            'MACParams'              => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount',
+            'MerchantNo'             => $account->getClientId(),
+            'TerminalNo'             => $account->getTerminalId(),
+            'CipheredData'           => null,
+            'DealerData'             => null,
+            'IsEncrypted'            => null,
+            'PaymentFacilitatorData' => null,
+            'AdditionalInfoData'     => null,
+            'CardInformationData'    => [
+                'CardNo'         => $card->getNumber(),
+                'ExpireDate'     => $card->getExpirationDate(),
+                'Cvc2'           => $card->getCvv(),
+                'CardHolderName' => $card->getHolderName(),
             ],
+            'IsMailOrder'            => 'N',
+            'IsRecurring'            => null,
+            'IsTDSecureMerchant'     => null,
+            'PaymentInstrumentType'  => 'CARD',
+            'ThreeDSecureData'       => null,
+            'Amount'                 => self::amountFormat($order->amount),
+            'CurrencyCode'           => $this->mapCurrency($order->currency),
+            'OrderId'                => self::formatOrderId($order->id),
+            'InstallmentCount'       => $this->mapInstallment($order->installment),
+            'InstallmentType'        => 'N',
+            'KOICode'                => null,
+            'MerchantMessageData'    => null,
+            'PointAmount'            => null,
         ];
 
+        if ($order->installment > 1) {
+            $requestData['InstallmentType'] = 'Y';
+        }
+
+        $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
+
         if (isset($order->koiCode) && $order->koiCode > 0) {
-            $requestData[strtolower($this->mapTxType($txType))]['koiCode'] = $order->koiCode;
+            $requestData['KOICode'] = $order->koiCode;
         }
 
         return $requestData;
@@ -130,17 +161,30 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
     {
-        return [
-            'mid'                                                      => $account->getClientId(),
-            'tid'                                                      => $account->getTerminalId(),
-            'tranDateRequired'                                         => '1',
-            strtolower($this->mapTxType(AbstractGateway::TX_POST_PAY)) => [
-                'hostLogKey'   => $order->ref_ret_num,
-                'amount'       => self::amountFormat($order->amount),
-                'currencyCode' => $this->mapCurrency($order->currency),
-                'installment'  => $this->mapInstallment($order->installment),
-            ],
+        $requestData = [
+            'ApiType'                => 'JSON',
+            'ApiVersion'             => self::API_VERSION,
+            'MACParams'              => 'MerchantNo:TerminalNo',
+            'MerchantNo'             => $account->getClientId(),
+            'TerminalNo'             => $account->getTerminalId(),
+            'CipheredData'           => null,
+            'DealerData'             => null,
+            'IsEncrypted'            => null,
+            'PaymentFacilitatorData' => null,
+            'Amount'                 => self::amountFormat($order->amount),
+            'CurrencyCode'           => $this->mapCurrency($order->currency),
+            'ReferenceCode'          => $order->ref_ret_num,
+            'InstallmentCount'       => $this->mapInstallment($order->installment),
+            'InstallmentType'        => 'N',
         ];
+
+        if ($order->installment > 1) {
+            $requestData['InstallmentType'] = 'Y';
+        }
+
+        $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
+
+        return $requestData;
     }
 
     /**
@@ -150,15 +194,22 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
-        $txType = $this->mapTxType(AbstractGateway::TX_STATUS);
-
-        return [
-            'mid'   => $account->getClientId(),
-            'tid'   => $account->getTerminalId(),
-            $txType => [
-                'orderID' => self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel()),
-            ],
+        $requestData = [
+            'ApiType'                => 'JSON',
+            'ApiVersion'             => self::API_VERSION,
+            'MerchantNo'             => $account->getClientId(),
+            'TerminalNo'             => $account->getTerminalId(),
+            'MACParams'              => 'MerchantNo:TerminalNo',
+            'CipheredData'           => null,
+            'DealerData'             => null,
+            'IsEncrypted'            => 'N',
+            'PaymentFacilitatorData' => null,
+            'OrderId'                => self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel()),
         ];
+
+        $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
+
+        return $requestData;
     }
 
     /**
@@ -168,26 +219,28 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
-        $txType      = $this->mapTxType(AbstractGateway::TX_CANCEL);
         $requestData = [
-            'mid'              => $account->getClientId(),
-            'tid'              => $account->getTerminalId(),
-            'tranDateRequired' => '1',
-            $txType            => [
-                'transaction' => 'sale',
-            ],
+            'ApiType'                => 'JSON',
+            'ApiVersion'             => self::API_VERSION,
+            'MerchantNo'             => $account->getClientId(),
+            'TerminalNo'             => $account->getTerminalId(),
+            'MACParams'              => 'MerchantNo:TerminalNo:ReferenceCode:OrderId',
+            'CipheredData'           => null,
+            'DealerData'             => null,
+            'IsEncrypted'            => null,
+            'PaymentFacilitatorData' => null,
+            'ReferenceCode'          => null,
+            'OrderId'                => null,
+            'TransactionType'        => $this->mapTxType($order->transaction_type),
         ];
 
-        if (isset($order->auth_code)) {
-            $requestData[$txType]['authCode'] = $order->auth_code;
+        if (isset($order->ref_ret_num)) {
+            $requestData['ReferenceCode'] = $order->ref_ret_num;
+        } else {
+            $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
         }
 
-        //either will work
-        if (isset($order->ref_ret_num)) {
-            $requestData[$txType]['hostLogKey'] = $order->ref_ret_num;
-        } else {
-            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
-        }
+        $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
     }
@@ -199,22 +252,33 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
-        $txType      = $this->mapTxType(AbstractGateway::TX_REFUND);
         $requestData = [
-            'mid'              => $account->getClientId(),
-            'tid'              => $account->getTerminalId(),
-            'tranDateRequired' => '1',
-            $txType            => [
-                'amount'       => self::amountFormat($order->amount),
-                'currencyCode' => $this->mapCurrency($order->currency),
-            ],
+            'ApiType'                => 'JSON',
+            'ApiVersion'             => self::API_VERSION,
+            'MerchantNo'             => $account->getClientId(),
+            'TerminalNo'             => $account->getTerminalId(),
+            'MACParams'              => 'MerchantNo:TerminalNo:ReferenceCode:OrderId',
+            'CipheredData'           => null,
+            'DealerData'             => null,
+            'IsEncrypted'            => null,
+            'PaymentFacilitatorData' => null,
+            'ReferenceCode'          => null,
+            'OrderId'                => null,
+            'TransactionType'        => $this->mapTxType($order->transaction_type),
         ];
 
         if (isset($order->ref_ret_num)) {
-            $requestData[$txType]['hostLogKey'] = $order->ref_ret_num;
+            $requestData['ReferenceCode'] = $order->ref_ret_num;
         } else {
-            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
+            $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
         }
+
+        if ($account->getModel() === AbstractGateway::MODEL_NON_SECURE) {
+            $requestData['Amount']       = self::amountFormat($order->amount);
+            $requestData['CurrencyCode'] = $this->mapCurrency($order->currency);
+        }
+
+        $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
     }
@@ -244,24 +308,26 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'PosnetID'          => $account->getPosNetId(),
             'TransactionType'   => $this->mapTxType($txType),
             'OrderId'           => self::formatOrderId($order->id),
-            'Amount'            => self::amountFormat($order->amount),
+            'Amount'            => (string) self::amountFormat($order->amount),
             'CurrencyCode'      => $this->mapCurrency($order->currency),
-            'MerchantReturnURL' => $order->success_url,
+            'MerchantReturnURL' => (string) $order->success_url,
             'InstallmentCount'  => $this->mapInstallment($order->installment),
             'Language'          => $this->getLang($account, $order),
             'TxnState'          => 'INITIAL',
-            'OpenNewWindow'     => 0,
+            'OpenNewWindow'     => '0',
         ];
 
         if ($card instanceof AbstractCreditCard) {
             $cardData = [
                 'CardNo'         => $card->getNumber(),
+                // Kod calisiyor ancak burda bir tutarsizlik var: ExpireDate vs ExpiredDate
+                // MacParams icinde ExpireDate olarak geciyor, gonderidigimizde ise ExpiredDate olarak istiyor.
                 'ExpiredDate'    => $card->getExpirationDate(),
                 'Cvv'            => $card->getCvv(),
-                'CardHolderName' => $card->getHolderName(),
+                'CardHolderName' => (string) $card->getHolderName(),
 
                 'MacParams' => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount',
-                'UseOOS'    => 0,
+                'UseOOS'    => '0',
             ];
         } else {
             $cardData = [
@@ -269,7 +335,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
                  * UseOOS alanını 1 yaparak bankanın ortak ödeme sayfasının açılmasını ve
                  * bu ortak ödeme sayfası ile müşterinin kart bilgilerini girmesini sağlatabilir.
                  */
-                'UseOOS' => 1,
+                'UseOOS' => '1',
             ];
         }
         $inputs += $cardData;
@@ -279,7 +345,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         if (isset($order->koiCode) && $order->koiCode > 0) {
             $inputs['UseJokerVadaa'] = '1';
-            $inputs['KOICode']       = $order->koiCode;
+            $inputs['KOICode']       = (string) $order->koiCode;
         }
 
         return [
@@ -354,6 +420,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * formats installment
+     * @return numeric-string
      */
     public function mapInstallment(?int $installment): string
     {

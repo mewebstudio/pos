@@ -46,7 +46,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper implement
      */
     public static function amountFormat(string $amount): float
     {
-        return $amount / 100;
+        return ((int) $amount) / 100;
     }
 
     /**
@@ -146,46 +146,24 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper implement
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $status          = self::TX_DECLINED;
-        $errorCode       = $rawResponseData['respCode'] ?? null;
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $rawResponseData && !$errorCode) {
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
 
-        $state           = $rawResponseData['state'] ?? null;
-        $transactionType = null;
-        if (null !== $state) {
-            $transactionType = $this->mapTxType($state);
-        }
-
-        $results = [
+        return [
             'auth_code'        => null,
             'trans_id'         => null,
             'ref_ret_num'      => null,
             'group_id'         => null,
-            'date'             => null,
-            'transaction_type' => $transactionType,
+            'transaction_type' => null,
             'proc_return_code' => $procReturnCode,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => $errorCode,
-            'error_message'    => $rawResponseData['respText'] ?? null,
+            'error_code'       => self::TX_APPROVED !== $status ? $procReturnCode : null,
+            'error_message'    => self::TX_APPROVED !== $status ? $rawResponseData['ServiceResponseData']['ResponseDescription'] : null,
             'all'              => $rawResponseData,
         ];
-
-        /** @var array<string, string>|null $transactionDetails */
-        $transactionDetails = $rawResponseData['transaction'] ?? null;
-        $txResults          = [];
-        if (null !== $transactionDetails) {
-            $txResults = [
-                'auth_code'   => $transactionDetails['authCode'] ?? null,
-                'trans_id'    => null,
-                'ref_ret_num' => $transactionDetails['hostlogkey'] ?? null,
-                'date'        => $transactionDetails['tranDate'] ?? null,
-            ];
-        }
-
-        return array_merge($results, $txResults);
     }
 
     /**
@@ -195,51 +173,25 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper implement
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $status          = self::TX_DECLINED;
-        $errorCode       = $rawResponseData['respCode'] ?? null;
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
 
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && isset($rawResponseData['transactions']) && !$errorCode) {
+        if ('0000' === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
 
-        $state     = null;
-        $txResults = [];
-
-        if (isset($rawResponseData['transactions']['transaction'])) {
-            $transactionDetails = $rawResponseData['transactions']['transaction'];
-
-            $state    = $transactionDetails['state'] ?? null;
-            $authCode = $transactionDetails['authCode'] ?? null;
-
-            $txResults = [
-                'auth_code'   => $authCode,
-                'trans_id'    => null,
-                'ref_ret_num' => $transactionDetails['hostlogkey'] ?? null,
-                'date'        => $transactionDetails['tranDate'] ?? null,
-            ];
-        }
-
-        $transactionType = null;
-        if (null !== $state) {
-            $transactionType = $this->mapTxType($state);
-        }
-
-        $results = [
+        return [
             'auth_code'        => null,
             'trans_id'         => null,
             'ref_ret_num'      => null,
             'group_id'         => null,
             'date'             => null,
-            'transaction_type' => $transactionType,
             'proc_return_code' => $procReturnCode,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => $errorCode,
-            'error_message'    => $rawResponseData['respText'] ?? null,
+            'error_code'       => self::TX_APPROVED === $status ? null : $procReturnCode,
+            'error_message'    => self::TX_APPROVED === $status ? null : $rawResponseData['ServiceResponseData']['ResponseDescription'],
             'all'              => $rawResponseData,
         ];
-
-        return array_merge($results, $txResults);
     }
 
     /**
@@ -247,75 +199,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper implement
      */
     public function mapHistoryResponse(array $rawResponseData): array
     {
-        $status          = self::TX_DECLINED;
-        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
-        $errorCode       = $rawResponseData['respCode'] ?? null;
-        $procReturnCode  = $this->getProcReturnCode($rawResponseData);
-
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && isset($rawResponseData['transactions']) && !$errorCode) {
-            $status = self::TX_APPROVED;
-        }
-
-        $state     = null;
-        $txResults = [];
-        $refunds   = [];
-        if (isset($rawResponseData['transactions']['transaction'])) {
-            $transactionDetails = $rawResponseData['transactions']['transaction'];
-
-            $state    = $transactionDetails['state'] ?? null;
-            $authCode = $transactionDetails['authCode'] ?? null;
-
-            if (is_array($transactionDetails)) {
-                if ($transactionDetails !== []) {
-                    $state    = $transactionDetails[0]['state'];
-                    $authCode = $transactionDetails[0]['authCode'];
-                }
-
-                if (count($transactionDetails) > 1) {
-                    foreach ($transactionDetails as $key => $_transaction) {
-                        if ($key > 0) {
-                            $currency  = $this->mapCurrency($_transaction['currencyCode']);
-                            $refunds[] = [
-                                'amount'    => (float) $_transaction['amount'],
-                                'currency'  => $currency,
-                                'auth_code' => $_transaction['authCode'],
-                                'date'      => $_transaction['tranDate'],
-                            ];
-                        }
-                    }
-                }
-            }
-
-            $txResults = [
-                'auth_code'   => $authCode,
-                'trans_id'    => null,
-                'ref_ret_num' => $transactionDetails['hostlogkey'] ?? null,
-                'date'        => $transactionDetails['tranDate'] ?? null,
-            ];
-        }
-
-        $transactionType = null;
-        if (null !== $state) {
-            $transactionType = $this->mapTxType($state);
-        }
-
-        $results = [
-            'auth_code'        => null,
-            'trans_id'         => null,
-            'ref_ret_num'      => null,
-            'group_id'         => null,
-            'date'             => null,
-            'transaction_type' => $transactionType,
-            'proc_return_code' => $procReturnCode,
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => $errorCode,
-            'error_message'    => $rawResponseData['respText'] ?? null,
-            'refunds'          => $refunds,
-            'all'              => $rawResponseData,
-        ];
-
-        return array_merge($results, $txResults);
+        return $this->emptyStringsToNull($rawResponseData);
     }
 
     /**
