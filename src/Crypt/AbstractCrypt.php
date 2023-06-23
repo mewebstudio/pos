@@ -3,6 +3,8 @@
 namespace Mews\Pos\Crypt;
 
 use Psr\Log\LoggerInterface;
+use RecursiveArrayIterator;
+use RecursiveIteratorIterator;
 
 abstract class AbstractCrypt implements CryptInterface
 {
@@ -23,5 +25,48 @@ abstract class AbstractCrypt implements CryptInterface
     protected function hashString(string $str): string
     {
         return base64_encode(hash(static::HASH_ALGORITHM, $str, true));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function hashFromParams(string $storeKey, array $data, string $hashParamsKey, string $paramSeparator = ':'): string
+    {
+        $hashParams = $this->recursiveFind($data, $hashParamsKey); //ex: MerchantNo:TerminalNo:ReferenceCode:OrderId
+        $hashParamsArr = explode($paramSeparator, $hashParams);
+        if (false === $hashParamsArr) {
+            return '';
+        }
+
+        $paramsVal = '';
+        foreach ($hashParamsArr as $paramKey) {
+            $paramsVal .= $this->recursiveFind($data, $paramKey);
+        }
+
+        $hashVal = $paramsVal.$storeKey;
+
+        return $this->hashString($hashVal);
+    }
+
+    /**
+     * @param array<string, mixed> $haystack (multidimensional) array
+     * @param string $needle key name that will be searched in the (multidimensional) array
+     *
+     * @return string the value of the $needle in the (multidimensional) array
+     */
+    private function recursiveFind(array $haystack, string $needle): string
+    {
+        $iterator  = new RecursiveArrayIterator($haystack);
+        $recursive = new RecursiveIteratorIterator(
+            $iterator,
+            RecursiveIteratorIterator::SELF_FIRST
+        );
+        foreach ($recursive as $key => $value) {
+            if ($key === $needle) {
+                return (string) $value;
+            }
+        }
+
+        return '';
     }
 }
