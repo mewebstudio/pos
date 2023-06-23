@@ -35,6 +35,7 @@
                 <li> <a href="<?= $hostUrl ?>/payflex-mpi-v4/index.php">PayFlex MPI V4 (VakifBank VPOS 7/24)</a></li>
                 <li> <a href="<?= $hostUrl ?>/payflex-cp-v4/index.php">PayFlex Common Payment V4 (VakifBank)</a></li>
                 <li> <a href="<?= $hostUrl ?>/ykb/index.php">PosNet (YKB)</a></li>
+                <li> <a href="<?= $hostUrl ?>/posnet-v1/index.php">PosNetV1 (Albaraka)</a></li>
                 <li> <a href="<?= $hostUrl ?>/kuveytpos/index.php">KuveytPOS</a></li>
             </ul>
         </nav>

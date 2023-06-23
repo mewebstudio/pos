@@ -28,6 +28,7 @@ $card = createCard($pos, $request->request->all());
  * bu yuzden kart bilgileri kaydediyoruz
  */
 $session->set('card', $request->request->all());
+$session->set('tx', $transaction);
 
 $pos->prepare($order, $transaction, $card);
 
