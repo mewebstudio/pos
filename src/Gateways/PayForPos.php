@@ -48,7 +48,7 @@ class PayForPos extends AbstractGateway
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
             throw new HashMismatchException();
         }
-        
+
         //if customer 3d verification passed finish payment
         if ('1' === $request->get('3DStatus')) {
             //valid ProcReturnCode is V033 in case of success 3D Authentication
@@ -123,14 +123,14 @@ class PayForPos extends AbstractGateway
 
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
-        
+
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         $gatewayURL = $this->get3DGatewayURL();
         if (self::MODEL_3D_HOST === $this->account->getModel()) {
             $gatewayURL = $this->get3DHostGatewayURL();
         }
-        
+
         if (null === $gatewayURL) {
             throw new LogicException('Gateway URL\' bulunamadı!');
         }
