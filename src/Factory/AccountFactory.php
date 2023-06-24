@@ -8,6 +8,7 @@ use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
+use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Account\VakifBankAccount;
@@ -123,23 +124,47 @@ class AccountFactory
     }
 
     /**
-     * @param string                            $bank
-     * @param string                            $merchantId Üye işyeri numarası
-     * @param string                            $password   Üye işyeri şifres
-     * @param string                            $terminalNo İşlemin hangi terminal üzerinden gönderileceği bilgisi. VB007000...
-     * @param string                            $model
-     * @param VakifBankAccount::MERCHANT_TYPE_* $merchantType
-     * @param null                              $subMerchantId
+     * @param string                          $bank
+     * @param string                          $merchantId Üye işyeri numarası
+     * @param string                          $password   Üye işyeri şifres
+     * @param string                          $terminalNo İşlemin hangi terminal üzerinden gönderileceği bilgisi.
+     *                                                    VB007000...
+     * @param string                          $model
+     * @param PayFlexAccount::MERCHANT_TYPE_* $merchantType
+     * @param null                            $subMerchantId
      *
      * @return VakifBankAccount
      *
      * @throws MissingAccountInfoException
+     * @deprecated use createPayFlexAccount() instead
+     *
      */
-    public static function createVakifBankAccount(string $bank, string $merchantId, string $password, string $terminalNo, string $model = AbstractGateway::MODEL_NON_SECURE, int $merchantType = VakifBankAccount::MERCHANT_TYPE_STANDARD, $subMerchantId = null): VakifBankAccount
+    public static function createVakifBankAccount(string $bank, string $merchantId, string $password, string $terminalNo, string $model = AbstractGateway::MODEL_NON_SECURE, int $merchantType = PayFlexAccount::MERCHANT_TYPE_STANDARD, $subMerchantId = null): VakifBankAccount
     {
-        self::checkVakifBankMerchantType($merchantType, $subMerchantId);
+        self::checkPayFlexBankMerchantType($merchantType, $subMerchantId);
 
         return new VakifBankAccount($bank, $model, $merchantId, $password, $terminalNo, $merchantType, $subMerchantId);
+    }
+
+    /**
+     * @param string                          $bank
+     * @param string                          $merchantId Üye işyeri numarası
+     * @param string                          $password   Üye işyeri şifres
+     * @param string                          $terminalNo İşlemin hangi terminal üzerinden gönderileceği bilgisi.
+     *                                                    VB007000...
+     * @param string                          $model
+     * @param PayFlexAccount::MERCHANT_TYPE_* $merchantType
+     * @param null                            $subMerchantId
+     *
+     * @return PayFlexAccount
+     *
+     * @throws MissingAccountInfoException
+     */
+    public static function createPayFlexAccount(string $bank, string $merchantId, string $password, string $terminalNo, string $model = AbstractGateway::MODEL_NON_SECURE, int $merchantType = PayFlexAccount::MERCHANT_TYPE_STANDARD, $subMerchantId = null): PayFlexAccount
+    {
+        self::checkPayFlexBankMerchantType($merchantType, $subMerchantId);
+
+        return new PayFlexAccount($bank, $model, $merchantId, $password, $terminalNo, $merchantType, $subMerchantId);
     }
 
     /**
@@ -175,11 +200,11 @@ class AccountFactory
         if (AbstractGateway::MODEL_NON_SECURE === $model) {
             return;
         }
-        
+
         if (null !== $storeKey) {
             return;
         }
-        
+
         throw new MissingAccountInfoException(sprintf('%s requires storeKey!', $model));
     }
 
@@ -191,13 +216,13 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    private static function checkVakifBankMerchantType(int $merchantType, ?string $subMerchantId)
+    private static function checkPayFlexBankMerchantType(int $merchantType, ?string $subMerchantId)
     {
-        if (VakifBankAccount::MERCHANT_TYPE_SUB_DEALER === $merchantType && empty($subMerchantId)) {
+        if (PayFlexAccount::MERCHANT_TYPE_SUB_DEALER === $merchantType && empty($subMerchantId)) {
             throw new MissingAccountInfoException('SubMerchantId is required for sub branches!');
         }
-        
-        if (!in_array($merchantType, VakifBankAccount::getMerchantTypes())) {
+
+        if (!in_array($merchantType, PayFlexAccount::getMerchantTypes())) {
             throw new MissingAccountInfoException('Invalid MerchantType!');
         }
     }

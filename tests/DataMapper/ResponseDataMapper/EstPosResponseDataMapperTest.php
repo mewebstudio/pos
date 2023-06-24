@@ -565,7 +565,7 @@ class EstPosResponseDataMapperTest extends TestCase
     }
 
 
-    public function threeDPayPaymentDataProvider(): array
+    public static function threeDPayPaymentDataProvider(): array
     {
         return [
             'success1'  => [
@@ -720,7 +720,7 @@ class EstPosResponseDataMapperTest extends TestCase
     }
 
 
-    public function threeDHostPaymentDataProvider(): array
+    public static function threeDHostPaymentDataProvider(): array
     {
         return [
             'success1' => [
@@ -897,7 +897,7 @@ class EstPosResponseDataMapperTest extends TestCase
     }
 
 
-    public function statusTestDataProvider(): array
+    public static function statusTestDataProvider(): array
     {
         return
             [
@@ -1060,7 +1060,7 @@ class EstPosResponseDataMapperTest extends TestCase
             ];
     }
 
-    public function cancelTestDataProvider(): array
+    public static function cancelTestDataProvider(): array
     {
         return
             [
@@ -1148,7 +1148,7 @@ class EstPosResponseDataMapperTest extends TestCase
             ];
     }
 
-    public function refundTestDataProvider(): array
+    public static function refundTestDataProvider(): array
     {
         return
             [
@@ -1186,7 +1186,7 @@ class EstPosResponseDataMapperTest extends TestCase
             ];
     }
 
-    public function historyTestDataProvider(): array
+    public static function historyTestDataProvider(): array
     {
         return
             [

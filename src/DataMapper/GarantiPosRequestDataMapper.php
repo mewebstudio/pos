@@ -21,10 +21,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
-    
+
     /** @var string */
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
-    
+
     /** @var string */
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
 

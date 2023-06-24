@@ -15,10 +15,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'm/y';
-    
+
     /** @var string */
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
-    
+
     /** @var string */
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
 
@@ -214,6 +214,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     * @return array{OrderId: string, Extra: array<string, string>&mixed[], Name: string, Password: string, ClientId: string}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
     {

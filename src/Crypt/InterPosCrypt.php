@@ -36,18 +36,7 @@ class InterPosCrypt extends AbstractCrypt
      */
     public function check3DHash(AbstractPosAccount $account, array $data): bool
     {
-        $hashParams              = $data['HASHPARAMS'];
-        $calculatedHashParamsVal = '';
-
-        $hashParamsArr = explode(':', $hashParams);
-        foreach ($hashParamsArr as $value) {
-            if (isset($data[$value])) {
-                $calculatedHashParamsVal .= $data[$value];
-            }
-        }
-
-        $hashStr = $calculatedHashParamsVal.$account->getStoreKey();
-        $actualHash    = $this->hashString($hashStr);
+        $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'HASHPARAMS', ':');
 
         if ($data['HASH'] === $actualHash) {
             $this->logger->log(LogLevel::DEBUG, 'hash check is successful');

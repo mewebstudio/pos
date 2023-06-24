@@ -55,7 +55,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'email'       => 'test@test.com',
             'amount'      => '1.75',
             'installment' => 0,
-            'currency'    => 'TL',
+            'currency'    => 'TRY',
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'rand'        => '0.43625700 1604831630',
@@ -64,7 +64,7 @@ class PosNetRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($threeDAccount);
         $this->pos->setTestMode(true);
-        
+
         $crypt = PosFactory::getGatewayCrypt(PosNet::class, new NullLogger());
         $this->requestDataMapper = new PosNetRequestDataMapper($crypt);
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
@@ -95,7 +95,6 @@ class PosNetRequestDataMapperTest extends TestCase
      *
      * @testWith ["0", "00"]
      *           ["1", "00"]
-     *           ["2", "02"]
      *           ["2", "02"]
      *           ["12", "12"]
      *
@@ -230,7 +229,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $pos = $this->pos;
         $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        
+
         $expected = $this->getSample3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
         $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $pos->getCard());
         $this->assertEquals($expected, $actual);

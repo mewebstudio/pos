@@ -32,7 +32,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
     private $requestDataMapper;
 
     private $order;
-    
+
     private $config;
 
     protected function setUp(): void
@@ -42,7 +42,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $this->config = require __DIR__.'/../../config/pos.php';
 
         $this->threeDAccount = AccountFactory::createEstPosAccount(
-            'ziraatv3',
+            'akbankv3',
             '190100000',
             'ZIRAATAPI',
             'ZIRAAT19',
@@ -66,7 +66,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
         $this->pos->setTestMode(true);
-        
+
         $crypt = PosFactory::getGatewayCrypt(EstV3Pos::class, new NullLogger());
         $this->requestDataMapper = new EstV3PosRequestDataMapper($crypt);
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
@@ -121,7 +121,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $form['inputs']['Ecom_Payment_Card_ExpDate_Month'] = '01';
         $form['inputs']['Ecom_Payment_Card_ExpDate_Year']  = '22';
         $form['inputs']['cv2']                             = $card->getCvv();
-        
+
         unset($form['inputs']['hash']);
         $form['inputs']['hash'] = $this->requestDataMapper->getCrypt()->create3DHash($account, $form['inputs'], $txType);
 
@@ -140,7 +140,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
     public function testGet3DHostFormData()
     {
         $account = AccountFactory::createEstPosAccount(
-            'ziraatv3',
+            'akbankv3',
             'XXXXXXX',
             'XXXXXXX',
             'XXXXXXX',

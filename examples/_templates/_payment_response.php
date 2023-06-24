@@ -8,7 +8,7 @@ require_once '_config.php';
 require '../../_templates/_header.php';
 
 if (($request->getMethod() !== 'POST' && AbstractGateway::TX_POST_PAY !== $transaction)
-    // Vakifbank-CP GET request ile cevapliyor
+    // PayFlex-CP GET request ile cevapliyor
     && ($request->getMethod() === 'GET' && [] === $request->query->all())
 ) {
     echo new RedirectResponse($baseUrl);
@@ -132,4 +132,15 @@ $session->set('last_response', $response);
         </div>
     </div>
 
-<?php require __DIR__.'/_footer.php';
+<script>
+    if (window.opener && window.opener !== window) {
+        // you are in a popup
+        // send result data to parent window
+        window.opener.parent.postMessage(`<?= json_encode($response); ?>`);
+    } else if (window.parent) {
+        // you are in iframe
+        // send result data to parent window
+        window.parent.postMessage(`<?= json_encode($response); ?>`);
+    }
+</script>
+<?php require __DIR__.'/_footer.php'; ?>

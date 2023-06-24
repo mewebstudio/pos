@@ -10,6 +10,8 @@
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
           integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
 </head>
 <body>
 
@@ -26,13 +28,14 @@
         </div>
         <nav class="collapse navbar-collapse" id="bs-navbar">
             <ul class="nav navbar-nav">
-                <li> <a href="<?= $hostUrl ?>/akbank/index.php">EST POS</a></li>
+                <li> <a href="<?= $hostUrl ?>/akbank/index.php">EST POS V3</a></li>
                 <li> <a href="<?= $hostUrl ?>/finansbank-payfor/index.php">PayFor (Finansbank)</a></li>
                 <li> <a href="<?= $hostUrl ?>/garanti/index.php">Garanti POS</a></li>
                 <li> <a href="<?= $hostUrl ?>/interpos/index.php">InterPos (Deniz bank)</a></li>
-                <li> <a href="<?= $hostUrl ?>/vakifbank/index.php">VPOS 7/24 (VakifBank)</a></li>
-                <li> <a href="<?= $hostUrl ?>/vakifbank-cp/index.php">Common Payment (VakifBank)</a></li>
+                <li> <a href="<?= $hostUrl ?>/payflex-mpi-v4/index.php">PayFlex MPI V4 (VakifBank VPOS 7/24)</a></li>
+                <li> <a href="<?= $hostUrl ?>/payflex-cp-v4/index.php">PayFlex Common Payment V4 (VakifBank)</a></li>
                 <li> <a href="<?= $hostUrl ?>/ykb/index.php">PosNet (YKB)</a></li>
+                <li> <a href="<?= $hostUrl ?>/posnet-v1/index.php">PosNetV1 (Albaraka)</a></li>
                 <li> <a href="<?= $hostUrl ?>/kuveytpos/index.php">KuveytPOS</a></li>
             </ul>
         </nav>

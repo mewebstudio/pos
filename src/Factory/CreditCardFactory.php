@@ -49,12 +49,12 @@ class CreditCardFactory
         if (! $expDate instanceof DateTimeImmutable) {
             throw new DomainException('INVALID DATE FORMAT');
         }
-        
+
         $supportedCardTypes = array_keys($pos->getCardTypeMapping());
         if ($supportedCardTypes !== [] && empty($cardType)) {
             throw new CardTypeRequiredException($pos::NAME);
         }
-        
+
         if ($supportedCardTypes !== [] && !in_array($cardType, $supportedCardTypes)) {
             throw new CardTypeNotSupportedException($cardType);
         }

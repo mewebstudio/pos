@@ -19,7 +19,7 @@ interface NonPaymentResponseMapperInterface
     public function mapCancelResponse(array $rawResponseData): array;
 
     /**
-     * @param array<string, string> $rawResponseData
+     * @param array<string, mixed> $rawResponseData
      *
      * @return array<string, string|float|null>
      */
@@ -28,7 +28,7 @@ interface NonPaymentResponseMapperInterface
     /**
      * @param array<string, array<string, string>|string> $rawResponseData
      *
-     * @return array<string, array<string, string|string|null>>
+     * @return array<string, array<string, string|null>>
      */
     public function mapHistoryResponse(array $rawResponseData): array;
 }
