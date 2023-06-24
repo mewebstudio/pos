@@ -41,7 +41,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
         if ($rawPaymentResponseData === []) {
             return $this->getDefaultPaymentResponse();
         }
-        
+
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
 
         $procReturnCode = $this->getProcReturnCode($rawPaymentResponseData);
@@ -59,8 +59,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
             'proc_return_code' => $procReturnCode,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => $rawPaymentResponseData['Extra']['ERRORCODE'],
-            'error_message'    => $rawPaymentResponseData['ErrMsg'],
+            'error_code'       => self::TX_APPROVED === $status ? null : $rawPaymentResponseData['Extra']['ERRORCODE'],
+            'error_message'    => self::TX_APPROVED === $status ? null : $rawPaymentResponseData['ErrMsg'],
             'recurring_id'     => $rawPaymentResponseData['Extra']['RECURRINGID'] ?? null, // set when recurring payment is made
             'extra'            => $rawPaymentResponseData['Extra'],
             'all'              => $rawPaymentResponseData,
