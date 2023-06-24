@@ -13,6 +13,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - **EST POS** (Asseco/Payten)
 
     Desktekleyen bankalar: Akbank, TEB, İşbank, Şekerbank, Halkbank ve Finansbank
+
     Desteklenen özellikler:
     - NonSecure, 3DSecure, 3DHost ve 3DPay ödeme
     - Ödeme İptal ve İade
@@ -25,7 +26,9 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
    Desktekleyen bankalar: Akbank, TEB, ~~İşbank,~~ Şekerbank, Halkbank ve Finansbank.
 
 
-- **PayFlex MPI VPOS V4** Ziraat, Vakıfbank ve İşbankın kullandığı alt yapı.
+- **PayFlex MPI VPOS V4**
+
+  Desktekleyen bankalar: Ziraat, Vakıfbank ve İşbank.
 
   Desteklenen özellikler:
     - NonSecure, 3DSecure ödeme
@@ -33,7 +36,9 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
     - Ödeme durum sorgulama
 
 
-- **PayFlex Common Payment V4 (Ortak Ödeme)** Ziraat, Vakıfbank ve İşbankın kullandığı alt yapı.
+- **PayFlex Common Payment V4 (Ortak Ödeme)**
+
+  Desktekleyen bankalar: Ziraat, Vakıfbank ve İşbank.
 
   Desteklenen özellikler:
     - NonSecure, 3DHost ve 3DPay ödeme
@@ -49,7 +54,19 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
     - Tarihçe sorgulama
 
 
-- **YapıKredi PosNet**
+- **PosNet**
+
+  Desktekleyen bankalar: YapıKredi.
+
+  Desteklenen özellikler:
+    - NonSecure, 3DSecure ödeme
+    - Ödeme İptal ve İade
+    - Ödeme durum sorgulama
+
+
+- **PosNetV1 (JSON API)**
+
+  Desktekleyen bankalar: Albaraka Türk.
 
   Desteklenen özellikler:
     - NonSecure, 3DSecure ödeme

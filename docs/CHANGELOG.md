@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.13.0] - 2023-06-24
+### New Features
+- **PosNetV1** - JSON API desteği eklendi.
+- **PayFlexV4** - (eski VakifbankPos) ödeme durum sorgulama desteği eklendi.
+- Örnek kodlara (/examples) iframe'de ve pop window'da ödeme örnek kodları eklendi.
+
+### Changed
+- **VakifBankPos** deprecated. Yerine **PayFlexV4Pos** oluşturuldu.
+- **VakifBankCPPos** deprecated. Yerine **PayFlexCPV4Pos** oluşturuldu.
+- EstPosCrypt, InterPosCrypt, GarantiPosCrypt `check3DHash()` iyileştirme yapıldı.
+
 ## [0.12.0] - 2023-03-13
 ### New Features
 - Vakıfbank Common Payment (Ortak Ödeme) gateway desteği eklendi (`VakifBankCPPos`).
@@ -69,7 +80,7 @@
   Kodda bir degişiklik gerektirmez.
 
 - Gateway sınıflara **PSR-3** logger desteği eklendi.
-  
+
   Monolog logger kullanım örnegi:
   ```shell
   composer require monolog/monolog
@@ -93,7 +104,7 @@
      if (isset($order['installment']) && $order['installment'] > 1) {
          $installment = $order['installment'];
      }
-  
+
       return (object) array_merge($order, [
           'id'          => self::formatOrderId($order['id']),
           'installment' => self::formatInstallment($installment),
@@ -143,7 +154,7 @@ Gateway için ayrı ayrı olan (örn. `CreditCardEstPos`) CreditCard class'ları
   ```php
   /** @var Mews\Pos\Entity\Card\CreditCard $card */
   $card = \Mews\Pos\Factory\CreditCardFactory::create(
-  $pos, //pos gateway objesi 
+  $pos, //pos gateway objesi
   '4444555566667777',
   '25',
   '12',
