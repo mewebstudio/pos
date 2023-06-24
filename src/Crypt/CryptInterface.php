@@ -45,7 +45,7 @@ interface CryptInterface
      * @param array<string, mixed> $data           array that contains values for the params specified in $hashParams
      * @param string               $hashParamsKey  key name whose value $data that contains hashParamNames separated by
      *                                             $paramSeparator
-     * @param string               $paramSeparator [:;]
+     * @param non-empty-string     $paramSeparator [:;]
      *
      * @return string hashed string from values of $hashParams
      */
