@@ -32,10 +32,10 @@ abstract class AbstractCrypt implements CryptInterface
      */
     public function hashFromParams(string $storeKey, array $data, string $hashParamsKey, string $paramSeparator = ':'): string
     {
-        $hashParams = $this->recursiveFind($data, $hashParamsKey); //ex: MerchantNo:TerminalNo:ReferenceCode:OrderId
-        if ('' === $hashParams) {
-            return '';
-        }
+        /**
+         * @var non-empty-string $hashParams ex: "MerchantNo:TerminalNo:ReferenceCode:OrderId"
+         */
+        $hashParams = $this->recursiveFind($data, $hashParamsKey);
         $hashParamsArr = explode($paramSeparator, $hashParams);
         if (false === $hashParamsArr) {
             return '';
