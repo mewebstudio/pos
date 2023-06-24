@@ -35,25 +35,14 @@ class GarantiPosCrypt extends AbstractCrypt
      */
     public function check3DHash(AbstractPosAccount $account, array $data): bool
     {
-        $hashParams = $data['hashparams'];
-        $paramsVal  = '';
-
-        $hashParamsArr = explode(':', $hashParams);
-        foreach ($hashParamsArr as $value) {
-            if (isset($data[$value])) {
-                $paramsVal .= $data[$value];
-            }
-        }
-
-        $hashVal    = $paramsVal.$account->getStoreKey();
-        $actualHash = $this->hashString($hashVal);
+        $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'hashparams', ':');
 
         if ($data['hash'] === $actualHash) {
             $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
 
             return true;
         }
-        
+
         $this->logger->log(LogLevel::ERROR, 'hash check failed', [
             'data'           => $data,
             'generated_hash' => $actualHash,

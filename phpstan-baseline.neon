@@ -11,6 +11,21 @@ parameters:
 			path: src/Client/HttpClient.php
 
 		-
+			message: "#^Parameter \\#1 \\$storeKey of method Mews\\\\Pos\\\\Crypt\\\\AbstractCrypt\\:\\:hashFromParams\\(\\) expects string, string\\|null given\\.$#"
+			count: 1
+			path: src/Crypt/EstPosCrypt.php
+
+		-
+			message: "#^Parameter \\#1 \\$storeKey of method Mews\\\\Pos\\\\Crypt\\\\AbstractCrypt\\:\\:hashFromParams\\(\\) expects string, string\\|null given\\.$#"
+			count: 1
+			path: src/Crypt/GarantiPosCrypt.php
+
+		-
+			message: "#^Parameter \\#1 \\$storeKey of method Mews\\\\Pos\\\\Crypt\\\\AbstractCrypt\\:\\:hashFromParams\\(\\) expects string, string\\|null given\\.$#"
+			count: 1
+			path: src/Crypt/InterPosCrypt.php
+
+		-
 			message: "#^Parameter \\#1 \\$str of method Mews\\\\Pos\\\\Crypt\\\\AbstractCrypt\\:\\:hashString\\(\\) expects string, string\\|null given\\.$#"
 			count: 2
 			path: src/Crypt/KuveytPosCrypt.php

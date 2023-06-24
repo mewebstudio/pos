@@ -36,18 +36,7 @@ class EstPosCrypt extends AbstractCrypt
      */
     public function check3DHash(AbstractPosAccount $account, array $data): bool
     {
-        $hashParams = $data['HASHPARAMS'];
-        $paramsVal  = '';
-
-        $hashParamsArr = explode(':', $hashParams);
-        foreach ($hashParamsArr as $value) {
-            if (isset($data[$value])) {
-                $paramsVal .= $data[$value];
-            }
-        }
-
-        $hashVal    = $paramsVal.$account->getStoreKey();
-        $actualHash = $this->hashString($hashVal);
+        $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'HASHPARAMS', ':');
 
         if ($data['HASH'] === $actualHash) {
             $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
