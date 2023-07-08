@@ -11,12 +11,9 @@ RUN docker-php-ext-install zip
 RUN docker-php-ext-install soap
 
 # Install XDEBUG
-RUN pecl install xdebug && docker-php-ext-enable xdebug
+RUN pecl install xdebug-3.1.0 && docker-php-ext-enable xdebug
 
 # Install composer command
 RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
-
-#install nano text editor
-RUN apt-get install nano
 
 WORKDIR /var/www
