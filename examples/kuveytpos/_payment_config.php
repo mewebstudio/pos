@@ -12,6 +12,18 @@ $subMenu = [
         'path' => '/3d/index.php',
         'label' => '3D Ödeme',
     ],
+    AbstractGateway::TX_STATUS => [
+        'path' => '/regular/status.php',
+        'label' => 'Ödeme Durumu',
+    ],
+    AbstractGateway::TX_CANCEL => [
+        'path' => '/regular/cancel.php',
+        'label' => 'İptal',
+    ],
+    AbstractGateway::TX_REFUND => [
+        'path' => '/regular/refund.php',
+        'label' => 'İade',
+    ],
 ];
 
 $installments = [
