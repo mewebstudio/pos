@@ -19,10 +19,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     /** @var string */
     public const API_VERSION = '1.0.0';
-    
+
     /** @var string */
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
-    
+
     /** @var string */
     public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
 
@@ -38,7 +38,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      */
     protected $txTypeMappings = [
-        AbstractGateway::TX_PAY      => 'Sale',
+        AbstractGateway::TX_PAY    => 'Sale',
+        AbstractGateway::TX_CANCEL => 'SaleReversal',
+        AbstractGateway::TX_STATUS => 'GetMerchantOrderDetail',
+        AbstractGateway::TX_REFUND => 'PartialDrawback', // Also there is a "Drawback"
     ];
 
     /**
@@ -166,27 +169,160 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
+     * @param KuveytPosAccount $account
      * {@inheritDoc}
      */
     public function createStatusRequestData(AbstractPosAccount $account, $order): array
     {
-        throw new NotImplementedException();
+        $mappedOrder = (array) $order;
+        $mappedOrder['amount'] = 0;
+        $hash = $this->crypt->createHash($account, $mappedOrder);
+
+        return [
+            'IsFromExternalNetwork' => true,
+            'BusinessKey' => 0,
+            'ResourceId' => 0,
+            'ActionId' => 0,
+            'LanguageId' => 0,
+            'CustomerId' => null,
+            'MailOrTelephoneOrder' => true,
+            'Amount' => 0,
+            'MerchantId' => $account->getClientId(),
+            'MerchantOrderId' => $order->id,
+            /**
+             * Eğer döndüğümüz orderid ile aratılırsa yalnızca aranan işlem gelir.
+             * 0 değeri girilirse tarih aralığındaki aynı merchanorderid'ye ait tüm siparişleri getirir.
+             * uniq değer orderid'dir, işlemi birebir yakalamak için orderid değeri atanmalıdır.
+             */
+            'OrderId' => 0,
+            /**
+             * Test ortamda denendiginde, StartDate ve EndDate her hangi bir tarih atandiginda istek calisiyor,
+             * siparisi buluyor.
+             * Ancak bu degerler gonderilmediginde veya gecersiz (orn. null) gonderildiginde SOAP server hata donuyor.
+             */
+            'StartDate' =>  $order->start_date->format('Y-m-d\TH:i:s'),
+            'EndDate' => $order->end_date->format('Y-m-d\TH:i:s'),
+            'TransactionType' => 0,
+            'VPosMessage' => $this->getRequestAccountData($account) + [
+                'APIVersion' => self::API_VERSION,
+                'InstallmentMaturityCommisionFlag' => 0,
+                'HashData' => $hash,
+                'SubMerchantId' => 0,
+                'CardType' => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], // Default gönderilebilir.
+                'BatchID' => 0,
+                'TransactionType' => $this->mapTxType(AbstractGateway::TX_STATUS),
+                'InstallmentCount' => 0,
+                'Amount' => 0,
+                'DisplayAmount' => 0,
+                'CancelAmount' => 0,
+                'MerchantOrderId' => $order->id,
+                'CurrencyCode' => $this->mapCurrency($order->currency),
+                'FECAmount' => 0,
+                'QeryId' => 0,
+                'DebtId' => 0,
+                'SurchargeAmount' => 0,
+                'SGKDebtAmount' => 0,
+                'TransactionSecurity' => 1,
+            ]
+        ];
     }
 
     /**
+     * @param KuveytPosAccount $account
      * {@inheritDoc}
      */
     public function createCancelRequestData(AbstractPosAccount $account, $order): array
     {
-        throw new NotImplementedException();
+        $mappedOrder = (array) $order;
+        $mappedOrder['amount'] = self::amountFormat($order->amount);
+        $hash = $this->crypt->createHash($account, $mappedOrder);
+
+        return [
+            'IsFromExternalNetwork' => true,
+            'BusinessKey' => 0,
+            'ResourceId' => 0,
+            'ActionId' => 0,
+            'LanguageId' => 0,
+            'CustomerId' => $account->getCustomerId(),
+            'MailOrTelephoneOrder' => true,
+            'Amount' => self::amountFormat($order->amount),
+            'MerchantId' => $account->getClientId(),
+            'OrderId' => $order->id,
+            'RRN' => $order->ref_ret_num,
+            'Stan' => $order->trans_id,
+            'ProvisionNumber' => $order->auth_code,
+            'TransactionType' => 0,
+            'VPosMessage' => $this->getRequestAccountData($account) + [
+                'APIVersion' => self::API_VERSION,
+                'InstallmentMaturityCommisionFlag' => 0,
+                'HashData' => $hash,
+                'SubMerchantId' => 0,
+                'CardType' => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], //Default gönderilebilir.
+                'BatchID' => 0,
+                'TransactionType' => $this->mapTxType(AbstractGateway::TX_CANCEL),
+                'InstallmentCount' => 0,
+                'Amount' => self::amountFormat($order->amount),
+                'DisplayAmount' => self::amountFormat($order->amount),
+                'CancelAmount' => self::amountFormat($order->amount),
+                'MerchantOrderId' => $order->id,
+                'FECAmount' => 0,
+                'CurrencyCode' => $this->mapCurrency($order->currency),
+                'QeryId' => 0,
+                'DebtId' => 0,
+                'SurchargeAmount' => 0,
+                'SGKDebtAmount' => 0,
+                'TransactionSecurity' => 1,
+            ]
+        ];
     }
 
     /**
+     * @param KuveytPosAccount $account
      * {@inheritDoc}
      */
     public function createRefundRequestData(AbstractPosAccount $account, $order): array
     {
-        throw new NotImplementedException();
+        $mappedOrder = (array) $order;
+        $mappedOrder['amount'] = self::amountFormat($order->amount);
+        $hash = $this->crypt->createHash($account, $mappedOrder);
+
+        return [
+            'IsFromExternalNetwork' => true,
+            'BusinessKey' => 0,
+            'ResourceId' => 0,
+            'ActionId' => 0,
+            'LanguageId' => 0,
+            'CustomerId' => $account->getCustomerId(),
+            'MailOrTelephoneOrder' => true,
+            'Amount' => self::amountFormat($order->amount),
+            'MerchantId' => $account->getClientId(),
+            'OrderId' => $order->id,
+            'RRN' => $order->ref_ret_num,
+            'Stan' => $order->trans_id,
+            'ProvisionNumber' => $order->auth_code,
+            'TransactionType' => 0,
+            'VPosMessage' => $this->getRequestAccountData($account) + [
+                'APIVersion' => self::API_VERSION,
+                'InstallmentMaturityCommisionFlag' => 0,
+                'HashData' => $hash,
+                'SubMerchantId' => 0,
+                'CardType' => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], //Default gönderilebilir.
+                'BatchID' => 0,
+                'TransactionType' => $this->mapTxType(AbstractGateway::TX_REFUND),
+                'InstallmentCount' => 0,
+                'Amount' => self::amountFormat($order->amount),
+                'DisplayAmount' => 0,
+                'CancelAmount' => self::amountFormat($order->amount),
+                'MerchantOrderId' => $order->id,
+                'FECAmount' => 0,
+                'CurrencyCode' => $this->mapCurrency($order->currency),
+                'QeryId' => 0,
+                'DebtId' => 0,
+                'SurchargeAmount' => 0,
+                'SGKDebtAmount' => 0,
+                'TransactionSecurity' => 1,
+            ]
+        ];
     }
 
     /**

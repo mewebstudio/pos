@@ -8,6 +8,7 @@ RUN apt-get install zlib1g-dev libxml2-dev libzip-dev zip unzip -y
 
 # Install PHP extensions
 RUN docker-php-ext-install zip
+RUN docker-php-ext-install soap
 
 # Install XDEBUG
 RUN pecl install xdebug && docker-php-ext-enable xdebug

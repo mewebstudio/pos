@@ -70,7 +70,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
 
         $this->pos->setTestMode(true);
-        
+
         $this->card = CreditCardFactory::create(
             $this->pos,
             '4155650100416111',
@@ -81,8 +81,19 @@ class KuveytPosRequestDataMapperTest extends TestCase
             AbstractCreditCard::CARD_TYPE_VISA
         );
 
-        $crypt = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
+        $crypt                   = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
         $this->requestDataMapper = new KuveytPosRequestDataMapper($crypt);
+    }
+
+    /**
+     * @return void
+     */
+    public function testAmountFormat()
+    {
+        $this->assertEquals(0, $this->requestDataMapper::amountFormat(0));
+        $this->assertEquals(0.0, $this->requestDataMapper::amountFormat(0.0));
+        $this->assertEquals(1025, $this->requestDataMapper::amountFormat(10.25));
+        $this->assertEquals(1000, $this->requestDataMapper::amountFormat(10.00));
     }
 
     /**
@@ -152,6 +163,36 @@ class KuveytPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider createCancelRequestDataProvider
+     */
+    public function testCreateCancelRequestData(array $order, array $expected)
+    {
+        $this->pos->prepare($order, AbstractGateway::TX_CANCEL);
+        $actual = $this->requestDataMapper->createCancelRequestData($this->pos->getAccount(), $this->pos->getOrder());
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @dataProvider createRefundRequestDataProvider
+     */
+    public function testCreateRefundRequestData(array $order, array $expected)
+    {
+        $this->pos->prepare($order, AbstractGateway::TX_REFUND);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->pos->getAccount(), $this->pos->getOrder());
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
+     * @dataProvider createStatusRequestDataProvider
+     */
+    public function testCreateStatusRequestData(array $order, array $expected)
+    {
+        $this->pos->prepare($order, AbstractGateway::TX_STATUS);
+        $actual = $this->requestDataMapper->createStatusRequestData($this->pos->getAccount(), $this->pos->getOrder());
+        $this->assertEquals($expected, $actual);
+    }
+
+    /**
      * @return void
      */
     public function testCreate3DPaymentXML()
@@ -215,6 +256,169 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'CurrencyCode'                 => $responseData['VPosMessage']['CurrencyCode'],
             'MerchantOrderId'              => $responseData['VPosMessage']['MerchantOrderId'],
             'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],
+        ];
+    }
+
+
+    public static function createCancelRequestDataProvider(): iterable
+    {
+        yield [
+            'order'    => [
+                'id'          => '2023070849CD',
+                'ref_ret_num' => '318923298433',
+                'auth_code'   => '241839',
+                'trans_id'    => '298433',
+                'amount'      => 1.01,
+                'currency'    => 'TRY',
+            ],
+            'expected' => [
+                'IsFromExternalNetwork' => true,
+                'BusinessKey'           => 0,
+                'ResourceId'            => 0,
+                'ActionId'              => 0,
+                'LanguageId'            => 0,
+                'CustomerId'            => '400235',
+                'MailOrTelephoneOrder'  => true,
+                'Amount'                => 101,
+                'MerchantId'            => '80',
+                'OrderId'               => '2023070849CD',
+                'RRN'                   => '318923298433',
+                'Stan'                  => '298433',
+                'ProvisionNumber'       => '241839',
+                'TransactionType'       => 0,
+                'VPosMessage'           => [
+                    'APIVersion'                       => '1.0.0',
+                    'InstallmentMaturityCommisionFlag' => 0,
+                    'HashData'                         => 'Om26dd7XpVGq0KyTJBM3TUH4fSU=',
+                    'MerchantId'                       => '80',
+                    'SubMerchantId'                    => 0,
+                    'CustomerId'                       => '400235',
+                    'UserName'                         => 'apiuser',
+                    'CardType'                         => 'Visa',
+                    'BatchID'                          => 0,
+                    'TransactionType'                  => 'SaleReversal',
+                    'InstallmentCount'                 => 0,
+                    'Amount'                           => 101,
+                    'DisplayAmount'                    => 101,
+                    'CancelAmount'                     => 101,
+                    'MerchantOrderId'                  => '2023070849CD',
+                    'FECAmount'                        => 0,
+                    'CurrencyCode'                     => '0949',
+                    'QeryId'                           => 0,
+                    'DebtId'                           => 0,
+                    'SurchargeAmount'                  => 0,
+                    'SGKDebtAmount'                    => 0,
+                    'TransactionSecurity'              => 1,
+                ],
+            ],
+        ];
+    }
+
+    public static function createRefundRequestDataProvider(): iterable
+    {
+        yield [
+            'order'    => [
+                'id'          => '2023070849CD',
+                'ref_ret_num' => '318923298433',
+                'auth_code'   => '241839',
+                'trans_id'    => '298433',
+                'amount'      => 1.01,
+                'currency'    => 'TRY',
+            ],
+            'expected' => [
+                'IsFromExternalNetwork' => true,
+                'BusinessKey'           => 0,
+                'ResourceId'            => 0,
+                'ActionId'              => 0,
+                'LanguageId'            => 0,
+                'CustomerId'            => '400235',
+                'MailOrTelephoneOrder'  => true,
+                'Amount'                => 101,
+                'MerchantId'            => '80',
+                'OrderId'               => '2023070849CD',
+                'RRN'                   => '318923298433',
+                'Stan'                  => '298433',
+                'ProvisionNumber'       => '241839',
+                'TransactionType'       => 0,
+                'VPosMessage'           => [
+                    'APIVersion'                       => '1.0.0',
+                    'InstallmentMaturityCommisionFlag' => 0,
+                    'HashData'                         => 'Om26dd7XpVGq0KyTJBM3TUH4fSU=',
+                    'MerchantId'                       => '80',
+                    'SubMerchantId'                    => 0,
+                    'CustomerId'                       => '400235',
+                    'UserName'                         => 'apiuser',
+                    'CardType'                         => 'Visa',
+                    'BatchID'                          => 0,
+                    'TransactionType'                  => 'PartialDrawback',
+                    'InstallmentCount'                 => 0,
+                    'Amount'                           => 101,
+                    'DisplayAmount'                    => 0,
+                    'CancelAmount'                     => 101,
+                    'MerchantOrderId'                  => '2023070849CD',
+                    'FECAmount'                        => 0,
+                    'CurrencyCode'                     => '0949',
+                    'QeryId'                           => 0,
+                    'DebtId'                           => 0,
+                    'SurchargeAmount'                  => 0,
+                    'SGKDebtAmount'                    => 0,
+                    'TransactionSecurity'              => 1,
+                ],
+            ],
+        ];
+    }
+
+    public static function createStatusRequestDataProvider(): iterable
+    {
+        $startDate = new \DateTime('2022-07-08T22:44:31');
+        $endDate = new \DateTime('2023-07-08T22:44:31');
+        yield [
+            'order'    => [
+                'id'       => '2023070849CD',
+                'currency' => 'TRY',
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ],
+            'expected' => [
+                'IsFromExternalNetwork' => true,
+                'BusinessKey'           => 0,
+                'ResourceId'            => 0,
+                'ActionId'              => 0,
+                'LanguageId'            => 0,
+                'CustomerId'            => null,
+                'MailOrTelephoneOrder'  => true,
+                'Amount'                => 0,
+                'MerchantId'            => '80',
+                'OrderId'               => 0,
+                'TransactionType'       => 0,
+                'VPosMessage'           => [
+                    'APIVersion'                       => '1.0.0',
+                    'InstallmentMaturityCommisionFlag' => 0,
+                    'HashData'                         => 'RwQ5Sfc6D4Ovy7jvQgf5jGA/rOk=',
+                    'MerchantId'                       => '80',
+                    'SubMerchantId'                    => 0,
+                    'CustomerId'                       => '400235',
+                    'UserName'                         => 'apiuser',
+                    'CardType'                         => 'Visa',
+                    'BatchID'                          => 0,
+                    'TransactionType'                  => 'GetMerchantOrderDetail',
+                    'InstallmentCount'                 => 0,
+                    'Amount'                           => 0,
+                    'DisplayAmount'                    => 0,
+                    'CancelAmount'                     => 0,
+                    'MerchantOrderId'                  => '2023070849CD',
+                    'FECAmount'                        => 0,
+                    'CurrencyCode'                     => '0949',
+                    'QeryId'                           => 0,
+                    'DebtId'                           => 0,
+                    'SurchargeAmount'                  => 0,
+                    'SGKDebtAmount'                    => 0,
+                    'TransactionSecurity'              => 1,
+                ],
+                'MerchantOrderId'       => '2023070849CD',
+                'StartDate'             => '2022-07-08T22:44:31',
+                'EndDate'               => '2023-07-08T22:44:31',
+            ],
         ];
     }
 }
