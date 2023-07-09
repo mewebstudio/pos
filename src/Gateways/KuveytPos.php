@@ -239,7 +239,7 @@ class KuveytPos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        return  $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
+        return $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
     }
 
     /**
@@ -283,10 +283,10 @@ class KuveytPos extends AbstractGateway
     protected function prepareStatusOrder(array $order)
     {
         return (object) array_merge($order, [
-            'id'       => $order['id'],
-            'currency' => $order['currency'] ?? 'TRY',
+            'id'         => $order['id'],
+            'currency'   => $order['currency'] ?? 'TRY',
             'start_date' => $order['start_date'] ?? date_create('-360 day'),
-            'end_date' => $order['end_date'] ?? date_create(),
+            'end_date'   => $order['end_date'] ?? date_create(),
         ]);
     }
 
@@ -304,12 +304,13 @@ class KuveytPos extends AbstractGateway
     protected function prepareCancelOrder(array $order)
     {
         return (object) array_merge($order, [
-            'id'          => $order['id'],
-            'ref_ret_num' => $order['ref_ret_num'],
-            'auth_code'   => $order['auth_code'],
-            'trans_id'    => $order['trans_id'],
-            'amount'      => $order['amount'],
-            'currency'    => $order['currency'] ?? 'TRY',
+            'id'              => $order['id'],
+            'remote_order_id' => $order['remote_order_id'],
+            'ref_ret_num'     => $order['ref_ret_num'],
+            'auth_code'       => $order['auth_code'],
+            'trans_id'        => $order['trans_id'],
+            'amount'          => $order['amount'],
+            'currency'        => $order['currency'] ?? 'TRY',
         ]);
     }
 
@@ -319,12 +320,13 @@ class KuveytPos extends AbstractGateway
     protected function prepareRefundOrder(array $order)
     {
         return (object) array_merge($order, [
-            'id'          => $order['id'],
-            'ref_ret_num' => $order['ref_ret_num'],
-            'auth_code'   => $order['auth_code'],
-            'trans_id'    => $order['trans_id'],
-            'amount'      => $order['amount'],
-            'currency'    => $order['currency'] ?? 'TRY',
+            'id'              => $order['id'],
+            'remote_order_id' => $order['remote_order_id'],
+            'ref_ret_num'     => $order['ref_ret_num'],
+            'auth_code'       => $order['auth_code'],
+            'trans_id'        => $order['trans_id'],
+            'amount'          => $order['amount'],
+            'currency'        => $order['currency'] ?? 'TRY',
         ]);
     }
 

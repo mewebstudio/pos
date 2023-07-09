@@ -264,12 +264,13 @@ class KuveytPosRequestDataMapperTest extends TestCase
     {
         yield [
             'order'    => [
-                'id'          => '2023070849CD',
-                'ref_ret_num' => '318923298433',
-                'auth_code'   => '241839',
-                'trans_id'    => '298433',
-                'amount'      => 1.01,
-                'currency'    => 'TRY',
+                'id'              => '2023070849CD',
+                'remote_order_id' => '114293600',
+                'ref_ret_num'     => '318923298433',
+                'auth_code'       => '241839',
+                'trans_id'        => '298433',
+                'amount'          => 1.01,
+                'currency'        => 'TRY',
             ],
             'expected' => [
                 'IsFromExternalNetwork' => true,
@@ -281,7 +282,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'MailOrTelephoneOrder'  => true,
                 'Amount'                => 101,
                 'MerchantId'            => '80',
-                'OrderId'               => '2023070849CD',
+                'OrderId'               => '114293600',
                 'RRN'                   => '318923298433',
                 'Stan'                  => '298433',
                 'ProvisionNumber'       => '241839',
@@ -318,12 +319,13 @@ class KuveytPosRequestDataMapperTest extends TestCase
     {
         yield [
             'order'    => [
-                'id'          => '2023070849CD',
-                'ref_ret_num' => '318923298433',
-                'auth_code'   => '241839',
-                'trans_id'    => '298433',
-                'amount'      => 1.01,
-                'currency'    => 'TRY',
+                'id'              => '2023070849CD',
+                'remote_order_id' => '114293600',
+                'ref_ret_num'     => '318923298433',
+                'auth_code'       => '241839',
+                'trans_id'        => '298433',
+                'amount'          => 1.01,
+                'currency'        => 'TRY',
             ],
             'expected' => [
                 'IsFromExternalNetwork' => true,
@@ -335,7 +337,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'MailOrTelephoneOrder'  => true,
                 'Amount'                => 101,
                 'MerchantId'            => '80',
-                'OrderId'               => '2023070849CD',
+                'OrderId'               => '114293600',
                 'RRN'                   => '318923298433',
                 'Stan'                  => '298433',
                 'ProvisionNumber'       => '241839',

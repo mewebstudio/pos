@@ -432,11 +432,16 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 2
+			count: 1
 			path: src/DataMapper/KuveytPosRequestDataMapper.php
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$ref_ret_num\\.$#"
+			count: 1
+			path: src/DataMapper/KuveytPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$remote_order_id\\.$#"
 			count: 1
 			path: src/DataMapper/KuveytPosRequestDataMapper.php
 

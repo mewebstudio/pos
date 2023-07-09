@@ -55,8 +55,9 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         $vPosMessage = $rawPaymentResponseData['VPosMessage'];
 
         // ProvisionNumber: Başarılı işlemlerde kart bankasının vermiş olduğu otorizasyon numarasıdır.
-        $result['auth_code'] = $rawPaymentResponseData['ProvisionNumber'];
-        $result['order_id']  = $rawPaymentResponseData['MerchantOrderId'];
+        $result['auth_code']       = $rawPaymentResponseData['ProvisionNumber'];
+        $result['order_id']        = $rawPaymentResponseData['MerchantOrderId'];
+        $result['remote_order_id'] = $rawPaymentResponseData['OrderId'];
         // RRN:  Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['ref_ret_num'] = $rawPaymentResponseData['RRN'];
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
@@ -234,8 +235,14 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
 
         if (self::TX_APPROVED === $status) {
             $result['proc_return_code'] = $procReturnCode;
-            $result['order_status']     = $orderContract['OrderStatus'];
-            $result['order_id']         = $orderContract['MerchantOrderId']; // Also there is OrderId
+            /**
+             * ordeme yapildiginda OrderStatus === LastOrderStatus === 1 oluyor
+             * LastOrderStatus = 5 => odeme iade edildi
+             * LastOrderStatus = 6 => odeme iptal edild
+             */
+            $result['order_status']     = $orderContract['LastOrderStatus'];
+            $result['order_id']         = $orderContract['MerchantOrderId'];
+            $result['remote_order_id']  = (string) $orderContract['OrderId'];
             $result['status']           = $status;
 
             $result['auth_code']      = $orderContract['ProvNumber'];
@@ -274,20 +281,36 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         $value          = $rawResponseData['PartialDrawbackResult']['Value'];
         $procReturnCode = $this->getProcReturnCode($value);
 
+        if (null === $procReturnCode) {
+            return $result;
+        }
 
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
 
-        if (self::TX_APPROVED === $status) {
-            $result['proc_return_code'] = $procReturnCode;
-            $result['order_id']         = $value['MerchantOrderId']; // Also there is OrderId
-            $result['status']           = $status;
-            $result['currency']         = $this->mapCurrency($value['CurrencyCode']);
+        $responseResults = $rawResponseData['PartialDrawbackResult']['Results'];
+        if ($status !== self::TX_APPROVED && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
+            $responseResult = $responseResults['Result'][0];
+            $result['error_code'] = $responseResult['ErrorCode'];
+            $result['error_message'] = $responseResult['ErrorMessage'];
 
-            $result['auth_code']   = $value['ProvisionNumber'];
-            $result['ref_ret_num'] = $value['RRN'];
-            $result['trans_id']    = $value['Stan'];
+            return $result;
+        }
+
+        $result['ref_ret_num']      = $value['RRN'];
+        $result['trans_id']         = $value['Stan'];
+        $result['proc_return_code'] = $procReturnCode;
+        $result['order_id']         = $value['MerchantOrderId'];
+        $result['remote_order_id']  = (string) $value['OrderId'];
+        $result['status']           = $status;
+        $result['currency']         = $this->mapCurrency($value['CurrencyCode']);
+
+        if (self::TX_APPROVED === $status) {
+            $result['auth_code'] = $value['ProvisionNumber'];
+        } else {
+            $result['error_code']    = $procReturnCode;
+            $result['error_message'] = $value['ResponseMessage'];
         }
 
         return $result;
@@ -312,24 +335,39 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
             'all'              => $rawResponseData,
         ];
 
-
         $value          = $rawResponseData['SaleReversalResult']['Value'];
         $procReturnCode = $this->getProcReturnCode($value);
 
+        if (null === $procReturnCode) {
+            return $result;
+        }
 
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
 
-        if (self::TX_APPROVED === $status) {
-            $result['proc_return_code'] = $procReturnCode;
-            $result['order_id']         = $value['MerchantOrderId']; // Also there is OrderId
-            $result['status']           = $status;
-            $result['currency']         = $this->mapCurrency($value['CurrencyCode']);
+        $responseResults = $rawResponseData['SaleReversalResult']['Results'];
+        if ($status !== self::TX_APPROVED && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
+            $responseResult = $responseResults['Result'][0];
+            $result['error_code'] = $responseResult['ErrorCode'];
+            $result['error_message'] = $responseResult['ErrorMessage'];
 
-            $result['auth_code']   = $value['ProvisionNumber'];
-            $result['ref_ret_num'] = $value['RRN'];
-            $result['trans_id']    = $value['Stan'];
+            return $result;
+        }
+
+        $result['ref_ret_num']      = $value['RRN'];
+        $result['trans_id']         = $value['Stan'];
+        $result['proc_return_code'] = $procReturnCode;
+        $result['order_id']         = $value['MerchantOrderId'];
+        $result['remote_order_id']  = (string) $value['OrderId'];
+        $result['status']           = $status;
+        $result['currency']         = $this->mapCurrency($value['CurrencyCode']);
+
+        if (self::TX_APPROVED === $status) {
+            $result['auth_code'] = $value['ProvisionNumber'];
+        } else {
+            $result['error_code']    = $procReturnCode;
+            $result['error_message'] = $value['ResponseMessage'];
         }
 
         return $result;

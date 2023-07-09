@@ -9,19 +9,21 @@ require '../../_templates/_header.php';
 $lastResponse = $session->get('last_response');
 
 $order        = [
-    'id'          => $lastResponse['order_id'],
-    'ref_ret_num' => $lastResponse['ref_ret_num'],
-    'auth_code'   => $lastResponse['auth_code'],
-    'trans_id'    => $lastResponse['trans_id'],
-    'amount'      => $lastResponse['amount'],
-    'currency'    => $lastResponse['currency'],
+    'id'              => $lastResponse['order_id'], // MerchantOrderId
+    'remote_order_id' => $lastResponse['remote_order_id'], // OrderId
+    'ref_ret_num'     => $lastResponse['ref_ret_num'],
+    'auth_code'       => $lastResponse['auth_code'],
+    'trans_id'        => $lastResponse['trans_id'],
+    'amount'          => $lastResponse['amount'],
+    'currency'        => $lastResponse['currency'],
 ];
 
 /*$order        = [
-    'id'          => '2023070849CD',
-    'ref_ret_num' => '318923298433',
-    'auth_code'   => '241839',
-    'trans_id'    => '298433',
+    'id'          => '202307093C2D',
+    'remote_order_id'          => '114293625',
+    'ref_ret_num' => '319013298458',
+    'auth_code'   => '241855',
+    'trans_id'    => '298458',
     'amount'      => 1.01,
     'currency'    => 'TRY',
 ];*/

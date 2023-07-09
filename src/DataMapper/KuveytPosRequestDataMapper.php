@@ -194,7 +194,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
              * 0 değeri girilirse tarih aralığındaki aynı merchanorderid'ye ait tüm siparişleri getirir.
              * uniq değer orderid'dir, işlemi birebir yakalamak için orderid değeri atanmalıdır.
              */
-            'OrderId' => 0,
+            'OrderId' => $order->remote_order_id ?? 0,
             /**
              * Test ortamda denendiginde, StartDate ve EndDate her hangi bir tarih atandiginda istek calisiyor,
              * siparisi buluyor.
@@ -247,7 +247,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'MailOrTelephoneOrder' => true,
             'Amount' => self::amountFormat($order->amount),
             'MerchantId' => $account->getClientId(),
-            'OrderId' => $order->id,
+            'OrderId' => $order->remote_order_id,
             'RRN' => $order->ref_ret_num,
             'Stan' => $order->trans_id,
             'ProvisionNumber' => $order->auth_code,
@@ -296,7 +296,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'MailOrTelephoneOrder' => true,
             'Amount' => self::amountFormat($order->amount),
             'MerchantId' => $account->getClientId(),
-            'OrderId' => $order->id,
+            'OrderId' => $order->remote_order_id,
             'RRN' => $order->ref_ret_num,
             'Stan' => $order->trans_id,
             'ProvisionNumber' => $order->auth_code,
