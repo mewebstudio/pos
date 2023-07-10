@@ -4,7 +4,7 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Psr\Log\LogLevel;
 
-class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface
+class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
 {
     /**
      * Response Codes
@@ -13,9 +13,9 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
      */
     protected $codes = [
         self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
-        'ApiUserNotDefined' => 'invalid_transaction',
-        'EmptyMDException'  => 'invalid_transaction',
-        'HashDataError'     => 'invalid_transaction',
+        'ApiUserNotDefined'          => 'invalid_transaction',
+        'EmptyMDException'           => 'invalid_transaction',
+        'HashDataError'              => 'invalid_transaction',
     ];
 
     /**
@@ -30,7 +30,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         if (empty($rawPaymentResponseData)) {
             return $result;
         }
-        
+
         $status         = self::TX_DECLINED;
         $procReturnCode = $this->getProcReturnCode($rawPaymentResponseData);
 
@@ -50,14 +50,19 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
 
             return $result;
         }
-        
+
         /** @var array<string, string> $vPosMessage */
         $vPosMessage = $rawPaymentResponseData['VPosMessage'];
 
-        $result['auth_code']     = $rawPaymentResponseData['ProvisionNumber'];
-        $result['order_id']      = $rawPaymentResponseData['MerchantOrderId'];
-        $result['ref_ret_num']  = $rawPaymentResponseData['RRN'];
-        $result['amount']        = $vPosMessage['Amount'];
+        // ProvisionNumber: Başarılı işlemlerde kart bankasının vermiş olduğu otorizasyon numarasıdır.
+        $result['auth_code']       = $rawPaymentResponseData['ProvisionNumber'];
+        $result['order_id']        = $rawPaymentResponseData['MerchantOrderId'];
+        $result['remote_order_id'] = $rawPaymentResponseData['OrderId'];
+        // RRN:  Pos bankası tarafında verilen referans işlem referans numarasıdır.
+        $result['ref_ret_num'] = $rawPaymentResponseData['RRN'];
+        // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
+        $result['trans_id']      = $rawPaymentResponseData['Stan'];
+        $result['amount']        = self::amountFormat($vPosMessage['Amount']);
         $result['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
         $result['masked_number'] = $vPosMessage['CardNumber'];
 
@@ -72,7 +77,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
     {
         $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
-            '3d_auth_response' => $raw3DAuthResponseData,
+            '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);
         $threeDResponse = $this->map3DCommonResponseData($raw3DAuthResponseData);
@@ -148,8 +153,8 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
     protected function map3DCommonResponseData(array $raw3DAuthResponseData): array
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $procReturnCode = $this->getProcReturnCode($raw3DAuthResponseData);
-        $status = self::TX_DECLINED;
+        $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
+        $status                = self::TX_DECLINED;
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
@@ -159,7 +164,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         if (isset($raw3DAuthResponseData['VPosMessage'])) {
             /** @var array<string, string> $vPosMessage */
             $vPosMessage = $raw3DAuthResponseData['VPosMessage'];
-            $orderId = $vPosMessage['MerchantOrderId'];
+            $orderId     = $vPosMessage['MerchantOrderId'];
         } else {
             $orderId = $raw3DAuthResponseData['MerchantOrderId'];
         }
@@ -180,13 +185,210 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         ];
 
         if (self::TX_APPROVED === $status) {
-            $default['amount'] = $vPosMessage['Amount'];
-            $default['currency'] = $this->mapCurrency($vPosMessage['CurrencyCode']);
+            $default['amount']        = $vPosMessage['Amount'];
+            $default['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
             $default['masked_number'] = $vPosMessage['CardNumber'];
         }
 
         return $default;
     }
+
+    /**
+     * @param array $rawResponseData
+     * {@inheritdoc}
+     */
+    public function mapStatusResponse(array $rawResponseData): array
+    {
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        $status          = self::TX_DECLINED;
+        $data            = $rawResponseData['GetMerchantOrderDetailResult']['Value'];
+
+        $result = [
+            'order_id'         => null,
+            'auth_code'        => null,
+            'proc_return_code' => null,
+            'trans_id'         => null,
+            'error_message'    => null,
+            'ref_ret_num'      => null,
+            'order_status'     => null,
+            'transaction_type' => null,
+            'masked_number'    => null,
+            'first_amount'     => null,
+            'capture_amount'   => null,
+            'status'           => $status,
+            'error_code'       => null,
+            'status_detail'    => null,
+            'capture'          => false,
+            'all'              => $rawResponseData,
+        ];
+
+        if (!isset($data['OrderContract'])) {
+            return $result;
+        }
+        $orderContract  = $rawResponseData['GetMerchantOrderDetailResult']['Value']['OrderContract'];
+        $procReturnCode = $this->getProcReturnCode($orderContract);
+
+
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        if (self::TX_APPROVED === $status) {
+            $result['proc_return_code'] = $procReturnCode;
+            /**
+             * ordeme yapildiginda OrderStatus === LastOrderStatus === 1 oluyor
+             * LastOrderStatus = 5 => odeme iade edildi
+             * LastOrderStatus = 6 => odeme iptal edild
+             */
+            $result['order_status']     = $orderContract['LastOrderStatus'];
+            $result['order_id']         = $orderContract['MerchantOrderId'];
+            $result['remote_order_id']  = (string) $orderContract['OrderId'];
+            $result['status']           = $status;
+
+            $result['auth_code']      = $orderContract['ProvNumber'];
+            $result['ref_ret_num']    = $orderContract['RRN'];
+            $result['trans_id']       = $orderContract['Stan'];
+            $result['currency']       = $this->mapCurrency($orderContract['FEC']);
+            $result['first_amount']   = (float) $orderContract['FirstAmount'];
+            $result['capture_amount'] = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
+            $result['masked_number']  = $orderContract['CardNumber'];
+            $result['date']           = $orderContract['OrderDate'];
+        }
+
+        return $result;
+    }
+
+    public function mapRefundResponse(array $rawResponseData): array
+    {
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        $status          = self::TX_DECLINED;
+
+        $result = [
+            'order_id'         => null,
+            'auth_code'        => null,
+            'proc_return_code' => null,
+            'trans_id'         => null,
+            'currency'         => null,
+            'error_message'    => null,
+            'ref_ret_num'      => null,
+            'status'           => $status,
+            'error_code'       => null,
+            'status_detail'    => null,
+            'all'              => $rawResponseData,
+        ];
+
+
+        $value          = $rawResponseData['PartialDrawbackResult']['Value'];
+        $procReturnCode = $this->getProcReturnCode($value);
+
+        if (null === $procReturnCode) {
+            return $result;
+        }
+
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        $responseResults = $rawResponseData['PartialDrawbackResult']['Results'];
+        if ($status !== self::TX_APPROVED && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
+            $responseResult = $responseResults['Result'][0];
+            $result['error_code'] = $responseResult['ErrorCode'];
+            $result['error_message'] = $responseResult['ErrorMessage'];
+
+            return $result;
+        }
+
+        $result['ref_ret_num']      = $value['RRN'];
+        $result['trans_id']         = $value['Stan'];
+        $result['proc_return_code'] = $procReturnCode;
+        $result['order_id']         = $value['MerchantOrderId'];
+        $result['remote_order_id']  = (string) $value['OrderId'];
+        $result['status']           = $status;
+        $result['currency']         = $this->mapCurrency($value['CurrencyCode']);
+
+        if (self::TX_APPROVED === $status) {
+            $result['auth_code'] = $value['ProvisionNumber'];
+        } else {
+            $result['error_code']    = $procReturnCode;
+            $result['error_message'] = $value['ResponseMessage'];
+        }
+
+        return $result;
+    }
+
+    public function mapCancelResponse(array $rawResponseData): array
+    {
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        $status          = self::TX_DECLINED;
+
+        $result = [
+            'order_id'         => null,
+            'auth_code'        => null,
+            'proc_return_code' => null,
+            'trans_id'         => null,
+            'currency'         => null,
+            'error_message'    => null,
+            'ref_ret_num'      => null,
+            'status'           => $status,
+            'error_code'       => null,
+            'status_detail'    => null,
+            'all'              => $rawResponseData,
+        ];
+
+        $value          = $rawResponseData['SaleReversalResult']['Value'];
+        $procReturnCode = $this->getProcReturnCode($value);
+
+        if (null === $procReturnCode) {
+            return $result;
+        }
+
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        $responseResults = $rawResponseData['SaleReversalResult']['Results'];
+        if ($status !== self::TX_APPROVED && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
+            $responseResult = $responseResults['Result'][0];
+            $result['error_code'] = $responseResult['ErrorCode'];
+            $result['error_message'] = $responseResult['ErrorMessage'];
+
+            return $result;
+        }
+
+        $result['ref_ret_num']      = $value['RRN'];
+        $result['trans_id']         = $value['Stan'];
+        $result['proc_return_code'] = $procReturnCode;
+        $result['order_id']         = $value['MerchantOrderId'];
+        $result['remote_order_id']  = (string) $value['OrderId'];
+        $result['status']           = $status;
+        $result['currency']         = $this->mapCurrency($value['CurrencyCode']);
+
+        if (self::TX_APPROVED === $status) {
+            $result['auth_code'] = $value['ProvisionNumber'];
+        } else {
+            $result['error_code']    = $procReturnCode;
+            $result['error_message'] = $value['ResponseMessage'];
+        }
+
+        return $result;
+    }
+
+    public function mapHistoryResponse(array $rawResponseData): array
+    {
+        return $this->emptyStringsToNull($rawResponseData);
+    }
+
+    /**
+     * "101" => 1.01
+     * @param string $amount
+     *
+     * @return float
+     */
+    public static function amountFormat(string $amount): float
+    {
+        return (float) $amount / 100;
+    }
+
 
     /**
      * @param string $currency TRY, USD

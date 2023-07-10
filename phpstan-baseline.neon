@@ -416,6 +416,41 @@ parameters:
 			path: src/DataMapper/InterPosRequestDataMapper.php
 
 		-
+			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
+			count: 5
+			path: src/DataMapper/KuveytPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$auth_code\\.$#"
+			count: 1
+			path: src/DataMapper/KuveytPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
+			count: 1
+			path: src/DataMapper/KuveytPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
+			count: 1
+			path: src/DataMapper/KuveytPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$ref_ret_num\\.$#"
+			count: 1
+			path: src/DataMapper/KuveytPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$remote_order_id\\.$#"
+			count: 1
+			path: src/DataMapper/KuveytPosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$trans_id\\.$#"
+			count: 1
+			path: src/DataMapper/KuveytPosRequestDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\KuveytPosRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) has parameter \\$order with no type specified\\.$#"
 			count: 1
 			path: src/DataMapper/KuveytPosRequestDataMapper.php
@@ -1096,6 +1131,11 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/GarantiPosResponseDataMapper.php
 
 		-
+			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\KuveytPosResponseDataMapper\\:\\:mapStatusResponse\\(\\) has parameter \\$rawResponseData with no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/DataMapper/ResponseDataMapper/KuveytPosResponseDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PayFlexV4PosResponseDataMapper\\:\\:getCommonPaymentResponse\\(\\) should return array\\<string, string\\> but returns array\\<string, array\\<string, string\\>\\|string\\|null\\>\\.$#"
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
@@ -1711,12 +1751,27 @@ parameters:
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^PHPDoc type Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\KuveytPosResponseDataMapper of property Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:\\$responseDataMapper is not covariant with PHPDoc type Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\NonPaymentResponseMapperInterface&Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PaymentResponseMapperInterface of overridden property Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:\\$responseDataMapper\\.$#"
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:sendSoapRequest\\(\\) has parameter \\$contents with no type specified\\.$#"
+			count: 1
+			path: src/Gateways/KuveytPos.php
+
+		-
+			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:sendSoapRequest\\(\\) return type has no value type specified in iterable type array\\.$#"
+			count: 1
+			path: src/Gateways/KuveytPos.php
+
+		-
+			message: "#^Parameter \\#1 \\$json of function json_decode expects string, string\\|false given\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
 
 		-
 			message: "#^Parameter \\#1 \\$response of method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:transformReceived3DFormData\\(\\) expects string, array\\|string\\|null given\\.$#"
+			count: 1
+			path: src/Gateways/KuveytPos.php
+
+		-
+			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\KuveytPosRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
 

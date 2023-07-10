@@ -55,6 +55,9 @@ class KuveytPos extends AbstractGateway
      */
     public function send($contents, string $url = null)
     {
+        if (in_array($this->type, [self::TX_REFUND, self::TX_STATUS, self::TX_CANCEL])) {
+            return $this->sendSoapRequest($contents);
+        }
         $url = $url ?: $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
         $body     = [
@@ -73,12 +76,56 @@ class KuveytPos extends AbstractGateway
             if (!$this->isHTML($responseBody)) {
                 throw new Exception($responseBody, $exception->getCode(), $exception);
             }
-            
+
             //icinde form olan HTML response dondu
             $this->data = $responseBody;
         }
 
         return $this->data;
+    }
+
+    protected function sendSoapRequest($contents, string $url = null): array
+    {
+        $url = $url ?: $this->getQueryAPIUrl();
+
+        $sslConfig = [
+            'allow_self_signed' => true,
+            'crypto_method'     => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
+        ];
+        if ($this->isTestMode()) {
+            $sslConfig = [
+                'verify_peer'       => false,
+                'verify_peer_name'  => false,
+                'allow_self_signed' => true,
+                'crypto_method'     => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
+            ];
+        }
+        $options = [
+            'trace'          => true,
+            'encoding'       => 'UTF-8',
+            'stream_context' => stream_context_create(['ssl' => $sslConfig]),
+            'exceptions'     => true,
+        ];
+
+
+        $client = new \SoapClient($url, $options);
+        try {
+            $result = $client->__soapCall($this->requestDataMapper->mapTxType($this->type), ['parameters' => ['request' => $contents]]);
+        } catch (\Throwable $e) {
+            $this->logger->log(LogLevel::ERROR, 'soap error response', [
+                'message' => $e->getMessage(),
+            ]);
+
+            throw $e;
+        }
+        if (null === $result) {
+            $this->logger->log(LogLevel::ERROR, 'Bankaya istek başarısız!', [
+                'response' => $result,
+            ]);
+            throw new \RuntimeException('Bankaya istek başarısız!');
+        }
+
+        return json_decode(json_encode($result), true);
     }
 
     /**
@@ -90,17 +137,17 @@ class KuveytPos extends AbstractGateway
         if (!is_string($gatewayResponse)) {
             throw new \LogicException('AuthenticationResponse is missing');
         }
-        
+
         $gatewayResponse = urldecode($gatewayResponse);
         $gatewayResponse = $this->XMLStringToArray($gatewayResponse);
-        
-        $bankResponse    = null;
-        $procReturnCode  = $gatewayResponse['ResponseCode'];
+
+        $bankResponse   = null;
+        $procReturnCode = $gatewayResponse['ResponseCode'];
 
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
             throw new HashMismatchException();
         }
-        
+
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment');
 
@@ -192,7 +239,7 @@ class KuveytPos extends AbstractGateway
      */
     public function createStatusXML()
     {
-        throw new NotImplementedException();
+        return $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
     }
 
     /**
@@ -200,7 +247,7 @@ class KuveytPos extends AbstractGateway
      */
     public function createCancelXML()
     {
-        throw new NotImplementedException();
+        return $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
     }
 
     /**
@@ -208,7 +255,7 @@ class KuveytPos extends AbstractGateway
      */
     public function createRefundXML()
     {
-        throw new NotImplementedException();
+        return $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
     }
 
     /**
@@ -235,7 +282,12 @@ class KuveytPos extends AbstractGateway
      */
     protected function prepareStatusOrder(array $order)
     {
-        return (object) $order;
+        return (object) array_merge($order, [
+            'id'         => $order['id'],
+            'currency'   => $order['currency'] ?? 'TRY',
+            'start_date' => $order['start_date'] ?? date_create('-360 day'),
+            'end_date'   => $order['end_date'] ?? date_create(),
+        ]);
     }
 
     /**
@@ -251,7 +303,15 @@ class KuveytPos extends AbstractGateway
      */
     protected function prepareCancelOrder(array $order)
     {
-        return (object) $order;
+        return (object) array_merge($order, [
+            'id'              => $order['id'],
+            'remote_order_id' => $order['remote_order_id'],
+            'ref_ret_num'     => $order['ref_ret_num'],
+            'auth_code'       => $order['auth_code'],
+            'trans_id'        => $order['trans_id'],
+            'amount'          => $order['amount'],
+            'currency'        => $order['currency'] ?? 'TRY',
+        ]);
     }
 
     /**
@@ -259,7 +319,15 @@ class KuveytPos extends AbstractGateway
      */
     protected function prepareRefundOrder(array $order)
     {
-        return (object) $order;
+        return (object) array_merge($order, [
+            'id'              => $order['id'],
+            'remote_order_id' => $order['remote_order_id'],
+            'ref_ret_num'     => $order['ref_ret_num'],
+            'auth_code'       => $order['auth_code'],
+            'trans_id'        => $order['trans_id'],
+            'amount'          => $order['amount'],
+            'currency'        => $order['currency'] ?? 'TRY',
+        ]);
     }
 
     /**
@@ -289,6 +357,7 @@ class KuveytPos extends AbstractGateway
     /**
      * Diger Gateway'lerden farkli olarak bu gateway HTML form olan bir response doner.
      * Kutupahenin islem akisina uymasi icin bu HTML form verilerini array'e donusturup, kendimiz post ediyoruz.
+     *
      * @param string $response
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
@@ -300,7 +369,7 @@ class KuveytPos extends AbstractGateway
 
         $gatewayURL = '';
         /** @var \DOMElement $formNode */
-        $formNode   = $dom->getElementsByTagName('form')->item(0);
+        $formNode = $dom->getElementsByTagName('form')->item(0);
         /** @var \DOMNamedNodeMap $attributes */
         $attributes = $formNode->attributes;
         for ($i = 0; $i < $attributes->length; ++$i) {
@@ -328,6 +397,7 @@ class KuveytPos extends AbstractGateway
 
     /**
      * html form'da gelen input degeleri array'e donusturur
+     *
      * @param DOMNodeList $inputNodes
      *
      * @return array<string, string>
@@ -349,13 +419,13 @@ class KuveytPos extends AbstractGateway
                     /** @var string|null $key */
                     $key = $attribute->value;
                 }
-                
+
                 if ('value' === $attribute->name) {
                     /** @var string|null $value */
                     $value = $attribute->value;
                 }
             }
-            
+
             if ($key && null !== $value && !in_array($key, ['submit', 'submitBtn'])) {
                 $inputs[$key] = $value;
             }

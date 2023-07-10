@@ -95,6 +95,8 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
   Desteklenen özellikler:
     - 3DSecure ödeme
+    - Ödeme İptal ve İade (SOAP)
+    - Ödeme durum sorgulama (SOAP)
 
 ### Ana başlıklar
 - [Özellikler](#ozellikler)
