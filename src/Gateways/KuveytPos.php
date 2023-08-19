@@ -10,6 +10,7 @@ use Exception;
 use LogicException;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
@@ -42,10 +43,8 @@ class KuveytPos extends AbstractGateway
         return parent::createXML(['KuveytTurkVPosMessage' => $nodes], $encoding, $ignorePiNode);
     }
 
-    /**
-     * @return KuveytPosAccount
-     */
-    public function getAccount(): KuveytPosAccount
+    /** @return KuveytPosAccount */
+    public function getAccount(): AbstractPosAccount
     {
         return $this->account;
     }

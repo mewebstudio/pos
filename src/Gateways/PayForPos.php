@@ -7,6 +7,7 @@ namespace Mews\Pos\Gateways;
 use LogicException;
 use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Psr\Log\LogLevel;
@@ -30,10 +31,8 @@ class PayForPos extends AbstractGateway
     /** @var PayForPosResponseDataMapper */
     protected $responseDataMapper;
 
-    /**
-     * @return PayForAccount
-     */
-    public function getAccount()
+    /** @return PayForAccount */
+    public function getAccount(): AbstractPosAccount
     {
         return $this->account;
     }

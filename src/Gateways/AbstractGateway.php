@@ -192,11 +192,6 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return AbstractPosAccount
-     */
-    abstract public function getAccount();
-
-    /**
      * @return AbstractCreditCard|null
      */
     public function getCard(): ?AbstractCreditCard

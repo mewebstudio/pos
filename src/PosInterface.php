@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos;
 
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Gateways\AbstractGateway;
@@ -145,4 +146,9 @@ interface PosInterface
      * @return array<AbstractCreditCard::CARD_TYPE_*, string>
      */
     public function getCardTypeMapping(): array;
+
+    /**
+     * @return AbstractPosAccount
+     */
+    public function getAccount(): AbstractPosAccount;
 }

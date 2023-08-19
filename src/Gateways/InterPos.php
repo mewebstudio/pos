@@ -7,6 +7,7 @@ namespace Mews\Pos\Gateways;
 use LogicException;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -31,10 +32,8 @@ class InterPos extends AbstractGateway
     /** @var InterPosResponseDataMapper */
     protected $responseDataMapper;
 
-    /**
-     * @return InterPosAccount
-     */
-    public function getAccount(): InterPosAccount
+    /** @return InterPosAccount */
+    public function getAccount(): AbstractPosAccount
     {
         return $this->account;
     }
@@ -132,18 +131,18 @@ class InterPos extends AbstractGateway
 
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
-        
+
         $gatewayUrl = $this->get3DHostGatewayURL();
         if (self::MODEL_3D_SECURE === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         } elseif (self::MODEL_3D_PAY === $this->account->getModel()) {
             $gatewayUrl = $this->get3DGatewayURL();
         }
-        
+
         if (null === $gatewayUrl) {
             throw new LogicException('Gateway URL\' bulunamadı!');
         }
-        
+
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);

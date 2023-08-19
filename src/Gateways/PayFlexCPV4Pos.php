@@ -8,6 +8,7 @@ use Exception;
 use LogicException;
 use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -34,7 +35,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     protected $responseDataMapper;
 
     /** @return PayFlexAccount */
-    public function getAccount(): PayFlexAccount
+    public function getAccount(): AbstractPosAccount
     {
         return $this->account;
     }

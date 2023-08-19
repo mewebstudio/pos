@@ -7,6 +7,7 @@ namespace Mews\Pos\Gateways;
 use LogicException;
 use Mews\Pos\DataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -28,10 +29,8 @@ class PosNetV1Pos extends AbstractGateway
     /** @var PosNetV1PosResponseDataMapper */
     protected $responseDataMapper;
 
-    /**
-     * @return PosNetAccount
-     */
-    public function getAccount()
+    /** @return PosNetAccount */
+    public function getAccount(): AbstractPosAccount
     {
         return $this->account;
     }

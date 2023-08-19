@@ -8,6 +8,7 @@ use Exception;
 use LogicException;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -168,10 +169,8 @@ class PosNet extends AbstractGateway
         return $this->data;
     }
 
-    /**
-     * @return PosNetAccount
-     */
-    public function getAccount()
+    /** @return PosNetAccount */
+    public function getAccount(): AbstractPosAccount
     {
         return $this->account;
     }

@@ -20,12 +20,12 @@ class GarantiPosTest extends TestCase
 {
     /** @var GarantiPosAccount */
     private $account;
-    
+
     private $config;
 
     /** @var AbstractCreditCard */
     private $card;
-    
+
     private $order;
 
     /** @var GarantiPos */
@@ -65,7 +65,7 @@ class GarantiPosTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->account);
         $this->pos->setTestMode(true);
-        
+
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122');
     }
 
