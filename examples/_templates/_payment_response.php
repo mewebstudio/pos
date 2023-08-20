@@ -93,21 +93,22 @@ $session->set('last_response', $response);
             <dd class="col-sm-9"><?= $response['error_message'] ?: '-'; ?></dd>
         </dl>
         <?php if (AbstractGateway::MODEL_NON_SECURE !== $pos->getAccount()->getModel()): ?>
-        <dl class="row">
-            <dt class="col-sm-3">mdStatus:</dt>
-            <dd class="col-sm-9"><?= $response['md_status'] ?: '-'; ?></dd>
-        </dl>
-        <hr>
-        <hr>
-        <dl class="row">
-            <dt class="col-sm-3">Md Error Message:</dt>
-            <dd class="col-sm-9"><?= $response['md_error_message'] ?: '-'; ?></dd>
-        </dl>
-        <hr>
-        <dl class="row">
-            <dt class="col-sm-3">Transaction Security:</dt>
-            <dd class="col-sm-9"><?= $response['transaction_security']; ?></dd>
-        </dl>
+            <!--bu alanlar non secure odemede yer almaz.-->
+            <dl class="row">
+                <dt class="col-sm-3">MD Status <small>(3D Secure doğrulama başarılı oldugu durumda degeri (genelde) 1 oluyor)</small>:</dt>
+                <dd class="col-sm-9"><?= $response['md_status'] ?: '-'; ?></dd>
+            </dl>
+            <hr>
+            <hr>
+            <dl class="row">
+                <dt class="col-sm-3">MD Error Message:</dt>
+                <dd class="col-sm-9"><?= $response['md_error_message'] ?: '-'; ?></dd>
+            </dl>
+            <hr>
+            <dl class="row">
+                <dt class="col-sm-3">Transaction Security:</dt>
+                <dd class="col-sm-9"><?= $response['transaction_security']; ?></dd>
+            </dl>
         <?php endif ?>
         <hr>
         <dl class="row">
@@ -119,6 +120,7 @@ $session->set('last_response', $response);
         <hr>
         <div class="text-right">
             <?php if ($pos->isSuccess()) : ?>
+                <!--yapılan ödeme tipine göre bir sonraki yapılabilecek işlemlerin butonlarını gösteriyoruz.-->
                 <?php if (AbstractGateway::TX_PRE_PAY === $transaction) : ?>
                     <a href="<?= $bankTestsUrl ?>/regular/post-auth.php" class="btn btn-lg btn-primary">Finish provisioning
                         ></a>
