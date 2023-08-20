@@ -35,7 +35,7 @@ class GarantiPosTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $this->account = AccountFactory::createGarantiPosAccount(
             'garanti',
@@ -63,7 +63,7 @@ class GarantiPosTest extends TestCase
             'ip'          => '156.155.154.153',
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
         $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122');

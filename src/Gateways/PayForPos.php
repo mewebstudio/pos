@@ -130,10 +130,6 @@ class PayForPos extends AbstractGateway
             $gatewayURL = $this->get3DHostGatewayURL();
         }
 
-        if (null === $gatewayURL) {
-            throw new LogicException('Gateway URL\' bulunamadı!');
-        }
-
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayURL, $this->card);
     }
 

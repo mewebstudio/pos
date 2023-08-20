@@ -36,6 +36,8 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
+        $config = require __DIR__.'/../../config/pos_test.php';
+
         $this->account = AccountFactory::createPayFlexAccount(
             'vakifbank-cp',
             '000000000111111',
@@ -44,7 +46,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             AbstractGateway::MODEL_3D_SECURE
         );
 
-        $this->pos = PosFactory::createPosGateway($this->account);
+        $this->pos = PosFactory::createPosGateway($this->account, $config);
         $this->pos->setTestMode(true);
 
         $crypt                   = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
@@ -125,6 +127,8 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
 
     public static function registerDataProvider(): iterable
     {
+        $config = require __DIR__.'/../../config/pos_test.php';
+
         $account = AccountFactory::createPayFlexAccount(
             'vakifbank-cp',
             '000000000111111',
@@ -147,7 +151,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $pos = PosFactory::createPosGateway($account);
+        $pos = PosFactory::createPosGateway($account, $config);
         $pos->setTestMode(true);
 
         $card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);

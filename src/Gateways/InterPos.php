@@ -139,10 +139,6 @@ class InterPos extends AbstractGateway
             $gatewayUrl = $this->get3DGatewayURL();
         }
 
-        if (null === $gatewayUrl) {
-            throw new LogicException('Gateway URL\' bulunamadı!');
-        }
-
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);

@@ -47,7 +47,7 @@ class KuveytPosTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $this->threeDAccount = AccountFactory::createKuveytPosAccount(
             'kuveytpos',
@@ -70,10 +70,10 @@ class KuveytPosTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->threeDAccount);
+        $this->pos = PosFactory::createPosGateway($this->threeDAccount, $this->config);
 
         $this->pos->setTestMode(true);
-        
+
         $this->card = CreditCardFactory::create(
             $this->pos,
             '4155650100416111',
@@ -93,8 +93,8 @@ class KuveytPosTest extends TestCase
         $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()], $this->pos->getConfig());
         $this->assertEquals($this->threeDAccount, $this->pos->getAccount());
         $this->assertNotEmpty($this->pos->getCurrencies());
-        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'], $this->pos->get3DGatewayURL());
-        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['urls']['test'], $this->pos->getApiURL());
+        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d'], $this->pos->get3DGatewayURL());
+        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['payment_api'], $this->pos->getApiURL());
     }
 
     /**
@@ -130,10 +130,8 @@ class KuveytPosTest extends TestCase
         $posMock     = $this->getMockBuilder(KuveytPos::class)
             ->setConstructorArgs([
                 [
-                    'urls' => [
-                        'gateway' => [
-                            'test' => 'https://boa.kuveytturk.com.tr/sanalposservice/Home/ThreeDModelPayGate',
-                        ],
+                    'gateway_endpoints' => [
+                        'gateway_3d' => 'https://boa.kuveytturk.com.tr/sanalposservice/Home/ThreeDModelPayGate',
                     ],
                 ],
                 $this->threeDAccount,
@@ -239,7 +237,7 @@ class KuveytPosTest extends TestCase
             ->getMock();
 
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        
+
         $paymentResponse = $kuveytPosResponseDataMapperTest->threeDPaymentDataProvider()['success1']['paymentData'];
         $posMock->expects($this->once())->method('send')->willReturn($paymentResponse);
 

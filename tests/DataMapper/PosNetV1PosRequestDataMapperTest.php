@@ -34,6 +34,8 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
+        $config = require __DIR__.'/../../config/pos_test.php';
+
         $threeDAccount = AccountFactory::createPosNetAccount(
             'albaraka',
             '6700950031',
@@ -45,7 +47,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
-        $this->pos = PosFactory::createPosGateway($threeDAccount);
+        $this->pos = PosFactory::createPosGateway($threeDAccount, $config);
         $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::create($this->pos, '5400619360964581', '20', '01', '056', 'ahmet');

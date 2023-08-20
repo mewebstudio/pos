@@ -38,6 +38,8 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
+        $config = require __DIR__.'/../../config/pos_test.php';
+
         $threeDAccount = AccountFactory::createPosNetAccount(
             'yapikredi',
             '6706598320',
@@ -62,7 +64,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($threeDAccount);
+        $this->pos = PosFactory::createPosGateway($threeDAccount, $config);
         $this->pos->setTestMode(true);
 
         $crypt = PosFactory::getGatewayCrypt(PosNet::class, new NullLogger());

@@ -39,7 +39,7 @@ class EstPosTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $this->account = AccountFactory::createEstPosAccount(
             'akbank',
@@ -63,7 +63,7 @@ class EstPosTest extends TestCase
             'rand'        => microtime(),
         ];
 
-        $this->pos             = PosFactory::createPosGateway($this->account);
+        $this->pos             = PosFactory::createPosGateway($this->account, $this->config);
         $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);

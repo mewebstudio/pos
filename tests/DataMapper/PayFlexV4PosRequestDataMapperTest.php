@@ -37,6 +37,8 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
+        $config = require __DIR__.'/../../config/pos_test.php';
+
         $this->account = AccountFactory::createPayFlexAccount(
             'vakifbank',
             '000000000111111',
@@ -60,7 +62,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account);
+        $this->pos = PosFactory::createPosGateway($this->account, $config);
         $this->pos->setTestMode(true);
 
         $this->requestDataMapper = new PayFlexV4PosRequestDataMapper();

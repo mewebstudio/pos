@@ -22,22 +22,22 @@ class InterPosTest extends TestCase
 {
     /** @var InterPosAccount */
     private $account;
-    
+
     /** @var InterPos */
     private $pos;
-    
+
     /** @var AbstractCreditCard */
     private $card;
 
     private $config;
-    
+
     private $order;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $userCode     = 'InterTestApi';
         $userPass     = '3';
@@ -64,10 +64,10 @@ class InterPosTest extends TestCase
             'rand'        => microtime(true),
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
 
         $this->pos->setTestMode(true);
-        
+
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 

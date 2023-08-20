@@ -25,7 +25,7 @@ class PayForTest extends TestCase
 
     /** @var AbstractCreditCard */
     private $card;
-    
+
     private $order;
 
     /** @var PayForPos */
@@ -35,7 +35,7 @@ class PayForTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $this->threeDAccount = AccountFactory::createPayForAccount(
             'qnbfinansbank-payfor',
@@ -59,10 +59,10 @@ class PayForTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->threeDAccount);
+        $this->pos = PosFactory::createPosGateway($this->threeDAccount, $this->config);
 
         $this->pos->setTestMode(true);
-        
+
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
@@ -74,9 +74,9 @@ class PayForTest extends TestCase
         $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()], $this->pos->getConfig());
         $this->assertEquals($this->threeDAccount, $this->pos->getAccount());
         $this->assertNotEmpty($this->pos->getCurrencies());
-        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway_3d_host']['test'], $this->pos->get3DHostGatewayURL());
-        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'], $this->pos->get3DGatewayURL());
-        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['urls']['test'], $this->pos->getApiURL());
+        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d_host'], $this->pos->get3DHostGatewayURL());
+        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d'], $this->pos->get3DGatewayURL());
+        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['payment_api'], $this->pos->getApiURL());
     }
 
     /**

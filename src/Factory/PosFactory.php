@@ -68,7 +68,7 @@ class PosFactory
 {
     /**
      * @param AbstractPosAccount   $posAccount
-     * @param array|string|null    $config config path or config array
+     * @param array|string         $config     config path or config array
      * @param HttpClient|null      $client
      * @param LoggerInterface|null $logger
      *
@@ -79,7 +79,7 @@ class PosFactory
      */
     public static function createPosGateway(
         AbstractPosAccount $posAccount,
-                           $config = null,
+                           $config,
         ?HttpClient        $client = null,
         ?LoggerInterface   $logger = null
     ): PosInterface
@@ -88,14 +88,12 @@ class PosFactory
             $logger = new NullLogger();
         }
 
-        if ($client === null) {
-            $client = HttpClientFactory::createDefaultHttpClient();
-        }
-
         if (is_string($config)) {
             $config = require $config;
-        } elseif (empty($config)) {
-            $config = require __DIR__.'/../../config/pos.php';
+        }
+
+        if ($client === null) {
+            $client = HttpClientFactory::createDefaultHttpClient();
         }
 
         // Bank API Exist

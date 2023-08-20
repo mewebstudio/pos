@@ -34,14 +34,14 @@ class InterPosRequestDataMapperTest extends TestCase
     private $requestDataMapper;
 
     private $order;
-    
+
     private $config;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $userCode     = 'InterTestApi';
         $userPass     = '3';
@@ -68,7 +68,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'rand'        => 'rand',
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
         $this->pos->setTestMode(true);
 
         $crypt = PosFactory::getGatewayCrypt(InterPos::class, new NullLogger());
@@ -198,7 +198,7 @@ class InterPosRequestDataMapperTest extends TestCase
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $card   = $this->card;
-        $gatewayURL = $this->config['banks'][$this->account->getBank()]['urls']['gateway']['test'];
+        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
 
         $inputs = [
             'ShopCode'         => $account->getClientId(),
@@ -258,13 +258,13 @@ class InterPosRequestDataMapperTest extends TestCase
             'VnM5WZ3sGrPusmWP'
         );
         /** @var InterPos $pos */
-        $pos     = PosFactory::createPosGateway($account);
+        $pos     = PosFactory::createPosGateway($account, $this->config);
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        
+
         $order = $pos->getOrder();
 
-        $gatewayURL = $this->config['banks'][$account->getBank()]['urls']['gateway_3d_host']['test'];
+        $gatewayURL = $this->config['banks'][$account->getBank()]['gateway_endpoints']['gateway_3d_host'];
         $inputs = [
             'ShopCode'         => $account->getClientId(),
             'TxnType'          => 'Auth',

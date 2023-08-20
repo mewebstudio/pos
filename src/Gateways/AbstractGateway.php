@@ -250,7 +250,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getApiURL(): string
     {
-        return $this->config['urls'][$this->getModeInWord()];
+        return $this->config['gateway_endpoints']['payment_api'];
     }
 
     /**
@@ -258,15 +258,15 @@ abstract class AbstractGateway implements PosInterface
      */
     public function get3DGatewayURL(): string
     {
-        return $this->config['urls']['gateway'][$this->getModeInWord()];
+        return $this->config['gateway_endpoints']['gateway_3d'];
     }
 
     /**
-     * @return string|null
+     * @return string
      */
-    public function get3DHostGatewayURL(): ?string
+    public function get3DHostGatewayURL(): string
     {
-        return $this->config['urls']['gateway_3d_host'][$this->getModeInWord()] ?? null;
+        return $this->config['gateway_endpoints']['gateway_3d_host'] ?? $this->get3DGatewayURL();
     }
 
     /**
@@ -274,7 +274,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getQueryAPIUrl(): string
     {
-        return $this->config['urls']['query'][$this->getModeInWord()] ?? $this->getApiURL();
+        return $this->config['gateway_endpoints']['query_api'] ?? $this->getApiURL();
     }
 
     /**

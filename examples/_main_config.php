@@ -30,8 +30,8 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mew
             new \Slim\Psr7\Factory\RequestFactory(),
             new \Slim\Psr7\Factory\StreamFactory()
         );*/
-
-        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
+        $config = require __DIR__.'/../config/pos_test.php';
+        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, null, $logger);
         $pos->setTestMode(true);
 
         return $pos;
@@ -77,8 +77,8 @@ function createNewPaymentOrderCommon(
         'installment' => $installment,
 
         //3d, 3d_pay, 3d_host odemeler icin zorunlu
-        'success_url' => $successUrl,
-        'fail_url'    => $failUrl,
+        'success_url' => $successUrl, // https://example.com/payment
+        'fail_url'    => $failUrl, // https://example.com/payment
 
         //gateway'e gore zorunlu olan degerler
         'ip'          => $ip, //EstPos, Garanti, KuveytPos, VakifBank

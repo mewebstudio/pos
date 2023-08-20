@@ -46,6 +46,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
+        $config = require __DIR__.'/../../config/pos_test.php';
+
         $this->threeDAccount = AccountFactory::createKuveytPosAccount(
             'kuveytpos',
             '80',
@@ -67,7 +69,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->threeDAccount);
+        $this->pos = PosFactory::createPosGateway($this->threeDAccount, $config);
 
         $this->pos->setTestMode(true);
 

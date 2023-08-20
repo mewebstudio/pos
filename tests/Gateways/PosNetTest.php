@@ -40,7 +40,7 @@ class PosNetTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $this->account = AccountFactory::createPosNetAccount(
             'yapikredi',
@@ -67,7 +67,7 @@ class PosNetTest extends TestCase
             'rand'        => microtime(),
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
 
         $this->pos->setTestMode(true);
 

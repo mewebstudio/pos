@@ -39,7 +39,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $this->threeDAccount = AccountFactory::createEstPosAccount(
             'akbankv3',
@@ -64,7 +64,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'rand'        => microtime(),
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->threeDAccount);
+        $this->pos = PosFactory::createPosGateway($this->threeDAccount, $this->config);
         $this->pos->setTestMode(true);
 
         $crypt = PosFactory::getGatewayCrypt(EstV3Pos::class, new NullLogger());
@@ -81,7 +81,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $txType  = AbstractGateway::TX_PAY;
         $this->pos->prepare($this->order, $txType);
         $card       = $this->card;
-        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'];
+        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d'];
 
         $inputs = [
             'clientid'      => $account->getClientId(),
@@ -149,11 +149,12 @@ class EstV3PosRequestDataMapperTest extends TestCase
         );
 
         /** @var EstV3Pos $pos */
-        $pos = PosFactory::createPosGateway($account);
+        $pos = PosFactory::createPosGateway($account, $this->config);
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
 
-        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway_3d_host']['test'];
+        $gatewayURL = $this->pos->get3DHostGatewayURL();
+
         $inputs     = [
             'clientid'  => $account->getClientId(),
             'storetype' => $account->getModel(),

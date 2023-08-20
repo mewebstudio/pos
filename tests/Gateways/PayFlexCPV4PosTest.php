@@ -41,7 +41,7 @@ class PayFlexCPV4PosTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $this->account = AccountFactory::createPayFlexAccount(
             'vakifbank-cp',
@@ -66,7 +66,7 @@ class PayFlexCPV4PosTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
 
         $this->pos->setTestMode(true);
 

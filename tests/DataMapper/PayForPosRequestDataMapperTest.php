@@ -33,14 +33,14 @@ class PayForPosRequestDataMapperTest extends TestCase
     private $requestDataMapper;
 
     private $order;
-    
+
     private $config;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $this->threeDAccount = AccountFactory::createPayForAccount(
             'qnbfinansbank-payfor',
@@ -64,9 +64,9 @@ class PayForPosRequestDataMapperTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->threeDAccount);
+        $this->pos = PosFactory::createPosGateway($this->threeDAccount, $this->config);
         $this->pos->setTestMode(true);
-        
+
         $crypt = PosFactory::getGatewayCrypt(PayForPos::class, new NullLogger());
         $this->requestDataMapper = new PayForPosRequestDataMapper($crypt);
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
@@ -198,7 +198,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         $order   = (object) $this->order;
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
         $card       = $this->card;
-        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'];
+        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d'];
         $inputs = [
             'MbrId'            => '5',
             'MerchantID'       => $this->threeDAccount->getClientId(),
@@ -259,12 +259,12 @@ class PayForPosRequestDataMapperTest extends TestCase
             '12345678'
         );
         /** @var PayForPos $pos */
-        $pos = PosFactory::createPosGateway($account);
+        $pos = PosFactory::createPosGateway($account, $this->config);
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        
+
         $order      = $pos->getOrder();
-        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway_3d_host']['test'];
+        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d_host'];
         $inputs     = [
             'MbrId'            => '5',
             'MerchantID'       => $this->threeDAccount->getClientId(),

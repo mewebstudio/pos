@@ -34,14 +34,14 @@ class GarantiPosRequestDataMapperTest extends TestCase
     private $requestDataMapper;
 
     private $order;
-    
+
     private $config;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos.php';
+        $this->config = require __DIR__.'/../../config/pos_test.php';
 
         $this->threeDAccount = AccountFactory::createGarantiPosAccount(
             'garanti',
@@ -68,13 +68,13 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'ip'          => '156.155.154.153',
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->threeDAccount);
+        $this->pos = PosFactory::createPosGateway($this->threeDAccount, $this->config);
         $this->pos->setTestMode(true);
-        
+
         $crypt = PosFactory::getGatewayCrypt(GarantiPos::class, new NullLogger());
         $this->requestDataMapper = new GarantiPosRequestDataMapper($crypt);
         $this->requestDataMapper->setTestMode(true);
-        
+
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
@@ -174,7 +174,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $order = $this->order;
         $pos   = $this->pos;
         $pos->prepare($order, AbstractGateway::TX_HISTORY);
-        
+
         $actual = $this->requestDataMapper->createHistoryRequestData($pos->getAccount(), $pos->getOrder());
 
         $expectedData = $this->getSampleHistoryRequestData($pos->getAccount(), $pos->getOrder());
@@ -204,11 +204,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
     {
         $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $pos = $this->pos;
-        
+
         $account = $pos->getAccount();
         $order = $pos->getOrder();
         $card = $pos->getCard();
-        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway']['test'];
+        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d'];
         $inputs = [
             'secure3dsecuritylevel' => '3D',
             'mode'                  => 'TEST',
