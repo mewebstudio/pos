@@ -6,14 +6,13 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Gateways\AbstractGateway;
 use Psr\Log\LogLevel;
 
 class PosNetCrypt extends AbstractCrypt
 {
     /** @var string */
     protected const HASH_ALGORITHM = 'sha256';
-    
+
     /** @var string */
     protected const HASH_SEPARATOR = ';';
 
@@ -24,20 +23,16 @@ class PosNetCrypt extends AbstractCrypt
      */
     public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
     {
-        if ($account->getModel() === AbstractGateway::MODEL_3D_SECURE || $account->getModel() === AbstractGateway::MODEL_3D_PAY) {
-            $secondHashData = [
-                $requestData['id'],
-                $requestData['amount'],
-                $requestData['currency'],
-                $account->getClientId(),
-                $this->createSecurityData($account),
-            ];
-            $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
+        $secondHashData = [
+            $requestData['id'],
+            $requestData['amount'],
+            $requestData['currency'],
+            $account->getClientId(),
+            $this->createSecurityData($account),
+        ];
+        $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
 
-            return $this->hashString($hashStr);
-        }
-
-        return '';
+        return $this->hashString($hashStr);
     }
 
     /**
@@ -47,19 +42,15 @@ class PosNetCrypt extends AbstractCrypt
      */
     public function check3DHash(AbstractPosAccount $account, array $data): bool
     {
-        $hashStr = '';
-
-        if ($account->getModel() === AbstractGateway::MODEL_3D_SECURE || $account->getModel() === AbstractGateway::MODEL_3D_PAY) {
-            $secondHashData = [
-                $data['mdStatus'],
-                $data['xid'],
-                $data['amount'],
-                $data['currency'],
-                $account->getClientId(),
-                $this->createSecurityData($account),
-            ];
-            $hashStr = implode(static::HASH_SEPARATOR, $secondHashData);
-        }
+        $secondHashData = [
+            $data['mdStatus'],
+            $data['xid'],
+            $data['amount'],
+            $data['currency'],
+            $account->getClientId(),
+            $this->createSecurityData($account),
+        ];
+        $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
 
         if ($this->hashString($hashStr) !== $data['mac']) {
             $this->logger->log(LogLevel::ERROR, 'hash check failed', [
