@@ -196,7 +196,7 @@ class KuveytPos extends AbstractGateway
         $gatewayUrl = $this->get3DGatewayURL();
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->getCommon3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);
+        return $this->getCommon3DFormData($this->account, $this->order, $paymentModel, $this->type, $gatewayUrl, $this->card);
     }
 
     /**
@@ -332,6 +332,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @param KuveytPosAccount        $account
      * @param                         $order
+     * @param self::MODEL_*           $paymentModel
      * @param self::TX_*              $txType
      * @param string                  $gatewayURL
      * @param AbstractCreditCard|null $card
@@ -340,13 +341,13 @@ class KuveytPos extends AbstractGateway
      *
      * @throws Exception
      */
-    private function getCommon3DFormData(KuveytPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    private function getCommon3DFormData(KuveytPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         if (!$order) {
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
-        $formData     = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);
+        $formData     = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $paymentModel, $txType, $card);
         $xml          = $this->createXML($formData);
         $bankResponse = $this->send($xml, $gatewayURL);
 

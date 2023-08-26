@@ -332,12 +332,12 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param GarantiPosAccount $account
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         $mappedOrder = $this->mapPaymentOrder($order);
 
         $inputs = [
-            'secure3dsecuritylevel' => $this->secureTypeMappings[$account->getModel()],
+            'secure3dsecuritylevel' => $this->secureTypeMappings[$paymentModel],
             'mode'                  => $this->getMode(),
             'apiversion'            => self::API_VERSION,
             'terminalprovuserid'    => $account->getUsername(),

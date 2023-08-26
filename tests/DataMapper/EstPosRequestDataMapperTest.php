@@ -278,7 +278,7 @@ class EstPosRequestDataMapperTest extends TestCase
 
         $inputs = [
             'clientid'  => $account->getClientId(),
-            'storetype' => $account->getModel(),
+            'storetype' => AbstractGateway::MODEL_3D_SECURE,
             'hash'      => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
             'firmaadi'  => $this->order['name'],
             'Email'     => $this->order['email'],
@@ -301,6 +301,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
             $this->pos->getOrder(),
+            AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayURL
         ));
@@ -317,6 +318,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
             $this->pos->getOrder(),
+            AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayURL,
             $card
@@ -345,7 +347,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $gatewayURL = $this->pos->get3DHostGatewayURL();
         $inputs     = [
             'clientid'  => $account->getClientId(),
-            'storetype' => $account->getModel(),
+            'storetype' => '3d_host',
             'hash'      => 'zQJGquP0/PXt6LeutjN1Qxq32Zg=',
             'firmaadi'  => $this->order['name'],
             'Email'     => $this->order['email'],
@@ -368,6 +370,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $pos->getAccount(),
             $pos->getOrder(),
+            AbstractGateway::MODEL_3D_HOST,
             AbstractGateway::TX_PAY,
             $gatewayURL
         ));

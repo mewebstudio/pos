@@ -130,17 +130,19 @@ abstract class AbstractRequestDataMapper
     abstract public function createRefundRequestData(AbstractPosAccount $account, $order): array;
 
     /**
-     * @phpstan-param AbstractGateway::TX_* $txType
+     * @phpstan-param AbstractGateway::TX_*    $txType
+     * @phpstan-param AbstractGateway::MODEL_* $paymentModel
      *
      * @param AbstractPosAccount      $account
      * @param                         $order
      * @param string                  $gatewayURL
+     * @param string                  $paymentModel
      * @param string                  $txType
      * @param AbstractCreditCard|null $card
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
-    abstract public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array;
+    abstract public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array;
 
     /**
      * @param AbstractPosAccount $account

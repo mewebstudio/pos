@@ -263,7 +263,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return array{gateway: string, method: 'POST', inputs: array{PaReq: string, TermUrl: string, MD: string}}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = []): array
+    public function create3DFormData(?AbstractPosAccount $account, $order, ?string $paymentModel, ?string $txType, ?string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = []): array
     {
         $inputs = [
             'PaReq'   => $extraData['PaReq'],

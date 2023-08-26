@@ -178,7 +178,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         $mappedOrder = (array) $order;
         $mappedOrder['installment'] = $this->mapInstallment($order->installment);
@@ -190,7 +190,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'UserCode'         => $account->getUsername(),
             'OrderId'          => (string) $order->id,
             'Lang'             => $this->getLang($account, $order),
-            'SecureType'       => $this->secureTypeMappings[$account->getModel()],
+            'SecureType'       => $this->secureTypeMappings[$paymentModel],
             'TxnType'          => $this->mapTxType($txType),
             'PurchAmount'      => (string) $order->amount,
             'InstallmentCount' => $this->mapInstallment($order->installment),

@@ -134,6 +134,7 @@ class PayFlexCPV4Pos extends AbstractGateway
             null,
             null,
             null,
+            null,
             $data
         );
     }

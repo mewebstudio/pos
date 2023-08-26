@@ -116,10 +116,11 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
-     * @param KuveytPosAccount      $account
-     * @param AbstractGateway::TX_* $txType
+     * @param KuveytPosAccount         $account
+     * @param AbstractGateway::TX_*    $txType
+     * @param AbstractGateway::MODEL_* $paymentModel
      */
-    public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, $order, string $paymentModel, string $txType, ?AbstractCreditCard $card = null): array
     {
         $mappedOrder = (array) $order;
         $mappedOrder['amount'] = self::amountFormat($order->amount);
@@ -129,7 +130,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'APIVersion'          => self::API_VERSION,
             'HashData'            => $hash,
             'TransactionType'     => $this->mapTxType($txType),
-            'TransactionSecurity' => $this->secureTypeMappings[$account->getModel()],
+            'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
             'InstallmentCount'    => $this->mapInstallment($order->installment),
             'Amount'              => self::amountFormat($order->amount),
             //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
@@ -328,7 +329,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         throw new NotImplementedException();
     }

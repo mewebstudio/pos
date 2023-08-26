@@ -265,6 +265,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public function create3DFormData(
         ?AbstractPosAccount  $account,
                              $order,
+        ?string              $paymentModel,
         ?string              $txType,
         ?string              $gatewayURL,
         ?AbstractCreditCard  $card = null,

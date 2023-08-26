@@ -571,7 +571,7 @@ parameters:
 			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
 
 		-
-			message: "#^Default value of the parameter \\#6 \\$extraData \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexCPV4PosRequestDataMapper\\:\\:create3DFormData\\(\\) is incompatible with type array\\{CommonPaymentUrl\\: string, PaymentToken\\: string\\}\\.$#"
+			message: "#^Default value of the parameter \\#7 \\$extraData \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexCPV4PosRequestDataMapper\\:\\:create3DFormData\\(\\) is incompatible with type array\\{CommonPaymentUrl\\: string, PaymentToken\\: string\\}\\.$#"
 			count: 1
 			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
 
@@ -686,7 +686,7 @@ parameters:
 			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
 
 		-
-			message: "#^Default value of the parameter \\#6 \\$extraData \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:create3DFormData\\(\\) is incompatible with type array\\{PaReq\\: string, TermUrl\\: string, MD\\: string, ACSUrl\\: string\\}\\.$#"
+			message: "#^Default value of the parameter \\#7 \\$extraData \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:create3DFormData\\(\\) is incompatible with type array\\{PaReq\\: string, TermUrl\\: string, MD\\: string, ACSUrl\\: string\\}\\.$#"
 			count: 1
 			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
 
@@ -1881,7 +1881,7 @@ parameters:
 			path: src/Gateways/PayFlexCPV4Pos.php
 
 		-
-			message: "#^Parameter \\#6 \\$extraData of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexCPV4PosRequestDataMapper\\:\\:create3DFormData\\(\\) expects array\\{CommonPaymentUrl\\: string, PaymentToken\\: string\\}, array\\{CommonPaymentUrl\\: string\\|null, PaymentToken\\: string\\|null, ErrorCode\\: null, ResponseMessage\\: string\\|null\\} given\\.$#"
+			message: "#^Parameter \\#7 \\$extraData of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexCPV4PosRequestDataMapper\\:\\:create3DFormData\\(\\) expects array\\{CommonPaymentUrl\\: string, PaymentToken\\: string\\}, array\\{CommonPaymentUrl\\: string\\|null, PaymentToken\\: string\\|null, ErrorCode\\: null, ResponseMessage\\: string\\|null\\} given\\.$#"
 			count: 1
 			path: src/Gateways/PayFlexCPV4Pos.php
 

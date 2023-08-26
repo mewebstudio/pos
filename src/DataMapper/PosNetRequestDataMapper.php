@@ -224,7 +224,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * @throws Exception
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, $extraData = null): array
+    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, $extraData = null): array
     {
         $inputs = [
             'mid'               => $account->getClientId(),

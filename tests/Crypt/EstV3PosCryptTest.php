@@ -74,7 +74,7 @@ class EstV3PosCryptTest extends TestCase
         $account = $this->threeDAccount;
         $inputs  = [
             'clientid'      => $account->getClientId(),
-            'storetype'     => $account->getModel(),
+            'storetype'     => AbstractGateway::MODEL_3D_SECURE,
             'amount'        => '100.25',
             'oid'           => 'order222',
             'okUrl'         => 'https://domain.com/success',

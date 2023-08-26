@@ -232,9 +232,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        $data = $this->create3DFormDataCommon($account, $order, $txType, $gatewayURL, $card);
+        $data = $this->create3DFormDataCommon($account, $order, $paymentModel, $txType, $gatewayURL, $card);
 
         $orderMapped = clone $order;
         $orderMapped->installment = $this->mapInstallment($order->installment);
@@ -245,15 +245,16 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
-     * @param AbstractGateway::TX_* $txType
+     * @param AbstractGateway::TX_*    $txType
+     * @param AbstractGateway::MODEL_* $paymentModel
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
-    public function create3DFormDataCommon(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormDataCommon(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         $inputs = [
             'clientid'  => $account->getClientId(),
-            'storetype' => $this->secureTypeMappings[$account->getModel()],
+            'storetype' => $this->secureTypeMappings[$paymentModel],
             'amount'    => $order->amount,
             'oid'       => $order->id,
             'okUrl'     => $order->success_url,

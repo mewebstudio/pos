@@ -130,7 +130,7 @@ class PayForPos extends AbstractGateway
             $gatewayURL = $this->get3DHostGatewayURL();
         }
 
-        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $gatewayURL, $this->card);
+        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $paymentModel, $this->type, $gatewayURL, $this->card);
     }
 
 

@@ -140,7 +140,7 @@ class PosNet extends AbstractGateway
 
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $this->type, $this->get3DGatewayURL(), $this->card, $data['oosRequestDataResponse']);
+        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $paymentModel, $this->type, $this->get3DGatewayURL(), $this->card, $data['oosRequestDataResponse']);
     }
 
     /**

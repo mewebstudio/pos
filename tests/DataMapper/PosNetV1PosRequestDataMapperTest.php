@@ -168,6 +168,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         $actual = $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
             $this->pos->getOrder(),
+            AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayUrl,
             $this->card

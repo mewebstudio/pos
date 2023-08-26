@@ -243,6 +243,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
             $this->pos->getOrder(),
+            AbstractGateway::MODEL_3D_SECURE,
             AbstractGateway::TX_PAY,
             $gatewayURL,
             $this->card

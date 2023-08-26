@@ -182,7 +182,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         $mappedOrder = (array) $order;
         $mappedOrder['installment'] = $this->mapInstallment($order->installment);
@@ -192,7 +192,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $inputs = [
             'ShopCode'         => $account->getClientId(),
             'TxnType'          => $this->mapTxType($txType),
-            'SecureType'       => $this->secureTypeMappings[$account->getModel()],
+            'SecureType'       => $this->secureTypeMappings[$paymentModel],
             'Hash'             => $hash,
             'PurchAmount'      => $order->amount,
             'OrderId'          => $order->id,

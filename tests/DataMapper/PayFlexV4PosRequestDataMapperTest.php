@@ -245,11 +245,12 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
 
         $expectedValue = $this->getSample3DFormDataFromEnrollmentResponse();
         $actualData = $this->requestDataMapper->create3DFormData(
-            $pos->getAccount(),
-            $pos->getOrder(),
-            '',
-            '',
-            $pos->getCard(),
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
             $this->getSampleEnrollmentSuccessResponseDataProvider()['Message']['VERes']
         );
 

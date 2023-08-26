@@ -160,7 +160,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             $inputs['CardCVV2']            = $card->getCvv();
         }
 
-        $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, AbstractGateway::TX_PAY, $card);
+        $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $card);
         $this->assertEquals($inputs, $result);
     }
 

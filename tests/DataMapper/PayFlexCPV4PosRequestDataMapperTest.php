@@ -119,6 +119,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             null,
             null,
             null,
+            null,
             $queryParams
         );
 

@@ -291,6 +291,7 @@ class PosNetRequestDataMapperTest extends TestCase
         $expected = $this->requestDataMapper->create3DFormData(
             $pos->getAccount(),
             $pos->getOrder(),
+            AbstractGateway::MODEL_3D_SECURE,
             '',
             $gatewayURL,
             null,
