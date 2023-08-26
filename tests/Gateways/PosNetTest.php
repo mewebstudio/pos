@@ -124,7 +124,7 @@ class PosNetTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $posMock->expects($this->once())->method('getOosTransactionData')->willReturn($this->getSampleOoTransactionFailResponseData());
 
-        $posMock->get3DFormData();
+        $posMock->get3DFormData(AbstractGateway::MODEL_3D_SECURE);
     }
 
 

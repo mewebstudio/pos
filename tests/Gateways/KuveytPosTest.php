@@ -146,7 +146,7 @@ class KuveytPosTest extends TestCase
         $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $posMock->method('send')->willReturn($html);
 
-        $result = $posMock->get3DFormData();
+        $result = $posMock->get3DFormData(AbstractGateway::MODEL_3D_SECURE);
 
         $this->assertSame($expected, $result);
     }

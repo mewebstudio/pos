@@ -16,7 +16,7 @@ $session->set('order', $order);
 
 $pos->prepare($order, $transaction);
 
-$formData = $pos->get3DFormData();
+$formData = $pos->get3DFormData(\Mews\Pos\Gateways\AbstractGateway::MODEL_3D_HOST);
 
 require '../../_templates/_redirect_form.php';
 require '../../_templates/_footer.php';

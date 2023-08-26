@@ -117,7 +117,7 @@ class PayFlexCPV4PosTest extends TestCase
         $posMock->expects($this->once())->method('registerPayment')
             ->willReturn(PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['queryParams']);
 
-        $result = $posMock->get3DFormData();
+        $result = $posMock->get3DFormData(AbstractGateway::MODEL_3D_SECURE);
 
         $this->assertSame(PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['expected'], $result);
     }
@@ -146,7 +146,7 @@ class PayFlexCPV4PosTest extends TestCase
                 'ResponseMessage'  => 'Güvenlik Numarası Hatalı',
             ]);
 
-        $posMock->get3DFormData();
+        $posMock->get3DFormData(AbstractGateway::MODEL_3D_SECURE);
     }
 
     public function testMake3dPayPaymentFail(): void

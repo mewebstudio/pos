@@ -124,7 +124,7 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(): array
+    public function get3DFormData(string $paymentModel): array
     {
         if ($this->order === null) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
@@ -133,9 +133,9 @@ class InterPos extends AbstractGateway
         }
 
         $gatewayUrl = $this->get3DHostGatewayURL();
-        if (self::MODEL_3D_SECURE === $this->account->getModel()) {
+        if (self::MODEL_3D_SECURE === $paymentModel) {
             $gatewayUrl = $this->get3DGatewayURL();
-        } elseif (self::MODEL_3D_PAY === $this->account->getModel()) {
+        } elseif (self::MODEL_3D_PAY === $paymentModel) {
             $gatewayUrl = $this->get3DGatewayURL();
         }
 

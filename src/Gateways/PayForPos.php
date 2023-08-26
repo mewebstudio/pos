@@ -115,7 +115,7 @@ class PayForPos extends AbstractGateway
     /**
      * {@inheritDoc}
      */
-    public function get3DFormData(): array
+    public function get3DFormData(string $paymentModel): array
     {
         if ($this->order === null) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
@@ -126,7 +126,7 @@ class PayForPos extends AbstractGateway
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         $gatewayURL = $this->get3DGatewayURL();
-        if (self::MODEL_3D_HOST === $this->account->getModel()) {
+        if (self::MODEL_3D_HOST === $paymentModel) {
             $gatewayURL = $this->get3DHostGatewayURL();
         }
 

@@ -107,7 +107,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * {@inheritDoc}
      */
-    public function get3DFormData(): array
+    public function get3DFormData(string $paymentModel): array
     {
         if (null === $this->order) {
             $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [

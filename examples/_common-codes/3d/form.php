@@ -33,7 +33,7 @@ $session->set('tx', $transaction);
 $pos->prepare($order, $transaction, $card);
 
 try {
-    $formData = $pos->get3DFormData();
+    $formData = $pos->get3DFormData(\Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE);
     //dd($formData);
 } catch (\Throwable $e) {
     dd($e);

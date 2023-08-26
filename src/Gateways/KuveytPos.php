@@ -191,7 +191,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(): array
+    public function get3DFormData(string $paymentModel): array
     {
         $gatewayUrl = $this->get3DGatewayURL();
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');

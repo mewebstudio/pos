@@ -27,6 +27,15 @@ interface PosInterface
     public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false);
 
     /**
+     * returns form data, key values, necessary for 3D payment
+     *
+     * @param AbstractGateway::MODEL_* $paymentModel
+     *
+     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
+     */
+    public function get3DFormData(string $paymentModel): array;
+
+    /**
      * Regular Payment
      *
      * @return AbstractGateway
@@ -87,7 +96,7 @@ interface PosInterface
      *
      * @throws UnsupportedPaymentModelException
      */
-    public function payment($card);
+    public function payment(AbstractCreditCard $card);
 
     /**
      * Refund Order
