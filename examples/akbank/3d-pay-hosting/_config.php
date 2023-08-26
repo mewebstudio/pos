@@ -7,7 +7,7 @@ require '../_payment_config.php';
 $baseUrl = $bankTestsUrl.'/3d-pay-hosting/';
 //account bilgileri kendi account bilgilerinizle degistiriniz
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
-    'isbank',
+    'akbank',
     '700655000200',
     'ISBANKAPI',
     'ISBANK07',
