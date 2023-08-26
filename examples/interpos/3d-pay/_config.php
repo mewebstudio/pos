@@ -25,3 +25,4 @@ $pos = getGateway($account);
 $transaction = AbstractGateway::TX_PAY;
 
 $templateTitle = '3D Model Pay Payment';
+$paymentModel = \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_PAY;

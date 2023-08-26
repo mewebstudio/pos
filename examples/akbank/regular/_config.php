@@ -15,3 +15,4 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
 $pos = getGateway($account);
 
 $templateTitle = 'Regular Payment';
+$paymentModel = \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE;

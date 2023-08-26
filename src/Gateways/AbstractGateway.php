@@ -302,27 +302,25 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function payment($card = null)
+    public function payment(string $paymentModel, $card = null)
     {
         $request    = Request::createFromGlobals();
         $this->card = $card;
 
-        $model = $this->account->getModel();
-
         $this->logger->log(LogLevel::DEBUG, 'payment called', [
             'card_provided' => (bool) $this->card,
-            'model'         => $model,
+            'model'         => $paymentModel,
         ]);
-        if (self::MODEL_NON_SECURE === $model) {
+        if (self::MODEL_NON_SECURE === $paymentModel) {
             $this->makeRegularPayment();
-        } elseif (self::MODEL_3D_SECURE === $model) {
+        } elseif (self::MODEL_3D_SECURE === $paymentModel) {
             $this->make3DPayment($request);
-        } elseif (self::MODEL_3D_PAY === $model || self::MODEL_3D_PAY_HOSTING === $model) {
+        } elseif (self::MODEL_3D_PAY === $paymentModel || self::MODEL_3D_PAY_HOSTING === $paymentModel) {
             $this->make3DPayPayment($request);
-        } elseif (self::MODEL_3D_HOST === $model) {
+        } elseif (self::MODEL_3D_HOST === $paymentModel) {
             $this->make3DHostPayment($request);
         } else {
-            $this->logger->log(LogLevel::ERROR, 'unsupported payment model', ['model' => $model]);
+            $this->logger->log(LogLevel::ERROR, 'unsupported payment model', ['model' => $paymentModel]);
             throw new UnsupportedPaymentModelException();
         }
 
@@ -335,7 +333,7 @@ abstract class AbstractGateway implements PosInterface
     public function makeRegularPayment()
     {
         $this->logger->log(LogLevel::DEBUG, 'making payment', [
-            'model'   => $this->account->getModel(),
+            'model'   => AbstractGateway::MODEL_NON_SECURE,
             'tx_type' => $this->type,
         ]);
         $contents = '';

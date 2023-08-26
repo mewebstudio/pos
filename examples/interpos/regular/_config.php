@@ -14,3 +14,4 @@ $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount('denizbank', 
 $pos = getGateway($account);
 
 $templateTitle = 'Regular Payment';
+$paymentModel = \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE;

@@ -75,15 +75,15 @@ function getNewOrder(
     return $order;
 }
 
-function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+function doPayment(\Mews\Pos\PosInterface $pos, string $paymentModel, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
 {
-    if ($pos->getAccount()->getModel() === AbstractGateway::MODEL_NON_SECURE
+    if ($paymentModel === AbstractGateway::MODEL_NON_SECURE
         && AbstractGateway::TX_POST_PAY !== $transaction
     ) {
         //bu asamada $card regular/non secure odemede lazim.
-        $pos->payment($card);
+        $pos->payment($paymentModel, $card);
     } else {
-        $pos->payment();
+        $pos->payment($paymentModel);
     }
 }
 

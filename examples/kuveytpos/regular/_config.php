@@ -16,3 +16,4 @@ $account = \Mews\Pos\Factory\AccountFactory::createKuveytPosAccount(
 $pos = getGateway($account);
 
 $templateTitle = 'Regular Payment';
+$paymentModel = \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE;

@@ -90,13 +90,14 @@ interface PosInterface
     /**
      * Make Payment
      *
-     * @param AbstractCreditCard $card
+     * @param AbstractGateway::MODEL_* $paymentModel
+     * @param AbstractCreditCard       $card
      *
      * @return AbstractGateway
      *
      * @throws UnsupportedPaymentModelException
      */
-    public function payment(AbstractCreditCard $card);
+    public function payment(string $paymentModel, AbstractCreditCard $card);
 
     /**
      * Refund Order

@@ -27,7 +27,7 @@ if (!$order) {
 $pos->prepare($order, $transaction);
 
 try {
-    doPayment($pos, $transaction, $card);
+    doPayment($pos, $paymentModel, $transaction, $card);
 } catch (HashMismatchException $e) {
     dd($e);
 }
@@ -92,7 +92,7 @@ $session->set('last_response', $response);
             <dt class="col-sm-3">Error Message:</dt>
             <dd class="col-sm-9"><?= $response['error_message'] ?: '-'; ?></dd>
         </dl>
-        <?php if (AbstractGateway::MODEL_NON_SECURE !== $pos->getAccount()->getModel()): ?>
+        <?php if (AbstractGateway::MODEL_NON_SECURE !== $paymentModel): ?>
             <!--bu alanlar non secure odemede yer almaz.-->
             <dl class="row">
                 <dt class="col-sm-3">MD Status <small>(3D Secure doğrulama başarılı oldugu durumda degeri (genelde) 1 oluyor)</small>:</dt>

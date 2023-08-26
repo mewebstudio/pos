@@ -21,3 +21,4 @@ $pos = getGateway($account);
 $transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PAY;
 
 $templateTitle = '3D Host Model Payment';
+$paymentModel = \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_HOST;
