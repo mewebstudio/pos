@@ -204,7 +204,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'DealerData'             => null,
             'IsEncrypted'            => 'N',
             'PaymentFacilitatorData' => null,
-            'OrderId'                => self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel()),
+            'OrderId'                => self::mapOrderIdToPrefixedOrderId($order->id, $order->payment_model),
         ];
 
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
@@ -237,7 +237,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         if (isset($order->ref_ret_num)) {
             $requestData['ReferenceCode'] = $order->ref_ret_num;
         } else {
-            $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
+            $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order->id, $order->payment_model);
         }
 
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
@@ -270,10 +270,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         if (isset($order->ref_ret_num)) {
             $requestData['ReferenceCode'] = $order->ref_ret_num;
         } else {
-            $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
+            $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order->id, $order->payment_model);
         }
 
-        if ($account->getModel() === AbstractGateway::MODEL_NON_SECURE) {
+        if ($order->payment_model === AbstractGateway::MODEL_NON_SECURE) {
             $requestData['Amount']       = self::amountFormat($order->amount);
             $requestData['CurrencyCode'] = $this->mapCurrency($order->currency);
         }

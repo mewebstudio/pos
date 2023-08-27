@@ -10,6 +10,12 @@ $ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('curre
 
 $order = [
     'id' => $ord['id'],
+    /**
+     * payment_model:
+     * siparis olusturulurken kullanilan odeme modeli
+     * orderId'yi dogru sekilde formatlamak icin zorunlu.
+     */
+    'payment_model' => AbstractGateway::MODEL_3D_SECURE,
 ];
 $transaction = AbstractGateway::TX_STATUS;
 $pos->prepare($order, $transaction);

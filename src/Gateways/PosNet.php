@@ -279,7 +279,8 @@ class PosNet extends AbstractGateway
     protected function prepareStatusOrder(array $order)
     {
         return (object) [
-            'id' => $order['id'],
+            'id'            => $order['id'],
+            'payment_model' => $order['payment_model'] ?? self::MODEL_3D_SECURE,
         ];
     }
 
@@ -296,13 +297,19 @@ class PosNet extends AbstractGateway
      */
     protected function prepareCancelOrder(array $order)
     {
-        return (object) [
+        $orderTemp = [
             //id or ref_ret_num
-            'id'           => $order['id'] ?? null,
+            'id'          => $order['id'] ?? null,
             'ref_ret_num' => $order['ref_ret_num'] ?? null,
             //optional
-            'auth_code'    => $order['auth_code'] ?? null,
+            'auth_code'   => $order['auth_code'] ?? null,
         ];
+
+        if (isset($orderTemp['id'])) {
+            $orderTemp['payment_model'] = $order['payment_model'] ?? self::MODEL_3D_SECURE;
+        }
+
+        return (object) $orderTemp;
     }
 
     /**
@@ -310,12 +317,18 @@ class PosNet extends AbstractGateway
      */
     protected function prepareRefundOrder(array $order)
     {
-        return (object) [
+        $orderTemp = [
             //id or ref_ret_num
-            'id'           => $order['id'] ?? null,
+            'id'          => $order['id'] ?? null,
             'ref_ret_num' => $order['ref_ret_num'] ?? null,
-            'amount'       => $order['amount'],
-            'currency'     => $order['currency'] ?? 'TRY',
+            'amount'      => $order['amount'],
+            'currency'    => $order['currency'] ?? 'TRY',
         ];
+
+        if (isset($orderTemp['id'])) {
+            $orderTemp['payment_model'] = $order['payment_model'] ?? self::MODEL_3D_SECURE;
+        }
+
+        return (object) $orderTemp;
     }
 }

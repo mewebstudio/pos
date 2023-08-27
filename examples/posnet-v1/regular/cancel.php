@@ -12,6 +12,16 @@ $order = [
     'id' => $ord['id'],
     'ref_ret_num' => $session->get('ref_ret_num'),
 
+    /**
+     * payment_model:
+     * cancel islemi orderId ile yapiliyorsa zorunlu.
+     * cancel islemi ref_ret_num ile yapiliyorsa zorunlu degil.
+     *
+     * siparis olusturulurken kullanilan odeme modeli
+     * orderId'yi dogru sekilde formatlamak icin zorunlu.
+     */
+    'payment_model' => \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
+
     // satis islem disinda baska bir islemi (Ön Provizyon İptali, Provizyon Kapama İptali, vs...) iptal edildiginde saglanmasi gerekiyor
     // 'transaction_type' => \Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY,
 ];

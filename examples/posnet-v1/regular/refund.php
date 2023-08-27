@@ -14,6 +14,11 @@ $pos->prepare([
     // daha iyi performance icin ref_ret_num tercih edilmelidir.
     'id'          => $ord['id'],
     'ref_ret_num' => $session->get('ref_ret_num'),
+    /**
+     * payment_model:
+     * siparis olusturulurken kullanilan odeme modeli.
+     */
+    'payment_model' => \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
     'amount'      => $ord['amount'],
     'currency'    => $ord['currency'],
 ], $transaction);

@@ -250,7 +250,8 @@ class PosNetV1Pos extends AbstractGateway
     protected function prepareStatusOrder(array $order)
     {
         return (object) [
-            'id' => $order['id'],
+            'id'            => $order['id'],
+            'payment_model' => $order['payment_model'] ?? self::MODEL_3D_SECURE,
         ];
     }
 
@@ -270,6 +271,7 @@ class PosNetV1Pos extends AbstractGateway
         return (object) [
             //id or ref_ret_num
             'id'               => $order['id'] ?? null,
+            'payment_model'    => $order['payment_model'] ?? self::MODEL_3D_SECURE,
             'ref_ret_num'      => $order['ref_ret_num'] ?? null,
             'transaction_type' => $order['transaction_type'] ?? AbstractGateway::TX_PAY,
         ];
@@ -283,6 +285,7 @@ class PosNetV1Pos extends AbstractGateway
         return (object) [
             //id or ref_ret_num
             'id'               => $order['id'] ?? null,
+            'payment_model'    => $order['payment_model'] ?? self::MODEL_3D_SECURE,
             'ref_ret_num'      => $order['ref_ret_num'] ?? null,
             'transaction_type' => $order['transaction_type'] ?? AbstractGateway::TX_PAY,
             'amount'           => $order['amount'],

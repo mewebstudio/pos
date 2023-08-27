@@ -145,7 +145,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             'mid'   => $account->getClientId(),
             'tid'   => $account->getTerminalId(),
             $txType => [
-                'orderID' => self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel()),
+                'orderID' => self::mapOrderIdToPrefixedOrderId($order->id, $order->payment_model),
             ],
         ];
     }
@@ -175,7 +175,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
         if (isset($order->ref_ret_num)) {
             $requestData[$txType]['hostLogKey'] = $order->ref_ret_num;
         } else {
-            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
+            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $order->payment_model);
         }
 
         return $requestData;
@@ -202,7 +202,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
         if (isset($order->ref_ret_num)) {
             $requestData[$txType]['hostLogKey'] = $order->ref_ret_num;
         } else {
-            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $account->getModel());
+            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $order->payment_model);
         }
 
         return $requestData;

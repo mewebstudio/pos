@@ -8,6 +8,15 @@ $ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('curre
 
 $order = [
     'id' => $ord['id'],
+    /**
+     * payment_model:
+     * cancel islemi orderId ile yapiliyorsa zorunlu.
+     * cancel islemi ref_ret_num ile yapiliyorsa zorunlu degil.
+     *
+     * siparis olusturulurken kullanilan odeme modeli
+     * orderId'yi dogru sekilde formatlamak icin zorunlu.
+     */
+    'payment_model' => \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
 ];
 
 /*

@@ -841,6 +841,11 @@ parameters:
 			path: src/DataMapper/PosNetRequestDataMapper.php
 
 		-
+			message: "#^Access to an undefined property object\\:\\:\\$payment_model\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetRequestDataMapper.php
+
+		-
 			message: "#^Cannot assign offset 'authCode' to array\\<string, string\\>\\|string\\.$#"
 			count: 1
 			path: src/DataMapper/PosNetRequestDataMapper.php
@@ -997,6 +1002,11 @@ parameters:
 
 		-
 			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
+			count: 1
+			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: "#^Access to an undefined property object\\:\\:\\$payment_model\\.$#"
 			count: 1
 			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
 
