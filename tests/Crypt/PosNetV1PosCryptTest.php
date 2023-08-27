@@ -23,8 +23,6 @@ class PosNetV1PosCryptTest extends TestCase
         $this->threeDAccount = AccountFactory::createPosNetAccount(
             'albaraka',
             '6700950031',
-            '',
-            '',
             '67540050',
             '1010272261352072',
             \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,

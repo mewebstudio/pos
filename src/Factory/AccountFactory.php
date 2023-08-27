@@ -105,8 +105,6 @@ class AccountFactory
     /**
      * @param string      $bank
      * @param string      $merchantId
-     * @param string      $username   kullanilmamakta, bos atayin
-     * @param string      $password   kullanilmamakta, bos atayin
      * @param string      $terminalId
      * @param string      $posNetId
      * @param string      $model
@@ -117,11 +115,11 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createPosNetAccount(string $bank, string $merchantId, string $username, string $password, string $terminalId, string $posNetId, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = AbstractGateway::LANG_TR): PosNetAccount
+    public static function createPosNetAccount(string $bank, string $merchantId, string $terminalId, string $posNetId, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = AbstractGateway::LANG_TR): PosNetAccount
     {
         self::checkParameters($model, $storeKey);
 
-        return new PosNetAccount($bank, $merchantId, $username, $password, $lang, $terminalId, $posNetId, $storeKey);
+        return new PosNetAccount($bank, $merchantId, $posNetId, $terminalId, $lang, $storeKey);
     }
 
     /**

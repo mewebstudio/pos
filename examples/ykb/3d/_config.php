@@ -10,8 +10,6 @@ $baseUrl = $bankTestsUrl.'/3d/';
 $account = AccountFactory::createPosNetAccount(
     'yapikredi',
     '6706598320',
-    '',
-    '',
     '67322946',
     '27426',
     AbstractGateway::MODEL_3D_SECURE,

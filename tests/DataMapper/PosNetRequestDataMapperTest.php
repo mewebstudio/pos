@@ -43,8 +43,6 @@ class PosNetRequestDataMapperTest extends TestCase
         $threeDAccount = AccountFactory::createPosNetAccount(
             'yapikredi',
             '6706598320',
-            'XXXXXX',
-            'XXXXXX',
             '67005551',
             '27426',
             AbstractGateway::MODEL_3D_SECURE,

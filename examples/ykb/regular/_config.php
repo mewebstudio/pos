@@ -7,8 +7,6 @@ $baseUrl = $bankTestsUrl.'/regular/';
 $account = \Mews\Pos\Factory\AccountFactory::createPosNetAccount(
     'yapikredi',
     '6706598320',
-    '',
-    '',
     '67322946',
     '27426',
     \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE,

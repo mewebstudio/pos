@@ -39,8 +39,6 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         $threeDAccount = AccountFactory::createPosNetAccount(
             'albaraka',
             '6700950031',
-            'XXXXXX',
-            'XXXXXX',
             '67540050',
             '1010028724242434',
             AbstractGateway::MODEL_3D_SECURE,
