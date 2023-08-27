@@ -11,7 +11,6 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Account\VakifBankAccount;
 use Mews\Pos\Exceptions\MissingAccountInfoException;
 use Mews\Pos\Gateways\AbstractGateway;
 
@@ -121,29 +120,6 @@ class AccountFactory
         self::checkParameters($model, $storeKey);
 
         return new PosNetAccount($bank, $model, $merchantId, $username, $password, $lang, $terminalId, $posNetId, $storeKey);
-    }
-
-    /**
-     * @param string                          $bank
-     * @param string                          $merchantId Üye işyeri numarası
-     * @param string                          $password   Üye işyeri şifres
-     * @param string                          $terminalNo İşlemin hangi terminal üzerinden gönderileceği bilgisi.
-     *                                                    VB007000...
-     * @param string                          $model
-     * @param PayFlexAccount::MERCHANT_TYPE_* $merchantType
-     * @param null                            $subMerchantId
-     *
-     * @return VakifBankAccount
-     *
-     * @throws MissingAccountInfoException
-     * @deprecated use createPayFlexAccount() instead
-     *
-     */
-    public static function createVakifBankAccount(string $bank, string $merchantId, string $password, string $terminalNo, string $model = AbstractGateway::MODEL_NON_SECURE, int $merchantType = PayFlexAccount::MERCHANT_TYPE_STANDARD, $subMerchantId = null): VakifBankAccount
-    {
-        self::checkPayFlexBankMerchantType($merchantType, $subMerchantId);
-
-        return new VakifBankAccount($bank, $model, $merchantId, $password, $terminalNo, $merchantType, $subMerchantId);
     }
 
     /**
