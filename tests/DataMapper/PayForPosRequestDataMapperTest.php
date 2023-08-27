@@ -252,20 +252,9 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testGet3DHostFormData()
     {
-        $account = AccountFactory::createPayForAccount(
-            'qnbfinansbank-payfor',
-            '085300000009704',
-            'QNB_API_KULLANICI_3DPAY',
-            'UcBN0',
-            AbstractGateway::MODEL_3D_HOST,
-            '12345678'
-        );
-        /** @var PayForPos $pos */
-        $pos = PosFactory::createPosGateway($account, $this->config);
-        $pos->setTestMode(true);
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
+        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
 
-        $order      = $pos->getOrder();
+        $order      = $this->pos->getOrder();
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d_host'];
         $inputs     = [
             'MbrId'            => '5',
@@ -290,8 +279,8 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $pos->getAccount(),
-            $pos->getOrder(),
+            $this->threeDAccount,
+            $order,
             AbstractGateway::MODEL_3D_HOST,
             AbstractGateway::TX_PAY,
             $gatewayURL

@@ -251,27 +251,16 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testGet3DHostFormData()
     {
-        $account = AccountFactory::createInterPosAccount(
-            'denizbank',
-            'XXXXXXX',
-            'XXXXXXX',
-            'XXXXXXX',
-            AbstractGateway::MODEL_3D_HOST,
-            'VnM5WZ3sGrPusmWP'
-        );
-        /** @var InterPos $pos */
-        $pos     = PosFactory::createPosGateway($account, $this->config);
-        $pos->setTestMode(true);
-        $pos->prepare($this->order, AbstractGateway::TX_PAY);
+        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
 
-        $order = $pos->getOrder();
+        $order = $this->pos->getOrder();
 
-        $gatewayURL = $this->config['banks'][$account->getBank()]['gateway_endpoints']['gateway_3d_host'];
+        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d_host'];
         $inputs = [
-            'ShopCode'         => $account->getClientId(),
+            'ShopCode'         => $this->account->getClientId(),
             'TxnType'          => 'Auth',
             'SecureType'       => '3DHost',
-            'Hash'             => 'zQJGquP0/PXt6LeutjN1Qxq32Zg=',
+            'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
             'PurchAmount'      => $order->amount,
             'OrderId'          => $order->id,
             'OkUrl'            => $order->success_url,
@@ -288,8 +277,8 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $pos->getAccount(),
-            $pos->getOrder(),
+            $this->account,
+            $order,
             AbstractGateway::MODEL_3D_HOST,
             AbstractGateway::TX_PAY,
             $gatewayURL

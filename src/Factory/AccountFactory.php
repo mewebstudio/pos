@@ -36,7 +36,7 @@ class AccountFactory
     {
         self::checkParameters($model, $storeKey);
 
-        return new EstPosAccount($bank, $model, $clientId, $kullaniciAdi, $password, $lang, $storeKey);
+        return new EstPosAccount($bank, $clientId, $kullaniciAdi, $password, $lang, $storeKey);
     }
 
     /**
@@ -56,7 +56,7 @@ class AccountFactory
     {
         self::checkParameters($model, $merchantPass);
 
-        return new PayForAccount($bank, $model, $merchantId, $userCode, $userPassword, $lang, $merchantPass);
+        return new PayForAccount($bank, $merchantId, $userCode, $userPassword, $lang, $merchantPass);
     }
 
     /**
@@ -79,7 +79,7 @@ class AccountFactory
     {
         self::checkParameters($model, $storeKey);
 
-        return new GarantiPosAccount($bank, $model, $merchantId, $userId, $password, $lang, $terminalId, $storeKey, $refundUsername, $refundPassword);
+        return new GarantiPosAccount($bank, $merchantId, $userId, $password, $lang, $terminalId, $storeKey, $refundUsername, $refundPassword);
     }
 
 
@@ -97,7 +97,9 @@ class AccountFactory
      */
     public static function createKuveytPosAccount(string $bank, string $merchantId, string $username, string $customerId, string $storeKey, string $model = AbstractGateway::MODEL_3D_SECURE, string $lang = AbstractGateway::LANG_TR, ?string $subMerchantId = null): KuveytPosAccount
     {
-        return new KuveytPosAccount($bank, $merchantId, $username, $customerId, $storeKey, $model, $lang, $subMerchantId);
+        self::checkParameters($model, $storeKey);
+
+        return new KuveytPosAccount($bank, $merchantId, $username, $customerId, $storeKey, $lang, $subMerchantId);
     }
 
     /**
@@ -119,7 +121,7 @@ class AccountFactory
     {
         self::checkParameters($model, $storeKey);
 
-        return new PosNetAccount($bank, $model, $merchantId, $username, $password, $lang, $terminalId, $posNetId, $storeKey);
+        return new PosNetAccount($bank, $merchantId, $username, $password, $lang, $terminalId, $posNetId, $storeKey);
     }
 
     /**
@@ -140,7 +142,7 @@ class AccountFactory
     {
         self::checkPayFlexBankMerchantType($merchantType, $subMerchantId);
 
-        return new PayFlexAccount($bank, $model, $merchantId, $password, $terminalNo, $merchantType, $subMerchantId);
+        return new PayFlexAccount($bank, $merchantId, $password, $terminalNo, $merchantType, $subMerchantId);
     }
 
     /**
@@ -160,7 +162,7 @@ class AccountFactory
     {
         self::checkParameters($model, $merchantPass);
 
-        return new InterPosAccount($bank, $model, $shopCode, $userCode, $userPass, $lang, $merchantPass);
+        return new InterPosAccount($bank, $shopCode, $userCode, $userPass, $lang, $merchantPass);
     }
 
     /**
@@ -181,7 +183,7 @@ class AccountFactory
             return;
         }
 
-        throw new MissingAccountInfoException(sprintf('%s requires storeKey!', $model));
+        throw new MissingAccountInfoException(sprintf('payment model %s requires storeKey!', $model));
     }
 
     /**

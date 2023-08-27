@@ -20,7 +20,6 @@ class KuveytPosAccount extends AbstractPosAccount
      * @param string      $username      POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı oluşturulmalıdır
      * @param string      $customerId    CustomerNumber, Müşteri No
      * @param string      $storeKey      Oluşturulan APİ kullanıcısının şifre bilgisidir.
-     * @param string      $model
      * @param string      $lang
      * @param string|null $subMerchantId
      */
@@ -30,11 +29,10 @@ class KuveytPosAccount extends AbstractPosAccount
         string $username,
         string $customerId,
         string $storeKey,
-        string $model,
         string $lang,
         ?string $subMerchantId = null
     ) {
-        parent::__construct($bank, $model, $merchantId, $username, $customerId, $lang, $storeKey);
+        parent::__construct($bank, $merchantId, $username, $customerId, $lang, $storeKey);
         $this->subMerchantId = $subMerchantId;
     }
 

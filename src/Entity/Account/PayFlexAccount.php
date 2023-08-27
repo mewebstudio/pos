@@ -43,7 +43,6 @@ class PayFlexAccount extends AbstractPosAccount
 
     /**
      * @param string                $bank
-     * @param string                $model
      * @param string                $merchantId Isyeri No
      * @param string                $password   Isyeri Sifre
      * @param string                $terminalId Terminal No
@@ -52,7 +51,6 @@ class PayFlexAccount extends AbstractPosAccount
      */
     public function __construct(
         string $bank,
-        string $model,
         string $merchantId,
         string $password,
         string $terminalId,
@@ -60,8 +58,7 @@ class PayFlexAccount extends AbstractPosAccount
         string $subMerchantId = null
     )
     {
-        parent::__construct($bank, $model, $merchantId, '', $password, 'tr');
-        $this->model         = $model;
+        parent::__construct($bank, $merchantId, '', $password, 'tr');
         $this->terminalId    = $terminalId;
         $this->merchantType  = $merchantType;
         $this->subMerchantId = $subMerchantId;

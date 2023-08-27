@@ -17,7 +17,6 @@ class PosNetAccount extends AbstractPosAccount
 
     public function __construct(
         string $bank,
-        string $model,
         string $clientId,
         string $username,
         string $password,
@@ -26,8 +25,7 @@ class PosNetAccount extends AbstractPosAccount
         string $posNetId,
         ?string $storeKey = null
     ) {
-        parent::__construct($bank, $model, $clientId, $username, $password, $lang, $storeKey);
-        $this->model = $model;
+        parent::__construct($bank, $clientId, $username, $password, $lang, $storeKey);
         $this->terminalId = $terminalId;
         $this->posNetId = $posNetId;
     }
