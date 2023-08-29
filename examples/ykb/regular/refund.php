@@ -9,7 +9,9 @@ require '../../_templates/_header.php';
 $ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
 $transaction = AbstractGateway::TX_REFUND;
-$pos->prepare([
+
+// Refund Order
+$pos->refund([
     'id'            => $ord['id'],
     /**
      * payment_model:
@@ -19,10 +21,7 @@ $pos->prepare([
     'payment_model' => AbstractGateway::MODEL_3D_SECURE,
     'amount'        => $ord['amount'],
     'currency'      => $ord['currency'],
-], $transaction);
-
-// Refund Order
-$pos->refund();
+]);
 
 $response = $pos->getResponse();
 require '../../_templates/_simple_response_dump.php';

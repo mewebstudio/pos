@@ -29,26 +29,37 @@ interface PosInterface
     /**
      * returns form data, key values, necessary for 3D payment
      *
-     * @param AbstractGateway::MODEL_* $paymentModel
+     * @param array<string, mixed>                                $order
+     * @param AbstractGateway::MODEL_*                            $paymentModel
+     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
+     * @param AbstractCreditCard|null                             $card
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
-    public function get3DFormData(string $paymentModel): array;
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?AbstractCreditCard $card = null): array;
 
     /**
      * Regular Payment
      *
-     * @return AbstractGateway
-     */
-    public function makeRegularPayment();
-
-    /**
-     * Make 3D Payment
-     * @param Request $request
+     * @param array<string, mixed>                                                             $order
+     * @param AbstractCreditCard                                                               $card
+     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY|AbstractGateway::TX_POST_PAY $txType
      *
      * @return AbstractGateway
      */
-    public function make3DPayment(Request $request);
+    public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType);
+
+    /**
+     * Make 3D Payment
+     *
+     * @param Request                                             $request
+     * @param array<string, mixed>                                $order
+     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
+     * @param AbstractCreditCard                                  $card simdilik sadece PayFlexV4Pos icin card isteniyor.
+     *
+     * @return AbstractGateway
+     */
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null);
 
     /**
      * Make 3D Pay Payment
@@ -69,61 +80,56 @@ interface PosInterface
     /**
      * Send contents to WebService
      *
-     * @param array|string $contents
-     * @param string|null  $url
+     * @param array<string, mixed>|string          $contents
+     * @param AbstractGateway::TX_* $txType
+     * @param string|null           $url
      *
      * @return string|array|null
      */
-    public function send($contents, ?string $url = null);
-
-    /**
-     * Prepare Order
-     *
-     * @param array                   $order
-     * @param AbstractGateway::TX_*   $txType
-     * @param AbstractCreditCard|null $card   need when 3DFormData requested
-     *
-     * @return void
-     */
-    public function prepare(array $order, string $txType, AbstractCreditCard $card = null);
+    public function send($contents, string $txType = null, ?string $url = null);
 
     /**
      * Make Payment
      *
-     * @param AbstractGateway::MODEL_* $paymentModel
-     * @param AbstractCreditCard       $card
+     * @param AbstractGateway::MODEL_*                                                         $paymentModel
+     * @param array<string, mixed>                                                             $order
+     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY|AbstractGateway::TX_POST_PAY $txType
+     * @param AbstractCreditCard                                                               $card
      *
      * @return AbstractGateway
      *
      * @throws UnsupportedPaymentModelException
      */
-    public function payment(string $paymentModel, AbstractCreditCard $card);
+    public function payment(string $paymentModel, array $order, string $txType, AbstractCreditCard $card);
 
     /**
      * Refund Order
+     * @param array<string, mixed> $order
      *
      * @return AbstractGateway
      */
-    public function refund();
+    public function refund(array $order);
 
     /**
      * Cancel Order
+     * @param array<string, mixed> $order
      *
      * @return AbstractGateway
      */
-    public function cancel();
+    public function cancel(array $order);
 
     /**
      * Order Status
+     * @param array<string, mixed> $order
      *
      * @return AbstractGateway
      */
-    public function status();
+    public function status(array $order);
 
     /**
      * Order History
      *
-     * @param array $meta
+     * @param array<string, mixed> $meta
      *
      * @return AbstractGateway
      */

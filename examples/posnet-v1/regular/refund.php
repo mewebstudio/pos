@@ -9,7 +9,9 @@ require '../../_templates/_header.php';
 $ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
 $transaction = AbstractGateway::TX_REFUND;
-$pos->prepare([
+
+// Refund Order
+$pos->refund([
     // order id veya ref_ret_num (ReferenceCode) saglanmasi gerekiyor. Ikisinden biri zorunlu.
     // daha iyi performance icin ref_ret_num tercih edilmelidir.
     'id'          => $ord['id'],
@@ -21,10 +23,7 @@ $pos->prepare([
     'payment_model' => \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
     'amount'      => $ord['amount'],
     'currency'    => $ord['currency'],
-], $transaction);
-
-// Refund Order
-$pos->refund();
+]);
 
 $response = $pos->getResponse();
 require '../../_templates/_simple_response_dump.php';

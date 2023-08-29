@@ -89,20 +89,4 @@ class PayForTest extends TestCase
         $this->pos->setTestMode(true);
         $this->assertTrue($this->pos->isTestMode());
     }
-
-    /**
-     * @return void
-     */
-    public function testPrepare()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $this->assertEquals($this->card, $this->pos->getCard());
-        $this->assertNotEmpty($this->pos->getOrder());
-
-        $this->pos->prepare($this->order, AbstractGateway::TX_POST_PAY);
-
-        $this->pos->prepare($this->order, AbstractGateway::TX_CANCEL);
-
-        $this->pos->prepare($this->order, AbstractGateway::TX_REFUND);
-    }
 }

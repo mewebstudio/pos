@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\DataMapper;
 
 use InvalidArgumentException;
 use Mews\Pos\DataMapper\PosNetV1PosRequestDataMapper;
+use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -30,13 +31,16 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     /** @var PosNetV1PosRequestDataMapperTest */
     private $requestDataMapper;
 
+    /** @var PosNetAccount */
+    private $account;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $config = require __DIR__.'/../../config/pos_test.php';
 
-        $threeDAccount = AccountFactory::createPosNetAccount(
+        $this->account = AccountFactory::createPosNetAccount(
             'albaraka',
             '6700950031',
             '67540050',
@@ -45,7 +49,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
-        $this->pos = PosFactory::createPosGateway($threeDAccount, $config);
+        $this->pos = PosFactory::createPosGateway($this->account, $config);
         $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::create($this->pos, '5400619360964581', '20', '01', '056', 'ahmet');
@@ -124,9 +128,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expectedData)
     {
-        $this->pos->prepare($order, AbstractGateway::TX_POST_PAY);
-
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->pos->getAccount(), $this->pos->getOrder());
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, (object) $order);
 
         $this->assertEquals($expectedData, $actual);
     }
@@ -136,9 +138,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData(array $order, array $expectedData)
     {
-        $this->pos->prepare($order, AbstractGateway::TX_PAY);
-
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->pos->getAccount(), $this->pos->getOrder(), AbstractGateway::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account,(object) $order, AbstractGateway::TX_PAY, $this->card);
 
         $this->assertEquals($expectedData, $actual);
     }
@@ -148,10 +148,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_PAY);
-
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), $txType, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, (object) $order, $txType, $responseData);
 
         $this->assertEquals($expectedData, $actual);
     }
@@ -161,11 +158,9 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DFormData(array $order, string $txType, string $gatewayUrl, array $expected)
     {
-        $this->pos->prepare($order, AbstractGateway::TX_PAY);
-
         $actual = $this->requestDataMapper->create3DFormData(
-            $this->pos->getAccount(),
-            $this->pos->getOrder(),
+            $this->account,
+            (object) $order,
             AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayUrl,
@@ -180,8 +175,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData(array $order, array $expected)
     {
-        $this->pos->prepare($order, AbstractGateway::TX_STATUS);
-        $actual = $this->requestDataMapper->createStatusRequestData($this->pos->getAccount(), $this->pos->getOrder());
+        $actual = $this->requestDataMapper->createStatusRequestData($this->account, (object) $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -190,8 +184,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData(array $order, array $expected)
     {
-        $this->pos->prepare($order, AbstractGateway::TX_REFUND);
-        $actual = $this->requestDataMapper->createRefundRequestData($this->pos->getAccount(), $this->pos->getOrder());
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, (object) $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -201,8 +194,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData(array $order, array $expected)
     {
-        $this->pos->prepare($order, AbstractGateway::TX_CANCEL);
-        $actual = $this->requestDataMapper->createCancelRequestData($this->pos->getAccount(), $this->pos->getOrder());
+        $actual = $this->requestDataMapper->createCancelRequestData($this->account, (object) $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -255,9 +247,11 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     public static function nonSecurePaymentRequestDataDataProvider(): iterable
     {
         yield [
-            'order'    => [
-                'id'     => '123',
-                'amount' => 10.0,
+            'order' => [
+                'id'          => '123',
+                'amount'      => 10.0,
+                'installment' => 0,
+                'currency'    => 'TRY',
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -297,6 +291,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             'order'    => [
                 'id'          => '123',
                 'amount'      => 10.0,
+                'currency'    => 'TRY',
                 'installment' => 3,
             ],
             'expected' => [
@@ -339,6 +334,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         yield [
             'order'    => [
                 'id'          => '123',
+                'installment' => 0,
                 'amount'      => 12.3,
                 'currency'    => 'TRY',
                 'ref_ret_num' => '159044932490000231',
@@ -416,6 +412,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'id'               => '000000002020110828BC',
                 'ref_ret_num'      => '159044932490000231',
                 'amount'           => 112,
+                'payment_model'    => AbstractGateway::MODEL_3D_SECURE,
                 'transaction_type' => AbstractGateway::TX_PAY,
             ],
             'expected' => [
@@ -439,7 +436,9 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             'order'    => [
                 'id'               => '000000002020110828BC',
                 'amount'           => 112,
+                'payment_model'    => AbstractGateway::MODEL_3D_SECURE,
                 'transaction_type' => AbstractGateway::TX_PAY,
+                'email'            => 'email@example.com',
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -462,7 +461,9 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             'order'    => [
                 'ref_ret_num'      => '159044932490000231',
                 'amount'           => 112,
+                'payment_model'    => AbstractGateway::MODEL_3D_SECURE,
                 'transaction_type' => AbstractGateway::TX_PAY,
+                'email'            => 'email@example.com',
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -484,8 +485,10 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         yield 'cancelPrePay' => [
             'order'    => [
                 'ref_ret_num'      => '159044932490000231',
+                'payment_model'    => AbstractGateway::MODEL_3D_SECURE,
                 'amount'           => 112,
                 'transaction_type' => AbstractGateway::TX_PRE_PAY,
+                'email'            => 'email@example.com',
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -533,6 +536,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         yield 'withOrderId' => [
             'order'    => [
                 'id'               => '000000002020110828BC',
+                'payment_model'    => AbstractGateway::MODEL_3D_SECURE,
                 'transaction_type' => AbstractGateway::TX_PAY,
             ],
             'expected' => [
@@ -601,7 +605,8 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     {
         yield 'withOrderIdAndReferenceCode' => [
             'order'    => [
-                'id' => '000000002020110828BC',
+                'id'            => '000000002020110828BC',
+                'payment_model' => AbstractGateway::MODEL_3D_SECURE,
             ],
             'expected' => [
                 'ApiType'                => 'JSON',

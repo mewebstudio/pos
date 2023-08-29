@@ -112,16 +112,13 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData()
     {
-        $order = [
+        $order = (object) [
             'id' => '2020110828BC',
         ];
 
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_POST_PAY);
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->threeDAccount, $order);
 
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($pos->getAccount(), $pos->getOrder());
-
-        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($pos->getAccount(), $pos->getOrder());
+        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->threeDAccount, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -130,14 +127,9 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $order = $this->order;
-        $pos   = $this->pos;
-        $card  = $this->card;
-        $pos->prepare($order, AbstractGateway::TX_PAY, $card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->threeDAccount, (object) $this->order, AbstractGateway::TX_PAY, $this->card);
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $card);
-
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), $pos->getCard());
+        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->threeDAccount, (object) $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -146,16 +138,13 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData()
     {
-        $order = [
+        $order = (object) [
             'id' => '2020110828BC',
         ];
 
-        $pos   = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_CANCEL);
+        $actual = $this->requestDataMapper->createCancelRequestData($this->threeDAccount, $order);
 
-        $actual = $this->requestDataMapper->createCancelRequestData($pos->getAccount(), $pos->getOrder());
-
-        $expectedData = $this->getSampleCancelXMLData($pos->getAccount(), $pos->getOrder());
+        $expectedData = $this->getSampleCancelXMLData($this->threeDAccount, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -164,17 +153,14 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRecurringOrderRequestData()
     {
-        $order = [
+        $order = (object) [
             'id' => '2020110828BC',
             'recurringOrderInstallmentNumber' => '2',
         ];
 
-        $pos   = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_CANCEL);
+        $actual = $this->requestDataMapper->createCancelRequestData($this->threeDAccount, $order);
 
-        $actual = $this->requestDataMapper->createCancelRequestData($pos->getAccount(), $pos->getOrder());
-
-        $expectedData = $this->getSampleRecurringOrderCancelXMLData($pos->getAccount(), $pos->getOrder());
+        $expectedData = $this->getSampleRecurringOrderCancelXMLData($this->threeDAccount, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -186,11 +172,10 @@ class EstPosRequestDataMapperTest extends TestCase
         $order = [
             'order_id' => '2020110828BC',
         ];
-        $pos   = $this->pos;
 
-        $actual = $this->requestDataMapper->createHistoryRequestData($pos->getAccount(), (object) [], $order);
+        $actual = $this->requestDataMapper->createHistoryRequestData($this->threeDAccount, (object) [], $order);
 
-        $expectedData = $this->getSampleHistoryRequestData($pos->getAccount(), $order);
+        $expectedData = $this->getSampleHistoryRequestData($this->threeDAccount, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -199,7 +184,7 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData()
     {
-        $order = [
+        $order = (object) [
             'id'          => '2020110828BC',
             'email'       => 'samp@iexample.com',
             'name'        => 'john doe',
@@ -218,12 +203,9 @@ class EstPosRequestDataMapperTest extends TestCase
             'cavv' => 'cavv',
         ];
 
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_PAY);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->threeDAccount, $order, AbstractGateway::TX_PAY, $responseData);
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
-
-        $expectedData = $this->getSample3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), $responseData);
+        $expectedData = $this->getSample3DPaymentRequestData($this->threeDAccount, $order, $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -232,7 +214,7 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestDataRecurringOrder()
     {
-        $order = [
+        $order = (object) [
             'id'                        => '2020110828BC',
             'email'                     => 'samp@iexample.com',
             'name'                      => 'john doe',
@@ -255,12 +237,9 @@ class EstPosRequestDataMapperTest extends TestCase
             'cavv' => 'cavv',
         ];
 
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_PAY);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->threeDAccount, $order, AbstractGateway::TX_PAY, $responseData);
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
-
-        $expectedData = $this->getSample3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), $responseData);
+        $expectedData = $this->getSample3DPaymentRequestData($this->threeDAccount, $order, $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -272,7 +251,6 @@ class EstPosRequestDataMapperTest extends TestCase
     {
         $account = $this->threeDAccount;
         $txType = AbstractGateway::TX_PAY;
-        $this->pos->prepare($this->order, $txType);
         $card       = $this->card;
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d'];
 
@@ -299,8 +277,8 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
         //test without card
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->pos->getAccount(),
-            $this->pos->getOrder(),
+            $account,
+            (object) $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayURL
@@ -316,8 +294,8 @@ class EstPosRequestDataMapperTest extends TestCase
         }
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->pos->getAccount(),
-            $this->pos->getOrder(),
+            $account,
+            (object) $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayURL,
@@ -330,9 +308,7 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testGet3DHostFormData()
     {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-
-        $gatewayURL = $this->pos->get3DHostGatewayURL();
+        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d'];
         $inputs     = [
             'clientid'  => $this->threeDAccount->getClientId(),
             'storetype' => '3d_host',
@@ -357,7 +333,7 @@ class EstPosRequestDataMapperTest extends TestCase
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->threeDAccount,
-            $this->pos->getOrder(),
+            (object) $this->order,
             AbstractGateway::MODEL_3D_HOST,
             AbstractGateway::TX_PAY,
             $gatewayURL
@@ -369,16 +345,13 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData()
     {
-        $order = [
+        $order = (object) [
             'id' => '2020110828BC',
         ];
 
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_STATUS);
+        $actualData = $this->requestDataMapper->createStatusRequestData($this->threeDAccount, $order);
 
-        $actualData = $this->requestDataMapper->createStatusRequestData($pos->getAccount(), $pos->getOrder());
-
-        $expectedData = $this->getSampleStatusRequestData($pos->getAccount(), $pos->getOrder());
+        $expectedData = $this->getSampleStatusRequestData($this->threeDAccount, $order);
         $this->assertEquals($expectedData, $actualData);
     }
 
@@ -387,16 +360,13 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRecurringStatusRequestData()
     {
-        $order = [
+        $order = (object) [
             'recurringId' => '2020110828BC',
         ];
 
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_STATUS);
+        $actualData = $this->requestDataMapper->createStatusRequestData($this->threeDAccount, $order);
 
-        $actualData = $this->requestDataMapper->createStatusRequestData($pos->getAccount(), $pos->getOrder());
-
-        $expectedData = $this->getSampleRecurringStatusRequestData($pos->getAccount(), $pos->getOrder());
+        $expectedData = $this->getSampleRecurringStatusRequestData($this->threeDAccount, $order);
         $this->assertEquals($expectedData, $actualData);
     }
 
@@ -405,18 +375,15 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData()
     {
-        $order = [
+        $order = (object) [
             'id'       => '2020110828BC',
             'amount'   => 50,
             'currency' => 'TRY',
         ];
 
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_REFUND);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->threeDAccount, $order);
 
-        $actual = $this->requestDataMapper->createRefundRequestData($pos->getAccount(), $pos->getOrder());
-
-        $expectedData = $this->getSampleRefundXMLData($pos->getAccount(), $pos->getOrder());
+        $expectedData = $this->getSampleRefundXMLData($this->threeDAccount, $order);
         $this->assertEquals($expectedData, $actual);
     }
 

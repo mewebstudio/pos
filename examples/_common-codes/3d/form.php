@@ -30,10 +30,8 @@ $card = createCard($pos, $request->request->all());
 $session->set('card', $request->request->all());
 $session->set('tx', $transaction);
 
-$pos->prepare($order, $transaction, $card);
-
 try {
-    $formData = $pos->get3DFormData(\Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE);
+    $formData = $pos->get3DFormData($order, \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE, $transaction, $card);
     //dd($formData);
 } catch (\Throwable $e) {
     dd($e);

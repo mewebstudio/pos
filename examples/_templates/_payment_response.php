@@ -24,10 +24,8 @@ if (!$order) {
     throw new Exception('Sipariş bulunamadı, session sıfırlanmış olabilir.');
 }
 
-$pos->prepare($order, $transaction);
-
 try {
-    doPayment($pos, $paymentModel, $transaction, $card);
+    doPayment($pos, $paymentModel, $transaction, $order, $card);
 } catch (HashMismatchException $e) {
     dd($e);
 }

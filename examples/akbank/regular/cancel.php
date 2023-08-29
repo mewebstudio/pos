@@ -24,9 +24,8 @@ if (isset($ord['recurringFrequency'])) {
 }
 
 $transaction = AbstractGateway::TX_CANCEL;
-$pos->prepare($order, $transaction);
 
-$pos->cancel();
+$pos->cancel($order);
 
 $response = $pos->getResponse();
 require '../../_templates/_simple_response_dump.php';

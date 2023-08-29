@@ -52,10 +52,13 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($contents, string $url = null)
+    public function send($contents, string $txType = null, string $url = null)
     {
-        if (in_array($this->type, [self::TX_REFUND, self::TX_STATUS, self::TX_CANCEL])) {
-            return $this->sendSoapRequest($contents);
+        if (in_array($txType, [self::TX_REFUND, self::TX_STATUS, self::TX_CANCEL], true)) {
+            if (!is_array($contents)) {
+                throw new \LogicException("Invalid data type provided for $txType transaction!");
+            }
+            return $this->sendSoapRequest($contents, $txType);
         }
         $url = $url ?: $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
@@ -83,7 +86,17 @@ class KuveytPos extends AbstractGateway
         return $this->data;
     }
 
-    protected function sendSoapRequest($contents, string $url = null): array
+    /**
+     * @param array<string, mixed>                            $contents
+     * @param self::TX_STATUS|self::TX_REFUND|self::TX_CANCEL $txType
+     * @param string|null                                     $url
+     *
+     * @return array<string, mixed>
+     *
+     * @throws \SoapFault
+     * @throws \Throwable
+     */
+    protected function sendSoapRequest(array $contents, string $txType, string $url = null): array
     {
         $url = $url ?: $this->getQueryAPIUrl();
 
@@ -109,7 +122,7 @@ class KuveytPos extends AbstractGateway
 
         $client = new \SoapClient($url, $options);
         try {
-            $result = $client->__soapCall($this->requestDataMapper->mapTxType($this->type), ['parameters' => ['request' => $contents]]);
+            $result = $client->__soapCall($this->requestDataMapper->mapTxType($txType), ['parameters' => ['request' => $contents]]);
         } catch (\Throwable $e) {
             $this->logger->log(LogLevel::ERROR, 'soap error response', [
                 'message' => $e->getMessage(),
@@ -130,7 +143,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
     {
         $gatewayResponse = $request->request->get('AuthenticationResponse');
         if (!is_string($gatewayResponse)) {
@@ -150,7 +163,7 @@ class KuveytPos extends AbstractGateway
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment');
 
-            $contents = $this->create3DPaymentXML($gatewayResponse);
+            $contents = $this->create3DPaymentXML($gatewayResponse, $order, $txType);
 
             $bankResponse = $this->send($contents);
         } else {
@@ -191,20 +204,24 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(string $paymentModel): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
+        $preparedOrder = $this->preparePaymentOrder($order);
+
         $gatewayUrl = $this->get3DGatewayURL();
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->getCommon3DFormData($this->account, $this->order, $paymentModel, $this->type, $gatewayUrl, $this->card);
+        return $this->getCommon3DFormData($this->account, $preparedOrder, $paymentModel, $txType, $gatewayUrl, $card);
     }
 
     /**
      * @inheritDoc
      */
-    public function create3DPaymentXML($responseData)
+    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
     {
-        $data = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        $data = $this->requestDataMapper->create3DPaymentRequestData($this->account, $preparedOrder, $txType, $responseData);
 
         return $this->createXML($data);
     }
@@ -212,7 +229,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPaymentXML()
+    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType)
     {
         throw new NotImplementedException();
     }
@@ -220,7 +237,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPostXML()
+    public function createRegularPostXML(array $order)
     {
         throw new NotImplementedException();
     }
@@ -236,25 +253,31 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createStatusXML()
+    public function createStatusXML(array $order): array
     {
-        return $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareStatusOrder($order);
+
+        return $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
     }
 
     /**
      * @inheritDoc
      */
-    public function createCancelXML()
+    public function createCancelXML(array $order): array
     {
-        return $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareCancelOrder($order);
+
+        return $this->requestDataMapper->createCancelRequestData($this->account, $preparedOrder);
     }
 
     /**
      * @inheritDoc
      */
-    public function createRefundXML()
+    public function createRefundXML(array $order): array
     {
-        return $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareRefundOrder($order);
+
+        return $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
     }
 
     /**
@@ -349,7 +372,7 @@ class KuveytPos extends AbstractGateway
 
         $formData     = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $paymentModel, $txType, $card);
         $xml          = $this->createXML($formData);
-        $bankResponse = $this->send($xml, $gatewayURL);
+        $bankResponse = $this->send($xml, $txType, $gatewayURL);
 
         return $this->transformReceived3DFormData($bankResponse);
     }

@@ -84,20 +84,6 @@ class PosNetTest extends TestCase
 
     /**
      * @return void
-     */
-    public function testPrepare()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $this->assertEquals($this->card, $this->pos->getCard());
-
-        $this->order['ref_ret_num'] = 'zz';
-        $this->pos->prepare($this->order, AbstractGateway::TX_POST_PAY);
-
-        $this->pos->prepare($this->order, AbstractGateway::TX_REFUND);
-    }
-
-    /**
-     * @return void
      *
      * @throws Exception
      */
@@ -119,10 +105,9 @@ class PosNetTest extends TestCase
             ->onlyMethods(['getOosTransactionData'])
             ->getMock();
         $posMock->setTestMode(true);
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $posMock->expects($this->once())->method('getOosTransactionData')->willReturn($this->getSampleOoTransactionFailResponseData());
 
-        $posMock->get3DFormData(AbstractGateway::MODEL_3D_SECURE);
+        $posMock->get3DFormData($this->order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $this->card);
     }
 
 
@@ -156,7 +141,6 @@ class PosNetTest extends TestCase
             ->onlyMethods(['send'])
             ->getMock();
         $posMock->setTestMode(true);
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $bankResponses = $responseMapperTest->threeDPaymentDataProvider()['success1'];
         $posMock->expects($this->exactly(2))->method('send')->will(
@@ -166,7 +150,7 @@ class PosNetTest extends TestCase
             )
         );
 
-        $posMock->make3DPayment($request);
+        $posMock->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
         $resp = $posMock->getResponse();
         unset($resp['all'], $resp['3d_all']);
 

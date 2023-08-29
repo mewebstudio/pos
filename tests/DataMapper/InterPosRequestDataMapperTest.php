@@ -109,18 +109,15 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData()
     {
-        $order = [
+        $order = (object) [
             'id'       => '2020110828BC',
             'amount'   => 320,
             'currency' => 'TRY',
         ];
 
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_POST_PAY);
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($pos->getAccount(), $pos->getOrder());
-
-        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($pos->getOrder(), $pos->getAccount());
+        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($order, $this->account);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -129,14 +126,12 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $order = $this->order;
-        $pos = $this->pos;
-        $card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
-        $pos->prepare($order, AbstractGateway::TX_PAY, $card);
+        $order = (object) $this->order;
+        $card = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $card);
 
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($pos->getOrder(), $pos->getCard(), $pos->getAccount());
+        $expectedData = $this->getSampleNonSecurePaymentRequestData($order, $card, $this->account);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -145,16 +140,14 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData()
     {
-        $order = [
+        $order = (object) [
             'id'   => '2020110828BC',
             'lang' => AbstractGateway::LANG_EN,
         ];
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_CANCEL);
 
-        $actual = $this->requestDataMapper->createCancelRequestData($pos->getAccount(), $pos->getOrder());
+        $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleCancelXMLData($pos->getOrder(), $pos->getAccount());
+        $expectedData = $this->getSampleCancelXMLData($order, $this->account);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -163,7 +156,7 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData()
     {
-        $order        = [
+        $order        = (object) [
             'id'          => '2020110828BC',
             'amount'      => 100.01,
             'installment' => 0,
@@ -179,12 +172,9 @@ class InterPosRequestDataMapperTest extends TestCase
             'PayerAuthenticationCode' => '4',
         ];
 
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_PAY);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $responseData);
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
-
-        $expectedData = $this->getSample3DPaymentRequestData($pos->getOrder(), $pos->getAccount(), $responseData);
+        $expectedData = $this->getSample3DPaymentRequestData($order, $this->account, $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -195,8 +185,6 @@ class InterPosRequestDataMapperTest extends TestCase
     {
         $order   = (object) $this->order;
         $account = $this->account;
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-
         $card   = $this->card;
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
 
@@ -221,8 +209,8 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
         //test without card
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->pos->getAccount(),
-            $this->pos->getOrder(),
+            $this->account,
+            $order,
             AbstractGateway::MODEL_3D_SECURE,
             AbstractGateway::TX_PAY,
             $gatewayURL
@@ -237,8 +225,8 @@ class InterPosRequestDataMapperTest extends TestCase
         }
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->pos->getAccount(),
-            $this->pos->getOrder(),
+            $this->account,
+            $order,
             AbstractGateway::MODEL_3D_SECURE,
             AbstractGateway::TX_PAY,
             $gatewayURL,
@@ -251,9 +239,7 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testGet3DHostFormData()
     {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-
-        $order = $this->pos->getOrder();
+        $order = (object) $this->order;
 
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d_host'];
         $inputs = [
@@ -290,17 +276,14 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData()
     {
-        $order = [
+        $order = (object) [
             'id'   => '2020110828BC',
             'lang' => AbstractGateway::LANG_EN,
         ];
 
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_STATUS);
+        $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $actual = $this->requestDataMapper->createStatusRequestData($pos->getAccount(), $pos->getOrder());
-
-        $expectedData = $this->getSampleStatusRequestData($pos->getOrder(), $pos->getAccount());
+        $expectedData = $this->getSampleStatusRequestData($order, $this->account);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -309,17 +292,14 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData()
     {
-        $order = [
+        $order = (object) [
             'id'     => '2020110828BC',
             'amount' => 50,
         ];
 
-        $pos = $this->pos;
-        $pos->prepare($order, AbstractGateway::TX_REFUND);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
-        $actual = $this->requestDataMapper->createRefundRequestData($pos->getAccount(), $pos->getOrder());
-
-        $expectedData = $this->getSampleRefundXMLData($pos->getOrder(), $pos->getAccount());
+        $expectedData = $this->getSampleRefundXMLData($order, $this->account);
         $this->assertEquals($expectedData, $actual);
     }
 

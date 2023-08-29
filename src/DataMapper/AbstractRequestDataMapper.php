@@ -75,7 +75,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @phpstan-param AbstractGateway::TX_* $txType
+     * @phpstan-param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
      *
      * @param AbstractPosAccount $account
      * @param                    $order

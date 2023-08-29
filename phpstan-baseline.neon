@@ -1236,46 +1236,6 @@ parameters:
 			path: src/Gateways/AbstractGateway.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:createRefundXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:createRegularPostXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:createStatusXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/AbstractGateway.php
@@ -1286,62 +1246,7 @@ parameters:
 			path: src/Gateways/AbstractGateway.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:getOrder\\(\\) should return object but returns object\\|null\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:getResponse\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:history\\(\\) has parameter \\$meta with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:prepare\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:setCard\\(\\) has no return type specified\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:setTxType\\(\\) has no return type specified\\.$#"
 			count: 1
 			path: src/Gateways/AbstractGateway.php
 
@@ -1381,87 +1286,7 @@ parameters:
 			path: src/Gateways/AbstractGateway.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:createRefundXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:createRegularPostXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:createStatusXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:history\\(\\) has parameter \\$meta with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/EstPos.php
 
@@ -1471,62 +1296,7 @@ parameters:
 			path: src/Gateways/EstPos.php
 
 		-
-			message: "#^Parameter \\#1 \\$rawResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\NonPaymentResponseMapperInterface\\:\\:mapHistoryResponse\\(\\) expects array\\<string, array\\<string, string\\>\\|string\\>, array\\|string\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\AbstractRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
-			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PaymentResponseMapperInterface\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
 			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:createRefundXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:createRegularPostXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:createStatusXML\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/GarantiPos.php
 
@@ -1536,47 +1306,12 @@ parameters:
 			path: src/Gateways/GarantiPos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/GarantiPos.php
 
 		-
-			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\{Order\\: array\\<string, array\\<string, string\\|null\\>\\|string\\>, Response\\: array\\<string, string\\>, Transaction\\: array\\<string, array\\<string, string\\>\\|string\\>\\}\\|null, array\\|string\\|null given\\.$#"
+			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\{Order\\: array\\<string, array\\<string, string\\|null\\>\\|string\\>, Response\\: array\\<string, string\\>, Transaction\\: array\\<string, array\\<string, string\\>\\|string\\>\\}\\|null, array\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/GarantiPos.php
 
@@ -1591,11 +1326,6 @@ parameters:
 			path: src/Gateways/InterPos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/InterPos.php
@@ -1606,57 +1336,7 @@ parameters:
 			path: src/Gateways/InterPos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:history\\(\\) has parameter \\$meta with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\InterPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/InterPos.php
 
@@ -1666,37 +1346,12 @@ parameters:
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:createRefundXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:createRegularPostXML\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
 
@@ -1716,57 +1371,7 @@ parameters:
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:history\\(\\) has parameter \\$meta with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:sendSoapRequest\\(\\) has parameter \\$contents with no type specified\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:sendSoapRequest\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
 
@@ -1781,47 +1386,12 @@ parameters:
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\KuveytPosRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
 			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\KuveytPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:createRefundXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:createRegularPostXML\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PayFlexCPV4Pos.php
 
@@ -1832,51 +1402,6 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:history\\(\\) has parameter \\$meta with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:registerPayment\\(\\) should return array\\{CommonPaymentUrl\\: string\\|null, PaymentToken\\: string\\|null, ErrorCode\\: string\\|null, ResponseMessage\\: string\\|null\\} but returns array\\|string\\|null\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PayFlexCPV4Pos.php
 
@@ -1896,87 +1421,12 @@ parameters:
 			path: src/Gateways/PayFlexCPV4Pos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PayFlexV4Pos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:createRefundXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:createRegularPostXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:createStatusXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:history\\(\\) has parameter \\$meta with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PayFlexV4Pos.php
 
@@ -1991,112 +1441,7 @@ parameters:
 			path: src/Gateways/PayFlexV4Pos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:sendEnrollmentRequest\\(\\) should return array but returns array\\|string\\|null\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) expects object, object\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PayFlexV4PosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Parameter \\#3 \\$card of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) expects Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard, Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:createRefundXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:createRegularPostXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:createStatusXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:history\\(\\) has parameter \\$meta with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PayForPos.php
 
@@ -2116,56 +1461,6 @@ parameters:
 			path: src/Gateways/PayForPos.php
 
 		-
-			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PayForPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:create3DPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:createRefundXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:createRegularPostXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:createStatusXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PosNet.php
@@ -2176,77 +1471,7 @@ parameters:
 			path: src/Gateways/PosNet.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:getOosTransactionData\\(\\) should return array but returns array\\|string\\|null\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Offset 'approved' does not exist on array\\|string\\|null\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Offset 'oosResolveMerchantD…' does not exist on array\\|string\\|null\\.$#"
-			count: 4
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Parameter \\#1 \\$raw3DAuthResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PosNetResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>, array\\|string\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\PosNetRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PosNetResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Parameter \\#4 \\$card of method Mews\\\\Pos\\\\DataMapper\\\\PosNetRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) expects Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard, Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/PosNet.php
 
@@ -2257,16 +1482,6 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:createCancelXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:createHistoryXML\\(\\) has parameter \\$customQueryData with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:createHistoryXML\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PosNetV1Pos.php
 
@@ -2291,72 +1506,12 @@ parameters:
 			path: src/Gateways/PosNetV1Pos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:prepareCancelOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:prepareHistoryOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:preparePaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:preparePostPaymentOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:prepareRefundOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:prepareStatusOrder\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PosNetV1Pos.php
 
 		-
-			message: "#^Parameter \\#2 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:createCancelRequestData\\(\\) expects object, object\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
-			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PosNetV1PosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\PosInterface\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/PosInterface.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\PosInterface\\:\\:history\\(\\) has parameter \\$meta with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/PosInterface.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\PosInterface\\:\\:prepare\\(\\) has parameter \\$order with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/PosInterface.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\PosInterface\\:\\:send\\(\\) has parameter \\$contents with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/PosInterface.php
 

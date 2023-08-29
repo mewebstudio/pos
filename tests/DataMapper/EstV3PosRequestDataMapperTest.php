@@ -79,7 +79,6 @@ class EstV3PosRequestDataMapperTest extends TestCase
     {
         $account = $this->threeDAccount;
         $txType  = AbstractGateway::TX_PAY;
-        $this->pos->prepare($this->order, $txType);
         $card       = $this->card;
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d'];
 
@@ -109,8 +108,8 @@ class EstV3PosRequestDataMapperTest extends TestCase
         ];
         //test without card
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->pos->getAccount(),
-            $this->pos->getOrder(),
+            $this->threeDAccount,
+            (object) $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayURL
@@ -127,8 +126,8 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $form['inputs']['hash'] = $this->requestDataMapper->getCrypt()->create3DHash($account, $form['inputs'], $txType);
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->pos->getAccount(),
-            $this->pos->getOrder(),
+            $this->threeDAccount,
+            (object) $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayURL,
@@ -141,8 +140,6 @@ class EstV3PosRequestDataMapperTest extends TestCase
      */
     public function testGet3DHostFormData()
     {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-
         $gatewayURL = $this->pos->get3DHostGatewayURL();
 
         $inputs     = [
@@ -170,7 +167,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->threeDAccount,
-            $this->pos->getOrder(),
+            (object) $this->order,
             AbstractGateway::MODEL_3D_HOST,
             AbstractGateway::TX_PAY,
             $gatewayURL

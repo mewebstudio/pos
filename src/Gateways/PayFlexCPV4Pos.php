@@ -5,11 +5,11 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
-use LogicException;
 use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Psr\Log\LogLevel;
@@ -44,7 +44,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      * todo implement
      * @inheritDoc
      */
-    public function make3DPayment(Request $request)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -78,7 +78,7 @@ class PayFlexCPV4Pos extends AbstractGateway
          *     Message: string,
          *     TransactionId: string,
          *     PaymentToken: string} $bankResponse */
-        $bankResponse = $this->send($statusRequestData, $this->getQueryAPIUrl());
+        $bankResponse = $this->send($statusRequestData, null, $this->getQueryAPIUrl());
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse);
 
@@ -107,19 +107,12 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * {@inheritDoc}
      */
-    public function get3DFormData(string $paymentModel): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        if (null === $this->order) {
-            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
-                'order' => $this->order,
-                'card_provided' => (bool) $this->card,
-            ]);
-
-            throw new LogicException('Sipariş bilgileri eksik!');
-        }
+        $preparedOrder = $this->preparePaymentOrder($order);
 
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $data */
-        $data = $this->registerPayment();
+        $data = $this->registerPayment($preparedOrder, $txType, $card);
 
         if (null !== $data['ErrorCode']) {
             $this->logger->log(LogLevel::ERROR, 'payment register fail response', $data);
@@ -150,7 +143,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($contents, ?string $url = null)
+    public function send($contents, string $txType = null, ?string $url = null): array
     {
         $url = $url ?? $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
@@ -180,9 +173,11 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPaymentXML()
+    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
     {
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $preparedOrder, $txType, $card);
 
         return $this->createXML($requestData);
     }
@@ -190,13 +185,11 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPostXML()
+    public function createRegularPostXML(array $order): string
     {
-        if (null === $this->order) {
-            throw new LogicException('sipariş bilgileri eksik!');
-        }
+        $preparedOrder = $this->preparePostPaymentOrder($order);
 
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }
@@ -205,7 +198,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      * TODO implement
      * @inheritDoc
      */
-    public function create3DPaymentXML($responseData)
+    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null)
     {
         throw new NotImplementedException();
     }
@@ -214,26 +207,32 @@ class PayFlexCPV4Pos extends AbstractGateway
      * TODO check if it is working
      * @inheritDoc
      */
-    public function createStatusXML()
+    public function createStatusXML(array $order): array
     {
-        return $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareStatusOrder($order);
+
+        return $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
     }
 
     /**
      * TODO check if it is working
      * @inheritDoc
      */
-    public function createHistoryXML($customQueryData)
+    public function createHistoryXML(array $customQueryData): array
     {
-        return $this->requestDataMapper->createHistoryRequestData($this->account, $this->order, $customQueryData);
+        $preparedOrder = $this->prepareHistoryOrder($customQueryData);
+
+        return $this->requestDataMapper->createHistoryRequestData($this->account, $preparedOrder, $customQueryData);
     }
 
     /**
      * @inheritDoc
      */
-    public function createRefundXML()
+    public function createRefundXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareRefundOrder($order);
+
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }
@@ -241,17 +240,11 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createCancelXML()
+    public function createCancelXML(array $order): string
     {
-        if (null === $this->order) {
-            $this->logger->log(LogLevel::ERROR, 'cancel data create without order data', [
-                'order' => $this->order,
-            ]);
+        $preparedOrder = $this->prepareCancelOrder($order);
 
-            throw new LogicException('Sipariş bilgileri eksik!');
-        }
-
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }
@@ -316,31 +309,32 @@ class PayFlexCPV4Pos extends AbstractGateway
     }
 
     /**
+     *
      * ORTAK ÖDEME SİSTEMİNE İŞLEM KAYDETME
+     *
+     * @param object                                              $order
+     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
+     * @param AbstractCreditCard                                  $card
+     *
      * Basarili durumda donen cevap formati: array{CommonPaymentUrl: string, PaymentToken: string, ErrorCode: null, ResponseMessage: null}
      * Basarisiz durumda donen cevap formati: array{CommonPaymentUrl: null, PaymentToken: null, ErrorCode: string, ResponseMessage: string}
+     *
      * @return array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null}
      *
      * @throws Exception
      */
-    public function registerPayment(): array
+    public function registerPayment(object $order, string $txType, AbstractCreditCard $card = null): array
     {
-        if (null === $this->order) {
-            $this->logger->log(LogLevel::ERROR, 'register payment without setting order', [
-                'order' => $this->order,
-                'card_provided' => (bool) $this->card,
-            ]);
-
-            throw new LogicException('Sipariş bilgileri eksik!');
-        }
-
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $this->account,
-            $this->order,
-            $this->type,
-            $this->card
+            $order,
+            $txType,
+            $card
         );
 
-        return $this->send($requestData);
+        /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
+        $response = $this->send($requestData);
+
+        return $response;
     }
 }

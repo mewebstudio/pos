@@ -23,9 +23,9 @@ if (isset($ord['recurringFrequency']) && $lastResponse && $lastResponse->recurri
 }
 
 $transaction = AbstractGateway::TX_STATUS;
-$pos->prepare($order, $transaction);
+
 // Query Order
-$pos->status();
+$pos->status($order);
 
 $response = $pos->getResponse();
 require '../../_templates/_simple_response_dump.php';

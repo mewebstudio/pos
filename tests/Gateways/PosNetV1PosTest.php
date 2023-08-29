@@ -31,8 +31,6 @@ class PosNetV1PosTest extends TestCase
     /** @var AbstractCreditCard */
     private $card;
 
-    private $order;
-
     /** @var PosNetV1Pos */
     private $pos;
 
@@ -50,18 +48,6 @@ class PosNetV1PosTest extends TestCase
             AbstractGateway::MODEL_3D_SECURE,
             '10,10,10,10,10,10,10,10'
         );
-
-
-        $this->order = [
-            'id'          => '190620093100_024',
-            'amount'      => 1.75,
-            'installment' => 0,
-            'currency'    => 'TRY',
-            'success_url' => 'https://domain.com/success',
-            'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => AbstractGateway::LANG_TR,
-            'rand'        => microtime(),
-        ];
 
         $this->pos = PosFactory::createPosGateway($this->account, $this->config);
 
@@ -85,24 +71,8 @@ class PosNetV1PosTest extends TestCase
      */
     public function testGetApiURL(string $txType, string $expected)
     {
-        $this->pos->prepare($this->order, $txType);
-        $this->assertSame($expected, $this->pos->getApiURL());
+        $this->assertSame($expected, $this->pos->getApiURL($txType));
     }
-
-    /**
-     * @return void
-     */
-    public function testPrepare()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $this->assertEquals($this->card, $this->pos->getCard());
-
-        $this->order['ref_ret_num'] = 'zz';
-        $this->pos->prepare($this->order, AbstractGateway::TX_POST_PAY);
-
-        $this->pos->prepare($this->order, AbstractGateway::TX_REFUND);
-    }
-
 
     /**
      * @dataProvider make3dPaymentTestProvider
@@ -128,10 +98,9 @@ class PosNetV1PosTest extends TestCase
             ->onlyMethods(['send'])
             ->getMock();
         $posMock->setTestMode(true);
-        $posMock->prepare($order, AbstractGateway::TX_PAY, $this->card);
         $posMock->expects($this->exactly(1))->method('send')->willReturn($paymentResponseData);
 
-        $posMock->make3DPayment($request);
+        $posMock->make3DPayment($request, $order, AbstractGateway::TX_PAY, $this->card);
         $resp = $posMock->getResponse();
         unset($resp['all'], $resp['3d_all']);
 

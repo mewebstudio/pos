@@ -14,9 +14,7 @@ $order = getNewOrder(
 );
 $session->set('order', $order);
 
-$pos->prepare($order, $transaction);
-
-$formData = $pos->get3DFormData(\Mews\Pos\Gateways\AbstractGateway::MODEL_3D_HOST);
+$formData = $pos->get3DFormData($order, \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_HOST, $transaction);
 
 require '../../_templates/_redirect_form.php';
 require '../../_templates/_footer.php';

@@ -55,15 +55,15 @@ function getNewOrder(
     return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 }
 
-function doPayment(\Mews\Pos\PosInterface $pos, string $paymentModel, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+function doPayment(\Mews\Pos\PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
 {
     if ( $paymentModel === \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE
         && \Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY !== $transaction
     ) {
         //bu asamada $card regular/non secure odemede lazim.
-        $pos->payment($paymentModel, $card);
+        $pos->payment($paymentModel, $order, $transaction, $card);
     } else {
-        $pos->payment($paymentModel);
+        $pos->payment($paymentModel, $order, $transaction);
     }
 }
 

@@ -14,10 +14,9 @@ $order = [
 ];
 
 $transaction = AbstractGateway::TX_CANCEL;
-$pos->prepare($order, $transaction);
 
 // Cancel Order
-$pos->cancel();
+$pos->cancel($order);
 
 $response = $pos->getResponse();
 

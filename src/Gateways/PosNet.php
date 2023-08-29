@@ -10,6 +10,7 @@ use Mews\Pos\DataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Psr\Log\LogLevel;
@@ -52,11 +53,16 @@ class PosNet extends AbstractGateway
     /**
      * Get OOS transaction data
      * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
+     *
+     * @param object                                              $order
+     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
+     * @param AbstractCreditCard                                  $card
+     *
      * @return array
      */
-    public function getOosTransactionData()
+    public function getOosTransactionData(object $order, string $txType, AbstractCreditCard $card): array
     {
-        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->type, $this->card);
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $card);
         $xml = $this->createXML($requestData);
 
         return $this->send($xml);
@@ -66,14 +72,15 @@ class PosNet extends AbstractGateway
      * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
-    public function make3DPayment(Request $request)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
     {
         $request = $request->request;
+        $preparedOrder = $this->preparePaymentOrder($order);
 
         $this->logger->log(LogLevel::DEBUG, 'getting merchant request data');
         $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
             $this->account,
-            $this->order,
+            $preparedOrder,
             $request->all()
         );
 
@@ -94,7 +101,7 @@ class PosNet extends AbstractGateway
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', [
                 'md_status' =>$userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
             ]);
-            $contents = $this->create3DPaymentXML($request->all());
+            $contents = $this->create3DPaymentXML($request->all(), $order, $txType);
             $bankResponse = $this->send($contents);
         } else {
             $this->logger->log(LogLevel::ERROR, '3d auth fail', [
@@ -120,18 +127,14 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(string $paymentModel): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        if (!$this->card || !$this->order) {
-            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
-                'order' => $this->order,
-                'card_provided' => (bool) $this->card,
-            ]);
-
+        if (!$card instanceof AbstractCreditCard) {
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
+        $preparedOrder = $this->preparePaymentOrder($order);
 
-        $data = $this->getOosTransactionData();
+        $data = $this->getOosTransactionData($preparedOrder, $txType, $card);
 
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $data['approved']) {
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
@@ -140,13 +143,13 @@ class PosNet extends AbstractGateway
 
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $paymentModel, $this->type, $this->get3DGatewayURL(), $this->card, $data['oosRequestDataResponse']);
+        return $this->requestDataMapper->create3DFormData($this->account, $preparedOrder, $paymentModel, $txType, $this->get3DGatewayURL(), null, $data['oosRequestDataResponse']);
     }
 
     /**
      * @inheritDoc
      */
-    public function send($contents, ?string $url = null)
+    public function send($contents, string $txType = null, ?string $url = null): array
     {
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
@@ -164,9 +167,7 @@ class PosNet extends AbstractGateway
 
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
-        $this->data = $this->XMLStringToArray($response->getBody()->getContents());
-
-        return $this->data;
+        return $this->data = $this->XMLStringToArray($response->getBody()->getContents());
     }
 
     /** @return PosNetAccount */
@@ -178,9 +179,11 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPaymentXML()
+    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
     {
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $preparedOrder, $txType, $card);
 
         return $this->createXML($requestData);
     }
@@ -188,21 +191,25 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPostXML()
+    public function createRegularPostXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
+        $preparedOrder = $this->preparePostPaymentOrder($order);
+
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }
 
     /**
      * @inheritDoc
+     *
+     * @param AbstractGateway::TX_* $txType kullanilmiyor
      */
-    public function create3DPaymentXML($responseData)
+    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
     {
-        // her hangi bir txType yeterli
-        $txType = AbstractGateway::TX_PAY;
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $txType, $responseData);
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $preparedOrder, $txType, $responseData);
 
         return $this->createXML($requestData);
     }
@@ -211,7 +218,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createHistoryXML($customQueryData)
+    public function createHistoryXML(array $customQueryData)
     {
         throw new NotImplementedException();
     }
@@ -219,9 +226,11 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createStatusXML()
+    public function createStatusXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareStatusOrder($order);
+
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }
@@ -229,9 +238,11 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createCancelXML()
+    public function createCancelXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareCancelOrder($order);
+
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }
@@ -239,9 +250,11 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRefundXML()
+    public function createRefundXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareRefundOrder($order);
+
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }

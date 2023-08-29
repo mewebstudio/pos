@@ -12,9 +12,8 @@ $order = [
     'id' => $ord['id'],
 ];
 $transaction = AbstractGateway::TX_STATUS;
-$pos->prepare($order, $transaction);
 
-$pos->status();
+$pos->status($order);
 
 $response = $pos->getResponse();
 

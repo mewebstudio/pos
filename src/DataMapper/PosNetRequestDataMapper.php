@@ -57,7 +57,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     ];
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount         $account
+     * @param AbstractGateway::TX_* $txType kullanilmiyor
      *
      * {@inheritDoc}
      */

@@ -84,17 +84,6 @@ class PayFlexCPV4PosTest extends TestCase
         $this->assertNotEmpty($this->pos->getCurrencies());
     }
 
-    /**
-     * @return void
-     */
-    public function testPrepare(): void
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $this->assertEquals($this->card, $this->pos->getCard());
-
-        $this->pos->prepare($this->order, AbstractGateway::TX_POST_PAY);
-    }
-
     public function testGet3DFormDataSuccess(): void
     {
         $crypt          = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
@@ -113,11 +102,10 @@ class PayFlexCPV4PosTest extends TestCase
             ->onlyMethods(['registerPayment'])
             ->getMock();
         $posMock->setTestMode(true);
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $posMock->expects($this->once())->method('registerPayment')
             ->willReturn(PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['queryParams']);
 
-        $result = $posMock->get3DFormData(AbstractGateway::MODEL_3D_SECURE);
+        $result = $posMock->get3DFormData($this->order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $this->card);
 
         $this->assertSame(PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['expected'], $result);
     }
@@ -137,7 +125,6 @@ class PayFlexCPV4PosTest extends TestCase
             ->onlyMethods(['registerPayment'])
             ->getMock();
         $posMock->setTestMode(true);
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $posMock->expects($this->once())->method('registerPayment')
             ->willReturn([
                 'CommonPaymentUrl' => null,
@@ -146,7 +133,7 @@ class PayFlexCPV4PosTest extends TestCase
                 'ResponseMessage'  => 'Güvenlik Numarası Hatalı',
             ]);
 
-        $posMock->get3DFormData(AbstractGateway::MODEL_3D_SECURE);
+        $posMock->get3DFormData($this->order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $this->card);
     }
 
     public function testMake3dPayPaymentFail(): void
@@ -172,8 +159,6 @@ class PayFlexCPV4PosTest extends TestCase
             $responseMapper,
             HttpClientFactory::createDefaultHttpClient(),
             new NullLogger());
-
-        $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $pos->make3DPayPayment($request);
     }

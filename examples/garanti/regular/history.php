@@ -12,10 +12,9 @@ $order = [
     'ip'       => $ord['ip'],
 ];
 $transaction = \Mews\Pos\Gateways\AbstractGateway::TX_HISTORY;
-$pos->prepare($order, $transaction);
 
 // History Order
-$query = $pos->history([]);
+$query = $pos->history($order);
 
 $response = $query->getResponse();
 require '../../_templates/_simple_response_dump.php';

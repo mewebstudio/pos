@@ -4,11 +4,11 @@
  */
 namespace Mews\Pos\Gateways;
 
-use LogicException;
 use Mews\Pos\DataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Psr\Log\LogLevel;
@@ -38,10 +38,10 @@ class PosNetV1Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function getApiURL(): string
+    public function getApiURL(string $txType = null): string
     {
-        if (null !== $this->type) {
-            return parent::getApiURL().'/'.$this->requestDataMapper->mapTxType($this->type);
+        if (null !== $txType) {
+            return parent::getApiURL().'/'.$this->requestDataMapper->mapTxType($txType);
         }
 
         return parent::getApiURL();
@@ -59,7 +59,7 @@ class PosNetV1Pos extends AbstractGateway
      * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
-    public function make3DPayment(Request $request)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
     {
         $request           = $request->request;
         $provisionResponse = null;
@@ -85,7 +85,7 @@ class PosNetV1Pos extends AbstractGateway
             $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $mdStatus]);
         } else {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $mdStatus]);
-            $contents          = $this->create3DPaymentXML($request->all());
+            $contents          = $this->create3DPaymentXML($request->all(), $order, $txType);
             $provisionResponse = $this->send($contents);
             $this->logger->log(LogLevel::DEBUG, 'send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
         }
@@ -107,26 +107,19 @@ class PosNetV1Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(string $paymentModel): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        if (null === $this->order) {
-            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
-                'order'         => $this->order,
-                'card_provided' => (bool) $this->card,
-            ]);
-
-            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
-        }
+        $preparedOrder = $this->preparePaymentOrder($order);
 
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $paymentModel, $this->type, $this->get3DGatewayURL(), $this->card);
+        return $this->requestDataMapper->create3DFormData($this->account, $preparedOrder, $paymentModel, $txType, $this->get3DGatewayURL(), $card);
     }
 
     /**
      * @inheritDoc
      */
-    public function send($contents, ?string $url = null)
+    public function send($contents, string $txType = null, ?string $url = null): array
     {
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
@@ -163,32 +156,38 @@ class PosNetV1Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPaymentXML()
+    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): array
     {
-        return $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        return $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $preparedOrder, $txType, $card);
     }
 
     /**
      * @inheritDoc
      */
-    public function createRegularPostXML()
+    public function createRegularPostXML(array $order): array
     {
-        return $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
+        $preparedOrder = $this->preparePostPaymentOrder($order);
+
+        return $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $preparedOrder);
     }
 
     /**
      * @inheritDoc
      */
-    public function create3DPaymentXML($responseData)
+    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): array
     {
-        return $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        return $this->requestDataMapper->create3DPaymentRequestData($this->account, $preparedOrder, $txType, $responseData);
     }
 
 
     /**
      * @inheritDoc
      */
-    public function createHistoryXML($customQueryData)
+    public function createHistoryXML(array $customQueryData)
     {
         throw new NotImplementedException();
     }
@@ -196,25 +195,31 @@ class PosNetV1Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createStatusXML()
+    public function createStatusXML(array $order): array
     {
-        return $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareStatusOrder($order);
+
+        return $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
     }
 
     /**
      * @inheritDoc
      */
-    public function createCancelXML()
+    public function createCancelXML(array $order): array
     {
-        return $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareCancelOrder($order);
+
+        return $this->requestDataMapper->createCancelRequestData($this->account, $preparedOrder);
     }
 
     /**
      * @inheritDoc
      */
-    public function createRefundXML()
+    public function createRefundXML(array $order): array
     {
-        return $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareRefundOrder($order);
+
+        return $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
     }
 
     /**

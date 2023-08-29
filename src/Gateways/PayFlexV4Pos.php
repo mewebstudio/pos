@@ -10,6 +10,7 @@ use Mews\Pos\DataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
@@ -42,7 +43,7 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
     {
         $request = $request->request;
         $status = $request->get('Status');
@@ -63,7 +64,7 @@ class PayFlexV4Pos extends AbstractGateway
         $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $status]);
         /** @var array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $requestData */
         $requestData = $request->all();
-        $contents = $this->create3DPaymentXML($requestData);
+        $contents = $this->create3DPaymentXML($requestData, $order, $txType, $card);
         $bankResponse = $this->send($contents);
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse);
@@ -102,18 +103,15 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * {@inheritDoc}
      */
-    public function get3DFormData(string $paymentModel): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        if (!$this->card || !$this->order) {
-            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order', [
-                'order' => $this->order,
-                'card_provided' => (bool) $this->card,
-            ]);
-
+        if (!$card instanceof AbstractCreditCard) {
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
-        $data = $this->sendEnrollmentRequest();
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        $data = $this->sendEnrollmentRequest($preparedOrder, $card);
 
         $status = $data['Message']['VERes']['Status'];
         /**
@@ -141,22 +139,25 @@ class PayFlexV4Pos extends AbstractGateway
 
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $paymentModel, $this->type, '', null, $data['Message']['VERes']);
+        return $this->requestDataMapper->create3DFormData($this->account, $preparedOrder, $paymentModel, $txType, '', null, $data['Message']['VERes']);
     }
 
     /**
      * Müşteriden kredi kartı bilgilerini aldıktan sonra GET 7/24 MPI’a kart “Kredi Kartı Kayıt Durumu”nun
      * (Enrollment Status) sorulması, yani kart 3-D Secure programına dâhil mi yoksa değil mi sorgusu
      *
+     * @param object             $order
+     * @param AbstractCreditCard $card
+     *
      * @return array
      *
      * @throws Exception
      */
-    public function sendEnrollmentRequest()
+    public function sendEnrollmentRequest(object $order, AbstractCreditCard $card): array
     {
-        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $card);
 
-        return $this->send($requestData, $this->get3DGatewayURL());
+        return $this->send($requestData, null, $this->get3DGatewayURL());
     }
 
     /**
@@ -170,7 +171,7 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($contents, ?string $url = null)
+    public function send($contents, string $txType = null, ?string $url = null): array
     {
         $url = $url ?: $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
@@ -200,9 +201,11 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPaymentXML()
+    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
     {
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $preparedOrder, $txType, $card);
 
         return $this->createXML($requestData);
     }
@@ -210,13 +213,11 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPostXML()
+    public function createRegularPostXML(array $order): string
     {
-        if (null === $this->order) {
-            throw new LogicException('sipariş bilgileri eksik!');
-        }
+        $preparedOrder = $this->preparePostPaymentOrder($order);
 
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }
@@ -227,9 +228,11 @@ class PayFlexV4Pos extends AbstractGateway
      *
      * @param array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $responseData
      */
-    public function create3DPaymentXML($responseData)
+    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
     {
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData, $this->card);
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $preparedOrder, $txType, $responseData, $card);
 
         return $this->createXML($requestData);
     }
@@ -237,9 +240,11 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createStatusXML()
+    public function createStatusXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareStatusOrder($order);
+
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
 
         return parent::createXML(['SearchRequest' => $requestData]);
     }
@@ -248,17 +253,21 @@ class PayFlexV4Pos extends AbstractGateway
      * TODO
      * @inheritDoc
      */
-    public function createHistoryXML($customQueryData)
+    public function createHistoryXML($customQueryData): array
     {
-        return $this->requestDataMapper->createHistoryRequestData($this->account, $this->order, $customQueryData);
+        $preparedOrder = $this->prepareHistoryOrder($customQueryData);
+
+        return $this->requestDataMapper->createHistoryRequestData($this->account, $preparedOrder, $customQueryData);
     }
 
     /**
      * @inheritDoc
      */
-    public function createRefundXML()
+    public function createRefundXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareRefundOrder($order);
+
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }
@@ -266,9 +275,11 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createCancelXML()
+    public function createCancelXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareCancelOrder($order);
+
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }

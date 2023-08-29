@@ -15,9 +15,9 @@ $order = [
     'amount'   => $ord['amount'],
 ];
 $transaction = AbstractGateway::TX_REFUND;
-$pos->prepare($order, $transaction);
+
 // Refund Order
-$pos->refund();
+$pos->refund($order);
 
 $response = $pos->getResponse();
 

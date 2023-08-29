@@ -82,15 +82,6 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testPrepare()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $this->assertEquals($this->card, $this->pos->getCard());
-    }
-
-    /**
-     * @return void
-     */
     public function testMake3DPaymentAuthFail()
     {
         $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['authFail1']['paymentData']);
@@ -112,9 +103,8 @@ class EstPosTest extends TestCase
             ->getMock();
 
         $posMock->expects($this->never())->method('send');
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
-        $posMock->make3DPayment($request);
+        $posMock->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
@@ -129,7 +119,6 @@ class EstPosTest extends TestCase
         $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['paymentData']);
 
         $pos = $this->pos;
-        $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $pos->make3DHostPayment($request);
 
@@ -146,7 +135,6 @@ class EstPosTest extends TestCase
         $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']);
 
         $pos = $this->pos;
-        $pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
         $pos->make3DPayPayment($request);
 
@@ -179,9 +167,8 @@ class EstPosTest extends TestCase
             ->getMock();
 
         $posMock->expects($this->never())->method('send');
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
 
-        $posMock->make3DPayment($request);
+        $posMock->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
@@ -213,9 +200,7 @@ class EstPosTest extends TestCase
         $posMock->expects($this->once())->method('createStatusXML')->willReturn('');
         $posMock->expects($this->once())->method('getQueryAPIUrl')->willReturn('');
 
-        $posMock->prepare($this->order, AbstractGateway::TX_STATUS);
-
-        $posMock->status();
+        $posMock->status($this->order);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
@@ -248,9 +233,7 @@ class EstPosTest extends TestCase
         );
         $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
 
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-
-        $posMock->history([]);
+        $posMock->history($this->order);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
@@ -283,9 +266,7 @@ class EstPosTest extends TestCase
         );
         $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
 
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-
-        $posMock->history([]);
+        $posMock->history($this->order);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
@@ -318,9 +299,7 @@ class EstPosTest extends TestCase
         );
         $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
 
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-
-        $posMock->cancel();
+        $posMock->cancel($this->order);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
@@ -353,9 +332,7 @@ class EstPosTest extends TestCase
         );
         $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
 
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-
-        $posMock->cancel();
+        $posMock->cancel($this->order);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
@@ -388,9 +365,7 @@ class EstPosTest extends TestCase
         );
         $posMock->expects($this->once())->method('createRefundXML')->willReturn('');
 
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-
-        $posMock->refund();
+        $posMock->refund($this->order);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);

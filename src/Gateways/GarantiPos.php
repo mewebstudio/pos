@@ -4,11 +4,11 @@
  */
 namespace Mews\Pos\Gateways;
 
-use LogicException;
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
+use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Psr\Log\LogLevel;
@@ -48,7 +48,7 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
     {
         $request = $request->request;
         $bankResponse = null;
@@ -59,7 +59,7 @@ class GarantiPos extends AbstractGateway
 
         if (in_array($request->get('mdstatus'), [1, 2, 3, 4])) {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $request->get('mdstatus')]);
-            $contents     = $this->create3DPaymentXML($request->all());
+            $contents     = $this->create3DPaymentXML($request->all(), $order, $txType);
             $bankResponse = $this->send($contents);
         } else {
             $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $request->get('mdstatus')]);
@@ -85,12 +85,14 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($contents, ?string $url = null)
+    public function send($contents, string $txType = null, ?string $url = null): array
     {
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+
         $response = $this->client->post($url, ['body' => $contents]);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
+
         $this->data = $this->XMLStringToArray($response->getBody()->getContents());
 
         return $this->data;
@@ -99,17 +101,13 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(string $paymentModel): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        if ($this->order === null) {
-            $this->logger->log(LogLevel::ERROR, 'tried to get 3D form data without setting order');
-
-            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
-        }
+        $preparedOrder = $this->preparePaymentOrder($order);
 
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $this->order, $paymentModel, $this->type, $this->get3DGatewayURL(), $this->card);
+        return $this->requestDataMapper->create3DFormData($this->account, $preparedOrder, $paymentModel, $txType, $this->get3DGatewayURL(), $card);
     }
 
     /**
@@ -124,9 +122,11 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPaymentXML()
+    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
     {
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, $this->type, $this->card);
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $preparedOrder, $txType, $card);
 
         return $this->createXML($requestData);
     }
@@ -134,9 +134,11 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRegularPostXML()
+    public function createRegularPostXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
+        $preparedOrder = $this->preparePostPaymentOrder($order);
+
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }
@@ -144,9 +146,11 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function create3DPaymentXML($responseData)
+    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
     {
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
+        $preparedOrder = $this->preparePaymentOrder($order);
+
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $preparedOrder, $txType, $responseData);
 
         return $this->createXML($requestData);
     }
@@ -154,9 +158,11 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createCancelXML()
+    public function createCancelXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->getAccount(), $this->getOrder());
+        $preparedOrder = $this->prepareCancelOrder($order);
+
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->getAccount(), $preparedOrder);
 
         return $this->createXML($requestData);
     }
@@ -164,9 +170,11 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createRefundXML()
+    public function createRefundXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareRefundOrder($order);
+
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }
@@ -174,9 +182,11 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createHistoryXML($customQueryData)
+    public function createHistoryXML(array $customQueryData): string
     {
-        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $this->order, $customQueryData);
+        $preparedOrder = $this->prepareHistoryOrder($customQueryData);
+
+        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $preparedOrder, $customQueryData);
 
         return $this->createXML($requestData);
     }
@@ -184,9 +194,11 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createStatusXML()
+    public function createStatusXML(array $order): string
     {
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
+        $preparedOrder = $this->prepareStatusOrder($order);
+
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
 
         return $this->createXML($requestData);
     }

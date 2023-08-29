@@ -108,16 +108,6 @@ class KuveytPosTest extends TestCase
         $this->assertTrue($this->pos->isTestMode());
     }
 
-
-    /**
-     * @return void
-     */
-    public function testPrepare()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $this->assertEquals($this->card, $this->pos->getCard());
-    }
-
     /**
      * @dataProvider parseHTMLResponseTestProvider
      * @return void
@@ -143,10 +133,9 @@ class KuveytPosTest extends TestCase
             ->onlyMethods(['send'])
             ->getMock();
         $posMock->setTestMode(true);
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $posMock->method('send')->willReturn($html);
 
-        $result = $posMock->get3DFormData(AbstractGateway::MODEL_3D_SECURE);
+        $result = $posMock->get3DFormData($this->order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $this->card);
 
         $this->assertSame($expected, $result);
     }
@@ -156,12 +145,11 @@ class KuveytPosTest extends TestCase
      */
     public function testMake3DPaymentAuthFail()
     {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $request = Request::create('', 'POST', [
             'AuthenticationResponse' => '%3c%3fxml+version%3d%221.0%22+encoding%3d%22utf-8%22%3f%3e%3cVPosTransactionResponseContract+xmlns%3axsd%3d%22http%3a%2f%2fwww.w3.org%2f2001%2fXMLSchema%22+xmlns%3axsi%3d%22http%3a%2f%2fwww.w3.org%2f2001%2fXMLSchema-instance%22%3e%3cIsEnrolled%3etrue%3c%2fIsEnrolled%3e%3cIsVirtual%3efalse%3c%2fIsVirtual%3e%3cResponseCode%3eHashDataError%3c%2fResponseCode%3e%3cResponseMessage%3e%c5%9eifrelenen+veriler+(Hashdata)+uyu%c5%9fmamaktad%c4%b1r.%3c%2fResponseMessage%3e%3cOrderId%3e0%3c%2fOrderId%3e%3cTransactionTime%3e0001-01-01T00%3a00%3a00%3c%2fTransactionTime%3e%3cMerchantOrderId%3e2020110828BC%3c%2fMerchantOrderId%3e%3cReferenceId%3e9b8e2326a9df44c2b2aac0b98b11f0a4%3c%2fReferenceId%3e%3cBusinessKey%3e0%3c%2fBusinessKey%3e%3c%2fVPosTransactionResponseContract%3e',
         ]);
 
-        $this->pos->make3DPayment($request);
+        $this->pos->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
         $result = $this->pos->getResponse();
         $this->assertIsArray($result);
         $this->assertSame('declined', $result['status']);
@@ -177,7 +165,6 @@ class KuveytPosTest extends TestCase
         $requestMapper = PosFactory::getGatewayRequestMapper(KuveytPos::class, [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
         $kuveytPosResponseDataMapperTest = new KuveytPosResponseDataMapperTest();
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $xml     = '<?xml version="1.0" encoding="UTF-8"?><VPosTransactionResponseContract><VPosMessage><APIVersion>1.0.0</APIVersion><OkUrl>http://localhost:44785/Home/Success</OkUrl><FailUrl>http://localhost:44785/Home/Fail</FailUrl><HashData>lYJYMi/gVO9MWr32Pshaa/zAbSHY=</HashData><MerchantId>80</MerchantId><SubMerchantId>0</SubMerchantId><CustomerId>400235</CustomerId><UserName>apiuser</UserName><CardNumber>4025502306586032</CardNumber><CardHolderName>afafa</CardHolderName><CardType>MasterCard</CardType><BatchID>0</BatchID><TransactionType>Sale</TransactionType><InstallmentCount>0</InstallmentCount><Amount>100</Amount><DisplayAmount>100</DisplayAmount><MerchantOrderId>Order 123</MerchantOrderId><FECAmount>0</FECAmount><CurrencyCode>0949</CurrencyCode><QeryId>0</QeryId><DebtId>0</DebtId><SurchargeAmount>0</SurchargeAmount><SGKDebtAmount>0</SGKDebtAmount><TransactionSecurity>3</TransactionSecurity><TransactionSide>Auto</TransactionSide><EntryGateMethod>VPOS_ThreeDModelPayGate</EntryGateMethod></VPosMessage><IsEnrolled>true</IsEnrolled><IsVirtual>false</IsVirtual><OrderId>0</OrderId><TransactionTime>0001-01-01T00:00:00</TransactionTime><ResponseCode>00</ResponseCode><ResponseMessage>HATATA</ResponseMessage><MD>67YtBfBRTZ0XBKnAHi8c/A==</MD><AuthenticationPacket>WYGDgSIrSHDtYwF/WEN+nfwX63sppA=</AuthenticationPacket><ACSURL>https://acs.bkm.com.tr/mdpayacs/pareq</ACSURL></VPosTransactionResponseContract>';
         $request = Request::create('', 'POST', [
             'AuthenticationResponse' => urlencode($xml),
@@ -195,12 +182,10 @@ class KuveytPosTest extends TestCase
             ->onlyMethods(['send'])
             ->getMock();
 
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-
         $paymentResponse = $kuveytPosResponseDataMapperTest->threeDPaymentDataProvider()['authSuccessPaymentFail2']['paymentData'];
         $posMock->expects($this->once())->method('send')->willReturn($paymentResponse);
 
-        $posMock->make3DPayment($request);
+        $posMock->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertSame('declined', $result['status']);
@@ -218,7 +203,6 @@ class KuveytPosTest extends TestCase
         $requestMapper = PosFactory::getGatewayRequestMapper(KuveytPos::class, [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
         $kuveytPosResponseDataMapperTest = new KuveytPosResponseDataMapperTest();
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
         $xml     = '<?xml version="1.0" encoding="UTF-8"?><VPosTransactionResponseContract><VPosMessage><APIVersion>1.0.0</APIVersion><OkUrl>http://localhost:44785/Home/Success</OkUrl><FailUrl>http://localhost:44785/Home/Fail</FailUrl><HashData>lYJYMi/gVO9MWr32Pshaa/zAbSHY=</HashData><MerchantId>80</MerchantId><SubMerchantId>0</SubMerchantId><CustomerId>400235</CustomerId><UserName>apiuser</UserName><CardNumber>4025502306586032</CardNumber><CardHolderName>afafa</CardHolderName><CardType>MasterCard</CardType><BatchID>0</BatchID><TransactionType>Sale</TransactionType><InstallmentCount>0</InstallmentCount><Amount>100</Amount><DisplayAmount>100</DisplayAmount><MerchantOrderId>Order 123</MerchantOrderId><FECAmount>0</FECAmount><CurrencyCode>0949</CurrencyCode><QeryId>0</QeryId><DebtId>0</DebtId><SurchargeAmount>0</SurchargeAmount><SGKDebtAmount>0</SGKDebtAmount><TransactionSecurity>3</TransactionSecurity><TransactionSide>Auto</TransactionSide><EntryGateMethod>VPOS_ThreeDModelPayGate</EntryGateMethod></VPosMessage><IsEnrolled>true</IsEnrolled><IsVirtual>false</IsVirtual><OrderId>0</OrderId><TransactionTime>0001-01-01T00:00:00</TransactionTime><ResponseCode>00</ResponseCode><ResponseMessage>HATATA</ResponseMessage><MD>67YtBfBRTZ0XBKnAHi8c/A==</MD><AuthenticationPacket>WYGDgSIrSHDtYwF/WEN+nfwX63sppA=</AuthenticationPacket><ACSURL>https://acs.bkm.com.tr/mdpayacs/pareq</ACSURL></VPosTransactionResponseContract>';
         $request = Request::create('', 'POST', [
             'AuthenticationResponse' => urlencode($xml),
@@ -236,12 +220,10 @@ class KuveytPosTest extends TestCase
             ->onlyMethods(['send'])
             ->getMock();
 
-        $posMock->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-
         $paymentResponse = $kuveytPosResponseDataMapperTest->threeDPaymentDataProvider()['success1']['paymentData'];
         $posMock->expects($this->once())->method('send')->willReturn($paymentResponse);
 
-        $posMock->make3DPayment($request);
+        $posMock->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
         $result = $posMock->getResponse();
 
         $this->assertIsArray($result);

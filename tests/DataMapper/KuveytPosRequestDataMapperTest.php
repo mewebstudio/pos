@@ -129,10 +129,9 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCompose3DFormData()
     {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $order   = $this->pos->getOrder();
-        $account = $this->pos->getAccount();
-        $card    = $this->pos->getCard();
+        $order   = (object) $this->order;
+        $account = $this->threeDAccount;
+        $card    = $this->card;
 
         $inputs = [
             'APIVersion'          => KuveytPosRequestDataMapper::API_VERSION,
@@ -169,8 +168,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData(array $order, array $expected)
     {
-        $this->pos->prepare($order, AbstractGateway::TX_CANCEL);
-        $actual = $this->requestDataMapper->createCancelRequestData($this->pos->getAccount(), $this->pos->getOrder());
+        $actual = $this->requestDataMapper->createCancelRequestData($this->threeDAccount, (object) $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -179,8 +177,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData(array $order, array $expected)
     {
-        $this->pos->prepare($order, AbstractGateway::TX_REFUND);
-        $actual = $this->requestDataMapper->createRefundRequestData($this->pos->getAccount(), $this->pos->getOrder());
+        $actual = $this->requestDataMapper->createRefundRequestData($this->threeDAccount, (object) $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -189,8 +186,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData(array $order, array $expected)
     {
-        $this->pos->prepare($order, AbstractGateway::TX_STATUS);
-        $actual = $this->requestDataMapper->createStatusRequestData($this->pos->getAccount(), $this->pos->getOrder());
+        $actual = $this->requestDataMapper->createStatusRequestData($this->threeDAccount, (object) $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -226,24 +222,21 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'HashData'        => 'ucejRvHjCbuPXagyoweFLnJfSJg=',
             'BusinessKey'     => '20220845654324600000140459',
         ];
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY);
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->pos->getAccount(), $this->pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
 
-        $expectedData = $this->getSample3DPaymentXMLData($this->pos, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->threeDAccount, (object) $this->order, AbstractGateway::TX_PAY, $responseData);
+
+        $expectedData = $this->getSample3DPaymentXMLData((object) $this->order, $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 
-    private function getSample3DPaymentXMLData(KuveytPos $pos, array $responseData): array
+    private function getSample3DPaymentXMLData(object $order, array $responseData): array
     {
-        $account = $pos->getAccount();
-        $order   = $pos->getOrder();
-
         return [
             'APIVersion'                   => KuveytPosRequestDataMapper::API_VERSION,
             'HashData'                     => 'zC6dm10450RhS8Xi9TuBjwkLUL0=',
-            'MerchantId'                   => $account->getClientId(),
-            'CustomerId'                   => $account->getCustomerId(),
-            'UserName'                     => $account->getUsername(),
+            'MerchantId'                   => $this->threeDAccount->getClientId(),
+            'CustomerId'                   => $this->threeDAccount->getCustomerId(),
+            'UserName'                     => $this->threeDAccount->getUsername(),
             'CustomerIPAddress'            => $order->ip,
             'KuveytTurkVPosAdditionalData' => [
                 'AdditionalData' => [

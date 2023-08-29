@@ -73,19 +73,6 @@ abstract class AbstractGateway implements PosInterface
     /** @var AbstractPosAccount */
     protected $account;
 
-    /** @var AbstractCreditCard|null */
-    protected $card;
-
-    /**
-     * Transaction Type
-     *
-     * @var self::TX_*
-     */
-    protected $type;
-
-    /** @var object|null */
-    protected $order;
-
     /**
      * Processed Response Data
      *
@@ -134,40 +121,6 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @inheritDoc
-     */
-    public function prepare(array $order, string $txType, $card = null)
-    {
-        $this->setTxType($txType);
-
-        switch ($txType) {
-            case self::TX_PAY:
-            case self::TX_PRE_PAY:
-                $this->order = $this->preparePaymentOrder($order);
-                break;
-            case self::TX_POST_PAY:
-                $this->order = $this->preparePostPaymentOrder($order);
-                break;
-            case self::TX_CANCEL:
-                $this->order = $this->prepareCancelOrder($order);
-                break;
-            case self::TX_REFUND:
-                $this->order = $this->prepareRefundOrder($order);
-                break;
-            case self::TX_STATUS:
-                $this->order = $this->prepareStatusOrder($order);
-                break;
-            case self::TX_HISTORY:
-                $this->order = $this->prepareHistoryOrder($order);
-                break;
-        }
-
-        $this->logger->log(LogLevel::DEBUG, 'gateway prepare - order is prepared', [$this->order]);
-
-        $this->card = $card;
-    }
-
-    /**
      * @return array|null
      */
     public function getResponse(): ?array
@@ -189,30 +142,6 @@ abstract class AbstractGateway implements PosInterface
     public function getConfig()
     {
         return $this->config;
-    }
-
-    /**
-     * @return AbstractCreditCard|null
-     */
-    public function getCard(): ?AbstractCreditCard
-    {
-        return $this->card;
-    }
-
-    /**
-     * @param AbstractCreditCard|null $card
-     */
-    public function setCard(?AbstractCreditCard $card)
-    {
-        $this->card = $card;
-    }
-
-    /**
-     * @return object
-     */
-    public function getOrder()
-    {
-        return $this->order;
     }
 
     /**
@@ -246,9 +175,11 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
+     * @param self::TX_* $txType
+     *
      * @return string
      */
-    public function getApiURL(): string
+    public function getApiURL(string $txType = null): string
     {
         return $this->config['gateway_endpoints']['payment_api'];
     }
@@ -286,35 +217,26 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @param self::TX_* $txType
-     *
-     * @throws UnsupportedTransactionTypeException
-     */
-    public function setTxType(string $txType)
-    {
-        $this->requestDataMapper->mapTxType($txType);
-
-        $this->type = $txType;
-
-        $this->logger->log(LogLevel::DEBUG, 'set transaction type', [$txType]);
-    }
-
-    /**
      * @inheritDoc
      */
-    public function payment(string $paymentModel, $card = null)
+    public function payment(string $paymentModel, array $order, string $txType, $card = null)
     {
         $request    = Request::createFromGlobals();
-        $this->card = $card;
 
         $this->logger->log(LogLevel::DEBUG, 'payment called', [
-            'card_provided' => (bool) $this->card,
+            'card_provided' => (bool) $card,
             'model'         => $paymentModel,
         ]);
         if (self::MODEL_NON_SECURE === $paymentModel) {
-            $this->makeRegularPayment();
+            if (!$card instanceof AbstractCreditCard) {
+                throw new \LogicException('Kredi kartı veya sipariş bilgileri eksik!');
+            }
+            $this->makeRegularPayment($order, $card, $txType);
         } elseif (self::MODEL_3D_SECURE === $paymentModel) {
-            $this->make3DPayment($request);
+            if (self::TX_POST_PAY === $txType) {
+                throw new \LogicException('Bu işlem için $paymentModel=MODEL_NON_SECURE kullanınız!');
+            }
+            $this->make3DPayment($request, $order, $txType, $card);
         } elseif (self::MODEL_3D_PAY === $paymentModel || self::MODEL_3D_PAY_HOSTING === $paymentModel) {
             $this->make3DPayPayment($request);
         } elseif (self::MODEL_3D_HOST === $paymentModel) {
@@ -330,20 +252,20 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function makeRegularPayment()
+    public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType)
     {
         $this->logger->log(LogLevel::DEBUG, 'making payment', [
             'model'   => AbstractGateway::MODEL_NON_SECURE,
-            'tx_type' => $this->type,
+            'tx_type' => $txType,
         ]);
         $contents = '';
-        if (in_array($this->type, [self::TX_PAY, self::TX_PRE_PAY])) {
-            $contents = $this->createRegularPaymentXML();
-        } elseif (self::TX_POST_PAY === $this->type) {
-            $contents = $this->createRegularPostXML();
+        if (in_array($txType, [self::TX_PAY, self::TX_PRE_PAY], true)) {
+            $contents = $this->createRegularPaymentXML($order, $card, $txType);
+        } elseif (self::TX_POST_PAY === $txType) {
+            $contents = $this->createRegularPostXML($order);
         }
 
-        $bankResponse = $this->send($contents);
+        $bankResponse = $this->send($contents, $txType);
 
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse);
 
@@ -353,10 +275,10 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function refund()
+    public function refund(array $order)
     {
-        $xml          = $this->createRefundXML();
-        $bankResponse = $this->send($xml);
+        $xml          = $this->createRefundXML($order);
+        $bankResponse = $this->send($xml, self::TX_REFUND);
 
         $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
 
@@ -366,10 +288,10 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function cancel()
+    public function cancel(array $order)
     {
-        $xml          = $this->createCancelXML();
-        $bankResponse = $this->send($xml);
+        $xml          = $this->createCancelXML($order);
+        $bankResponse = $this->send($xml, self::TX_CANCEL);
 
         $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
 
@@ -379,11 +301,11 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function status()
+    public function status(array $order)
     {
-        $xml = $this->createStatusXML();
+        $xml = $this->createStatusXML($order);
 
-        $bankResponse = $this->send($xml, $this->getQueryAPIUrl());
+        $bankResponse = $this->send($xml, self::TX_STATUS, $this->getQueryAPIUrl());
         if (!is_array($bankResponse)) {
             throw new \RuntimeException('Status isteği başarısız');
         }
@@ -400,7 +322,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $xml = $this->createHistoryXML($meta);
 
-        $bankResponse = $this->send($xml);
+        $bankResponse = $this->send($xml, self::TX_HISTORY);
 
         $this->response = $this->responseDataMapper->mapHistoryResponse($bankResponse);
 
@@ -440,57 +362,75 @@ abstract class AbstractGateway implements PosInterface
     /**
      * Create Regular Payment XML
      *
-     * @return string|array
+     * @param array<string, mixed>                                $order
+     * @param AbstractCreditCard                                  $card
+     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
+     *
+     * @return string|array<string, mixed>
      */
-    abstract public function createRegularPaymentXML();
+    abstract public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType);
 
     /**
      * Create Regular Payment Post XML
      *
-     * @return string|array
+     * @param array<string, mixed> $order
+     *
+     * @return string|array<string, mixed>
      */
-    abstract public function createRegularPostXML();
+    abstract public function createRegularPostXML(array $order);
 
     /**
      * Creates XML string for history inquiry
      *
-     * @param array $customQueryData
+     * @param array<string, mixed> $customQueryData
      *
-     * @return array|string
+     * @return array<string, mixed>|string
      */
-    abstract public function createHistoryXML($customQueryData);
+    abstract public function createHistoryXML(array $customQueryData);
 
     /**
      * Creates XML string for order status inquiry
-     * @return array|string
+     *
+     * @param array<string, mixed> $order
+     *
+     * @return array<string, mixed>|string
      */
-    abstract public function createStatusXML();
+    abstract public function createStatusXML(array $order);
 
     /**
      * Creates XML string for order cancel operation
-     * @return array|string
+     *
+     * @param array<string, mixed> $order
+     *
+     * @return array<string, mixed>|string
      */
-    abstract public function createCancelXML();
+    abstract public function createCancelXML(array $order);
 
     /**
      * Creates XML string for order refund operation
-     * @return array|string
+     *
+     * @param array<string, mixed> $order
+     *
+     * @return array<string, mixed>|string
      */
-    abstract public function createRefundXML();
+    abstract public function createRefundXML(array $order);
 
     /**
      * Creates 3D Payment XML
      *
-     * @param array<string, string> $responseData
+     * @param array<string, mixed>                                $responseData
+     * @param array<string, mixed>                                $order
+     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
+     * @param AbstractCreditCard                                  $card
      *
-     * @return string|array
+     * @return string|array<string, mixed>
      */
-    abstract public function create3DPaymentXML($responseData);
+    abstract public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null);
 
     /**
      * prepares order for payment request
      *
-     * @param array $order
+     * @param array<string, mixed> $order
      *
      * @return object
      */
@@ -499,7 +439,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * prepares order for TX_POST_PAY type request
      *
-     * @param array $order
+     * @param array<string, mixed> $order
      *
      * @return object
      */
@@ -508,7 +448,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * prepares order for order status request
      *
-     * @param array $order
+     * @param array<string, mixed> $order
      *
      * @return object
      */
@@ -517,7 +457,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * prepares order for history request
      *
-     * @param array $order
+     * @param array<string, mixed> $order
      *
      * @return object
      */
@@ -526,7 +466,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * prepares order for cancel request
      *
-     * @param array $order
+     * @param array<string, mixed> $order
      *
      * @return object
      */
@@ -535,7 +475,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * prepares order for refund request
      *
-     * @param array $order
+     * @param array<string, mixed> $order
      *
      * @return object
      */

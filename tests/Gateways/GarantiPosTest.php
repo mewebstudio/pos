@@ -78,14 +78,4 @@ class GarantiPosTest extends TestCase
         $this->assertEquals($this->account, $this->pos->getAccount());
         $this->assertNotEmpty($this->pos->getCurrencies());
     }
-
-    /**
-     * @return void
-     */
-    public function testPrepare()
-    {
-        $this->pos->prepare($this->order, AbstractGateway::TX_PAY, $this->card);
-        $this->assertEquals($this->card, $this->pos->getCard());
-        $this->assertSame(0, $this->pos->getOrder()->installment);
-    }
 }

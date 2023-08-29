@@ -14,9 +14,8 @@ $order = [
     'ip'       => $ord['ip'],
 ];
 $transaction = AbstractGateway::TX_STATUS;
-$pos->prepare($order, $transaction);
 
-$pos->status();
+$pos->status($order);
 
 $response = $pos->getResponse();
 require '../../_templates/_simple_response_dump.php';

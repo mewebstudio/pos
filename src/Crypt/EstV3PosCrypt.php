@@ -11,7 +11,7 @@ class EstV3PosCrypt extends AbstractCrypt
 {
     /** @var string */
     protected const HASH_ALGORITHM = 'sha512';
-    
+
     /** @var string */
     protected const HASH_SEPARATOR = '|';
 
@@ -27,12 +27,12 @@ class EstV3PosCrypt extends AbstractCrypt
                 unset($requestData[$key]);
             }
         }
-        
+
         $requestData[] = $account->getStoreKey();
         // escape | and \ characters
         $data = str_replace("\\", "\\\\", array_values($requestData));
         $data = str_replace(self::HASH_SEPARATOR, "\\".self::HASH_SEPARATOR, $data);
-        
+
         $hashStr = implode(self::HASH_SEPARATOR, $data);
 
         return $this->hashString($hashStr);

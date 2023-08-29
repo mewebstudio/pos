@@ -66,15 +66,15 @@ function getNewOrder(
     return $order;
 }
 
-function doPayment(\Mews\Pos\PosInterface $pos, string $paymentModel, string $transaction, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+function doPayment(\Mews\Pos\PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
 {
     if (\Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY !== $transaction) {
         /**
          * diger banklaradan farkli olarak 3d islemler icin de PayFlex MPI bu asamada kredi kart bilgileri istiyor
          */
-        $pos->payment($paymentModel, $card);
+        $pos->payment($paymentModel, $order, $transaction, $card);
     } else {
-        $pos->payment($paymentModel);
+        $pos->payment($paymentModel, $order, $transaction);
     }
 }
 
