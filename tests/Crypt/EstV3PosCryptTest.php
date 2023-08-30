@@ -12,7 +12,7 @@ use Psr\Log\NullLogger;
 class EstV3PosCryptTest extends TestCase
 {
     /** @var AbstractPosAccount */
-    private $threeDAccount;
+    private $account;
 
     /** @var EstV3PosCrypt */
     private $crypt;
@@ -21,7 +21,7 @@ class EstV3PosCryptTest extends TestCase
     {
         parent::setUp();
 
-        $this->threeDAccount = AccountFactory::createEstPosAccount(
+        $this->account = AccountFactory::createEstPosAccount(
             'akbank',
             '190100000',
             'ISBANKAPI',
@@ -38,10 +38,10 @@ class EstV3PosCryptTest extends TestCase
      */
     public function testCheck3DHash(array $responseData)
     {
-        $this->assertTrue($this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertTrue($this->crypt->check3DHash($this->account, $responseData));
 
         $responseData['mdStatus'] = '';
-        $this->assertFalse($this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
     public function testCreate3DHashFor3DPay()
@@ -49,7 +49,7 @@ class EstV3PosCryptTest extends TestCase
         $expected = '/uPxhEKWCEGi3NsDOOQ4u8Hu5g71v5GWspOid70WehTWEz97PqxG3IN1Jv5jsbOXOw3Z3Rr/0UtywzEgbqFfdA==';
 
         $requestData = [
-            'clientid'      => $this->threeDAccount->getClientId(),
+            'clientid'      => $this->account->getClientId(),
             'storetype'     => '3d_pay',
             'amount'        => '100.25',
             'oid'           => 'order222',
@@ -65,13 +65,13 @@ class EstV3PosCryptTest extends TestCase
             'hashAlgorithm' => 'ver3',
         ];
 
-        $actual = $this->crypt->create3DHash($this->threeDAccount, $requestData, AbstractGateway::TX_PAY);
+        $actual = $this->crypt->create3DHash($this->account, $requestData, AbstractGateway::TX_PAY);
         $this->assertEquals($expected, $actual);
     }
 
     public function testCreate3DHashFor3DSecure()
     {
-        $account = $this->threeDAccount;
+        $account = $this->account;
         $inputs  = [
             'clientid'      => $account->getClientId(),
             'storetype'     => AbstractGateway::MODEL_3D_SECURE,
@@ -88,7 +88,7 @@ class EstV3PosCryptTest extends TestCase
         ];
 
         $expected = '4aUsG5hqlIFLc9s8PKc5rWb2OLhmxDDewNgKa2XrwoYCIxlyVq8Fjl4IVaZzoqL983CfTseicmnTA0PjZr74xg==';
-        $actual   = $this->crypt->create3DHash($this->threeDAccount, $inputs, AbstractGateway::TX_PAY);
+        $actual   = $this->crypt->create3DHash($this->account, $inputs, AbstractGateway::TX_PAY);
         $this->assertEquals($expected, $actual);
     }
 

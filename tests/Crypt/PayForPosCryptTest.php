@@ -18,13 +18,13 @@ class PayForPosCryptTest extends TestCase
     public $crypt;
 
     /** @var PayForAccount */
-    private $threeDAccount;
+    private $account;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->threeDAccount = AccountFactory::createPayForAccount(
+        $this->account = AccountFactory::createPayForAccount(
             'qnbfinansbank-payfor',
             '085300000009704',
             'QNB_API_KULLANICI_3DPAY',
@@ -55,7 +55,7 @@ class PayForPosCryptTest extends TestCase
      */
     public function testCreate3DHash(array $requestData, string $txType, string $expected)
     {
-        $actual = $this->crypt->create3DHash($this->threeDAccount, $requestData, $txType);
+        $actual = $this->crypt->create3DHash($this->account, $requestData, $txType);
 
         $this->assertSame($expected, $actual);
     }
@@ -65,10 +65,10 @@ class PayForPosCryptTest extends TestCase
      */
     public function testCheck3DHash(bool $expected, array $responseData)
     {
-        $this->assertSame($expected, $this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertSame($expected, $this->crypt->check3DHash($this->account, $responseData));
 
         $responseData['3DStatus'] = '';
-        $this->assertFalse($this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
     public function threeDHashCreateDataProvider(): array

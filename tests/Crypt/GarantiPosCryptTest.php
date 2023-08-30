@@ -12,7 +12,7 @@ use Psr\Log\NullLogger;
 class GarantiPosCryptTest extends TestCase
 {
     /** @var AbstractPosAccount */
-    private $threeDAccount;
+    private $account;
 
     /** @var GarantiPosCrypt */
     private $crypt;
@@ -21,7 +21,7 @@ class GarantiPosCryptTest extends TestCase
     {
         parent::setUp();
 
-        $this->threeDAccount = AccountFactory::createGarantiPosAccount(
+        $this->account = AccountFactory::createGarantiPosAccount(
             'garanti',
             '7000679',
             'PROVAUT',
@@ -41,10 +41,10 @@ class GarantiPosCryptTest extends TestCase
      */
     public function testCheck3DHash(bool $expected, array $responseData)
     {
-        $this->assertSame($expected, $this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertSame($expected, $this->crypt->check3DHash($this->account, $responseData));
 
         $responseData['mdstatus'] = '';
-        $this->assertFalse($this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
     /**
@@ -62,7 +62,7 @@ class GarantiPosCryptTest extends TestCase
         ];
 
         $expected = '1D319D5EA945F5730FF5BCC970FF96690993F4BD';
-        $actual = $this->crypt->create3DHash($this->threeDAccount, $requestData, 'sales');
+        $actual = $this->crypt->create3DHash($this->account, $requestData, 'sales');
         $this->assertSame($expected, $actual);
     }
 
@@ -72,7 +72,7 @@ class GarantiPosCryptTest extends TestCase
      */
     public function testCreateHash(array $requestData, string $txType, string $expected)
     {
-        $actual = $this->crypt->createHash($this->threeDAccount, $requestData, $txType);
+        $actual = $this->crypt->createHash($this->account, $requestData, $txType);
         $this->assertEquals($expected, $actual);
     }
 

@@ -26,17 +26,12 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
     /** @var PayFlexAccount */
     public $account;
 
-    /** @var AbstractGateway */
-    private $pos;
-
     /** @var PayFlexCPV4PosRequestDataMapper */
     private $requestDataMapper;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $config = require __DIR__.'/../../config/pos_test.php';
 
         $this->account = AccountFactory::createPayFlexAccount(
             'vakifbank-cp',
@@ -45,9 +40,6 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             'VP999999',
             AbstractGateway::MODEL_3D_SECURE
         );
-
-        $this->pos = PosFactory::createPosGateway($this->account, $config);
-        $this->pos->setTestMode(true);
 
         $crypt                   = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
         $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($crypt);

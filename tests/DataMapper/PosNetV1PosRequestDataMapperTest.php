@@ -22,9 +22,6 @@ use Psr\Log\NullLogger;
  */
 class PosNetV1PosRequestDataMapperTest extends TestCase
 {
-    /** @var PosNetV1Pos */
-    private $pos;
-
     /** @var AbstractCreditCard */
     private $card;
 
@@ -49,10 +46,9 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
-        $this->pos = PosFactory::createPosGateway($this->account, $config);
-        $this->pos->setTestMode(true);
+        $pos = PosFactory::createPosGateway($this->account, $config);
 
-        $this->card = CreditCardFactory::create($this->pos, '5400619360964581', '20', '01', '056', 'ahmet');
+        $this->card = CreditCardFactory::create($pos, '5400619360964581', '20', '01', '056', 'ahmet');
 
         $crypt                   = PosFactory::getGatewayCrypt(PosNetV1Pos::class, new NullLogger());
         $this->requestDataMapper = new PosNetV1PosRequestDataMapper($crypt);

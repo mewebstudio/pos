@@ -23,9 +23,6 @@ use Psr\Log\NullLogger;
  */
 class PosNetRequestDataMapperTest extends TestCase
 {
-    /** @var PosNet */
-    private $pos;
-
     /** @var AbstractCreditCard */
     private $card;
 
@@ -65,12 +62,10 @@ class PosNetRequestDataMapperTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account, $config);
-        $this->pos->setTestMode(true);
-
+        $pos = PosFactory::createPosGateway($this->account, $config);
         $crypt = PosFactory::getGatewayCrypt(PosNet::class, new NullLogger());
         $this->requestDataMapper = new PosNetRequestDataMapper($crypt);
-        $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
+        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
     /**
@@ -163,11 +158,10 @@ class PosNetRequestDataMapperTest extends TestCase
     public function testCreateNonSecurePaymentRequestData()
     {
         $order = (object) $this->order;
-        $card  = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $this->card);
 
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $order, $card);
+        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $order, $this->card);
         $this->assertEquals($expectedData, $actual);
     }
 

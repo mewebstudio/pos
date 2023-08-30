@@ -12,7 +12,7 @@ use Psr\Log\NullLogger;
 class InterPosCryptTest extends TestCase
 {
     /** @var AbstractPosAccount */
-    private $threeDAccount;
+    private $account;
 
     /** @var InterPosCrypt */
     private $crypt;
@@ -26,7 +26,7 @@ class InterPosCryptTest extends TestCase
         $shopCode     = '3123';
         $merchantPass = 'gDg1N';
 
-        $this->threeDAccount = AccountFactory::createInterPosAccount(
+        $this->account = AccountFactory::createInterPosAccount(
             'denizbank',
             $shopCode,
             $userCode,
@@ -43,7 +43,7 @@ class InterPosCryptTest extends TestCase
      */
     public function testCheck3DHash(array $responseData)
     {
-        $this->assertTrue($this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertTrue($this->crypt->check3DHash($this->account, $responseData));
     }
 
     /**
@@ -61,7 +61,7 @@ class InterPosCryptTest extends TestCase
             'rand' => 'rand',
         ];
 
-        $actual = $this->crypt->create3DHash($this->threeDAccount, $requestData, $txType);
+        $actual = $this->crypt->create3DHash($this->account, $requestData, $txType);
 
         $this->assertSame($expected, $actual);
     }

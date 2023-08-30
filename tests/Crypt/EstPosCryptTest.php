@@ -12,7 +12,7 @@ use Psr\Log\NullLogger;
 class EstPosCryptTest extends TestCase
 {
     /** @var AbstractPosAccount */
-    private $threeDAccount;
+    private $account;
 
     /** @var EstPosCrypt */
     private $crypt;
@@ -21,7 +21,7 @@ class EstPosCryptTest extends TestCase
     {
         parent::setUp();
 
-        $this->threeDAccount = AccountFactory::createEstPosAccount(
+        $this->account = AccountFactory::createEstPosAccount(
             'akbank',
             '700655000200',
             'ISBANKAPI',
@@ -35,7 +35,7 @@ class EstPosCryptTest extends TestCase
 
     public function testCreate3DHash()
     {
-        $this->threeDAccount = AccountFactory::createEstPosAccount(
+        $this->account = AccountFactory::createEstPosAccount(
             'akbank',
             '700655000200',
             'ISBANKAPI',
@@ -55,7 +55,7 @@ class EstPosCryptTest extends TestCase
         ];
         $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
 
-        $actual = $this->crypt->create3DHash($this->threeDAccount, $order, 'Auth');
+        $actual = $this->crypt->create3DHash($this->account, $order, 'Auth');
         $this->assertEquals($expected, $actual);
     }
 
@@ -75,7 +75,7 @@ class EstPosCryptTest extends TestCase
         ];
         $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
 
-        $actual = $this->crypt->create3DHash($this->threeDAccount, $requestData, 'Auth');
+        $actual = $this->crypt->create3DHash($this->account, $requestData, 'Auth');
         $this->assertEquals($expected, $actual);
     }
 
@@ -84,10 +84,10 @@ class EstPosCryptTest extends TestCase
      */
     public function testCheck3DHash(bool $expected, array $responseData)
     {
-        $this->assertSame($expected, $this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertSame($expected, $this->crypt->check3DHash($this->account, $responseData));
 
         $responseData['mdStatus'] = '';
-        $this->assertFalse($this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
     public function threeDHashCheckDataProvider(): array

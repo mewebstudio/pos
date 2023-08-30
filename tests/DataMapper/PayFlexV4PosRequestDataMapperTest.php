@@ -22,9 +22,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /** @var PayFlexAccount */
     public $account;
 
-    /** @var AbstractGateway */
-    private $pos;
-
     /** @var AbstractCreditCard */
     private $card;
 
@@ -62,11 +59,10 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account, $config);
-        $this->pos->setTestMode(true);
+        $pos = PosFactory::createPosGateway($this->account, $config);
 
         $this->requestDataMapper = new PayFlexV4PosRequestDataMapper();
-        $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+        $this->card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 
     /**

@@ -15,13 +15,13 @@ class PosNetCryptTest extends TestCase
     public $crypt;
 
     /** @var PosNetAccount */
-    private $threeDAccount;
+    private $account;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->threeDAccount = AccountFactory::createPosNetAccount(
+        $this->account = AccountFactory::createPosNetAccount(
             'yapikredi',
             '6706598320',
             '67005551',
@@ -39,7 +39,7 @@ class PosNetCryptTest extends TestCase
      */
     public function testCreate3DHash(array $requestData, string $txType, string $expected)
     {
-        $actual = $this->crypt->create3DHash($this->threeDAccount, $requestData, $txType);
+        $actual = $this->crypt->create3DHash($this->account, $requestData, $txType);
 
         $this->assertSame($expected, $actual);
     }
@@ -49,10 +49,10 @@ class PosNetCryptTest extends TestCase
      */
     public function testCheck3DHash(bool $expected, array $responseData)
     {
-        $this->assertSame($expected, $this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertSame($expected, $this->crypt->check3DHash($this->account, $responseData));
 
         $responseData['amount'] = '';
-        $this->assertFalse($this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
     /**
@@ -60,7 +60,7 @@ class PosNetCryptTest extends TestCase
      */
     public function testCreateSecurityData()
     {
-        $this->assertSame('c1PPl+2UcdixyhgLYnf4VfJyFGaNQNOwE0uMkci7Uag=', $this->crypt->createSecurityData($this->threeDAccount));
+        $this->assertSame('c1PPl+2UcdixyhgLYnf4VfJyFGaNQNOwE0uMkci7Uag=', $this->crypt->createSecurityData($this->account));
     }
 
     public function threeDHashCreateDataProvider(): array

@@ -21,10 +21,7 @@ use Psr\Log\NullLogger;
 class PayForPosRequestDataMapperTest extends TestCase
 {
     /** @var AbstractPosAccount */
-    private $threeDAccount;
-
-    /** @var PayForPos */
-    private $pos;
+    private $account;
 
     /** @var AbstractCreditCard */
     private $card;
@@ -42,7 +39,7 @@ class PayForPosRequestDataMapperTest extends TestCase
 
         $this->config = require __DIR__.'/../../config/pos_test.php';
 
-        $this->threeDAccount = AccountFactory::createPayForAccount(
+        $this->account = AccountFactory::createPayForAccount(
             'qnbfinansbank-payfor',
             '085300000009704',
             'QNB_API_KULLANICI_3DPAY',
@@ -64,12 +61,11 @@ class PayForPosRequestDataMapperTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->threeDAccount, $this->config);
-        $this->pos->setTestMode(true);
+        $pos = PosFactory::createPosGateway($this->account, $this->config);
 
         $crypt = PosFactory::getGatewayCrypt(PayForPos::class, new NullLogger());
         $this->requestDataMapper = new PayForPosRequestDataMapper($crypt);
-        $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
+        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
     /**
@@ -111,9 +107,9 @@ class PayForPosRequestDataMapperTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->threeDAccount, (object) $order);
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, (object) $order);
 
-        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->threeDAccount, (object) $order);
+        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->account, (object) $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -122,11 +118,9 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $card  = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet');
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, (object) $this->order, AbstractGateway::TX_PAY, $this->card);
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->threeDAccount, (object) $this->order, AbstractGateway::TX_PAY, $card);
-
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->threeDAccount, (object) $this->order, $card);
+        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, (object) $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -140,9 +134,9 @@ class PayForPosRequestDataMapperTest extends TestCase
             'currency' => 'TRY',
         ];
 
-        $actual = $this->requestDataMapper->createCancelRequestData($this->threeDAccount, (object) $order);
+        $actual = $this->requestDataMapper->createCancelRequestData($this->account, (object) $order);
 
-        $expectedData = $this->getSampleCancelXMLData($this->threeDAccount, (object) $order);
+        $expectedData = $this->getSampleCancelXMLData($this->account, (object) $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -156,9 +150,9 @@ class PayForPosRequestDataMapperTest extends TestCase
             'reqDate' => '20220518',
         ];
 
-        $actual = $this->requestDataMapper->createHistoryRequestData($this->threeDAccount, (object) [], $order);
+        $actual = $this->requestDataMapper->createHistoryRequestData($this->account, (object) [], $order);
 
-        $expectedData = $this->getSampleHistoryRequestData($this->threeDAccount, $order);
+        $expectedData = $this->getSampleHistoryRequestData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -172,9 +166,9 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
         $responseData = ['RequestGuid' => '1000000057437884'];
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->threeDAccount, (object) $order, '', $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, (object) $order, '', $responseData);
 
-        $expectedData = $this->getSample3DPaymentRequestData($this->threeDAccount, (object) $order, $responseData);
+        $expectedData = $this->getSample3DPaymentRequestData($this->account, (object) $order, $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -185,11 +179,11 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         $order   = (object) $this->order;
         $card       = $this->card;
-        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d'];
+        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
         $inputs = [
             'MbrId'            => '5',
-            'MerchantID'       => $this->threeDAccount->getClientId(),
-            'UserCode'         => $this->threeDAccount->getUsername(),
+            'MerchantID'       => $this->account->getClientId(),
+            'UserCode'         => $this->account->getUsername(),
             'OrderId'          => $order->id,
             'Lang'             => $order->lang,
             'SecureType'       => '3DModel',
@@ -209,7 +203,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
         //test without card
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->threeDAccount,
+            $this->account,
             $order,
             AbstractGateway::MODEL_3D_SECURE,
             AbstractGateway::TX_PAY,
@@ -225,7 +219,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         }
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->threeDAccount,
+            $this->account,
             $order,
             AbstractGateway::MODEL_3D_SECURE,
             AbstractGateway::TX_PAY,
@@ -241,11 +235,11 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         $order      = (object) $this->order;
 
-        $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d_host'];
+        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d_host'];
         $inputs     = [
             'MbrId'            => '5',
-            'MerchantID'       => $this->threeDAccount->getClientId(),
-            'UserCode'         => $this->threeDAccount->getUsername(),
+            'MerchantID'       => $this->account->getClientId(),
+            'UserCode'         => $this->account->getUsername(),
             'OrderId'          => $order->id,
             'Lang'             => 'tr',
             'SecureType'       => '3DHost',
@@ -265,7 +259,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->threeDAccount,
+            $this->account,
             $order,
             AbstractGateway::MODEL_3D_HOST,
             AbstractGateway::TX_PAY,
@@ -282,9 +276,9 @@ class PayForPosRequestDataMapperTest extends TestCase
             'id' => '2020110828BC',
         ];
 
-        $actualData = $this->requestDataMapper->createStatusRequestData($this->threeDAccount, $order);
+        $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleStatusRequestData($this->threeDAccount, $order);
+        $expectedData = $this->getSampleStatusRequestData($this->account, $order);
         $this->assertEquals($expectedData, $actualData);
     }
 
@@ -299,9 +293,9 @@ class PayForPosRequestDataMapperTest extends TestCase
             'amount'   => 10.1,
         ];
 
-        $actual = $this->requestDataMapper->createRefundRequestData($this->threeDAccount, $order);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleRefundXMLData($this->threeDAccount, $order);
+        $expectedData = $this->getSampleRefundXMLData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
     }
 

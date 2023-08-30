@@ -14,13 +14,13 @@ class PosNetV1PosCryptTest extends TestCase
     public $crypt;
 
     /** @var PosNetAccount */
-    private $threeDAccount;
+    private $account;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->threeDAccount = AccountFactory::createPosNetAccount(
+        $this->account = AccountFactory::createPosNetAccount(
             'albaraka',
             '6700950031',
             '67540050',
@@ -45,7 +45,7 @@ class PosNetV1PosCryptTest extends TestCase
      */
     public function testCreateHash(array $requestData, string $expected)
     {
-        $actual = $this->crypt->createHash($this->threeDAccount, $requestData);
+        $actual = $this->crypt->createHash($this->account, $requestData);
         $this->assertEquals($expected, $actual);
     }
 
@@ -55,7 +55,7 @@ class PosNetV1PosCryptTest extends TestCase
      */
     public function testCreate3DHash(array $requestData, string $expected)
     {
-        $actual = $this->crypt->create3DHash($this->threeDAccount, $requestData);
+        $actual = $this->crypt->create3DHash($this->account, $requestData);
 
         $this->assertSame($expected, $actual);
     }
@@ -65,7 +65,7 @@ class PosNetV1PosCryptTest extends TestCase
      */
     public function testCheck3DHash(bool $expected, array $responseData)
     {
-        $this->assertSame($expected, $this->crypt->check3DHash($this->threeDAccount, $responseData));
+        $this->assertSame($expected, $this->crypt->check3DHash($this->account, $responseData));
     }
 
     public static function threeDHashCreateDataProvider(): array

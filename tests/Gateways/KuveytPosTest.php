@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Request;
 class KuveytPosTest extends TestCase
 {
     /** @var KuveytPosAccount */
-    private $threeDAccount;
+    private $account;
 
     private $config;
 
@@ -49,7 +49,7 @@ class KuveytPosTest extends TestCase
 
         $this->config = require __DIR__.'/../../config/pos_test.php';
 
-        $this->threeDAccount = AccountFactory::createKuveytPosAccount(
+        $this->account = AccountFactory::createKuveytPosAccount(
             'kuveytpos',
             '496',
             'apiuser1',
@@ -70,7 +70,7 @@ class KuveytPosTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->threeDAccount, $this->config);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
 
         $this->pos->setTestMode(true);
 
@@ -90,11 +90,11 @@ class KuveytPosTest extends TestCase
      */
     public function testInit()
     {
-        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()], $this->pos->getConfig());
-        $this->assertEquals($this->threeDAccount, $this->pos->getAccount());
+        $this->assertEquals($this->config['banks'][$this->account->getBank()], $this->pos->getConfig());
+        $this->assertEquals($this->account, $this->pos->getAccount());
         $this->assertNotEmpty($this->pos->getCurrencies());
-        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['gateway_3d'], $this->pos->get3DGatewayURL());
-        $this->assertEquals($this->config['banks'][$this->threeDAccount->getBank()]['gateway_endpoints']['payment_api'], $this->pos->getApiURL());
+        $this->assertEquals($this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'], $this->pos->get3DGatewayURL());
+        $this->assertEquals($this->config['banks'][$this->account->getBank()]['gateway_endpoints']['payment_api'], $this->pos->getApiURL());
     }
 
     /**
@@ -124,7 +124,7 @@ class KuveytPosTest extends TestCase
                         'gateway_3d' => 'https://boa.kuveytturk.com.tr/sanalposservice/Home/ThreeDModelPayGate',
                     ],
                 ],
-                $this->threeDAccount,
+                $this->account,
                 $requestMapper,
                 $responseMapper,
                 HttpClientFactory::createDefaultHttpClient(),
@@ -173,7 +173,7 @@ class KuveytPosTest extends TestCase
         $posMock = $this->getMockBuilder(KuveytPos::class)
             ->setConstructorArgs([
                 [],
-                $this->threeDAccount,
+                $this->account,
                 $requestMapper,
                 $responseMapper,
                 HttpClientFactory::createDefaultHttpClient(),
@@ -211,7 +211,7 @@ class KuveytPosTest extends TestCase
         $posMock = $this->getMockBuilder(KuveytPos::class)
             ->setConstructorArgs([
                 [],
-                $this->threeDAccount,
+                $this->account,
                 $requestMapper,
                 $responseMapper,
                 HttpClientFactory::createDefaultHttpClient(),

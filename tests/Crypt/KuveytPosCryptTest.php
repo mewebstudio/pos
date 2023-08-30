@@ -13,18 +13,18 @@ class KuveytPosCryptTest extends TestCase
 {
     /** @var array<string, string>|array<string, float> */
     public $order = [];
-    
+
     /** @var KuveytPosCrypt */
     public $crypt;
-    
+
     /** @var KuveytPosAccount */
-    private $threeDAccount;
+    private $account;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->threeDAccount = AccountFactory::createKuveytPosAccount(
+        $this->account = AccountFactory::createKuveytPosAccount(
             'kuveytpos',
             '80',
             'apiuser',
@@ -54,7 +54,7 @@ class KuveytPosCryptTest extends TestCase
      */
     public function testCreate3DHash(array $requestData, string $expected)
     {
-        $actual = $this->crypt->create3DHash($this->threeDAccount, $requestData);
+        $actual = $this->crypt->create3DHash($this->account, $requestData);
 
         $this->assertSame($expected, $actual);
     }
@@ -64,7 +64,7 @@ class KuveytPosCryptTest extends TestCase
      */
     public function testCreateHash(array $requestData, string $expected)
     {
-        $actual = $this->crypt->createHash($this->threeDAccount, $requestData);
+        $actual = $this->crypt->createHash($this->account, $requestData);
 
         $this->assertSame($expected, $actual);
     }

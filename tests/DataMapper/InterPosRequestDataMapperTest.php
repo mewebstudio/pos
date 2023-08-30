@@ -24,9 +24,6 @@ class InterPosRequestDataMapperTest extends TestCase
     /** @var AbstractPosAccount */
     private $account;
 
-    /** @var InterPos */
-    private $pos;
-
     /** @var AbstractCreditCard */
     private $card;
 
@@ -68,14 +65,13 @@ class InterPosRequestDataMapperTest extends TestCase
             'rand'        => 'rand',
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
-        $this->pos->setTestMode(true);
+        $pos = PosFactory::createPosGateway($this->account, $this->config);
 
         $crypt = PosFactory::getGatewayCrypt(InterPos::class, new NullLogger());
 
         $this->requestDataMapper = new InterPosRequestDataMapper($crypt);
 
-        $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+        $this->card = CreditCardFactory::create($pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 
     /**
@@ -127,11 +123,10 @@ class InterPosRequestDataMapperTest extends TestCase
     public function testCreateNonSecurePaymentRequestData()
     {
         $order = (object) $this->order;
-        $card = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $this->card);
 
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($order, $card, $this->account);
+        $expectedData = $this->getSampleNonSecurePaymentRequestData($order, $this->card, $this->account);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -376,7 +371,7 @@ class InterPosRequestDataMapperTest extends TestCase
 
         $requestData['CardType'] = '0';
         $requestData['Pan']      = $card->getNumber();
-        $requestData['Expiry']   = '0122';
+        $requestData['Expiry']   = '1221';
         $requestData['Cvv2']     = $card->getCvv();
 
         return $requestData;

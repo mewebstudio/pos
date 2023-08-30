@@ -23,13 +23,10 @@ use Psr\Log\NullLogger;
 class KuveytPosRequestDataMapperTest extends TestCase
 {
     /** @var KuveytPosAccount */
-    public $threeDAccount;
+    public $account;
 
     /** @var AbstractCreditCard */
     private $card;
-
-    /** @var KuveytPos */
-    private $pos;
 
     /** @var KuveytPosRequestDataMapper */
     private $requestDataMapper;
@@ -48,7 +45,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
 
         $config = require __DIR__.'/../../config/pos_test.php';
 
-        $this->threeDAccount = AccountFactory::createKuveytPosAccount(
+        $this->account = AccountFactory::createKuveytPosAccount(
             'kuveytpos',
             '80',
             'apiuser',
@@ -69,12 +66,10 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->threeDAccount, $config);
-
-        $this->pos->setTestMode(true);
+        $pos = PosFactory::createPosGateway($this->account, $config);
 
         $this->card = CreditCardFactory::create(
-            $this->pos,
+            $pos,
             '4155650100416111',
             25,
             1,
@@ -130,7 +125,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     public function testCompose3DFormData()
     {
         $order   = (object) $this->order;
-        $account = $this->threeDAccount;
+        $account = $this->account;
         $card    = $this->card;
 
         $inputs = [
@@ -168,7 +163,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData(array $order, array $expected)
     {
-        $actual = $this->requestDataMapper->createCancelRequestData($this->threeDAccount, (object) $order);
+        $actual = $this->requestDataMapper->createCancelRequestData($this->account, (object) $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -177,7 +172,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData(array $order, array $expected)
     {
-        $actual = $this->requestDataMapper->createRefundRequestData($this->threeDAccount, (object) $order);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, (object) $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -186,7 +181,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData(array $order, array $expected)
     {
-        $actual = $this->requestDataMapper->createStatusRequestData($this->threeDAccount, (object) $order);
+        $actual = $this->requestDataMapper->createStatusRequestData($this->account, (object) $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -223,7 +218,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'BusinessKey'     => '20220845654324600000140459',
         ];
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->threeDAccount, (object) $this->order, AbstractGateway::TX_PAY, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, (object) $this->order, AbstractGateway::TX_PAY, $responseData);
 
         $expectedData = $this->getSample3DPaymentXMLData((object) $this->order, $responseData);
         $this->assertEquals($expectedData, $actual);
@@ -234,9 +229,9 @@ class KuveytPosRequestDataMapperTest extends TestCase
         return [
             'APIVersion'                   => KuveytPosRequestDataMapper::API_VERSION,
             'HashData'                     => 'zC6dm10450RhS8Xi9TuBjwkLUL0=',
-            'MerchantId'                   => $this->threeDAccount->getClientId(),
-            'CustomerId'                   => $this->threeDAccount->getCustomerId(),
-            'UserName'                     => $this->threeDAccount->getUsername(),
+            'MerchantId'                   => $this->account->getClientId(),
+            'CustomerId'                   => $this->account->getCustomerId(),
+            'UserName'                     => $this->account->getUsername(),
             'CustomerIPAddress'            => $order->ip,
             'KuveytTurkVPosAdditionalData' => [
                 'AdditionalData' => [
