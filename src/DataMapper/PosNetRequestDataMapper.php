@@ -66,10 +66,10 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder             = (array) $order;
-        $mappedOrder['id']       = self::formatOrderId($order->id);
-        $mappedOrder['amount']   = self::amountFormat($order->amount);
-        $mappedOrder['currency'] = $this->mapCurrency($order->currency);
+        $mappedOrder             = $order;
+        $mappedOrder['id']       = self::formatOrderId($order['id']);
+        $mappedOrder['amount']   = self::amountFormat($order['amount']);
+        $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
         $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
@@ -100,18 +100,18 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             'tid'                                 => $account->getTerminalId(),
             'tranDateRequired'                    => '1',
             strtolower($this->mapTxType($txType)) => [
-                'orderID'      => self::formatOrderId($order->id),
-                'installment'  => $this->mapInstallment($order->installment),
-                'amount'       => self::amountFormat($order->amount),
-                'currencyCode' => $this->mapCurrency($order->currency),
+                'orderID'      => self::formatOrderId($order['id']),
+                'installment'  => $this->mapInstallment($order['installment']),
+                'amount'       => self::amountFormat($order['amount']),
+                'currencyCode' => $this->mapCurrency($order['currency']),
                 'ccno'         => $card->getNumber(),
                 'expDate'      => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'cvc'          => $card->getCvv(),
             ],
         ];
 
-        if (isset($order->koiCode) && $order->koiCode > 0) {
-            $requestData[strtolower($this->mapTxType($txType))]['koiCode'] = $order->koiCode;
+        if (isset($order['koiCode']) && $order['koiCode'] > 0) {
+            $requestData[strtolower($this->mapTxType($txType))]['koiCode'] = $order['koiCode'];
         }
 
         return $requestData;
@@ -131,10 +131,10 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             'tid'                                                      => $account->getTerminalId(),
             'tranDateRequired'                                         => '1',
             strtolower($this->mapTxType(AbstractGateway::TX_POST_PAY)) => [
-                'hostLogKey'   => $order->ref_ret_num,
-                'amount'       => self::amountFormat($order->amount),
-                'currencyCode' => $this->mapCurrency($order->currency),
-                'installment'  => $this->mapInstallment($order->installment),
+                'hostLogKey'   => $order['ref_ret_num'],
+                'amount'       => self::amountFormat($order['amount']),
+                'currencyCode' => $this->mapCurrency($order['currency']),
+                'installment'  => $this->mapInstallment($order['installment']),
             ],
         ];
     }
@@ -154,7 +154,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             'mid'   => $account->getClientId(),
             'tid'   => $account->getTerminalId(),
             $txType => [
-                'orderID' => self::mapOrderIdToPrefixedOrderId($order->id, $order->payment_model),
+                'orderID' => self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']),
             ],
         ];
     }
@@ -178,15 +178,15 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             ],
         ];
 
-        if (isset($order->auth_code)) {
-            $requestData[$txType]['authCode'] = $order->auth_code;
+        if (isset($order['auth_code'])) {
+            $requestData[$txType]['authCode'] = $order['auth_code'];
         }
 
         //either will work
-        if (isset($order->ref_ret_num)) {
-            $requestData[$txType]['hostLogKey'] = $order->ref_ret_num;
+        if (isset($order['ref_ret_num'])) {
+            $requestData[$txType]['hostLogKey'] = $order['ref_ret_num'];
         } else {
-            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $order->payment_model);
+            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']);
         }
 
         return $requestData;
@@ -207,15 +207,15 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             'tid'              => $account->getTerminalId(),
             'tranDateRequired' => '1',
             $txType            => [
-                'amount'       => self::amountFormat($order->amount),
-                'currencyCode' => $this->mapCurrency($order->currency),
+                'amount'       => self::amountFormat($order['amount']),
+                'currencyCode' => $this->mapCurrency($order['currency']),
             ],
         ];
 
-        if (isset($order->ref_ret_num)) {
-            $requestData[$txType]['hostLogKey'] = $order->ref_ret_num;
+        if (isset($order['ref_ret_num'])) {
+            $requestData[$txType]['hostLogKey'] = $order['ref_ret_num'];
         } else {
-            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order->id, $order->payment_model);
+            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']);
         }
 
         return $requestData;
@@ -248,12 +248,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             'posnetData'        => $extraData['data1'], //Ödeme bilgilerini içermektedir.
             'posnetData2'       => $extraData['data2'], //Kart bilgileri request içerisinde bulunuyorsa bu alan oluşturulmaktadır
             'digest'            => $extraData['sign'],  //Servis imzası.
-            'merchantReturnURL' => $order->success_url,
+            'merchantReturnURL' => $order['success_url'],
             'url'               => '', //todo belki kaldirabiliriz
             'lang'              => $this->getLang($account, $order),
         ];
 
-        if (isset($order->koiCode) && $order->koiCode > 0) {
+        if (isset($order['koiCode']) && $order['koiCode'] > 0) {
             $inputs['useJokerVadaa'] = '1';
         }
 
@@ -273,8 +273,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        if (null === $card->getHolderName() && isset($order->name)) {
-            $card->setHolderName($order->name);
+        if (null === $card->getHolderName() && isset($order['name'])) {
+            $card->setHolderName($order['name']);
         }
 
         return [
@@ -285,10 +285,10 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'ccno'           => $card->getNumber(),
                 'expDate'        => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'cvc'            => $card->getCvv(),
-                'amount'         => self::amountFormat($order->amount),
-                'currencyCode'   => $this->mapCurrency($order->currency),
-                'installment'    => $this->mapInstallment($order->installment),
-                'XID'            => self::formatOrderId($order->id),
+                'amount'         => self::amountFormat($order['amount']),
+                'currencyCode'   => $this->mapCurrency($order['currency']),
+                'installment'    => $this->mapInstallment($order['installment']),
+                'XID'            => self::formatOrderId($order['id']),
                 'cardHolderName' => $card->getHolderName(),
                 'tranType'       => $this->mapTxType($txType),
             ],
@@ -306,10 +306,10 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder             = (array) $order;
-        $mappedOrder['id']       = self::formatOrderId($order->id);
-        $mappedOrder['amount']   = self::amountFormat($order->amount);
-        $mappedOrder['currency'] = $this->mapCurrency($order->currency);
+        $mappedOrder             = $order;
+        $mappedOrder['id']       = self::formatOrderId($order['id']);
+        $mappedOrder['amount']   = self::amountFormat($order['amount']);
+        $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
         $hash = $this->crypt->create3DHash($account, $mappedOrder);
 
@@ -404,9 +404,9 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePaymentOrder(array $order): object
+    protected function preparePaymentOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'id'          => $order['id'],
             'installment' => $order['installment'] ?? 0,
             'amount'      => $order['amount'],
@@ -417,9 +417,9 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePostPaymentOrder(array $order): object
+    protected function preparePostPaymentOrder(array $order): array
     {
-        return (object) [
+        return [
             'id'          => $order['id'],
             'amount'      => $order['amount'],
             'installment' => $order['installment'] ?? 0,
@@ -431,9 +431,9 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareStatusOrder(array $order): object
+    protected function prepareStatusOrder(array $order): array
     {
-        return (object) [
+        return [
             'id'            => $order['id'],
             'payment_model' => $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE,
         ];
@@ -442,7 +442,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareHistoryOrder(array $order): object
+    protected function prepareHistoryOrder(array $order): array
     {
         return $this->prepareStatusOrder($order);
     }
@@ -450,7 +450,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareCancelOrder(array $order): object
+    protected function prepareCancelOrder(array $order): array
     {
         $orderTemp = [
             //id or ref_ret_num
@@ -464,13 +464,13 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             $orderTemp['payment_model'] = $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE;
         }
 
-        return (object) $orderTemp;
+        return $orderTemp;
     }
 
     /**
      * @inheritDoc
      */
-    protected function prepareRefundOrder(array $order): object
+    protected function prepareRefundOrder(array $order): array
     {
         $orderTemp = [
             //id or ref_ret_num
@@ -484,6 +484,6 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             $orderTemp['payment_model'] = $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE;
         }
 
-        return (object) $orderTemp;
+        return $orderTemp;
     }
 }

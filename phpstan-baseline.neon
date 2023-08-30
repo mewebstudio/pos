@@ -76,41 +76,6 @@ parameters:
 			path: src/DataMapper/AbstractRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\AbstractRequestDataMapper\\:\\:getLang\\(\\) has parameter \\$order with no type specified\\.$#"
-			count: 1
-			path: src/DataMapper/AbstractRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 2
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
-			count: 3
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$email\\.$#"
-			count: 2
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 6
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$installment\\.$#"
-			count: 4
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$name\\.$#"
-			count: 1
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
 			message: "#^Cannot call method getCvv\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
 			count: 1
 			path: src/DataMapper/EstPosRequestDataMapper.php
@@ -122,11 +87,6 @@ parameters:
 
 		-
 			message: "#^Cannot call method getNumber\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\EstPosRequestDataMapper\\:\\:create3DFormDataCommon\\(\\) has parameter \\$order with no type specified\\.$#"
 			count: 1
 			path: src/DataMapper/EstPosRequestDataMapper.php
 
@@ -149,41 +109,6 @@ parameters:
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\EstPosRequestDataMapper\\:\\:getRecurringRequestOrderData\\(\\) has parameter \\$order with no type specified\\.$#"
 			count: 1
 			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 14
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
-			count: 6
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$email\\.$#"
-			count: 3
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 13
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$installment\\.$#"
-			count: 6
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$ip\\.$#"
-			count: 3
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$ref_ret_num\\.$#"
-			count: 3
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
 		-
 			message: "#^Cannot call method create3DHash\\(\\) on Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\|null\\.$#"
@@ -226,11 +151,6 @@ parameters:
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createRecurringData\\(\\) has parameter \\$order with no type specified\\.$#"
-			count: 1
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createRefundRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
@@ -251,54 +171,14 @@ parameters:
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:mapPaymentOrder\\(\\) has parameter \\$order with no type specified\\.$#"
-			count: 1
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:mapPaymentOrder\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
 			message: "#^PHPDoc type Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\|null of property Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:\\$crypt is not covariant with PHPDoc type Mews\\\\Pos\\\\Crypt\\\\CryptInterface of overridden property Mews\\\\Pos\\\\DataMapper\\\\AbstractRequestDataMapperCrypt\\:\\:\\$crypt\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
 		-
-			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 5
-			path: src/DataMapper/InterPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
-			count: 4
-			path: src/DataMapper/InterPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$fail_url\\.$#"
-			count: 1
-			path: src/DataMapper/InterPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 7
-			path: src/DataMapper/InterPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$installment\\.$#"
-			count: 4
-			path: src/DataMapper/InterPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$rand\\.$#"
-			count: 1
-			path: src/DataMapper/InterPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$success_url\\.$#"
-			count: 1
-			path: src/DataMapper/InterPosRequestDataMapper.php
+			message: "#^Parameter \\#1 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createRecurringData\\(\\) expects array\\{recurringInstallmentCount\\: int, recurringFrequencyType\\: string, recurringFrequency\\: int, startDate\\: string\\|null, recurringType\\: 'G'\\|'R'\\|null\\}, array\\<string, mixed\\> given\\.$#"
+			count: 2
+			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
@@ -314,71 +194,6 @@ parameters:
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/InterPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 13
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$auth_code\\.$#"
-			count: 2
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
-			count: 4
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$end_date\\.$#"
-			count: 1
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$fail_url\\.$#"
-			count: 1
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 5
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$installment\\.$#"
-			count: 1
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$ip\\.$#"
-			count: 1
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$ref_ret_num\\.$#"
-			count: 2
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$remote_order_id\\.$#"
-			count: 2
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$start_date\\.$#"
-			count: 1
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$success_url\\.$#"
-			count: 1
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$trans_id\\.$#"
-			count: 2
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\KuveytPosRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
@@ -421,41 +236,6 @@ parameters:
 			path: src/DataMapper/KuveytPosRequestDataMapper.php
 
 		-
-			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 5
-			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
-			count: 4
-			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$fail_url\\.$#"
-			count: 1
-			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 5
-			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$installment\\.$#"
-			count: 1
-			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$ip\\.$#"
-			count: 4
-			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$success_url\\.$#"
-			count: 1
-			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
-
-		-
 			message: "#^Default value of the parameter \\#7 \\$extraData \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexCPV4PosRequestDataMapper\\:\\:create3DFormData\\(\\) is incompatible with type array\\{CommonPaymentUrl\\: string, PaymentToken\\: string\\}\\.$#"
 			count: 1
 			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
@@ -481,56 +261,6 @@ parameters:
 			path: src/DataMapper/PayFlexCPV4PosRequestDataMapper.php
 
 		-
-			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 5
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
-			count: 4
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$fail_url\\.$#"
-			count: 1
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 7
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$installment\\.$#"
-			count: 2
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$ip\\.$#"
-			count: 5
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$rand\\.$#"
-			count: 1
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$recurringFrequencyType\\.$#"
-			count: 1
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$recurringInstallmentCount\\.$#"
-			count: 1
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$success_url\\.$#"
-			count: 1
-			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
 			message: "#^Default value of the parameter \\#7 \\$extraData \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:create3DFormData\\(\\) is incompatible with type array\\{PaReq\\: string, TermUrl\\: string, MD\\: string, ACSUrl\\: string\\}\\.$#"
 			count: 1
 			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
@@ -554,41 +284,6 @@ parameters:
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 4
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
-			count: 5
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$fail_url\\.$#"
-			count: 1
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 7
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$installment\\.$#"
-			count: 3
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$rand\\.$#"
-			count: 1
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$success_url\\.$#"
-			count: 1
-			path: src/DataMapper/PayForPosRequestDataMapper.php
 
 		-
 			message: "#^Cannot call method create3DHash\\(\\) on Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\|null\\.$#"
@@ -624,41 +319,6 @@ parameters:
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 6
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
-			count: 6
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 7
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$installment\\.$#"
-			count: 3
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$payment_model\\.$#"
-			count: 3
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$ref_ret_num\\.$#"
-			count: 1
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$success_url\\.$#"
-			count: 1
-			path: src/DataMapper/PosNetRequestDataMapper.php
 
 		-
 			message: "#^Cannot assign offset 'authCode' to array\\<string, string\\>\\|string\\.$#"
@@ -759,46 +419,6 @@ parameters:
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetRequestDataMapper\\:\\:createStatusRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$amount\\.$#"
-			count: 5
-			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$currency\\.$#"
-			count: 5
-			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$id\\.$#"
-			count: 6
-			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$installment\\.$#"
-			count: 7
-			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$payment_model\\.$#"
-			count: 4
-			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$ref_ret_num\\.$#"
-			count: 1
-			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$success_url\\.$#"
-			count: 1
-			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
-
-		-
-			message: "#^Access to an undefined property object\\:\\:\\$transaction_type\\.$#"
-			count: 2
-			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:create3DFormData\\(\\) has parameter \\$extraData with no type specified\\.$#"

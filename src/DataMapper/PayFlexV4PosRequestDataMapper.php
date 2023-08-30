@@ -64,15 +64,15 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
-                'TransactionId'           => (string) $order->id,
-                'CurrencyAmount'          => self::amountFormat($order->amount),
-                'CurrencyCode'            => $this->mapCurrency($order->currency),
+                'TransactionId'           => (string) $order['id'],
+                'CurrencyAmount'          => self::amountFormat($order['amount']),
+                'CurrencyCode'            => $this->mapCurrency($order['currency']),
                 'ECI'                     => $responseData['Eci'],
                 'CAVV'                    => $responseData['Cavv'],
                 'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
-                'OrderId'                 => (string) $order->id,
-                'OrderDescription'        => (string) ($order->description ?? ''),
-                'ClientIp'                => (string) $order->ip,
+                'OrderId'                 => (string) $order['id'],
+                'OrderDescription'        => (string) ($order['description'] ?? ''),
+                'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0', // ECommerce
             ];
 
@@ -83,8 +83,8 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['Expiry'] = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT);
         }
 
-        if ($order->installment) {
-            $requestData['NumberOfInstallments'] = $this->mapInstallment($order->installment);
+        if ($order['installment']) {
+            $requestData['NumberOfInstallments'] = $this->mapInstallment($order['installment']);
         }
 
         return $requestData;
@@ -105,39 +105,39 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'                => $account->getClientId(),
             'MerchantPassword'          => $account->getPassword(),
             'MerchantType'              => $account->getMerchantType(),
-            'PurchaseAmount'            => self::amountFormat($order->amount),
-            'VerifyEnrollmentRequestId' => $order->rand,
-            'Currency'                  => $this->mapCurrency($order->currency),
-            'SuccessUrl'                => $order->success_url,
-            'FailureUrl'                => $order->fail_url,
+            'PurchaseAmount'            => self::amountFormat($order['amount']),
+            'VerifyEnrollmentRequestId' => $order['rand'],
+            'Currency'                  => $this->mapCurrency($order['currency']),
+            'SuccessUrl'                => $order['success_url'],
+            'FailureUrl'                => $order['fail_url'],
             'Pan'                       => $card->getNumber(),
             'ExpiryDate'                => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
             'BrandName'                 => $this->cardTypeMapping[$card->getType()],
             'IsRecurring'               => 'false',
         ];
-        if ($order->installment) {
-            $requestData['InstallmentCount'] = $this->mapInstallment($order->installment);
+        if ($order['installment']) {
+            $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
         }
 
-        if (isset($order->extraData)) {
-            $requestData['SessionInfo'] = $order->extraData;
+        if (isset($order['extraData'])) {
+            $requestData['SessionInfo'] = $order['extraData'];
         }
 
         if ($account->isSubBranch()) {
             $requestData['SubMerchantId'] = $account->getSubMerchantId();
         }
 
-        if (isset($order->recurringFrequency)) {
+        if (isset($order['recurringFrequency'])) {
             $requestData['IsRecurring'] = 'true';
             // Periyodik İşlem Frekansı
-            $requestData['RecurringFrequency'] = $order->recurringFrequency;
+            $requestData['RecurringFrequency'] = $order['recurringFrequency'];
             //Day|Month|Year
-            $requestData['RecurringFrequencyType'] = $this->mapRecurringFrequency($order->recurringFrequencyType);
+            $requestData['RecurringFrequencyType'] = $this->mapRecurringFrequency($order['recurringFrequencyType']);
             //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
-            $requestData['RecurringInstallmentCount'] = $order->recurringInstallmentCount;
-            if (isset($order->recurringEndDate)) {
+            $requestData['RecurringInstallmentCount'] = $order['recurringInstallmentCount'];
+            if (isset($order['recurringEndDate'])) {
                 //YYYYMMDD
-                $requestData['RecurringEndDate'] = $order->recurringEndDate;
+                $requestData['RecurringEndDate'] = $order['recurringEndDate'];
             }
         }
 
@@ -154,10 +154,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
-                'OrderId'                 => (string) $order->id,
-                'CurrencyAmount'          => self::amountFormat($order->amount),
-                'CurrencyCode'            => $this->mapCurrency($order->currency),
-                'ClientIp'                => (string) $order->ip,
+                'OrderId'                 => (string) $order['id'],
+                'CurrencyAmount'          => self::amountFormat($order['amount']),
+                'CurrencyCode'            => $this->mapCurrency($order['currency']),
+                'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0',
             ];
 
@@ -190,10 +190,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($account) + [
                 'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-                'ReferenceTransactionId' => (string) $order->id,
-                'CurrencyAmount'         => self::amountFormat($order->amount),
-                'CurrencyCode'           => $this->mapCurrency($order->currency),
-                'ClientIp'               => (string) $order->ip,
+                'ReferenceTransactionId' => (string) $order['id'],
+                'CurrencyAmount'         => self::amountFormat($order['amount']),
+                'CurrencyCode'           => $this->mapCurrency($order['currency']),
+                'ClientIp'               => (string) $order['ip'],
             ];
     }
 
@@ -219,7 +219,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
                  * OrderID ile sorgulamada bu OrderId ile başarılı işlem varsa başarılı işlem, yoksa son gönderilen işlem raporda görüntülenecektir
                  */
                 'TransactionId' => '',
-                'OrderId' => (string) $order->id,
+                'OrderId' => (string) $order['id'],
                 'AuthCode' => ''
             ],
         ];
@@ -238,8 +238,8 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
             'TransactionType'        => $this->mapTxType(AbstractGateway::TX_CANCEL),
-            'ReferenceTransactionId' => (string) $order->id,
-            'ClientIp'               => (string) $order->ip,
+            'ReferenceTransactionId' => (string) $order['id'],
+            'ClientIp'               => (string) $order['ip'],
         ];
     }
 
@@ -256,9 +256,9 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
             'TransactionType'        => $this->mapTxType(AbstractGateway::TX_REFUND),
-            'ReferenceTransactionId' => (string) $order->id,
-            'ClientIp'               => (string) $order->ip,
-            'CurrencyAmount'         => self::amountFormat($order->amount),
+            'ReferenceTransactionId' => (string) $order['id'],
+            'ClientIp'               => (string) $order['ip'],
+            'CurrencyAmount'         => self::amountFormat($order['amount']),
         ];
     }
 
@@ -313,9 +313,9 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
-    protected function preparePaymentOrder(array $order): object
+    protected function preparePaymentOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? 'TRY',
             'amount'      => $order['amount'],
@@ -325,9 +325,9 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
-    protected function preparePostPaymentOrder(array $order): object
+    protected function preparePostPaymentOrder(array $order): array
     {
-        return (object) [
+        return [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
             'currency' => $order['currency'] ?? 'TRY',
@@ -338,9 +338,9 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
-    protected function prepareStatusOrder(array $order): object
+    protected function prepareStatusOrder(array $order): array
     {
-        return (object) [
+        return [
             'id' => $order['id'],
         ];
     }
@@ -349,9 +349,9 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * TODO
      * @inheritDoc
      */
-    protected function prepareHistoryOrder(array $order): object
+    protected function prepareHistoryOrder(array $order): array
     {
-        return (object) [
+        return [
             'id' => $order['id'] ?? null,
         ];
     }

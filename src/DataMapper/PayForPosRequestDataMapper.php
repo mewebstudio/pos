@@ -64,7 +64,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'RequestGuid' => $responseData['RequestGuid'],
             'UserCode'    => $account->getUsername(),
             'UserPass'    => $account->getPassword(),
-            'OrderId'     => $order->id,
+            'OrderId'     => $order['id'],
             'SecureType'  => '3DModelPayment',
         ];
     }
@@ -80,12 +80,12 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
             'MbrId'            => self::MBR_ID,
             'MOTO'             => self::MOTO,
-            'OrderId'          => (string) $order->id,
+            'OrderId'          => (string) $order['id'],
             'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'          => $this->mapTxType($txType),
-            'PurchAmount'      => (string) $order->amount,
-            'Currency'         => $this->mapCurrency($order->currency),
-            'InstallmentCount' => $this->mapInstallment($order->installment),
+            'PurchAmount'      => (string) $order['amount'],
+            'Currency'         => $this->mapCurrency($order['currency']),
+            'InstallmentCount' => $this->mapInstallment($order['installment']),
             'Lang'             => $this->getLang($account, $order),
             'CardHolderName'   => $card->getHolderName(),
             'Pan'              => $card->getNumber(),
@@ -104,11 +104,11 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($account) + [
             'MbrId'       => self::MBR_ID,
-            'OrgOrderId'  => (string) $order->id,
+            'OrgOrderId'  => (string) $order['id'],
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-            'PurchAmount' => (string) $order->amount,
-            'Currency'    => $this->mapCurrency($order->currency),
+            'PurchAmount' => (string) $order['amount'],
+            'Currency'    => $this->mapCurrency($order['currency']),
             'Lang'        => $this->getLang($account, $order),
         ];
     }
@@ -123,7 +123,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($account) + [
             'MbrId'      => self::MBR_ID,
-            'OrgOrderId' => (string) $order->id,
+            'OrgOrderId' => (string) $order['id'],
             'SecureType' => 'Inquiry',
             'Lang'       => $this->getLang($account, $order),
             'TxnType'    => $this->mapTxType(AbstractGateway::TX_STATUS),
@@ -140,10 +140,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($account) + [
             'MbrId'      => self::MBR_ID,
-            'OrgOrderId' => (string) $order->id,
+            'OrgOrderId' => (string) $order['id'],
             'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'TxnType'    => $this->mapTxType(AbstractGateway::TX_CANCEL),
-            'Currency'   => $this->mapCurrency($order->currency),
+            'Currency'   => $this->mapCurrency($order['currency']),
             'Lang'       => $this->getLang($account, $order),
         ];
     }
@@ -160,10 +160,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'MbrId'       => self::MBR_ID,
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
             'Lang'        => $this->getLang($account, $order),
-            'OrgOrderId'  => (string) $order->id,
+            'OrgOrderId'  => (string) $order['id'],
             'TxnType'     => $this->mapTxType(AbstractGateway::TX_REFUND),
-            'PurchAmount' => (string) $order->amount,
-            'Currency'    => $this->mapCurrency($order->currency),
+            'PurchAmount' => (string) $order['amount'],
+            'Currency'    => $this->mapCurrency($order['currency']),
         ];
     }
 
@@ -199,24 +199,24 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder = (array) $order;
-        $mappedOrder['installment'] = $this->mapInstallment($order->installment);
+        $mappedOrder = $order;
+        $mappedOrder['installment'] = $this->mapInstallment($order['installment']);
         $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
         $inputs = [
             'MbrId'            => self::MBR_ID,
             'MerchantID'       => $account->getClientId(),
             'UserCode'         => $account->getUsername(),
-            'OrderId'          => (string) $order->id,
+            'OrderId'          => (string) $order['id'],
             'Lang'             => $this->getLang($account, $order),
             'SecureType'       => $this->secureTypeMappings[$paymentModel],
             'TxnType'          => $this->mapTxType($txType),
-            'PurchAmount'      => (string) $order->amount,
-            'InstallmentCount' => $this->mapInstallment($order->installment),
-            'Currency'         => $this->mapCurrency($order->currency),
-            'OkUrl'            => (string) $order->success_url,
-            'FailUrl'          => (string) $order->fail_url,
-            'Rnd'              => (string) $order->rand,
+            'PurchAmount'      => (string) $order['amount'],
+            'InstallmentCount' => $this->mapInstallment($order['installment']),
+            'Currency'         => $this->mapCurrency($order['currency']),
+            'OkUrl'            => (string) $order['success_url'],
+            'FailUrl'          => (string) $order['fail_url'],
+            'Rnd'              => (string) $order['rand'],
             'Hash'             => $hash,
         ];
 
@@ -242,9 +242,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
-    protected function preparePaymentOrder(array $order): object
+    protected function preparePaymentOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? 'TRY',
         ]);
@@ -253,9 +253,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
-    protected function preparePostPaymentOrder(array $order): object
+    protected function preparePostPaymentOrder(array $order): array
     {
-        return (object) [
+        return [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
             'currency' => $order['currency'] ?? 'TRY',
@@ -265,9 +265,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
-    protected function prepareHistoryOrder(array $order): object
+    protected function prepareHistoryOrder(array $order): array
     {
-        return (object) [
+        return [
             //reqDate or order id
             'reqDate' => $order['reqDate'] ?? null,
             'id'      => $order['id'] ?? null,

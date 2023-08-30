@@ -274,15 +274,15 @@ abstract class AbstractRequestDataMapper
      * bank returns error messages for specified language value
      * usually accepted values are tr,en
      *
-     * @param AbstractPosAccount $account
-     * @param                    $order
+     * @param AbstractPosAccount   $account
+     * @param array<string, mixed> $order
      *
      * @return string
      */
-    protected function getLang(AbstractPosAccount $account, $order): string
+    protected function getLang(AbstractPosAccount $account, array $order): string
     {
-        if ($order && isset($order->lang)) {
-            return $this->langMappings[$order->lang];
+        if (isset($order['lang'])) {
+            return $this->langMappings[$order['lang']];
         }
 
         return $this->langMappings[$account->getLang()];
@@ -293,11 +293,11 @@ abstract class AbstractRequestDataMapper
      *
      * @param array<string, mixed> $order
      *
-     * @return object
+     * @return array<string, mixed>
      */
-    protected function preparePaymentOrder(array $order): object
+    protected function preparePaymentOrder(array $order): array
     {
-        return (object) $order;
+        return $order;
     }
 
     /**
@@ -305,11 +305,11 @@ abstract class AbstractRequestDataMapper
      *
      * @param array<string, mixed> $order
      *
-     * @return object
+     * @return array<string, mixed>
      */
-    protected function preparePostPaymentOrder(array $order): object
+    protected function preparePostPaymentOrder(array $order): array
     {
-        return (object) $order;
+        return $order;
     }
 
     /**
@@ -317,11 +317,11 @@ abstract class AbstractRequestDataMapper
      *
      * @param array<string, mixed> $order
      *
-     * @return object
+     * @return array<string, mixed>
      */
-    protected function prepareStatusOrder(array $order): object
+    protected function prepareStatusOrder(array $order): array
     {
-        return (object) $order;
+        return $order;
     }
 
     /**
@@ -329,11 +329,11 @@ abstract class AbstractRequestDataMapper
      *
      * @param array<string, mixed> $order
      *
-     * @return object
+     * @return array<string, mixed>
      */
-    protected function prepareCancelOrder(array $order): object
+    protected function prepareCancelOrder(array $order): array
     {
-        return (object) $order;
+        return $order;
     }
 
     /**
@@ -341,11 +341,11 @@ abstract class AbstractRequestDataMapper
      *
      * @param array<string, mixed> $order
      *
-     * @return object
+     * @return array<string, mixed>
      */
-    protected function prepareRefundOrder(array $order): object
+    protected function prepareRefundOrder(array $order): array
     {
-        return (object) $order;
+        return $order;
     }
 
     /**
@@ -353,10 +353,10 @@ abstract class AbstractRequestDataMapper
      *
      * @param array<string, mixed> $order
      *
-     * @return object
+     * @return array<string, mixed>
      */
-    protected function prepareHistoryOrder(array $order): object
+    protected function prepareHistoryOrder(array $order): array
     {
-        return (object) $order;
+        return $order;
     }
 }

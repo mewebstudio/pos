@@ -75,13 +75,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $requestData = $this->getRequestAccountData($account) + [
             'Type'                    => $this->mapTxType($txType),
-            'IPAddress'               => (string) ($order->ip ?? ''),
-            'Email'                   => (string) $order->email,
-            'OrderId'                 => (string) $order->id,
-            'UserId'                  => (string) ($order->user_id ?? ''),
-            'Total'                   => (string) $order->amount,
-            'Currency'                => $this->mapCurrency($order->currency),
-            'Taksit'                  => $this->mapInstallment($order->installment),
+            'IPAddress'               => (string) ($order['ip'] ?? ''),
+            'Email'                   => (string) $order['email'],
+            'OrderId'                 => (string) $order['id'],
+            'UserId'                  => (string) ($order['user_id'] ?? ''),
+            'Total'                   => (string) $order['amount'],
+            'Currency'                => $this->mapCurrency($order['currency']),
+            'Taksit'                  => $this->mapInstallment($order['installment']),
             'Number'                  => $responseData['md'],
             'PayerTxnId'              => $responseData['xid'],
             'PayerSecurityLevel'      => $responseData['eci'],
@@ -89,13 +89,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Mode'                    => 'P',
         ];
 
-        if ($order->name) {
+        if ($order['name']) {
             $requestData['BillTo'] = [
-                'Name' => (string) $order->name,
+                'Name' => (string) $order['name'],
             ];
         }
 
-        if (isset($order->recurringFrequency)) {
+        if (isset($order['recurringFrequency'])) {
             $requestData += $this->getRecurringRequestOrderData($order);
         }
 
@@ -112,23 +112,23 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $requestData =  $this->getRequestAccountData($account) + [
             'Type'      => $this->mapTxType($txType),
-            'IPAddress' => (string) ($order->ip ?? ''),
-            'Email'     => (string) $order->email,
-            'OrderId'   => (string) $order->id,
-            'UserId'    => (string) ($order->user_id ?? ''),
-            'Total'     => (string) $order->amount,
-            'Currency'  => $this->mapCurrency($order->currency),
-            'Taksit'    => $this->mapInstallment($order->installment),
+            'IPAddress' => (string) ($order['ip'] ?? ''),
+            'Email'     => (string) $order['email'],
+            'OrderId'   => (string) $order['id'],
+            'UserId'    => (string) ($order['user_id'] ?? ''),
+            'Total'     => (string) $order['amount'],
+            'Currency'  => $this->mapCurrency($order['currency']),
+            'Taksit'    => $this->mapInstallment($order['installment']),
             'Number'    => $card->getNumber(),
             'Expires'   => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
             'Cvv2Val'   => $card->getCvv(),
             'Mode'      => 'P',
             'BillTo'    => [
-                'Name' => (string) ($order->name ?? ''),
+                'Name' => (string) ($order['name'] ?? ''),
             ],
         ];
 
-        if (isset($order->recurringFrequency)) {
+        if (isset($order['recurringFrequency'])) {
             $requestData += $this->getRecurringRequestOrderData($order);
         }
 
@@ -146,7 +146,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return $this->getRequestAccountData($account) + [
             'Type'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-            'OrderId'  => (string) $order->id,
+            'OrderId'  => (string) $order['id'],
         ];
     }
 
@@ -163,10 +163,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $order = $this->prepareStatusOrder($order);
 
-        if (isset($order->id)) {
-            $statusRequestData['OrderId'] = $order->id;
-        } elseif (isset($order->recurringId)) {
-            $statusRequestData['Extra']['RECURRINGID'] = $order->recurringId;
+        if (isset($order['id'])) {
+            $statusRequestData['OrderId'] = $order['id'];
+        } elseif (isset($order['recurringId'])) {
+            $statusRequestData['Extra']['RECURRINGID'] = $order['recurringId'];
         }
 
         return $statusRequestData;
@@ -180,7 +180,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareCancelOrder($order);
 
         $orderData = [];
-        if (isset($order->recurringOrderInstallmentNumber)) {
+        if (isset($order['recurringOrderInstallmentNumber'])) {
             // this method cancels only pending recurring orders, it will not cancel already fulfilled transactions
             $orderData['Extra']['RECORDTYPE'] = 'Order';
                 // cancel single installment
@@ -192,13 +192,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                  * 'ORD_ID_3' => '202210121ABC-3',
                  * ...
                  */
-                $orderData['Extra']['RECORDID'] = $order->id . '-' . $order->recurringOrderInstallmentNumber;
+                $orderData['Extra']['RECORDID'] = $order['id'] . '-' . $order['recurringOrderInstallmentNumber'];
 
             return $this->getRequestAccountData($account) + $orderData;
         }
 
         return $this->getRequestAccountData($account) + [
-            'OrderId'  => $order->id,
+            'OrderId'  => $order['id'],
             'Type'     => $this->mapTxType(AbstractGateway::TX_CANCEL),
         ];
     }
@@ -212,13 +212,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareRefundOrder($order);
 
         $requestData = [
-            'OrderId'  => (string) $order->id,
-            'Currency' => $this->mapCurrency($order->currency),
+            'OrderId'  => (string) $order['id'],
+            'Currency' => $this->mapCurrency($order['currency']),
             'Type'     => $this->mapTxType(AbstractGateway::TX_REFUND),
         ];
 
-        if (isset($order->amount)) {
-            $requestData['Total'] = (string) $order->amount;
+        if (isset($order['amount'])) {
+            $requestData['Total'] = (string) $order['amount'];
         }
 
         return $this->getRequestAccountData($account) + $requestData;
@@ -250,37 +250,38 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $data = $this->create3DFormDataCommon($account, $preparedOrder, $paymentModel, $txType, $gatewayURL, $card);
 
-        $orderMapped = clone $preparedOrder;
-        $orderMapped->installment = $this->mapInstallment($preparedOrder->installment);
+        $orderMapped = $preparedOrder;
+        $orderMapped['installment'] = $this->mapInstallment($preparedOrder['installment']);
 
-        $data['inputs']['hash'] = $this->crypt->create3DHash($account, (array) $orderMapped, $this->mapTxType($txType));
+        $data['inputs']['hash'] = $this->crypt->create3DHash($account, $orderMapped, $this->mapTxType($txType));
 
         return $data;
     }
 
     /**
-     * @param AbstractGateway::TX_*    $txType
-     * @param AbstractGateway::MODEL_* $paymentModel
+     * @param array<string, string|int|float|null> $order
+     * @param AbstractGateway::MODEL_*             $paymentModel
+     * @param AbstractGateway::TX_*                $txType
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
-    public function create3DFormDataCommon(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormDataCommon(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         $inputs = [
             'clientid'  => $account->getClientId(),
             'storetype' => $this->secureTypeMappings[$paymentModel],
-            'amount'    => $order->amount,
-            'oid'       => $order->id,
-            'okUrl'     => $order->success_url,
-            'failUrl'   => $order->fail_url,
-            'rnd'       => $order->rand,
+            'amount'    => (string) $order['amount'],
+            'oid'       => (string) $order['id'],
+            'okUrl'     => (string) $order['success_url'],
+            'failUrl'   => (string) $order['fail_url'],
+            'rnd'       => (string) $order['rand'],
             'lang'      => $this->getLang($account, $order),
-            'currency'  => $this->mapCurrency($order->currency),
-            'taksit'    => $this->mapInstallment($order->installment),
+            'currency'  => $this->mapCurrency((string) $order['currency']),
+            'taksit'    => $this->mapInstallment((int) $order['installment']),
             'islemtipi' => $this->mapTxType($txType),
             // custom data, any key value pairs can be used
-            'firmaadi'  => $order->name,
-            'Email'     => $order->email,
+            'firmaadi'  => (string) $order['name'],
+            'Email'     => (string) $order['email'],
             // todo add custom data dynamically instead of hard coding them
         ];
 
@@ -307,9 +308,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePaymentOrder(array $order): object
+    protected function preparePaymentOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? 'TRY',
         ]);
@@ -318,9 +319,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePostPaymentOrder(array $order): object
+    protected function preparePostPaymentOrder(array $order): array
     {
-        return (object) [
+        return [
             'id' => $order['id'],
         ];
     }
@@ -328,9 +329,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareRefundOrder(array $order): object
+    protected function prepareRefundOrder(array $order): array
     {
-        return (object) [
+        return [
             'id'       => $order['id'],
             'currency' => $order['currency'] ?? 'TRY',
             'amount'   => $order['amount'],
@@ -360,10 +361,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'PbOrder' => [
                 'OrderType'              => '0',
                 // Periyodik İşlem Frekansı
-                'OrderFrequencyInterval' => (string) $order->recurringFrequency,
+                'OrderFrequencyInterval' => (string) $order['recurringFrequency'],
                 //D|M|Y
-                'OrderFrequencyCycle'    => $this->mapRecurringFrequency($order->recurringFrequencyType),
-                'TotalNumberPayments'    => (string) $order->recurringInstallmentCount,
+                'OrderFrequencyCycle'    => $this->mapRecurringFrequency($order['recurringFrequencyType']),
+                'TotalNumberPayments'    => (string) $order['recurringInstallmentCount'],
             ],
         ];
     }

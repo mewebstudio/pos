@@ -69,10 +69,10 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return $this->getRequestAccountData($account) + [
                 'TxnType'                 => $this->mapTxType($txType),
                 'SecureType'              => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
-                'OrderId'                 => (string) $order->id,
-                'PurchAmount'             => (string) $order->amount,
-                'Currency'                => $this->mapCurrency($order->currency),
-                'InstallmentCount'        => $this->mapInstallment($order->installment),
+                'OrderId'                 => (string) $order['id'],
+                'PurchAmount'             => (string) $order['amount'],
+                'Currency'                => $this->mapCurrency($order['currency']),
+                'InstallmentCount'        => $this->mapInstallment($order['installment']),
                 'MD'                      => $responseData['MD'],
                 'PayerTxnId'              => $responseData['PayerTxnId'],
                 'Eci'                     => $responseData['Eci'],
@@ -92,10 +92,10 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $requestData = $this->getRequestAccountData($account) + [
                 'TxnType'          => $this->mapTxType($txType),
                 'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
-                'OrderId'          => $order->id,
-                'PurchAmount'      => $order->amount,
-                'Currency'         => $this->mapCurrency($order->currency),
-                'InstallmentCount' => $this->mapInstallment($order->installment),
+                'OrderId'          => $order['id'],
+                'PurchAmount'      => $order['amount'],
+                'Currency'         => $this->mapCurrency($order['currency']),
+                'InstallmentCount' => $this->mapInstallment($order['installment']),
                 'MOTO'             => self::MOTO,
                 'Lang'             => $this->getLang($account, $order),
             ];
@@ -122,9 +122,9 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'TxnType'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
                 'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
                 'OrderId'     => null,
-                'orgOrderId'  => (string) $order->id,
-                'PurchAmount' => (string) $order->amount,
-                'Currency'    => $this->mapCurrency($order->currency),
+                'orgOrderId'  => (string) $order['id'],
+                'PurchAmount' => (string) $order['amount'],
+                'Currency'    => $this->mapCurrency($order['currency']),
                 'MOTO'        => self::MOTO,
             ];
     }
@@ -139,7 +139,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return $this->getRequestAccountData($account) + [
                 'OrderId'    => null, //todo buraya hangi deger verilecek?
-                'orgOrderId' => (string) $order->id,
+                'orgOrderId' => (string) $order['id'],
                 'TxnType'    => $this->mapTxType(AbstractGateway::TX_STATUS),
                 'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
                 'Lang'       => $this->getLang($account, $order),
@@ -156,7 +156,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return $this->getRequestAccountData($account) + [
                 'OrderId'    => null, //todo buraya hangi deger verilecek?
-                'orgOrderId' => (string) $order->id,
+                'orgOrderId' => (string) $order['id'],
                 'TxnType'    => $this->mapTxType(AbstractGateway::TX_CANCEL),
                 'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
                 'Lang'       => $this->getLang($account, $order),
@@ -173,8 +173,8 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return $this->getRequestAccountData($account) + [
                 'OrderId'     => null,
-                'orgOrderId'  => (string) $order->id,
-                'PurchAmount' => (string) $order->amount,
+                'orgOrderId'  => (string) $order['id'],
+                'PurchAmount' => (string) $order['amount'],
                 'TxnType'     => $this->mapTxType(AbstractGateway::TX_REFUND),
                 'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
                 'Lang'        => $this->getLang($account, $order),
@@ -198,8 +198,8 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder = (array) $order;
-        $mappedOrder['installment'] = $this->mapInstallment($order->installment);
+        $mappedOrder = $order;
+        $mappedOrder['installment'] = $this->mapInstallment($order['installment']);
 
         $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
@@ -208,14 +208,14 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'TxnType'          => $this->mapTxType($txType),
             'SecureType'       => $this->secureTypeMappings[$paymentModel],
             'Hash'             => $hash,
-            'PurchAmount'      => $order->amount,
-            'OrderId'          => $order->id,
-            'OkUrl'            => $order->success_url,
-            'FailUrl'          => $order->fail_url,
-            'Rnd'              => $order->rand,
+            'PurchAmount'      => $order['amount'],
+            'OrderId'          => $order['id'],
+            'OkUrl'            => $order['success_url'],
+            'FailUrl'          => $order['fail_url'],
+            'Rnd'              => $order['rand'],
             'Lang'             => $this->getLang($account, $order),
-            'Currency'         => $this->mapCurrency($order->currency),
-            'InstallmentCount' => $this->mapInstallment($order->installment),
+            'Currency'         => $this->mapCurrency($order['currency']),
+            'InstallmentCount' => $this->mapInstallment($order['installment']),
         ];
 
         if ($card !== null) {
@@ -240,9 +240,9 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePaymentOrder(array $order): object
+    protected function preparePaymentOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? 'TRY',
         ]);
@@ -251,9 +251,9 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePostPaymentOrder(array $order): object
+    protected function preparePostPaymentOrder(array $order): array
     {
-        return (object) [
+        return [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
             'currency' => $order['currency'] ?? 'TRY',

@@ -93,14 +93,14 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder = (array) $order;
-        $mappedOrder['amount'] = self::amountFormat($order->amount);
-        $hash = $this->crypt->createHash($account, $mappedOrder, $this->mapTxType($txType));
+        $mappedOrder           = $order;
+        $mappedOrder['amount'] = self::amountFormat($order['amount']);
+        $hash                  = $this->crypt->createHash($account, $mappedOrder, $this->mapTxType($txType));
 
         return $this->getRequestAccountData($account) + [
             'APIVersion'                   => self::API_VERSION,
             'HashData'                     => $hash,
-            'CustomerIPAddress'            => $order->ip,
+            'CustomerIPAddress'            => $order['ip'],
             'KuveytTurkVPosAdditionalData' => [
                 'AdditionalData' => [
                     'Key'  => 'MD',
@@ -128,23 +128,23 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder = (array) $order;
-        $mappedOrder['amount'] = self::amountFormat($order->amount);
-        $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
+        $mappedOrder           = $order;
+        $mappedOrder['amount'] = self::amountFormat($order['amount']);
+        $hash                  = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
         $inputs = $this->getRequestAccountData($account) + [
             'APIVersion'          => self::API_VERSION,
             'HashData'            => $hash,
             'TransactionType'     => $this->mapTxType($txType),
             'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
-            'InstallmentCount'    => $this->mapInstallment($order->installment),
-            'Amount'              => self::amountFormat($order->amount),
+            'InstallmentCount'    => $this->mapInstallment($order['installment']),
+            'Amount'              => self::amountFormat($order['amount']),
             //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
-            'DisplayAmount'       => self::amountFormat($order->amount),
-            'CurrencyCode'        => $this->mapCurrency($order->currency),
-            'MerchantOrderId'     => $order->id,
-            'OkUrl'               => $order->success_url,
-            'FailUrl'             => $order->fail_url,
+            'DisplayAmount'       => self::amountFormat($order['amount']),
+            'CurrencyCode'        => $this->mapCurrency($order['currency']),
+            'MerchantOrderId'     => $order['id'],
+            'OkUrl'               => $order['success_url'],
+            'FailUrl'             => $order['fail_url'],
         ];
 
         if ($card !== null) {
@@ -183,9 +183,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareStatusOrder($order);
 
-        $mappedOrder = (array) $order;
+        $mappedOrder           = $order;
         $mappedOrder['amount'] = 0;
-        $hash = $this->crypt->createHash($account, $mappedOrder);
+        $hash                  = $this->crypt->createHash($account, $mappedOrder);
 
         return [
             'IsFromExternalNetwork' => true,
@@ -197,20 +197,20 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'MailOrTelephoneOrder' => true,
             'Amount' => 0,
             'MerchantId' => $account->getClientId(),
-            'MerchantOrderId' => $order->id,
+            'MerchantOrderId' => $order['id'],
             /**
              * Eğer döndüğümüz orderid ile aratılırsa yalnızca aranan işlem gelir.
              * 0 değeri girilirse tarih aralığındaki aynı merchanorderid'ye ait tüm siparişleri getirir.
              * uniq değer orderid'dir, işlemi birebir yakalamak için orderid değeri atanmalıdır.
              */
-            'OrderId' => $order->remote_order_id ?? 0,
+            'OrderId' => $order['remote_order_id'] ?? 0,
             /**
              * Test ortamda denendiginde, StartDate ve EndDate her hangi bir tarih atandiginda istek calisiyor,
              * siparisi buluyor.
              * Ancak bu degerler gonderilmediginde veya gecersiz (orn. null) gonderildiginde SOAP server hata donuyor.
              */
-            'StartDate' =>  $order->start_date->format('Y-m-d\TH:i:s'),
-            'EndDate' => $order->end_date->format('Y-m-d\TH:i:s'),
+            'StartDate' =>  $order['start_date']->format('Y-m-d\TH:i:s'),
+            'EndDate' => $order['end_date']->format('Y-m-d\TH:i:s'),
             'TransactionType' => 0,
             'VPosMessage' => $this->getRequestAccountData($account) + [
                 'APIVersion' => self::API_VERSION,
@@ -224,8 +224,8 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'Amount' => 0,
                 'DisplayAmount' => 0,
                 'CancelAmount' => 0,
-                'MerchantOrderId' => $order->id,
-                'CurrencyCode' => $this->mapCurrency($order->currency),
+                'MerchantOrderId' => $order['id'],
+                'CurrencyCode' => $this->mapCurrency($order['currency']),
                 'FECAmount' => 0,
                 'QeryId' => 0,
                 'DebtId' => 0,
@@ -244,9 +244,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareCancelOrder($order);
 
-        $mappedOrder = (array) $order;
-        $mappedOrder['amount'] = self::amountFormat($order->amount);
-        $hash = $this->crypt->createHash($account, $mappedOrder);
+        $mappedOrder           =  $order;
+        $mappedOrder['amount'] = self::amountFormat($order['amount']);
+        $hash                  = $this->crypt->createHash($account, $mappedOrder);
 
         return [
             'IsFromExternalNetwork' => true,
@@ -256,12 +256,12 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'LanguageId' => 0,
             'CustomerId' => $account->getCustomerId(),
             'MailOrTelephoneOrder' => true,
-            'Amount' => self::amountFormat($order->amount),
+            'Amount' => self::amountFormat($order['amount']),
             'MerchantId' => $account->getClientId(),
-            'OrderId' => $order->remote_order_id,
-            'RRN' => $order->ref_ret_num,
-            'Stan' => $order->trans_id,
-            'ProvisionNumber' => $order->auth_code,
+            'OrderId' => $order['remote_order_id'],
+            'RRN' => $order['ref_ret_num'],
+            'Stan' => $order['trans_id'],
+            'ProvisionNumber' => $order['auth_code'],
             'TransactionType' => 0,
             'VPosMessage' => $this->getRequestAccountData($account) + [
                 'APIVersion' => self::API_VERSION,
@@ -272,12 +272,12 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'BatchID' => 0,
                 'TransactionType' => $this->mapTxType(AbstractGateway::TX_CANCEL),
                 'InstallmentCount' => 0,
-                'Amount' => self::amountFormat($order->amount),
-                'DisplayAmount' => self::amountFormat($order->amount),
-                'CancelAmount' => self::amountFormat($order->amount),
-                'MerchantOrderId' => $order->id,
+                'Amount' => self::amountFormat($order['amount']),
+                'DisplayAmount' => self::amountFormat($order['amount']),
+                'CancelAmount' => self::amountFormat($order['amount']),
+                'MerchantOrderId' => $order['id'],
                 'FECAmount' => 0,
-                'CurrencyCode' => $this->mapCurrency($order->currency),
+                'CurrencyCode' => $this->mapCurrency($order['currency']),
                 'QeryId' => 0,
                 'DebtId' => 0,
                 'SurchargeAmount' => 0,
@@ -295,9 +295,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareRefundOrder($order);
 
-        $mappedOrder = (array) $order;
-        $mappedOrder['amount'] = self::amountFormat($order->amount);
-        $hash = $this->crypt->createHash($account, $mappedOrder);
+        $mappedOrder           = $order;
+        $mappedOrder['amount'] = self::amountFormat($order['amount']);
+        $hash                  = $this->crypt->createHash($account, $mappedOrder);
 
         return [
             'IsFromExternalNetwork' => true,
@@ -307,12 +307,12 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'LanguageId' => 0,
             'CustomerId' => $account->getCustomerId(),
             'MailOrTelephoneOrder' => true,
-            'Amount' => self::amountFormat($order->amount),
+            'Amount' => self::amountFormat($order['amount']),
             'MerchantId' => $account->getClientId(),
-            'OrderId' => $order->remote_order_id,
-            'RRN' => $order->ref_ret_num,
-            'Stan' => $order->trans_id,
-            'ProvisionNumber' => $order->auth_code,
+            'OrderId' => $order['remote_order_id'],
+            'RRN' => $order['ref_ret_num'],
+            'Stan' => $order['trans_id'],
+            'ProvisionNumber' => $order['auth_code'],
             'TransactionType' => 0,
             'VPosMessage' => $this->getRequestAccountData($account) + [
                 'APIVersion' => self::API_VERSION,
@@ -323,12 +323,12 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'BatchID' => 0,
                 'TransactionType' => $this->mapTxType(AbstractGateway::TX_REFUND),
                 'InstallmentCount' => 0,
-                'Amount' => self::amountFormat($order->amount),
+                'Amount' => self::amountFormat($order['amount']),
                 'DisplayAmount' => 0,
-                'CancelAmount' => self::amountFormat($order->amount),
-                'MerchantOrderId' => $order->id,
+                'CancelAmount' => self::amountFormat($order['amount']),
+                'MerchantOrderId' => $order['id'],
                 'FECAmount' => 0,
-                'CurrencyCode' => $this->mapCurrency($order->currency),
+                'CurrencyCode' => $this->mapCurrency($order['currency']),
                 'QeryId' => 0,
                 'DebtId' => 0,
                 'SurchargeAmount' => 0,
@@ -362,9 +362,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePaymentOrder(array $order): object
+    protected function preparePaymentOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? 'TRY',
         ]);
@@ -373,9 +373,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareStatusOrder(array $order): object
+    protected function prepareStatusOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'id'         => $order['id'],
             'currency'   => $order['currency'] ?? 'TRY',
             'start_date' => $order['start_date'] ?? date_create('-360 day'),
@@ -386,9 +386,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareCancelOrder(array $order): object
+    protected function prepareCancelOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'id'              => $order['id'],
             'remote_order_id' => $order['remote_order_id'],
             'ref_ret_num'     => $order['ref_ret_num'],
@@ -402,9 +402,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareRefundOrder(array $order): object
+    protected function prepareRefundOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'id'              => $order['id'],
             'remote_order_id' => $order['remote_order_id'],
             'ref_ret_num'     => $order['ref_ret_num'],

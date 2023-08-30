@@ -71,8 +71,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePaymentOrder($order);
 
         $hashData = [
-            'id' => $order->id,
-            'amount' => self::amountFormat($order->amount),
+            'id' => $order['id'],
+            'amount' => self::amountFormat($order['amount']),
         ];
         $hash = $this->crypt->createHash($account, $hashData);
 
@@ -90,7 +90,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             ],
             'Transaction' => [
                 'Type'                  => $responseData['txntype'],
-                'InstallmentCnt'        => $this->mapInstallment($order->installment),
+                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => $responseData['txnamount'],
                 'CurrencyCode'          => $responseData['txncurrencycode'],
                 'CardholderPresentCode' => '13', //13 for 3D secure payment
@@ -104,7 +104,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             ],
         ];
 
-        if (isset($order->recurringInstallmentCount)) {
+        if (isset($order['recurringInstallmentCount'])) {
             $result['Recurring'] = $this->createRecurringData($order);
         }
 
@@ -121,8 +121,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePaymentOrder($order);
 
         $hashData = [
-            'id' => $order->id,
-            'amount' => self::amountFormat($order->amount),
+            'id' => $order['id'],
+            'amount' => self::amountFormat($order['amount']),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType($txType), $card);
 
@@ -131,25 +131,25 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
-                'IPAddress'    => $order->ip,
-                'EmailAddress' => $order->email,
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Card'        => $this->getCardData($card),
             'Order'       => [
-                'OrderID'     => $order->id,
+                'OrderID'     => $order['id'],
                 'AddressList' => $this->getOrderAddressData($order),
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType($txType),
-                'InstallmentCnt'        => $this->mapInstallment($order->installment),
-                'Amount'                => self::amountFormat($order->amount),
-                'CurrencyCode'          => $this->mapCurrency($order->currency),
+                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
+                'Amount'                => self::amountFormat($order['amount']),
+                'CurrencyCode'          => $this->mapCurrency($order['currency']),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
             ],
         ];
 
-        if (isset($order->recurringInstallmentCount)) {
+        if (isset($order['recurringInstallmentCount'])) {
             $result['Recurring'] = $this->createRecurringData($order);
         }
 
@@ -166,8 +166,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePostPaymentOrder($order);
 
         $hashData = [
-            'id' => (string) $order->id,
-            'amount' => self::amountFormat($order->amount),
+            'id' => (string) $order['id'],
+            'amount' => self::amountFormat($order['amount']),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_POST_PAY), $card);
 
@@ -176,17 +176,17 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
-                'IPAddress'    => $order->ip,
-                'EmailAddress' => $order->email,
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
-                'OrderID' => $order->id,
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'              => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-                'Amount'            => self::amountFormat($order->amount),
-                'CurrencyCode'      => $this->mapCurrency($order->currency),
-                'OriginalRetrefNum' => $order->ref_ret_num,
+                'Amount'            => self::amountFormat($order['amount']),
+                'CurrencyCode'      => $this->mapCurrency($order['currency']),
+                'OriginalRetrefNum' => $order['ref_ret_num'],
             ],
         ];
     }
@@ -201,8 +201,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareStatusOrder($order);
 
         $hashData = [
-            'id' => $order->id,
-            'amount' => self::amountFormat($order->amount),
+            'id' => $order['id'],
+            'amount' => self::amountFormat($order['amount']),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_STATUS));
 
@@ -211,17 +211,17 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
-               'IPAddress'    => $order->ip ?? '',
-               'EmailAddress' => $order->email ?? '',
+               'IPAddress'    => $order['ip'] ?? '',
+               'EmailAddress' => $order['email'] ?? '',
             ],
             'Order'       => [
-                'OrderID' => $order->id,
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_STATUS),
-                'InstallmentCnt'        => $this->mapInstallment($order->installment),
-                'Amount'                => self::amountFormat($order->amount), //sabit olarak amount 100 gonderilecek
-                'CurrencyCode'          => $this->mapCurrency($order->currency),
+                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
+                'Amount'                => self::amountFormat($order['amount']), //sabit olarak amount 100 gonderilecek
+                'CurrencyCode'          => $this->mapCurrency($order['currency']),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
             ],
@@ -238,8 +238,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareCancelOrder($order);
 
         $hashData = [
-            'id' => $order->id,
-            'amount' => self::amountFormat($order->amount),
+            'id' => $order['id'],
+            'amount' => self::amountFormat($order['amount']),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_CANCEL));
 
@@ -248,20 +248,20 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash, true),
             'Customer'    => [
-                'IPAddress'    => $order->ip ?? '',
-                'EmailAddress' => $order->email ?? '',
+                'IPAddress'    => $order['ip'] ?? '',
+                'EmailAddress' => $order['email'] ?? '',
             ],
             'Order'       => [
-                'OrderID' => $order->id,
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_CANCEL),
-                'InstallmentCnt'        => $this->mapInstallment($order->installment),
-                'Amount'                => self::amountFormat($order->amount), //sabit olarak amount 100 gonderilecek
-                'CurrencyCode'          => $this->mapCurrency($order->currency),
+                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
+                'Amount'                => self::amountFormat($order['amount']), //sabit olarak amount 100 gonderilecek
+                'CurrencyCode'          => $this->mapCurrency($order['currency']),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
-                'OriginalRetrefNum'     => $order->ref_ret_num,
+                'OriginalRetrefNum'     => $order['ref_ret_num'],
             ],
         ];
     }
@@ -276,8 +276,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareRefundOrder($order);
 
         $hashData = [
-            'id' => $order->id,
-            'amount' => self::amountFormat($order->amount),
+            'id' => $order['id'],
+            'amount' => self::amountFormat($order['amount']),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_REFUND));
 
@@ -286,20 +286,20 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash, true),
             'Customer'    => [
-                'IPAddress'    => $order->ip,
-                'EmailAddress' => $order->email,
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
-                'OrderID' => $order->id,
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_REFUND),
-                'InstallmentCnt'        => $this->mapInstallment($order->installment),
-                'Amount'                => self::amountFormat($order->amount), //sabit olarak amount 100 gonderilecek,
-                'CurrencyCode'          => $this->mapCurrency($order->currency),
+                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
+                'Amount'                => self::amountFormat($order['amount']), //sabit olarak amount 100 gonderilecek,
+                'CurrencyCode'          => $this->mapCurrency($order['currency']),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
-                'OriginalRetrefNum'     => $order->ref_ret_num,
+                'OriginalRetrefNum'     => $order['ref_ret_num'],
             ],
         ];
     }
@@ -314,8 +314,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareHistoryOrder($order);
 
         $hashData = [
-            'id' => $order->id,
-            'amount' => self::amountFormat($order->amount),
+            'id' => $order['id'],
+            'amount' => self::amountFormat($order['amount']),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_HISTORY));
 
@@ -324,17 +324,17 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
-               'IPAddress'    => $order->ip ?? '',
-               'EmailAddress' => $order->email ?? '',
+               'IPAddress'    => $order['ip'] ?? '',
+               'EmailAddress' => $order['email'] ?? '',
             ],
             'Order'       => [
-                'OrderID' => $order->id,
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType(AbstractGateway::TX_HISTORY),
-                'InstallmentCnt'        => $this->mapInstallment($order->installment),
-                'Amount'                => self::amountFormat($order->amount), //sabit olarak amount 100 gonderilecek
-                'CurrencyCode'          => $this->mapCurrency($order->currency),
+                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
+                'Amount'                => self::amountFormat($order['amount']), //sabit olarak amount 100 gonderilecek
+                'CurrencyCode'          => $this->mapCurrency($order['currency']),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
             ],
@@ -407,9 +407,9 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePaymentOrder(array $order): object
+    protected function preparePaymentOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? 'TRY',
             'amount'      => $order['amount'],
@@ -421,9 +421,9 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePostPaymentOrder(array $order): object
+    protected function preparePostPaymentOrder(array $order): array
     {
-        return (object) [
+        return [
             'id'          => $order['id'],
             'ref_ret_num' => $order['ref_ret_num'],
             'currency'    => $order['currency'] ?? 'TRY',
@@ -436,9 +436,9 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareStatusOrder(array $order): object
+    protected function prepareStatusOrder(array $order): array
     {
-        return (object) [
+        return [
             'id'          => $order['id'],
             'amount'      => 1, //sabit deger gonderilmesi gerekiyor
             'currency'    => $order['currency'] ?? 'TRY',
@@ -451,7 +451,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareHistoryOrder(array $order): object
+    protected function prepareHistoryOrder(array $order): array
     {
         return $this->prepareStatusOrder($order);
     }
@@ -459,9 +459,9 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareCancelOrder(array $order): object
+    protected function prepareCancelOrder(array $order): array
     {
-        return (object) [
+        return [
             'id'          => $order['id'],
             'amount'      => 1, //sabit deger gonderilmesi gerekiyor
             'currency'    => $order['currency'] ?? 'TRY',
@@ -475,10 +475,11 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareRefundOrder(array $order): object
+    protected function prepareRefundOrder(array $order): array
     {
         $refundOrder = $this->prepareCancelOrder($order);
-        $refundOrder->amount = $order['amount'];
+        // just checking if amount is exist
+        $refundOrder['amount'] = $order['amount'];
 
         return $refundOrder;
     }
@@ -541,7 +542,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return [
             'Address' => [
                 'Type'        => 'B', //S - shipping, B - billing
-                'Name'        => (string) $order->name,
+                'Name'        => (string) $order['name'],
                 'LastName'    => '',
                 'Company'     => '',
                 'Text'        => '',
@@ -570,26 +571,32 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *       </Payment>
      *   </PaymentList>
      * </Recurring>
-     * @param $order
+     *
+     * @param array{recurringInstallmentCount: int, recurringFrequencyType: string, recurringFrequency: int, startDate: string|null, recurringType: 'R'|'G'|null} $order
      *
      * @return array{TotalPaymentNum: string, FrequencyType: string, FrequencyInterval: string, Type: mixed, StartDate: string}
      */
-    private function createRecurringData($order): array
+    private function createRecurringData(array $order): array
     {
         return [
-            'TotalPaymentNum' => (string) $order->recurringInstallmentCount, //kac kere tekrarlanacak
-            'FrequencyType' => $this->mapRecurringFrequency($order->recurringFrequencyType), //Monthly, weekly, daily
-            'FrequencyInterval' => (string) $order->recurringFrequency,
-            'Type' => $order->recurringType ?? 'R', //R:Sabit Tutarli   G:Degisken Tuta
-            'StartDate' => $order->startDate ?? '',
+            'TotalPaymentNum'   => (string) $order['recurringInstallmentCount'], //kac kere tekrarlanacak
+            'FrequencyType'     => $this->mapRecurringFrequency((string) $order['recurringFrequencyType']), //Monthly, weekly, daily
+            'FrequencyInterval' => (string) $order['recurringFrequency'],
+            'Type'              => (string) ($order['recurringType'] ?? 'R'), //R:Sabit Tutarli   G:Degisken Tuta
+            'StartDate'         => (string) ($order['startDate'] ?? ''),
         ];
     }
 
-    private function mapPaymentOrder($order): array
+    /**
+     * @param array<string, mixed> $order
+     *
+     * @return array<string, mixed>
+     */
+    private function mapPaymentOrder(array $order): array
     {
-        $mappedOrder = (array) $order;
-        $mappedOrder['amount'] = self::amountFormat($mappedOrder['amount']);
-        $mappedOrder['currency'] = $this->mapCurrency($mappedOrder['currency']);
+        $mappedOrder                = $order;
+        $mappedOrder['amount']      = self::amountFormat($mappedOrder['amount']);
+        $mappedOrder['currency']    = $this->mapCurrency($mappedOrder['currency']);
         $mappedOrder['installment'] = $this->mapInstallment($mappedOrder['installment']);
 
         return $mappedOrder;

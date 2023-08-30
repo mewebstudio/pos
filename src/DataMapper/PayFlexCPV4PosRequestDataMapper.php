@@ -99,9 +99,9 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder             = (array) $order;
-        $mappedOrder['currency'] = $this->mapCurrency($order->currency);
-        $mappedOrder['amount']   = self::amountFormat($order->amount);
+        $mappedOrder             = $order;
+        $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
+        $mappedOrder['amount']   = self::amountFormat($order['amount']);
         $hashData                = $this->crypt->create3DHash($account, $mappedOrder, $txType);
 
         $requestData = [
@@ -109,10 +109,10 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'MerchantPassword'     => $account->getPassword(),
             'HostTerminalId'       => $account->getTerminalId(),
             'TransactionType'      => $this->mapTxType($txType),
-            'AmountCode'           => $this->mapCurrency($order->currency),
-            'Amount'               => self::amountFormat($order->amount),
-            'OrderID'              => (string) $order->id,
-            'OrderDescription'     => (string) ($order->description ?? null),
+            'AmountCode'           => $this->mapCurrency($order['currency']),
+            'Amount'               => self::amountFormat($order['amount']),
+            'OrderID'              => (string) $order['id'],
+            'OrderDescription'     => (string) ($order['description'] ?? null),
             'IsSecure'             => 'true', // Işlemin 3D yapılıp yapılmayacağına dair flag, alabileceği değerler: 'true', 'false'
             /**
              * 3D Programına Dahil Olmayan Kartlar ile İşlem Yapma Flagi: "3D İşlem Flagi" (IsSecure) "true" gönderilmiş
@@ -122,8 +122,8 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
              * Bu tür işlemler "Half Secure" olarak işaretlenecektir.
              */
             'AllowNotEnrolledCard' => 'false',
-            'SuccessUrl'           => (string) $order->success_url,
-            'FailUrl'              => (string) $order->fail_url,
+            'SuccessUrl'           => (string) $order['success_url'],
+            'FailUrl'              => (string) $order['fail_url'],
             'HashedData'           => $hashData,
             'RequestLanguage'      => $this->getLang($account, $order),
             /**
@@ -151,8 +151,8 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             ];
         }
 
-        if ($order->installment) {
-            $requestData['InstallmentCount'] = $this->mapInstallment($order->installment);
+        if ($order['installment']) {
+            $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
         }
 
         return $requestData;
@@ -172,10 +172,10 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $requestData = $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
-                'OrderId'                 => (string) $order->id,
-                'CurrencyAmount'          => self::amountFormat($order->amount),
-                'CurrencyCode'            => $this->mapCurrency($order->currency),
-                'ClientIp'                => (string) $order->ip,
+                'OrderId'                 => (string) $order['id'],
+                'CurrencyAmount'          => self::amountFormat($order['amount']),
+                'CurrencyCode'            => $this->mapCurrency($order['currency']),
+                'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0',
             ];
 
@@ -203,10 +203,10 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return $this->getRequestAccountData($account) + [
                 'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-                'ReferenceTransactionId' => (string) $order->id,
-                'CurrencyAmount'         => self::amountFormat($order->amount),
-                'CurrencyCode'           => $this->mapCurrency($order->currency),
-                'ClientIp'               => (string) $order->ip,
+                'ReferenceTransactionId' => (string) $order['id'],
+                'CurrencyAmount'         => self::amountFormat($order['amount']),
+                'CurrencyCode'           => $this->mapCurrency($order['currency']),
+                'ClientIp'               => (string) $order['ip'],
             ];
     }
 
@@ -232,8 +232,8 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return $this->getRequestAccountData($account) + [
                 'TransactionType'        => $this->mapTxType(AbstractGateway::TX_CANCEL),
-                'ReferenceTransactionId' => (string) $order->id,
-                'ClientIp'               => (string) $order->ip,
+                'ReferenceTransactionId' => (string) $order['id'],
+                'ClientIp'               => (string) $order['ip'],
             ];
     }
 
@@ -251,9 +251,9 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return $this->getRequestAccountData($account) + [
             'TransactionType'        => $this->mapTxType(AbstractGateway::TX_REFUND),
-            'ReferenceTransactionId' => (string) $order->id,
-            'ClientIp'               => (string) $order->ip,
-            'CurrencyAmount'         => self::amountFormat($order->amount),
+            'ReferenceTransactionId' => (string) $order['id'],
+            'ClientIp'               => (string) $order['ip'],
+            'CurrencyAmount'         => self::amountFormat($order['amount']),
         ];
     }
 
@@ -311,9 +311,9 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePaymentOrder(array $order): object
+    protected function preparePaymentOrder(array $order): array
     {
-        return (object) array_merge($order, [
+        return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? 'TRY',
             'amount'      => $order['amount'],
@@ -323,9 +323,9 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function preparePostPaymentOrder(array $order): object
+    protected function preparePostPaymentOrder(array $order): array
     {
-        return (object) [
+        return [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
             'currency' => $order['currency'] ?? 'TRY',
@@ -336,9 +336,9 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @inheritDoc
      */
-    protected function prepareHistoryOrder(array $order): object
+    protected function prepareHistoryOrder(array $order): array
     {
-        return (object) [
+        return [
             'id' => $order['id'] ?? null,
         ];
     }
