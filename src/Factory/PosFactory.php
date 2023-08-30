@@ -38,10 +38,6 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankCPPosResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseDataMapper\VakifBankPosResponseDataMapper;
-use Mews\Pos\DataMapper\VakifBankCPPosRequestDataMapper;
-use Mews\Pos\DataMapper\VakifBankPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
@@ -55,8 +51,6 @@ use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\Gateways\PosNetV1Pos;
-use Mews\Pos\Gateways\VakifBankCPPos;
-use Mews\Pos\Gateways\VakifBankPos;
 use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
@@ -149,7 +143,6 @@ class PosFactory
             PosNet::class         => PosNetRequestDataMapper::class,
             PosNetV1Pos::class    => PosNetV1PosRequestDataMapper::class,
             PayFlexCPV4Pos::class => PayFlexCPV4PosRequestDataMapper::class,
-            VakifBankCPPos::class => VakifBankCPPosRequestDataMapper::class,
         ];
         if (isset($classMappings[$gatewayClass])) {
             if (null === $crypt) {
@@ -157,10 +150,6 @@ class PosFactory
             }
 
             return new $classMappings[$gatewayClass]($crypt, $currencies);
-        }
-
-        if ($gatewayClass === VakifBankPos::class) {
-            return new VakifBankPosRequestDataMapper(null, $currencies);
         }
 
         if ($gatewayClass === PayFlexV4Pos::class) {
@@ -189,8 +178,6 @@ class PosFactory
             PosNet::class         => PosNetResponseDataMapper::class,
             PosNetV1Pos::class    => PosNetV1PosResponseDataMapper::class,
             PayFlexV4Pos::class   => PayFlexV4PosResponseDataMapper::class,
-            VakifBankPos::class   => VakifBankPosResponseDataMapper::class,
-            VakifBankCPPos::class => VakifBankCPPosResponseDataMapper::class,
             PayFlexCPV4Pos::class => PayFlexCPV4PosResponseDataMapper::class,
         ];
 
@@ -222,7 +209,6 @@ class PosFactory
             PayForPos::class      => PayForPosCrypt::class,
             PosNet::class         => PosNetCrypt::class,
             PosNetV1Pos::class    => PosNetV1PosCrypt::class,
-            VakifBankCPPos::class => PayFlexCPV4Crypt::class,
             PayFlexCPV4Pos::class => PayFlexCPV4Crypt::class,
         ];
 
