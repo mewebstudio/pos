@@ -58,8 +58,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritDoc}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData, ?AbstractCreditCard $card = null): array
+    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $requestData = $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
                 'TransactionId'           => (string) $order->id,
@@ -89,14 +91,16 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param PayFlexAccount     $account
-     * @param object             $order
-     * @param AbstractCreditCard $card
+     * @param PayFlexAccount                       $account
+     * @param array<string, int|string|float|null> $order
+     * @param AbstractCreditCard                   $card
      *
      * @return array
      */
-    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, $order, AbstractCreditCard $card): array
+    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, AbstractCreditCard $card): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $requestData = [
             'MerchantId'                => $account->getClientId(),
             'MerchantPassword'          => $account->getPassword(),
@@ -144,8 +148,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * @param PayFlexAccount $account
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $requestData = $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
                 'OrderId'                 => (string) $order->id,
@@ -178,8 +184,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      *     Password: string,
      *     TerminalNo: string}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePostPaymentOrder($order);
+
         return $this->getRequestAccountData($account) + [
                 'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
                 'ReferenceTransactionId' => (string) $order->id,
@@ -193,8 +201,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{MerchantCriteria: array{HostMerchantId: string, MerchantPassword: string}, TransactionCriteria: array{TransactionId: string, OrderId: string, AuthCode: string}}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, $order): array
+    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareStatusOrder($order);
+
         return [
             'MerchantCriteria' => [
                 'HostMerchantId' => $account->getClientId(),
@@ -220,8 +230,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * @return array{MerchantId: string, Password: string, TransactionType: string,
      *     ReferenceTransactionId: string, ClientIp: string}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, $order): array
+    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareCancelOrder($order);
+
         return [
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
@@ -236,8 +248,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * @return array{MerchantId: string, Password: string, TransactionType: string, ReferenceTransactionId: string,
      *     ClientIp: string, CurrencyAmount: string}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, $order): array
+    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareRefundOrder($order);
+
         return [
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
@@ -251,7 +265,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
+    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
     {
         throw new NotImplementedException();
     }
@@ -259,11 +273,12 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      *
+     * @param array<string, int|string|float|null>|null                         $order kullanilmiyor
      * @param array{PaReq: string, TermUrl: string, MD: string, ACSUrl: string} $extraData
      *
      * @return array{gateway: string, method: 'POST', inputs: array{PaReq: string, TermUrl: string, MD: string}}
      */
-    public function create3DFormData(?AbstractPosAccount $account, $order, ?string $paymentModel, ?string $txType, ?string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = []): array
+    public function create3DFormData(?AbstractPosAccount $account, ?array $order, ?string $paymentModel, ?string $txType, ?string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = []): array
     {
         $inputs = [
             'PaReq'   => $extraData['PaReq'],
@@ -293,6 +308,52 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     public function mapInstallment(?int $installment): string
     {
         return $installment > 1 ? (string) $installment : '0';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePaymentOrder(array $order): object
+    {
+        return (object) array_merge($order, [
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
+            'amount'      => $order['amount'],
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePostPaymentOrder(array $order): object
+    {
+        return (object) [
+            'id'       => $order['id'],
+            'amount'   => $order['amount'],
+            'currency' => $order['currency'] ?? 'TRY',
+            'ip'       => $order['ip'],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareStatusOrder(array $order): object
+    {
+        return (object) [
+            'id' => $order['id'],
+        ];
+    }
+
+    /**
+     * TODO
+     * @inheritDoc
+     */
+    protected function prepareHistoryOrder(array $order): object
+    {
+        return (object) [
+            'id' => $order['id'] ?? null,
+        ];
     }
 
     /**

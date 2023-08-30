@@ -66,8 +66,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
+    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
@@ -114,8 +116,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
@@ -157,8 +161,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePostPaymentOrder($order);
+
         $hashData = [
             'id' => (string) $order->id,
             'amount' => self::amountFormat($order->amount),
@@ -190,8 +196,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, $order): array
+    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareStatusOrder($order);
+
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
@@ -225,8 +233,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, $order): array
+    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareCancelOrder($order);
+
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
@@ -261,8 +271,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, $order): array
+    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareRefundOrder($order);
+
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
@@ -297,8 +309,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
+    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
     {
+        $order = $this->prepareHistoryOrder($order);
+
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
@@ -332,8 +346,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param GarantiPosAccount $account
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $mappedOrder = $this->mapPaymentOrder($order);
 
         $inputs = [
@@ -386,6 +402,85 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public static function amountFormat($amount): int
     {
         return (int) (round($amount, 2) * 100);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePaymentOrder(array $order): object
+    {
+        return (object) array_merge($order, [
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
+            'amount'      => $order['amount'],
+            'ip'          => $order['ip'] ?? '',
+            'email'       => $order['email'] ?? '',
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePostPaymentOrder(array $order): object
+    {
+        return (object) [
+            'id'          => $order['id'],
+            'ref_ret_num' => $order['ref_ret_num'],
+            'currency'    => $order['currency'] ?? 'TRY',
+            'amount'      => $order['amount'],
+            'ip'          => $order['ip'] ?? '',
+            'email'       => $order['email'] ?? '',
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareStatusOrder(array $order): object
+    {
+        return (object) [
+            'id'          => $order['id'],
+            'amount'      => 1, //sabit deger gonderilmesi gerekiyor
+            'currency'    => $order['currency'] ?? 'TRY',
+            'ip'          => $order['ip'] ?? '',
+            'email'       => $order['email'] ?? '',
+            'installment' => 0,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareHistoryOrder(array $order): object
+    {
+        return $this->prepareStatusOrder($order);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareCancelOrder(array $order): object
+    {
+        return (object) [
+            'id'          => $order['id'],
+            'amount'      => 1, //sabit deger gonderilmesi gerekiyor
+            'currency'    => $order['currency'] ?? 'TRY',
+            'ref_ret_num' => $order['ref_ret_num'],
+            'ip'          => $order['ip'] ?? '',
+            'email'       => $order['email'] ?? '',
+            'installment' => 0,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareRefundOrder(array $order): object
+    {
+        $refundOrder = $this->prepareCancelOrder($order);
+        $refundOrder->amount = $order['amount'];
+
+        return $refundOrder;
     }
 
     /**

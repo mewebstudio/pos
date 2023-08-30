@@ -56,8 +56,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return array{RequestGuid: mixed, UserCode: string, UserPass: string, OrderId: mixed, SecureType: string}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
+    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         return [
             'RequestGuid' => $responseData['RequestGuid'],
             'UserCode'    => $account->getUsername(),
@@ -71,8 +73,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{MbrId: string, MOTO: string, OrderId: string, SecureType: string, TxnType: string, PurchAmount: string, Currency: string, InstallmentCount: string, Lang: string, CardHolderName: string|null, Pan: string, Expiry: string, Cvv2: string, MerchantId: string, UserCode: string, UserPass: string}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         return $this->getRequestAccountData($account) + [
             'MbrId'            => self::MBR_ID,
             'MOTO'             => self::MOTO,
@@ -94,8 +98,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{MbrId: string, OrgOrderId: string, SecureType: string, TxnType: string, PurchAmount: string, Currency: string, Lang: string, MerchantId: string, UserCode: string, UserPass: string}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePostPaymentOrder($order);
+
         return $this->getRequestAccountData($account) + [
             'MbrId'       => self::MBR_ID,
             'OrgOrderId'  => (string) $order->id,
@@ -111,8 +117,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{MbrId: string, OrgOrderId: string, SecureType: string, Lang: string, TxnType: string, MerchantId: string, UserCode: string, UserPass: string}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, $order): array
+    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareStatusOrder($order);
+
         return $this->getRequestAccountData($account) + [
             'MbrId'      => self::MBR_ID,
             'OrgOrderId' => (string) $order->id,
@@ -126,8 +134,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{MbrId: string, OrgOrderId: string, SecureType: string, TxnType: string, Currency: string, Lang: string, MerchantId: string, UserCode: string, UserPass: string}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, $order): array
+    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareCancelOrder($order);
+
         return $this->getRequestAccountData($account) + [
             'MbrId'      => self::MBR_ID,
             'OrgOrderId' => (string) $order->id,
@@ -142,8 +152,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{MbrId: string, SecureType: string, Lang: string, OrgOrderId: string, TxnType: string, PurchAmount: string, Currency: string, MerchantId: string, UserCode: string, UserPass: string}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, $order): array
+    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareRefundOrder($order);
+
         return $this->getRequestAccountData($account) + [
             'MbrId'       => self::MBR_ID,
             'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
@@ -158,8 +170,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
+    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
     {
+        $order = $this->prepareHistoryOrder($order);
+
         $requestData = [
             'MbrId'      => self::MBR_ID,
             'SecureType' => 'Report',
@@ -181,8 +195,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $mappedOrder = (array) $order;
         $mappedOrder['installment'] = $this->mapInstallment($order->installment);
         $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
@@ -221,6 +237,41 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     public function mapInstallment(?int $installment): string
     {
         return $installment > 1 ? (string) $installment : '0';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePaymentOrder(array $order): object
+    {
+        return (object) array_merge($order, [
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePostPaymentOrder(array $order): object
+    {
+        return (object) [
+            'id'       => $order['id'],
+            'amount'   => $order['amount'],
+            'currency' => $order['currency'] ?? 'TRY',
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareHistoryOrder(array $order): object
+    {
+        return (object) [
+            //reqDate or order id
+            'reqDate' => $order['reqDate'] ?? null,
+            'id'      => $order['id'] ?? null,
+        ];
     }
 
     /**

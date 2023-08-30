@@ -105,7 +105,7 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'       => '2020110828BC',
             'amount'   => 320,
             'currency' => 'TRY',
@@ -122,11 +122,9 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $order = (object) $this->order;
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $this->card);
-
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($order, $this->card, $this->account);
+        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->order, $this->card, $this->account);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -135,7 +133,7 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'   => '2020110828BC',
             'lang' => AbstractGateway::LANG_EN,
         ];
@@ -151,7 +149,7 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData()
     {
-        $order        = (object) [
+        $order        = [
             'id'          => '2020110828BC',
             'amount'      => 100.01,
             'installment' => 0,
@@ -178,7 +176,6 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testGet3DFormData()
     {
-        $order   = (object) $this->order;
         $account = $this->account;
         $card   = $this->card;
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
@@ -188,12 +185,12 @@ class InterPosRequestDataMapperTest extends TestCase
             'TxnType'          => 'Auth',
             'SecureType'       => '3DModel',
             'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
-            'PurchAmount'      => $order->amount,
-            'OrderId'          => $order->id,
-            'OkUrl'            => $order->success_url,
-            'FailUrl'          => $order->fail_url,
-            'Rnd'              => $order->rand,
-            'Lang'             => $order->lang,
+            'PurchAmount'      => $this->order['amount'],
+            'OrderId'          => $this->order['id'],
+            'OkUrl'            => $this->order['success_url'],
+            'FailUrl'          => $this->order['fail_url'],
+            'Rnd'              => $this->order['rand'],
+            'Lang'             => $this->order['lang'],
             'Currency'         => '949',
             'InstallmentCount' => '',
         ];
@@ -205,7 +202,7 @@ class InterPosRequestDataMapperTest extends TestCase
         //test without card
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
-            $order,
+            $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             AbstractGateway::TX_PAY,
             $gatewayURL
@@ -221,7 +218,7 @@ class InterPosRequestDataMapperTest extends TestCase
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
-            $order,
+            $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             AbstractGateway::TX_PAY,
             $gatewayURL,
@@ -234,20 +231,18 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testGet3DHostFormData()
     {
-        $order = (object) $this->order;
-
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d_host'];
         $inputs = [
             'ShopCode'         => $this->account->getClientId(),
             'TxnType'          => 'Auth',
             'SecureType'       => '3DHost',
             'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
-            'PurchAmount'      => $order->amount,
-            'OrderId'          => $order->id,
-            'OkUrl'            => $order->success_url,
-            'FailUrl'          => $order->fail_url,
-            'Rnd'              => $order->rand,
-            'Lang'             => $order->lang,
+            'PurchAmount'      => $this->order['amount'],
+            'OrderId'          => $this->order['id'],
+            'OkUrl'            => $this->order['success_url'],
+            'FailUrl'          => $this->order['fail_url'],
+            'Rnd'              => $this->order['rand'],
+            'Lang'             => $this->order['lang'],
             'Currency'         => '949',
             'InstallmentCount' => '',
         ];
@@ -259,7 +254,7 @@ class InterPosRequestDataMapperTest extends TestCase
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
-            $order,
+            $this->order,
             AbstractGateway::MODEL_3D_HOST,
             AbstractGateway::TX_PAY,
             $gatewayURL
@@ -271,7 +266,7 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'   => '2020110828BC',
             'lang' => AbstractGateway::LANG_EN,
         ];
@@ -287,7 +282,7 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'     => '2020110828BC',
             'amount' => 50,
         ];
@@ -299,13 +294,13 @@ class InterPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param                 $order
+     * @param array           $order
      * @param InterPosAccount $account
      * @param array           $responseData
      *
      * @return array
      */
-    private function getSample3DPaymentRequestData($order, InterPosAccount $account, array $responseData): array
+    private function getSample3DPaymentRequestData(array $order, InterPosAccount $account, array $responseData): array
     {
         return [
             'UserCode'                => $account->getUsername(),
@@ -313,8 +308,8 @@ class InterPosRequestDataMapperTest extends TestCase
             'ShopCode'                => $account->getClientId(),
             'TxnType'                 => 'Auth',
             'SecureType'              => 'NonSecure',
-            'OrderId'                 => $order->id,
-            'PurchAmount'             => $order->amount,
+            'OrderId'                 => $order['id'],
+            'PurchAmount'             => $order['amount'],
             'Currency'                => '949',
             'InstallmentCount'        => '',
             'MD'                      => $responseData['MD'],
@@ -322,38 +317,38 @@ class InterPosRequestDataMapperTest extends TestCase
             'Eci'                     => $responseData['Eci'],
             'PayerAuthenticationCode' => $responseData['PayerAuthenticationCode'],
             'MOTO'                    => '0',
-            'Lang'                    => $order->lang,
+            'Lang'                    => $order['lang'],
         ];
     }
 
     /**
-     * @param                 $order
+     * @param array           $order
      * @param InterPosAccount $account
      *
      * @return array
      */
-    private function getSampleCancelXMLData($order, InterPosAccount $account): array
+    private function getSampleCancelXMLData(array $order, InterPosAccount $account): array
     {
         return [
             'UserCode'   => $account->getUsername(),
             'UserPass'   => $account->getPassword(),
             'ShopCode'   => $account->getClientId(),
             'OrderId'    => null,
-            'orgOrderId' => $order->id,
+            'orgOrderId' => $order['id'],
             'TxnType'    => 'Void',
             'SecureType' => 'NonSecure',
-            'Lang'       => $order->lang,
+            'Lang'       => $order['lang'],
         ];
     }
 
     /**
-     * @param                    $order
+     * @param array              $order
      * @param AbstractCreditCard $card
      * @param InterPosAccount    $account
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData($order, AbstractCreditCard $card, InterPosAccount $account): array
+    private function getSampleNonSecurePaymentRequestData(array $order, AbstractCreditCard $card, InterPosAccount $account): array
     {
         $requestData = [
             'UserCode'         => $account->getUsername(),
@@ -361,12 +356,12 @@ class InterPosRequestDataMapperTest extends TestCase
             'ShopCode'         => $account->getClientId(),
             'TxnType'          => 'Auth',
             'SecureType'       => 'NonSecure',
-            'OrderId'          => $order->id,
-            'PurchAmount'      => $order->amount,
+            'OrderId'          => $order['id'],
+            'PurchAmount'      => $order['amount'],
             'Currency'         => '949',
             'InstallmentCount' => '',
             'MOTO'             => '0',
-            'Lang'             => $order->lang,
+            'Lang'             => $order['lang'],
         ];
 
         $requestData['CardType'] = '0';
@@ -378,12 +373,12 @@ class InterPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param                 $order
+     * @param array           $order
      * @param InterPosAccount $account
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentPostRequestData($order, InterPosAccount $account): array
+    private function getSampleNonSecurePaymentPostRequestData(array $order, InterPosAccount $account): array
     {
         return [
             'UserCode'    => $account->getUsername(),
@@ -392,48 +387,48 @@ class InterPosRequestDataMapperTest extends TestCase
             'TxnType'     => 'PostAuth',
             'SecureType'  => 'NonSecure',
             'OrderId'     => null,
-            'orgOrderId'  => $order->id,
-            'PurchAmount' => $order->amount,
+            'orgOrderId'  => $order['id'],
+            'PurchAmount' => $order['amount'],
             'Currency'    => '949',
             'MOTO'        => '0',
         ];
     }
 
     /**
-     * @param                 $order
+     * @param array           $order
      * @param InterPosAccount $account
      *
      * @return array
      */
-    private function getSampleStatusRequestData($order, InterPosAccount $account): array
+    private function getSampleStatusRequestData(array $order, InterPosAccount $account): array
     {
         return [
             'UserCode'   => $account->getUsername(),
             'UserPass'   => $account->getPassword(),
             'ShopCode'   => $account->getClientId(),
             'OrderId'    => null,
-            'orgOrderId' => $order->id,
+            'orgOrderId' => $order['id'],
             'TxnType'    => 'StatusHistory',
             'SecureType' => 'NonSecure',
-            'Lang'       => $order->lang,
+            'Lang'       => $order['lang'],
         ];
     }
 
     /**
-     * @param                 $order
+     * @param array           $order
      * @param InterPosAccount $account
      *
      * @return array
      */
-    private function getSampleRefundXMLData($order, InterPosAccount $account): array
+    private function getSampleRefundXMLData(array $order, InterPosAccount $account): array
     {
         return [
             'UserCode'    => $account->getUsername(),
             'UserPass'    => $account->getPassword(),
             'ShopCode'    => $account->getClientId(),
             'OrderId'     => null,
-            'orgOrderId'  => $order->id,
-            'PurchAmount' => $order->amount,
+            'orgOrderId'  => $order['id'],
+            'PurchAmount' => $order['amount'],
             'TxnType'     => 'Refund',
             'SecureType'  => 'NonSecure',
             'Lang'        => $account->getLang(),

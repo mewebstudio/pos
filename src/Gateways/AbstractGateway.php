@@ -428,60 +428,6 @@ abstract class AbstractGateway implements PosInterface
     abstract public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null);
 
     /**
-     * prepares order for payment request
-     *
-     * @param array<string, mixed> $order
-     *
-     * @return object
-     */
-    abstract protected function preparePaymentOrder(array $order);
-
-    /**
-     * prepares order for TX_POST_PAY type request
-     *
-     * @param array<string, mixed> $order
-     *
-     * @return object
-     */
-    abstract protected function preparePostPaymentOrder(array $order);
-
-    /**
-     * prepares order for order status request
-     *
-     * @param array<string, mixed> $order
-     *
-     * @return object
-     */
-    abstract protected function prepareStatusOrder(array $order);
-
-    /**
-     * prepares order for history request
-     *
-     * @param array<string, mixed> $order
-     *
-     * @return object
-     */
-    abstract protected function prepareHistoryOrder(array $order);
-
-    /**
-     * prepares order for cancel request
-     *
-     * @param array<string, mixed> $order
-     *
-     * @return object
-     */
-    abstract protected function prepareCancelOrder(array $order);
-
-    /**
-     * prepares order for refund request
-     *
-     * @param array<string, mixed> $order
-     *
-     * @return object
-     */
-    abstract protected function prepareRefundOrder(array $order);
-
-    /**
      * @param string $str
      *
      * @return bool

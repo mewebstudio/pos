@@ -103,11 +103,9 @@ class GarantiPos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $preparedOrder, $paymentModel, $txType, $this->get3DGatewayURL(), $card);
+        return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), $card);
     }
 
     /**
@@ -124,9 +122,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $preparedOrder, $txType, $card);
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
 
         return $this->createXML($requestData);
     }
@@ -136,9 +132,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createRegularPostXML(array $order): string
     {
-        $preparedOrder = $this->preparePostPaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
         return $this->createXML($requestData);
     }
@@ -148,9 +142,7 @@ class GarantiPos extends AbstractGateway
      */
     public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $preparedOrder, $txType, $responseData);
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
 
         return $this->createXML($requestData);
     }
@@ -160,9 +152,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createCancelXML(array $order): string
     {
-        $preparedOrder = $this->prepareCancelOrder($order);
-
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->getAccount(), $preparedOrder);
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->getAccount(), $order);
 
         return $this->createXML($requestData);
     }
@@ -172,9 +162,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createRefundXML(array $order): string
     {
-        $preparedOrder = $this->prepareRefundOrder($order);
-
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
         return $this->createXML($requestData);
     }
@@ -184,9 +172,7 @@ class GarantiPos extends AbstractGateway
      */
     public function createHistoryXML(array $customQueryData): string
     {
-        $preparedOrder = $this->prepareHistoryOrder($customQueryData);
-
-        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $preparedOrder, $customQueryData);
+        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $customQueryData, $customQueryData);
 
         return $this->createXML($requestData);
     }
@@ -196,89 +182,8 @@ class GarantiPos extends AbstractGateway
      */
     public function createStatusXML(array $order): string
     {
-        $preparedOrder = $this->prepareStatusOrder($order);
-
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
         return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePaymentOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
-            'amount'      => $order['amount'],
-            'ip'          => $order['ip'] ?? '',
-            'email'       => $order['email'] ?? '',
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePostPaymentOrder(array $order)
-    {
-        return (object) [
-            'id'          => $order['id'],
-            'ref_ret_num' => $order['ref_ret_num'],
-            'currency'    => $order['currency'] ?? 'TRY',
-            'amount'      => $order['amount'],
-            'ip'          => $order['ip'] ?? '',
-            'email'       => $order['email'] ?? '',
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareStatusOrder(array $order)
-    {
-        return (object) [
-            'id'          => $order['id'],
-            'amount'      => 1, //sabit deger gonderilmesi gerekiyor
-            'currency'    => $order['currency'] ?? 'TRY',
-            'ip'          => $order['ip'] ?? '',
-            'email'       => $order['email'] ?? '',
-            'installment' => 0,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareHistoryOrder(array $order)
-    {
-        return $this->prepareStatusOrder($order);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareCancelOrder(array $order)
-    {
-        return (object) [
-            'id'          => $order['id'],
-            'amount'      => 1, //sabit deger gonderilmesi gerekiyor
-            'currency'    => $order['currency'] ?? 'TRY',
-            'ref_ret_num' => $order['ref_ret_num'],
-            'ip'          => $order['ip'] ?? '',
-            'email'       => $order['email'] ?? '',
-            'installment' => 0,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareRefundOrder(array $order)
-    {
-        $refundOrder = $this->prepareCancelOrder($order);
-        $refundOrder->amount = $order['amount'];
-
-        return $refundOrder;
     }
 }

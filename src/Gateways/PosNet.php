@@ -54,13 +54,13 @@ class PosNet extends AbstractGateway
      * Get OOS transaction data
      * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
      *
-     * @param object                                              $order
+     * @param array<string, int|string|float|null>                $order
      * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
      * @param AbstractCreditCard                                  $card
      *
      * @return array
      */
-    public function getOosTransactionData(object $order, string $txType, AbstractCreditCard $card): array
+    public function getOosTransactionData(array $order, string $txType, AbstractCreditCard $card): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $card);
         $xml = $this->createXML($requestData);
@@ -75,12 +75,11 @@ class PosNet extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
     {
         $request = $request->request;
-        $preparedOrder = $this->preparePaymentOrder($order);
 
         $this->logger->log(LogLevel::DEBUG, 'getting merchant request data');
         $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
             $this->account,
-            $preparedOrder,
+            $order,
             $request->all()
         );
 
@@ -132,9 +131,8 @@ class PosNet extends AbstractGateway
         if (!$card instanceof AbstractCreditCard) {
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
-        $preparedOrder = $this->preparePaymentOrder($order);
 
-        $data = $this->getOosTransactionData($preparedOrder, $txType, $card);
+        $data = $this->getOosTransactionData($order, $txType, $card);
 
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $data['approved']) {
             $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
@@ -143,7 +141,7 @@ class PosNet extends AbstractGateway
 
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $preparedOrder, $paymentModel, $txType, $this->get3DGatewayURL(), null, $data['oosRequestDataResponse']);
+        return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), null, $data['oosRequestDataResponse']);
     }
 
     /**
@@ -181,9 +179,7 @@ class PosNet extends AbstractGateway
      */
     public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $preparedOrder, $txType, $card);
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
 
         return $this->createXML($requestData);
     }
@@ -193,9 +189,7 @@ class PosNet extends AbstractGateway
      */
     public function createRegularPostXML(array $order): string
     {
-        $preparedOrder = $this->preparePostPaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
         return $this->createXML($requestData);
     }
@@ -207,9 +201,7 @@ class PosNet extends AbstractGateway
      */
     public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $preparedOrder, $txType, $responseData);
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
 
         return $this->createXML($requestData);
     }
@@ -228,9 +220,7 @@ class PosNet extends AbstractGateway
      */
     public function createStatusXML(array $order): string
     {
-        $preparedOrder = $this->prepareStatusOrder($order);
-
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
         return $this->createXML($requestData);
     }
@@ -240,9 +230,7 @@ class PosNet extends AbstractGateway
      */
     public function createCancelXML(array $order): string
     {
-        $preparedOrder = $this->prepareCancelOrder($order);
-
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
         return $this->createXML($requestData);
     }
@@ -252,96 +240,8 @@ class PosNet extends AbstractGateway
      */
     public function createRefundXML(array $order): string
     {
-        $preparedOrder = $this->prepareRefundOrder($order);
-
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
         return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePaymentOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'id'          => $order['id'],
-            'installment' => $order['installment'] ?? 0,
-            'amount'      => $order['amount'],
-            'currency'    => $order['currency'] ?? 'TRY',
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePostPaymentOrder(array $order)
-    {
-        return (object) [
-            'id'           => $order['id'],
-            'amount'       => $order['amount'],
-            'installment'  => $order['installment'] ?? 0,
-            'currency'     => $order['currency'] ?? 'TRY',
-            'ref_ret_num' => $order['ref_ret_num'],
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareStatusOrder(array $order)
-    {
-        return (object) [
-            'id'            => $order['id'],
-            'payment_model' => $order['payment_model'] ?? self::MODEL_3D_SECURE,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareHistoryOrder(array $order)
-    {
-        return $this->prepareStatusOrder($order);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareCancelOrder(array $order)
-    {
-        $orderTemp = [
-            //id or ref_ret_num
-            'id'          => $order['id'] ?? null,
-            'ref_ret_num' => $order['ref_ret_num'] ?? null,
-            //optional
-            'auth_code'   => $order['auth_code'] ?? null,
-        ];
-
-        if (isset($orderTemp['id'])) {
-            $orderTemp['payment_model'] = $order['payment_model'] ?? self::MODEL_3D_SECURE;
-        }
-
-        return (object) $orderTemp;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareRefundOrder(array $order)
-    {
-        $orderTemp = [
-            //id or ref_ret_num
-            'id'          => $order['id'] ?? null,
-            'ref_ret_num' => $order['ref_ret_num'] ?? null,
-            'amount'      => $order['amount'],
-            'currency'    => $order['currency'] ?? 'TRY',
-        ];
-
-        if (isset($orderTemp['id'])) {
-            $orderTemp['payment_model'] = $order['payment_model'] ?? self::MODEL_3D_SECURE;
-        }
-
-        return (object) $orderTemp;
     }
 }

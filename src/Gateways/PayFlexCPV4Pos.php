@@ -109,10 +109,9 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
 
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $data */
-        $data = $this->registerPayment($preparedOrder, $txType, $card);
+        $data = $this->registerPayment($order, $txType, $card);
 
         if (null !== $data['ErrorCode']) {
             $this->logger->log(LogLevel::ERROR, 'payment register fail response', $data);
@@ -123,7 +122,7 @@ class PayFlexCPV4Pos extends AbstractGateway
 
         return $this->requestDataMapper->create3DFormData(
             null,
-            null,
+            [],
             null,
             null,
             null,
@@ -175,9 +174,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $preparedOrder, $txType, $card);
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
 
         return $this->createXML($requestData);
     }
@@ -187,9 +184,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function createRegularPostXML(array $order): string
     {
-        $preparedOrder = $this->preparePostPaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
         return $this->createXML($requestData);
     }
@@ -209,9 +204,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function createStatusXML(array $order): array
     {
-        $preparedOrder = $this->prepareStatusOrder($order);
-
-        return $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
+        return $this->requestDataMapper->createStatusRequestData($this->account, $order);
     }
 
     /**
@@ -220,9 +213,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function createHistoryXML(array $customQueryData): array
     {
-        $preparedOrder = $this->prepareHistoryOrder($customQueryData);
-
-        return $this->requestDataMapper->createHistoryRequestData($this->account, $preparedOrder, $customQueryData);
+        return $this->requestDataMapper->createHistoryRequestData($this->account, $customQueryData, $customQueryData);
     }
 
     /**
@@ -230,9 +221,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function createRefundXML(array $order): string
     {
-        $preparedOrder = $this->prepareRefundOrder($order);
-
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
         return $this->createXML($requestData);
     }
@@ -242,77 +231,16 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function createCancelXML(array $order): string
     {
-        $preparedOrder = $this->prepareCancelOrder($order);
-
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
         return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePaymentOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
-            'amount'      => $order['amount'],
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePostPaymentOrder(array $order)
-    {
-        return (object) [
-            'id'       => $order['id'],
-            'amount'   => $order['amount'],
-            'currency' => $order['currency'] ?? 'TRY',
-            'ip'       => $order['ip'],
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareStatusOrder(array $order)
-    {
-        return (object) $order;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareHistoryOrder(array $order)
-    {
-        return (object) [
-            'id' => $order['id'] ?? null,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareCancelOrder(array $order)
-    {
-        return (object) $order;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareRefundOrder(array $order)
-    {
-        return (object) $order;
     }
 
     /**
      *
      * ORTAK ÖDEME SİSTEMİNE İŞLEM KAYDETME
      *
-     * @param object                                              $order
+     * @param array<string, int|string|float|null>                $order
      * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
      * @param AbstractCreditCard                                  $card
      *
@@ -323,7 +251,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @throws Exception
      */
-    public function registerPayment(object $order, string $txType, AbstractCreditCard $card = null): array
+    public function registerPayment(array $order, string $txType, AbstractCreditCard $card = null): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $this->account,

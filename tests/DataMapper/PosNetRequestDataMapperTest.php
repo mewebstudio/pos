@@ -138,7 +138,7 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'           => '2020110828BC',
             'ref_ret_num' => '019676067890000191',
             'amount'       => 10.02,
@@ -157,11 +157,9 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $order = (object) $this->order;
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $this->card);
-
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $order, $this->card);
+        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -170,16 +168,16 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData()
     {
-        $order = (object) [
+        $order = [
             'id' => '2020110828BC',
-            'payment_model' => AbstractGateway::MODEL_3D_SECURE
+            'payment_model' => AbstractGateway::MODEL_3D_SECURE,
         ];
 
         $actual       = $this->requestDataMapper->createCancelRequestData($this->account, $order);
         $expectedData = $this->getSampleCancelXMLData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
 
-        $order = (object) [
+        $order = [
             'ref_ret_num' => '2020110828BCNUM',
         ];
 
@@ -193,7 +191,7 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData()
     {
-        $order        = (object) [
+        $order        = [
             'id'          => '2020110828BC',
             'amount'      => 100.01,
             'installment' => '0',
@@ -216,8 +214,8 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreate3DEnrollmentCheckRequestData()
     {
-        $expected = $this->getSample3DEnrollmentCheckRequestData($this->account, (object) $this->order, $this->card);
-        $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, (object) $this->order, AbstractGateway::TX_PAY, $this->card);
+        $expected = $this->getSample3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
+        $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
         $this->assertEquals($expected, $actual);
     }
 
@@ -228,9 +226,8 @@ class PosNetRequestDataMapperTest extends TestCase
     public function testCreate3DEnrollmentCheckRequestDataFailTooLongOrderId()
     {
         $this->expectException(InvalidArgumentException::class);
-        $order = $this->order;
-        $order['id'] = 'd32458293945098y439244343';
-        $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, (object) $order, AbstractGateway::TX_PAY, $this->card);
+        $this->order['id'] = 'd32458293945098y439244343';
+        $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
     }
 
     /**
@@ -238,7 +235,7 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreate3DResolveMerchantRequestData()
     {
-        $order        = (object) [
+        $order        = [
             'id'          => '2020110828BC',
             'amount'      => 100.01,
             'installment' => '0',
@@ -267,7 +264,7 @@ class PosNetRequestDataMapperTest extends TestCase
 
         $expected = $this->requestDataMapper->create3DFormData(
             $this->account,
-            (object) $this->order,
+            $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             '',
             $gatewayURL,
@@ -275,7 +272,7 @@ class PosNetRequestDataMapperTest extends TestCase
             $ooTxSuccessData['oosRequestDataResponse']
         );
 
-        $actual   = $this->getSample3DFormData($this->account, (object) $this->order, $ooTxSuccessData['oosRequestDataResponse'], $gatewayURL);
+        $actual   = $this->getSample3DFormData($this->account, $this->order, $ooTxSuccessData['oosRequestDataResponse'], $gatewayURL);
         $this->assertEquals($expected, $actual);
     }
 
@@ -284,7 +281,7 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'            => '2020110828BC',
             'payment_model' => AbstractGateway::MODEL_3D_SECURE,
         ];
@@ -300,7 +297,7 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'            => '2020110828BC',
             'payment_model' => AbstractGateway::MODEL_3D_SECURE,
             'amount'        => 50,
@@ -315,13 +312,13 @@ class PosNetRequestDataMapperTest extends TestCase
 
     /**
      * @param PosNetAccount $account
-     * @param               $order
+     * @param array         $order
      * @param               $oosTxResponseData
      * @param string        $gatewayURL
      *
      * @return array
      */
-    private function getSample3DFormData(AbstractPosAccount $account, $order, $oosTxResponseData, string $gatewayURL): array
+    private function getSample3DFormData(AbstractPosAccount $account, array $order, $oosTxResponseData, string $gatewayURL): array
     {
         $inputs = [
             'posnetData'        => $oosTxResponseData['data1'],
@@ -330,7 +327,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'posnetID'          => $account->getPosNetId(),
             'digest'            => $oosTxResponseData['sign'],
             'vftCode'           => $account->promotion_code ?? null,
-            'merchantReturnURL' => $order->success_url,
+            'merchantReturnURL' => $order['success_url'],
             'url'               => '',
             'lang'              => 'tr',
         ];
@@ -382,11 +379,11 @@ class PosNetRequestDataMapperTest extends TestCase
 
     /**
      * @param PosNetAccount $account
-     * @param               $order
+     * @param array         $order
      *
      * @return array
      */
-    private function getSampleCancelXMLData(AbstractPosAccount $account, $order): array
+    private function getSampleCancelXMLData(AbstractPosAccount $account, array $order): array
     {
         $requestData = [
             'mid'              => $account->getClientId(),
@@ -398,8 +395,8 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
 
         //either will work
-        if (isset($order->ref_ret_num)) {
-            $requestData['reverse']['hostLogKey'] = $order->ref_ret_num;
+        if (isset($order['ref_ret_num'])) {
+            $requestData['reverse']['hostLogKey'] = $order['ref_ret_num'];
         } else {
             $requestData['reverse']['orderID'] = 'TDSC000000002020110828BC';
         }
@@ -409,20 +406,20 @@ class PosNetRequestDataMapperTest extends TestCase
 
     /**
      * @param PosNetAccount      $account
-     * @param                    $order
+     * @param array              $order
      * @param AbstractCreditCard $card
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, $order, AbstractCreditCard $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, AbstractCreditCard $card): array
     {
         return [
             'mid'              => $account->getClientId(),
             'tid'              => $account->getTerminalId(),
             'tranDateRequired' => '1',
             'sale'             => [
-                'orderID'      => $order->id,
-                'installment'  => $order->installment,
+                'orderID'      => $order['id'],
+                'installment'  => $order['installment'],
                 'amount'       => 175,
                 'currencyCode' => 'TL',
                 'ccno'         => $card->getNumber(),
@@ -434,18 +431,18 @@ class PosNetRequestDataMapperTest extends TestCase
 
     /**
      * @param PosNetAccount $account
-     * @param               $order
+     * @param array         $order
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, $order): array
+    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, array $order): array
     {
         return [
             'mid'              => $account->getClientId(),
             'tid'              => $account->getTerminalId(),
             'tranDateRequired' => '1',
             'capt'             => [
-                'hostLogKey'   => $order->ref_ret_num,
+                'hostLogKey'   => $order['ref_ret_num'],
                 'amount'       => 1002,
                 'currencyCode' => 'TL',
                 'installment'  => '02',
@@ -475,7 +472,7 @@ class PosNetRequestDataMapperTest extends TestCase
      *
      * @return array
      */
-    private function getSampleRefundXMLData(AbstractPosAccount $account, $order): array
+    private function getSampleRefundXMLData(AbstractPosAccount $account, array $order): array
     {
         $requestData = [
             'mid'              => $account->getClientId(),
@@ -487,8 +484,8 @@ class PosNetRequestDataMapperTest extends TestCase
             ],
         ];
 
-        if (isset($order->ref_ret_num)) {
-            $requestData['return']['hostLogKey'] = $order->ref_ret_num;
+        if (isset($order['ref_ret_num'])) {
+            $requestData['return']['hostLogKey'] = $order['ref_ret_num'];
         } else {
             $requestData['return']['orderID'] = 'TDSC000000002020110828BC';
         }
@@ -503,7 +500,7 @@ class PosNetRequestDataMapperTest extends TestCase
      *
      * @return array
      */
-    private function getSample3DEnrollmentCheckRequestData(PosNetAccount $account, $order, AbstractCreditCard $card): array
+    private function getSample3DEnrollmentCheckRequestData(PosNetAccount $account, array $order, AbstractCreditCard $card): array
     {
         return [
             'mid'            => $account->getClientId(),
@@ -515,8 +512,8 @@ class PosNetRequestDataMapperTest extends TestCase
                 'cvc'            => $this->card->getCvv(),
                 'amount'         => 175,
                 'currencyCode'   => 'TL',
-                'installment'    => $order->installment,
-                'XID'            => $this->requestDataMapper::formatOrderId($order->id),
+                'installment'    => $order['installment'],
+                'XID'            => $this->requestDataMapper::formatOrderId($order['id']),
                 'cardHolderName' => $card->getHolderName(),
                 'tranType'       => 'Sale',
             ],

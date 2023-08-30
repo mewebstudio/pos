@@ -206,12 +206,10 @@ class KuveytPos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
         $gatewayUrl = $this->get3DGatewayURL();
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->getCommon3DFormData($this->account, $preparedOrder, $paymentModel, $txType, $gatewayUrl, $card);
+        return $this->getCommon3DFormData($this->account, $order, $paymentModel, $txType, $gatewayUrl, $card);
     }
 
     /**
@@ -219,9 +217,7 @@ class KuveytPos extends AbstractGateway
      */
     public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        $data = $this->requestDataMapper->create3DPaymentRequestData($this->account, $preparedOrder, $txType, $responseData);
+        $data = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
 
         return $this->createXML($data);
     }
@@ -255,9 +251,7 @@ class KuveytPos extends AbstractGateway
      */
     public function createStatusXML(array $order): array
     {
-        $preparedOrder = $this->prepareStatusOrder($order);
-
-        return $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
+        return $this->requestDataMapper->createStatusRequestData($this->account, $order);
     }
 
     /**
@@ -265,9 +259,7 @@ class KuveytPos extends AbstractGateway
      */
     public function createCancelXML(array $order): array
     {
-        $preparedOrder = $this->prepareCancelOrder($order);
-
-        return $this->requestDataMapper->createCancelRequestData($this->account, $preparedOrder);
+        return $this->requestDataMapper->createCancelRequestData($this->account, $order);
     }
 
     /**
@@ -275,101 +267,23 @@ class KuveytPos extends AbstractGateway
      */
     public function createRefundXML(array $order): array
     {
-        $preparedOrder = $this->prepareRefundOrder($order);
-
-        return $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
+        return $this->requestDataMapper->createRefundRequestData($this->account, $order);
     }
 
     /**
-     * @inheritDoc
-     */
-    protected function preparePaymentOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePostPaymentOrder(array $order)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareStatusOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'id'         => $order['id'],
-            'currency'   => $order['currency'] ?? 'TRY',
-            'start_date' => $order['start_date'] ?? date_create('-360 day'),
-            'end_date'   => $order['end_date'] ?? date_create(),
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareHistoryOrder(array $order)
-    {
-        return (object) $order;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareCancelOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'id'              => $order['id'],
-            'remote_order_id' => $order['remote_order_id'],
-            'ref_ret_num'     => $order['ref_ret_num'],
-            'auth_code'       => $order['auth_code'],
-            'trans_id'        => $order['trans_id'],
-            'amount'          => $order['amount'],
-            'currency'        => $order['currency'] ?? 'TRY',
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareRefundOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'id'              => $order['id'],
-            'remote_order_id' => $order['remote_order_id'],
-            'ref_ret_num'     => $order['ref_ret_num'],
-            'auth_code'       => $order['auth_code'],
-            'trans_id'        => $order['trans_id'],
-            'amount'          => $order['amount'],
-            'currency'        => $order['currency'] ?? 'TRY',
-        ]);
-    }
-
-    /**
-     * @param KuveytPosAccount        $account
-     * @param                         $order
-     * @param self::MODEL_*           $paymentModel
-     * @param self::TX_*              $txType
-     * @param string                  $gatewayURL
-     * @param AbstractCreditCard|null $card
+     * @param KuveytPosAccount                     $account
+     * @param array<string, int|string|float|null> $order
+     * @param self::MODEL_*                        $paymentModel
+     * @param self::TX_*                           $txType
+     * @param string                               $gatewayURL
+     * @param AbstractCreditCard|null              $card
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      *
      * @throws Exception
      */
-    private function getCommon3DFormData(KuveytPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    private function getCommon3DFormData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        if (!$order) {
-            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
-        }
-
         $formData     = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $paymentModel, $txType, $card);
         $xml          = $this->createXML($formData);
         $bankResponse = $this->send($xml, $txType, $gatewayURL);

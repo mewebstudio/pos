@@ -109,9 +109,7 @@ class PayFlexV4Pos extends AbstractGateway
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        $data = $this->sendEnrollmentRequest($preparedOrder, $card);
+        $data = $this->sendEnrollmentRequest($order, $card);
 
         $status = $data['Message']['VERes']['Status'];
         /**
@@ -139,21 +137,21 @@ class PayFlexV4Pos extends AbstractGateway
 
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $preparedOrder, $paymentModel, $txType, '', null, $data['Message']['VERes']);
+        return $this->requestDataMapper->create3DFormData($this->account, null, $paymentModel, $txType, '', null, $data['Message']['VERes']);
     }
 
     /**
      * Müşteriden kredi kartı bilgilerini aldıktan sonra GET 7/24 MPI’a kart “Kredi Kartı Kayıt Durumu”nun
      * (Enrollment Status) sorulması, yani kart 3-D Secure programına dâhil mi yoksa değil mi sorgusu
      *
-     * @param object             $order
-     * @param AbstractCreditCard $card
+     * @param array<string, int|string|float|null> $order
+     * @param AbstractCreditCard                   $card
      *
      * @return array
      *
      * @throws Exception
      */
-    public function sendEnrollmentRequest(object $order, AbstractCreditCard $card): array
+    public function sendEnrollmentRequest(array $order, AbstractCreditCard $card): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $card);
 
@@ -203,9 +201,7 @@ class PayFlexV4Pos extends AbstractGateway
      */
     public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $preparedOrder, $txType, $card);
+        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
 
         return $this->createXML($requestData);
     }
@@ -215,9 +211,7 @@ class PayFlexV4Pos extends AbstractGateway
      */
     public function createRegularPostXML(array $order): string
     {
-        $preparedOrder = $this->preparePostPaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
         return $this->createXML($requestData);
     }
@@ -230,9 +224,7 @@ class PayFlexV4Pos extends AbstractGateway
      */
     public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $preparedOrder, $txType, $responseData, $card);
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData, $card);
 
         return $this->createXML($requestData);
     }
@@ -242,9 +234,7 @@ class PayFlexV4Pos extends AbstractGateway
      */
     public function createStatusXML(array $order): string
     {
-        $preparedOrder = $this->prepareStatusOrder($order);
-
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
         return parent::createXML(['SearchRequest' => $requestData]);
     }
@@ -255,9 +245,7 @@ class PayFlexV4Pos extends AbstractGateway
      */
     public function createHistoryXML($customQueryData): array
     {
-        $preparedOrder = $this->prepareHistoryOrder($customQueryData);
-
-        return $this->requestDataMapper->createHistoryRequestData($this->account, $preparedOrder, $customQueryData);
+        return $this->requestDataMapper->createHistoryRequestData($this->account, $customQueryData, $customQueryData);
     }
 
     /**
@@ -265,9 +253,7 @@ class PayFlexV4Pos extends AbstractGateway
      */
     public function createRefundXML(array $order): string
     {
-        $preparedOrder = $this->prepareRefundOrder($order);
-
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
         return $this->createXML($requestData);
     }
@@ -277,72 +263,8 @@ class PayFlexV4Pos extends AbstractGateway
      */
     public function createCancelXML(array $order): string
     {
-        $preparedOrder = $this->prepareCancelOrder($order);
-
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $preparedOrder);
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
         return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePaymentOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
-            'amount'      => $order['amount'],
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePostPaymentOrder(array $order)
-    {
-        return (object) [
-            'id'       => $order['id'],
-            'amount'   => $order['amount'],
-            'currency' => $order['currency'] ?? 'TRY',
-            'ip'       => $order['ip'],
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareStatusOrder(array $order)
-    {
-        return (object) [
-            'id' => $order['id'],
-        ];
-    }
-
-    /**
-     * TODO
-     * @inheritDoc
-     */
-    protected function prepareHistoryOrder(array $order)
-    {
-        return (object) [
-            'id' => $order['id'] ?? null,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareCancelOrder(array $order)
-    {
-        return (object) $order;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareRefundOrder(array $order)
-    {
-        return (object) $order;
     }
 }

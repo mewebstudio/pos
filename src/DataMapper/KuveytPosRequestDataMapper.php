@@ -89,8 +89,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      * @return array{APIVersion: string, HashData: string, CustomerIPAddress: mixed, KuveytTurkVPosAdditionalData: array{AdditionalData: array{Key: string, Data: mixed}}, TransactionType: string, InstallmentCount: mixed, Amount: mixed, DisplayAmount: int, CurrencyCode: mixed, MerchantOrderId: mixed, TransactionSecurity: mixed, MerchantId: string, CustomerId: string, UserName: string}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
+    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $mappedOrder = (array) $order;
         $mappedOrder['amount'] = self::amountFormat($order->amount);
         $hash = $this->crypt->createHash($account, $mappedOrder, $this->mapTxType($txType));
@@ -116,12 +118,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
-     * @param KuveytPosAccount         $account
-     * @param AbstractGateway::TX_*    $txType
-     * @param AbstractGateway::MODEL_* $paymentModel
+     * @param KuveytPosAccount                     $account
+     * @param array<string, int|string|float|null> $order
+     * @param AbstractGateway::MODEL_*             $paymentModel
+     * @param AbstractGateway::TX_*                $txType
+     * @param AbstractCreditCard                   $card
      */
-    public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, $order, string $paymentModel, string $txType, ?AbstractCreditCard $card = null): array
+    public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $mappedOrder = (array) $order;
         $mappedOrder['amount'] = self::amountFormat($order->amount);
         $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
@@ -156,7 +162,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
     {
         throw new NotImplementedException();
     }
@@ -164,7 +170,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
     {
         throw new NotImplementedException();
     }
@@ -173,8 +179,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param KuveytPosAccount $account
      * {@inheritDoc}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, $order): array
+    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareStatusOrder($order);
+
         $mappedOrder = (array) $order;
         $mappedOrder['amount'] = 0;
         $hash = $this->crypt->createHash($account, $mappedOrder);
@@ -232,8 +240,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param KuveytPosAccount $account
      * {@inheritDoc}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, $order): array
+    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareCancelOrder($order);
+
         $mappedOrder = (array) $order;
         $mappedOrder['amount'] = self::amountFormat($order->amount);
         $hash = $this->crypt->createHash($account, $mappedOrder);
@@ -281,8 +291,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param KuveytPosAccount $account
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, $order): array
+    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareRefundOrder($order);
+
         $mappedOrder = (array) $order;
         $mappedOrder['amount'] = self::amountFormat($order->amount);
         $hash = $this->crypt->createHash($account, $mappedOrder);
@@ -329,7 +341,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         throw new NotImplementedException();
     }
@@ -337,7 +349,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
+    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
     {
         throw new NotImplementedException();
     }
@@ -345,6 +357,62 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public function mapInstallment(?int $installment): string
     {
         return $installment > 1 ? (string) $installment : '0';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePaymentOrder(array $order): object
+    {
+        return (object) array_merge($order, [
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareStatusOrder(array $order): object
+    {
+        return (object) array_merge($order, [
+            'id'         => $order['id'],
+            'currency'   => $order['currency'] ?? 'TRY',
+            'start_date' => $order['start_date'] ?? date_create('-360 day'),
+            'end_date'   => $order['end_date'] ?? date_create(),
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareCancelOrder(array $order): object
+    {
+        return (object) array_merge($order, [
+            'id'              => $order['id'],
+            'remote_order_id' => $order['remote_order_id'],
+            'ref_ret_num'     => $order['ref_ret_num'],
+            'auth_code'       => $order['auth_code'],
+            'trans_id'        => $order['trans_id'],
+            'amount'          => $order['amount'],
+            'currency'        => $order['currency'] ?? 'TRY',
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareRefundOrder(array $order): object
+    {
+        return (object) array_merge($order, [
+            'id'              => $order['id'],
+            'remote_order_id' => $order['remote_order_id'],
+            'ref_ret_num'     => $order['ref_ret_num'],
+            'auth_code'       => $order['auth_code'],
+            'trans_id'        => $order['trans_id'],
+            'amount'          => $order['amount'],
+            'currency'        => $order['currency'] ?? 'TRY',
+        ]);
     }
 
     /**

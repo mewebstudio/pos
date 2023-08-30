@@ -123,13 +123,13 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'VerifyEnrollmentRequestId' => (string) random_int(1, 100),
         ];
 
-        $expectedValue = $this->getSample3DPaymentRequestData($this->account, (object) $order, $txType, $gatewayResponse, $this->card);
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, (object) $order, $txType, $gatewayResponse, $this->card);
+        $expectedValue = $this->getSample3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse, $this->card);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse, $this->card);
         $this->assertEquals($expectedValue, $actual);
 
         $order['installment'] = 2;
-        $expectedValue = $this->getSample3DPaymentRequestData($this->account, (object) $order, $txType, $gatewayResponse, $this->card);
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, (object) $order, $txType, $gatewayResponse, $this->card);
+        $expectedValue = $this->getSample3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse, $this->card);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse, $this->card);
         $this->assertEquals($expectedValue, $actual);
     }
 
@@ -138,21 +138,21 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DEnrollmentCheckData()
     {
-        $expectedValue = $this->getSample3DEnrollmentRequestData($this->account, (object) $this->order, $this->card);
-        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, (object) $this->order, $this->card);
+        $expectedValue = $this->getSample3DEnrollmentRequestData($this->account, $this->order, $this->card);
+        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedValue, $actual);
 
 
         $this->order['installment'] = 2;
-        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, (object) $this->order, $this->card);
-        $expectedValue = $this->getSample3DEnrollmentRequestData($this->account, (object) $this->order, $this->card);
+        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
+        $expectedValue = $this->getSample3DEnrollmentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedValue, $actual);
 
         $this->order['recurringFrequencyType'] = 'DAY';
         $this->order['recurringFrequency'] = 3;
         $this->order['recurringInstallmentCount'] = 2;
-        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, (object) $this->order, $this->card);
-        $expectedValue = $this->getSample3DEnrollmentRequestData($this->account, (object) $this->order, $this->card);
+        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
+        $expectedValue = $this->getSample3DEnrollmentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedValue, $actual);
         $this->assertArrayHasKey('RecurringFrequency', $actual);
     }
@@ -167,7 +167,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $order['amount'] = 1000;
 
         $expectedValue = $this->getSampleNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
-        $actualData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, (object) $order, $txType, $this->card);
+        $actualData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
 
         $this->assertEquals($expectedValue, $actualData);
     }
@@ -181,7 +181,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $order['amount'] = 1000;
 
         $expectedValue = $this->getSampleNonSecurePaymentPostRequestData($this->account, $order);
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, (object) $order);
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
         $this->assertEquals($expectedValue, $actual);
     }
@@ -195,7 +195,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $order['id'] = '15613133';
 
         $expectedValue = $this->getSampleCancelRequestData($this->account, $order);
-        $actualData = $this->requestDataMapper->createCancelRequestData($this->account, (object) $order);
+        $actualData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
         $this->assertEquals($expectedValue, $actualData);
     }
@@ -210,7 +210,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $order['amount'] = 1000;
 
         $expectedValue = $this->getSampleRefundRequestData($this->account, $order);
-        $actualData = $this->requestDataMapper->createRefundRequestData($this->account, (object) $order);
+        $actualData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
         $this->assertEquals($expectedValue, $actualData);
     }
@@ -287,26 +287,26 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
 
     /**
      * @param PayFlexAccount          $account
-     * @param                         $order
+     * @param array                   $order
      * @param string                  $txType
      * @param array                   $responseData
      * @param AbstractCreditCard|null $card
      *
      * @return array
      */
-    private function getSample3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData, ?AbstractCreditCard $card): array
+    private function getSample3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, ?AbstractCreditCard $card): array
     {
         $expectedValue = [
             'MerchantId'              => $account->getClientId(),
             'Password'                => $account->getPassword(),
             'TerminalNo'              => $account->getTerminalId(),
             'TransactionType'         => $this->requestDataMapper->mapTxType($txType),
-            'OrderId'                 => $order->id,
-            'ClientIp'                => $order->ip,
+            'OrderId'                 => $order['id'],
+            'ClientIp'                => $order['ip'],
             'CurrencyCode'            => '949',
-            'CurrencyAmount'          => $order->amount,
+            'CurrencyAmount'          => $order['amount'],
             'OrderDescription'        => '',
-            'TransactionId'           => $order->id,
+            'TransactionId'           => $order['id'],
             'Pan'                     => $card->getNumber(),
             'Cvv'                     => $card->getCvv(),
             'CardHoldersName'         => $card->getHolderName(),
@@ -316,8 +316,8 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
             'TransactionDeviceSource' => 0,
         ];
-        if ($order->installment) {
-            $expectedValue['NumberOfInstallments'] = $this->requestDataMapper->mapInstallment($order->installment);
+        if ($order['installment']) {
+            $expectedValue['NumberOfInstallments'] = $this->requestDataMapper->mapInstallment($order['installment']);
         }
 
         return $expectedValue;
@@ -326,40 +326,40 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
 
     /**
      * @param PayFlexAccount          $account
-     * @param                         $order
+     * @param array                   $order
      * @param AbstractCreditCard|null $card
      *
      * @return array
      */
-    private function getSample3DEnrollmentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card): array
+    private function getSample3DEnrollmentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card): array
     {
         $expectedValue = [
             'MerchantId'                => $account->getClientId(),
             'MerchantPassword'          => $account->getPassword(),
             'MerchantType'              => $account->getMerchantType(),
-            'PurchaseAmount'            => $order->amount,
-            'VerifyEnrollmentRequestId' => $order->rand,
+            'PurchaseAmount'            => $order['amount'],
+            'VerifyEnrollmentRequestId' => $order['rand'],
             'Currency'                  => '949',
-            'SuccessUrl'                => $order->success_url,
-            'FailureUrl'                => $order->fail_url,
-            'SessionInfo'               => $order->extraData,
+            'SuccessUrl'                => $order['success_url'],
+            'FailureUrl'                => $order['fail_url'],
+            'SessionInfo'               => $order['extraData'],
             'Pan'                       => $card->getNumber(),
             'ExpiryDate'                => '2112',
             'BrandName'                 => '100',
             'IsRecurring'               => 'false',
         ];
 
-        if ($order->installment) {
-            $expectedValue['InstallmentCount'] = $this->requestDataMapper->mapInstallment($order->installment);
+        if ($order['installment']) {
+            $expectedValue['InstallmentCount'] = $this->requestDataMapper->mapInstallment($order['installment']);
         }
 
-        if (isset($order->recurringFrequency)) {
+        if (isset($order['recurringFrequency'])) {
             $expectedValue['IsRecurring'] = 'true';
-            $expectedValue['RecurringFrequency'] = $order->recurringFrequency;
+            $expectedValue['RecurringFrequency'] = $order['recurringFrequency'];
             $expectedValue['RecurringFrequencyType'] = 'Day';
-            $expectedValue['RecurringInstallmentCount'] = $order->recurringInstallmentCount;
-            if (isset($order->recurringEndDate)) {
-                $expectedValue['RecurringEndDate'] = $order->recurringEndDate;
+            $expectedValue['RecurringInstallmentCount'] = $order['recurringInstallmentCount'];
+            if (isset($order['recurringEndDate'])) {
+                $expectedValue['RecurringEndDate'] = $order['recurringEndDate'];
             }
         }
 
@@ -368,13 +368,13 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
 
     /**
      * @param PayFlexAccount     $account
-     * @param                    $order
+     * @param array              $order
      * @param string             $txType
      * @param AbstractCreditCard $card
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, AbstractCreditCard $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
     {
         return [
             'MerchantId'              => $account->getClientId(),

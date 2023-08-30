@@ -63,8 +63,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
+    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $requestData = [
             'ApiType'               => 'JSON',
             'ApiVersion'            => self::API_VERSION,
@@ -104,8 +106,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         if (null === $card) {
             throw new \LogicException('Eksik kart bilgileri!');
         }
@@ -159,8 +163,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePostPaymentOrder($order);
+
         $requestData = [
             'ApiType'                => 'JSON',
             'ApiVersion'             => self::API_VERSION,
@@ -192,8 +198,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, $order): array
+    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareStatusOrder($order);
+
         $requestData = [
             'ApiType'                => 'JSON',
             'ApiVersion'             => self::API_VERSION,
@@ -217,8 +225,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, $order): array
+    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareCancelOrder($order);
+
         $requestData = [
             'ApiType'                => 'JSON',
             'ApiVersion'             => self::API_VERSION,
@@ -250,8 +260,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, $order): array
+    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareRefundOrder($order);
+
         $requestData = [
             'ApiType'                => 'JSON',
             'ApiVersion'             => self::API_VERSION,
@@ -286,7 +298,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
+    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
     {
         throw new NotImplementedException();
     }
@@ -299,8 +311,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * @throws Exception
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, $extraData = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, $extraData = null): array
     {
+        $order = $this->preparePaymentOrder($order);
 
         $inputs = [
             'MerchantNo'        => $account->getClientId(),
@@ -429,5 +442,82 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         }
 
         return '0';
+    }
+
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePaymentOrder(array $order): object
+    {
+        return (object) array_merge($order, [
+            'id'          => $order['id'],
+            'installment' => $order['installment'] ?? 0,
+            'amount'      => $order['amount'],
+            'currency'    => $order['currency'] ?? 'TRY',
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePostPaymentOrder(array $order): object
+    {
+        return (object) [
+            'id'          => $order['id'],
+            'amount'      => $order['amount'],
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
+            'ref_ret_num' => $order['ref_ret_num'],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareStatusOrder(array $order): object
+    {
+        return (object) [
+            'id'            => $order['id'],
+            'payment_model' => $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareHistoryOrder(array $order): object
+    {
+        return $this->prepareStatusOrder($order);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareCancelOrder(array $order): object
+    {
+        return (object) [
+            //id or ref_ret_num
+            'id'               => $order['id'] ?? null,
+            'payment_model'    => $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE,
+            'ref_ret_num'      => $order['ref_ret_num'] ?? null,
+            'transaction_type' => $order['transaction_type'] ?? AbstractGateway::TX_PAY,
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareRefundOrder(array $order): object
+    {
+        return (object) [
+            //id or ref_ret_num
+            'id'               => $order['id'] ?? null,
+            'payment_model'    => $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE,
+            'ref_ret_num'      => $order['ref_ret_num'] ?? null,
+            'transaction_type' => $order['transaction_type'] ?? AbstractGateway::TX_PAY,
+            'amount'           => $order['amount'],
+            'currency'         => $order['currency'] ?? 'TRY',
+        ];
     }
 }

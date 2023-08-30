@@ -107,9 +107,9 @@ class PayForPosRequestDataMapperTest extends TestCase
             'lang'        => AbstractGateway::LANG_TR,
         ];
 
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, (object) $order);
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->account, (object) $order);
+        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -118,9 +118,9 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, (object) $this->order, AbstractGateway::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
 
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, (object) $this->order, $this->card);
+        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -134,9 +134,9 @@ class PayForPosRequestDataMapperTest extends TestCase
             'currency' => 'TRY',
         ];
 
-        $actual = $this->requestDataMapper->createCancelRequestData($this->account, (object) $order);
+        $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleCancelXMLData($this->account, (object) $order);
+        $expectedData = $this->getSampleCancelXMLData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -150,7 +150,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             'reqDate' => '20220518',
         ];
 
-        $actual = $this->requestDataMapper->createHistoryRequestData($this->account, (object) [], $order);
+        $actual = $this->requestDataMapper->createHistoryRequestData($this->account, [], $order);
 
         $expectedData = $this->getSampleHistoryRequestData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
@@ -166,9 +166,9 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
         $responseData = ['RequestGuid' => '1000000057437884'];
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, (object) $order, '', $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, '', $responseData);
 
-        $expectedData = $this->getSample3DPaymentRequestData($this->account, (object) $order, $responseData);
+        $expectedData = $this->getSample3DPaymentRequestData($this->account, $order, $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -177,23 +177,22 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testGet3DFormData()
     {
-        $order   = (object) $this->order;
         $card       = $this->card;
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
         $inputs = [
             'MbrId'            => '5',
             'MerchantID'       => $this->account->getClientId(),
             'UserCode'         => $this->account->getUsername(),
-            'OrderId'          => $order->id,
-            'Lang'             => $order->lang,
+            'OrderId'          => $this->order['id'],
+            'Lang'             => $this->order['lang'],
             'SecureType'       => '3DModel',
             'TxnType'          => 'Auth',
-            'PurchAmount'      => $order->amount,
+            'PurchAmount'      => $this->order['amount'],
             'InstallmentCount' => 0,
             'Currency'         => 949,
-            'OkUrl'            => $order->success_url,
-            'FailUrl'          => $order->fail_url,
-            'Rnd'              => $order->rand,
+            'OkUrl'            => $this->order['success_url'],
+            'FailUrl'          => $this->order['fail_url'],
+            'Rnd'              => $this->order['rand'],
             'Hash'             => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
         ];
         $form   = [
@@ -204,7 +203,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         //test without card
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
-            $order,
+            $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             AbstractGateway::TX_PAY,
             $gatewayURL
@@ -220,7 +219,7 @@ class PayForPosRequestDataMapperTest extends TestCase
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
-            $order,
+            $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             AbstractGateway::TX_PAY,
             $gatewayURL,
@@ -233,23 +232,21 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testGet3DHostFormData()
     {
-        $order      = (object) $this->order;
-
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d_host'];
         $inputs     = [
             'MbrId'            => '5',
             'MerchantID'       => $this->account->getClientId(),
             'UserCode'         => $this->account->getUsername(),
-            'OrderId'          => $order->id,
+            'OrderId'          => $this->order['id'],
             'Lang'             => 'tr',
             'SecureType'       => '3DHost',
             'TxnType'          => 'Auth',
-            'PurchAmount'      => $order->amount,
+            'PurchAmount'      => $this->order['amount'],
             'InstallmentCount' => 0,
             'Currency'         => 949,
-            'OkUrl'            => $order->success_url,
-            'FailUrl'          => $order->fail_url,
-            'Rnd'              => $order->rand,
+            'OkUrl'            => $this->order['success_url'],
+            'FailUrl'          => $this->order['fail_url'],
+            'Rnd'              => $this->order['rand'],
             'Hash'             => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
         ];
         $form       = [
@@ -260,7 +257,7 @@ class PayForPosRequestDataMapperTest extends TestCase
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
-            $order,
+            $this->order,
             AbstractGateway::MODEL_3D_HOST,
             AbstractGateway::TX_PAY,
             $gatewayURL
@@ -272,7 +269,7 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData()
     {
-        $order = (object) [
+        $order = [
             'id' => '2020110828BC',
         ];
 
@@ -287,7 +284,7 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'       => '2020110828BC',
             'currency' => 'TRY',
             'amount'   => 10.1,
@@ -301,36 +298,36 @@ class PayForPosRequestDataMapperTest extends TestCase
 
     /**
      * @param AbstractPosAccount $account
-     * @param                    $order
+     * @param array              $order
      * @param array              $responseData
      *
      * @return array
      */
-    private function getSample3DPaymentRequestData(AbstractPosAccount $account, $order, array $responseData): array
+    private function getSample3DPaymentRequestData(AbstractPosAccount $account, array $order, array $responseData): array
     {
         return [
             'RequestGuid' => $responseData['RequestGuid'],
             'UserCode'    => $account->getUsername(),
             'UserPass'    => $account->getPassword(),
-            'OrderId'     => $order->id,
+            'OrderId'     => $order['id'],
             'SecureType'  => '3DModelPayment',
         ];
     }
 
     /**
      * @param AbstractPosAccount $account
-     * @param                    $order
+     * @param array              $order
      *
      * @return array
      */
-    private function getSampleCancelXMLData(AbstractPosAccount $account, $order): array
+    private function getSampleCancelXMLData(AbstractPosAccount $account, array $order): array
     {
         return [
             'MbrId'      => '5',
             'MerchantId' => $account->getClientId(),
             'UserCode'   => $account->getUsername(),
             'UserPass'   => $account->getPassword(),
-            'OrgOrderId' => $order->id,
+            'OrgOrderId' => $order['id'],
             'SecureType' => 'NonSecure',
             'Lang'       => 'tr',
             'TxnType'    => 'Void',
@@ -340,12 +337,12 @@ class PayForPosRequestDataMapperTest extends TestCase
 
     /**
      * @param AbstractPosAccount $account
-     * @param                    $order
+     * @param array              $order
      * @param AbstractCreditCard $card
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, $order, AbstractCreditCard $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, AbstractCreditCard $card): array
     {
         return [
             'MbrId'            => '5',
@@ -353,10 +350,10 @@ class PayForPosRequestDataMapperTest extends TestCase
             'UserCode'         => $account->getUsername(),
             'UserPass'         => $account->getPassword(),
             'MOTO'             => '0',
-            'OrderId'          => $order->id,
+            'OrderId'          => $order['id'],
             'SecureType'       => 'NonSecure',
             'TxnType'          => 'Auth',
-            'PurchAmount'      => $order->amount,
+            'PurchAmount'      => $order['amount'],
             'Currency'         => 949,
             'InstallmentCount' => 0,
             'Lang'             => 'tr',
@@ -369,21 +366,21 @@ class PayForPosRequestDataMapperTest extends TestCase
 
     /**
      * @param AbstractPosAccount $account
-     * @param                    $order
+     * @param array              $order
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, $order): array
+    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, array $order): array
     {
         return [
             'MbrId'       => '5',
             'MerchantId'  => $account->getClientId(),
             'UserCode'    => $account->getUsername(),
             'UserPass'    => $account->getPassword(),
-            'OrgOrderId'  => $order->id,
+            'OrgOrderId'  => $order['id'],
             'SecureType'  => 'NonSecure',
             'TxnType'     => 'PostAuth',
-            'PurchAmount' => $order->amount,
+            'PurchAmount' => $order['amount'],
             'Currency'    => 949,
             'Lang'        => 'tr',
         ];
@@ -391,18 +388,18 @@ class PayForPosRequestDataMapperTest extends TestCase
 
     /**
      * @param AbstractPosAccount $account
-     * @param                    $order
+     * @param array              $order
      *
      * @return array
      */
-    private function getSampleStatusRequestData(AbstractPosAccount $account, $order): array
+    private function getSampleStatusRequestData(AbstractPosAccount $account, array $order): array
     {
         return [
             'MbrId'      => '5',
             'MerchantId' => $account->getClientId(),
             'UserCode'   => $account->getUsername(),
             'UserPass'   => $account->getPassword(),
-            'OrgOrderId' => $order->id,
+            'OrgOrderId' => $order['id'],
             'SecureType' => 'Inquiry',
             'Lang'       => 'tr',
             'TxnType'    => 'OrderInquiry',
@@ -411,33 +408,33 @@ class PayForPosRequestDataMapperTest extends TestCase
 
     /**
      * @param AbstractPosAccount $account
-     * @param                    $order
+     * @param array              $order
      *
      * @return array
      */
-    private function getSampleRefundXMLData(AbstractPosAccount $account, $order): array
+    private function getSampleRefundXMLData(AbstractPosAccount $account, array $order): array
     {
         return [
             'MbrId'       => '5',
             'MerchantId'  => $account->getClientId(),
             'UserCode'    => $account->getUsername(),
             'UserPass'    => $account->getPassword(),
-            'OrgOrderId'  => $order->id,
+            'OrgOrderId'  => $order['id'],
             'SecureType'  => 'NonSecure',
             'Lang'        => 'tr',
             'TxnType'     => 'Refund',
-            'PurchAmount' => $order->amount,
+            'PurchAmount' => $order['amount'],
             'Currency'    => 949,
         ];
     }
 
     /**
      * @param AbstractPosAccount $account
-     * @param                    $customQueryData
+     * @param array              $customQueryData
      *
      * @return array
      */
-    private function getSampleHistoryRequestData(AbstractPosAccount $account, $customQueryData): array
+    private function getSampleHistoryRequestData(AbstractPosAccount $account, array $customQueryData): array
     {
         $requestData = [
             'MbrId'      => '5',

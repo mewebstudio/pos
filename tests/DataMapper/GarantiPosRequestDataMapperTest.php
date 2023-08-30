@@ -116,11 +116,10 @@ class GarantiPosRequestDataMapperTest extends TestCase
     public function testCreateNonSecurePostAuthPaymentRequestData()
     {
         $this->order['ref_ret_num'] = '831803579226';
-        $order = (object) $this->order;
 
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
 
-        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->account, $order);
+        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->account, $this->order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -129,11 +128,9 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $order = (object) $this->order;
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
 
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $this->card);
-
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $order, $this->card);
+        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -142,7 +139,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'          => '2020110828BC',
             'ip'          => '127.15.15.1',
             'currency'    => 'TRY',
@@ -163,13 +160,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreateHistoryRequestData()
     {
-        $order = $this->order;
-        $order['amount'] = 1;
-        $order = (object) $order;
+        $this->order['amount'] = 1;
 
-        $actual = $this->requestDataMapper->createHistoryRequestData($this->account, $order);
+        $actual = $this->requestDataMapper->createHistoryRequestData($this->account, $this->order);
 
-        $expectedData = $this->getSampleHistoryRequestData($this->account, $order);
+        $expectedData = $this->getSampleHistoryRequestData($this->account, $this->order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -178,12 +173,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData()
     {
-        $order = (object) $this->order;
         $responseData = $this->getSample3DResponseData();
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, '', $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, '', $responseData);
 
-        $expectedData = $this->getSample3DPaymentRequestData($this->account, $order, $responseData);
+        $expectedData = $this->getSample3DPaymentRequestData($this->account, $this->order, $responseData);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -227,7 +221,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         //test without card
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
-            (object) $this->order,
+            $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             AbstractGateway::TX_PAY,
             $gatewayURL,
@@ -240,7 +234,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'          => '2020110828BC',
             'ip'          => '127.15.15.1',
             'installment' => 0,
@@ -260,7 +254,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData()
     {
-        $order = (object) [
+        $order = [
             'id'          => '2020110828BC',
             'ip'          => '127.15.15.1',
             'currency'    => 'TRY',
@@ -304,7 +298,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'AddressList' => [
                     'Address' => [
                         'Type'        => 'B',
-                        'Name'        => $order->name,
+                        'Name'        => $order['name'],
                         'LastName'    => '',
                         'Company'     => '',
                         'Text'        => '',
@@ -335,11 +329,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
     /**
      * @param GarantiPosAccount $account
-     * @param                   $order
+     * @param array             $order
      *
      * @return array
      */
-    private function getSampleCancelXMLData(AbstractPosAccount $account, $order): array
+    private function getSampleCancelXMLData(AbstractPosAccount $account, array $order): array
     {
         return [
             'Mode'        => 'TEST',
@@ -352,11 +346,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-                'IPAddress'    => $order->ip,
-                'EmailAddress' => $order->email,
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
-                'OrderID' => $order->id,
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => 'void',
@@ -365,19 +359,19 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'CurrencyCode'          => '949',
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => 'N',
-                'OriginalRetrefNum'     => $order->ref_ret_num,
+                'OriginalRetrefNum'     => $order['ref_ret_num'],
             ],
         ];
     }
 
     /**
      * @param GarantiPosAccount  $account
-     * @param                    $order
+     * @param array              $order
      * @param AbstractCreditCard $card
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, $order, AbstractCreditCard $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, AbstractCreditCard $card): array
     {
         return [
             'Mode'        => 'TEST',
@@ -390,8 +384,8 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-                'IPAddress'    => $order->ip,
-                'EmailAddress' => $order->email,
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Card'        => [
                 'Number'     => $card->getNumber(),
@@ -399,11 +393,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'CVV2'       => $card->getCvv(),
             ],
             'Order'       => [
-                'OrderID'     => $order->id,
+                'OrderID'     => $order['id'],
                 'AddressList' => [
                     'Address' => [
                         'Type'        => 'B',
-                        'Name'        => $order->name,
+                        'Name'        => $order['name'],
                         'LastName'    => '',
                         'Company'     => '',
                         'Text'        => '',
@@ -428,11 +422,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
     /**
      * @param GarantiPosAccount $account
-     * @param                   $order
+     * @param array             $order
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, $order): array
+    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, array $order): array
     {
         return [
             'Mode'        => 'TEST',
@@ -445,28 +439,28 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-                'IPAddress'    => $order->ip,
-                'EmailAddress' => $order->email,
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
-                'OrderID' => $order->id,
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'              => 'postauth',
                 'Amount'            => 10025,
                 'CurrencyCode'      => '949',
-                'OriginalRetrefNum' => $order->ref_ret_num,
+                'OriginalRetrefNum' => $order['ref_ret_num'],
             ],
         ];
     }
 
     /**
      * @param GarantiPosAccount $account
-     * @param                   $order
+     * @param array             $order
      *
      * @return array
      */
-    private function getSampleStatusRequestData(AbstractPosAccount $account, $order): array
+    private function getSampleStatusRequestData(AbstractPosAccount $account, array $order): array
     {
         return [
             'Mode'        => 'TEST',
@@ -479,11 +473,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-                'IPAddress'    => $order->ip,
-                'EmailAddress' => $order->email,
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
-                'OrderID' => $order->id,
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => 'orderinq',
@@ -498,11 +492,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
     /**
      * @param GarantiPosAccount $account
-     * @param                   $order
+     * @param array             $order
      *
      * @return array
      */
-    private function getSampleRefundXMLData(AbstractPosAccount $account, $order): array
+    private function getSampleRefundXMLData(AbstractPosAccount $account, array $order): array
     {
         return [
             'Mode'        => 'TEST',
@@ -515,31 +509,31 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-                'IPAddress'    => $order->ip,
-                'EmailAddress' => $order->email,
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
-                'OrderID' => $order->id,
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => 'refund',
                 'InstallmentCnt'        => '',
-                'Amount'                => GarantiPosRequestDataMapper::amountFormat($order->amount),
+                'Amount'                => GarantiPosRequestDataMapper::amountFormat($order['amount']),
                 'CurrencyCode'          => '949',
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => 'N',
-                'OriginalRetrefNum'     => $order->ref_ret_num,
+                'OriginalRetrefNum'     => $order['ref_ret_num'],
             ],
         ];
     }
 
     /**
      * @param GarantiPosAccount $account
-     * @param                    $order
+     * @param array             $order
      *
      * @return array
      */
-    private function getSampleHistoryRequestData(AbstractPosAccount $account, $order): array
+    private function getSampleHistoryRequestData(AbstractPosAccount $account, array $order): array
     {
         return [
             'Mode'        => 'TEST',
@@ -552,11 +546,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-               'IPAddress'    => $order->ip,
-               'EmailAddress' => $order->email,
+               'IPAddress'    => $order['ip'],
+               'EmailAddress' => $order['email'],
             ],
             'Order'       => [
-                'OrderID' => $order->id,
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => 'orderhistoryinq',

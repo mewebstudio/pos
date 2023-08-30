@@ -124,7 +124,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expectedData)
     {
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, (object) $order);
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
         $this->assertEquals($expectedData, $actual);
     }
@@ -134,7 +134,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData(array $order, array $expectedData)
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account,(object) $order, AbstractGateway::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account,$order, AbstractGateway::TX_PAY, $this->card);
 
         $this->assertEquals($expectedData, $actual);
     }
@@ -144,7 +144,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, (object) $order, $txType, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
 
         $this->assertEquals($expectedData, $actual);
     }
@@ -156,7 +156,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     {
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
-            (object) $order,
+            $order,
             AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayUrl,
@@ -171,7 +171,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData(array $order, array $expected)
     {
-        $actual = $this->requestDataMapper->createStatusRequestData($this->account, (object) $order);
+        $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -180,7 +180,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData(array $order, array $expected)
     {
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, (object) $order);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -190,7 +190,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData(array $order, array $expected)
     {
-        $actual = $this->requestDataMapper->createCancelRequestData($this->account, (object) $order);
+        $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
     }
 

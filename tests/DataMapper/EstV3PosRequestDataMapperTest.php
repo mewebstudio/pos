@@ -104,7 +104,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         //test without card
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
-            (object) $this->order,
+            $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayURL
@@ -122,7 +122,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
-            (object) $this->order,
+            $this->order,
             AbstractGateway::MODEL_3D_SECURE,
             $txType,
             $gatewayURL,
@@ -162,7 +162,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
-            (object) $this->order,
+            $this->order,
             AbstractGateway::MODEL_3D_HOST,
             AbstractGateway::TX_PAY,
             $gatewayURL

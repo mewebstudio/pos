@@ -93,7 +93,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DEnrollmentCheckData(AbstractPosAccount $account, array $order, string $txType, ?CreditCard $card, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, (object) $order, $txType, $card);
+        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);
         $this->assertEquals($expectedData, $actual);
     }
 

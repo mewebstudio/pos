@@ -15,8 +15,10 @@ class EstV3PosRequestDataMapper extends EstPosRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $data = $this->create3DFormDataCommon($account, $order, $paymentModel, $txType, $gatewayURL, $card);
 
         $data['inputs']['hashAlgorithm'] = 'ver3';

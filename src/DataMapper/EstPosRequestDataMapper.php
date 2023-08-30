@@ -69,8 +69,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * @param array{md: string, xid: string, eci: string, cavv: string} $responseData
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, $order, string $txType, array $responseData): array
+    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $requestData = $this->getRequestAccountData($account) + [
             'Type'                    => $this->mapTxType($txType),
             'IPAddress'               => (string) ($order->ip ?? ''),
@@ -104,8 +106,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      * @return array{PbOrder?: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}, Type: string, IPAddress: mixed, Email: mixed, OrderId: mixed, UserId: mixed, Total: mixed, Currency: string, Taksit: string, Number: string, Expires: string, Cvv2Val: string, Mode: string, BillTo: array{Name: mixed}, Name: string, Password: string, ClientId: string}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePaymentOrder($order);
+
         $requestData =  $this->getRequestAccountData($account) + [
             'Type'      => $this->mapTxType($txType),
             'IPAddress' => (string) ($order->ip ?? ''),
@@ -136,8 +140,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * @return array{Type: string, OrderId: string, Name: string, Password: string, ClientId: string}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
     {
+        $order = $this->preparePostPaymentOrder($order);
+
         return $this->getRequestAccountData($account) + [
             'Type'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
             'OrderId'  => (string) $order->id,
@@ -147,13 +153,15 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, $order): array
+    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
     {
         $statusRequestData = $this->getRequestAccountData($account) + [
             'Extra' => [
                 $this->mapTxType(AbstractGateway::TX_STATUS) => 'QUERY',
             ],
         ];
+
+        $order = $this->prepareStatusOrder($order);
 
         if (isset($order->id)) {
             $statusRequestData['OrderId'] = $order->id;
@@ -167,8 +175,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, $order): array
+    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareCancelOrder($order);
+
         $orderData = [];
         if (isset($order->recurringOrderInstallmentNumber)) {
             // this method cancels only pending recurring orders, it will not cancel already fulfilled transactions
@@ -197,8 +207,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      * @return array{OrderId: string, Currency: string, Type: string, Total?: string, Name: string, Password: string, ClientId: string}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, $order): array
+    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareRefundOrder($order);
+
         $requestData = [
             'OrderId'  => (string) $order->id,
             'Currency' => $this->mapCurrency($order->currency),
@@ -216,7 +228,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      * @return array{OrderId: string, Extra: array<string, string>&mixed[], Name: string, Password: string, ClientId: string}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, $order, array $extraData = []): array
+    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
     {
         $requestData = [
             'OrderId'  => (string) $extraData['order_id'], //todo orderId ya da id olarak degistirilecek, Payfor'da orderId, Garanti'de id
@@ -232,12 +244,14 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        $data = $this->create3DFormDataCommon($account, $order, $paymentModel, $txType, $gatewayURL, $card);
+        $preparedOrder = $this->preparePaymentOrder($order);
 
-        $orderMapped = clone $order;
-        $orderMapped->installment = $this->mapInstallment($order->installment);
+        $data = $this->create3DFormDataCommon($account, $preparedOrder, $paymentModel, $txType, $gatewayURL, $card);
+
+        $orderMapped = clone $preparedOrder;
+        $orderMapped->installment = $this->mapInstallment($preparedOrder->installment);
 
         $data['inputs']['hash'] = $this->crypt->create3DHash($account, (array) $orderMapped, $this->mapTxType($txType));
 
@@ -288,6 +302,39 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public function mapInstallment(?int $installment): string
     {
         return $installment > 1 ? (string) $installment : '';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePaymentOrder(array $order): object
+    {
+        return (object) array_merge($order, [
+            'installment' => $order['installment'] ?? 0,
+            'currency'    => $order['currency'] ?? 'TRY',
+        ]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function preparePostPaymentOrder(array $order): object
+    {
+        return (object) [
+            'id' => $order['id'],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareRefundOrder(array $order): object
+    {
+        return (object) [
+            'id'       => $order['id'],
+            'currency' => $order['currency'] ?? 'TRY',
+            'amount'   => $order['amount'],
+        ];
     }
 
     /**

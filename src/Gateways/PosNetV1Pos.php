@@ -109,11 +109,9 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $preparedOrder, $paymentModel, $txType, $this->get3DGatewayURL(), $card);
+        return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), $card);
     }
 
     /**
@@ -158,9 +156,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): array
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        return $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $preparedOrder, $txType, $card);
+        return $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
     }
 
     /**
@@ -168,9 +164,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function createRegularPostXML(array $order): array
     {
-        $preparedOrder = $this->preparePostPaymentOrder($order);
-
-        return $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $preparedOrder);
+        return $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
     }
 
     /**
@@ -178,9 +172,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): array
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        return $this->requestDataMapper->create3DPaymentRequestData($this->account, $preparedOrder, $txType, $responseData);
+        return $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
     }
 
 
@@ -197,9 +189,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function createStatusXML(array $order): array
     {
-        $preparedOrder = $this->prepareStatusOrder($order);
-
-        return $this->requestDataMapper->createStatusRequestData($this->account, $preparedOrder);
+        return $this->requestDataMapper->createStatusRequestData($this->account, $order);
     }
 
     /**
@@ -207,9 +197,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function createCancelXML(array $order): array
     {
-        $preparedOrder = $this->prepareCancelOrder($order);
-
-        return $this->requestDataMapper->createCancelRequestData($this->account, $preparedOrder);
+        return $this->requestDataMapper->createCancelRequestData($this->account, $order);
     }
 
     /**
@@ -217,84 +205,6 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function createRefundXML(array $order): array
     {
-        $preparedOrder = $this->prepareRefundOrder($order);
-
-        return $this->requestDataMapper->createRefundRequestData($this->account, $preparedOrder);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePaymentOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'id'          => $order['id'],
-            'installment' => $order['installment'] ?? 0,
-            'amount'      => $order['amount'],
-            'currency'    => $order['currency'] ?? 'TRY',
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePostPaymentOrder(array $order)
-    {
-        return (object) [
-            'id'          => $order['id'],
-            'amount'      => $order['amount'],
-            'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
-            'ref_ret_num' => $order['ref_ret_num'],
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareStatusOrder(array $order)
-    {
-        return (object) [
-            'id'            => $order['id'],
-            'payment_model' => $order['payment_model'] ?? self::MODEL_3D_SECURE,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareHistoryOrder(array $order)
-    {
-        return $this->prepareStatusOrder($order);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareCancelOrder(array $order)
-    {
-        return (object) [
-            //id or ref_ret_num
-            'id'               => $order['id'] ?? null,
-            'payment_model'    => $order['payment_model'] ?? self::MODEL_3D_SECURE,
-            'ref_ret_num'      => $order['ref_ret_num'] ?? null,
-            'transaction_type' => $order['transaction_type'] ?? AbstractGateway::TX_PAY,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareRefundOrder(array $order)
-    {
-        return (object) [
-            //id or ref_ret_num
-            'id'               => $order['id'] ?? null,
-            'payment_model'    => $order['payment_model'] ?? self::MODEL_3D_SECURE,
-            'ref_ret_num'      => $order['ref_ret_num'] ?? null,
-            'transaction_type' => $order['transaction_type'] ?? AbstractGateway::TX_PAY,
-            'amount'           => $order['amount'],
-            'currency'         => $order['currency'] ?? 'TRY',
-        ];
+        return $this->requestDataMapper->createRefundRequestData($this->account, $order);
     }
 }
