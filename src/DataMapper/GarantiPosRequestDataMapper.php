@@ -413,7 +413,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
+            'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'amount'      => $order['amount'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
@@ -428,7 +428,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return [
             'id'          => $order['id'],
             'ref_ret_num' => $order['ref_ret_num'],
-            'currency'    => $order['currency'] ?? 'TRY',
+            'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'amount'      => $order['amount'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
@@ -443,7 +443,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return [
             'id'          => $order['id'],
             'amount'      => 1, //sabit deger gonderilmesi gerekiyor
-            'currency'    => $order['currency'] ?? 'TRY',
+            'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',
             'installment' => 0,
@@ -466,7 +466,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return [
             'id'          => $order['id'],
             'amount'      => 1, //sabit deger gonderilmesi gerekiyor
-            'currency'    => $order['currency'] ?? 'TRY',
+            'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'ref_ret_num' => $order['ref_ret_num'],
             'ip'          => $order['ip'] ?? '',
             'email'       => $order['email'] ?? '',

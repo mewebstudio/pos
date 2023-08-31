@@ -56,7 +56,7 @@
                 <div class="form-group col-md-4">
                     <select name="currency" id="currency" class="form-control input-lg">
                         <?php foreach ($pos->getCurrencies() as $currency => $code) : ?>
-                            <option value="<?= $currency; ?>" <?= $currency === 'TRY' ? 'selected': null ?>><?= $currency; ?></option>
+                            <option value="<?= $currency; ?>" <?= $currency === \Mews\Pos\PosInterface::CURRENCY_TRY ? 'selected': null ?>><?= $currency; ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>

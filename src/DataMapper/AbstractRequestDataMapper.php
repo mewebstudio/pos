@@ -40,15 +40,15 @@ abstract class AbstractRequestDataMapper
      * fakat bazi banklar ISO standarti kullanmiyorlar.
      * Currency mapping
      *
-     * @var non-empty-array<string, string>
+     * @var non-empty-array<PosInterface::CURRENCY_*, string>
      */
     protected $currencyMappings = [
-        'TRY' => '949',
-        'USD' => '840',
-        'EUR' => '978',
-        'GBP' => '826',
-        'JPY' => '392',
-        'RUB' => '643',
+        PosInterface::CURRENCY_TRY => '949',
+        PosInterface::CURRENCY_USD => '840',
+        PosInterface::CURRENCY_EUR => '978',
+        PosInterface::CURRENCY_GBP => '826',
+        PosInterface::CURRENCY_JPY => '392',
+        PosInterface::CURRENCY_RUB => '643',
     ];
 
     /**
@@ -65,7 +65,7 @@ abstract class AbstractRequestDataMapper
 
     /**
      * @param CryptInterface|null   $crypt
-     * @param array<string, string> $currencyMappings
+     * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
      */
     public function __construct(?CryptInterface $crypt = null, array $currencyMappings = [])
     {
@@ -205,7 +205,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @return non-empty-array<string, string>
+     * @return non-empty-array<PosInterface::CURRENCY_*, string>
      */
     public function getCurrencyMappings(): array
     {
@@ -226,7 +226,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @param string $currency TRY, USD
+     * @param PosInterface::CURRENCY_* $currency
      *
      * @return string currency code that is accepted by bank
      */

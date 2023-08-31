@@ -54,7 +54,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             'name'        => 'John Doe', // optional
             'amount'      => 100.01,
             'installment' => '0',
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
             'rand'        => '0.43625700 1604831630',
@@ -73,8 +73,8 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testMapCurrency()
     {
-        $this->assertEquals('949', $this->requestDataMapper->mapCurrency('TRY'));
-        $this->assertEquals('978', $this->requestDataMapper->mapCurrency('EUR'));
+        $this->assertEquals('949', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_TRY));
+        $this->assertEquals('978', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_EUR));
     }
 
     /**
@@ -103,7 +103,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             'id'          => '2020110828BC',
             'amount'      => 100.01,
             'installment' => '0',
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'lang'        => PosInterface::LANG_TR,
         ];
 
@@ -131,7 +131,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'       => '2020110828BC',
-            'currency' => 'TRY',
+            'currency' => PosInterface::CURRENCY_TRY,
         ];
 
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
@@ -286,7 +286,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'       => '2020110828BC',
-            'currency' => 'TRY',
+            'currency' => PosInterface::CURRENCY_TRY,
             'amount'   => 10.1,
         ];
 

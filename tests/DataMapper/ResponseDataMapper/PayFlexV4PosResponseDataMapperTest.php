@@ -4,6 +4,7 @@ namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -157,7 +158,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'order_status' => 'COMPLETED',
                 'transaction_type' => 'pay',
                 'capture_amount' => '90.50',
-                'currency' => 'TRY',
+                'currency' => PosInterface::CURRENCY_TRY,
                 'status' => 'approved',
                 'status_detail' => 'İŞLEM BAŞARILI',
                 'error_code' => null,

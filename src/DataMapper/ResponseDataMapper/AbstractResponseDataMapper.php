@@ -19,16 +19,16 @@ abstract class AbstractResponseDataMapper
     /** @var LoggerInterface */
     protected $logger;
 
-    /** @var array<string, string> */
+    /** @var array<string, PosInterface::CURRENCY_*> */
     private $currencyMappings;
 
     /** @var array<string, PosInterface::TX_*> */
     protected $txTypeMappings;
 
     /**
-     * @param array<string, string>             $currencyMappings
-     * @param array<PosInterface::TX_*, string> $txTypeMappings
-     * @param LoggerInterface                   $logger
+     * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
+     * @param array<PosInterface::TX_*, string>       $txTypeMappings
+     * @param LoggerInterface                         $logger
      */
     public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)
     {
@@ -74,9 +74,9 @@ abstract class AbstractResponseDataMapper
     protected abstract function mapResponseTransactionSecurity(string $mdStatus): string;
 
     /**
-     * @param string $currency TRY, USD
+     * @param string $currency currency code that is accepted by bank
      *
-     * @return string currency code that is accepted by bank
+     * @return PosInterface::CURRENCY_*|string
      */
     protected function mapCurrency(string $currency): string
     {

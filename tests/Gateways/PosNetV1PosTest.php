@@ -116,7 +116,7 @@ class PosNetV1PosTest extends TestCase
                 'id'          => $dataSamples['success1']['threeDResponseData']['OrderId'],
                 'amount'      => 1.75,
                 'installment' => 0,
-                'currency'    => 'TRY',
+                'currency'    => PosInterface::CURRENCY_TRY,
                 'success_url' => 'https://domain.com/success',
             ],
             'threeDResponseData' => $dataSamples['success1']['threeDResponseData'],

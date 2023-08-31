@@ -111,6 +111,11 @@ parameters:
 			path: src/DataMapper/EstPosRequestDataMapper.php
 
 		-
+			message: "#^Parameter \\#1 \\$currency of method Mews\\\\Pos\\\\DataMapper\\\\AbstractRequestDataMapper\\:\\:mapCurrency\\(\\) expects 'EUR'\\|'GBP'\\|'JPY'\\|'RUB'\\|'TRY'\\|'USD', string given\\.$#"
+			count: 1
+			path: src/DataMapper/EstPosRequestDataMapper.php
+
+		-
 			message: "#^Cannot call method create3DHash\\(\\) on Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\|null\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php

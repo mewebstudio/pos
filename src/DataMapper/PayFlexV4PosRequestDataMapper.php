@@ -318,7 +318,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     {
         return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
+            'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'amount'      => $order['amount'],
         ]);
     }
@@ -331,7 +331,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'currency' => $order['currency'] ?? 'TRY',
+            'currency' => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'ip'       => $order['ip'],
         ];
     }

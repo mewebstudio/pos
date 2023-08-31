@@ -6,6 +6,7 @@ use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\GarantiPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -316,7 +317,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'invalid_transaction',
                     'masked_number'        => '428220***8015',
                     'amount'               => 0.0,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => 'Y',
                     'eci'                  => '02',
                     'cavv'                 => 'jCm0m+u/0hUfAREHBAMBcfN+pSo=',
@@ -395,7 +396,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'approved',
                     'masked_number'        => '428220***8015',
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => 'Y',
                     'eci'                  => '02',
                     'cavv'                 => 'jCm0m+u/0hUfAREHBAMBcfN+pSo=',
@@ -444,7 +445,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'general_error',
                     'masked_number'        => null,
                     'amount'               => 0.0,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => null,
                     'eci'                  => null,
                     'cavv'                 => null,
@@ -514,7 +515,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'invalid_transaction',
                     'masked_number'        => '428220***8015',
                     'amount'               => 0.0,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => 'Y',
                     'eci'                  => '02',
                     'cavv'                 => 'jCm0m+u/0hUfAREHBAMBcfN+pSo=',

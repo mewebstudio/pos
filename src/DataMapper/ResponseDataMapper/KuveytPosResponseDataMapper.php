@@ -2,6 +2,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 
 class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
@@ -391,9 +392,9 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
 
 
     /**
-     * @param string $currency TRY, USD
+     * @param string $currency currency code that is accepted by bank
      *
-     * @return string currency code that is accepted by bank
+     * @return PosInterface::CURRENCY_*|string
      */
     protected function mapCurrency(string $currency): string
     {

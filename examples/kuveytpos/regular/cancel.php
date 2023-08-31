@@ -25,7 +25,7 @@ $order        = [
     'auth_code'   => '241855',
     'trans_id'    => '298458',
     'amount'      => 1.01,
-    'currency'    => 'TRY',
+    'currency'    => PosInterface::CURRENCY_TRY,
 ];*/
 
 $transaction = PosInterface::TX_CANCEL;

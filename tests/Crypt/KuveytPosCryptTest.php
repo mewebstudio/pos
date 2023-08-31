@@ -36,7 +36,7 @@ class KuveytPosCryptTest extends TestCase
             'id'          => '2020110828BC',
             'amount'      => 10.01,
             'installment' => '0',
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
             'rand'        => '0.43625700 1604831630',
@@ -76,7 +76,7 @@ class KuveytPosCryptTest extends TestCase
                 'requestData' => [
                     'id'          => 'ORDER-123',
                     'amount'      => 7256,
-                    'currency'    => 'TRY',
+                    'currency'    => PosInterface::CURRENCY_TRY,
                     'installment' => '0',
                 ],
                 'expected'    => 'Bf+hZf2c1gf1pTXnEaSGxDpGRr0=',
@@ -91,7 +91,7 @@ class KuveytPosCryptTest extends TestCase
                 'requestData' => [
                     'id'          => 'ORDER-123',
                     'amount'      => 7256,
-                    'currency'    => 'TRY',
+                    'currency'    => PosInterface::CURRENCY_TRY,
                     'success_url' => 'http://localhost:44785/Home/Success',
                     'fail_url'    => 'http://localhost:44785/Home/Fail',
                 ],

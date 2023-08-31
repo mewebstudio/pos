@@ -61,7 +61,7 @@ class KuveytPosTest extends TestCase
             'id'          => '2020110828BC',
             'amount'      => 10.01,
             'installment' => '0',
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
             'rand'        => '0.43625700 1604831630',

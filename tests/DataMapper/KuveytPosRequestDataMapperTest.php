@@ -57,7 +57,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'id'          => '2020110828BC',
             'amount'      => 10.01,
             'installment' => '0',
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
             'rand'        => '0.43625700 1604831630',
@@ -98,8 +98,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testMapCurrency()
     {
-        $this->assertEquals('0949', $this->requestDataMapper->mapCurrency('TRY'));
-        $this->assertEquals('0978', $this->requestDataMapper->mapCurrency('EUR'));
+        $this->assertEquals('0949', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_TRY));
+        $this->assertEquals('0978', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_EUR));
     }
 
     /**
@@ -259,7 +259,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'auth_code'       => '241839',
                 'trans_id'        => '298433',
                 'amount'          => 1.01,
-                'currency'        => 'TRY',
+                'currency'        => PosInterface::CURRENCY_TRY,
             ],
             'expected' => [
                 'IsFromExternalNetwork' => true,
@@ -314,7 +314,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'auth_code'       => '241839',
                 'trans_id'        => '298433',
                 'amount'          => 1.01,
-                'currency'        => 'TRY',
+                'currency'        => PosInterface::CURRENCY_TRY,
             ],
             'expected' => [
                 'IsFromExternalNetwork' => true,
@@ -366,7 +366,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         yield [
             'order'    => [
                 'id'       => '2023070849CD',
-                'currency' => 'TRY',
+                'currency' => PosInterface::CURRENCY_TRY,
                 'start_date' => $startDate,
                 'end_date' => $endDate,
             ],

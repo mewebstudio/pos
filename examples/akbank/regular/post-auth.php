@@ -6,7 +6,7 @@ require '_config.php';
 
 $templateTitle = 'Post Auth Order (ön provizyonu tamamlama)';
 
-$ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
+$ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', PosInterface::CURRENCY_TRY), $session);
 
 $order = [
     'id' => $ord['id'],

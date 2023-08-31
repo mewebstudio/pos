@@ -4,6 +4,7 @@ namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -312,7 +313,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'transaction_security' => '3DModel',
                     'masked_number' => '415565******6111',
                     'amount' => 1.01,
-                    'currency' => 'TRY',
+                    'currency' => PosInterface::CURRENCY_TRY,
                     'tx_status' => 'Failed',
                     'md_status' => '-1',
                     'md_error_code' => 'V034',
@@ -457,7 +458,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'transaction_security' => '3DModel',
                     'masked_number' => '415565******6111',
                     'amount' => 1.01,
-                    'currency' => 'TRY',
+                    'currency' => PosInterface::CURRENCY_TRY,
                     'tx_status' => 'Failed',
                     'md_status' => '1',
                     'md_error_code' => null,
@@ -618,7 +619,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'transaction_security' => '3DPay',
                     'masked_number' => '415565******6111',
                     'amount' => 1.01,
-                    'currency' => 'TRY',
+                    'currency' => PosInterface::CURRENCY_TRY,
                     'tx_status' => 'Success',
                     'md_status' => '1',
                     'md_error_code' => null,
@@ -763,7 +764,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'transaction_security' => '3DPay',
                     'masked_number' => '415565******6111',
                     'amount' => 1.01,
-                    'currency' => 'TRY',
+                    'currency' => PosInterface::CURRENCY_TRY,
                     'tx_status' => 'Failed',
                     'md_status' => '-1',
                     'md_error_code' => 'MR15',
@@ -916,7 +917,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'transaction_security' => '3DHost',
                     'masked_number' => '415565******6111',
                     'amount' => 1.01,
-                    'currency' => 'TRY',
+                    'currency' => PosInterface::CURRENCY_TRY,
                     'tx_status' => 'Success',
                     'md_status' => '1',
                     'md_error_code' => null,
@@ -1062,7 +1063,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'transaction_security' => '3DHost',
                     'masked_number' => '415565******6111',
                     'amount' => 1.01,
-                    'currency' => 'TRY',
+                    'currency' => PosInterface::CURRENCY_TRY,
                     'tx_status' => 'Failed',
                     'md_status' => '-1',
                     'md_error_code' => 'MR15',
@@ -1214,7 +1215,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                         'transaction_type' => 'pay',
                         'masked_number' => '415565******6111',
                         'amount' => 1.01,
-                        'currency' => 'TRY',
+                        'currency' => PosInterface::CURRENCY_TRY,
                         'status' => 'approved',
                         'status_detail' => 'approved',
                     ],
@@ -1351,7 +1352,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                         'transaction_type' => 'status',
                         'masked_number' => null,
                         'amount' => null,
-                        'currency' => 'TRY',
+                        'currency' => PosInterface::CURRENCY_TRY,
                         'status' => 'declined',
                         'status_detail' => 'reject',
                     ],

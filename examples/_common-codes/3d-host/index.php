@@ -8,7 +8,7 @@ require '../../_templates/_header.php';
 $order = getNewOrder(
     $baseUrl,
     $ip,
-    $request->get('currency', 'TRY'),
+    $request->get('currency', PosInterface::CURRENCY_TRY),
     $session,
     $request->get('installment'),
     false,

@@ -56,7 +56,7 @@ class EstPosTest extends TestCase
             'email'       => 'test@test.com',
             'amount'      => '100.25',
             'installment' => 0,
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => 'tr',

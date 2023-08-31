@@ -6,6 +6,7 @@ use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -157,7 +158,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'error_message'    => null,
                 'remote_order_id'  => '4480',
                 'amount'           => 1.0,
-                'currency'         => 'TRY',
+                'currency'         => PosInterface::CURRENCY_TRY,
                 'masked_number'    => '5124********1609',
             ],
         ];
@@ -241,7 +242,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'transaction_security' => 'MPI fallback',
                     'md_status'            => null,
                     'amount'               => '10',
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => null,
                     'md_error_message'     => null,
                     'masked_number'        => '5124********1609',
@@ -309,7 +310,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'transaction_security' => 'MPI fallback',
                     'md_status'            => null,
                     'amount'               => '100',
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => null,
                     'md_error_message'     => null,
                     'masked_number'        => '5124********1609',
@@ -446,7 +447,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'status'               => 'approved',
                     'status_detail'        => 'approved',
                     'amount'               => 1.0,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'error_code'           => null,
                     'masked_number'        => '5124********1609',
                 ],
@@ -564,7 +565,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'status_detail'    => null,
                 'capture'          => false,
                 'remote_order_id'  => '114293600',
-                'currency'         => 'TRY',
+                'currency'         => PosInterface::CURRENCY_TRY,
                 'date'             => '2023-07-08T23:45:15.797',
             ],
         ];
@@ -599,7 +600,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'auth_code'        => '241839',
                 'proc_return_code' => '00',
                 'trans_id'         => '298433',
-                'currency'         => 'TRY',
+                'currency'         => PosInterface::CURRENCY_TRY,
                 'error_message'    => null,
                 'ref_ret_num'      => '318923298433',
                 'status'           => 'approved',
@@ -710,7 +711,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'auth_code'        => null,
                 'proc_return_code' => '28',
                 'trans_id'         => '298460',
-                'currency'         => 'TRY',
+                'currency'         => PosInterface::CURRENCY_TRY,
                 'error_message'    => 'İptal Edilen İşlem İade Yapılamaz',
                 'ref_ret_num'      => '319013298460',
                 'status'           => 'declined',
@@ -776,7 +777,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'auth_code' => '241859',
                 'proc_return_code' => '00',
                 'trans_id' => '298463',
-                'currency' => 'TRY',
+                'currency' => PosInterface::CURRENCY_TRY,
                 'error_message' => null,
                 'ref_ret_num' => '319014298463',
                 'status' => 'approved',

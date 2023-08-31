@@ -55,7 +55,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'email'       => 'test@test.com',
             'amount'      => '100.25',
             'installment' => 0,
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => 'tr',
@@ -82,8 +82,8 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testMapCurrency()
     {
-        $this->assertEquals('949', $this->requestDataMapper->mapCurrency('TRY'));
-        $this->assertEquals('978', $this->requestDataMapper->mapCurrency('EUR'));
+        $this->assertEquals('949', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_TRY));
+        $this->assertEquals('978', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_EUR));
     }
 
     /**
@@ -188,7 +188,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'ip'          => '192.168.1.0',
             'amount'      => 100.01,
             'installment' => '0',
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
         ];
@@ -218,7 +218,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'ip'                        => '192.168.1.0',
             'amount'                    => 100.01,
             'installment'               => 0,
-            'currency'                  => 'TRY',
+            'currency'                  => PosInterface::CURRENCY_TRY,
             'success_url'               => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'                  => 'http://localhost/finansbank-payfor/3d/response.php',
             'recurringFrequency'        => 3,
@@ -373,7 +373,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $order = [
             'id'       => '2020110828BC',
             'amount'   => 50,
-            'currency' => 'TRY',
+            'currency' => PosInterface::CURRENCY_TRY,
         ];
 
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);

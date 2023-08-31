@@ -6,6 +6,7 @@ use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\InterPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -239,7 +240,7 @@ class InterPosResponseDataMapperTest extends TestCase
                     'month'                => null,
                     'year'                 => null,
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'eci'                  => null,
                     'tx_status'            => 'N',
                     'cavv'                 => null,
@@ -311,7 +312,7 @@ class InterPosResponseDataMapperTest extends TestCase
                     'month'                => null,
                     'year'                 => null,
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'eci'                  => null,
                     'tx_status'            => 'N',
                     'cavv'                 => null,
@@ -386,7 +387,7 @@ class InterPosResponseDataMapperTest extends TestCase
                     'month'                => null,
                     'year'                 => null,
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'eci'                  => null,
                     'tx_status'            => 'N',
                     'cavv'                 => null,

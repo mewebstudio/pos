@@ -245,7 +245,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
+            'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ]);
     }
 
@@ -257,7 +257,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'currency' => $order['currency'] ?? 'TRY',
+            'currency' => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ];
     }
 

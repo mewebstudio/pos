@@ -58,7 +58,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'id'          => 'order222',
             'amount'      => '100.25',
             'installment' => 0,
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => PosInterface::LANG_TR,
@@ -79,8 +79,8 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testMapCurrency()
     {
-        $this->assertEquals('949', $this->requestDataMapper->mapCurrency('TRY'));
-        $this->assertEquals('978', $this->requestDataMapper->mapCurrency('EUR'));
+        $this->assertEquals('949', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_TRY));
+        $this->assertEquals('978', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_EUR));
     }
 
     /**
@@ -108,7 +108,7 @@ class InterPosRequestDataMapperTest extends TestCase
         $order = [
             'id'       => '2020110828BC',
             'amount'   => 320,
-            'currency' => 'TRY',
+            'currency' => PosInterface::CURRENCY_TRY,
         ];
 
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
@@ -153,7 +153,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'id'          => '2020110828BC',
             'amount'      => 100.01,
             'installment' => 0,
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
             'lang'        => PosInterface::LANG_EN,

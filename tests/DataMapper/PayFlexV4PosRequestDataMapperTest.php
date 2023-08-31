@@ -51,7 +51,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'email'       => 'test@test.com',
             'amount'      => 100.00,
             'installment' => 0,
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'rand'        => microtime(true),
@@ -87,8 +87,8 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
      */
     public function testMapCurrency()
     {
-        $this->assertEquals('949', $this->requestDataMapper->mapCurrency('TRY'));
-        $this->assertEquals('978', $this->requestDataMapper->mapCurrency('EUR'));
+        $this->assertEquals('949', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_TRY));
+        $this->assertEquals('978', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_EUR));
     }
 
     /**

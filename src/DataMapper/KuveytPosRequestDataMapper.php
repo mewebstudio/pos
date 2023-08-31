@@ -60,12 +60,12 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritdoc}
      */
     protected $currencyMappings = [
-        'TRY' => '0949',
-        'USD' => '0840',
-        'EUR' => '0978',
-        'GBP' => '0826',
-        'JPY' => '0392',
-        'RUB' => '0810',
+        PosInterface::CURRENCY_TRY => '0949',
+        PosInterface::CURRENCY_USD => '0840',
+        PosInterface::CURRENCY_EUR => '0978',
+        PosInterface::CURRENCY_GBP => '0826',
+        PosInterface::CURRENCY_JPY => '0392',
+        PosInterface::CURRENCY_RUB => '0810',
     ];
 
     /** @var CryptInterface|KuveytPosCrypt */
@@ -367,7 +367,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
+            'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ]);
     }
 
@@ -378,7 +378,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         return array_merge($order, [
             'id'         => $order['id'],
-            'currency'   => $order['currency'] ?? 'TRY',
+            'currency'   => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'start_date' => $order['start_date'] ?? date_create('-360 day'),
             'end_date'   => $order['end_date'] ?? date_create(),
         ]);
@@ -396,7 +396,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'auth_code'       => $order['auth_code'],
             'trans_id'        => $order['trans_id'],
             'amount'          => $order['amount'],
-            'currency'        => $order['currency'] ?? 'TRY',
+            'currency'        => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ]);
     }
 
@@ -412,7 +412,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'auth_code'       => $order['auth_code'],
             'trans_id'        => $order['trans_id'],
             'amount'          => $order['amount'],
-            'currency'        => $order['currency'] ?? 'TRY',
+            'currency'        => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ]);
     }
 

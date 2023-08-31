@@ -50,12 +50,12 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      */
     protected $currencyMappings = [
-        'TRY' => 'TL',
-        'USD' => 'US',
-        'EUR' => 'EU',
-        'GBP' => 'GB',
-        'JPY' => 'JP',
-        'RUB' => 'RU',
+        PosInterface::CURRENCY_TRY => 'TL',
+        PosInterface::CURRENCY_USD => 'US',
+        PosInterface::CURRENCY_EUR => 'EU',
+        PosInterface::CURRENCY_GBP => 'GB',
+        PosInterface::CURRENCY_JPY => 'JP',
+        PosInterface::CURRENCY_RUB => 'RU',
     ];
 
     /**
@@ -454,7 +454,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'id'          => $order['id'],
             'installment' => $order['installment'] ?? 0,
             'amount'      => $order['amount'],
-            'currency'    => $order['currency'] ?? 'TRY',
+            'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ]);
     }
 
@@ -467,7 +467,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'id'          => $order['id'],
             'amount'      => $order['amount'],
             'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
+            'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'ref_ret_num' => $order['ref_ret_num'],
         ];
     }
@@ -517,7 +517,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'ref_ret_num'      => $order['ref_ret_num'] ?? null,
             'transaction_type' => $order['transaction_type'] ?? PosInterface::TX_PAY,
             'amount'           => $order['amount'],
-            'currency'         => $order['currency'] ?? 'TRY',
+            'currency'         => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ];
     }
 }

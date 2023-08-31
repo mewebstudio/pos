@@ -14,7 +14,7 @@ $transaction = $request->get('tx', PosInterface::TX_PAY);
 $order       = getNewOrder(
     $baseUrl,
     $ip,
-    $request->get('currency', 'TRY'),
+    $request->get('currency', PosInterface::CURRENCY_TRY),
     $session,
     $request->get('installment'),
     $request->get('is_recurring', 0) == 1,

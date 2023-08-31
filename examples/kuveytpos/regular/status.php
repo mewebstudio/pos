@@ -22,7 +22,7 @@ if ($lastResponse) {
         // varsa remote_order_id (bankadan donen OrderId) de saglanmasi gerekiyor
         //'remote_order_id' => $ord ? $ord['remote_order_id'] : '114293600', // OrderId
 
-        'currency' => $ord ? $ord['currency'] : 'TRY',
+        'currency' => $ord ? $ord['currency'] : PosInterface::CURRENCY_TRY,
     ];
 }
 

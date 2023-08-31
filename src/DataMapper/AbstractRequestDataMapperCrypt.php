@@ -6,6 +6,7 @@
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
+use Mews\Pos\PosInterface;
 
 /**
  * extended by request data mappers that needs to hash data
@@ -17,7 +18,7 @@ abstract class AbstractRequestDataMapperCrypt extends AbstractRequestDataMapper
 
     /**
      * @param CryptInterface        $crypt
-     * @param array<string, string> $currencyMappings
+     * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
      */
     public function __construct(CryptInterface $crypt, array $currencyMappings = [])
     {

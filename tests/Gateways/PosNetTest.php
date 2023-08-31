@@ -58,7 +58,7 @@ class PosNetTest extends TestCase
             'email'       => 'test@test.com',
             'amount'      => '1.75',
             'installment' => 0,
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => PosInterface::LANG_TR,

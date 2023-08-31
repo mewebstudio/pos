@@ -59,8 +59,8 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testMapCurrency()
     {
-        $this->assertEquals('TL', $this->requestDataMapper->mapCurrency('TRY'));
-        $this->assertEquals('EU', $this->requestDataMapper->mapCurrency('EUR'));
+        $this->assertEquals('TL', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_TRY));
+        $this->assertEquals('EU', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_EUR));
     }
 
     /**
@@ -203,7 +203,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             'id'          => '620093100_024',
             'amount'      => 1.75,
             'installment' => 0,
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'lang'        => PosInterface::LANG_TR,
         ];
@@ -247,7 +247,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'id'          => '123',
                 'amount'      => 10.0,
                 'installment' => 0,
-                'currency'    => 'TRY',
+                'currency'    => PosInterface::CURRENCY_TRY,
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -287,7 +287,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             'order'    => [
                 'id'          => '123',
                 'amount'      => 10.0,
-                'currency'    => 'TRY',
+                'currency'    => PosInterface::CURRENCY_TRY,
                 'installment' => 3,
             ],
             'expected' => [
@@ -332,7 +332,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'id'          => '123',
                 'installment' => 0,
                 'amount'      => 12.3,
-                'currency'    => 'TRY',
+                'currency'    => PosInterface::CURRENCY_TRY,
                 'ref_ret_num' => '159044932490000231',
             ],
             'expected' => [
@@ -361,7 +361,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             'id'          => '2020110828BC',
             'amount'      => 100.01,
             'installment' => '0',
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
         ];
         yield [
             'order'        => $order,

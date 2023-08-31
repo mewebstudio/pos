@@ -125,9 +125,9 @@ class PosFactory
     }
 
     /**
-     * @param class-string          $gatewayClass
-     * @param array<string, string> $currencies
-     * @param CryptInterface|null   $crypt
+     * @param class-string                            $gatewayClass
+     * @param array<PosInterface::CURRENCY_*, string> $currencies
+     * @param CryptInterface|null                     $crypt
      *
      * @return AbstractRequestDataMapper
      */

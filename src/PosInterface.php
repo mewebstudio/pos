@@ -57,6 +57,24 @@ interface PosInterface
     /** @var string */
     public const MODEL_NON_SECURE = 'regular';
 
+    /** @var string */
+    public const CURRENCY_TRY = 'TRY';
+
+    /** @var string */
+    public const CURRENCY_USD = 'USD';
+
+    /** @var string */
+    public const CURRENCY_EUR = 'EUR';
+
+    /** @var string */
+    public const CURRENCY_GBP = 'GBP';
+
+    /** @var string */
+    public const CURRENCY_JPY = 'JPY';
+
+    /** @var string */
+    public const CURRENCY_RUB = 'RUB';
+
     /**
      * Create XML DOM Document
      *

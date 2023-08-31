@@ -6,6 +6,7 @@ use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -357,7 +358,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'month'                => '12',
                     'year'                 => '26',
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'eci'                  => null,
                     'tx_status'            => null,
                     'cavv'                 => null,
@@ -440,7 +441,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'month'                => '12',
                     'year'                 => '26',
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'eci'                  => '05',
                     'tx_status'            => null,
                     'cavv'                 => 'ABABA##################AEJI=',
@@ -534,7 +535,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'month'                => '12',
                     'year'                 => '26',
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'eci'                  => '05',
                     'tx_status'            => null,
                     'cavv'                 => 'ABABCSQDGQAAAABllJMDdUQAEJI=',
@@ -636,7 +637,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'month'                => '12',
                     'year'                 => '26',
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => null,
                     'eci'                  => '05',
                     'cavv'                 => 'ABABByBkEgAAAABllJMDdVWUGZE=',
@@ -706,7 +707,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'month'                => '12',
                     'year'                 => '26',
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => null,
                     'eci'                  => null,
                     'cavv'                 => null,
@@ -797,7 +798,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'transaction_security' => 'Full 3D Secure',
                     'md_status'            => '1',
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => null,
                     'masked_number'        => '4355 08** **** 4358',
                     'month'                => '12',
@@ -881,7 +882,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'transaction_security' => 'MPI fallback',
                     'md_status'            => '0',
                     'amount'               => 1.01,
-                    'currency'             => 'TRY',
+                    'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => null,
                     'masked_number'        => '4355 08** **** 4358',
                     'month'                => '12',

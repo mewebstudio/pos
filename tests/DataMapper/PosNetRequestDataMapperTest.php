@@ -55,7 +55,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'email'       => 'test@test.com',
             'amount'      => '1.75',
             'installment' => 0,
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'rand'        => '0.43625700 1604831630',
@@ -73,8 +73,8 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testMapCurrency()
     {
-        $this->assertEquals('TL', $this->requestDataMapper->mapCurrency('TRY'));
-        $this->assertEquals('EU', $this->requestDataMapper->mapCurrency('EUR'));
+        $this->assertEquals('TL', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_TRY));
+        $this->assertEquals('EU', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_EUR));
     }
 
     /**
@@ -142,7 +142,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'id'           => '2020110828BC',
             'ref_ret_num' => '019676067890000191',
             'amount'       => 10.02,
-            'currency'     => 'TRY',
+            'currency'     => PosInterface::CURRENCY_TRY,
             'installment'  => '2',
         ];
 
@@ -195,7 +195,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'id'          => '2020110828BC',
             'amount'      => 100.01,
             'installment' => '0',
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
         ];
         $responseData = [
             'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
@@ -239,7 +239,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'id'          => '2020110828BC',
             'amount'      => 100.01,
             'installment' => '0',
-            'currency'    => 'TRY',
+            'currency'    => PosInterface::CURRENCY_TRY,
         ];
         $responseData = [
             'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
@@ -301,7 +301,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'id'            => '2020110828BC',
             'payment_model' => PosInterface::MODEL_3D_SECURE,
             'amount'        => 50,
-            'currency'      => 'TRY',
+            'currency'      => PosInterface::CURRENCY_TRY,
         ];
 
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
