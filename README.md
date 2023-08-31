@@ -324,7 +324,7 @@ return [
 Bundan sonra nesnemizi, yeni ayarlarımıza göre oluşturup kullanmamız gerekir. Örnek:
 ```php
 //yeni ayar yolu ya da degeri
-$yeni_ayarlar = require './pos_ayarlar.php';
+$yeni_ayarlar = require __DIR__.'/pos_ayarlar.php';
 $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeni_ayarlar);
 ```
 
