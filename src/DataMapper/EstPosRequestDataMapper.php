@@ -2,11 +2,12 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * Creates request data for EstPos Gateway requests
@@ -26,13 +27,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      */
     protected $txTypeMappings = [
-        AbstractGateway::TX_PAY      => 'Auth',
-        AbstractGateway::TX_PRE_PAY  => 'PreAuth',
-        AbstractGateway::TX_POST_PAY => 'PostAuth',
-        AbstractGateway::TX_CANCEL   => 'Void',
-        AbstractGateway::TX_REFUND   => 'Credit',
-        AbstractGateway::TX_STATUS   => 'ORDERSTATUS',
-        AbstractGateway::TX_HISTORY  => 'ORDERHISTORY',
+        PosInterface::TX_PAY      => 'Auth',
+        PosInterface::TX_PRE_PAY  => 'PreAuth',
+        PosInterface::TX_POST_PAY => 'PostAuth',
+        PosInterface::TX_CANCEL   => 'Void',
+        PosInterface::TX_REFUND   => 'Credit',
+        PosInterface::TX_STATUS   => 'ORDERSTATUS',
+        PosInterface::TX_HISTORY  => 'ORDERHISTORY',
     ];
 
     /**
@@ -57,11 +58,11 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritdoc}
      */
     protected $secureTypeMappings = [
-        AbstractGateway::MODEL_3D_SECURE        => '3d',
-        AbstractGateway::MODEL_3D_PAY           => '3d_pay',
-        AbstractGateway::MODEL_3D_PAY_HOSTING   => '3d_pay_hosting',
-        AbstractGateway::MODEL_3D_HOST          => '3d_host',
-        AbstractGateway::MODEL_NON_SECURE       => 'regular',
+        PosInterface::MODEL_3D_SECURE      => '3d',
+        PosInterface::MODEL_3D_PAY         => '3d_pay',
+        PosInterface::MODEL_3D_PAY_HOSTING => '3d_pay_hosting',
+        PosInterface::MODEL_3D_HOST        => '3d_host',
+        PosInterface::MODEL_NON_SECURE     => 'regular',
     ];
 
     /**
@@ -74,20 +75,20 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($account) + [
-            'Type'                    => $this->mapTxType($txType),
-            'IPAddress'               => (string) ($order['ip'] ?? ''),
-            'Email'                   => (string) $order['email'],
-            'OrderId'                 => (string) $order['id'],
-            'UserId'                  => (string) ($order['user_id'] ?? ''),
-            'Total'                   => (string) $order['amount'],
-            'Currency'                => $this->mapCurrency($order['currency']),
-            'Taksit'                  => $this->mapInstallment($order['installment']),
-            'Number'                  => $responseData['md'],
-            'PayerTxnId'              => $responseData['xid'],
-            'PayerSecurityLevel'      => $responseData['eci'],
-            'PayerAuthenticationCode' => $responseData['cavv'],
-            'Mode'                    => 'P',
-        ];
+                'Type'                    => $this->mapTxType($txType),
+                'IPAddress'               => (string) ($order['ip'] ?? ''),
+                'Email'                   => (string) $order['email'],
+                'OrderId'                 => (string) $order['id'],
+                'UserId'                  => (string) ($order['user_id'] ?? ''),
+                'Total'                   => (string) $order['amount'],
+                'Currency'                => $this->mapCurrency($order['currency']),
+                'Taksit'                  => $this->mapInstallment($order['installment']),
+                'Number'                  => $responseData['md'],
+                'PayerTxnId'              => $responseData['xid'],
+                'PayerSecurityLevel'      => $responseData['eci'],
+                'PayerAuthenticationCode' => $responseData['cavv'],
+                'Mode'                    => 'P',
+            ];
 
         if ($order['name']) {
             $requestData['BillTo'] = [
@@ -99,7 +100,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             $requestData += $this->getRecurringRequestOrderData($order);
         }
 
-        return  $requestData;
+        return $requestData;
     }
 
     /**
@@ -110,23 +111,23 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $requestData =  $this->getRequestAccountData($account) + [
-            'Type'      => $this->mapTxType($txType),
-            'IPAddress' => (string) ($order['ip'] ?? ''),
-            'Email'     => (string) $order['email'],
-            'OrderId'   => (string) $order['id'],
-            'UserId'    => (string) ($order['user_id'] ?? ''),
-            'Total'     => (string) $order['amount'],
-            'Currency'  => $this->mapCurrency($order['currency']),
-            'Taksit'    => $this->mapInstallment($order['installment']),
-            'Number'    => $card->getNumber(),
-            'Expires'   => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-            'Cvv2Val'   => $card->getCvv(),
-            'Mode'      => 'P',
-            'BillTo'    => [
-                'Name' => (string) ($order['name'] ?? ''),
-            ],
-        ];
+        $requestData = $this->getRequestAccountData($account) + [
+                'Type'      => $this->mapTxType($txType),
+                'IPAddress' => (string) ($order['ip'] ?? ''),
+                'Email'     => (string) $order['email'],
+                'OrderId'   => (string) $order['id'],
+                'UserId'    => (string) ($order['user_id'] ?? ''),
+                'Total'     => (string) $order['amount'],
+                'Currency'  => $this->mapCurrency($order['currency']),
+                'Taksit'    => $this->mapInstallment($order['installment']),
+                'Number'    => $card->getNumber(),
+                'Expires'   => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'Cvv2Val'   => $card->getCvv(),
+                'Mode'      => 'P',
+                'BillTo'    => [
+                    'Name' => (string) ($order['name'] ?? ''),
+                ],
+            ];
 
         if (isset($order['recurringFrequency'])) {
             $requestData += $this->getRecurringRequestOrderData($order);
@@ -145,9 +146,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-            'Type'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-            'OrderId'  => (string) $order['id'],
-        ];
+                'Type'    => $this->mapTxType(PosInterface::TX_POST_PAY),
+                'OrderId' => (string) $order['id'],
+            ];
     }
 
     /**
@@ -156,10 +157,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public function createStatusRequestData(AbstractPosAccount $account, array $order): array
     {
         $statusRequestData = $this->getRequestAccountData($account) + [
-            'Extra' => [
-                $this->mapTxType(AbstractGateway::TX_STATUS) => 'QUERY',
-            ],
-        ];
+                'Extra' => [
+                    $this->mapTxType(PosInterface::TX_STATUS) => 'QUERY',
+                ],
+            ];
 
         $order = $this->prepareStatusOrder($order);
 
@@ -183,24 +184,24 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         if (isset($order['recurringOrderInstallmentNumber'])) {
             // this method cancels only pending recurring orders, it will not cancel already fulfilled transactions
             $orderData['Extra']['RECORDTYPE'] = 'Order';
-                // cancel single installment
-                $orderData['Extra']['RECURRINGOPERATION'] = 'Cancel';
-                /**
-                 * the order ids of recurring order installments:
-                 * 'ORD_ID_1' => '202210121ABC',
-                 * 'ORD_ID_2' => '202210121ABC-2',
-                 * 'ORD_ID_3' => '202210121ABC-3',
-                 * ...
-                 */
-                $orderData['Extra']['RECORDID'] = $order['id'] . '-' . $order['recurringOrderInstallmentNumber'];
+            // cancel single installment
+            $orderData['Extra']['RECURRINGOPERATION'] = 'Cancel';
+            /**
+             * the order ids of recurring order installments:
+             * 'ORD_ID_1' => '202210121ABC',
+             * 'ORD_ID_2' => '202210121ABC-2',
+             * 'ORD_ID_3' => '202210121ABC-3',
+             * ...
+             */
+            $orderData['Extra']['RECORDID'] = $order['id'].'-'.$order['recurringOrderInstallmentNumber'];
 
             return $this->getRequestAccountData($account) + $orderData;
         }
 
         return $this->getRequestAccountData($account) + [
-            'OrderId'  => $order['id'],
-            'Type'     => $this->mapTxType(AbstractGateway::TX_CANCEL),
-        ];
+                'OrderId' => $order['id'],
+                'Type'    => $this->mapTxType(PosInterface::TX_CANCEL),
+            ];
     }
 
     /**
@@ -214,7 +215,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $requestData = [
             'OrderId'  => (string) $order['id'],
             'Currency' => $this->mapCurrency($order['currency']),
-            'Type'     => $this->mapTxType(AbstractGateway::TX_REFUND),
+            'Type'     => $this->mapTxType(PosInterface::TX_REFUND),
         ];
 
         if (isset($order['amount'])) {
@@ -231,9 +232,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
     {
         $requestData = [
-            'OrderId'  => (string) $extraData['order_id'], //todo orderId ya da id olarak degistirilecek, Payfor'da orderId, Garanti'de id
-            'Extra'    => [
-                $this->mapTxType(AbstractGateway::TX_HISTORY) => 'QUERY',
+            'OrderId' => (string) $extraData['order_id'], //todo orderId ya da id olarak degistirilecek, Payfor'da orderId, Garanti'de id
+            'Extra'   => [
+                $this->mapTxType(PosInterface::TX_HISTORY) => 'QUERY',
             ],
         ];
 
@@ -250,7 +251,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $data = $this->create3DFormDataCommon($account, $preparedOrder, $paymentModel, $txType, $gatewayURL, $card);
 
-        $orderMapped = $preparedOrder;
+        $orderMapped                = $preparedOrder;
         $orderMapped['installment'] = $this->mapInstallment($preparedOrder['installment']);
 
         $data['inputs']['hash'] = $this->crypt->create3DHash($account, $orderMapped, $this->mapTxType($txType));
@@ -260,8 +261,8 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * @param array<string, string|int|float|null> $order
-     * @param AbstractGateway::MODEL_*             $paymentModel
-     * @param AbstractGateway::TX_*                $txType
+     * @param PosInterface::MODEL_*                $paymentModel
+     * @param PosInterface::TX_*                   $txType
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
@@ -286,11 +287,11 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         ];
 
         if ($card !== null) {
-            $inputs['cardType'] = $this->cardTypeMapping[$card->getType()];
-            $inputs['pan'] = $card->getNumber();
+            $inputs['cardType']                        = $this->cardTypeMapping[$card->getType()];
+            $inputs['pan']                             = $card->getNumber();
             $inputs['Ecom_Payment_Card_ExpDate_Month'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['Ecom_Payment_Card_ExpDate_Year'] = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $inputs['cv2'] = $card->getCvv();
+            $inputs['Ecom_Payment_Card_ExpDate_Year']  = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
+            $inputs['cv2']                             = $card->getCvv();
         }
 
         return [

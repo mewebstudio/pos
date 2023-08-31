@@ -2,13 +2,14 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * Creates request data for PayFlex V4 Gateway requests
@@ -25,12 +26,12 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected $txTypeMappings = [
-        AbstractGateway::TX_PAY      => 'Sale',
-        AbstractGateway::TX_PRE_PAY  => 'Auth',
-        AbstractGateway::TX_POST_PAY => 'Capture',
-        AbstractGateway::TX_CANCEL   => 'Cancel',
-        AbstractGateway::TX_REFUND   => 'Refund',
-        AbstractGateway::TX_STATUS   => 'status',
+        PosInterface::TX_PAY      => 'Sale',
+        PosInterface::TX_PRE_PAY  => 'Auth',
+        PosInterface::TX_POST_PAY => 'Capture',
+        PosInterface::TX_CANCEL   => 'Cancel',
+        PosInterface::TX_REFUND   => 'Refund',
+        PosInterface::TX_STATUS   => 'status',
     ];
 
     /**
@@ -78,9 +79,9 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
 
         if (null !== $card) {
             $requestData['CardHoldersName'] = $card->getHolderName();
-            $requestData['Cvv'] = $card->getCvv();
-            $requestData['Pan'] = $card->getNumber();
-            $requestData['Expiry'] = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT);
+            $requestData['Cvv']             = $card->getCvv();
+            $requestData['Pan']             = $card->getNumber();
+            $requestData['Expiry']          = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT);
         }
 
         if ($order['installment']) {
@@ -189,7 +190,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
+                'TransactionType'        => $this->mapTxType(PosInterface::TX_POST_PAY),
                 'ReferenceTransactionId' => (string) $order['id'],
                 'CurrencyAmount'         => self::amountFormat($order['amount']),
                 'CurrencyCode'           => $this->mapCurrency($order['currency']),
@@ -206,8 +207,8 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareStatusOrder($order);
 
         return [
-            'MerchantCriteria' => [
-                'HostMerchantId' => $account->getClientId(),
+            'MerchantCriteria'    => [
+                'HostMerchantId'   => $account->getClientId(),
                 'MerchantPassword' => $account->getPassword(),
             ],
             'TransactionCriteria' => [
@@ -219,8 +220,8 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
                  * OrderID ile sorgulamada bu OrderId ile başarılı işlem varsa başarılı işlem, yoksa son gönderilen işlem raporda görüntülenecektir
                  */
                 'TransactionId' => '',
-                'OrderId' => (string) $order['id'],
-                'AuthCode' => ''
+                'OrderId'       => (string) $order['id'],
+                'AuthCode'      => '',
             ],
         ];
     }
@@ -237,7 +238,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
-            'TransactionType'        => $this->mapTxType(AbstractGateway::TX_CANCEL),
+            'TransactionType'        => $this->mapTxType(PosInterface::TX_CANCEL),
             'ReferenceTransactionId' => (string) $order['id'],
             'ClientIp'               => (string) $order['ip'],
         ];
@@ -255,7 +256,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
-            'TransactionType'        => $this->mapTxType(AbstractGateway::TX_REFUND),
+            'TransactionType'        => $this->mapTxType(PosInterface::TX_REFUND),
             'ReferenceTransactionId' => (string) $order['id'],
             'ClientIp'               => (string) $order['ip'],
             'CurrencyAmount'         => self::amountFormat($order['amount']),

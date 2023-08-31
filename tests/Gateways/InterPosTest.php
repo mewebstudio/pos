@@ -9,8 +9,8 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\InterPos;
+use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\InterPosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -49,7 +49,7 @@ class InterPosTest extends TestCase
             $shopCode,
             $userCode,
             $userPass,
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             $merchantPass
         );
 
@@ -60,7 +60,7 @@ class InterPosTest extends TestCase
             'currency'    => 'TRY',
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => AbstractGateway::LANG_TR,
+            'lang'        => PosInterface::LANG_TR,
             'rand'        => microtime(true),
         ];
 
@@ -90,7 +90,7 @@ class InterPosTest extends TestCase
         $gatewayResponse = $interPosResponseDataMapperTest->threeDPaymentDataProvider()['authFail1']['threeDResponseData'];
         $request = Request::create('', 'POST', $gatewayResponse);
 
-        $this->pos->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $this->pos->make3DPayment($request, $this->order, PosInterface::TX_PAY, $this->card);
         $result = $this->pos->getResponse();
         $this->assertIsArray($result);
 
@@ -109,7 +109,7 @@ class InterPosTest extends TestCase
         $gatewayResponse = $interPosResponseDataMapperTest->threeDPayPaymentDataProvider()['authFail1']['paymentData'];
         $request = Request::create('', 'POST', $gatewayResponse);
 
-        $this->pos->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $this->pos->make3DPayment($request, $this->order, PosInterface::TX_PAY, $this->card);
         $result = $this->pos->getResponse();
         $this->assertIsArray($result);
 

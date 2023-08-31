@@ -2,12 +2,12 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Gateways;
 
 use DOMDocument;
 use DOMNodeList;
 use Exception;
-use LogicException;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -15,6 +15,7 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -54,10 +55,11 @@ class KuveytPos extends AbstractGateway
      */
     public function send($contents, string $txType = null, string $url = null)
     {
-        if (in_array($txType, [self::TX_REFUND, self::TX_STATUS, self::TX_CANCEL], true)) {
+        if (in_array($txType, [PosInterface::TX_REFUND, PosInterface::TX_STATUS, PosInterface::TX_CANCEL], true)) {
             if (!is_array($contents)) {
                 throw new \LogicException("Invalid data type provided for $txType transaction!");
             }
+
             return $this->sendSoapRequest($contents, $txType);
         }
         $url = $url ?: $this->getApiURL();
@@ -87,9 +89,9 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @param array<string, mixed>                            $contents
-     * @param self::TX_STATUS|self::TX_REFUND|self::TX_CANCEL $txType
-     * @param string|null                                     $url
+     * @param array<string, mixed>                                                    $contents
+     * @param PosInterface::TX_STATUS|PosInterface::TX_REFUND|PosInterface::TX_CANCEL $txType
+     * @param string|null                                                             $url
      *
      * @return array<string, mixed>
      *
@@ -273,8 +275,8 @@ class KuveytPos extends AbstractGateway
     /**
      * @param KuveytPosAccount                     $account
      * @param array<string, int|string|float|null> $order
-     * @param self::MODEL_*                        $paymentModel
-     * @param self::TX_*                           $txType
+     * @param PosInterface::MODEL_*                $paymentModel
+     * @param PosInterface::TX_*                   $txType
      * @param string                               $gatewayURL
      * @param AbstractCreditCard|null              $card
      *

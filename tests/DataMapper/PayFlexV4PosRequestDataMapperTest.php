@@ -11,7 +11,7 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -41,7 +41,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             '000000000111111',
             '3XTgER89as',
             'VP999999',
-            AbstractGateway::MODEL_3D_SECURE
+            PosInterface::MODEL_3D_SECURE
         );
 
 
@@ -116,7 +116,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $order = $this->order;
         $order['amount'] = 10.1;
 
-        $txType = AbstractGateway::TX_PAY;
+        $txType = PosInterface::TX_PAY;
         $gatewayResponse = [
             'Eci'                       => (string) random_int(1, 100),
             'Cavv'                      => (string) random_int(1, 100),
@@ -163,7 +163,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     public function testCreateNonSecurePaymentRequestData()
     {
         $order = $this->order;
-        $txType = AbstractGateway::TX_PAY;
+        $txType = PosInterface::TX_PAY;
         $order['amount'] = 1000;
 
         $expectedValue = $this->getSampleNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);

@@ -1,6 +1,6 @@
 <?php
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 require '../_payment_config.php';
 
@@ -17,14 +17,14 @@ $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount(
     $shopCode,
     $userCode,
     $userPass,
-    AbstractGateway::MODEL_3D_HOST,
+    PosInterface::MODEL_3D_HOST,
     $merchantPass,
-    AbstractGateway::LANG_TR
+    PosInterface::LANG_TR
 );
 
 $pos = getGateway($account);
 
-$transaction = AbstractGateway::TX_PAY;
+$transaction = PosInterface::TX_PAY;
 
 $templateTitle = '3D Host Model Payment';
-$paymentModel = \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_HOST;
+$paymentModel = PosInterface::MODEL_3D_HOST;

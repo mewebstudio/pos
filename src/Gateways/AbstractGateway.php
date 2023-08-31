@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Gateways;
 
 use Mews\Pos\Client\HttpClient;
@@ -11,7 +12,6 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PaymentResponseMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\LogLevel;
@@ -25,48 +25,6 @@ use Symfony\Component\Serializer\Encoder\XmlEncoder;
  */
 abstract class AbstractGateway implements PosInterface
 {
-    /** @var string */
-    public const LANG_TR = 'tr';
-
-    /** @var string */
-    public const LANG_EN = 'en';
-
-    /** @var string */
-    public const TX_PAY = 'pay';
-
-    /** @var string */
-    public const TX_PRE_PAY = 'pre';
-
-    /** @var string */
-    public const TX_POST_PAY = 'post';
-
-    /** @var string */
-    public const TX_CANCEL = 'cancel';
-
-    /** @var string */
-    public const TX_REFUND = 'refund';
-
-    /** @var string */
-    public const TX_STATUS = 'status';
-
-    /** @var string */
-    public const TX_HISTORY = 'history';
-
-    /** @var string */
-    public const MODEL_3D_SECURE = '3d';
-
-    /** @var string */
-    public const MODEL_3D_PAY = '3d_pay';
-
-    /** @var string */
-    public const MODEL_3D_PAY_HOSTING = '3d_pay_hosting';
-
-    /** @var string */
-    public const MODEL_3D_HOST = '3d_host';
-
-    /** @var string */
-    public const MODEL_NON_SECURE = 'regular';
-
     /** @var array */
     protected $config;
 
@@ -110,7 +68,8 @@ abstract class AbstractGateway implements PosInterface
         PaymentResponseMapperInterface $responseDataMapper,
         HttpClient                     $client,
         LoggerInterface                $logger
-    ) {
+    )
+    {
         $this->requestDataMapper  = $requestDataMapper;
         $this->responseDataMapper = $responseDataMapper;
 
@@ -221,25 +180,25 @@ abstract class AbstractGateway implements PosInterface
      */
     public function payment(string $paymentModel, array $order, string $txType, $card = null)
     {
-        $request    = Request::createFromGlobals();
+        $request = Request::createFromGlobals();
 
         $this->logger->log(LogLevel::DEBUG, 'payment called', [
             'card_provided' => (bool) $card,
             'model'         => $paymentModel,
         ]);
-        if (self::MODEL_NON_SECURE === $paymentModel) {
+        if (PosInterface::MODEL_NON_SECURE === $paymentModel) {
             if (!$card instanceof AbstractCreditCard) {
                 throw new \LogicException('Kredi kartı veya sipariş bilgileri eksik!');
             }
             $this->makeRegularPayment($order, $card, $txType);
-        } elseif (self::MODEL_3D_SECURE === $paymentModel) {
-            if (self::TX_POST_PAY === $txType) {
+        } elseif (PosInterface::MODEL_3D_SECURE === $paymentModel) {
+            if (PosInterface::TX_POST_PAY === $txType) {
                 throw new \LogicException('Bu işlem için $paymentModel=MODEL_NON_SECURE kullanınız!');
             }
             $this->make3DPayment($request, $order, $txType, $card);
-        } elseif (self::MODEL_3D_PAY === $paymentModel || self::MODEL_3D_PAY_HOSTING === $paymentModel) {
+        } elseif (PosInterface::MODEL_3D_PAY === $paymentModel || PosInterface::MODEL_3D_PAY_HOSTING === $paymentModel) {
             $this->make3DPayPayment($request);
-        } elseif (self::MODEL_3D_HOST === $paymentModel) {
+        } elseif (PosInterface::MODEL_3D_HOST === $paymentModel) {
             $this->make3DHostPayment($request);
         } else {
             $this->logger->log(LogLevel::ERROR, 'unsupported payment model', ['model' => $paymentModel]);
@@ -255,13 +214,13 @@ abstract class AbstractGateway implements PosInterface
     public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType)
     {
         $this->logger->log(LogLevel::DEBUG, 'making payment', [
-            'model'   => AbstractGateway::MODEL_NON_SECURE,
+            'model'   => PosInterface::MODEL_NON_SECURE,
             'tx_type' => $txType,
         ]);
         $contents = '';
-        if (in_array($txType, [self::TX_PAY, self::TX_PRE_PAY], true)) {
+        if (in_array($txType, [PosInterface::TX_PAY, PosInterface::TX_PRE_PAY], true)) {
             $contents = $this->createRegularPaymentXML($order, $card, $txType);
-        } elseif (self::TX_POST_PAY === $txType) {
+        } elseif (PosInterface::TX_POST_PAY === $txType) {
             $contents = $this->createRegularPostXML($order);
         }
 
@@ -278,7 +237,7 @@ abstract class AbstractGateway implements PosInterface
     public function refund(array $order)
     {
         $xml          = $this->createRefundXML($order);
-        $bankResponse = $this->send($xml, self::TX_REFUND);
+        $bankResponse = $this->send($xml, PosInterface::TX_REFUND);
 
         $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
 
@@ -291,7 +250,7 @@ abstract class AbstractGateway implements PosInterface
     public function cancel(array $order)
     {
         $xml          = $this->createCancelXML($order);
-        $bankResponse = $this->send($xml, self::TX_CANCEL);
+        $bankResponse = $this->send($xml, PosInterface::TX_CANCEL);
 
         $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
 
@@ -305,7 +264,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $xml = $this->createStatusXML($order);
 
-        $bankResponse = $this->send($xml, self::TX_STATUS, $this->getQueryAPIUrl());
+        $bankResponse = $this->send($xml, PosInterface::TX_STATUS, $this->getQueryAPIUrl());
         if (!is_array($bankResponse)) {
             throw new \RuntimeException('Status isteği başarısız');
         }
@@ -322,7 +281,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $xml = $this->createHistoryXML($meta);
 
-        $bankResponse = $this->send($xml, self::TX_HISTORY);
+        $bankResponse = $this->send($xml, PosInterface::TX_HISTORY);
 
         $this->response = $this->responseDataMapper->mapHistoryResponse($bankResponse);
 
@@ -356,15 +315,15 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getLanguages(): array
     {
-        return [self::LANG_TR, self::LANG_EN];
+        return [PosInterface::LANG_TR, PosInterface::LANG_EN];
     }
 
     /**
      * Create Regular Payment XML
      *
-     * @param array<string, mixed>                                $order
-     * @param AbstractCreditCard                                  $card
-     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
+     * @param array<string, mixed>                          $order
+     * @param AbstractCreditCard                            $card
+     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
      *
      * @return string|array<string, mixed>
      */
@@ -418,10 +377,10 @@ abstract class AbstractGateway implements PosInterface
     /**
      * Creates 3D Payment XML
      *
-     * @param array<string, mixed>                                $responseData
-     * @param array<string, mixed>                                $order
-     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
-     * @param AbstractCreditCard                                  $card
+     * @param array<string, mixed>                          $responseData
+     * @param array<string, mixed>                          $order
+     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @param AbstractCreditCard                            $card
      *
      * @return string|array<string, mixed>
      */

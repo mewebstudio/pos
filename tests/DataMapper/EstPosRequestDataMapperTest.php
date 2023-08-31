@@ -10,8 +10,8 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -44,7 +44,7 @@ class EstPosRequestDataMapperTest extends TestCase
             '700655000200',
             'ISBANKAPI',
             'ISBANK07',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             'TRPS0200'
         );
 
@@ -123,7 +123,7 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_PAY, $this->card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
@@ -199,7 +199,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'cavv' => 'cavv',
         ];
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, PosInterface::TX_PAY, $responseData);
 
         $expectedData = $this->getSample3DPaymentRequestData($this->account, $order, $responseData);
         $this->assertEquals($expectedData, $actual);
@@ -233,7 +233,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'cavv' => 'cavv',
         ];
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, PosInterface::TX_PAY, $responseData);
 
         $expectedData = $this->getSample3DPaymentRequestData($this->account, $order, $responseData);
         $this->assertEquals($expectedData, $actual);
@@ -245,13 +245,13 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testGet3DFormData()
     {
-        $txType = AbstractGateway::TX_PAY;
+        $txType = PosInterface::TX_PAY;
         $card       = $this->card;
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
 
         $inputs = [
             'clientid'  => $this->account->getClientId(),
-            'storetype' => AbstractGateway::MODEL_3D_SECURE,
+            'storetype' => PosInterface::MODEL_3D_SECURE,
             'hash'      => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
             'firmaadi'  => $this->order['name'],
             'Email'     => $this->order['email'],
@@ -274,7 +274,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             $txType,
             $gatewayURL
         ));
@@ -291,7 +291,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             $txType,
             $gatewayURL,
             $card
@@ -329,8 +329,8 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            AbstractGateway::MODEL_3D_HOST,
-            AbstractGateway::TX_PAY,
+            PosInterface::MODEL_3D_HOST,
+            PosInterface::TX_PAY,
             $gatewayURL
         ));
     }

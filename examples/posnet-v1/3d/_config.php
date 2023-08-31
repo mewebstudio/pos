@@ -1,6 +1,6 @@
 <?php
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 require '../_payment_config.php';
 
@@ -11,7 +11,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createPosNetAccount(
     '6702640212', // 10 haneli üye işyeri numarası
     '67C16990', // 8 haneli üye işyeri terminal numarası
     '1010062861356072', // 16 haneli üye işyeri EPOS numarası.
-    AbstractGateway::MODEL_3D_SECURE,
+    PosInterface::MODEL_3D_SECURE,
     '10,10,10,10,10,10,10,10'
 );
 
@@ -27,7 +27,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createPosNetAccount(
 
 $pos = getGateway($account);
 
-$transaction = $session->get('tx', AbstractGateway::TX_PAY);
+$transaction = $session->get('tx', PosInterface::TX_PAY);
 
 $templateTitle = '3D Model Payment';
-$paymentModel = \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE;
+$paymentModel = PosInterface::MODEL_3D_SECURE;

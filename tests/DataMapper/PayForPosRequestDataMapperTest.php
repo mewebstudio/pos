@@ -10,8 +10,8 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PayForPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -44,7 +44,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             '085300000009704',
             'QNB_API_KULLANICI_3DPAY',
             'UcBN0',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             '12345678'
         );
 
@@ -58,7 +58,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
             'rand'        => '0.43625700 1604831630',
-            'lang'        => AbstractGateway::LANG_TR,
+            'lang'        => PosInterface::LANG_TR,
         ];
 
         $pos = PosFactory::createPosGateway($this->account, $this->config);
@@ -104,7 +104,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             'amount'      => 100.01,
             'installment' => '0',
             'currency'    => 'TRY',
-            'lang'        => AbstractGateway::LANG_TR,
+            'lang'        => PosInterface::LANG_TR,
         ];
 
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
@@ -118,7 +118,7 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_PAY, $this->card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
@@ -204,8 +204,8 @@ class PayForPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            AbstractGateway::MODEL_3D_SECURE,
-            AbstractGateway::TX_PAY,
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::TX_PAY,
             $gatewayURL
         ));
 
@@ -220,8 +220,8 @@ class PayForPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            AbstractGateway::MODEL_3D_SECURE,
-            AbstractGateway::TX_PAY,
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::TX_PAY,
             $gatewayURL,
             $card
         ));
@@ -258,8 +258,8 @@ class PayForPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            AbstractGateway::MODEL_3D_HOST,
-            AbstractGateway::TX_PAY,
+            PosInterface::MODEL_3D_HOST,
+            PosInterface::TX_PAY,
             $gatewayURL
         ));
     }

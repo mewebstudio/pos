@@ -1,5 +1,7 @@
 <?php
 
+use Mews\Pos\PosInterface;
+
 require '_config.php';
 $templateTitle = 'Cancel Order';
 require '../../_templates/_header.php';
@@ -20,13 +22,13 @@ $order = [
      * siparis olusturulurken kullanilan odeme modeli
      * orderId'yi dogru sekilde formatlamak icin zorunlu.
      */
-    'payment_model' => \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
+    'payment_model' => PosInterface::MODEL_3D_SECURE,
 
     // satis islem disinda baska bir islemi (Ön Provizyon İptali, Provizyon Kapama İptali, vs...) iptal edildiginde saglanmasi gerekiyor
-    // 'transaction_type' => \Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY,
+    // 'transaction_type' => PosInterface::TX_PRE_PAY,
 ];
 
-$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL;
+$transaction = PosInterface::TX_CANCEL;
 
 // Cancel Order
 $pos->cancel($order);

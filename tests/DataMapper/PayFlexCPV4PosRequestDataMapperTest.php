@@ -13,8 +13,8 @@ use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -38,7 +38,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             '000000000111111',
             '3XTgER89as',
             'VP999999',
-            AbstractGateway::MODEL_3D_SECURE
+            PosInterface::MODEL_3D_SECURE
         );
 
         $crypt                   = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
@@ -124,7 +124,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             '000000000111111',
             '3XTgER89as',
             'VP999999',
-            AbstractGateway::MODEL_3D_SECURE
+            PosInterface::MODEL_3D_SECURE
         );
 
         $order = [
@@ -149,7 +149,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         yield 'with_card_1' => [
             'account'  => $account,
             'order'    => $order,
-            'txType'   => AbstractGateway::TX_PAY,
+            'txType'   => PosInterface::TX_PAY,
             'card'     => $card,
             'expected' => [
                 'HostMerchantId'       => '000000000111111',
@@ -180,7 +180,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         yield 'without_card_1_pre_pay' => [
             'account'  => $account,
             'order'    => $order,
-            'txType'   => AbstractGateway::TX_PRE_PAY,
+            'txType'   => PosInterface::TX_PRE_PAY,
             'card'     => null,
             'expected' => [
                 'HostMerchantId'       => '000000000111111',

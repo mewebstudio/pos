@@ -1,6 +1,6 @@
 <?php
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 require '_config.php';
 $templateTitle = 'Refund Order';
@@ -8,7 +8,7 @@ require '../../_templates/_header.php';
 
 $ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
-$transaction = AbstractGateway::TX_REFUND;
+$transaction = PosInterface::TX_REFUND;
 
 // Refund Order
 $pos->refund([
@@ -18,7 +18,7 @@ $pos->refund([
      * siparis olusturulurken kullanilan odeme modeli
      * orderId'yi dogru sekilde formatlamak icin zorunlu.
      */
-    'payment_model' => AbstractGateway::MODEL_3D_SECURE,
+    'payment_model' => PosInterface::MODEL_3D_SECURE,
     'amount'        => $ord['amount'],
     'currency'      => $ord['currency'],
 ]);

@@ -10,8 +10,8 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\EstPosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -46,7 +46,7 @@ class EstPosTest extends TestCase
             '700655000200',
             'ISBANKAPI',
             'ISBANK07',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             'TRPS0200'
         );
 
@@ -104,7 +104,7 @@ class EstPosTest extends TestCase
 
         $posMock->expects($this->never())->method('send');
 
-        $posMock->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $posMock->make3DPayment($request, $this->order, PosInterface::TX_PAY, $this->card);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
@@ -168,7 +168,7 @@ class EstPosTest extends TestCase
 
         $posMock->expects($this->never())->method('send');
 
-        $posMock->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $posMock->make3DPayment($request, $this->order, PosInterface::TX_PAY, $this->card);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);

@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\DataMapper;
 
 use Exception;
@@ -10,7 +11,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * Creates request data for PosNet Gateway requests
@@ -36,12 +37,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      */
     protected $txTypeMappings = [
-        AbstractGateway::TX_PAY      => 'Sale',
-        AbstractGateway::TX_PRE_PAY  => 'Auth',
-        AbstractGateway::TX_POST_PAY => 'Capt',
-        AbstractGateway::TX_CANCEL   => 'reverse',
-        AbstractGateway::TX_REFUND   => 'return',
-        AbstractGateway::TX_STATUS   => 'agreement',
+        PosInterface::TX_PAY      => 'Sale',
+        PosInterface::TX_PRE_PAY  => 'Auth',
+        PosInterface::TX_POST_PAY => 'Capt',
+        PosInterface::TX_CANCEL   => 'reverse',
+        PosInterface::TX_REFUND   => 'return',
+        PosInterface::TX_STATUS   => 'agreement',
     ];
 
     /**
@@ -57,8 +58,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     ];
 
     /**
-     * @param PosNetAccount         $account
-     * @param AbstractGateway::TX_* $txType kullanilmiyor
+     * @param PosNetAccount      $account
+     * @param PosInterface::TX_* $txType kullanilmiyor
      *
      * {@inheritDoc}
      */
@@ -127,10 +128,10 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePostPaymentOrder($order);
 
         return [
-            'mid'                                                      => $account->getClientId(),
-            'tid'                                                      => $account->getTerminalId(),
-            'tranDateRequired'                                         => '1',
-            strtolower($this->mapTxType(AbstractGateway::TX_POST_PAY)) => [
+            'mid'                                                   => $account->getClientId(),
+            'tid'                                                   => $account->getTerminalId(),
+            'tranDateRequired'                                      => '1',
+            strtolower($this->mapTxType(PosInterface::TX_POST_PAY)) => [
                 'hostLogKey'   => $order['ref_ret_num'],
                 'amount'       => self::amountFormat($order['amount']),
                 'currencyCode' => $this->mapCurrency($order['currency']),
@@ -148,7 +149,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareStatusOrder($order);
 
-        $txType = $this->mapTxType(AbstractGateway::TX_STATUS);
+        $txType = $this->mapTxType(PosInterface::TX_STATUS);
 
         return [
             'mid'   => $account->getClientId(),
@@ -168,7 +169,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareCancelOrder($order);
 
-        $txType      = $this->mapTxType(AbstractGateway::TX_CANCEL);
+        $txType      = $this->mapTxType(PosInterface::TX_CANCEL);
         $requestData = [
             'mid'              => $account->getClientId(),
             'tid'              => $account->getTerminalId(),
@@ -201,7 +202,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareRefundOrder($order);
 
-        $txType      = $this->mapTxType(AbstractGateway::TX_REFUND);
+        $txType      = $this->mapTxType(PosInterface::TX_REFUND);
         $requestData = [
             'mid'              => $account->getClientId(),
             'tid'              => $account->getTerminalId(),
@@ -267,7 +268,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param PosNetAccount                        $account
      * @param array<string, int|string|float|null> $order
-     * @param AbstractGateway::TX_*                $txType
+     * @param PosInterface::TX_*                   $txType
      */
     public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
     {
@@ -352,9 +353,9 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     public static function mapOrderIdToPrefixedOrderId(string $orderId, string $accountModel): string
     {
         $prefix = self::ORDER_ID_REGULAR_PREFIX;
-        if (AbstractGateway::MODEL_3D_SECURE === $accountModel) {
+        if (PosInterface::MODEL_3D_SECURE === $accountModel) {
             $prefix = self::ORDER_ID_3D_PREFIX;
-        } elseif (AbstractGateway::MODEL_3D_PAY === $accountModel) {
+        } elseif (PosInterface::MODEL_3D_PAY === $accountModel) {
             $prefix = self::ORDER_ID_3D_PAY_PREFIX;
         }
 
@@ -435,7 +436,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         return [
             'id'            => $order['id'],
-            'payment_model' => $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE,
+            'payment_model' => $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE,
         ];
     }
 
@@ -461,7 +462,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
         ];
 
         if (isset($orderTemp['id'])) {
-            $orderTemp['payment_model'] = $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE;
+            $orderTemp['payment_model'] = $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE;
         }
 
         return $orderTemp;
@@ -481,7 +482,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
         ];
 
         if (isset($orderTemp['id'])) {
-            $orderTemp['payment_model'] = $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE;
+            $orderTemp['payment_model'] = $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE;
         }
 
         return $orderTemp;

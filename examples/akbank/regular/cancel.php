@@ -1,6 +1,6 @@
 <?php
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 $templateTitle = 'Cancel Order';
 require '_config.php';
@@ -23,7 +23,7 @@ if (isset($ord['recurringFrequency'])) {
     ];
 }
 
-$transaction = AbstractGateway::TX_CANCEL;
+$transaction = PosInterface::TX_CANCEL;
 
 $pos->cancel($order);
 

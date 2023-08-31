@@ -1,6 +1,6 @@
 <?php
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 require '_config.php';
 $templateTitle = 'Cancel Order';
@@ -10,7 +10,7 @@ $order = [
     'id' => $session->get('ref_ret_num'), //ReferenceTransactionId
     'ip' => $request->getClientIp(),
 ];
-$transaction = AbstractGateway::TX_CANCEL;
+$transaction = PosInterface::TX_CANCEL;
 
 // Cancel Order
 $pos->cancel($order);

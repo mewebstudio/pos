@@ -4,14 +4,14 @@ $templateTitle = 'Order Status';
 require '_config.php';
 require '../../_templates/_header.php';
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 $ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
 $order = [
     'id' => $ord['id'],
 ];
-$transaction = AbstractGateway::TX_STATUS;
+$transaction = PosInterface::TX_STATUS;
 
 $pos->status($order);
 

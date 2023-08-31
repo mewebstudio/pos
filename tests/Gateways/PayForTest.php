@@ -7,8 +7,8 @@ namespace Mews\Pos\Tests\Gateways;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PayForPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -35,7 +35,7 @@ class PayForTest extends TestCase
             '085300000009704',
             'QNB_API_KULLANICI_3DPAY',
             'UcBN0',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             '12345678'
         );
 

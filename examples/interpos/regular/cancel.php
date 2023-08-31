@@ -1,6 +1,6 @@
 <?php
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 require '_config.php';
 $templateTitle = 'Cancel Order';
@@ -12,7 +12,7 @@ $order = [
     'id'       => $ord['id'],
     'currency' => $ord['currency'],
 ];
-$transaction = AbstractGateway::TX_CANCEL;
+$transaction = PosInterface::TX_CANCEL;
 
 // Cancel Order
 $pos->cancel($order);

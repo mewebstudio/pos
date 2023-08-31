@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Gateways;
 
 use Exception;
@@ -13,6 +14,7 @@ use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -54,16 +56,16 @@ class PosNet extends AbstractGateway
      * Get OOS transaction data
      * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
      *
-     * @param array<string, int|string|float|null>                $order
-     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
-     * @param AbstractCreditCard                                  $card
+     * @param array<string, int|string|float|null>          $order
+     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @param AbstractCreditCard                            $card
      *
      * @return array
      */
     public function getOosTransactionData(array $order, string $txType, AbstractCreditCard $card): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $card);
-        $xml = $this->createXML($requestData);
+        $xml         = $this->createXML($requestData);
 
         return $this->send($xml);
     }
@@ -83,9 +85,9 @@ class PosNet extends AbstractGateway
             $request->all()
         );
 
-        $contents = $this->createXML($requestData);
+        $contents           = $this->createXML($requestData);
         $userVerifyResponse = $this->send($contents);
-        $bankResponse = null;
+        $bankResponse       = null;
 
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $userVerifyResponse['approved']) {
             goto end;
@@ -98,9 +100,9 @@ class PosNet extends AbstractGateway
         //if 3D Authentication is successful:
         if (in_array($userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'], [1, 2, 3, 4])) {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', [
-                'md_status' =>$userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
+                'md_status' => $userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
             ]);
-            $contents = $this->create3DPaymentXML($request->all(), $order, $txType);
+            $contents     = $this->create3DPaymentXML($request->all(), $order, $txType);
             $bankResponse = $this->send($contents);
         } else {
             $this->logger->log(LogLevel::ERROR, '3d auth fail', [
@@ -197,7 +199,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      *
-     * @param AbstractGateway::TX_* $txType kullanilmiyor
+     * @param PosInterface::TX_* $txType kullanilmiyor
      */
     public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
     {

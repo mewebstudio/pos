@@ -1,5 +1,6 @@
 <?php
 
+use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 require '_config.php';
@@ -9,7 +10,7 @@ if ($request->getMethod() !== 'POST') {
     echo new RedirectResponse($baseUrl.'index.php');
     exit();
 }
-$transaction = $request->get('tx', \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
+$transaction = $request->get('tx', PosInterface::TX_PAY);
 $order       = getNewOrder(
     $baseUrl,
     $ip,
@@ -17,7 +18,7 @@ $order       = getNewOrder(
     $session,
     $request->get('installment'),
     $request->get('is_recurring', 0) == 1,
-    $request->get('lang', \Mews\Pos\Gateways\AbstractGateway::LANG_TR)
+    $request->get('lang', PosInterface::LANG_TR)
 );
 $session->set('order', $order);
 
@@ -31,7 +32,7 @@ $session->set('card', $request->request->all());
 $session->set('tx', $transaction);
 
 try {
-    $formData = $pos->get3DFormData($order, \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE, $transaction, $card);
+    $formData = $pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $transaction, $card);
     //dd($formData);
 } catch (\Throwable $e) {
     dd($e);

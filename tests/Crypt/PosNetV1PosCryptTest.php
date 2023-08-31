@@ -5,6 +5,7 @@ namespace Mews\Pos\Tests\Crypt;
 use Mews\Pos\Crypt\PosNetV1PosCrypt;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -25,7 +26,7 @@ class PosNetV1PosCryptTest extends TestCase
             '6700950031',
             '67540050',
             '1010272261352072',
-            \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             '10,10,10,10,10,10,10,10'
         );
 

@@ -1,6 +1,6 @@
 <?php
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 $templateTitle = 'Order Status';
 require '_config.php';
@@ -22,7 +22,7 @@ if (isset($ord['recurringFrequency']) && $lastResponse && $lastResponse->recurri
     ];
 }
 
-$transaction = AbstractGateway::TX_STATUS;
+$transaction = PosInterface::TX_STATUS;
 
 // Query Order
 $pos->status($order);

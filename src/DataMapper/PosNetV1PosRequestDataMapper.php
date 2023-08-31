@@ -11,7 +11,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * Creates request data for PosNetV1Pos Gateway requests
@@ -38,12 +38,12 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      */
     protected $txTypeMappings = [
-        AbstractGateway::TX_PAY      => 'Sale',
-        AbstractGateway::TX_PRE_PAY  => 'Auth',
-        AbstractGateway::TX_POST_PAY => 'Capture',
-        AbstractGateway::TX_CANCEL   => 'Reverse',
-        AbstractGateway::TX_REFUND   => 'Return',
-        AbstractGateway::TX_STATUS   => 'TransactionInquiry',
+        PosInterface::TX_PAY      => 'Sale',
+        PosInterface::TX_PRE_PAY  => 'Auth',
+        PosInterface::TX_POST_PAY => 'Capture',
+        PosInterface::TX_CANCEL   => 'Reverse',
+        PosInterface::TX_REFUND   => 'Return',
+        PosInterface::TX_STATUS   => 'TransactionInquiry',
     ];
 
     /**
@@ -126,7 +126,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'AdditionalInfoData'     => null,
             'CardInformationData'    => [
                 'CardNo'         => $card->getNumber(),
-                'ExpireDate'     => $card->getExpirationDate(),
+                'ExpireDate'     => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'Cvc2'           => $card->getCvv(),
                 'CardHolderName' => $card->getHolderName(),
             ],
@@ -285,7 +285,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']);
         }
 
-        if ($order['payment_model'] === AbstractGateway::MODEL_NON_SECURE) {
+        if ($order['payment_model'] === PosInterface::MODEL_NON_SECURE) {
             $requestData['Amount']       = self::amountFormat($order['amount']);
             $requestData['CurrencyCode'] = $this->mapCurrency($order['currency']);
         }
@@ -335,7 +335,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'CardNo'         => $card->getNumber(),
                 // Kod calisiyor ancak burda bir tutarsizlik var: ExpireDate vs ExpiredDate
                 // MacParams icinde ExpireDate olarak geciyor, gonderidigimizde ise ExpiredDate olarak istiyor.
-                'ExpiredDate'    => $card->getExpirationDate(),
+                'ExpiredDate'    => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'Cvv'            => $card->getCvv(),
                 'CardHolderName' => (string) $card->getHolderName(),
 
@@ -395,9 +395,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     public static function mapOrderIdToPrefixedOrderId(string $orderId, string $accountModel): string
     {
         $prefix = self::ORDER_ID_REGULAR_PREFIX;
-        if (AbstractGateway::MODEL_3D_SECURE === $accountModel) {
+        if (PosInterface::MODEL_3D_SECURE === $accountModel) {
             $prefix = self::ORDER_ID_3D_PREFIX;
-        } elseif (AbstractGateway::MODEL_3D_PAY === $accountModel) {
+        } elseif (PosInterface::MODEL_3D_PAY === $accountModel) {
             $prefix = self::ORDER_ID_3D_PAY_PREFIX;
         }
 
@@ -479,7 +479,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         return [
             'id'            => $order['id'],
-            'payment_model' => $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE,
+            'payment_model' => $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE,
         ];
     }
 
@@ -499,9 +499,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return [
             //id or ref_ret_num
             'id'               => $order['id'] ?? null,
-            'payment_model'    => $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE,
+            'payment_model'    => $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE,
             'ref_ret_num'      => $order['ref_ret_num'] ?? null,
-            'transaction_type' => $order['transaction_type'] ?? AbstractGateway::TX_PAY,
+            'transaction_type' => $order['transaction_type'] ?? PosInterface::TX_PAY,
         ];
     }
 
@@ -513,9 +513,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return [
             //id or ref_ret_num
             'id'               => $order['id'] ?? null,
-            'payment_model'    => $order['payment_model'] ?? AbstractGateway::MODEL_3D_SECURE,
+            'payment_model'    => $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE,
             'ref_ret_num'      => $order['ref_ret_num'] ?? null,
-            'transaction_type' => $order['transaction_type'] ?? AbstractGateway::TX_PAY,
+            'transaction_type' => $order['transaction_type'] ?? PosInterface::TX_PAY,
             'amount'           => $order['amount'],
             'currency'         => $order['currency'] ?? 'TRY',
         ];

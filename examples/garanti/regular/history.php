@@ -1,5 +1,7 @@
 <?php
 
+use Mews\Pos\PosInterface;
+
 require '_config.php';
 $templateTitle = 'History Order';
 require '../../_templates/_header.php';
@@ -11,7 +13,7 @@ $order = [
     'currency' => $ord['currency'],
     'ip'       => $ord['ip'],
 ];
-$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_HISTORY;
+$transaction = PosInterface::TX_HISTORY;
 
 // History Order
 $query = $pos->history($order);

@@ -1,5 +1,7 @@
 <?php
 
+use Mews\Pos\PosInterface;
+
 require '_config.php';
 
 $templateTitle = 'Post Auth Order (ön provizyonu tamamlama)';
@@ -11,7 +13,7 @@ $order = [
 ];
 
 $session->set('post_order', $order);
-$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY;
+$transaction = PosInterface::TX_POST_PAY;
 $card = null;
 
 require '../../_templates/_payment_response.php';

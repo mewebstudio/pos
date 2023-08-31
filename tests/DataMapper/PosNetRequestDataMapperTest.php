@@ -13,8 +13,8 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PosNet;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -45,7 +45,7 @@ class PosNetRequestDataMapperTest extends TestCase
             '6706598320',
             '67005551',
             '27426',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             '10,10,10,10,10,10,10,10'
         );
 
@@ -59,7 +59,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'rand'        => '0.43625700 1604831630',
-            'lang'        => AbstractGateway::LANG_TR,
+            'lang'        => PosInterface::LANG_TR,
         ];
 
         $pos = PosFactory::createPosGateway($this->account, $config);
@@ -109,9 +109,9 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testMapOrderIdToPrefixedOrderId()
     {
-        $this->assertSame('TDSC00000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, AbstractGateway::MODEL_3D_SECURE));
-        $this->assertSame('000000000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, AbstractGateway::MODEL_3D_PAY));
-        $this->assertSame('000000000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, AbstractGateway::MODEL_NON_SECURE));
+        $this->assertSame('TDSC00000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, PosInterface::MODEL_3D_SECURE));
+        $this->assertSame('000000000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, PosInterface::MODEL_3D_PAY));
+        $this->assertSame('000000000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, PosInterface::MODEL_NON_SECURE));
     }
 
     /**
@@ -157,7 +157,7 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_PAY, $this->card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
@@ -170,7 +170,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $order = [
             'id' => '2020110828BC',
-            'payment_model' => AbstractGateway::MODEL_3D_SECURE,
+            'payment_model' => PosInterface::MODEL_3D_SECURE,
         ];
 
         $actual       = $this->requestDataMapper->createCancelRequestData($this->account, $order);
@@ -203,7 +203,7 @@ class PosNetRequestDataMapperTest extends TestCase
             'Sign'           => '9998F61E1D0C0FB6EC5203A748124F30',
         ];
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, PosInterface::TX_PAY, $responseData);
 
         $expectedData = $this->getSample3DPaymentRequestData($this->account, $responseData);
         $this->assertEquals($expectedData, $actual);
@@ -215,7 +215,7 @@ class PosNetRequestDataMapperTest extends TestCase
     public function testCreate3DEnrollmentCheckRequestData()
     {
         $expected = $this->getSample3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
-        $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, PosInterface::TX_PAY, $this->card);
         $this->assertEquals($expected, $actual);
     }
 
@@ -227,7 +227,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->order['id'] = 'd32458293945098y439244343';
-        $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, PosInterface::TX_PAY, $this->card);
     }
 
     /**
@@ -265,7 +265,7 @@ class PosNetRequestDataMapperTest extends TestCase
         $expected = $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             '',
             $gatewayURL,
             null,
@@ -283,7 +283,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'            => '2020110828BC',
-            'payment_model' => AbstractGateway::MODEL_3D_SECURE,
+            'payment_model' => PosInterface::MODEL_3D_SECURE,
         ];
 
         $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
@@ -299,7 +299,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'            => '2020110828BC',
-            'payment_model' => AbstractGateway::MODEL_3D_SECURE,
+            'payment_model' => PosInterface::MODEL_3D_SECURE,
             'amount'        => 50,
             'currency'      => 'TRY',
         ];

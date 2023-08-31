@@ -11,8 +11,8 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PayFlexV4Pos;
+use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\PayFlexV4PosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -47,7 +47,7 @@ class PayFlexV4PosTest extends TestCase
             '000000000111111',
             '3XTgER89as',
             'VP999999',
-            AbstractGateway::MODEL_3D_SECURE
+            PosInterface::MODEL_3D_SECURE
         );
 
 
@@ -110,7 +110,7 @@ class PayFlexV4PosTest extends TestCase
         $posMock->expects($this->once())->method('sendEnrollmentRequest')
             ->willReturn(PayFlexV4PosRequestDataMapperTest::getSampleEnrollmentFailResponseDataProvider());
 
-        $posMock->get3DFormData($this->order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $this->card);
+        $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_PAY, $this->card);
     }
 
     public function testGet3DFormDataSuccess()
@@ -135,7 +135,7 @@ class PayFlexV4PosTest extends TestCase
         $posMock->expects($this->once())->method('sendEnrollmentRequest')
             ->willReturn($enrollmentResponse);
 
-        $result = $posMock->get3DFormData($this->order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $this->card);
+        $result = $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_PAY, $this->card);
         $expected = [
             'gateway' => $enrollmentResponse['Message']['VERes']['ACSUrl'],
             'method'  => 'POST',

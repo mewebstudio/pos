@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Gateways;
 
 use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
@@ -10,6 +11,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
+use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -42,7 +44,7 @@ class PayForPos extends AbstractGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
     {
-        $request = $request->request;
+        $request      = $request->request;
         $bankResponse = null;
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
             throw new HashMismatchException();
@@ -51,7 +53,7 @@ class PayForPos extends AbstractGateway
         //if customer 3d verification passed finish payment
         if ('1' === $request->get('3DStatus')) {
             //valid ProcReturnCode is V033 in case of success 3D Authentication
-            $contents = $this->create3DPaymentXML($request->all(), $order, $txType);
+            $contents     = $this->create3DPaymentXML($request->all(), $order, $txType);
             $bankResponse = $this->send($contents);
         } else {
             $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $request->get('3DStatus')]);
@@ -120,7 +122,7 @@ class PayForPos extends AbstractGateway
         $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
 
         $gatewayURL = $this->get3DGatewayURL();
-        if (self::MODEL_3D_HOST === $paymentModel) {
+        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
             $gatewayURL = $this->get3DHostGatewayURL();
         }
 
@@ -197,7 +199,7 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      *
-     * @param AbstractGateway::TX_* $txType kullanilmiyor
+     * @param PosInterface::TX_* $txType kullanilmiyor
      */
     public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
     {

@@ -9,7 +9,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * Creates request data for PayFlex Common Payment V4 Gateway requests
@@ -23,13 +23,13 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      */
     protected $txTypeMappings = [
-        AbstractGateway::TX_PAY      => 'Sale',
-        AbstractGateway::TX_PRE_PAY  => 'Auth',
-        AbstractGateway::TX_POST_PAY => 'Capture',
-        AbstractGateway::TX_CANCEL   => 'Cancel',
-        AbstractGateway::TX_REFUND   => 'Refund',
-        AbstractGateway::TX_HISTORY  => 'TxnHistory',
-        AbstractGateway::TX_STATUS   => 'OrderInquiry',
+        PosInterface::TX_PAY      => 'Sale',
+        PosInterface::TX_PRE_PAY  => 'Auth',
+        PosInterface::TX_POST_PAY => 'Capture',
+        PosInterface::TX_CANCEL   => 'Cancel',
+        PosInterface::TX_REFUND   => 'Refund',
+        PosInterface::TX_HISTORY  => 'TxnHistory',
+        PosInterface::TX_STATUS   => 'OrderInquiry',
     ];
 
     /**
@@ -46,8 +46,8 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritdoc}
      */
     protected $langMappings = [
-        AbstractGateway::LANG_TR => 'tr-TR',
-        AbstractGateway::LANG_EN => 'en-US',
+        PosInterface::LANG_TR => 'tr-TR',
+        PosInterface::LANG_EN => 'en-US',
     ];
 
     /**
@@ -90,7 +90,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param PayFlexAccount                       $account
      * @param array<string, int|string|float|null> $order
-     * @param AbstractGateway::TX_*                $txType
+     * @param PosInterface::TX_*                   $txType
      * @param AbstractCreditCard|null              $card
      *
      * @return array<string, string>
@@ -202,7 +202,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'TransactionType'        => $this->mapTxType(AbstractGateway::TX_POST_PAY),
+                'TransactionType'        => $this->mapTxType(PosInterface::TX_POST_PAY),
                 'ReferenceTransactionId' => (string) $order['id'],
                 'CurrencyAmount'         => self::amountFormat($order['amount']),
                 'CurrencyCode'           => $this->mapCurrency($order['currency']),
@@ -231,7 +231,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareCancelOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'TransactionType'        => $this->mapTxType(AbstractGateway::TX_CANCEL),
+                'TransactionType'        => $this->mapTxType(PosInterface::TX_CANCEL),
                 'ReferenceTransactionId' => (string) $order['id'],
                 'ClientIp'               => (string) $order['ip'],
             ];
@@ -250,11 +250,11 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareRefundOrder($order);
 
         return $this->getRequestAccountData($account) + [
-            'TransactionType'        => $this->mapTxType(AbstractGateway::TX_REFUND),
-            'ReferenceTransactionId' => (string) $order['id'],
-            'ClientIp'               => (string) $order['ip'],
-            'CurrencyAmount'         => self::amountFormat($order['amount']),
-        ];
+                'TransactionType'        => $this->mapTxType(PosInterface::TX_REFUND),
+                'ReferenceTransactionId' => (string) $order['id'],
+                'ClientIp'               => (string) $order['ip'],
+                'CurrencyAmount'         => self::amountFormat($order['amount']),
+            ];
     }
 
     /**
@@ -274,13 +274,13 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @return array{gateway: string, method: 'GET', inputs: array{Ptkn: string}}
      */
     public function create3DFormData(
-        ?AbstractPosAccount  $account,
-        ?array               $order,
-        ?string              $paymentModel,
-        ?string              $txType,
-        ?string              $gatewayURL,
-        ?AbstractCreditCard  $card = null,
-        array                $extraData = []): array
+        ?AbstractPosAccount $account,
+        ?array              $order,
+        ?string             $paymentModel,
+        ?string             $txType,
+        ?string             $gatewayURL,
+        ?AbstractCreditCard $card = null,
+        array               $extraData = []): array
     {
         return [
             'gateway' => $extraData['CommonPaymentUrl'],

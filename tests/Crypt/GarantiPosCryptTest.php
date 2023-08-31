@@ -5,7 +5,7 @@ namespace Mews\Pos\Tests\Crypt;
 use Mews\Pos\Crypt\GarantiPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Factory\AccountFactory;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -27,7 +27,7 @@ class GarantiPosCryptTest extends TestCase
             'PROVAUT',
             '123qweASD/',
             '30691298',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             '12345678',
             'PROVRFN',
             '123qweASD/'

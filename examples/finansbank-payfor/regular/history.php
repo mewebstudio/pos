@@ -1,5 +1,7 @@
 <?php
 
+use Mews\Pos\PosInterface;
+
 $templateTitle = 'History Order';
 
 require '_config.php';
@@ -14,7 +16,7 @@ $order = [
     'order_id' => $ord ? $ord['id'] : '20201031C06E',
 ];
 
-$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_HISTORY;
+$transaction = PosInterface::TX_HISTORY;
 // History Order
 $query = $pos->history($order);
 

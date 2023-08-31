@@ -1,38 +1,38 @@
 <?php
 
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 require __DIR__.'/../_main_config.php';
 
 $bankTestsUrl = $hostUrl.'/interpos';
 
 $subMenu = [
-    AbstractGateway::MODEL_3D_SECURE => [
+    PosInterface::MODEL_3D_SECURE => [
         'path' => '/3d/index.php',
         'label' => '3D Ödeme',
     ],
-    AbstractGateway::MODEL_3D_PAY => [
+    PosInterface::MODEL_3D_PAY => [
         'path' => '/3d-pay/index.php',
         'label' => '3D Pay Ödeme',
     ],
-    AbstractGateway::MODEL_3D_HOST => [
+    PosInterface::MODEL_3D_HOST => [
         'path' => '/3d-host/index.php',
         'label' => '3D Host Ödeme',
     ],
-    AbstractGateway::MODEL_NON_SECURE => [
+    PosInterface::MODEL_NON_SECURE => [
         'path' => '/regular/index.php',
         'label' => 'Non Secure Ödeme',
     ],
-    AbstractGateway::TX_STATUS => [
+    PosInterface::TX_STATUS => [
         'path' => '/regular/status.php',
         'label' => 'Ödeme Durumu',
     ],
-    AbstractGateway::TX_CANCEL => [
+    PosInterface::TX_CANCEL => [
         'path' => '/regular/cancel.php',
         'label' => 'İptal',
     ],
-    AbstractGateway::TX_REFUND => [
+    PosInterface::TX_REFUND => [
         'path' => '/regular/refund.php',
         'label' => 'İade',
     ],
@@ -53,7 +53,7 @@ function getNewOrder(
     \Symfony\Component\HttpFoundation\Session\Session $session,
     ?int $installment = 0,
     bool $tekrarlanan = false,
-    string $lang = AbstractGateway::LANG_TR
+    string $lang = PosInterface::LANG_TR
 ): array {
     // todo tekrarlanan odemeler icin daha fazla bilgi lazim, Deniz bank dokumantasyonunda hic bir aciklama yok
     //  ornek kodlarda ise sadece bu alttaki 2 veriyi gondermis.
@@ -63,10 +63,10 @@ function getNewOrder(
     return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 }
 
-function doPayment(\Mews\Pos\PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
 {
-    if ($paymentModel === \Mews\Pos\Gateways\AbstractGateway::MODEL_NON_SECURE
-        && \Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY !== $transaction
+    if ($paymentModel === PosInterface::MODEL_NON_SECURE
+        && PosInterface::TX_POST_PAY !== $transaction
     ) {
         //bu asamada $card regular/non secure odemede lazim.
         $pos->payment($paymentModel, $order, $transaction, $card);

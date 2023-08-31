@@ -1,5 +1,7 @@
 <?php
 
+use Mews\Pos\PosInterface;
+
 require '../_payment_config.php';
 
 $baseUrl = $bankTestsUrl.'/3d-pay/';
@@ -13,12 +15,12 @@ $account = \Mews\Pos\Factory\AccountFactory::createPayFlexAccount(
     $hostMerchantId,
     $merchantPassword,
     $hostTerminalId,
-    \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_PAY
+    PosInterface::MODEL_3D_PAY
 );
 
 $pos = getGateway($account);
 
-$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PAY;
+$transaction = PosInterface::TX_PAY;
 
 $templateTitle = '3D Pay Model Payment';
-$paymentModel = \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_PAY;
+$paymentModel = PosInterface::MODEL_3D_PAY;

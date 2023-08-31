@@ -5,7 +5,7 @@ namespace Mews\Pos\Tests\Crypt;
 use Mews\Pos\Crypt\InterPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Factory\AccountFactory;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -31,7 +31,7 @@ class InterPosCryptTest extends TestCase
             $shopCode,
             $userCode,
             $userPass,
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             $merchantPass
         );
 

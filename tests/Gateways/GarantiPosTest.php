@@ -7,8 +7,8 @@ namespace Mews\Pos\Tests\Gateways;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\GarantiPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -36,7 +36,7 @@ class GarantiPosTest extends TestCase
             'PROVAUT',
             '123qweASD/',
             '30691298',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             '12345678',
             'PROVRFN',
             '123qweASD/'

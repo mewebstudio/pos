@@ -12,8 +12,8 @@ use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -63,7 +63,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'rand'        => '0.43625700 1604831630',
             'hash'        => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
             'ip'          => '127.0.0.1',
-            'lang'        => AbstractGateway::LANG_TR,
+            'lang'        => PosInterface::LANG_TR,
         ];
 
         $pos = PosFactory::createPosGateway($this->account, $config);
@@ -153,7 +153,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             $inputs['CardCVV2']            = $card->getCvv();
         }
 
-        $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $this->order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $card);
+        $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_PAY, $card);
         $this->assertEquals($inputs, $result);
     }
 
@@ -217,7 +217,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'BusinessKey'     => '20220845654324600000140459',
         ];
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, PosInterface::TX_PAY, $responseData);
 
         $expectedData = $this->getSample3DPaymentXMLData($this->order, $responseData);
         $this->assertEquals($expectedData, $actual);

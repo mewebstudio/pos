@@ -13,8 +13,8 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
+use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\PayFlexCPV4PosRequestDataMapperTest;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
@@ -48,7 +48,7 @@ class PayFlexCPV4PosTest extends TestCase
             '000000000111111',
             '3XTgER89as',
             'VP999999',
-            AbstractGateway::MODEL_3D_SECURE
+            PosInterface::MODEL_3D_SECURE
         );
 
 
@@ -105,7 +105,7 @@ class PayFlexCPV4PosTest extends TestCase
         $posMock->expects($this->once())->method('registerPayment')
             ->willReturn(PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['queryParams']);
 
-        $result = $posMock->get3DFormData($this->order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $this->card);
+        $result = $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_PAY, $this->card);
 
         $this->assertSame(PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['expected'], $result);
     }
@@ -133,7 +133,7 @@ class PayFlexCPV4PosTest extends TestCase
                 'ResponseMessage'  => 'Güvenlik Numarası Hatalı',
             ]);
 
-        $posMock->get3DFormData($this->order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $this->card);
+        $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_PAY, $this->card);
     }
 
     public function testMake3dPayPaymentFail(): void

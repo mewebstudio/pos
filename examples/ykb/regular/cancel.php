@@ -1,5 +1,7 @@
 <?php
 
+use Mews\Pos\PosInterface;
+
 require '_config.php';
 $templateTitle = 'Cancel Order';
 require '../../_templates/_header.php';
@@ -16,7 +18,7 @@ $order = [
      * siparis olusturulurken kullanilan odeme modeli
      * orderId'yi dogru sekilde formatlamak icin zorunlu.
      */
-    'payment_model' => \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE,
+    'payment_model' => PosInterface::MODEL_3D_SECURE,
 ];
 
 /*
@@ -27,7 +29,7 @@ $order = [
     'auth_code'     => '115394',
 ];
 */
-$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_CANCEL;
+$transaction = PosInterface::TX_CANCEL;
 
 // Cancel Order
 $pos->cancel($order);

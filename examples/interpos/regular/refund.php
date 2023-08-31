@@ -1,6 +1,6 @@
 <?php
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 require '_config.php';
 $templateTitle = 'Refund Order';
@@ -14,7 +14,7 @@ $order = [
     'amount'   => $ord['amount'],
     'currency' => $ord['currency'],
 ];
-$transaction = AbstractGateway::TX_REFUND;
+$transaction = PosInterface::TX_REFUND;
 
 $pos->refund($order);
 

@@ -19,7 +19,7 @@ class CreditCardFactory
     /**
      * AbstractCreditCard constructor.
      *
-     * @param PosInterface|AbstractGateway $pos
+     * @param PosInterface $pos
      * @param string       $number         credit card number with or without spaces
      * @param string       $expireYear     accepts year in 1, 2 and 4 digit format. accepted year formats '1' (2001), '02'
      *                                     (2002), '20' (2020), '2024' (2024)

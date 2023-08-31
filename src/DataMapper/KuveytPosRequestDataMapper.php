@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
@@ -10,7 +11,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * Creates request data for KuveytPos Gateway requests
@@ -30,18 +31,18 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritdoc}
      */
     protected $secureTypeMappings = [
-        AbstractGateway::MODEL_3D_SECURE  => '3',
-        AbstractGateway::MODEL_NON_SECURE => '0',
+        PosInterface::MODEL_3D_SECURE  => '3',
+        PosInterface::MODEL_NON_SECURE => '0',
     ];
 
     /**
      * {@inheritDoc}
      */
     protected $txTypeMappings = [
-        AbstractGateway::TX_PAY    => 'Sale',
-        AbstractGateway::TX_CANCEL => 'SaleReversal',
-        AbstractGateway::TX_STATUS => 'GetMerchantOrderDetail',
-        AbstractGateway::TX_REFUND => 'PartialDrawback', // Also there is a "Drawback"
+        PosInterface::TX_PAY    => 'Sale',
+        PosInterface::TX_CANCEL => 'SaleReversal',
+        PosInterface::TX_STATUS => 'GetMerchantOrderDetail',
+        PosInterface::TX_REFUND => 'PartialDrawback', // Also there is a "Drawback"
     ];
 
     /**
@@ -98,30 +99,30 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $hash                  = $this->crypt->createHash($account, $mappedOrder, $this->mapTxType($txType));
 
         return $this->getRequestAccountData($account) + [
-            'APIVersion'                   => self::API_VERSION,
-            'HashData'                     => $hash,
-            'CustomerIPAddress'            => $order['ip'],
-            'KuveytTurkVPosAdditionalData' => [
-                'AdditionalData' => [
-                    'Key'  => 'MD',
-                    'Data' => $responseData['MD'],
+                'APIVersion'                   => self::API_VERSION,
+                'HashData'                     => $hash,
+                'CustomerIPAddress'            => $order['ip'],
+                'KuveytTurkVPosAdditionalData' => [
+                    'AdditionalData' => [
+                        'Key'  => 'MD',
+                        'Data' => $responseData['MD'],
+                    ],
                 ],
-            ],
-            'TransactionType'              => $this->mapTxType($txType),
-            'InstallmentCount'             => $responseData['VPosMessage']['InstallmentCount'],
-            'Amount'                       => $responseData['VPosMessage']['Amount'],
-            'DisplayAmount'                => self::amountFormat($responseData['VPosMessage']['Amount']),
-            'CurrencyCode'                 => $responseData['VPosMessage']['CurrencyCode'],
-            'MerchantOrderId'              => $responseData['VPosMessage']['MerchantOrderId'],
-            'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],
-        ];
+                'TransactionType'              => $this->mapTxType($txType),
+                'InstallmentCount'             => $responseData['VPosMessage']['InstallmentCount'],
+                'Amount'                       => $responseData['VPosMessage']['Amount'],
+                'DisplayAmount'                => self::amountFormat($responseData['VPosMessage']['Amount']),
+                'CurrencyCode'                 => $responseData['VPosMessage']['CurrencyCode'],
+                'MerchantOrderId'              => $responseData['VPosMessage']['MerchantOrderId'],
+                'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],
+            ];
     }
 
     /**
      * @param KuveytPosAccount                     $account
      * @param array<string, int|string|float|null> $order
-     * @param AbstractGateway::MODEL_*             $paymentModel
-     * @param AbstractGateway::TX_*                $txType
+     * @param PosInterface::MODEL_*                $paymentModel
+     * @param PosInterface::TX_*                   $txType
      * @param AbstractCreditCard                   $card
      */
     public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, ?AbstractCreditCard $card = null): array
@@ -133,19 +134,19 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $hash                  = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
         $inputs = $this->getRequestAccountData($account) + [
-            'APIVersion'          => self::API_VERSION,
-            'HashData'            => $hash,
-            'TransactionType'     => $this->mapTxType($txType),
-            'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
-            'InstallmentCount'    => $this->mapInstallment($order['installment']),
-            'Amount'              => self::amountFormat($order['amount']),
-            //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
-            'DisplayAmount'       => self::amountFormat($order['amount']),
-            'CurrencyCode'        => $this->mapCurrency($order['currency']),
-            'MerchantOrderId'     => $order['id'],
-            'OkUrl'               => $order['success_url'],
-            'FailUrl'             => $order['fail_url'],
-        ];
+                'APIVersion'          => self::API_VERSION,
+                'HashData'            => $hash,
+                'TransactionType'     => $this->mapTxType($txType),
+                'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
+                'InstallmentCount'    => $this->mapInstallment($order['installment']),
+                'Amount'              => self::amountFormat($order['amount']),
+                //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
+                'DisplayAmount'       => self::amountFormat($order['amount']),
+                'CurrencyCode'        => $this->mapCurrency($order['currency']),
+                'MerchantOrderId'     => $order['id'],
+                'OkUrl'               => $order['success_url'],
+                'FailUrl'             => $order['fail_url'],
+            ];
 
         if ($card !== null) {
             $inputs['CardHolderName']      = $card->getHolderName();
@@ -189,50 +190,50 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return [
             'IsFromExternalNetwork' => true,
-            'BusinessKey' => 0,
-            'ResourceId' => 0,
-            'ActionId' => 0,
-            'LanguageId' => 0,
-            'CustomerId' => null,
-            'MailOrTelephoneOrder' => true,
-            'Amount' => 0,
-            'MerchantId' => $account->getClientId(),
-            'MerchantOrderId' => $order['id'],
+            'BusinessKey'           => 0,
+            'ResourceId'            => 0,
+            'ActionId'              => 0,
+            'LanguageId'            => 0,
+            'CustomerId'            => null,
+            'MailOrTelephoneOrder'  => true,
+            'Amount'                => 0,
+            'MerchantId'            => $account->getClientId(),
+            'MerchantOrderId'       => $order['id'],
             /**
              * Eğer döndüğümüz orderid ile aratılırsa yalnızca aranan işlem gelir.
              * 0 değeri girilirse tarih aralığındaki aynı merchanorderid'ye ait tüm siparişleri getirir.
              * uniq değer orderid'dir, işlemi birebir yakalamak için orderid değeri atanmalıdır.
              */
-            'OrderId' => $order['remote_order_id'] ?? 0,
+            'OrderId'               => $order['remote_order_id'] ?? 0,
             /**
              * Test ortamda denendiginde, StartDate ve EndDate her hangi bir tarih atandiginda istek calisiyor,
              * siparisi buluyor.
              * Ancak bu degerler gonderilmediginde veya gecersiz (orn. null) gonderildiginde SOAP server hata donuyor.
              */
-            'StartDate' =>  $order['start_date']->format('Y-m-d\TH:i:s'),
-            'EndDate' => $order['end_date']->format('Y-m-d\TH:i:s'),
-            'TransactionType' => 0,
-            'VPosMessage' => $this->getRequestAccountData($account) + [
-                'APIVersion' => self::API_VERSION,
-                'InstallmentMaturityCommisionFlag' => 0,
-                'HashData' => $hash,
-                'SubMerchantId' => 0,
-                'CardType' => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], // Default gönderilebilir.
-                'BatchID' => 0,
-                'TransactionType' => $this->mapTxType(AbstractGateway::TX_STATUS),
-                'InstallmentCount' => 0,
-                'Amount' => 0,
-                'DisplayAmount' => 0,
-                'CancelAmount' => 0,
-                'MerchantOrderId' => $order['id'],
-                'CurrencyCode' => $this->mapCurrency($order['currency']),
-                'FECAmount' => 0,
-                'QeryId' => 0,
-                'DebtId' => 0,
-                'SurchargeAmount' => 0,
-                'SGKDebtAmount' => 0,
-                'TransactionSecurity' => 1,
-            ]
+            'StartDate'             => $order['start_date']->format('Y-m-d\TH:i:s'),
+            'EndDate'               => $order['end_date']->format('Y-m-d\TH:i:s'),
+            'TransactionType'       => 0,
+            'VPosMessage'           => $this->getRequestAccountData($account) + [
+                    'APIVersion'                       => self::API_VERSION,
+                    'InstallmentMaturityCommisionFlag' => 0,
+                    'HashData'                         => $hash,
+                    'SubMerchantId'                    => 0,
+                    'CardType'                         => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], // Default gönderilebilir.
+                    'BatchID'                          => 0,
+                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_STATUS),
+                    'InstallmentCount'                 => 0,
+                    'Amount'                           => 0,
+                    'DisplayAmount'                    => 0,
+                    'CancelAmount'                     => 0,
+                    'MerchantOrderId'                  => $order['id'],
+                    'CurrencyCode'                     => $this->mapCurrency($order['currency']),
+                    'FECAmount'                        => 0,
+                    'QeryId'                           => 0,
+                    'DebtId'                           => 0,
+                    'SurchargeAmount'                  => 0,
+                    'SGKDebtAmount'                    => 0,
+                    'TransactionSecurity'              => 1,
+                ],
         ];
     }
 
@@ -250,40 +251,40 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return [
             'IsFromExternalNetwork' => true,
-            'BusinessKey' => 0,
-            'ResourceId' => 0,
-            'ActionId' => 0,
-            'LanguageId' => 0,
-            'CustomerId' => $account->getCustomerId(),
-            'MailOrTelephoneOrder' => true,
-            'Amount' => self::amountFormat($order['amount']),
-            'MerchantId' => $account->getClientId(),
-            'OrderId' => $order['remote_order_id'],
-            'RRN' => $order['ref_ret_num'],
-            'Stan' => $order['trans_id'],
-            'ProvisionNumber' => $order['auth_code'],
-            'TransactionType' => 0,
-            'VPosMessage' => $this->getRequestAccountData($account) + [
-                'APIVersion' => self::API_VERSION,
-                'InstallmentMaturityCommisionFlag' => 0,
-                'HashData' => $hash,
-                'SubMerchantId' => 0,
-                'CardType' => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], //Default gönderilebilir.
-                'BatchID' => 0,
-                'TransactionType' => $this->mapTxType(AbstractGateway::TX_CANCEL),
-                'InstallmentCount' => 0,
-                'Amount' => self::amountFormat($order['amount']),
-                'DisplayAmount' => self::amountFormat($order['amount']),
-                'CancelAmount' => self::amountFormat($order['amount']),
-                'MerchantOrderId' => $order['id'],
-                'FECAmount' => 0,
-                'CurrencyCode' => $this->mapCurrency($order['currency']),
-                'QeryId' => 0,
-                'DebtId' => 0,
-                'SurchargeAmount' => 0,
-                'SGKDebtAmount' => 0,
-                'TransactionSecurity' => 1,
-            ]
+            'BusinessKey'           => 0,
+            'ResourceId'            => 0,
+            'ActionId'              => 0,
+            'LanguageId'            => 0,
+            'CustomerId'            => $account->getCustomerId(),
+            'MailOrTelephoneOrder'  => true,
+            'Amount'                => self::amountFormat($order['amount']),
+            'MerchantId'            => $account->getClientId(),
+            'OrderId'               => $order['remote_order_id'],
+            'RRN'                   => $order['ref_ret_num'],
+            'Stan'                  => $order['trans_id'],
+            'ProvisionNumber'       => $order['auth_code'],
+            'TransactionType'       => 0,
+            'VPosMessage'           => $this->getRequestAccountData($account) + [
+                    'APIVersion'                       => self::API_VERSION,
+                    'InstallmentMaturityCommisionFlag' => 0,
+                    'HashData'                         => $hash,
+                    'SubMerchantId'                    => 0,
+                    'CardType'                         => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], //Default gönderilebilir.
+                    'BatchID'                          => 0,
+                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_CANCEL),
+                    'InstallmentCount'                 => 0,
+                    'Amount'                           => self::amountFormat($order['amount']),
+                    'DisplayAmount'                    => self::amountFormat($order['amount']),
+                    'CancelAmount'                     => self::amountFormat($order['amount']),
+                    'MerchantOrderId'                  => $order['id'],
+                    'FECAmount'                        => 0,
+                    'CurrencyCode'                     => $this->mapCurrency($order['currency']),
+                    'QeryId'                           => 0,
+                    'DebtId'                           => 0,
+                    'SurchargeAmount'                  => 0,
+                    'SGKDebtAmount'                    => 0,
+                    'TransactionSecurity'              => 1,
+                ],
         ];
     }
 
@@ -301,40 +302,40 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return [
             'IsFromExternalNetwork' => true,
-            'BusinessKey' => 0,
-            'ResourceId' => 0,
-            'ActionId' => 0,
-            'LanguageId' => 0,
-            'CustomerId' => $account->getCustomerId(),
-            'MailOrTelephoneOrder' => true,
-            'Amount' => self::amountFormat($order['amount']),
-            'MerchantId' => $account->getClientId(),
-            'OrderId' => $order['remote_order_id'],
-            'RRN' => $order['ref_ret_num'],
-            'Stan' => $order['trans_id'],
-            'ProvisionNumber' => $order['auth_code'],
-            'TransactionType' => 0,
-            'VPosMessage' => $this->getRequestAccountData($account) + [
-                'APIVersion' => self::API_VERSION,
-                'InstallmentMaturityCommisionFlag' => 0,
-                'HashData' => $hash,
-                'SubMerchantId' => 0,
-                'CardType' => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], //Default gönderilebilir.
-                'BatchID' => 0,
-                'TransactionType' => $this->mapTxType(AbstractGateway::TX_REFUND),
-                'InstallmentCount' => 0,
-                'Amount' => self::amountFormat($order['amount']),
-                'DisplayAmount' => 0,
-                'CancelAmount' => self::amountFormat($order['amount']),
-                'MerchantOrderId' => $order['id'],
-                'FECAmount' => 0,
-                'CurrencyCode' => $this->mapCurrency($order['currency']),
-                'QeryId' => 0,
-                'DebtId' => 0,
-                'SurchargeAmount' => 0,
-                'SGKDebtAmount' => 0,
-                'TransactionSecurity' => 1,
-            ]
+            'BusinessKey'           => 0,
+            'ResourceId'            => 0,
+            'ActionId'              => 0,
+            'LanguageId'            => 0,
+            'CustomerId'            => $account->getCustomerId(),
+            'MailOrTelephoneOrder'  => true,
+            'Amount'                => self::amountFormat($order['amount']),
+            'MerchantId'            => $account->getClientId(),
+            'OrderId'               => $order['remote_order_id'],
+            'RRN'                   => $order['ref_ret_num'],
+            'Stan'                  => $order['trans_id'],
+            'ProvisionNumber'       => $order['auth_code'],
+            'TransactionType'       => 0,
+            'VPosMessage'           => $this->getRequestAccountData($account) + [
+                    'APIVersion'                       => self::API_VERSION,
+                    'InstallmentMaturityCommisionFlag' => 0,
+                    'HashData'                         => $hash,
+                    'SubMerchantId'                    => 0,
+                    'CardType'                         => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], //Default gönderilebilir.
+                    'BatchID'                          => 0,
+                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_REFUND),
+                    'InstallmentCount'                 => 0,
+                    'Amount'                           => self::amountFormat($order['amount']),
+                    'DisplayAmount'                    => 0,
+                    'CancelAmount'                     => self::amountFormat($order['amount']),
+                    'MerchantOrderId'                  => $order['id'],
+                    'FECAmount'                        => 0,
+                    'CurrencyCode'                     => $this->mapCurrency($order['currency']),
+                    'QeryId'                           => 0,
+                    'DebtId'                           => 0,
+                    'SurchargeAmount'                  => 0,
+                    'SGKDebtAmount'                    => 0,
+                    'TransactionSecurity'              => 1,
+                ],
         ];
     }
 

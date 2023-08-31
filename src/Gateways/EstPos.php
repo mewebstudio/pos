@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Gateways;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -39,7 +40,7 @@ class EstPos extends AbstractGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
     {
-        $request = $request->request;
+        $request           = $request->request;
         $provisionResponse = null;
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
             throw new HashMismatchException();
@@ -55,7 +56,7 @@ class EstPos extends AbstractGateway
              */
         } else {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $request->get('mdStatus')]);
-            $contents = $this->create3DPaymentXML($request->all(), $order, $txType);
+            $contents          = $this->create3DPaymentXML($request->all(), $order, $txType);
             $provisionResponse = $this->send($contents);
         }
 

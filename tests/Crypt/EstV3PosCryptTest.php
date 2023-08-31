@@ -5,7 +5,7 @@ namespace Mews\Pos\Tests\Crypt;
 use Mews\Pos\Crypt\EstV3PosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Factory\AccountFactory;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -26,7 +26,7 @@ class EstV3PosCryptTest extends TestCase
             '190100000',
             'ISBANKAPI',
             'ISBANK07',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             '123456'
         );
 
@@ -65,7 +65,7 @@ class EstV3PosCryptTest extends TestCase
             'hashAlgorithm' => 'ver3',
         ];
 
-        $actual = $this->crypt->create3DHash($this->account, $requestData, AbstractGateway::TX_PAY);
+        $actual = $this->crypt->create3DHash($this->account, $requestData, PosInterface::TX_PAY);
         $this->assertEquals($expected, $actual);
     }
 
@@ -74,7 +74,7 @@ class EstV3PosCryptTest extends TestCase
         $account = $this->account;
         $inputs  = [
             'clientid'      => $account->getClientId(),
-            'storetype'     => AbstractGateway::MODEL_3D_SECURE,
+            'storetype'     => PosInterface::MODEL_3D_SECURE,
             'amount'        => '100.25',
             'oid'           => 'order222',
             'okUrl'         => 'https://domain.com/success',
@@ -88,7 +88,7 @@ class EstV3PosCryptTest extends TestCase
         ];
 
         $expected = '4aUsG5hqlIFLc9s8PKc5rWb2OLhmxDDewNgKa2XrwoYCIxlyVq8Fjl4IVaZzoqL983CfTseicmnTA0PjZr74xg==';
-        $actual   = $this->crypt->create3DHash($this->account, $inputs, AbstractGateway::TX_PAY);
+        $actual   = $this->crypt->create3DHash($this->account, $inputs, PosInterface::TX_PAY);
         $this->assertEquals($expected, $actual);
     }
 

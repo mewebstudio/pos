@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
@@ -9,7 +10,7 @@ use Mews\Pos\Crypt\GarantiPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * Creates request data for GarantiPos Gateway requests
@@ -35,21 +36,21 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      */
     protected $secureTypeMappings = [
-        AbstractGateway::MODEL_3D_SECURE  => '3D',
-        AbstractGateway::MODEL_3D_PAY     => '3D_PAY',
+        PosInterface::MODEL_3D_SECURE => '3D',
+        PosInterface::MODEL_3D_PAY    => '3D_PAY',
     ];
 
     /**
      * {@inheritDoc}
      */
     protected $txTypeMappings = [
-        AbstractGateway::TX_PAY      => 'sales',
-        AbstractGateway::TX_PRE_PAY  => 'preauth',
-        AbstractGateway::TX_POST_PAY => 'postauth',
-        AbstractGateway::TX_CANCEL   => 'void',
-        AbstractGateway::TX_REFUND   => 'refund',
-        AbstractGateway::TX_HISTORY  => 'orderhistoryinq',
-        AbstractGateway::TX_STATUS   => 'orderinq',
+        PosInterface::TX_PAY      => 'sales',
+        PosInterface::TX_PRE_PAY  => 'preauth',
+        PosInterface::TX_POST_PAY => 'postauth',
+        PosInterface::TX_CANCEL   => 'void',
+        PosInterface::TX_REFUND   => 'refund',
+        PosInterface::TX_HISTORY  => 'orderhistoryinq',
+        PosInterface::TX_STATUS   => 'orderinq',
     ];
 
     protected $recurringOrderFrequencyMapping = [
@@ -71,10 +72,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePaymentOrder($order);
 
         $hashData = [
-            'id' => $order['id'],
+            'id'     => $order['id'],
             'amount' => self::amountFormat($order['amount']),
         ];
-        $hash = $this->crypt->createHash($account, $hashData);
+        $hash     = $this->crypt->createHash($account, $hashData);
 
         $result = [
             'Mode'        => $this->getMode(),
@@ -121,10 +122,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePaymentOrder($order);
 
         $hashData = [
-            'id' => $order['id'],
+            'id'     => $order['id'],
             'amount' => self::amountFormat($order['amount']),
         ];
-        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType($txType), $card);
+        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType($txType), $card);
 
         $result = [
             'Mode'        => $this->getMode(),
@@ -166,10 +167,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePostPaymentOrder($order);
 
         $hashData = [
-            'id' => (string) $order['id'],
+            'id'     => (string) $order['id'],
             'amount' => self::amountFormat($order['amount']),
         ];
-        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_POST_PAY), $card);
+        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_POST_PAY), $card);
 
         return [
             'Mode'        => $this->getMode(),
@@ -183,7 +184,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'              => $this->mapTxType(AbstractGateway::TX_POST_PAY),
+                'Type'              => $this->mapTxType(PosInterface::TX_POST_PAY),
                 'Amount'            => self::amountFormat($order['amount']),
                 'CurrencyCode'      => $this->mapCurrency($order['currency']),
                 'OriginalRetrefNum' => $order['ref_ret_num'],
@@ -201,24 +202,24 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareStatusOrder($order);
 
         $hashData = [
-            'id' => $order['id'],
+            'id'     => $order['id'],
             'amount' => self::amountFormat($order['amount']),
         ];
-        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_STATUS));
+        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_STATUS));
 
         return [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
-               'IPAddress'    => $order['ip'] ?? '',
-               'EmailAddress' => $order['email'] ?? '',
+                'IPAddress'    => $order['ip'] ?? '',
+                'EmailAddress' => $order['email'] ?? '',
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(AbstractGateway::TX_STATUS),
+                'Type'                  => $this->mapTxType(PosInterface::TX_STATUS),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => self::amountFormat($order['amount']), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),
@@ -238,10 +239,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareCancelOrder($order);
 
         $hashData = [
-            'id' => $order['id'],
+            'id'     => $order['id'],
             'amount' => self::amountFormat($order['amount']),
         ];
-        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_CANCEL));
+        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_CANCEL));
 
         return [
             'Mode'        => $this->getMode(),
@@ -255,7 +256,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(AbstractGateway::TX_CANCEL),
+                'Type'                  => $this->mapTxType(PosInterface::TX_CANCEL),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => self::amountFormat($order['amount']), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),
@@ -276,10 +277,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareRefundOrder($order);
 
         $hashData = [
-            'id' => $order['id'],
+            'id'     => $order['id'],
             'amount' => self::amountFormat($order['amount']),
         ];
-        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_REFUND));
+        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_REFUND));
 
         return [
             'Mode'        => $this->getMode(),
@@ -293,7 +294,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(AbstractGateway::TX_REFUND),
+                'Type'                  => $this->mapTxType(PosInterface::TX_REFUND),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => self::amountFormat($order['amount']), //sabit olarak amount 100 gonderilecek,
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),
@@ -314,24 +315,24 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->prepareHistoryOrder($order);
 
         $hashData = [
-            'id' => $order['id'],
+            'id'     => $order['id'],
             'amount' => self::amountFormat($order['amount']),
         ];
-        $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_HISTORY));
+        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_HISTORY));
 
         return [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
-               'IPAddress'    => $order['ip'] ?? '',
-               'EmailAddress' => $order['email'] ?? '',
+                'IPAddress'    => $order['ip'] ?? '',
+                'EmailAddress' => $order['email'] ?? '',
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(AbstractGateway::TX_HISTORY),
+                'Type'                  => $this->mapTxType(PosInterface::TX_HISTORY),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => self::amountFormat($order['amount']), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),
@@ -374,10 +375,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $inputs['secure3dhash'] = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
         if ($card !== null) {
-            $inputs['cardnumber'] = $card->getNumber();
+            $inputs['cardnumber']          = $card->getNumber();
             $inputs['cardexpiredatemonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['cardexpiredateyear'] = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $inputs['cardcvv2'] = $card->getCvv();
+            $inputs['cardexpiredateyear']  = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
+            $inputs['cardcvv2']            = $card->getCvv();
         }
 
         return [
@@ -395,6 +396,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * Amount Formatter
      * converts 100 to 10000, or 10.01 to 1001
+     *
      * @param float $amount
      *
      * @return int

@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Gateways;
 
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
@@ -11,6 +12,7 @@ use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -45,7 +47,7 @@ class InterPos extends AbstractGateway
     {
         $url = $url ?: $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-        $payload = is_array($contents) ? ['form_params' => $contents] : ['body' => $contents];
+        $payload  = is_array($contents) ? ['form_params' => $contents] : ['body' => $contents];
         $response = $this->client->post($url, $payload);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
@@ -65,8 +67,8 @@ class InterPos extends AbstractGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
     {
-        $bankResponse    = null;
-        $request         = $request->request;
+        $bankResponse = null;
+        $request      = $request->request;
         /** @var array{MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $gatewayResponse */
         $gatewayResponse = $request->all();
 
@@ -97,7 +99,7 @@ class InterPos extends AbstractGateway
      */
     public function make3DPayPayment(Request $request)
     {
-        $this->response  = $this->responseDataMapper->map3DPayResponseData($request->request->all());
+        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
 
         return $this;
     }
@@ -126,7 +128,7 @@ class InterPos extends AbstractGateway
     {
         $gatewayUrl = $this->get3DHostGatewayURL();
 
-        if (self::MODEL_3D_SECURE === $paymentModel || self::MODEL_3D_PAY === $paymentModel) {
+        if (PosInterface::MODEL_3D_SECURE === $paymentModel || PosInterface::MODEL_3D_PAY === $paymentModel) {
             $gatewayUrl = $this->get3DGatewayURL();
         }
 

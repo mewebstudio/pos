@@ -63,14 +63,14 @@
             <?php endif; ?>
             <div class="form-group col-md-4">
                 <select name="tx" id="currency" class="form-control input-lg">
-                    <option value="<?= \Mews\Pos\Gateways\AbstractGateway::TX_PAY; ?>" selected>Ödeme</option>
-                    <option value="<?= \Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY; ?>">Ön Provizyon</option>
+                    <option value="<?= \Mews\Pos\PosInterface::TX_PAY; ?>" selected>Ödeme</option>
+                    <option value="<?= \Mews\Pos\PosInterface::TX_PRE_PAY; ?>">Ön Provizyon</option>
                 </select>
             </div>
             <div class="form-group col-md-4">
                 <select name="lang" id="lang" class="form-control input-lg">
                     <?php foreach ($pos->getLanguages() as $lang) : ?>
-                        <option value="<?= $lang; ?>" <?= $lang === \Mews\Pos\Gateways\AbstractGateway::LANG_TR ? 'selected': null ?>><?= strtoupper($lang); ?></option>
+                        <option value="<?= $lang; ?>" <?= $lang === \Mews\Pos\PosInterface::LANG_TR ? 'selected': null ?>><?= strtoupper($lang); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>

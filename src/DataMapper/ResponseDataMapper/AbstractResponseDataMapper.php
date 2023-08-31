@@ -2,7 +2,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
 
 abstract class AbstractResponseDataMapper
@@ -22,13 +22,13 @@ abstract class AbstractResponseDataMapper
     /** @var array<string, string> */
     private $currencyMappings;
 
-    /** @var array<string, AbstractGateway::TX_*> */
+    /** @var array<string, PosInterface::TX_*> */
     protected $txTypeMappings;
 
     /**
-     * @param array<string, string>                $currencyMappings
-     * @param array<AbstractGateway::TX_*, string> $txTypeMappings
-     * @param LoggerInterface                      $logger
+     * @param array<string, string>             $currencyMappings
+     * @param array<PosInterface::TX_*, string> $txTypeMappings
+     * @param LoggerInterface                   $logger
      */
     public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)
     {
@@ -38,7 +38,7 @@ abstract class AbstractResponseDataMapper
     }
 
     /**
-     * @return array<string, AbstractGateway::TX_*>
+     * @return array<string, PosInterface::TX_*>
      */
     public function getTxTypeMappings(): array
     {
@@ -128,6 +128,7 @@ abstract class AbstractResponseDataMapper
     /**
      * bankadan gelen response'da bos string degerler var.
      * bu metod ile bos string'leri null deger olarak degistiriyoruz
+     *
      * @param mixed $data
      *
      * @return mixed

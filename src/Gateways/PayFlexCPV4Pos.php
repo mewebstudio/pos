@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Gateways;
 
 use Exception;
@@ -12,6 +13,7 @@ use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
@@ -77,7 +79,8 @@ class PayFlexCPV4Pos extends AbstractGateway
          *     Rc: string,
          *     Message: string,
          *     TransactionId: string,
-         *     PaymentToken: string} $bankResponse */
+         *     PaymentToken: string} $bankResponse
+         */
         $bankResponse = $this->send($statusRequestData, null, $this->getQueryAPIUrl());
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse);
@@ -148,7 +151,7 @@ class PayFlexCPV4Pos extends AbstractGateway
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
         $isXML = is_string($contents);
-        $body = $isXML ? ['body' => $contents] : ['form_params' => $contents];
+        $body  = $isXML ? ['body' => $contents] : ['form_params' => $contents];
 
         $response = $this->client->post($url, $body);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
@@ -240,12 +243,13 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * ORTAK ÖDEME SİSTEMİNE İŞLEM KAYDETME
      *
-     * @param array<string, int|string|float|null>                $order
-     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
-     * @param AbstractCreditCard                                  $card
+     * @param array<string, int|string|float|null>          $order
+     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @param AbstractCreditCard                            $card
      *
-     * Basarili durumda donen cevap formati: array{CommonPaymentUrl: string, PaymentToken: string, ErrorCode: null, ResponseMessage: null}
-     * Basarisiz durumda donen cevap formati: array{CommonPaymentUrl: null, PaymentToken: null, ErrorCode: string, ResponseMessage: string}
+     * Basarili durumda donen cevap formati: array{CommonPaymentUrl: string, PaymentToken: string, ErrorCode: null,
+     * ResponseMessage: null} Basarisiz durumda donen cevap formati: array{CommonPaymentUrl: null, PaymentToken: null,
+     * ErrorCode: string, ResponseMessage: string}
      *
      * @return array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null}
      *

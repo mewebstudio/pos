@@ -4,7 +4,7 @@ require '_config.php';
 $templateTitle = 'Refund Order';
 require '../../_templates/_header.php';
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 $ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
@@ -16,7 +16,7 @@ $order = [
     'currency'    => $ord['currency'],
     'ref_ret_num' => '831803586333',
 ];
-$transaction = AbstractGateway::TX_REFUND;
+$transaction = PosInterface::TX_REFUND;
 
 $pos->refund($order);
 

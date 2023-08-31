@@ -1,13 +1,13 @@
 <?php
 
 use Mews\Pos\Exceptions\HashMismatchException;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 require_once '_config.php';
 require '../../_templates/_header.php';
 
-if (($request->getMethod() !== 'POST' && AbstractGateway::TX_POST_PAY !== $transaction)
+if (($request->getMethod() !== 'POST' && PosInterface::TX_POST_PAY !== $transaction)
     // PayFlex-CP GET request ile cevapliyor
     && ($request->getMethod() === 'GET' && [] === $request->query->all())
 ) {
@@ -15,7 +15,7 @@ if (($request->getMethod() !== 'POST' && AbstractGateway::TX_POST_PAY !== $trans
     exit();
 }
 
-if (AbstractGateway::TX_POST_PAY === $transaction) {
+if (PosInterface::TX_POST_PAY === $transaction) {
     $order = $session->get('post_order');
 } else {
     $order = $session->get('order');
@@ -40,9 +40,9 @@ $session->set('last_response', $response);
 
     <div class="result">
         <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
-            <?php if (AbstractGateway::TX_PAY === $transaction || AbstractGateway::TX_POST_PAY === $transaction) : ?>
+            <?php if (PosInterface::TX_PAY === $transaction || PosInterface::TX_POST_PAY === $transaction) : ?>
                 <?= $pos->isSuccess() ? 'Payment is successful!' : 'Payment is not successful!'; ?>
-            <?php elseif (AbstractGateway::TX_PRE_PAY === $transaction) : ?>
+            <?php elseif (PosInterface::TX_PRE_PAY === $transaction) : ?>
                 <?= $pos->isSuccess() ? 'Pre Authorization is successful!' : 'Pre Authorization is not successful!'; ?>
             <?php endif; ?>
         </h3>
@@ -90,7 +90,7 @@ $session->set('last_response', $response);
             <dt class="col-sm-3">Error Message:</dt>
             <dd class="col-sm-9"><?= $response['error_message'] ?: '-'; ?></dd>
         </dl>
-        <?php if (AbstractGateway::MODEL_NON_SECURE !== $paymentModel): ?>
+        <?php if (PosInterface::MODEL_NON_SECURE !== $paymentModel): ?>
             <!--bu alanlar non secure odemede yer almaz.-->
             <dl class="row">
                 <dt class="col-sm-3">MD Status <small>(3D Secure doğrulama başarılı oldugu durumda degeri (genelde) 1 oluyor)</small>:</dt>
@@ -119,11 +119,11 @@ $session->set('last_response', $response);
         <div class="text-right">
             <?php if ($pos->isSuccess()) : ?>
                 <!--yapılan ödeme tipine göre bir sonraki yapılabilecek işlemlerin butonlarını gösteriyoruz.-->
-                <?php if (AbstractGateway::TX_PRE_PAY === $transaction) : ?>
+                <?php if (PosInterface::TX_PRE_PAY === $transaction) : ?>
                     <a href="<?= $bankTestsUrl ?>/regular/post-auth.php" class="btn btn-lg btn-primary">Finish provisioning
                         ></a>
                 <?php endif; ?>
-                <?php if (AbstractGateway::TX_PAY === $transaction) : ?>
+                <?php if (PosInterface::TX_PAY === $transaction) : ?>
                     <a href="<?= $bankTestsUrl ?>/regular/cancel.php" class="btn btn-lg btn-danger">Cancel payment</a>
                 <?php endif; ?>
                 <a href="<?= $bankTestsUrl ?>/regular/status.php" class="btn btn-lg btn-default">Payment Status</a>

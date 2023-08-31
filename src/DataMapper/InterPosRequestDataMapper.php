@@ -2,12 +2,13 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * Creates request data for KuveytPos Gateway requests
@@ -27,10 +28,10 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritdoc}
      */
     protected $secureTypeMappings = [
-        AbstractGateway::MODEL_3D_SECURE  => '3DModel',
-        AbstractGateway::MODEL_3D_PAY     => '3DPay',
-        AbstractGateway::MODEL_3D_HOST    => '3DHost',
-        AbstractGateway::MODEL_NON_SECURE => 'NonSecure',
+        PosInterface::MODEL_3D_SECURE  => '3DModel',
+        PosInterface::MODEL_3D_PAY     => '3DPay',
+        PosInterface::MODEL_3D_HOST    => '3DHost',
+        PosInterface::MODEL_NON_SECURE => 'NonSecure',
     ];
 
     /**
@@ -39,12 +40,12 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritdoc}
      */
     protected $txTypeMappings = [
-        AbstractGateway::TX_PAY      => 'Auth',
-        AbstractGateway::TX_PRE_PAY  => 'PreAuth',
-        AbstractGateway::TX_POST_PAY => 'PostAuth',
-        AbstractGateway::TX_CANCEL   => 'Void',
-        AbstractGateway::TX_REFUND   => 'Refund',
-        AbstractGateway::TX_STATUS   => 'StatusHistory',
+        PosInterface::TX_PAY      => 'Auth',
+        PosInterface::TX_PRE_PAY  => 'PreAuth',
+        PosInterface::TX_POST_PAY => 'PostAuth',
+        PosInterface::TX_CANCEL   => 'Void',
+        PosInterface::TX_REFUND   => 'Refund',
+        PosInterface::TX_STATUS   => 'StatusHistory',
     ];
 
     /**
@@ -68,7 +69,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         return $this->getRequestAccountData($account) + [
                 'TxnType'                 => $this->mapTxType($txType),
-                'SecureType'              => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
+                'SecureType'              => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'OrderId'                 => (string) $order['id'],
                 'PurchAmount'             => (string) $order['amount'],
                 'Currency'                => $this->mapCurrency($order['currency']),
@@ -91,7 +92,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $requestData = $this->getRequestAccountData($account) + [
                 'TxnType'          => $this->mapTxType($txType),
-                'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
+                'SecureType'       => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'OrderId'          => $order['id'],
                 'PurchAmount'      => $order['amount'],
                 'Currency'         => $this->mapCurrency($order['currency']),
@@ -119,8 +120,8 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'TxnType'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-                'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
+                'TxnType'     => $this->mapTxType(PosInterface::TX_POST_PAY),
+                'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'OrderId'     => null,
                 'orgOrderId'  => (string) $order['id'],
                 'PurchAmount' => (string) $order['amount'],
@@ -140,8 +141,8 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return $this->getRequestAccountData($account) + [
                 'OrderId'    => null, //todo buraya hangi deger verilecek?
                 'orgOrderId' => (string) $order['id'],
-                'TxnType'    => $this->mapTxType(AbstractGateway::TX_STATUS),
-                'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
+                'TxnType'    => $this->mapTxType(PosInterface::TX_STATUS),
+                'SecureType' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'Lang'       => $this->getLang($account, $order),
             ];
     }
@@ -157,8 +158,8 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return $this->getRequestAccountData($account) + [
                 'OrderId'    => null, //todo buraya hangi deger verilecek?
                 'orgOrderId' => (string) $order['id'],
-                'TxnType'    => $this->mapTxType(AbstractGateway::TX_CANCEL),
-                'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
+                'TxnType'    => $this->mapTxType(PosInterface::TX_CANCEL),
+                'SecureType' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'Lang'       => $this->getLang($account, $order),
             ];
     }
@@ -175,8 +176,8 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'OrderId'     => null,
                 'orgOrderId'  => (string) $order['id'],
                 'PurchAmount' => (string) $order['amount'],
-                'TxnType'     => $this->mapTxType(AbstractGateway::TX_REFUND),
-                'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
+                'TxnType'     => $this->mapTxType(PosInterface::TX_REFUND),
+                'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'Lang'        => $this->getLang($account, $order),
                 'MOTO'        => self::MOTO,
             ];
@@ -198,7 +199,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder = $order;
+        $mappedOrder                = $order;
         $mappedOrder['installment'] = $this->mapInstallment($order['installment']);
 
         $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));

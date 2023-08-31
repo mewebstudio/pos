@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Factory;
 
 use Mews\Pos\Entity\Account\EstPosAccount;
@@ -12,7 +13,7 @@ use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Exceptions\MissingAccountInfoException;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * AccountFactory
@@ -21,7 +22,7 @@ class AccountFactory
 {
     /**
      * @param string      $bank
-     * @param string      $clientId     Üye iş yeri numarası
+     * @param string      $clientId Üye iş yeri numarası
      * @param string      $kullaniciAdi
      * @param string      $password
      * @param string      $model
@@ -32,7 +33,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createEstPosAccount(string $bank, string $clientId, string $kullaniciAdi, string $password, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = AbstractGateway::LANG_TR): EstPosAccount
+    public static function createEstPosAccount(string $bank, string $clientId, string $kullaniciAdi, string $password, string $model = PosInterface::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = PosInterface::LANG_TR): EstPosAccount
     {
         self::checkParameters($model, $storeKey);
 
@@ -52,7 +53,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createPayForAccount(string $bank, string $merchantId, string $userCode, string $userPassword, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $merchantPass = null, string $lang = AbstractGateway::LANG_TR): PayForAccount
+    public static function createPayForAccount(string $bank, string $merchantId, string $userCode, string $userPassword, string $model = PosInterface::MODEL_NON_SECURE, ?string $merchantPass = null, string $lang = PosInterface::LANG_TR): PayForAccount
     {
         self::checkParameters($model, $merchantPass);
 
@@ -61,9 +62,9 @@ class AccountFactory
 
     /**
      * @param string      $bank
-     * @param string      $merchantId     Üye işyeri Numarası
+     * @param string      $merchantId Üye işyeri Numarası
      * @param string      $userId
-     * @param string      $password       Terminal UserID şifresi
+     * @param string      $password   Terminal UserID şifresi
      * @param string      $terminalId
      * @param string      $model
      * @param string|null $storeKey
@@ -75,7 +76,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createGarantiPosAccount(string $bank, string $merchantId, string $userId, string $password, string $terminalId, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, ?string $refundUsername = null, ?string $refundPassword = null, string $lang = AbstractGateway::LANG_TR): GarantiPosAccount
+    public static function createGarantiPosAccount(string $bank, string $merchantId, string $userId, string $password, string $terminalId, string $model = PosInterface::MODEL_NON_SECURE, ?string $storeKey = null, ?string $refundUsername = null, ?string $refundPassword = null, string $lang = PosInterface::LANG_TR): GarantiPosAccount
     {
         self::checkParameters($model, $storeKey);
 
@@ -85,17 +86,18 @@ class AccountFactory
 
     /**
      * @param string      $bank
-     * @param string      $merchantId    Mağaza Numarası
-     * @param string      $username      POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı oluşturulmalıdır
-     * @param string      $customerId    CustomerNumber, Müşteri No
-     * @param string      $storeKey      Oluşturulan APİ kullanıcısının şifre bilgisidir.
+     * @param string      $merchantId Mağaza Numarası
+     * @param string      $username   POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı
+     *                                oluşturulmalıdır
+     * @param string      $customerId CustomerNumber, Müşteri No
+     * @param string      $storeKey   Oluşturulan APİ kullanıcısının şifre bilgisidir.
      * @param string      $model
      * @param string      $lang
      * @param string|null $subMerchantId
      *
      * @return KuveytPosAccount
      */
-    public static function createKuveytPosAccount(string $bank, string $merchantId, string $username, string $customerId, string $storeKey, string $model = AbstractGateway::MODEL_3D_SECURE, string $lang = AbstractGateway::LANG_TR, ?string $subMerchantId = null): KuveytPosAccount
+    public static function createKuveytPosAccount(string $bank, string $merchantId, string $username, string $customerId, string $storeKey, string $model = PosInterface::MODEL_3D_SECURE, string $lang = PosInterface::LANG_TR, ?string $subMerchantId = null): KuveytPosAccount
     {
         self::checkParameters($model, $storeKey);
 
@@ -115,7 +117,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createPosNetAccount(string $bank, string $merchantId, string $terminalId, string $posNetId, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = AbstractGateway::LANG_TR): PosNetAccount
+    public static function createPosNetAccount(string $bank, string $merchantId, string $terminalId, string $posNetId, string $model = PosInterface::MODEL_NON_SECURE, ?string $storeKey = null, string $lang = PosInterface::LANG_TR): PosNetAccount
     {
         self::checkParameters($model, $storeKey);
 
@@ -136,7 +138,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createPayFlexAccount(string $bank, string $merchantId, string $password, string $terminalNo, string $model = AbstractGateway::MODEL_NON_SECURE, int $merchantType = PayFlexAccount::MERCHANT_TYPE_STANDARD, $subMerchantId = null): PayFlexAccount
+    public static function createPayFlexAccount(string $bank, string $merchantId, string $password, string $terminalNo, string $model = PosInterface::MODEL_NON_SECURE, int $merchantType = PayFlexAccount::MERCHANT_TYPE_STANDARD, $subMerchantId = null): PayFlexAccount
     {
         self::checkPayFlexBankMerchantType($merchantType, $subMerchantId);
 
@@ -156,7 +158,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    public static function createInterPosAccount(string $bank, string $shopCode, string $userCode, string $userPass, string $model = AbstractGateway::MODEL_NON_SECURE, ?string $merchantPass = null, string $lang = AbstractGateway::LANG_TR): InterPosAccount
+    public static function createInterPosAccount(string $bank, string $shopCode, string $userCode, string $userPass, string $model = PosInterface::MODEL_NON_SECURE, ?string $merchantPass = null, string $lang = PosInterface::LANG_TR): InterPosAccount
     {
         self::checkParameters($model, $merchantPass);
 
@@ -173,7 +175,7 @@ class AccountFactory
      */
     private static function checkParameters(string $model, ?string $storeKey)
     {
-        if (AbstractGateway::MODEL_NON_SECURE === $model) {
+        if (PosInterface::MODEL_NON_SECURE === $model) {
             return;
         }
 

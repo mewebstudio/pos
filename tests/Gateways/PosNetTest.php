@@ -11,8 +11,8 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PosNet;
+use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\PosNetResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -47,7 +47,7 @@ class PosNetTest extends TestCase
             '6706598320',
             '67005551',
             '27426',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             '10,10,10,10,10,10,10,10'
         );
 
@@ -61,7 +61,7 @@ class PosNetTest extends TestCase
             'currency'    => 'TRY',
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => AbstractGateway::LANG_TR,
+            'lang'        => PosInterface::LANG_TR,
             'rand'        => microtime(),
         ];
 
@@ -107,11 +107,11 @@ class PosNetTest extends TestCase
         $posMock->setTestMode(true);
         $posMock->expects($this->once())->method('getOosTransactionData')->willReturn($this->getSampleOoTransactionFailResponseData());
 
-        $posMock->get3DFormData($this->order, AbstractGateway::MODEL_3D_SECURE, AbstractGateway::TX_PAY, $this->card);
+        $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_PAY, $this->card);
     }
 
 
-    /**
+    /**`
      * @return void
      *
      * @throws Exception
@@ -150,7 +150,7 @@ class PosNetTest extends TestCase
             )
         );
 
-        $posMock->make3DPayment($request, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $posMock->make3DPayment($request, $this->order, PosInterface::TX_PAY, $this->card);
         $resp = $posMock->getResponse();
         unset($resp['all'], $resp['3d_all']);
 

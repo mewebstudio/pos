@@ -5,7 +5,7 @@ namespace Mews\Pos\Tests\Crypt;
 use Mews\Pos\Crypt\EstPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Factory\AccountFactory;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -26,7 +26,7 @@ class EstPosCryptTest extends TestCase
             '700655000200',
             'ISBANKAPI',
             'ISBANK07',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             'TRPS0200'
         );
 
@@ -40,7 +40,7 @@ class EstPosCryptTest extends TestCase
             '700655000200',
             'ISBANKAPI',
             'ISBANK07',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             'TRPS0200'
         );
 

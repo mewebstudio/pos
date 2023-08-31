@@ -2,12 +2,12 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
-use Mews\Pos\Gateways\AbstractGateway;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -15,6 +15,48 @@ use Symfony\Component\HttpFoundation\Request;
  */
 interface PosInterface
 {
+    /** @var string */
+    public const LANG_TR = 'tr';
+
+    /** @var string */
+    public const LANG_EN = 'en';
+
+    /** @var string */
+    public const TX_PAY = 'pay';
+
+    /** @var string */
+    public const TX_PRE_PAY = 'pre';
+
+    /** @var string */
+    public const TX_POST_PAY = 'post';
+
+    /** @var string */
+    public const TX_CANCEL = 'cancel';
+
+    /** @var string */
+    public const TX_REFUND = 'refund';
+
+    /** @var string */
+    public const TX_STATUS = 'status';
+
+    /** @var string */
+    public const TX_HISTORY = 'history';
+
+    /** @var string */
+    public const MODEL_3D_SECURE = '3d';
+
+    /** @var string */
+    public const MODEL_3D_PAY = '3d_pay';
+
+    /** @var string */
+    public const MODEL_3D_PAY_HOSTING = '3d_pay_hosting';
+
+    /** @var string */
+    public const MODEL_3D_HOST = '3d_host';
+
+    /** @var string */
+    public const MODEL_NON_SECURE = 'regular';
+
     /**
      * Create XML DOM Document
      *
@@ -29,10 +71,10 @@ interface PosInterface
     /**
      * returns form data, key values, necessary for 3D payment
      *
-     * @param array<string, mixed>                                $order
-     * @param AbstractGateway::MODEL_*                            $paymentModel
-     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
-     * @param AbstractCreditCard|null                             $card
+     * @param array<string, mixed>                          $order
+     * @param PosInterface::MODEL_*                         $paymentModel
+     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @param AbstractCreditCard|null                       $card
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
@@ -41,48 +83,50 @@ interface PosInterface
     /**
      * Regular Payment
      *
-     * @param array<string, mixed>                                                             $order
-     * @param AbstractCreditCard                                                               $card
-     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY|AbstractGateway::TX_POST_PAY $txType
+     * @param array<string, mixed>                                                    $order
+     * @param AbstractCreditCard                                                      $card
+     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY|PosInterface::TX_POST_PAY $txType
      *
-     * @return AbstractGateway
+     * @return PosInterface
      */
     public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType);
 
     /**
      * Make 3D Payment
      *
-     * @param Request                                             $request
-     * @param array<string, mixed>                                $order
-     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
-     * @param AbstractCreditCard                                  $card simdilik sadece PayFlexV4Pos icin card isteniyor.
+     * @param Request                                       $request
+     * @param array<string, mixed>                          $order
+     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @param AbstractCreditCard                            $card simdilik sadece PayFlexV4Pos icin card isteniyor.
      *
-     * @return AbstractGateway
+     * @return PosInterface
      */
     public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null);
 
     /**
      * Make 3D Pay Payment
+     *
      * @param Request $request
      *
-     * @return AbstractGateway
+     * @return PosInterface
      */
     public function make3DPayPayment(Request $request);
 
     /**
      * Just returns formatted data of host payment response
+     *
      * @param Request $request
      *
-     * @return AbstractGateway
+     * @return PosInterface
      */
     public function make3DHostPayment(Request $request);
 
     /**
      * Send contents to WebService
      *
-     * @param array<string, mixed>|string          $contents
-     * @param AbstractGateway::TX_* $txType
-     * @param string|null           $url
+     * @param array<string, mixed>|string $contents
+     * @param PosInterface::TX_*          $txType
+     * @param string|null                 $url
      *
      * @return string|array|null
      */
@@ -91,12 +135,12 @@ interface PosInterface
     /**
      * Make Payment
      *
-     * @param AbstractGateway::MODEL_*                                                         $paymentModel
-     * @param array<string, mixed>                                                             $order
-     * @param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY|AbstractGateway::TX_POST_PAY $txType
-     * @param AbstractCreditCard                                                               $card
+     * @param PosInterface::MODEL_*                                                   $paymentModel
+     * @param array<string, mixed>                                                    $order
+     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY|PosInterface::TX_POST_PAY $txType
+     * @param AbstractCreditCard                                                      $card
      *
-     * @return AbstractGateway
+     * @return PosInterface
      *
      * @throws UnsupportedPaymentModelException
      */
@@ -104,25 +148,28 @@ interface PosInterface
 
     /**
      * Refund Order
+     *
      * @param array<string, mixed> $order
      *
-     * @return AbstractGateway
+     * @return PosInterface
      */
     public function refund(array $order);
 
     /**
      * Cancel Order
+     *
      * @param array<string, mixed> $order
      *
-     * @return AbstractGateway
+     * @return PosInterface
      */
     public function cancel(array $order);
 
     /**
      * Order Status
+     *
      * @param array<string, mixed> $order
      *
-     * @return AbstractGateway
+     * @return PosInterface
      */
     public function status(array $order);
 
@@ -131,7 +178,7 @@ interface PosInterface
      *
      * @param array<string, mixed> $meta
      *
-     * @return AbstractGateway
+     * @return PosInterface
      */
     public function history(array $meta);
 
@@ -147,7 +194,7 @@ interface PosInterface
      *
      * @param bool $testMode
      *
-     * @return AbstractGateway
+     * @return PosInterface
      */
     public function setTestMode(bool $testMode);
 

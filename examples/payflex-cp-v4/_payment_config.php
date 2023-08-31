@@ -1,30 +1,30 @@
 <?php
 
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 require __DIR__.'/../_main_config.php';
 
 $bankTestsUrl = $hostUrl.'/payflex-cp-v4';
 
 $subMenu = [
-    AbstractGateway::MODEL_3D_SECURE => [
+    PosInterface::MODEL_3D_SECURE => [
         'path' => '/3d-pay/index.php',
         'label' => '3D Pay Ödeme',
     ],
-    AbstractGateway::MODEL_3D_HOST => [
+    PosInterface::MODEL_3D_HOST => [
         'path' => '/3d-host/index.php',
         'label' => '3D Host Ödeme',
     ],
-    AbstractGateway::MODEL_NON_SECURE => [
+    PosInterface::MODEL_NON_SECURE => [
         'path' => '/regular/index.php',
         'label' => 'Non Secure Ödeme',
     ],
-    AbstractGateway::TX_CANCEL => [
+    PosInterface::TX_CANCEL => [
         'path' => '/regular/cancel.php',
         'label' => 'İptal',
     ],
-    AbstractGateway::TX_REFUND => [
+    PosInterface::TX_REFUND => [
         'path' => '/regular/refund.php',
         'label' => 'İade',
     ],
@@ -45,7 +45,7 @@ function getNewOrder(
     \Symfony\Component\HttpFoundation\Session\Session $session,
     ?int $installment = 0,
     bool $tekrarlanan = false,
-    string $lang = AbstractGateway::LANG_TR
+    string $lang = PosInterface::LANG_TR
 ): array {
     $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 
@@ -54,9 +54,9 @@ function getNewOrder(
     return $order;
 }
 
-function doPayment(\Mews\Pos\PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
 {
-    if (\Mews\Pos\Gateways\AbstractGateway::TX_POST_PAY !== $transaction) {
+    if (PosInterface::TX_POST_PAY !== $transaction) {
         /**
          * diger banklaradan farkli olarak 3d islemler icin de PayFlex bu asamada kredi kart bilgileri istiyor
          */

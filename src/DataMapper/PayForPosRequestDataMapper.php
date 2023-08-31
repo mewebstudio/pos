@@ -2,11 +2,12 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * Creates request data for PayForPos Gateway requests
@@ -30,23 +31,23 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /** {@inheritdoc} */
     protected $secureTypeMappings = [
-        AbstractGateway::MODEL_3D_SECURE  => '3DModel',
-        AbstractGateway::MODEL_3D_PAY     => '3DPay',
-        AbstractGateway::MODEL_3D_HOST    => '3DHost',
-        AbstractGateway::MODEL_NON_SECURE => 'NonSecure',
+        PosInterface::MODEL_3D_SECURE  => '3DModel',
+        PosInterface::MODEL_3D_PAY     => '3DPay',
+        PosInterface::MODEL_3D_HOST    => '3DHost',
+        PosInterface::MODEL_NON_SECURE => 'NonSecure',
     ];
 
     /**
      * {@inheritDoc}
      */
     protected $txTypeMappings = [
-        AbstractGateway::TX_PAY      => 'Auth',
-        AbstractGateway::TX_PRE_PAY  => 'PreAuth',
-        AbstractGateway::TX_POST_PAY => 'PostAuth',
-        AbstractGateway::TX_CANCEL   => 'Void',
-        AbstractGateway::TX_REFUND   => 'Refund',
-        AbstractGateway::TX_HISTORY  => 'TxnHistory',
-        AbstractGateway::TX_STATUS   => 'OrderInquiry',
+        PosInterface::TX_PAY      => 'Auth',
+        PosInterface::TX_PRE_PAY  => 'PreAuth',
+        PosInterface::TX_POST_PAY => 'PostAuth',
+        PosInterface::TX_CANCEL   => 'Void',
+        PosInterface::TX_REFUND   => 'Refund',
+        PosInterface::TX_HISTORY  => 'TxnHistory',
+        PosInterface::TX_STATUS   => 'OrderInquiry',
     ];
 
     /**
@@ -78,20 +79,20 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-            'MbrId'            => self::MBR_ID,
-            'MOTO'             => self::MOTO,
-            'OrderId'          => (string) $order['id'],
-            'SecureType'       => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
-            'TxnType'          => $this->mapTxType($txType),
-            'PurchAmount'      => (string) $order['amount'],
-            'Currency'         => $this->mapCurrency($order['currency']),
-            'InstallmentCount' => $this->mapInstallment($order['installment']),
-            'Lang'             => $this->getLang($account, $order),
-            'CardHolderName'   => $card->getHolderName(),
-            'Pan'              => $card->getNumber(),
-            'Expiry'           => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-            'Cvv2'             => $card->getCvv(),
-        ];
+                'MbrId'            => self::MBR_ID,
+                'MOTO'             => self::MOTO,
+                'OrderId'          => (string) $order['id'],
+                'SecureType'       => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'TxnType'          => $this->mapTxType($txType),
+                'PurchAmount'      => (string) $order['amount'],
+                'Currency'         => $this->mapCurrency($order['currency']),
+                'InstallmentCount' => $this->mapInstallment($order['installment']),
+                'Lang'             => $this->getLang($account, $order),
+                'CardHolderName'   => $card->getHolderName(),
+                'Pan'              => $card->getNumber(),
+                'Expiry'           => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'Cvv2'             => $card->getCvv(),
+            ];
     }
 
     /**
@@ -103,14 +104,14 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-            'MbrId'       => self::MBR_ID,
-            'OrgOrderId'  => (string) $order['id'],
-            'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
-            'TxnType'     => $this->mapTxType(AbstractGateway::TX_POST_PAY),
-            'PurchAmount' => (string) $order['amount'],
-            'Currency'    => $this->mapCurrency($order['currency']),
-            'Lang'        => $this->getLang($account, $order),
-        ];
+                'MbrId'       => self::MBR_ID,
+                'OrgOrderId'  => (string) $order['id'],
+                'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'TxnType'     => $this->mapTxType(PosInterface::TX_POST_PAY),
+                'PurchAmount' => (string) $order['amount'],
+                'Currency'    => $this->mapCurrency($order['currency']),
+                'Lang'        => $this->getLang($account, $order),
+            ];
     }
 
     /**
@@ -122,12 +123,12 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareStatusOrder($order);
 
         return $this->getRequestAccountData($account) + [
-            'MbrId'      => self::MBR_ID,
-            'OrgOrderId' => (string) $order['id'],
-            'SecureType' => 'Inquiry',
-            'Lang'       => $this->getLang($account, $order),
-            'TxnType'    => $this->mapTxType(AbstractGateway::TX_STATUS),
-        ];
+                'MbrId'      => self::MBR_ID,
+                'OrgOrderId' => (string) $order['id'],
+                'SecureType' => 'Inquiry',
+                'Lang'       => $this->getLang($account, $order),
+                'TxnType'    => $this->mapTxType(PosInterface::TX_STATUS),
+            ];
     }
 
     /**
@@ -139,13 +140,13 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareCancelOrder($order);
 
         return $this->getRequestAccountData($account) + [
-            'MbrId'      => self::MBR_ID,
-            'OrgOrderId' => (string) $order['id'],
-            'SecureType' => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
-            'TxnType'    => $this->mapTxType(AbstractGateway::TX_CANCEL),
-            'Currency'   => $this->mapCurrency($order['currency']),
-            'Lang'       => $this->getLang($account, $order),
-        ];
+                'MbrId'      => self::MBR_ID,
+                'OrgOrderId' => (string) $order['id'],
+                'SecureType' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'TxnType'    => $this->mapTxType(PosInterface::TX_CANCEL),
+                'Currency'   => $this->mapCurrency($order['currency']),
+                'Lang'       => $this->getLang($account, $order),
+            ];
     }
 
     /**
@@ -157,14 +158,14 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareRefundOrder($order);
 
         return $this->getRequestAccountData($account) + [
-            'MbrId'       => self::MBR_ID,
-            'SecureType'  => $this->secureTypeMappings[AbstractGateway::MODEL_NON_SECURE],
-            'Lang'        => $this->getLang($account, $order),
-            'OrgOrderId'  => (string) $order['id'],
-            'TxnType'     => $this->mapTxType(AbstractGateway::TX_REFUND),
-            'PurchAmount' => (string) $order['amount'],
-            'Currency'    => $this->mapCurrency($order['currency']),
-        ];
+                'MbrId'       => self::MBR_ID,
+                'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'Lang'        => $this->getLang($account, $order),
+                'OrgOrderId'  => (string) $order['id'],
+                'TxnType'     => $this->mapTxType(PosInterface::TX_REFUND),
+                'PurchAmount' => (string) $order['amount'],
+                'Currency'    => $this->mapCurrency($order['currency']),
+            ];
     }
 
     /**
@@ -177,7 +178,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'MbrId'      => self::MBR_ID,
             'SecureType' => 'Report',
-            'TxnType'    => $this->mapTxType(AbstractGateway::TX_HISTORY),
+            'TxnType'    => $this->mapTxType(PosInterface::TX_HISTORY),
             'Lang'       => $this->getLang($account, $order),
         ];
 
@@ -199,9 +200,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder = $order;
+        $mappedOrder                = $order;
         $mappedOrder['installment'] = $this->mapInstallment($order['installment']);
-        $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
+        $hash                       = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
 
         $inputs = [
             'MbrId'            => self::MBR_ID,
@@ -222,9 +223,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
         if ($card !== null) {
             $inputs['CardHolderName'] = $card->getHolderName() ?? '';
-            $inputs['Pan'] = $card->getNumber();
-            $inputs['Expiry'] = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
-            $inputs['Cvv2'] = $card->getCvv();
+            $inputs['Pan']            = $card->getNumber();
+            $inputs['Expiry']         = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
+            $inputs['Cvv2']           = $card->getCvv();
         }
 
         return [

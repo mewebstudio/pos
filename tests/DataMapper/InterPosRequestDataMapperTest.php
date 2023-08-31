@@ -11,8 +11,8 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\InterPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -50,7 +50,7 @@ class InterPosRequestDataMapperTest extends TestCase
             $shopCode,
             $userCode,
             $userPass,
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             $merchantPass
         );
 
@@ -61,7 +61,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'currency'    => 'TRY',
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => AbstractGateway::LANG_TR,
+            'lang'        => PosInterface::LANG_TR,
             'rand'        => 'rand',
         ];
 
@@ -122,7 +122,7 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, AbstractGateway::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_PAY, $this->card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($this->order, $this->card, $this->account);
         $this->assertEquals($expectedData, $actual);
@@ -135,7 +135,7 @@ class InterPosRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'   => '2020110828BC',
-            'lang' => AbstractGateway::LANG_EN,
+            'lang' => PosInterface::LANG_EN,
         ];
 
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
@@ -156,7 +156,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'currency'    => 'TRY',
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-            'lang'        => AbstractGateway::LANG_EN,
+            'lang'        => PosInterface::LANG_EN,
         ];
         $responseData = [
             'MD'                      => '1',
@@ -165,7 +165,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'PayerAuthenticationCode' => '4',
         ];
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, AbstractGateway::TX_PAY, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, PosInterface::TX_PAY, $responseData);
 
         $expectedData = $this->getSample3DPaymentRequestData($order, $this->account, $responseData);
         $this->assertEquals($expectedData, $actual);
@@ -203,8 +203,8 @@ class InterPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            AbstractGateway::MODEL_3D_SECURE,
-            AbstractGateway::TX_PAY,
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::TX_PAY,
             $gatewayURL
         ));
 
@@ -219,8 +219,8 @@ class InterPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            AbstractGateway::MODEL_3D_SECURE,
-            AbstractGateway::TX_PAY,
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::TX_PAY,
             $gatewayURL,
             $card
         ));
@@ -255,8 +255,8 @@ class InterPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            AbstractGateway::MODEL_3D_HOST,
-            AbstractGateway::TX_PAY,
+            PosInterface::MODEL_3D_HOST,
+            PosInterface::TX_PAY,
             $gatewayURL
         ));
     }
@@ -268,7 +268,7 @@ class InterPosRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'   => '2020110828BC',
-            'lang' => AbstractGateway::LANG_EN,
+            'lang' => PosInterface::LANG_EN,
         ];
 
         $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);

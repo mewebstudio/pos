@@ -11,8 +11,8 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AbstractGateway;
 use Mews\Pos\Gateways\PosNetV1Pos;
+use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -45,7 +45,7 @@ class PosNetV1PosTest extends TestCase
             '6700950031',
             '67540050',
             '1010028724242434',
-            AbstractGateway::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_SECURE,
             '10,10,10,10,10,10,10,10'
         );
 
@@ -100,7 +100,7 @@ class PosNetV1PosTest extends TestCase
         $posMock->setTestMode(true);
         $posMock->expects($this->exactly(1))->method('send')->willReturn($paymentResponseData);
 
-        $posMock->make3DPayment($request, $order, AbstractGateway::TX_PAY, $this->card);
+        $posMock->make3DPayment($request, $order, PosInterface::TX_PAY, $this->card);
         $resp = $posMock->getResponse();
         unset($resp['all'], $resp['3d_all']);
 
@@ -128,12 +128,12 @@ class PosNetV1PosTest extends TestCase
     public static function getApiURLDataProvider(): iterable
     {
         yield [
-            'txType' => AbstractGateway::TX_PAY,
+            'txType' => PosInterface::TX_PAY,
             'expected' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
         ];
 
         yield [
-            'txType' => AbstractGateway::TX_CANCEL,
+            'txType' => PosInterface::TX_CANCEL,
             'expected' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Reverse',
         ];
     }

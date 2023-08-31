@@ -1,7 +1,7 @@
 <?php
 
 use Mews\Pos\Factory\AccountFactory;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 require '../_payment_config.php';
 
@@ -12,7 +12,7 @@ $account = AccountFactory::createPosNetAccount(
     '6706598320',
     '67322946',
     '27426',
-    AbstractGateway::MODEL_3D_SECURE,
+    PosInterface::MODEL_3D_SECURE,
     '10,10,10,10,10,10,10,10'
 );
 
@@ -28,7 +28,7 @@ $account = AccountFactory::createPosNetAccount(
 
 $pos = getGateway($account);
 
-$transaction = \Mews\Pos\Gateways\AbstractGateway::TX_PAY;
+$transaction = PosInterface::TX_PAY;
 
 $templateTitle = '3D Model Payment';
-$paymentModel = \Mews\Pos\Gateways\AbstractGateway::MODEL_3D_SECURE;
+$paymentModel = PosInterface::MODEL_3D_SECURE;

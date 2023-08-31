@@ -4,7 +4,7 @@ $templateTitle = 'Cancel Order';
 require '_config.php';
 require '../../_templates/_header.php';
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 $ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', 'TRY'), $session);
 
@@ -13,7 +13,7 @@ $order = [
     'currency' => $ord['currency'],
 ];
 
-$transaction = AbstractGateway::TX_CANCEL;
+$transaction = PosInterface::TX_CANCEL;
 
 // Cancel Order
 $pos->cancel($order);

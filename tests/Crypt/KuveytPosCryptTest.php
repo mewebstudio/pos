@@ -5,7 +5,7 @@ namespace Mews\Pos\Tests\Crypt;
 use Mews\Pos\Crypt\KuveytPosCrypt;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Factory\AccountFactory;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
@@ -42,7 +42,7 @@ class KuveytPosCryptTest extends TestCase
             'rand'        => '0.43625700 1604831630',
             'hash'        => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
             'ip'          => '127.0.0.1',
-            'lang'        => AbstractGateway::LANG_TR,
+            'lang'        => PosInterface::LANG_TR,
         ];
 
         $this->crypt = new KuveytPosCrypt(new NullLogger());

@@ -1,6 +1,6 @@
 <?php
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 require '_config.php';
 $templateTitle = 'Order Status';
@@ -11,7 +11,7 @@ $ord = $session->get('order');
 $order = [
     'id' => $ord ? $ord['id'] : '973009309',
 ];
-$transaction = AbstractGateway::TX_STATUS;
+$transaction = PosInterface::TX_STATUS;
 
 $pos->status($order);
 

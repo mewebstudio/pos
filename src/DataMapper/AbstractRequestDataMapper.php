@@ -2,36 +2,37 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 
 /**
  * AbstractRequestDataMapper
  */
 abstract class AbstractRequestDataMapper
 {
-    /** @var array<AbstractGateway::MODEL_*, string> */
+    /** @var array<PosInterface::MODEL_*, string> */
     protected $secureTypeMappings = [];
 
     /**
      * Transaction Types
      *
-     * @var array<AbstractGateway::TX_*, string>
+     * @var array<PosInterface::TX_*, string>
      */
     protected $txTypeMappings = [];
 
     /** @var array<AbstractCreditCard::CARD_TYPE_*, string> */
     protected $cardTypeMapping = [];
 
-    /** @var array<AbstractGateway::LANG_*, string> */
+    /** @var array<PosInterface::LANG_*, string> */
     protected $langMappings = [
-        AbstractGateway::LANG_TR => 'tr',
-        AbstractGateway::LANG_EN => 'en',
+        PosInterface::LANG_TR => 'tr',
+        PosInterface::LANG_EN => 'en',
     ];
 
     /**
@@ -75,18 +76,18 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @phpstan-param AbstractGateway::TX_PAY|AbstractGateway::TX_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
      *
-     * @param AbstractPosAccount                                          $account
-     * @param array<string, string|int|float|null>                        $order
-     * @param array                                                       $responseData gateway'den gelen cevap
+     * @param AbstractPosAccount                   $account
+     * @param array<string, string|int|float|null> $order
+     * @param array                                $responseData gateway'den gelen cevap
      *
      * @return array
      */
     abstract public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array;
 
     /**
-     * @phpstan-param AbstractGateway::TX_*        $txType
+     * @phpstan-param PosInterface::TX_*           $txType
      *
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
@@ -130,8 +131,8 @@ abstract class AbstractRequestDataMapper
     abstract public function createRefundRequestData(AbstractPosAccount $account, array $order): array;
 
     /**
-     * @phpstan-param AbstractGateway::TX_*        $txType
-     * @phpstan-param AbstractGateway::MODEL_*     $paymentModel
+     * @phpstan-param PosInterface::TX_*           $txType
+     * @phpstan-param PosInterface::MODEL_*        $paymentModel
      *
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
@@ -188,7 +189,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @return array<AbstractGateway::MODEL_*, string>
+     * @return array<PosInterface::MODEL_*, string>
      */
     public function getSecureTypeMappings(): array
     {
@@ -196,7 +197,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @return array<AbstractGateway::TX_*, string>
+     * @return array<PosInterface::TX_*, string>
      */
     public function getTxTypeMappings(): array
     {
@@ -235,7 +236,7 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @phpstan-param AbstractGateway::TX_* $txType
+     * @phpstan-param PosInterface::TX_* $txType
      *
      * @return string
      *
