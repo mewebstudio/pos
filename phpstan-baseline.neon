@@ -76,21 +76,6 @@ parameters:
 			path: src/DataMapper/AbstractRequestDataMapper.php
 
 		-
-			message: "#^Cannot call method getCvv\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: "#^Cannot call method getExpirationDate\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: "#^Cannot call method getNumber\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/EstPosRequestDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\EstPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/EstPosRequestDataMapper.php
@@ -162,11 +147,6 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:createStatusRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:getCardData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 
@@ -296,26 +276,6 @@ parameters:
 			path: src/DataMapper/PayForPosRequestDataMapper.php
 
 		-
-			message: "#^Cannot call method getCvv\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: "#^Cannot call method getExpirationDate\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: "#^Cannot call method getHolderName\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: "#^Cannot call method getNumber\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$responseData with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/PayForPosRequestDataMapper.php
@@ -352,21 +312,6 @@ parameters:
 
 		-
 			message: "#^Cannot assign offset 'orderID' to array\\<string, mixed\\>\\|string\\.$#"
-			count: 1
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: "#^Cannot call method getCvv\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: "#^Cannot call method getExpirationDate\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: "#^Cannot call method getNumber\\(\\) on Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\|null\\.$#"
 			count: 1
 			path: src/DataMapper/PosNetRequestDataMapper.php
 

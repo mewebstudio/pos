@@ -117,7 +117,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -513,24 +513,16 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
-     * @param AbstractCreditCard|null $card
+     * @param AbstractCreditCard $card
      *
-     * @return array
+     * @return array{Number: string, ExpireDate: string, CVV2: string}
      */
-    private function getCardData(?AbstractCreditCard $card = null): array
+    private function getCardData(AbstractCreditCard $card): array
     {
-        if ($card !== null) {
-            return [
-                'Number'     => $card->getNumber(),
-                'ExpireDate' => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-                'CVV2'       => $card->getCvv(),
-            ];
-        }
-
         return [
-            'Number'     => '',
-            'ExpireDate' => '',
-            'CVV2'       => '',
+            'Number'     => $card->getNumber(),
+            'ExpireDate' => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+            'CVV2'       => $card->getCvv(),
         ];
     }
 

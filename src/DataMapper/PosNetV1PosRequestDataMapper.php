@@ -106,13 +106,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
-        if (null === $card) {
-            throw new \LogicException('Eksik kart bilgileri!');
-        }
         $requestData = [
             'ApiType'                => 'JSON',
             'ApiVersion'             => self::API_VERSION,

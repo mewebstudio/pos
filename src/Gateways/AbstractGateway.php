@@ -178,7 +178,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function payment(string $paymentModel, array $order, string $txType, $card = null)
+    public function payment(string $paymentModel, array $order, string $txType, ?AbstractCreditCard $card = null)
     {
         $request = Request::createFromGlobals();
 

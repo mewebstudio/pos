@@ -86,11 +86,11 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
-        $requestData = $this->getRequestAccountData($account) + [
+        return $this->getRequestAccountData($account) + [
                 'TxnType'          => $this->mapTxType($txType),
                 'SecureType'       => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'OrderId'          => $order['id'],
@@ -99,16 +99,11 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'InstallmentCount' => $this->mapInstallment($order['installment']),
                 'MOTO'             => self::MOTO,
                 'Lang'             => $this->getLang($account, $order),
+                'CardType'         => $this->cardTypeMapping[$card->getType()],
+                'Pan'              => $card->getNumber(),
+                'Expiry'           => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'Cvv2'             => $card->getCvv(),
             ];
-
-        if ($card !== null) {
-            $requestData['CardType'] = $this->cardTypeMapping[$card->getType()];
-            $requestData['Pan']      = $card->getNumber();
-            $requestData['Expiry']   = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
-            $requestData['Cvv2']     = $card->getCvv();
-        }
-
-        return $requestData;
     }
 
     /**

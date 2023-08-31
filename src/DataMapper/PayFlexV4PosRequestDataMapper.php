@@ -149,26 +149,21 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * @param PayFlexAccount $account
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
-        $requestData = $this->getRequestAccountData($account) + [
+        return $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
                 'OrderId'                 => (string) $order['id'],
                 'CurrencyAmount'          => self::amountFormat($order['amount']),
                 'CurrencyCode'            => $this->mapCurrency($order['currency']),
                 'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0',
+                'Pan'                     => $card->getNumber(),
+                'Expiry'                  => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
+                'Cvv'                     => $card->getCvv(),
             ];
-
-        if ($card instanceof AbstractCreditCard) {
-            $requestData['Pan']    = $card->getNumber();
-            $requestData['Expiry'] = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT);
-            $requestData['Cvv']    = $card->getCvv();
-        }
-
-        return $requestData;
     }
 
     /**
