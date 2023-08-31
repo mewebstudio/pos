@@ -96,7 +96,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'hashAlgorithm' => 'ver3',
             'lang'          => 'tr',
             'currency'      => 949,
-            'islemtipi'     => 'Auth',
+            'TranType'      => 'Auth',
             'taksit'        => '',
         ];
 
@@ -167,7 +167,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'hashAlgorithm' => 'ver3',
             'lang'      => 'tr',
             'currency'  => '949',
-            'islemtipi' => 'Auth',
+            'TranType'  => 'Auth',
             'taksit'    => '',
         ];
         $form       = [
