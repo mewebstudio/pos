@@ -80,7 +80,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return array|null
+     * @inheritdoc
      */
     public function getResponse(): ?array
     {

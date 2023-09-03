@@ -561,11 +561,6 @@ parameters:
 			path: src/Gateways/AbstractGateway.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:getResponse\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
 			message: "#^Parameter \\#1 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PaymentResponseMapperInterface\\:\\:mapPaymentResponse\\(\\) expects array\\<string, string\\>, array\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/AbstractGateway.php

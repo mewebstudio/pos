@@ -208,6 +208,13 @@ interface PosInterface
     public function isSuccess();
 
     /**
+     * returns the latest response
+     *
+     * @return array<string, mixed>|null
+     */
+    public function getResponse(): ?array;
+
+    /**
      * Enable/Disable test mode
      *
      * @param bool $testMode
