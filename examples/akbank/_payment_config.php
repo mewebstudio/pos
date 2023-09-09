@@ -85,6 +85,9 @@ function getNewOrder(
          * IMCKOD bilgisi bankadan alınmaktadır.
          */
         $order['imckod'] = '9999';
+        /**
+         * Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı
+         */
         $order['fdonem'] = $interestFreePeriod;
     }
 
