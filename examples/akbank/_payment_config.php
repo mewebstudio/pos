@@ -59,7 +59,8 @@ function getNewOrder(
     \Symfony\Component\HttpFoundation\Session\Session $session,
     ?int $installment = 0,
     bool $tekrarlanan = false,
-    string $lang = AbstractGateway::LANG_TR
+    string $lang = AbstractGateway::LANG_TR,
+    bool $isImeceCard = false
 ): array {
     $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 
@@ -70,6 +71,14 @@ function getNewOrder(
         $order['recurringFrequencyType'] = 'MONTH'; //DAY|WEEK|MONTH|YEAR
         //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
         $order['recurringInstallmentCount'] = $installment;
+    }
+
+    if ($isImeceCard) {
+        /**
+         * IMECE kartlar isbankin tarima destek icin ozel kampanyalari olan kartlardir.
+         * https://www.isbank.com.tr/is-ticari/imece-kart
+         */
+        $order['is_imece_card'] = true;
     }
 
     return $order;
@@ -117,6 +126,22 @@ $testCards = [
         'year' => '26',
         'month' => '12',
         'cvv' => '000',
+        'name' => 'John Doe',
+        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+    ],
+    'visa_isbank_imece' => [
+        /**
+         * IMECE kartlar isbankin tarima destek icin ozel kampanyalari olan kartlardir.
+         * https://www.isbank.com.tr/is-ticari/imece-kart
+         *
+         * bu karti test edebilmek icin bu kartlarla odemeyi destekleyen Isbank Pos hesabi lazim.
+         *
+         * ayrica $order['is_imece_card'] = true verisiyle siparis verisi olusturulacak
+         */
+        'number' => '4242424242424242',
+        'year' => '2028',
+        'month' => '10',
+        'cvv' => '123',
         'name' => 'John Doe',
         'type' => AbstractCreditCard::CARD_TYPE_VISA,
     ],

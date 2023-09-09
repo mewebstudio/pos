@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.14.0] - 2023-09-09
+### New Features
+- **İşbank Asseco** - İMECE kart ile ödeme desteği eklendi.
+
+   İMECE kart ile ödeme yapabilmek için
+  ```
+   $order['is_imece_card'] = true;
+  ```
+  ekleyerek sipariş verisi oluşturulması gerekiyor.
+
 ## [0.13.0] - 2023-06-24
 ### New Features
 - **PosNetV1** - JSON API desteği eklendi.

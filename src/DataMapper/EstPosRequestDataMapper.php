@@ -93,6 +93,16 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             ];
         }
 
+        /**
+         * IMECE kartlar isbankin tarima destek icin ozel kampanyalari olan kartlardir.
+         * IMECE kart ile odeme yapabilmek icin MODEL_3D_SECURE odemede alttaki 2 alan gonderilmesi gerkeiyor.
+         * https://www.isbank.com.tr/is-ticari/imece-kart
+         */
+        if (isset($order->is_imece_card) && true === $order->is_imece_card) {
+            $requestData['Extra']['IMCKOD'] = 'İmece Ürün Bilgisi';
+            $requestData['Extra']['FDONEM'] = 'Faizsiz Dönem Bilgisi';
+        }
+
         if (isset($order->recurringFrequency)) {
             $requestData += $this->getRecurringRequestOrderData($order);
         }
@@ -275,6 +285,27 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             $inputs['Ecom_Payment_Card_ExpDate_Month'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
             $inputs['Ecom_Payment_Card_ExpDate_Year'] = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
             $inputs['cv2'] = $card->getCvv();
+        }
+
+        /**
+         * IMECE kartlar isbankin tarima destek icin ozel kampanyalari olan kartlardir.
+         * IMECE kart ile odeme yapabilmek icin MODEL_3D_SECURE odemede alttaki 2 alan gonderilmesi gerkeiyor.
+         * https://www.isbank.com.tr/is-ticari/imece-kart
+         */
+        if (isset($order->is_imece_card) && true === $order->is_imece_card) {
+            /**
+             * AbstractGateway::MODEL_3D_SECURE modeli icin IMECE alanlari formda gondermiyoruz,
+             * bir sonraki prozizyon tamamlama asamasinda gonderiyoruz
+             */
+            $supportedPaymentModels = [
+                AbstractGateway::MODEL_3D_PAY,
+                AbstractGateway::MODEL_3D_PAY_HOSTING,
+                AbstractGateway::MODEL_3D_HOST,
+            ];
+            if (in_array($account->getModel(), $supportedPaymentModels)) {
+                $inputs['IMCKOD'] = 'İmece Ürün Bilgisi';
+                $inputs['FDONEM'] = 'Faizsiz Dönem Bilgisi';
+            }
         }
 
         return [
