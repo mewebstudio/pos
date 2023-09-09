@@ -60,7 +60,8 @@ function getNewOrder(
     ?int $installment = 0,
     bool $tekrarlanan = false,
     string $lang = AbstractGateway::LANG_TR,
-    bool $isImeceCard = false
+    bool $isImeceCard = false,
+    ?int $interestFreePeriod = 1
 ): array {
     $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 
@@ -79,6 +80,12 @@ function getNewOrder(
          * https://www.isbank.com.tr/is-ticari/imece-kart
          */
         $order['is_imece_card'] = true;
+
+        /**
+         * IMCKOD bilgisi bankadan alınmaktadır.
+         */
+        $order['imckod'] = '9999';
+        $order['fdonem'] = $interestFreePeriod;
     }
 
     return $order;

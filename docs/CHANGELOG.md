@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.14.1] - 2023-09-10
+### New Features
+- **İşbank Asseco** - 0.14.0 ek olarak imckod ve fdonem parametreleri gönderilmesi sağlandı.
+
+  İMECE kart ile ödeme yapabilmek için
+  ```
+   $order['is_imece_card'] = true;
+
+   $order['imckod'] = '9999';
+   $order['fdonem'] = '5';
+  ```
+  ekleyerek sipariş verisi oluşturulması gerekiyor.
+
 ## [0.14.0] - 2023-09-09
 ### New Features
 - **İşbank Asseco** - İMECE kart ile ödeme desteği eklendi.

@@ -33,7 +33,7 @@ class EstPosRequestDataMapperTest extends TestCase
     private $requestDataMapper;
 
     private $order;
-    
+
     private $config;
 
     protected function setUp(): void
@@ -67,7 +67,7 @@ class EstPosRequestDataMapperTest extends TestCase
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
         $this->pos->setTestMode(true);
-        
+
         $this->requestDataMapper = new EstPosRequestDataMapper(PosFactory::getGatewayCrypt(EstPos::class, new NullLogger()));
         $this->card              = CreditCardFactory::create($this->pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
@@ -244,6 +244,8 @@ class EstPosRequestDataMapperTest extends TestCase
             'success_url'   => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'      => 'http://localhost/finansbank-payfor/3d/response.php',
             'is_imece_card' => true,
+            'imckod'        => '9999',
+            'fdonem'        => '5',
         ];
 
         $responseData = [
@@ -393,7 +395,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $pos = PosFactory::createPosGateway($account);
         $pos->setTestMode(true);
         $pos->prepare($this->order, AbstractGateway::TX_PAY);
-        
+
         $gatewayURL = $this->config['banks'][$this->threeDAccount->getBank()]['urls']['gateway_3d_host']['test'];
         $inputs     = [
             'clientid'  => $account->getClientId(),
@@ -504,6 +506,8 @@ class EstPosRequestDataMapperTest extends TestCase
             'lang'          => 'tr',
             'rand'          => 'rand',
             'is_imece_card' => true,
+            'imckod'        => '9999',
+            'fdonem'        => '5',
         ];
         $threeDSecurePos  = PosFactory::createPosGateway($threeDAccount);
         $card             = CreditCardFactory::create($threeDSecurePos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
