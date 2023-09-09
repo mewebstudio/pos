@@ -230,6 +230,41 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
+    public function testCreate3DPaymentImeceRequestData()
+    {
+        $order = [
+            'id'            => '2020110828BC',
+            'email'         => 'samp@iexample.com',
+            'name'          => 'john doe',
+            'user_id'       => '1535',
+            'ip'            => '192.168.1.0',
+            'amount'        => 100.01,
+            'installment'   => '0',
+            'currency'      => 'TRY',
+            'success_url'   => 'http://localhost/finansbank-payfor/3d/response.php',
+            'fail_url'      => 'http://localhost/finansbank-payfor/3d/response.php',
+            'is_imece_card' => true,
+        ];
+
+        $responseData = [
+            'md'   => '1',
+            'xid'  => '100000005xid',
+            'eci'  => '100000005eci',
+            'cavv' => 'cavv',
+        ];
+
+        $pos = $this->pos;
+        $pos->prepare($order, AbstractGateway::TX_PAY);
+
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($pos->getAccount(), $pos->getOrder(), AbstractGateway::TX_PAY, $responseData);
+
+        $expectedData = $this->getSample3DPaymentImeceRequestData($pos->getAccount(), $responseData);
+        $this->assertEquals($expectedData, $actual);
+    }
+
+    /**
+     * @return void
+     */
     public function testCreate3DPaymentRequestDataRecurringOrder()
     {
         $order = [
@@ -317,6 +352,23 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
             $this->pos->getOrder(),
+            $txType,
+            $gatewayURL,
+            $card
+        ));
+    }
+
+    /**
+     * @dataProvider threeDFormDataProvider
+     */
+    public function testGet3DFormDataImece(AbstractGateway $pos, array $order, string $txType, ?AbstractCreditCard $card, array $expectedResponse): void
+    {
+        $pos->prepare($order, $txType);
+        $gatewayURL = $this->config['banks'][$pos->getAccount()->getBank()]['urls']['gateway']['test'];
+
+        $this->assertSame($expectedResponse, $this->requestDataMapper->create3DFormData(
+            $pos->getAccount(),
+            $pos->getOrder(),
             $txType,
             $gatewayURL,
             $card
@@ -429,6 +481,108 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedData, $actual);
     }
 
+    public static function threeDFormDataProvider(): iterable
+    {
+        $threeDAccount    = AccountFactory::createEstPosAccount(
+            'akbank',
+            '700655000200',
+            'ISBANKAPI',
+            'ISBANK07',
+            AbstractGateway::MODEL_3D_SECURE,
+            'TRPS0200'
+        );
+        $order            = [
+            'id'            => 'order222',
+            'ip'            => '127.0.0.1',
+            'name'          => 'siparis veren',
+            'email'         => 'test@test.com',
+            'amount'        => '100.25',
+            'installment'   => 0,
+            'currency'      => 'TRY',
+            'success_url'   => 'https://domain.com/success',
+            'fail_url'      => 'https://domain.com/fail_url',
+            'lang'          => 'tr',
+            'rand'          => 'rand',
+            'is_imece_card' => true,
+        ];
+        $threeDSecurePos  = PosFactory::createPosGateway($threeDAccount);
+        $card             = CreditCardFactory::create($threeDSecurePos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+        yield 'imece_3d_secure' => [
+            $threeDSecurePos,
+            $order,
+            AbstractGateway::TX_PAY,
+            $card,
+            [
+                'gateway' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                'method'  => 'POST',
+                'inputs'  => [
+                    'clientid'                        => '700655000200',
+                    'storetype'                       => '3d',
+                    'amount'                          => '100.25',
+                    'oid'                             => 'order222',
+                    'okUrl'                           => 'https://domain.com/success',
+                    'failUrl'                         => 'https://domain.com/fail_url',
+                    'rnd'                             => 'rand',
+                    'lang'                            => 'tr',
+                    'currency'                        => '949',
+                    'taksit'                          => '',
+                    'islemtipi'                       => 'Auth',
+                    'firmaadi'                        => 'siparis veren',
+                    'Email'                           => 'test@test.com',
+                    'cardType'                        => '1',
+                    'pan'                             => '5555444433332222',
+                    'Ecom_Payment_Card_ExpDate_Month' => '01',
+                    'Ecom_Payment_Card_ExpDate_Year'  => '22',
+                    'cv2'                             => '123',
+                    'hash'                            => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
+                ],
+            ],
+        ];
+
+        $threeDPayAccount = AccountFactory::createEstPosAccount(
+            'akbank',
+            '700655000200',
+            'ISBANKAPI',
+            'ISBANK07',
+            AbstractGateway::MODEL_3D_PAY,
+            'TRPS0200'
+        );
+
+        yield 'imece_3d_pay' => [
+            PosFactory::createPosGateway($threeDPayAccount),
+            $order,
+            AbstractGateway::TX_PAY,
+            $card,
+            [
+                'gateway' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                'method'  => 'POST',
+                'inputs'  => [
+                    'clientid'                        => '700655000200',
+                    'storetype'                       => '3d_pay',
+                    'amount'                          => '100.25',
+                    'oid'                             => 'order222',
+                    'okUrl'                           => 'https://domain.com/success',
+                    'failUrl'                         => 'https://domain.com/fail_url',
+                    'rnd'                             => 'rand',
+                    'lang'                            => 'tr',
+                    'currency'                        => '949',
+                    'taksit'                          => '',
+                    'islemtipi'                       => 'Auth',
+                    'firmaadi'                        => 'siparis veren',
+                    'Email'                           => 'test@test.com',
+                    'cardType'                        => '1',
+                    'pan'                             => '5555444433332222',
+                    'Ecom_Payment_Card_ExpDate_Month' => '01',
+                    'Ecom_Payment_Card_ExpDate_Year'  => '22',
+                    'cv2'                             => '123',
+                    'IMCKOD'                          => 'İmece Ürün Bilgisi',
+                    'FDONEM'                          => 'Faizsiz Dönem Bilgisi',
+                    'hash'                            => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
+                ],
+            ],
+        ];
+    }
+
     /**
      * @param AbstractPosAccount $account
      * @param                    $order
@@ -472,6 +626,41 @@ class EstPosRequestDataMapperTest extends TestCase
         }
 
         return $requestData;
+    }
+
+    /**
+     * @param AbstractPosAccount $account
+     * @param array              $responseData
+     *
+     * @return array
+     */
+    private function getSample3DPaymentImeceRequestData(AbstractPosAccount $account, array $responseData): array
+    {
+        return [
+            'Name'                    => $account->getUsername(),
+            'Password'                => $account->getPassword(),
+            'ClientId'                => $account->getClientId(),
+            'Type'                    => 'Auth',
+            'IPAddress'               => '192.168.1.0',
+            'Email'                   => 'samp@iexample.com',
+            'OrderId'                 => '2020110828BC',
+            'UserId'                  => '1535',
+            'Total'                   => '100.01',
+            'Currency'                => '949',
+            'Taksit'                  => '',
+            'Number'                  => $responseData['md'],
+            'PayerTxnId'              => $responseData['xid'],
+            'PayerSecurityLevel'      => $responseData['eci'],
+            'PayerAuthenticationCode' => $responseData['cavv'],
+            'Mode'                    => 'P',
+            'Extra'                   => [
+                'IMCKOD' => 'İmece Ürün Bilgisi',
+                'FDONEM' => 'Faizsiz Dönem Bilgisi',
+            ],
+            'BillTo'                  => [
+                'Name' => 'john doe',
+            ],
+        ];
     }
 
     /**

@@ -23,7 +23,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 - **EST POS V3** EstPos altyapının daha güvenli (sha512) hash algoritmasıyla uygulaması.
 
-   Desktekleyen bankalar: Akbank, TEB, ~~İşbank,~~ Şekerbank, Halkbank ve Finansbank.
+   Desktekleyen bankalar: Akbank, TEB, İşbank, Şekerbank, Halkbank ve Finansbank.
 
 
 - **PayFlex MPI VPOS V4**
@@ -120,6 +120,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - Sipariş/Para iadesi yapma (`AbstractGateway::TX_REFUND`)
   - Sipariş iptal etme (`AbstractGateway::TX_CANCEL`)
   - Tekrarlanan (Recurring) ödeme talimatları
+  - İşbank [İMECE kart](https://www.isbank.com.tr/is-ticari/imece-kart) kart ile ödeme desteği
   - [PSR-3](https://www.php-fig.org/psr/psr-3/) logger desteği
   - [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP Client desteği
 
@@ -393,11 +394,11 @@ $logger = new \Monolog\Logger('pos', [$handler]);
 $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
 ```
 
-## Genel Kültür
+## Genel Kultur
 ### NonSecure, 3D Secure, 3DPay ve 3DHost ödeme modeller arasındaki farklar
 - **3D** - Bankaya göre farklı isimler verilebilir, örn. 3D Full. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödemeyi tamamlamak için banka gateway'ne 1 istek daha (_provizyon_ isteği) gönderir.
 Bu isteği göndermeden ödeme tamamlanmaz.
-- **3DPay** - Bankaya göre farklı isimler verilebilir, örn. 3D Half. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödeme bitmiş sayılır. 3D ödeme yapıldığı gibi ekstra provizyon istek gönderilmez.
+- **3DPay** - Bankaya göre farklı isimler verilebilir, örn. 3D Half. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödeme bitmiş sayılır. 3D ödemede yapıldığı gibi ekstra provizyon istek gönderilmez.
 - **3DHost** - Kredi kart girişi için kullanıcı bankanın sayfasına yönledirilir, kredi kart bilgileri girdikten sonra bankanın 3D gateway sayfasına yönlendirilir, ordan da websitenize geri yönlendirilir. Yönlendirme sonucunda ödeme tamanlanmış olur.
 - **NonSecure** - Ödeme işlemi kullanıcı 3D onay işlemi yapmadan gerçekleşir.
 - **NonSecure, 3D ve 3DPay** - Ödemede kredi kart bilgisi websiteniz tarafından alınır. **3DHost** ödemede ise banka websayfasından alınır.
