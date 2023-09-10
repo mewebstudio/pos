@@ -52,8 +52,10 @@ class KuveytPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @return array<string, mixed>|string string value is returned when there is an HTML response
      */
-    public function send($contents, string $txType = null, string $url = null)
+    protected function send($contents, string $txType = null, string $url = null)
     {
         if (in_array($txType, [PosInterface::TX_REFUND, PosInterface::TX_STATUS, PosInterface::TX_CANCEL], true)) {
             if (!is_array($contents)) {
@@ -81,7 +83,7 @@ class KuveytPos extends AbstractGateway
                 throw new Exception($responseBody, $exception->getCode(), $exception);
             }
 
-            //icinde form olan HTML response dondu
+            // icinde form olan HTML response dondu
             $this->data = $responseBody;
         }
 

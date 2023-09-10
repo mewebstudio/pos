@@ -140,17 +140,6 @@ interface PosInterface
     public function make3DHostPayment(Request $request);
 
     /**
-     * Send contents to WebService
-     *
-     * @param array<string, mixed>|string $contents
-     * @param PosInterface::TX_*          $txType
-     * @param string|null                 $url
-     *
-     * @return string|array|null
-     */
-    public function send($contents, string $txType = null, ?string $url = null);
-
-    /**
      * Make Payment
      *
      * @param PosInterface::MODEL_*                                                   $paymentModel

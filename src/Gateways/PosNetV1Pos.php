@@ -116,8 +116,10 @@ class PosNetV1Pos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @return array<string, mixed>
      */
-    public function send($contents, string $txType = null, ?string $url = null): array
+    protected function send($contents, string $txType = null, ?string $url = null): array
     {
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);

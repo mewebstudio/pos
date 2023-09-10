@@ -386,6 +386,18 @@ abstract class AbstractGateway implements PosInterface
      */
     abstract public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null);
 
+
+    /**
+     * Send requests to bank APIs
+     *
+     * @param array<string, mixed>|string $contents data to send
+     * @param PosInterface::TX_*          $txType
+     * @param string|null                 $url URL address of the API
+     *
+     * @return string|array<string, mixed>|null
+     */
+    abstract protected function send($contents, string $txType = null, ?string $url = null);
+
     /**
      * @param string $str
      *

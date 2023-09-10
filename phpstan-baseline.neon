@@ -561,22 +561,22 @@ parameters:
 			path: src/Gateways/AbstractGateway.php
 
 		-
-			message: "#^Parameter \\#1 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PaymentResponseMapperInterface\\:\\:mapPaymentResponse\\(\\) expects array\\<string, string\\>, array\\|string\\|null given\\.$#"
+			message: "#^Parameter \\#1 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PaymentResponseMapperInterface\\:\\:mapPaymentResponse\\(\\) expects array\\<string, string\\>, array\\<string, mixed\\>\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/AbstractGateway.php
 
 		-
-			message: "#^Parameter \\#1 \\$rawResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\NonPaymentResponseMapperInterface\\:\\:mapCancelResponse\\(\\) expects array\\<string, string\\>, array\\|string\\|null given\\.$#"
+			message: "#^Parameter \\#1 \\$rawResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\NonPaymentResponseMapperInterface\\:\\:mapCancelResponse\\(\\) expects array\\<string, string\\>, array\\<string, mixed\\>\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/AbstractGateway.php
 
 		-
-			message: "#^Parameter \\#1 \\$rawResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\NonPaymentResponseMapperInterface\\:\\:mapHistoryResponse\\(\\) expects array\\<string, array\\<string, string\\>\\|string\\>, array\\|string\\|null given\\.$#"
+			message: "#^Parameter \\#1 \\$rawResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\NonPaymentResponseMapperInterface\\:\\:mapHistoryResponse\\(\\) expects array\\<string, array\\<string, string\\>\\|string\\>, array\\<string, mixed\\>\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/AbstractGateway.php
 
 		-
-			message: "#^Parameter \\#1 \\$rawResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\NonPaymentResponseMapperInterface\\:\\:mapRefundResponse\\(\\) expects array\\<string, string\\>, array\\|string\\|null given\\.$#"
+			message: "#^Parameter \\#1 \\$rawResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\NonPaymentResponseMapperInterface\\:\\:mapRefundResponse\\(\\) expects array\\<string, string\\>, array\\<string, mixed\\>\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/AbstractGateway.php
 
@@ -601,22 +601,12 @@ parameters:
 			path: src/Gateways/EstPos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\EstPos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/EstPos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/GarantiPos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\GarantiPos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/GarantiPos.php
-
-		-
-			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\{Order\\: array\\<string, array\\<string, string\\|null\\>\\|string\\>, Response\\: array\\<string, string\\>, Transaction\\: array\\<string, array\\<string, string\\>\\|string\\>\\}\\|null, array\\|null given\\.$#"
+			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\{Order\\: array\\<string, array\\<string, string\\|null\\>\\|string\\>, Response\\: array\\<string, string\\>, Transaction\\: array\\<string, array\\<string, string\\>\\|string\\>\\}\\|null, array\\<string, mixed\\>\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/GarantiPos.php
 
@@ -637,11 +627,6 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:createRegularPaymentXML\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/InterPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\InterPos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/InterPos.php
 
@@ -671,22 +656,17 @@ parameters:
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/KuveytPos.php
-
-		-
 			message: "#^Parameter \\#1 \\$json of function json_decode expects string, string\\|false given\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^Parameter \\#1 \\$response of method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:transformReceived3DFormData\\(\\) expects string, array\\|string\\|null given\\.$#"
+			message: "#^Parameter \\#1 \\$response of method Mews\\\\Pos\\\\Gateways\\\\KuveytPos\\:\\:transformReceived3DFormData\\(\\) expects string, array\\<string, mixed\\>\\|string given\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
 
 		-
-			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\KuveytPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\|string\\|null given\\.$#"
+			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\KuveytPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\<string, string\\>\\|null, array\\<string, mixed\\>\\|string\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/KuveytPos.php
 
@@ -702,11 +682,6 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexCPV4Pos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexCPV4Pos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PayFlexCPV4Pos.php
 
@@ -731,22 +706,12 @@ parameters:
 			path: src/Gateways/PayFlexV4Pos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayFlexV4Pos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:sendEnrollmentRequest\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PayFlexV4Pos.php
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PayForPos.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PayForPos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PayForPos.php
 
@@ -767,11 +732,6 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:getOosTransactionData\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNet.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Gateways/PosNet.php
 
@@ -806,16 +766,6 @@ parameters:
 			path: src/Gateways/PosNetV1Pos.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNetV1Pos\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Gateways/PosNetV1Pos.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\PosInterface\\:\\:createXML\\(\\) has parameter \\$nodes with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/PosInterface.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\PosInterface\\:\\:send\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/PosInterface.php
