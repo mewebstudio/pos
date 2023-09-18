@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Gateways;
 
 use Exception;
@@ -90,7 +91,7 @@ class PosNetTest extends TestCase
     public function testGet3DFormDataOosTransactionFail()
     {
         $this->expectException(Exception::class);
-        $requestMapper = PosFactory::getGatewayRequestMapper(PosNet::class);
+        $requestMapper  = PosFactory::getGatewayRequestMapper(PosNet::class);
         $responseMapper = PosFactory::getGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
 
         $posMock = $this->getMockBuilder(PosNet::class)
@@ -100,7 +101,7 @@ class PosNetTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
+                new NullLogger(),
             ])
             ->onlyMethods(['getOosTransactionData'])
             ->getMock();
@@ -119,24 +120,26 @@ class PosNetTest extends TestCase
     public function testMake3DPaymentSuccess()
     {
         $responseMapperTest = new PosNetResponseDataMapperTest();
-        $request = Request::create('', 'POST', [
+        $request            = Request::create('', 'POST', [
             'MerchantPacket' => '',
-            'BankPacket' => '',
-            'Sign' => '',
+            'BankPacket'     => '',
+            'Sign'           => '',
         ]);
-        $crypt = PosFactory::getGatewayCrypt(PosNet::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(PosNet::class, [], $crypt);
-        $responseMapper = PosFactory::getGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
+        $crypt              = PosFactory::getGatewayCrypt(PosNet::class, new NullLogger());
+        $requestMapper      = PosFactory::getGatewayRequestMapper(PosNet::class, [], $crypt);
+        $responseMapper     = PosFactory::getGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
+        $serializer     = PosFactory::getGatewaySerializer(PosNet::class);
 
         $this->order['id'] = 'YKB_0000080603153823';
-        $posMock = $this->getMockBuilder(PosNet::class)
+        $posMock           = $this->getMockBuilder(PosNet::class)
             ->setConstructorArgs([
                 [],
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
+                new NullLogger(),
             ])
             ->onlyMethods(['send'])
             ->getMock();
@@ -145,8 +148,8 @@ class PosNetTest extends TestCase
         $bankResponses = $responseMapperTest->threeDPaymentDataProvider()['success1'];
         $posMock->expects($this->exactly(2))->method('send')->will(
             $this->onConsecutiveCalls(
-                    $bankResponses['threeDResponseData'],
-                    $bankResponses['paymentData']
+                $bankResponses['threeDResponseData'],
+                $bankResponses['paymentData']
             )
         );
 

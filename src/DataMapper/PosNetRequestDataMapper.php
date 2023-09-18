@@ -232,14 +232,18 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
 
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount                                     $account
+     * @param array{data1: string, data2: string, sign: string} $extraData
      *
      * {@inheritDoc}
      *
      * @throws Exception
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, $extraData = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = null): array
     {
+        if (null === $extraData) {
+            throw new InvalidArgumentException('$extraData can not be null');
+        }
         $order = $this->preparePaymentOrder($order);
 
         $inputs = [

@@ -76,17 +76,6 @@ interface PosInterface
     public const CURRENCY_RUB = 'RUB';
 
     /**
-     * Create XML DOM Document
-     *
-     * @param array  $nodes
-     * @param string $encoding
-     * @param bool   $ignorePiNode when true it will not wrap it with this node <?xml version="1.0" encoding="UTF-8"?>
-     *
-     * @return string the XML, or false if an error occurred.
-     */
-    public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false);
-
-    /**
      * returns form data, key values, necessary for 3D payment
      *
      * @param array<string, mixed>                          $order
@@ -107,7 +96,7 @@ interface PosInterface
      *
      * @return PosInterface
      */
-    public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType);
+    public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType): PosInterface;
 
     /**
      * Make 3D Payment
@@ -119,7 +108,7 @@ interface PosInterface
      *
      * @return PosInterface
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null);
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface;
 
     /**
      * Make 3D Pay Payment
@@ -128,7 +117,7 @@ interface PosInterface
      *
      * @return PosInterface
      */
-    public function make3DPayPayment(Request $request);
+    public function make3DPayPayment(Request $request): PosInterface;
 
     /**
      * Just returns formatted data of host payment response
@@ -137,7 +126,7 @@ interface PosInterface
      *
      * @return PosInterface
      */
-    public function make3DHostPayment(Request $request);
+    public function make3DHostPayment(Request $request): PosInterface;
 
     /**
      * Make Payment
@@ -151,7 +140,7 @@ interface PosInterface
      *
      * @throws UnsupportedPaymentModelException
      */
-    public function payment(string $paymentModel, array $order, string $txType, AbstractCreditCard $card);
+    public function payment(string $paymentModel, array $order, string $txType, AbstractCreditCard $card): PosInterface;
 
     /**
      * Refund Order
@@ -160,7 +149,7 @@ interface PosInterface
      *
      * @return PosInterface
      */
-    public function refund(array $order);
+    public function refund(array $order): PosInterface;
 
     /**
      * Cancel Order
@@ -169,7 +158,7 @@ interface PosInterface
      *
      * @return PosInterface
      */
-    public function cancel(array $order);
+    public function cancel(array $order): PosInterface;
 
     /**
      * Order Status
@@ -178,7 +167,7 @@ interface PosInterface
      *
      * @return PosInterface
      */
-    public function status(array $order);
+    public function status(array $order): PosInterface;
 
     /**
      * Order History
@@ -187,14 +176,14 @@ interface PosInterface
      *
      * @return PosInterface
      */
-    public function history(array $meta);
+    public function history(array $meta): PosInterface;
 
     /**
      * Is success
      *
      * @return bool
      */
-    public function isSuccess();
+    public function isSuccess(): bool;
 
     /**
      * returns the latest response
@@ -210,14 +199,14 @@ interface PosInterface
      *
      * @return PosInterface
      */
-    public function setTestMode(bool $testMode);
+    public function setTestMode(bool $testMode): PosInterface;
 
     /**
      * Enable/Disable test mode
      *
      * @return bool
      */
-    public function isTestMode();
+    public function isTestMode(): bool;
 
     /**
      * @return array<AbstractCreditCard::CARD_TYPE_*, string>

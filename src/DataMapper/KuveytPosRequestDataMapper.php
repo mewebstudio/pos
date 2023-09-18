@@ -341,10 +341,18 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
+     *
+     * @param array<string, string> $order Kuveyt bank'tan donen HTML cevaptan parse edilen form inputlar
+     *
+     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
     public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        throw new NotImplementedException();
+        return [
+            'gateway' => $gatewayURL,
+            'method'  => 'POST',
+            'inputs'  => $order,
+        ];
     }
 
     /**

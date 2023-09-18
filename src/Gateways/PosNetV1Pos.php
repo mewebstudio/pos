@@ -4,15 +4,19 @@
  */
 namespace Mews\Pos\Gateways;
 
+use InvalidArgumentException;
 use Mews\Pos\DataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
-use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 class PosNetV1Pos extends AbstractGateway
 {
@@ -50,16 +54,16 @@ class PosNetV1Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request)
+    public function make3DHostPayment(Request $request): PosInterface
     {
-        throw new NotImplementedException();
+        throw new UnsupportedPaymentModelException();
     }
 
     /**
      * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
     {
         $request           = $request->request;
         $provisionResponse = null;
@@ -85,8 +89,9 @@ class PosNetV1Pos extends AbstractGateway
             $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $mdStatus]);
         } else {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $mdStatus]);
-            $contents          = $this->create3DPaymentXML($request->all(), $order, $txType);
-            $provisionResponse = $this->send($contents);
+            $requestData       = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+            $contents          = $this->serializer->encode($requestData, $txType);
+            $provisionResponse = $this->send($contents, $txType);
             $this->logger->log(LogLevel::DEBUG, 'send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
         }
 
@@ -99,9 +104,9 @@ class PosNetV1Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request)
+    public function make3DPayPayment(Request $request): PosInterface
     {
-        throw new NotImplementedException();
+        throw new UnsupportedPaymentModelException();
     }
 
     /**
@@ -119,15 +124,15 @@ class PosNetV1Pos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType = null, ?string $url = null): array
+    protected function send($contents, string $txType, ?string $url = null): array
     {
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
-        $body = json_encode($contents);
-        if (false === $body) {
-            throw new \DomainException('Invalid data provided');
+        if (!is_string($contents)) {
+            throw new InvalidArgumentException('Invalid data provided');
         }
+        $body = $contents;
 
         $response = $this->client->post($url, [
             'headers' => [
@@ -139,74 +144,23 @@ class PosNetV1Pos extends AbstractGateway
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         try {
-            $this->data = json_decode($response->getBody(), true);
-        } catch (\Throwable $throwable) {
+            return $this->data = $this->serializer->decode($response->getBody(), $txType);
+        } catch (NotEncodableValueException $e) {
             $this->logger->log(LogLevel::ERROR, 'parsing bank JSON response failed', [
                 'status_code' => $response->getStatusCode(),
                 'response'    => $response->getBody(),
-                'message'     => $throwable->getMessage(),
+                'message'     => $e->getMessage(),
             ]);
 
-            throw $throwable;
+            throw $e;
         }
-
-        return $this->data;
     }
 
     /**
      * @inheritDoc
      */
-    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): array
+    public function history(array $meta): PosInterface
     {
-        return $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRegularPostXML(array $order): array
-    {
-        return $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): array
-    {
-        return $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
-    }
-
-
-    /**
-     * @inheritDoc
-     */
-    public function createHistoryXML(array $customQueryData)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createStatusXML(array $order): array
-    {
-        return $this->requestDataMapper->createStatusRequestData($this->account, $order);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createCancelXML(array $order): array
-    {
-        return $this->requestDataMapper->createCancelRequestData($this->account, $order);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRefundXML(array $order): array
-    {
-        return $this->requestDataMapper->createRefundRequestData($this->account, $order);
+        throw new UnsupportedTransactionTypeException();
     }
 }

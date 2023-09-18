@@ -6,17 +6,19 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
+use InvalidArgumentException;
 use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Exception\NotEncodableValueException;
+use function gettype;
+use function is_string;
+use function sprintf;
 
 /**
  * PayFlex Common Payment (Ortak Ödeme) ISD v4.0
@@ -46,7 +48,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      * todo implement
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -54,7 +56,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request): self
+    public function make3DPayPayment(Request $request): PosInterface
     {
         $resultCode = $request->query->get('Rc');
         if (null !== $resultCode && $this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $resultCode) {
@@ -81,7 +83,7 @@ class PayFlexCPV4Pos extends AbstractGateway
          *     TransactionId: string,
          *     PaymentToken: string} $bankResponse
          */
-        $bankResponse = $this->send($statusRequestData, null, $this->getQueryAPIUrl());
+        $bankResponse = $this->send($statusRequestData, PosInterface::TX_PAY, $this->getQueryAPIUrl());
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse);
 
@@ -93,7 +95,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request): self
+    public function make3DHostPayment(Request $request): PosInterface
     {
         return $this->make3DPayPayment($request);
     }
@@ -102,7 +104,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      * TODO implement
      * @inheritDoc
      */
-    public function history(array $meta)
+    public function history(array $meta): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -136,109 +138,22 @@ class PayFlexCPV4Pos extends AbstractGateway
 
     /**
      * @inheritDoc
-     */
-    public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = true): string
-    {
-        return parent::createXML(['VposRequest' => $nodes], $encoding, $ignorePiNode);
-    }
-
-    /**
-     * @inheritDoc
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType = null, ?string $url = null): array
+    protected function send($contents, string $txType, ?string $url = null): array
     {
         $url = $url ?? $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
-        $isXML = is_string($contents);
-        $body  = $isXML ? ['body' => $contents] : ['form_params' => $contents];
-
-        $response = $this->client->post($url, $body);
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
-
-        $responseBody = $response->getBody()->getContents();
-
-        try {
-            $this->data = $this->XMLStringToArray($responseBody);
-        } catch (NotEncodableValueException $notEncodableValueException) {
-            if ($this->isHTML($responseBody)) {
-                // if something wrong server responds with HTML content
-                throw new Exception($responseBody, $notEncodableValueException->getCode(), $notEncodableValueException);
-            }
-
-            $this->data = json_decode($responseBody, true);
+        if (!is_string($contents)) {
+            throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
         }
 
-        return $this->data;
-    }
+        $response = $this->client->post($url, ['body' => $contents]);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
-    /**
-     * @inheritDoc
-     */
-    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
-    {
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRegularPostXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * TODO implement
-     * @inheritDoc
-     */
-    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * TODO check if it is working
-     * @inheritDoc
-     */
-    public function createStatusXML(array $order): array
-    {
-        return $this->requestDataMapper->createStatusRequestData($this->account, $order);
-    }
-
-    /**
-     * TODO check if it is working
-     * @inheritDoc
-     */
-    public function createHistoryXML(array $customQueryData): array
-    {
-        return $this->requestDataMapper->createHistoryRequestData($this->account, $customQueryData, $customQueryData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRefundXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createCancelXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-
-        return $this->createXML($requestData);
+        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 
     /**
@@ -267,7 +182,7 @@ class PayFlexCPV4Pos extends AbstractGateway
         );
 
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
-        $response = $this->send($requestData);
+        $response = $this->send($requestData, $txType);
 
         return $response;
     }

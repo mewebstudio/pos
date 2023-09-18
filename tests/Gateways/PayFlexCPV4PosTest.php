@@ -15,6 +15,7 @@ use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\DataMapper\PayFlexCPV4PosRequestDataMapperTest;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
@@ -89,6 +90,7 @@ class PayFlexCPV4PosTest extends TestCase
         $crypt          = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
         $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexCPV4Pos::class, [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexCPV4Pos::class, $requestMapper, new NullLogger());
+        $serializer = PosFactory::getGatewaySerializer(PayFlexCPV4Pos::class);
 
         $posMock = $this->getMockBuilder(PayFlexCPV4Pos::class)
             ->setConstructorArgs([
@@ -96,6 +98,7 @@ class PayFlexCPV4PosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -119,6 +122,7 @@ class PayFlexCPV4PosTest extends TestCase
                 $this->account,
                 $this->createMock(PayFlexCPV4PosRequestDataMapper::class),
                 $this->createMock(PayFlexCPV4PosResponseDataMapper::class),
+                $this->createMock(SerializerInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -157,6 +161,7 @@ class PayFlexCPV4PosTest extends TestCase
             $this->account,
             $requestMapper,
             $responseMapper,
+            $this->createMock(SerializerInterface::class),
             HttpClientFactory::createDefaultHttpClient(),
             new NullLogger());
 
@@ -192,6 +197,7 @@ class PayFlexCPV4PosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $this->createMock(SerializerInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])

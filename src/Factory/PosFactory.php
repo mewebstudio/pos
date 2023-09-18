@@ -6,6 +6,7 @@
 namespace Mews\Pos\Factory;
 
 use DomainException;
+use InvalidArgumentException;
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Crypt\EstPosCrypt;
@@ -13,10 +14,10 @@ use Mews\Pos\Crypt\EstV3PosCrypt;
 use Mews\Pos\Crypt\GarantiPosCrypt;
 use Mews\Pos\Crypt\InterPosCrypt;
 use Mews\Pos\Crypt\KuveytPosCrypt;
-use Mews\Pos\Crypt\PayForPosCrypt;
-use Mews\Pos\Crypt\PosNetV1PosCrypt;
-use Mews\Pos\Crypt\PosNetCrypt;
 use Mews\Pos\Crypt\PayFlexCPV4Crypt;
+use Mews\Pos\Crypt\PayForPosCrypt;
+use Mews\Pos\Crypt\PosNetCrypt;
+use Mews\Pos\Crypt\PosNetV1PosCrypt;
 use Mews\Pos\DataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\EstV3PosRequestDataMapper;
@@ -26,8 +27,8 @@ use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
-use Mews\Pos\DataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\PosNetRequestDataMapper;
+use Mews\Pos\DataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
@@ -52,6 +53,16 @@ use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EstPosSerializer;
+use Mews\Pos\Serializer\GarantiPosSerializer;
+use Mews\Pos\Serializer\InterPosSerializer;
+use Mews\Pos\Serializer\KuveytPosSerializer;
+use Mews\Pos\Serializer\PayFlexCPV4PosSerializer;
+use Mews\Pos\Serializer\PayFlexV4PosSerializer;
+use Mews\Pos\Serializer\PayForPosSerializer;
+use Mews\Pos\Serializer\PosNetSerializer;
+use Mews\Pos\Serializer\PosNetV1PosSerializer;
+use Mews\Pos\Serializer\SerializerInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -112,6 +123,7 @@ class PosFactory
         $crypt              = self::getGatewayCrypt($class, $logger);
         $requestDataMapper  = self::getGatewayRequestMapper($class, $currencies, $crypt);
         $responseDataMapper = self::getGatewayResponseMapper($class, $requestDataMapper, $logger);
+        $serializer         = self::getGatewaySerializer($class);
 
         // Create Bank Class Instance
         return new $class(
@@ -119,6 +131,7 @@ class PosFactory
             $posAccount,
             $requestDataMapper,
             $responseDataMapper,
+            $serializer,
             $client,
             $logger
         );
@@ -146,7 +159,7 @@ class PosFactory
         ];
         if (isset($classMappings[$gatewayClass])) {
             if (null === $crypt) {
-                throw new \InvalidArgumentException(sprintf('Gateway %s requires Crypt instance', $gatewayClass));
+                throw new InvalidArgumentException(sprintf('Gateway %s requires Crypt instance', $gatewayClass));
             }
 
             return new $classMappings[$gatewayClass]($crypt, $currencies);
@@ -217,5 +230,34 @@ class PosFactory
         }
 
         return null;
+    }
+
+    /**
+     * @param class-string $gatewayClass
+     *
+     * @return SerializerInterface
+     */
+    public static function getGatewaySerializer(string $gatewayClass): SerializerInterface
+    {
+        /** @var SerializerInterface[] $serializers */
+        $serializers = [
+            EstPosSerializer::class,
+            GarantiPosSerializer::class,
+            InterPosSerializer::class,
+            KuveytPosSerializer::class,
+            PayFlexV4PosSerializer::class,
+            PayFlexCPV4PosSerializer::class,
+            PayForPosSerializer::class,
+            PosNetSerializer::class,
+            PosNetV1PosSerializer::class,
+        ];
+
+        foreach ($serializers as $serializer) {
+            if ($serializer::supports($gatewayClass)) {
+                return new $serializer();
+            }
+        }
+
+        throw new DomainException(sprintf('Serializer not found for the gateway %s', $gatewayClass));
     }
 }

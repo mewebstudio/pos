@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Gateways;
 
 use Exception;
@@ -87,13 +88,14 @@ class PayFlexV4PosTest extends TestCase
      *
      * @throws Exception
      */
-    public function testGet3DFormDataEnrollmentFail()
+    public function testGet3DFormDataEnrollmentFail(): void
     {
         $this->expectException(Exception::class);
         $this->expectExceptionCode(2005);
 
-        $requestMapper = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class);
+        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class);
         $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
+        $serializer     = PosFactory::getGatewaySerializer(PayFlexV4Pos::class);
 
         $posMock = $this->getMockBuilder(PayFlexV4Pos::class)
             ->setConstructorArgs([
@@ -101,8 +103,9 @@ class PayFlexV4PosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
+                new NullLogger(),
             ])
             ->onlyMethods(['sendEnrollmentRequest'])
             ->getMock();
@@ -113,12 +116,13 @@ class PayFlexV4PosTest extends TestCase
         $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_PAY, $this->card);
     }
 
-    public function testGet3DFormDataSuccess()
+    public function testGet3DFormDataSuccess(): void
     {
         $enrollmentResponse = PayFlexV4PosRequestDataMapperTest::getSampleEnrollmentSuccessResponseDataProvider();
 
-        $requestMapper = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class);
+        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class);
         $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
+        $serializer     = PosFactory::getGatewaySerializer(PayFlexV4Pos::class);
 
         $posMock = $this->getMockBuilder(PayFlexV4Pos::class)
             ->setConstructorArgs([
@@ -126,8 +130,9 @@ class PayFlexV4PosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
+                new NullLogger(),
             ])
             ->onlyMethods(['sendEnrollmentRequest'])
             ->getMock();
@@ -135,7 +140,7 @@ class PayFlexV4PosTest extends TestCase
         $posMock->expects($this->once())->method('sendEnrollmentRequest')
             ->willReturn($enrollmentResponse);
 
-        $result = $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_PAY, $this->card);
+        $result   = $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_PAY, $this->card);
         $expected = [
             'gateway' => $enrollmentResponse['Message']['VERes']['ACSUrl'],
             'method'  => 'POST',

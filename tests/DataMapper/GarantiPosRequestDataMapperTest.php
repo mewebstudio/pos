@@ -566,7 +566,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @return string[]
      */
-    private function getSample3DResponseData(): array
+    public static function getSample3DResponseData(): array
     {
         return [
             'orderid'              => '2020110828BC',

@@ -85,6 +85,7 @@ class PosNetV1PosTest extends TestCase
         $crypt = PosFactory::getGatewayCrypt(PosNetV1Pos::class, new NullLogger());
         $requestMapper = PosFactory::getGatewayRequestMapper(PosNetV1Pos::class, [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(PosNetV1Pos::class, $requestMapper, new NullLogger());
+        $serializer = PosFactory::getGatewaySerializer(PosNetV1Pos::class);
 
         $posMock = $this->getMockBuilder(PosNetV1Pos::class)
             ->setConstructorArgs([
@@ -92,6 +93,7 @@ class PosNetV1PosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])

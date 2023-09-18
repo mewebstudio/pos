@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos\Tests\DataMapper;
 
+use Generator;
 use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -187,7 +188,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DPaymentXML()
+    public function testCreate3DPaymentRequestData(): void
     {
         $responseData = [
             'MD'              => '67YtBfBRTZ0XBKnAHi8c/A==',
@@ -304,7 +305,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    public static function createRefundRequestDataProvider(): iterable
+    public static function createRefundRequestDataProvider(): Generator
     {
         yield [
             'order'    => [

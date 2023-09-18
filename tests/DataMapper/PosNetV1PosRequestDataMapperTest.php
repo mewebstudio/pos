@@ -355,7 +355,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         ];
     }
 
-    public static function create3DPaymentRequestDataProvider(): iterable
+    public static function create3DPaymentRequestDataProvider(): \Generator
     {
         $order = [
             'id'          => '2020110828BC',

@@ -14,7 +14,6 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 /**
  * Class PayForPos
@@ -42,7 +41,7 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
     {
         $request      = $request->request;
         $bankResponse = null;
@@ -52,9 +51,10 @@ class PayForPos extends AbstractGateway
 
         //if customer 3d verification passed finish payment
         if ('1' === $request->get('3DStatus')) {
-            //valid ProcReturnCode is V033 in case of success 3D Authentication
-            $contents     = $this->create3DPaymentXML($request->all(), $order, $txType);
-            $bankResponse = $this->send($contents);
+            // valid ProcReturnCode is V033 in case of success 3D Authentication
+            $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+            $contents     = $this->serializer->encode($requestData, $txType);
+            $bankResponse = $this->send($contents, $txType);
         } else {
             $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $request->get('3DStatus')]);
         }
@@ -67,7 +67,7 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request)
+    public function make3DPayPayment(Request $request): PosInterface
     {
         $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
 
@@ -77,7 +77,7 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request)
+    public function make3DHostPayment(Request $request): PosInterface
     {
         return $this->make3DPayPayment($request);
     }
@@ -92,7 +92,7 @@ class PayForPos extends AbstractGateway
      *
      * @inheritDoc
      */
-    public function refund(array $order)
+    public function refund(array $order): PosInterface
     {
         return parent::refund($order);
     }
@@ -108,7 +108,7 @@ class PayForPos extends AbstractGateway
      * both successful and failed, for the related orderId
      * @inheritDoc
      */
-    public function history(array $meta)
+    public function history(array $meta): PosInterface
     {
         return parent::history($meta);
     }
@@ -135,7 +135,7 @@ class PayForPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType = null, ?string $url = null): array
+    protected function send($contents, string $txType, ?string $url = null): array
     {
         $url = $this->getApiURL();
         $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
@@ -147,106 +147,6 @@ class PayForPos extends AbstractGateway
         ]);
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
-        $response = $response->getBody()->getContents();
-
-        /**
-         * Finansbank XML Response some times are in following format:
-         * <MbrId>5</MbrId>\r\n
-         * <MD>\r\n
-         * </MD>\r\n
-         * <Hash>\r\n
-         * </Hash>\r\n
-         * redundant whitespaces causes non-empty value for response properties
-         */
-        $response = preg_replace('/\\r\\n\s*/', '', $response);
-
-        try {
-            $this->data = $this->XMLStringToArray($response);
-        } catch (NotEncodableValueException $notEncodableValueException) {
-            //Finansbank's history request response is in JSON format
-            $this->data = json_decode($response, true);
-        }
-
-        return $this->data;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false): string
-    {
-        return parent::createXML(['PayforRequest' => $nodes], $encoding, $ignorePiNode);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
-    {
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRegularPostXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @param PosInterface::TX_* $txType kullanilmiyor
-     */
-    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
-    {
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createStatusXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createHistoryXML(array $customQueryData): string
-    {
-        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $customQueryData, $customQueryData);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRefundXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createCancelXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-
-        return $this->createXML($requestData);
+        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 }

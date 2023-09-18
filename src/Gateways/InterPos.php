@@ -5,16 +5,20 @@
 
 namespace Mews\Pos\Gateways;
 
+use InvalidArgumentException;
 use Mews\Pos\DataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
-use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
+use function gettype;
+use function is_array;
+use function sprintf;
 
 /**
  * Deniz bankin desteklidigi Gateway
@@ -42,32 +46,8 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
-     *
-     * @return array<string, mixed>
      */
-    protected function send($contents, string $txType = null, ?string $url = null): array
-    {
-        $url = $url ?: $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-        $payload  = is_array($contents) ? ['form_params' => $contents] : ['body' => $contents];
-        $response = $this->client->post($url, $payload);
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
-
-        //genelde ;; delimiter kullanilmis, ama bazen arasinda ;;; boyle delimiter de var.
-        $resultValues = preg_split('/(;;;|;;)/', $response->getBody()->getContents());
-        $result       = [];
-        foreach ($resultValues as $val) {
-            [$key, $value] = explode('=', $val);
-            $result[$key] = $value;
-        }
-
-        return $this->data = $result;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
     {
         $bankResponse = null;
         $request      = $request->request;
@@ -85,8 +65,10 @@ class InterPos extends AbstractGateway
              */
         } else {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment');
-            $contents     = $this->create3DPaymentXML($gatewayResponse, $order, $txType);
-            $bankResponse = $this->send($contents);
+
+            $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);
+            $contents     = $this->serializer->encode($requestData, $txType);
+            $bankResponse = $this->send($contents, $txType);
         }
 
 
@@ -99,7 +81,7 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request)
+    public function make3DPayPayment(Request $request): PosInterface
     {
         $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
 
@@ -109,7 +91,7 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request)
+    public function make3DHostPayment(Request $request): PosInterface
     {
         return $this->make3DPayPayment($request);
     }
@@ -118,9 +100,9 @@ class InterPos extends AbstractGateway
      * Deniz bank dokumantasyonunda history sorgusu ile alakali hic bir bilgi yok
      * @inheritDoc
      */
-    public function history(array $meta)
+    public function history(array $meta): PosInterface
     {
-        throw new NotImplementedException();
+        throw new UnsupportedTransactionTypeException();
     }
 
     /**
@@ -141,64 +123,20 @@ class InterPos extends AbstractGateway
 
     /**
      * @inheritDoc
-     */
-    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): array
-    {
-        return $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
-    }
-
-    /**
-     * @inheritDoc
-     * @return array{TxnType: string, SecureType: string, OrderId: null, orgOrderId: mixed, PurchAmount: mixed, Currency: string, MOTO: string, UserCode: string, UserPass: string, ShopCode: string}
-     */
-    public function createRegularPostXML(array $order): array
-    {
-        return $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
-    }
-
-    /**
-     * @inheritDoc
      *
-     * @param array{MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $responseData
+     * @return array<string, mixed>
      */
-    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): array
+    protected function send($contents, string $txType, ?string $url = null): array
     {
-        return $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
-    }
+        $url = $url ?: $this->getApiURL();
+        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        if (!is_array($contents)) {
+            throw new InvalidArgumentException(sprintf('Argument type must be array, %s provided.', gettype($contents)));
+        }
 
-    /**
-     * @inheritDoc
-     */
-    public function createHistoryXML($customQueryData): array
-    {
-        return $this->requestDataMapper->createHistoryRequestData($this->account, $customQueryData, $customQueryData);
-    }
+        $response = $this->client->post($url, ['form_params' => $contents]);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
-    /**
-     * @inheritDoc
-     * @return array{OrderId: null, orgOrderId: string, TxnType: string, SecureType: string, Lang: string, UserCode: string, UserPass: string, ShopCode: string}
-     */
-    public function createStatusXML(array $order): array
-    {
-        return $this->requestDataMapper->createStatusRequestData($this->account, $order);
-    }
-
-    /**
-     * @inheritDoc
-     * @return array{OrderId: null, orgOrderId: string, TxnType: string, SecureType: string, Lang: string, UserCode: string, UserPass: string, ShopCode: string}
-     */
-    public function createCancelXML(array $order): array
-    {
-        return $this->requestDataMapper->createCancelRequestData($this->account, $order);
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array{OrderId: null, orgOrderId: string, PurchAmount: string, TxnType: string, SecureType: string, Lang: string, MOTO: string, UserCode: string, UserPass: string, ShopCode: string}
-     */
-    public function createRefundXML(array $order): array
-    {
-        return $this->requestDataMapper->createRefundRequestData($this->account, $order);
+        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 }

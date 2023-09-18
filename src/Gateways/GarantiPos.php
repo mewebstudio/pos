@@ -10,7 +10,8 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\HashMismatchException;
-use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -40,15 +41,7 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function createXML(array $nodes, string $encoding = 'UTF-8', bool $ignorePiNode = false): string
-    {
-        return parent::createXML(['GVPSRequest' => $nodes], $encoding, $ignorePiNode);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null)
+    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
     {
         $request = $request->request;
         $bankResponse = null;
@@ -59,8 +52,10 @@ class GarantiPos extends AbstractGateway
 
         if (in_array($request->get('mdstatus'), [1, 2, 3, 4])) {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $request->get('mdstatus')]);
-            $contents     = $this->create3DPaymentXML($request->all(), $order, $txType);
-            $bankResponse = $this->send($contents);
+
+            $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+            $contents     = $this->serializer->encode($requestData, $txType);
+            $bankResponse = $this->send($contents, $txType);
         } else {
             $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $request->get('mdstatus')]);
         }
@@ -75,29 +70,11 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request)
+    public function make3DPayPayment(Request $request): PosInterface
     {
         $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
 
         return $this;
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType = null, ?string $url = null): array
-    {
-        $url = $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-
-        $response = $this->client->post($url, ['body' => $contents]);
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
-
-        $this->data = $this->XMLStringToArray($response->getBody()->getContents());
-
-        return $this->data;
     }
 
     /**
@@ -114,78 +91,24 @@ class GarantiPos extends AbstractGateway
      * TODO implement
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request)
+    public function make3DHostPayment(Request $request): PosInterface
     {
-        throw new NotImplementedException();
+        throw new UnsupportedPaymentModelException();
     }
 
     /**
      * @inheritDoc
+     *
+     * @return array<string, mixed>
      */
-    public function createRegularPaymentXML(array $order, AbstractCreditCard $card, string $txType): string
+    protected function send($contents, string $txType, ?string $url = null): array
     {
-        $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
+        $url = $this->getApiURL();
+        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
 
-        return $this->createXML($requestData);
-    }
+        $response = $this->client->post($url, ['body' => $contents]);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
-    /**
-     * @inheritDoc
-     */
-    public function createRegularPostXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function create3DPaymentXML(array $responseData, array $order, string $txType, AbstractCreditCard $card = null): string
-    {
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createCancelXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->getAccount(), $order);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRefundXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createHistoryXML(array $customQueryData): string
-    {
-        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $customQueryData, $customQueryData);
-
-        return $this->createXML($requestData);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createStatusXML(array $order): string
-    {
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
-
-        return $this->createXML($requestData);
+        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 }

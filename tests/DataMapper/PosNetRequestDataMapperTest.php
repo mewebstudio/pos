@@ -187,26 +187,15 @@ class PosNetRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider create3DPaymentRequestDataDataProvider
+     *
      * @return void
      */
-    public function testCreate3DPaymentRequestData()
+    public function testCreate3DPaymentRequestData(PosNetAccount $account, array $order, string $txType, array $responseData, array $expected)
     {
-        $order        = [
-            'id'          => '2020110828BC',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'currency'    => PosInterface::CURRENCY_TRY,
-        ];
-        $responseData = [
-            'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
-            'MerchantPacket' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
-            'Sign'           => '9998F61E1D0C0FB6EC5203A748124F30',
-        ];
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $responseData);
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, PosInterface::TX_PAY, $responseData);
-
-        $expectedData = $this->getSample3DPaymentRequestData($this->account, $responseData);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -356,24 +345,43 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param PosNetAccount $account
-     * @param array         $responseData
-     *
-     * @return array
-     */
-    private function getSample3DPaymentRequestData(AbstractPosAccount $account, array $responseData): array
+    public static function create3DPaymentRequestDataDataProvider()
     {
+        $account = AccountFactory::createPosNetAccount(
+            'yapikredi',
+            '6706598320',
+            '67005551',
+            '27426',
+            PosInterface::MODEL_3D_SECURE,
+            '10,10,10,10,10,10,10,10'
+        );
         return [
-            'mid'         => $account->getClientId(),
-            'tid'         => $account->getTerminalId(),
-            'oosTranData' => [
-                'bankData'     => $responseData['BankPacket'],
-                'merchantData' => $responseData['MerchantPacket'],
-                'sign'         => $responseData['Sign'],
-                'wpAmount'     => 0,
-                'mac'          => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
-            ],
+            'test1' => [
+                'account' => $account,
+                'order' => [
+                    'id'          => '2020110828BC',
+                    'amount'      => 100.01,
+                    'installment' => '0',
+                    'currency'    => PosInterface::CURRENCY_TRY,
+                ],
+                'txType' => PosInterface::TX_PAY,
+                'responseData' => [
+                    'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
+                    'MerchantPacket' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
+                    'Sign'           => '9998F61E1D0C0FB6EC5203A748124F30',
+                ],
+                'expected' => [
+                    'mid'         => $account->getClientId(),
+                    'tid'         => $account->getTerminalId(),
+                    'oosTranData' => [
+                        'bankData'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
+                        'merchantData' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
+                        'sign'         => '9998F61E1D0C0FB6EC5203A748124F30',
+                        'wpAmount'     => 0,
+                        'mac'          => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
+                    ],
+                ]
+            ]
         ];
     }
 

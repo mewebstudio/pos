@@ -4,6 +4,8 @@
  */
 namespace Mews\Pos\Tests\Gateways;
 
+use Mews\Pos\DataMapper\AbstractRequestDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
@@ -12,6 +14,7 @@ use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\EstPosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -28,6 +31,7 @@ class EstPosTest extends TestCase
     /** @var EstPos */
     private $pos;
 
+    /** @var array<string, mixed> */
     private $config;
 
     /** @var AbstractCreditCard */
@@ -89,6 +93,7 @@ class EstPosTest extends TestCase
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
+        $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -96,8 +101,9 @@ class EstPosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
+                new NullLogger(),
             ])
             ->onlyMethods(['send'])
             ->getMock();
@@ -153,6 +159,7 @@ class EstPosTest extends TestCase
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
+        $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -160,6 +167,7 @@ class EstPosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -183,6 +191,7 @@ class EstPosTest extends TestCase
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
+        $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -190,14 +199,14 @@ class EstPosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
-            ->onlyMethods(['send', 'createStatusXML', 'getQueryAPIUrl'])
+            ->onlyMethods(['send', 'getQueryAPIUrl'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn($testData);
-        $posMock->expects($this->once())->method('createStatusXML')->willReturn('');
         $posMock->expects($this->once())->method('getQueryAPIUrl')->willReturn('');
 
         $posMock->status($this->order);
@@ -212,9 +221,12 @@ class EstPosTest extends TestCase
      */
     public function testHistorySuccess()
     {
-        $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
-        $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
+        $requestMapper = $this->createMock(AbstractRequestDataMapper::class);
+        $requestMapper->expects($this->once())->method('createHistoryRequestData')->willReturn([]);
+
+        $responseMapper = $this->createMock(EstPosResponseDataMapper::class);
+        $responseMapper->expects($this->once())->method('mapHistoryResponse')
+            ->willReturn(EstPosResponseDataMapperTest::historyTestDataProvider()['success1']['expectedData']);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -222,16 +234,16 @@ class EstPosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $this->createMock(SerializerInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
-            ->onlyMethods(['send', 'createHistoryXML'])
+            ->onlyMethods(['send'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
             EstPosResponseDataMapperTest::historyTestDataProvider()['success1']['responseData']
         );
-        $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
 
         $posMock->history($this->order);
 
@@ -245,9 +257,12 @@ class EstPosTest extends TestCase
      */
     public function testHistoryFail()
     {
-        $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
-        $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
+        $requestMapper = $this->createMock(AbstractRequestDataMapper::class);
+        $requestMapper->expects($this->once())->method('createHistoryRequestData')->willReturn([]);
+
+        $responseMapper = $this->createMock(EstPosResponseDataMapper::class);
+        $responseMapper->expects($this->once())->method('mapHistoryResponse')
+            ->willReturn(EstPosResponseDataMapperTest::historyTestDataProvider()['fail1']['expectedData']);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -255,16 +270,16 @@ class EstPosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $this->createMock(SerializerInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
-            ->onlyMethods(['send', 'createHistoryXML'])
+            ->onlyMethods(['send'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
             EstPosResponseDataMapperTest::historyTestDataProvider()['fail1']['responseData']
         );
-        $posMock->expects($this->once())->method('createHistoryXML')->willReturn('');
 
         $posMock->history($this->order);
 
@@ -281,6 +296,7 @@ class EstPosTest extends TestCase
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
+        $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -288,16 +304,16 @@ class EstPosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
-            ->onlyMethods(['send', 'createCancelXML'])
+            ->onlyMethods(['send'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
             EstPosResponseDataMapperTest::cancelTestDataProvider()['success1']['responseData']
         );
-        $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
 
         $posMock->cancel($this->order);
 
@@ -314,6 +330,7 @@ class EstPosTest extends TestCase
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
+        $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -321,16 +338,16 @@ class EstPosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
-            ->onlyMethods(['send', 'createCancelXML'])
+            ->onlyMethods(['send'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
             EstPosResponseDataMapperTest::cancelTestDataProvider()['fail1']['responseData']
         );
-        $posMock->expects($this->once())->method('createCancelXML')->willReturn('');
 
         $posMock->cancel($this->order);
 
@@ -347,6 +364,7 @@ class EstPosTest extends TestCase
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
+        $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -354,16 +372,16 @@ class EstPosTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $serializer,
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
-            ->onlyMethods(['send', 'createRefundXML'])
+            ->onlyMethods(['send'])
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
             EstPosResponseDataMapperTest::refundTestDataProvider()['fail1']['responseData']
         );
-        $posMock->expects($this->once())->method('createRefundXML')->willReturn('');
 
         $posMock->refund($this->order);
 
@@ -383,5 +401,4 @@ class EstPosTest extends TestCase
             'isSuccess' => true,
         ];
     }
-
 }
