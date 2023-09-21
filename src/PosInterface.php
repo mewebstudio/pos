@@ -90,13 +90,22 @@ interface PosInterface
     /**
      * Regular Payment
      *
-     * @param array<string, mixed>                                                    $order
-     * @param AbstractCreditCard                                                      $card
-     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY|PosInterface::TX_POST_PAY $txType
+     * @param array<string, mixed>                          $order
+     * @param AbstractCreditCard                            $card
+     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
      *
      * @return PosInterface
      */
     public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType): PosInterface;
+
+    /**
+     * Ön Provizyon kapama işlemi
+     *
+     * @param array<string, mixed> $order
+     *
+     * @return PosInterface
+     */
+    public function makeRegularPostPayment(array $order): PosInterface;
 
     /**
      * Make 3D Payment
@@ -111,7 +120,7 @@ interface PosInterface
     public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface;
 
     /**
-     * Make 3D Pay Payment
+     * Just returns formatted data of 3d_pay payment response
      *
      * @param Request $request
      *
@@ -129,18 +138,20 @@ interface PosInterface
     public function make3DHostPayment(Request $request): PosInterface;
 
     /**
-     * Make Payment
+     * Main Payment method
+     *
+     * can be used for all kind of payment transactions and payment models
      *
      * @param PosInterface::MODEL_*                                                   $paymentModel
      * @param array<string, mixed>                                                    $order
      * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY|PosInterface::TX_POST_PAY $txType
-     * @param AbstractCreditCard                                                      $card
+     * @param AbstractCreditCard|null                                                 $card
      *
      * @return PosInterface
      *
      * @throws UnsupportedPaymentModelException
      */
-    public function payment(string $paymentModel, array $order, string $txType, AbstractCreditCard $card): PosInterface;
+    public function payment(string $paymentModel, array $order, string $txType, ?AbstractCreditCard $card = null): PosInterface;
 
     /**
      * Refund Order

@@ -168,17 +168,21 @@ abstract class AbstractGateway implements PosInterface
 
         $this->logger->log(LogLevel::DEBUG, 'payment called', [
             'card_provided' => (bool) $card,
+            'tx_type'       => $txType,
             'model'         => $paymentModel,
         ]);
+        if (PosInterface::TX_POST_PAY === $txType) {
+            $this->makeRegularPostPayment($order);
+
+            return $this;
+        }
+
         if (PosInterface::MODEL_NON_SECURE === $paymentModel) {
             if (!$card instanceof AbstractCreditCard) {
-                throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
+                throw new LogicException('Bu işlem için kredi kartı bilgileri zorunlu!');
             }
             $this->makeRegularPayment($order, $card, $txType);
         } elseif (PosInterface::MODEL_3D_SECURE === $paymentModel) {
-            if (PosInterface::TX_POST_PAY === $txType) {
-                throw new LogicException('Bu işlem için $paymentModel=MODEL_NON_SECURE kullanınız!');
-            }
             $this->make3DPayment($request, $order, $txType, $card);
         } elseif (PosInterface::MODEL_3D_PAY === $paymentModel || PosInterface::MODEL_3D_PAY_HOSTING === $paymentModel) {
             $this->make3DPayPayment($request);
@@ -210,6 +214,24 @@ abstract class AbstractGateway implements PosInterface
         }
         $contents       = $this->serializer->encode($requestData, $txType);
         $bankResponse   = $this->send($contents, $txType);
+        $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function makeRegularPostPayment(array $order): PosInterface
+    {
+        $this->logger->log(LogLevel::DEBUG, 'making payment', [
+            'model'   => PosInterface::MODEL_NON_SECURE,
+            'tx_type' => PosInterface::TX_POST_PAY,
+        ]);
+
+        $requestData    = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
+        $contents       = $this->serializer->encode($requestData, PosInterface::TX_POST_PAY);
+        $bankResponse   = $this->send($contents, PosInterface::TX_POST_PAY);
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse);
 
         return $this;
