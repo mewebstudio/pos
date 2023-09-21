@@ -163,7 +163,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
     {
         throw new NotImplementedException();
     }

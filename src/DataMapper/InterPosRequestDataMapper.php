@@ -110,7 +110,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * {@inheritDoc}
      * @return array{TxnType: string, SecureType: string, OrderId: null, orgOrderId: mixed, PurchAmount: mixed, Currency: string, MOTO: string, UserCode: string, UserPass: string, ShopCode: string}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 

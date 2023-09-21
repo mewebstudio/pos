@@ -167,9 +167,8 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param PayFlexAccount          $account
-     * @param                         $order
-     * @param AbstractCreditCard|null $card
+     * @param PayFlexAccount       $account
+     * @param array<string, mixed> $order
      *
      * @return array{TransactionType: string,
      *     ReferenceTransactionId: string,
@@ -180,7 +179,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      *     Password: string,
      *     TerminalNo: string}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 

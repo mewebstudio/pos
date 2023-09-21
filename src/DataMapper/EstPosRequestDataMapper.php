@@ -141,7 +141,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * @return array{Type: string, OrderId: string, Name: string, Password: string, ClientId: string}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 

@@ -100,11 +100,10 @@ abstract class AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
-     * @param AbstractCreditCard|null              $card
      *
      * @return array
      */
-    abstract public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array;
+    abstract public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array;
 
     /**
      * @param AbstractPosAccount                   $account

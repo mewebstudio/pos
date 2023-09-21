@@ -186,13 +186,12 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param PayFlexAccount                       $account
      * @param array<string, int|string|float|null> $order
-     * @param AbstractCreditCard|null              $card
      *
      * @return array{TransactionType: string, ReferenceTransactionId: string,
      *     CurrencyAmount: string, CurrencyCode: string, ClientIp: string,
      *     MerchantId: string, Password: string}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 

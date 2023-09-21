@@ -160,7 +160,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 

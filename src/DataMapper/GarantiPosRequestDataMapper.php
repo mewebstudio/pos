@@ -162,7 +162,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card = null): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 
@@ -170,7 +170,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'id'     => (string) $order['id'],
             'amount' => self::amountFormat($order['amount']),
         ];
-        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_POST_PAY), $card);
+        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_POST_PAY));
 
         return [
             'Mode'        => $this->getMode(),
