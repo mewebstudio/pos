@@ -94,13 +94,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder           = $order;
-        $mappedOrder['amount'] = self::amountFormat($order['amount']);
-        $hash                  = $this->crypt->createHash($account, $mappedOrder, $this->mapTxType($txType));
-
-        return $this->getRequestAccountData($account) + [
+        $result = $this->getRequestAccountData($account) + [
                 'APIVersion'                   => self::API_VERSION,
-                'HashData'                     => $hash,
+                'HashData'                     => '',
                 'CustomerIPAddress'            => $order['ip'],
                 'KuveytTurkVPosAdditionalData' => [
                     'AdditionalData' => [
@@ -116,6 +112,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'MerchantOrderId'              => $responseData['VPosMessage']['MerchantOrderId'],
                 'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],
             ];
+
+        $result['HashData'] = $this->crypt->createHash($account, $result);
+
+        return $result;
     }
 
     /**
@@ -181,11 +181,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareStatusOrder($order);
 
-        $mappedOrder           = $order;
-        $mappedOrder['amount'] = 0;
-        $hash                  = $this->crypt->createHash($account, $mappedOrder);
-
-        return [
+        $result = [
             'IsFromExternalNetwork' => true,
             'BusinessKey'           => 0,
             'ResourceId'            => 0,
@@ -213,7 +209,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'VPosMessage'           => $this->getRequestAccountData($account) + [
                     'APIVersion'                       => self::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
-                    'HashData'                         => $hash,
+                    'HashData'                         => '',
                     'SubMerchantId'                    => 0,
                     'CardType'                         => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], // Default gönderilebilir.
                     'BatchID'                          => 0,
@@ -232,6 +228,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                     'TransactionSecurity'              => 1,
                 ],
         ];
+
+        $result['VPosMessage']['HashData'] = $this->crypt->createHash($account, $result['VPosMessage']);
+
+        return $result;
     }
 
     /**
@@ -242,11 +242,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareCancelOrder($order);
 
-        $mappedOrder           =  $order;
-        $mappedOrder['amount'] = self::amountFormat($order['amount']);
-        $hash                  = $this->crypt->createHash($account, $mappedOrder);
-
-        return [
+        $result = [
             'IsFromExternalNetwork' => true,
             'BusinessKey'           => 0,
             'ResourceId'            => 0,
@@ -264,7 +260,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'VPosMessage'           => $this->getRequestAccountData($account) + [
                     'APIVersion'                       => self::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
-                    'HashData'                         => $hash,
+                    'HashData'                         => '',
                     'SubMerchantId'                    => 0,
                     'CardType'                         => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], //Default gönderilebilir.
                     'BatchID'                          => 0,
@@ -283,6 +279,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                     'TransactionSecurity'              => 1,
                 ],
         ];
+
+        $result['VPosMessage']['HashData'] = $this->crypt->createHash($account, $result['VPosMessage']);
+
+        return $result;
     }
 
     /**
@@ -293,11 +293,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareRefundOrder($order);
 
-        $mappedOrder           = $order;
-        $mappedOrder['amount'] = self::amountFormat($order['amount']);
-        $hash                  = $this->crypt->createHash($account, $mappedOrder);
-
-        return [
+        $result = [
             'IsFromExternalNetwork' => true,
             'BusinessKey'           => 0,
             'ResourceId'            => 0,
@@ -315,7 +311,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'VPosMessage'           => $this->getRequestAccountData($account) + [
                     'APIVersion'                       => self::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
-                    'HashData'                         => $hash,
+                    'HashData'                         => '',
                     'SubMerchantId'                    => 0,
                     'CardType'                         => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], //Default gönderilebilir.
                     'BatchID'                          => 0,
@@ -334,6 +330,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                     'TransactionSecurity'              => 1,
                 ],
         ];
+
+        $result['VPosMessage']['HashData'] = $this->crypt->createHash($account, $result['VPosMessage']);
+
+        return $result;
     }
 
     /**
