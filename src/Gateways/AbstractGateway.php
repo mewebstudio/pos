@@ -207,10 +207,8 @@ abstract class AbstractGateway implements PosInterface
         ]);
         if (in_array($txType, [PosInterface::TX_PAY, PosInterface::TX_PRE_PAY], true)) {
             $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
-        } elseif (PosInterface::TX_POST_PAY === $txType) {
-            $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
         } else {
-            throw new LogicException('Invalid transaction type provided');
+            throw new LogicException(sprintf('Invalid transaction type "%s" provided', $txType));
         }
         $contents       = $this->serializer->encode($requestData, $txType);
         $bankResponse   = $this->send($contents, $txType);
