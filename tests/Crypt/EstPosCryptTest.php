@@ -44,18 +44,18 @@ class EstPosCryptTest extends TestCase
             'TRPS0200'
         );
 
-        $order = [
-            'id'          => 'order222',
-            'amount'      => '100.25',
-            'installment' => '',
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'success_url' => 'https://domain.com/success',
-            'fail_url'    => 'https://domain.com/fail_url',
-            'rand'        => 'rand',
+        $requestData = [
+            'oid'       => 'order222',
+            'amount'    => '100.25',
+            'taksit'    => '',
+            'islemtipi' => 'Auth',
+            'okUrl'     => 'https://domain.com/success',
+            'failUrl'   => 'https://domain.com/fail_url',
+            'rnd'       => 'rand',
         ];
         $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
 
-        $actual = $this->crypt->create3DHash($this->account, $order, 'Auth');
+        $actual = $this->crypt->create3DHash($this->account, $requestData);
         $this->assertEquals($expected, $actual);
     }
 
@@ -65,17 +65,17 @@ class EstPosCryptTest extends TestCase
     public function testCreate3DHashFor3DPay()
     {
         $requestData = [
-            'id' => 'order222',
-            'amount' => '100.25',
-            'installment' => '',
-            'currency' => PosInterface::CURRENCY_TRY,
-            'success_url' => 'https://domain.com/success',
-            'fail_url' => 'https://domain.com/fail_url',
-            'rand' => 'rand',
+            'oid'       => 'order222',
+            'amount'    => '100.25',
+            'islemtipi' => 'Auth',
+            'taksit'    => '',
+            'okUrl'     => 'https://domain.com/success',
+            'failUrl'   => 'https://domain.com/fail_url',
+            'rnd'       => 'rand',
         ];
         $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
 
-        $actual = $this->crypt->create3DHash($this->account, $requestData, 'Auth');
+        $actual = $this->crypt->create3DHash($this->account, $requestData);
         $this->assertEquals($expected, $actual);
     }
 

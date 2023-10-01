@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -16,13 +18,13 @@ class EstPosCrypt extends AbstractCrypt
     {
         $hashData = [
             $account->getClientId(),
-            $requestData['id'],
+            $requestData['oid'],
             $requestData['amount'],
-            $requestData['success_url'],
-            $requestData['fail_url'],
-            $txType,
-            $requestData['installment'],
-            $requestData['rand'],
+            $requestData['okUrl'],
+            $requestData['failUrl'],
+            $requestData['islemtipi'],
+            $requestData['taksit'],
+            $requestData['rnd'],
             $account->getStoreKey(),
         ];
 
