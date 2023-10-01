@@ -53,16 +53,16 @@ class GarantiPosCryptTest extends TestCase
     public function testCreate3DHash()
     {
         $requestData = [
-              'id' => 'order222',
-              'amount' => 10025,
-              'installment' => '',
-              'currency' => '949',
-              'success_url' => 'https://domain.com/success',
-              'fail_url' => 'https://domain.com/fail_url',
+              'orderid' => 'order222',
+              'txnamount' => 10025,
+              'txninstallmentcount' => '',
+              'txntype' => 'sales',
+              'successurl' => 'https://domain.com/success',
+              'errorurl' => 'https://domain.com/fail_url',
         ];
 
         $expected = '1D319D5EA945F5730FF5BCC970FF96690993F4BD';
-        $actual = $this->crypt->create3DHash($this->account, $requestData, 'sales');
+        $actual = $this->crypt->create3DHash($this->account, $requestData);
         $this->assertSame($expected, $actual);
     }
 

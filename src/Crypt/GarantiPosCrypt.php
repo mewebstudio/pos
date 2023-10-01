@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -17,14 +19,14 @@ class GarantiPosCrypt extends AbstractCrypt
     {
         $map = [
             $account->getTerminalId(),
-            $requestData['id'],
-            $requestData['amount'],
-            $requestData['success_url'],
-            $requestData['fail_url'],
-            $txType,
-            $requestData['installment'],
+            $requestData['orderid'],
+            $requestData['txnamount'],
+            $requestData['successurl'],
+            $requestData['errorurl'],
+            $requestData['txntype'],
+            $requestData['txninstallmentcount'],
             $account->getStoreKey(),
-            $this->createSecurityData($account, $txType),
+            $this->createSecurityData($account, $requestData['txntype']),
         ];
 
         return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map));

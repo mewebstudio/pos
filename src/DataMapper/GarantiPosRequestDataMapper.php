@@ -351,8 +351,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder = $this->mapPaymentOrder($order);
-
         $inputs = [
             'secure3dsecuritylevel' => $this->secureTypeMappings[$paymentModel],
             'mode'                  => $this->getMode(),
@@ -362,19 +360,19 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'terminalmerchantid'    => $account->getClientId(),
             'terminalid'            => $account->getTerminalId(),
             'txntype'               => $this->mapTxType($txType),
-            'txnamount'             => $mappedOrder['amount'],
-            'txncurrencycode'       => $mappedOrder['currency'],
-            'txninstallmentcount'   => $mappedOrder['installment'],
-            'orderid'               => $mappedOrder['id'],
-            'successurl'            => $mappedOrder['success_url'],
-            'errorurl'              => $mappedOrder['fail_url'],
-            'customeremailaddress'  => $mappedOrder['email'] ?? null,
-            'customeripaddress'     => $mappedOrder['ip'],
+            'txnamount'             => (string) self::amountFormat($order['amount']),
+            'txncurrencycode'       => $this->mapCurrency($order['currency']),
+            'txninstallmentcount'   => $this->mapInstallment($order['installment']),
+            'orderid'               => (string) $order['id'],
+            'successurl'            => (string) $order['success_url'],
+            'errorurl'              => (string) $order['fail_url'],
+            'customeremailaddress'  => $order['email'] ?? '',
+            'customeripaddress'     => (string) $order['ip'],
         ];
 
-        $inputs['secure3dhash'] = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
+        $inputs['secure3dhash'] = $this->crypt->create3DHash($account, $inputs);
 
-        if ($card !== null) {
+        if ($card instanceof AbstractCreditCard) {
             $inputs['cardnumber']          = $card->getNumber();
             $inputs['cardexpiredatemonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
             $inputs['cardexpiredateyear']  = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
@@ -579,20 +577,5 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Type'              => (string) ($order['recurringType'] ?? 'R'), //R:Sabit Tutarli   G:Degisken Tuta
             'StartDate'         => (string) ($order['startDate'] ?? ''),
         ];
-    }
-
-    /**
-     * @param array<string, mixed> $order
-     *
-     * @return array<string, mixed>
-     */
-    private function mapPaymentOrder(array $order): array
-    {
-        $mappedOrder                = $order;
-        $mappedOrder['amount']      = self::amountFormat($mappedOrder['amount']);
-        $mappedOrder['currency']    = $this->mapCurrency($mappedOrder['currency']);
-        $mappedOrder['installment'] = $this->mapInstallment($mappedOrder['installment']);
-
-        return $mappedOrder;
     }
 }
