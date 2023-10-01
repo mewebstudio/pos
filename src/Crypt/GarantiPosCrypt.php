@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -15,7 +16,7 @@ class GarantiPosCrypt extends AbstractCrypt
      * @param GarantiPosAccount $account
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $account, array $requestData): string
     {
         $map = [
             $account->getTerminalId(),

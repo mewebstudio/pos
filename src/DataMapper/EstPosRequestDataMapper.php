@@ -251,7 +251,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $data = $this->create3DFormDataCommon($account, $preparedOrder, $paymentModel, $txType, $gatewayURL, $card);
 
-        $data['inputs']['hash'] = $this->crypt->create3DHash($account, $data['inputs'], $this->mapTxType($txType));
+        $data['inputs']['hash'] = $this->crypt->create3DHash($account, $data['inputs']);
 
         return $data;
     }

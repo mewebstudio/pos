@@ -59,7 +59,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         'MONTH' => 'M',
     ];
 
-    /** @var CryptInterface|GarantiPosCrypt|null */
+    /** @var GarantiPosCrypt */
     protected $crypt;
 
     /**
@@ -73,7 +73,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $hashData = [
             'id'     => $order['id'],
-            'amount' => self::amountFormat($order['amount']),
+            'amount' => (string) self::amountFormat($order['amount']),
         ];
         $hash     = $this->crypt->createHash($account, $hashData);
 
@@ -168,7 +168,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $hashData = [
             'id'     => (string) $order['id'],
-            'amount' => self::amountFormat($order['amount']),
+            'amount' => (string) self::amountFormat($order['amount']),
         ];
         $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_POST_PAY));
 

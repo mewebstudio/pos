@@ -37,9 +37,9 @@ class PosNetCryptTest extends TestCase
     /**
      * @dataProvider threeDHashCreateDataProvider
      */
-    public function testCreate3DHash(array $requestData, string $txType, string $expected)
+    public function testCreate3DHash(array $requestData, string $expected)
     {
-        $actual = $this->crypt->create3DHash($this->account, $requestData, $txType);
+        $actual = $this->crypt->create3DHash($this->account, $requestData);
 
         $this->assertSame($expected, $actual);
     }
@@ -80,7 +80,6 @@ class PosNetCryptTest extends TestCase
                       'lang' => 'tr',
 
                 ],
-                'txType' => 'Sale',
                 'expected'    => 'nyeFSQ4J9NZVeCcEGCDomM8e2YIvoeIa/IDh2D3qaL4=',
             ],
         ];

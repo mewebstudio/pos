@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
@@ -18,7 +21,7 @@ class EstV3PosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $account, array $requestData): string
     {
         ksort($requestData, SORT_NATURAL | SORT_FLAG_CASE);
         foreach (array_keys($requestData) as $key) {

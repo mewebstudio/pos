@@ -149,7 +149,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
         }
 
-        $requestData['HashedData'] = $this->crypt->create3DHash($account, $requestData, $txType);
+        $requestData['HashedData'] = $this->crypt->create3DHash($account, $requestData);
 
         return $requestData;
     }

@@ -101,16 +101,6 @@ parameters:
 			path: src/DataMapper/EstPosRequestDataMapper.php
 
 		-
-			message: "#^Cannot call method create3DHash\\(\\) on Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^Cannot call method createHash\\(\\) on Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\|null\\.$#"
-			count: 7
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$responseData with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
@@ -152,11 +142,6 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:getOrderAddressData\\(\\) has parameter \\$order with no type specified\\.$#"
-			count: 1
-			path: src/DataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: "#^PHPDoc type Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\|null of property Mews\\\\Pos\\\\DataMapper\\\\GarantiPosRequestDataMapper\\:\\:\\$crypt is not covariant with PHPDoc type Mews\\\\Pos\\\\Crypt\\\\CryptInterface of overridden property Mews\\\\Pos\\\\DataMapper\\\\AbstractRequestDataMapperCrypt\\:\\:\\$crypt\\.$#"
 			count: 1
 			path: src/DataMapper/GarantiPosRequestDataMapper.php
 

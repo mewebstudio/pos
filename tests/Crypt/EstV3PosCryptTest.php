@@ -65,7 +65,7 @@ class EstV3PosCryptTest extends TestCase
             'hashAlgorithm' => 'ver3',
         ];
 
-        $actual = $this->crypt->create3DHash($this->account, $requestData, PosInterface::TX_PAY);
+        $actual = $this->crypt->create3DHash($this->account, $requestData);
         $this->assertEquals($expected, $actual);
     }
 
@@ -88,7 +88,7 @@ class EstV3PosCryptTest extends TestCase
         ];
 
         $expected = '4aUsG5hqlIFLc9s8PKc5rWb2OLhmxDDewNgKa2XrwoYCIxlyVq8Fjl4IVaZzoqL983CfTseicmnTA0PjZr74xg==';
-        $actual   = $this->crypt->create3DHash($this->account, $inputs, PosInterface::TX_PAY);
+        $actual   = $this->crypt->create3DHash($this->account, $inputs);
         $this->assertEquals($expected, $actual);
     }
 

@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -14,7 +15,7 @@ class EstPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $account, array $requestData): string
     {
         $hashData = [
             $account->getClientId(),

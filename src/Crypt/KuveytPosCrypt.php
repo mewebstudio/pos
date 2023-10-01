@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
@@ -10,7 +13,7 @@ class KuveytPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $account, array $requestData): string
     {
         $hashedPassword = $this->hashString($account->getStoreKey());
 

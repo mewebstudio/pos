@@ -94,7 +94,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'taksit'        => '',
         ];
 
-        $hash           = $this->requestDataMapper->getCrypt()->create3DHash($account, $inputs, $txType);
+        $hash           = $this->requestDataMapper->getCrypt()->create3DHash($account, $inputs);
         $inputs['hash'] = $hash;
         $form           = [
             'gateway' => $gatewayURL,
@@ -118,7 +118,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $form['inputs']['cv2']                             = $card->getCvv();
 
         unset($form['inputs']['hash']);
-        $form['inputs']['hash'] = $this->requestDataMapper->getCrypt()->create3DHash($account, $form['inputs'], $txType);
+        $form['inputs']['hash'] = $this->requestDataMapper->getCrypt()->create3DHash($account, $form['inputs']);
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
@@ -158,7 +158,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'method'  => 'POST',
             'inputs'  => $inputs,
         ];
-        $form['inputs']['hash']       = $this->requestDataMapper->getCrypt()->create3DHash($this->account, $inputs, PosInterface::TX_PAY);
+        $form['inputs']['hash']       = $this->requestDataMapper->getCrypt()->create3DHash($this->account, $inputs);
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,

@@ -15,7 +15,7 @@ class PayForPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $account, array $requestData): string
     {
         $hashData = [
             $requestData['MbrId'],

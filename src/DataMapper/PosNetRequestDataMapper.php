@@ -72,7 +72,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
         $mappedOrder['amount']   = self::amountFormat($order['amount']);
         $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
-        $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
+        $hash = $this->crypt->create3DHash($account, $mappedOrder);
 
         return [
             'mid'         => $account->getClientId(),

@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
@@ -22,11 +25,10 @@ interface CryptInterface
      *
      * @param AbstractPosAccount    $account
      * @param array<string, string> $requestData
-     * @param string|null           $txType
      *
      * @return string
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string;
+    public function create3DHash(AbstractPosAccount $account, array $requestData): string;
 
     /**
      * create hash for non-3D actions
