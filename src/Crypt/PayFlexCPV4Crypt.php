@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
@@ -18,8 +21,8 @@ class PayFlexCPV4Crypt extends AbstractCrypt
     {
         $hashData = [
             $account->getClientId(),
-            $requestData['currency'],
-            $requestData['amount'],
+            $requestData['AmountCode'],
+            $requestData['Amount'],
             $account->getPassword(),
             '',
             'VBank3DPay2014', // todo
@@ -27,8 +30,7 @@ class PayFlexCPV4Crypt extends AbstractCrypt
 
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
-        return '';
-        //return $this->hashString($hashStr);
+        return $this->hashString($hashStr);
     }
 
     /**

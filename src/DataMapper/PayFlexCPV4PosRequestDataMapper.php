@@ -99,11 +99,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder             = $order;
-        $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
-        $mappedOrder['amount']   = self::amountFormat($order['amount']);
-        $hashData                = $this->crypt->create3DHash($account, $mappedOrder, $txType);
-
         $requestData = [
             'HostMerchantId'       => $account->getClientId(),
             'MerchantPassword'     => $account->getPassword(),
@@ -124,7 +119,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'AllowNotEnrolledCard' => 'false',
             'SuccessUrl'           => (string) $order['success_url'],
             'FailUrl'              => (string) $order['fail_url'],
-            'HashedData'           => $hashData,
             'RequestLanguage'      => $this->getLang($account, $order),
             /**
              * Bu alanda gönderilecek değer kart hamili
@@ -154,6 +148,8 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         if ($order['installment']) {
             $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
         }
+
+        $requestData['HashedData'] = $this->crypt->create3DHash($account, $requestData, $txType);
 
         return $requestData;
     }
