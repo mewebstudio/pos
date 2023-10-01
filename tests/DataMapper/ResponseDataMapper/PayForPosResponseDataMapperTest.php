@@ -2,6 +2,7 @@
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Crypt\PayForPosCrypt;
 use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\PosInterface;
@@ -17,7 +18,7 @@ class PayForPosResponseDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $requestDataMapper  = new PayForPosRequestDataMapper();
+        $requestDataMapper  = new PayForPosRequestDataMapper(new PayForPosCrypt(new NullLogger()));
         $this->responseDataMapper = new PayForPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),

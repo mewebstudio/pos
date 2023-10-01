@@ -271,11 +271,6 @@ parameters:
 			path: src/DataMapper/PayFlexV4PosRequestDataMapper.php
 
 		-
-			message: "#^Cannot call method create3DHash\\(\\) on Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/PayForPosRequestDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PayForPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$responseData with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/PayForPosRequestDataMapper.php

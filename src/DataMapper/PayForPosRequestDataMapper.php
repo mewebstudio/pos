@@ -12,7 +12,7 @@ use Mews\Pos\PosInterface;
 /**
  * Creates request data for PayForPos Gateway requests
  */
-class PayForPosRequestDataMapper extends AbstractRequestDataMapper
+class PayForPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     /**
      * Kurum kodudur. (Banka tarafından verilir)
@@ -200,10 +200,6 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder                = $order;
-        $mappedOrder['installment'] = $this->mapInstallment($order['installment']);
-        $hash                       = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
-
         $inputs = [
             'MbrId'            => self::MBR_ID,
             'MerchantID'       => $account->getClientId(),
@@ -218,15 +214,16 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'OkUrl'            => (string) $order['success_url'],
             'FailUrl'          => (string) $order['fail_url'],
             'Rnd'              => (string) $order['rand'],
-            'Hash'             => $hash,
         ];
 
-        if ($card !== null) {
+        if ($card instanceof AbstractCreditCard) {
             $inputs['CardHolderName'] = $card->getHolderName() ?? '';
             $inputs['Pan']            = $card->getNumber();
             $inputs['Expiry']         = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
             $inputs['Cvv2']           = $card->getCvv();
         }
+
+        $inputs['Hash'] = $this->crypt->create3DHash($account, $inputs);
 
         return [
             'gateway' => $gatewayURL, //to be filled by the caller

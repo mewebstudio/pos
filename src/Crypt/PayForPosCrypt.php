@@ -1,8 +1,10 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
-use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -16,14 +18,14 @@ class PayForPosCrypt extends AbstractCrypt
     public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
     {
         $hashData = [
-            PayForPosRequestDataMapper::MBR_ID,
-            $requestData['id'],
-            $requestData['amount'],
-            $requestData['success_url'],
-            $requestData['fail_url'],
-            $txType,
-            $requestData['installment'],
-            $requestData['rand'],
+            $requestData['MbrId'],
+            $requestData['OrderId'],
+            $requestData['PurchAmount'],
+            $requestData['OkUrl'],
+            $requestData['FailUrl'],
+            $requestData['TxnType'],
+            $requestData['InstallmentCount'],
+            $requestData['Rnd'],
             $account->getStoreKey(),
         ];
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);

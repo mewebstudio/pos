@@ -11,9 +11,6 @@ use Psr\Log\NullLogger;
 
 class PayForPosCryptTest extends TestCase
 {
-    /** @var array<string, string>|array<string, float> */
-    public $order = [];
-
     /** @var PayForPosCrypt */
     public $crypt;
 
@@ -33,19 +30,6 @@ class PayForPosCryptTest extends TestCase
             '12345678'
         );
 
-        $this->order = [
-            'id'          => '2020110828BC',
-            'amount'      => 10.01,
-            'installment' => '0',
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-            'rand'        => '0.43625700 1604831630',
-            'hash'        => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
-            'ip'          => '127.0.0.1',
-            'lang'        => PosInterface::LANG_TR,
-        ];
-
         $this->crypt = new PayForPosCrypt(new NullLogger());
     }
 
@@ -53,9 +37,9 @@ class PayForPosCryptTest extends TestCase
     /**
      * @dataProvider threeDHashCreateDataProvider
      */
-    public function testCreate3DHash(array $requestData, string $txType, string $expected)
+    public function testCreate3DHash(array $requestData, string $expected)
     {
-        $actual = $this->crypt->create3DHash($this->account, $requestData, $txType);
+        $actual = $this->crypt->create3DHash($this->account, $requestData);
 
         $this->assertSame($expected, $actual);
     }
@@ -76,14 +60,15 @@ class PayForPosCryptTest extends TestCase
         return [
             [
                 'requestData' => [
-                    'id'          => '2020110828BC',
-                    'amount'      => 100.01,
-                    'installment' => '0',
-                    'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
-                    'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-                    'rand'        => '0.43625700 1604831630',
+                    'MbrId'            => '5',
+                    'OrderId'          => '2020110828BC',
+                    'PurchAmount'      => 100.01,
+                    'TxnType'          => 'Auth',
+                    'InstallmentCount' => '0',
+                    'OkUrl'            => 'http://localhost/finansbank-payfor/3d/response.php',
+                    'FailUrl'          => 'http://localhost/finansbank-payfor/3d/response.php',
+                    'Rnd'              => '0.43625700 1604831630',
                 ],
-                'txType' => 'Auth',
                 'expected'    => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
             ],
         ];
@@ -95,12 +80,12 @@ class PayForPosCryptTest extends TestCase
             [
                 'expectedResult' => true,
                 'responseData'   => [
-                    'OrderId' => '20221031FD04',
-                    'AuthCode' => '',
+                    'OrderId'        => '20221031FD04',
+                    'AuthCode'       => '',
                     'ProcReturnCode' => 'V033',
-                    '3DStatus' => '1',
-                    'ResponseRnd' => 'PF638028511007418219',
-                    'ResponseHash' => 'rVcKoOOl3jKukGLHcQaVM6ZuznU=',
+                    '3DStatus'       => '1',
+                    'ResponseRnd'    => 'PF638028511007418219',
+                    'ResponseHash'   => 'rVcKoOOl3jKukGLHcQaVM6ZuznU=',
                 ],
             ],
         ];
