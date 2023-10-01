@@ -18,6 +18,7 @@ use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\EstPosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -67,7 +68,7 @@ class EstPosTest extends TestCase
             'rand'        => microtime(),
         ];
 
-        $this->pos             = PosFactory::createPosGateway($this->account, $this->config);
+        $this->pos             = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
         $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
@@ -102,6 +103,7 @@ class EstPosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcher::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger(),
             ])
@@ -168,6 +170,7 @@ class EstPosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcher::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -200,6 +203,7 @@ class EstPosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcher::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -235,6 +239,7 @@ class EstPosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $this->createMock(SerializerInterface::class),
+                $this->createMock(EventDispatcher::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -271,6 +276,7 @@ class EstPosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $this->createMock(SerializerInterface::class),
+                $this->createMock(EventDispatcher::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -305,6 +311,7 @@ class EstPosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcher::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -339,6 +346,7 @@ class EstPosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcher::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -373,6 +381,7 @@ class EstPosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcher::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])

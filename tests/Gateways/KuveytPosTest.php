@@ -20,7 +20,9 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapperTest;
 use Mews\Pos\Tests\Serializer\KuveytPosSerializerTest;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -74,7 +76,7 @@ class KuveytPosTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $this->pos->setTestMode(true);
 
@@ -134,6 +136,7 @@ class KuveytPosTest extends TestCase
                 $requestMapper,
                 $this->createMock(KuveytPosResponseDataMapper::class),
                 $serializer,
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger(),
             ])
@@ -189,6 +192,7 @@ class KuveytPosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger(),
             ])
@@ -229,6 +233,7 @@ class KuveytPosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger(),
             ])

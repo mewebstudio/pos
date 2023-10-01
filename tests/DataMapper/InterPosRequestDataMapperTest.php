@@ -15,6 +15,7 @@ use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * InterPosRequestDataMapperTest
@@ -65,7 +66,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'rand'        => 'rand',
         ];
 
-        $pos = PosFactory::createPosGateway($this->account, $this->config);
+        $pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $crypt = PosFactory::getGatewayCrypt(InterPos::class, new NullLogger());
 

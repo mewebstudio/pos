@@ -15,7 +15,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createKuveytPosAccount(
     PosInterface::MODEL_3D_SECURE
 );
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $transaction = PosInterface::TX_PAY;
 

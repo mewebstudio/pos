@@ -63,6 +63,7 @@ use Mews\Pos\Serializer\PayForPosSerializer;
 use Mews\Pos\Serializer\PosNetSerializer;
 use Mews\Pos\Serializer\PosNetV1PosSerializer;
 use Mews\Pos\Serializer\SerializerInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 
@@ -85,6 +86,7 @@ class PosFactory
     public static function createPosGateway(
         AbstractPosAccount $posAccount,
                            $config,
+        EventDispatcherInterface $eventDispatcher,
         ?HttpClient        $client = null,
         ?LoggerInterface   $logger = null
     ): PosInterface
@@ -132,6 +134,7 @@ class PosFactory
             $requestDataMapper,
             $responseDataMapper,
             $serializer,
+            $eventDispatcher,
             $client,
             $logger
         );

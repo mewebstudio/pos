@@ -19,7 +19,9 @@ use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\DataMapper\PayFlexCPV4PosRequestDataMapperTest;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 class PayFlexCPV4PosTest extends TestCase
@@ -67,7 +69,7 @@ class PayFlexCPV4PosTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $this->pos->setTestMode(true);
 
@@ -99,6 +101,7 @@ class PayFlexCPV4PosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -123,6 +126,7 @@ class PayFlexCPV4PosTest extends TestCase
                 $this->createMock(PayFlexCPV4PosRequestDataMapper::class),
                 $this->createMock(PayFlexCPV4PosResponseDataMapper::class),
                 $this->createMock(SerializerInterface::class),
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])
@@ -162,6 +166,7 @@ class PayFlexCPV4PosTest extends TestCase
             $requestMapper,
             $responseMapper,
             $this->createMock(SerializerInterface::class),
+            $this->createMock(EventDispatcherInterface::class),
             HttpClientFactory::createDefaultHttpClient(),
             new NullLogger());
 
@@ -198,6 +203,7 @@ class PayFlexCPV4PosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $this->createMock(SerializerInterface::class),
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])

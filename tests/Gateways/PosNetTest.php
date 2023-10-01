@@ -14,9 +14,12 @@ use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\PosNetResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -66,7 +69,7 @@ class PosNetTest extends TestCase
             'rand'        => microtime(),
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $this->pos->setTestMode(true);
 
@@ -100,6 +103,8 @@ class PosNetTest extends TestCase
                 $this->account,
                 $requestMapper,
                 $responseMapper,
+                $this->createMock(SerializerInterface::class),
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger(),
             ])
@@ -138,6 +143,7 @@ class PosNetTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger(),
             ])

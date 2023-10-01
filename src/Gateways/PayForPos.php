@@ -10,6 +10,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
@@ -52,7 +53,20 @@ class PayForPos extends AbstractGateway
         //if customer 3d verification passed finish payment
         if ('1' === $request->get('3DStatus')) {
             // valid ProcReturnCode is V033 in case of success 3D Authentication
-            $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+            $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+
+            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+            $this->eventDispatcher->dispatch($event);
+            if ($requestData !== $event->getRequestData()) {
+                $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                    'txType'      => $event->getTxType(),
+                    'bank'        => $event->getBank(),
+                    'initialData' => $requestData,
+                    'updatedData' => $event->getRequestData(),
+                ]);
+                $requestData = $event->getRequestData();
+            }
+
             $contents     = $this->serializer->encode($requestData, $txType);
             $bankResponse = $this->send($contents, $txType);
         } else {

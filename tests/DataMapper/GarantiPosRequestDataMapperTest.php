@@ -16,6 +16,7 @@ use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * GarantiPosRequestDataMapperTest
@@ -66,7 +67,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'ip'          => '156.155.154.153',
         ];
 
-        $pos = PosFactory::createPosGateway($this->account, $this->config);
+        $pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $crypt                   = PosFactory::getGatewayCrypt(GarantiPos::class, new NullLogger());
         $this->requestDataMapper = new GarantiPosRequestDataMapper($crypt);

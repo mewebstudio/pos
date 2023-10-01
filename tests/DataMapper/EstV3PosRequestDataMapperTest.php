@@ -15,6 +15,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 class EstV3PosRequestDataMapperTest extends TestCase
 {
@@ -60,7 +61,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'rand'        => microtime(),
         ];
 
-        $pos = PosFactory::createPosGateway($this->account, $this->config);
+        $pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $crypt = PosFactory::getGatewayCrypt(EstV3Pos::class, new NullLogger());
         $this->requestDataMapper = new EstV3PosRequestDataMapper($crypt);

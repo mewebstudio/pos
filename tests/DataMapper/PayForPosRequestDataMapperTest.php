@@ -14,6 +14,7 @@ use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * PayForPosRequestDataMapperTest
@@ -61,7 +62,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $pos = PosFactory::createPosGateway($this->account, $this->config);
+        $pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $crypt = PosFactory::getGatewayCrypt(PayForPos::class, new NullLogger());
         $this->requestDataMapper = new PayForPosRequestDataMapper($crypt);

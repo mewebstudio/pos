@@ -10,6 +10,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * GarantiPosTest
@@ -42,7 +43,7 @@ class GarantiPosTest extends TestCase
             '123qweASD/'
         );
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
         $this->pos->setTestMode(true);
     }
 

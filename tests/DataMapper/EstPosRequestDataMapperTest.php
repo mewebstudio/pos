@@ -14,6 +14,7 @@ use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * EstPosRequestDataMapperTest
@@ -62,7 +63,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'rand'        => 'rand',
         ];
 
-        $pos = PosFactory::createPosGateway($this->account, $this->config);
+        $pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $this->requestDataMapper = new EstPosRequestDataMapper(PosFactory::getGatewayCrypt(EstPos::class, new NullLogger()));
         $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);

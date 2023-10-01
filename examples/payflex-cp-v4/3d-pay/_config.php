@@ -18,7 +18,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createPayFlexAccount(
     PosInterface::MODEL_3D_PAY
 );
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $transaction = PosInterface::TX_PAY;
 

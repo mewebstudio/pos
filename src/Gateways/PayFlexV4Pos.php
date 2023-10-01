@@ -12,6 +12,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
@@ -70,7 +71,21 @@ class PayFlexV4Pos extends AbstractGateway
         /** @var array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $requestData */
         $requestData = $request->all();
         // NOT: diger gatewaylerden farkli olarak payflex kredit bilgilerini bu asamada da istiyor.
-        $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $requestData, $card);
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $requestData, $card);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+
         $contents     = $this->serializer->encode($requestData, $txType);
         $bankResponse = $this->send($contents, $txType);
 
@@ -110,7 +125,7 @@ class PayFlexV4Pos extends AbstractGateway
     public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
         if (!$card instanceof AbstractCreditCard) {
-            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
+            throw new LogicException('Kredi kartı bilgileri eksik!');
         }
 
         $data = $this->sendEnrollmentRequest($order, $card, $txType);
@@ -159,6 +174,18 @@ class PayFlexV4Pos extends AbstractGateway
     public function sendEnrollmentRequest(array $order, AbstractCreditCard $card, string $txType): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $card);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
 
         return $this->send($requestData, $txType, $this->get3DGatewayURL());
     }

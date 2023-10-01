@@ -16,6 +16,7 @@ use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * PosNetV1PosRequestDataMapperTest
@@ -46,7 +47,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
-        $pos = PosFactory::createPosGateway($this->account, $config);
+        $pos = PosFactory::createPosGateway($this->account, $config, new EventDispatcher());
 
         $this->card = CreditCardFactory::create($pos, '5400619360964581', '20', '01', '056', 'ahmet');
 

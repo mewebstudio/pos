@@ -1,5 +1,6 @@
 <?php
 
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -25,6 +26,22 @@ if (!$order) {
 }
 
 try {
+    /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
+    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
+            /**
+             * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
+             * Ornek:
+             * if ($event->getTxType() === PosInterface::TX_PAY) {
+             *     $data = $event->getRequestData();
+             *     $data['abcd'] = '1234';
+             *     $event->setRequestData($data);
+             * }
+             *
+             * Bu asamada bu Event genellikle 1 kere trigger edilir.
+             * Bir tek PosNet MODEL_3D_SECURE odemede 2 kere API call'i yapildigi icin bu event 2 kere trigger edilir.
+             */
+        });
+
     doPayment($pos, $paymentModel, $transaction, $order, $card);
 } catch (HashMismatchException $e) {
     dd($e);

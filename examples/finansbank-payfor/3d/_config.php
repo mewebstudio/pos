@@ -15,7 +15,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createPayForAccount(
     '12345678'
 );
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $transaction = PosInterface::TX_PAY;
 

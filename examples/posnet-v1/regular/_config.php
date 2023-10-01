@@ -15,7 +15,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createPosNetAccount(
     '10,10,10,10,10,10,10,10'
 );
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $templateTitle = 'Regular Payment';
 $paymentModel = PosInterface::MODEL_NON_SECURE;

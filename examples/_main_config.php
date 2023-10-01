@@ -19,7 +19,9 @@ $session->start();
 $hostUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')."://$_SERVER[HTTP_HOST]";
 $subMenu = [];
 
-function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mews\Pos\PosInterface
+$eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
+
+function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher): ?\Mews\Pos\PosInterface
 {
     try {
         $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
@@ -31,7 +33,7 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mew
             new \Slim\Psr7\Factory\StreamFactory()
         );*/
         $config = require __DIR__.'/../config/pos_test.php';
-        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, null, $logger);
+        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher, null, $logger);
         $pos->setTestMode(true);
 
         return $pos;

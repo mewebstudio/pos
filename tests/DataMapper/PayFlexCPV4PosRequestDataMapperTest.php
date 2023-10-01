@@ -17,6 +17,7 @@ use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * PayFlexCPV4PosRequestDataMapperTest
@@ -141,7 +142,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $pos = PosFactory::createPosGateway($account, $config);
+        $pos = PosFactory::createPosGateway($account, $config, new EventDispatcher());
         $pos->setTestMode(true);
 
         $card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);

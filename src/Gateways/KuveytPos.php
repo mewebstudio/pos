@@ -13,6 +13,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -117,8 +118,21 @@ class KuveytPos extends AbstractGateway
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment');
 
-            $data         = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);
-            $contents     = $this->serializer->encode($data, $txType);
+            $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);
+
+            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+            $this->eventDispatcher->dispatch($event);
+            if ($requestData !== $event->getRequestData()) {
+                $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                    'txType'      => $event->getTxType(),
+                    'bank'        => $event->getBank(),
+                    'initialData' => $requestData,
+                    'updatedData' => $event->getRequestData(),
+                ]);
+                $requestData = $event->getRequestData();
+            }
+
+            $contents     = $this->serializer->encode($requestData, $txType);
             $bankResponse = $this->send($contents, $txType);
         } else {
             $this->logger->log(LogLevel::ERROR, '3d auth fail', ['proc_return_code' => $procReturnCode]);
@@ -227,8 +241,21 @@ class KuveytPos extends AbstractGateway
      */
     private function getCommon3DFormData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
-        $formData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $paymentModel, $txType, $card);
-        $data     = $this->serializer->encode($formData, $txType);
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $paymentModel, $txType, $card);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $data = $this->serializer->encode($requestData, $txType);
 
         /**
          * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse

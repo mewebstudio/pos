@@ -17,7 +17,7 @@ $account = AccountFactory::createGarantiPosAccount(
     '12345678'
 );
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $transaction = PosInterface::TX_PAY;
 

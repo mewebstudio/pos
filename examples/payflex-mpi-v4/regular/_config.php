@@ -18,7 +18,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createPayFlexAccount(
     PosInterface::MODEL_NON_SECURE
 );
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $templateTitle = 'Regular Payment';
 $paymentModel = PosInterface::MODEL_NON_SECURE;

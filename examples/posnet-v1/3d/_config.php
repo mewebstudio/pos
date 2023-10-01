@@ -25,7 +25,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createPosNetAccount(
  * ilerde vtfCode atanmasi duzgun ele alinacak
  */
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $transaction = $session->get('tx', PosInterface::TX_PAY);
 

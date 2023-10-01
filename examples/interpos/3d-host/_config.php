@@ -22,7 +22,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount(
     PosInterface::LANG_TR
 );
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $transaction = PosInterface::TX_PAY;
 

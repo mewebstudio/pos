@@ -13,6 +13,7 @@ use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\InterPosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -64,7 +65,7 @@ class InterPosTest extends TestCase
             'rand'        => microtime(true),
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $this->pos->setTestMode(true);
 

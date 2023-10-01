@@ -1,5 +1,6 @@
 <?php
 
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
@@ -32,6 +33,22 @@ $session->set('card', $request->request->all());
 $session->set('tx', $transaction);
 
 try {
+
+    /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
+    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
+            /**
+             * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
+             * Ornek:
+             * if ($event->getTxType() === PosInterface::TX_PAY) {
+             *     $data = $event->getRequestData();
+             *     $data['abcd'] = '1234';
+             *     $event->setRequestData($data);
+             * }
+             *
+             * Bu asamada bu Event sadece PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos gatewayler'de trigger edilir.
+             */
+        });
+
     $formData = $pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $transaction, $card);
     //dd($formData);
 } catch (\Throwable $e) {

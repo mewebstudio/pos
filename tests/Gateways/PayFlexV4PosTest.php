@@ -16,7 +16,9 @@ use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\PayFlexV4PosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * PayFlexV4PosTest
@@ -66,7 +68,7 @@ class PayFlexV4PosTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $this->pos->setTestMode(true);
 
@@ -104,6 +106,7 @@ class PayFlexV4PosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger(),
             ])
@@ -131,6 +134,7 @@ class PayFlexV4PosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger(),
             ])

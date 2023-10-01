@@ -13,7 +13,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createPayForAccount(
     'UcBN0'
 );
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $templateTitle = 'Regular Payment';
 $paymentModel = PosInterface::MODEL_NON_SECURE;

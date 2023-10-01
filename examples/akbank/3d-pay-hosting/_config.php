@@ -16,7 +16,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     PosInterface::LANG_TR
 );
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $transaction = PosInterface::TX_PAY;
 

@@ -9,6 +9,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\PosInterface;
@@ -55,6 +56,19 @@ class GarantiPos extends AbstractGateway
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $request->get('mdstatus')]);
 
             $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+
+            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+            $this->eventDispatcher->dispatch($event);
+            if ($requestData !== $event->getRequestData()) {
+                $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                    'txType'      => $event->getTxType(),
+                    'bank'        => $event->getBank(),
+                    'initialData' => $requestData,
+                    'updatedData' => $event->getRequestData(),
+                ]);
+                $requestData = $event->getRequestData();
+            }
+
             $contents     = $this->serializer->encode($requestData, $txType);
             $bankResponse = $this->send($contents, $txType);
         } else {

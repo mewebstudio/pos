@@ -15,7 +15,9 @@ use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -49,7 +51,7 @@ class PosNetV1PosTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
 
         $this->pos->setTestMode(true);
 
@@ -94,6 +96,7 @@ class PosNetV1PosTest extends TestCase
                 $requestMapper,
                 $responseMapper,
                 $serializer,
+                $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
                 new NullLogger()
             ])

@@ -10,6 +10,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * PayForTest
@@ -39,7 +40,7 @@ class PayForTest extends TestCase
             '12345678'
         );
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config);
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
         $this->pos->setTestMode(true);
     }
 

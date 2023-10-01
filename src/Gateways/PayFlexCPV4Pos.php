@@ -12,6 +12,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
@@ -69,7 +70,20 @@ class PayFlexCPV4Pos extends AbstractGateway
         /** @var array{TransactionId: string, PaymentToken: string} $queryParams */
         $queryParams = $request->query->all();
 
-        $statusRequestData = $this->requestDataMapper->create3DPaymentStatusRequestData($this->account, $queryParams);
+        $requestData = $this->requestDataMapper->create3DPaymentStatusRequestData($this->account, $queryParams);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_PAY);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
         /**
          * sending request to make sure that payment was successful
          * @var array{ErrorCode: string}|array{
@@ -83,7 +97,7 @@ class PayFlexCPV4Pos extends AbstractGateway
          *     TransactionId: string,
          *     PaymentToken: string} $bankResponse
          */
-        $bankResponse = $this->send($statusRequestData, PosInterface::TX_PAY, $this->getQueryAPIUrl());
+        $bankResponse = $this->send($requestData, PosInterface::TX_PAY, $this->getQueryAPIUrl());
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse);
 
@@ -114,7 +128,6 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $data */
         $data = $this->registerPayment($order, $txType, $card);
 
@@ -180,6 +193,18 @@ class PayFlexCPV4Pos extends AbstractGateway
             $txType,
             $card
         );
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
 
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
         $response = $this->send($requestData, $txType);

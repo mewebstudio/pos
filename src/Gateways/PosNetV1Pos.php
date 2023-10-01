@@ -10,6 +10,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
@@ -85,11 +86,24 @@ class PosNetV1Pos extends AbstractGateway
          *   8: Bilinmeyen kart no
          *   9: Üye İşyeri 3D-Secure sistemine kayıtlı değil (bankada işyeri ve terminal numarası 3d olarak tanımlı değil.)
          */
-        if ($mdStatus !== '1') {
+        if ('1' !== $mdStatus) {
             $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $mdStatus]);
         } else {
             $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $mdStatus]);
             $requestData       = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+
+            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+            $this->eventDispatcher->dispatch($event);
+            if ($requestData !== $event->getRequestData()) {
+                $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                    'txType'      => $event->getTxType(),
+                    'bank'        => $event->getBank(),
+                    'initialData' => $requestData,
+                    'updatedData' => $event->getRequestData(),
+                ]);
+                $requestData = $event->getRequestData();
+            }
+
             $contents          = $this->serializer->encode($requestData, $txType);
             $provisionResponse = $this->send($contents, $txType);
             $this->logger->log(LogLevel::DEBUG, 'send $provisionResponse', ['$provisionResponse' => $provisionResponse]);

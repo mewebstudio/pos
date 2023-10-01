@@ -13,6 +13,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
@@ -52,6 +53,19 @@ class PosNet extends AbstractGateway
     public function getOosTransactionData(array $order, string $txType, AbstractCreditCard $card): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $card);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
         $xml         = $this->serializer->encode($requestData, $txType);
 
         return $this->send($xml, $txType);
@@ -72,6 +86,18 @@ class PosNet extends AbstractGateway
             $request->all()
         );
 
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
         $contents           = $this->serializer->encode($requestData, $txType);
         $userVerifyResponse = $this->send($contents, $txType);
         $bankResponse       = null;
@@ -90,6 +116,19 @@ class PosNet extends AbstractGateway
                 'md_status' => $userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
             ]);
             $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+
+            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+            $this->eventDispatcher->dispatch($event);
+            if ($requestData !== $event->getRequestData()) {
+                $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                    'txType'      => $event->getTxType(),
+                    'bank'        => $event->getBank(),
+                    'initialData' => $requestData,
+                    'updatedData' => $event->getRequestData(),
+                ]);
+                $requestData = $event->getRequestData();
+            }
+
             $contents     = $this->serializer->encode($requestData, $txType);
             $bankResponse = $this->send($contents, $txType);
         } else {
