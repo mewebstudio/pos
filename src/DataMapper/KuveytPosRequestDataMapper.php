@@ -129,13 +129,8 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder           = $order;
-        $mappedOrder['amount'] = self::amountFormat($order['amount']);
-        $hash                  = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
-
         $inputs = $this->getRequestAccountData($account) + [
                 'APIVersion'          => self::API_VERSION,
-                'HashData'            => $hash,
                 'TransactionType'     => $this->mapTxType($txType),
                 'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
                 'InstallmentCount'    => $this->mapInstallment($order['installment']),
@@ -148,7 +143,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'FailUrl'             => $order['fail_url'],
             ];
 
-        if ($card !== null) {
+        if ($card instanceof AbstractCreditCard) {
             $inputs['CardHolderName']      = $card->getHolderName();
             $inputs['CardType']            = $this->cardTypeMapping[$card->getType()];
             $inputs['CardNumber']          = $card->getNumber();
@@ -156,6 +151,8 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             $inputs['CardExpireDateMonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
             $inputs['CardCVV2']            = $card->getCvv();
         }
+
+        $inputs['HashData'] = $this->crypt->create3DHash($account, $inputs);
 
         return $inputs;
     }

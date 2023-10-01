@@ -16,10 +16,10 @@ class KuveytPosCrypt extends AbstractCrypt
 
         $hashData = [
             $account->getClientId(),
-            $requestData['id'],
-            $requestData['amount'],
-            $requestData['success_url'],
-            $requestData['fail_url'],
+            $requestData['MerchantOrderId'],
+            $requestData['Amount'],
+            $requestData['OkUrl'],
+            $requestData['FailUrl'],
             $account->getUsername(),
             $hashedPassword,
         ];
