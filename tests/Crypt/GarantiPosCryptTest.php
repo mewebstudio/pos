@@ -70,9 +70,9 @@ class GarantiPosCryptTest extends TestCase
     /**
      * @dataProvider hashCreateDataProvider
      */
-    public function testCreateHash(array $requestData, string $txType, string $expected)
+    public function testCreateHash(array $requestData, string $expected)
     {
-        $actual = $this->crypt->createHash($this->account, $requestData, $txType);
+        $actual = $this->crypt->createHash($this->account, $requestData);
         $this->assertEquals($expected, $actual);
     }
 
@@ -106,35 +106,51 @@ class GarantiPosCryptTest extends TestCase
         return [
             [
                 'requestData' => [
-                    'id' => 'order222',
-                    'amount' => 10025,
+                    'Order'       => [
+                        'OrderID' => 'order222',
+                    ],
+                    'Transaction' => [
+                        'Type'   => 'sales',
+                        'Amount' => 10025,
+                    ],
                 ],
-                'txType' => 'sales',
                 'expected' => '00CD5B6C29D4CEA1F3002D785A9F9B09974AD51D',
             ],
             [
                 'requestData' => [
-                    'id' => 'order222',
-                    'amount' => 10025,
+                    'Order'       => [
+                        'OrderID' => 'order222',
+                    ],
+                    'Transaction' => [
+                        'Type'   => 'preauth',
+                        'Amount' => 10025,
+                    ],
                 ],
-                'txType' => 'preauth',
                 'expected' => '00CD5B6C29D4CEA1F3002D785A9F9B09974AD51D',
             ],
             [
                 'requestData' => [
-                    'id' => '4499996',
-                    // for cancel request amount is always 100
-                    'amount' => 100,
+                    'Order'       => [
+                        'OrderID' => '4499996',
+                    ],
+                    'Transaction' => [
+                        'Type'   => 'void',
+                        // for cancel request amount is always 100
+                        'Amount' => 100,
+                    ],
                 ],
-                'txType' => 'void',
                 'expected' => '9788649A0C3AE14C082783CEA6775E08A7EFB311',
             ],
             [
                 'requestData' => [
-                    'id' => '4499996',
-                    'amount' => 202,
+                    'Order'       => [
+                        'OrderID' => '4499996',
+                    ],
+                    'Transaction' => [
+                        'Type'   => 'refund',
+                        'Amount' => 202,
+                    ],
                 ],
-                'txType' => 'refund',
                 'expected' => 'D7094EAF4C444AAC429FB2424BEE7FC68470E0DE',
             ],
         ];

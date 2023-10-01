@@ -5,7 +5,6 @@
 
 namespace Mews\Pos\DataMapper;
 
-use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Crypt\GarantiPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
@@ -71,16 +70,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $hashData = [
-            'id'     => $order['id'],
-            'amount' => (string) self::amountFormat($order['amount']),
-        ];
-        $hash     = $this->crypt->createHash($account, $hashData);
-
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, $hash),
+            'Terminal'    => $this->getTerminalData($account, ''),
             'Customer'    => [
                 'IPAddress'    => $responseData['customeripaddress'],
                 'EmailAddress' => $responseData['customeremailaddress'],
@@ -109,6 +102,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             $result['Recurring'] = $this->createRecurringData($order);
         }
 
+        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+
         return $result;
     }
 
@@ -121,16 +116,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $hashData = [
-            'id'     => $order['id'],
-            'amount' => self::amountFormat($order['amount']),
-        ];
-        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType($txType), $card);
-
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, $hash),
+            'Terminal'    => $this->getTerminalData($account, ''),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
                 'EmailAddress' => $order['email'],
@@ -154,6 +143,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             $result['Recurring'] = $this->createRecurringData($order);
         }
 
+        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+
         return $result;
     }
 
@@ -166,16 +157,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePostPaymentOrder($order);
 
-        $hashData = [
-            'id'     => (string) $order['id'],
-            'amount' => (string) self::amountFormat($order['amount']),
-        ];
-        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_POST_PAY));
-
-        return [
+        $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, $hash),
+            'Terminal'    => $this->getTerminalData($account, ''),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
                 'EmailAddress' => $order['email'],
@@ -190,6 +175,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'OriginalRetrefNum' => $order['ref_ret_num'],
             ],
         ];
+
+        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+
+        return $result;
     }
 
     /**
@@ -201,16 +190,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareStatusOrder($order);
 
-        $hashData = [
-            'id'     => $order['id'],
-            'amount' => self::amountFormat($order['amount']),
-        ];
-        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_STATUS));
-
-        return [
+        $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, $hash),
+            'Terminal'    => $this->getTerminalData($account, ''),
             'Customer'    => [
                 'IPAddress'    => $order['ip'] ?? '',
                 'EmailAddress' => $order['email'] ?? '',
@@ -227,6 +210,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'MotoInd'               => self::MOTO,
             ],
         ];
+
+        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+
+        return $result;
     }
 
     /**
@@ -238,16 +225,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareCancelOrder($order);
 
-        $hashData = [
-            'id'     => $order['id'],
-            'amount' => self::amountFormat($order['amount']),
-        ];
-        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_CANCEL));
-
-        return [
+        $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, $hash, true),
+            'Terminal'    => $this->getTerminalData($account, '', true),
             'Customer'    => [
                 'IPAddress'    => $order['ip'] ?? '',
                 'EmailAddress' => $order['email'] ?? '',
@@ -265,6 +246,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'OriginalRetrefNum'     => $order['ref_ret_num'],
             ],
         ];
+
+        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+
+        return $result;
     }
 
     /**
@@ -276,16 +261,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareRefundOrder($order);
 
-        $hashData = [
-            'id'     => $order['id'],
-            'amount' => self::amountFormat($order['amount']),
-        ];
-        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_REFUND));
-
-        return [
+        $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, $hash, true),
+            'Terminal'    => $this->getTerminalData($account, '', true),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
                 'EmailAddress' => $order['email'],
@@ -303,6 +282,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'OriginalRetrefNum'     => $order['ref_ret_num'],
             ],
         ];
+
+        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+
+        return $result;
     }
 
     /**
@@ -314,16 +297,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->prepareHistoryOrder($order);
 
-        $hashData = [
-            'id'     => $order['id'],
-            'amount' => self::amountFormat($order['amount']),
-        ];
-        $hash     = $this->crypt->createHash($account, $hashData, $this->mapTxType(PosInterface::TX_HISTORY));
-
-        return [
+        $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, $hash),
+            'Terminal'    => $this->getTerminalData($account, ''),
             'Customer'    => [
                 'IPAddress'    => $order['ip'] ?? '',
                 'EmailAddress' => $order['email'] ?? '',
@@ -340,6 +317,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'MotoInd'               => self::MOTO,
             ],
         ];
+
+        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+
+        return $result;
     }
 
 

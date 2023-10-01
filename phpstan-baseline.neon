@@ -396,11 +396,6 @@ parameters:
 			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
 
 		-
-			message: "#^Parameter \\#2 \\$requestData of method Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\:\\:createHash\\(\\) expects array\\<string, string\\>, array\\<string, array\\<string, mixed\\>\\|int\\|string\\> given\\.$#"
-			count: 1
-			path: src/DataMapper/PosNetV1PosRequestDataMapper.php
-
-		-
 			message: "#^Argument of an invalid type array\\|object supplied for foreach, only iterables are supported\\.$#"
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/AbstractResponseDataMapper.php

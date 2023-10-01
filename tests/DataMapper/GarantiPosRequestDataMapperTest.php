@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\DataMapper;
 
 use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
@@ -67,11 +68,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $pos = PosFactory::createPosGateway($this->account, $this->config);
 
-        $crypt = PosFactory::getGatewayCrypt(GarantiPos::class, new NullLogger());
+        $crypt                   = PosFactory::getGatewayCrypt(GarantiPos::class, new NullLogger());
         $this->requestDataMapper = new GarantiPosRequestDataMapper($crypt);
         $this->requestDataMapper->setTestMode(true);
 
-        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
+        $this->card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
     /**
@@ -169,16 +170,13 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider create3DPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData()
+    public function testCreate3DPaymentRequestData(GarantiPosAccount $account, array $order, array $responseData, array $expected)
     {
-        $responseData = $this->getSample3DResponseData();
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, '', $responseData);
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, '', $responseData);
-
-        $expectedData = $this->getSample3DPaymentRequestData($this->account, $this->order, $responseData);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -186,9 +184,9 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testGet3DFormData()
     {
-        $account = $this->account;
+        $account    = $this->account;
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
-        $inputs = [
+        $inputs     = [
             'secure3dsecuritylevel' => '3D',
             'mode'                  => 'TEST',
             'apiversion'            => 'v0.01',
@@ -213,7 +211,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
 
         $form = [
-            'inputs' => $inputs,
+            'inputs'  => $inputs,
             'method'  => 'POST',
             'gateway' => $gatewayURL,
         ];
@@ -268,63 +266,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $expectedData = $this->getSampleRefundXMLData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
-    }
-
-    /**
-     * @param GarantiPosAccount $account
-     * @param                   $order
-     * @param array             $responseData
-     *
-     * @return array
-     */
-    private function getSample3DPaymentRequestData(AbstractPosAccount $account, $order, array $responseData): array
-    {
-        return [
-            'Mode'        => 'TEST',
-            'Version'     => 'v0.01',
-            'Terminal'    => [
-                'ProvUserID' => $account->getUsername(),
-                'UserID'     => $account->getUsername(),
-                'HashData'   => '00CD5B6C29D4CEA1F3002D785A9F9B09974AD51D',
-                'ID'         => $account->getTerminalId(),
-                'MerchantID' => $account->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress'    => $responseData['customeripaddress'],
-                'EmailAddress' => $responseData['customeremailaddress'],
-            ],
-            'Order'       => [
-                'OrderID'     => $responseData['orderid'],
-                'AddressList' => [
-                    'Address' => [
-                        'Type'        => 'B',
-                        'Name'        => $order['name'],
-                        'LastName'    => '',
-                        'Company'     => '',
-                        'Text'        => '',
-                        'District'    => '',
-                        'City'        => '',
-                        'PostalCode'  => '',
-                        'Country'     => '',
-                        'PhoneNumber' => '',
-                    ],
-                ],
-            ],
-            'Transaction' => [
-                'Type'                  => $responseData['txntype'],
-                'InstallmentCnt'        => '',
-                'Amount'                => $responseData['txnamount'],
-                'CurrencyCode'          => $responseData['txncurrencycode'],
-                'CardholderPresentCode' => '13',
-                'MotoInd'               => 'N',
-                'Secure3D'              => [
-                    'AuthenticationCode' => $responseData['cavv'],
-                    'SecurityLevel'      => $responseData['eci'],
-                    'TxnID'              => $responseData['xid'],
-                    'Md'                 => $responseData['md'],
-                ],
-            ],
-        ];
     }
 
     /**
@@ -546,8 +487,8 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-               'IPAddress'    => $order['ip'],
-               'EmailAddress' => $order['email'],
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -563,22 +504,96 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @return string[]
-     */
-    public static function getSample3DResponseData(): array
+    public static function create3DPaymentRequestDataDataProvider(): array
     {
+        $account = AccountFactory::createGarantiPosAccount(
+            'garanti',
+            '7000679',
+            'PROVAUT',
+            '123qweASD/',
+            '30691298',
+            PosInterface::MODEL_3D_SECURE,
+            '12345678',
+            'PROVRFN',
+            '123qweASD/'
+        );
+
+        $order = [
+            'id'          => '2020110828BC',
+            'name'        => 'siparis veren',
+            'email'       => 'test@test.com',
+            'amount'      => '100.25',
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'success_url' => 'https://domain.com/success',
+            'fail_url'    => 'https://domain.com/fail_url',
+            'lang'        => 'tr',
+            'ip'          => '156.155.154.153',
+        ];
+
         return [
-            'orderid'              => '2020110828BC',
-            'md'                   => '1',
-            'xid'                  => '100000005xid',
-            'eci'                  => '100000005eci',
-            'cavv'                 => 'cavv',
-            'txncurrencycode'      => 'txncurrencycode',
-            'txnamount'            => 'txnamount',
-            'txntype'              => 'txntype',
-            'customeripaddress'    => 'customeripaddress',
-            'customeremailaddress' => 'customeremailaddress',
+            [
+                'account'      => $account,
+                'order'        => $order,
+                'responseData' => [
+                    'orderid'              => '2020110828BC',
+                    'md'                   => '1',
+                    'xid'                  => '100000005xid',
+                    'eci'                  => '100000005eci',
+                    'cavv'                 => 'cavv',
+                    'txncurrencycode'      => '949',
+                    'txnamount'            => '100.25',
+                    'txntype'              => 'sales',
+                    'customeripaddress'    => '127.0.0.1',
+                    'customeremailaddress' => 'test@test.com',
+                ],
+                'expected' => [
+                    'Mode'        => 'TEST',
+                    'Version'     => 'v0.01',
+                    'Terminal'    => [
+                        'ProvUserID' => $account->getUsername(),
+                        'UserID'     => $account->getUsername(),
+                        'HashData'   => 'EA03A05EB5FA82B6CEF6CE456B94C0A0ACBDDAD8',
+                        'ID'         => $account->getTerminalId(),
+                        'MerchantID' => $account->getClientId(),
+                    ],
+                    'Customer'    => [
+                        'IPAddress'    => '127.0.0.1',
+                        'EmailAddress' => 'test@test.com',
+                    ],
+                    'Order'       => [
+                        'OrderID'     => '2020110828BC',
+                        'AddressList' => [
+                            'Address' => [
+                                'Type'        => 'B',
+                                'Name'        => 'siparis veren',
+                                'LastName'    => '',
+                                'Company'     => '',
+                                'Text'        => '',
+                                'District'    => '',
+                                'City'        => '',
+                                'PostalCode'  => '',
+                                'Country'     => '',
+                                'PhoneNumber' => '',
+                            ],
+                        ],
+                    ],
+                    'Transaction' => [
+                        'Type'                  => 'sales',
+                        'InstallmentCnt'        => '',
+                        'Amount'                => '100.25',
+                        'CurrencyCode'          => '949',
+                        'CardholderPresentCode' => '13',
+                        'MotoInd'               => 'N',
+                        'Secure3D'              => [
+                            'AuthenticationCode' => 'cavv',
+                            'SecurityLevel'      => '100000005eci',
+                            'TxnID'              => '100000005xid',
+                            'Md'                 => '1',
+                        ],
+                    ],
+                ],
+            ],
         ];
     }
 }

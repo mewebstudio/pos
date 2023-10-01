@@ -64,11 +64,11 @@ class GarantiPosCrypt extends AbstractCrypt
     public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string
     {
         $map = [
-            $requestData['id'],
+            $requestData['Order']['OrderID'],
             $account->getTerminalId(),
-            isset($card) ? $card->getNumber() : null,
-            $requestData['amount'],
-            $this->createSecurityData($account, $txType),
+            $requestData['Card']['Number'] ?? null,
+            $requestData['Transaction']['Amount'],
+            $this->createSecurityData($account, $requestData['Transaction']['Type']),
         ];
 
         return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map));
