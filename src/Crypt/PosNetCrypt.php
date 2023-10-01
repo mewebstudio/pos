@@ -7,7 +7,6 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Psr\Log\LogLevel;
 
@@ -70,7 +69,7 @@ class PosNetCrypt extends AbstractCrypt
         return true;
     }
 
-    public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string
+    public function createHash(AbstractPosAccount $account, array $requestData): string
     {
         throw new NotImplementedException();
     }

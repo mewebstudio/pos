@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
@@ -53,7 +56,7 @@ abstract class AbstractCrypt implements CryptInterface
 
     /**
      * @param array<string, mixed> $haystack (multidimensional) array
-     * @param string $needle key name that will be searched in the (multidimensional) array
+     * @param string               $needle   key name that will be searched in the (multidimensional) array
      *
      * @return string the value of the $needle in the (multidimensional) array
      */

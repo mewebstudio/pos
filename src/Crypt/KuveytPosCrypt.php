@@ -6,7 +6,6 @@
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 
 class KuveytPosCrypt extends AbstractCrypt
 {
@@ -44,7 +43,7 @@ class KuveytPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string
+    public function createHash(AbstractPosAccount $account, array $requestData): string
     {
         $hashedPassword = $this->hashString($account->getStoreKey());
 

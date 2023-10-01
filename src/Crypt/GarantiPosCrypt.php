@@ -7,7 +7,6 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Psr\Log\LogLevel;
 
 class GarantiPosCrypt extends AbstractCrypt
@@ -61,7 +60,7 @@ class GarantiPosCrypt extends AbstractCrypt
      * @param GarantiPosAccount       $account
      * {@inheritDoc}
      */
-    public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string
+    public function createHash(AbstractPosAccount $account, array $requestData): string
     {
         $map = [
             $requestData['Order']['OrderID'],
@@ -99,7 +98,7 @@ class GarantiPosCrypt extends AbstractCrypt
      *
      * @return string
      */
-    protected function hashStringUpperCase(string $str): string
+    private function hashStringUpperCase(string $str): string
     {
         return strtoupper(hash(static::HASH_ALGORITHM, $str));
     }

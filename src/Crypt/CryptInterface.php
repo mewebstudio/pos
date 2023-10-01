@@ -6,7 +6,6 @@
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 
 interface CryptInterface
 {
@@ -35,12 +34,10 @@ interface CryptInterface
      *
      * @param AbstractPosAccount      $account
      * @param array<string, mixed>    $requestData
-     * @param string|null             $txType
-     * @param AbstractCreditCard|null $card
      *
      * @return string
      */
-    public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string;
+    public function createHash(AbstractPosAccount $account, array $requestData): string;
 
     /**
      * @param string               $storeKey       hashing key
