@@ -194,16 +194,10 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder                = $order;
-        $mappedOrder['installment'] = $this->mapInstallment($order['installment']);
-
-        $hash = $this->crypt->create3DHash($account, $mappedOrder, $this->mapTxType($txType));
-
         $inputs = [
             'ShopCode'         => $account->getClientId(),
             'TxnType'          => $this->mapTxType($txType),
             'SecureType'       => $this->secureTypeMappings[$paymentModel],
-            'Hash'             => $hash,
             'PurchAmount'      => $order['amount'],
             'OrderId'          => $order['id'],
             'OkUrl'            => $order['success_url'],
@@ -214,12 +208,14 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'InstallmentCount' => $this->mapInstallment($order['installment']),
         ];
 
-        if ($card !== null) {
+        if ($card instanceof AbstractCreditCard) {
             $inputs['CardType'] = $this->cardTypeMapping[$card->getType()];
             $inputs['Pan']      = $card->getNumber();
             $inputs['Expiry']   = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
             $inputs['Cvv2']     = $card->getCvv();
         }
+
+        $inputs['Hash'] = $this->crypt->create3DHash($account, $inputs);
 
         return [
             'gateway' => $gatewayURL,

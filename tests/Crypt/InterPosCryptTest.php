@@ -49,19 +49,9 @@ class InterPosCryptTest extends TestCase
     /**
      * @dataProvider threeDHashCreateDataProvider
      */
-    public function testCreate3DHash(array $requestData, string $txType, string $expected)
+    public function testCreate3DHash(array $requestData, string $expected)
     {
-        $requestData = [
-            'id' => 'order222',
-            'amount' => '100.25',
-            'installment' => '',
-            'currency' => PosInterface::CURRENCY_TRY,
-            'success_url' => 'https://domain.com/success',
-            'fail_url' => 'https://domain.com/fail_url',
-            'rand' => 'rand',
-        ];
-
-        $actual = $this->crypt->create3DHash($this->account, $requestData, $txType);
+        $actual = $this->crypt->create3DHash($this->account, $requestData);
 
         $this->assertSame($expected, $actual);
     }
@@ -115,17 +105,15 @@ class InterPosCryptTest extends TestCase
         return [
             [
                 'requestData' => [
-                    'id' => 'order222',
-                    'amount' => '100.25',
-                    'installment' => '',
-                    'currency' => PosInterface::CURRENCY_TRY,
-                    'success_url' => 'https://domain.com/success',
-                    'fail_url' => 'https://domain.com/fail_url',
-                    'lang' => 'tr',
-                    'rand' => 'rand',
+                    'OrderId'          => 'order222',
+                    'PurchAmount'      => '100.25',
+                    'TxnType'          => 'Auth',
+                    'InstallmentCount' => '',
+                    'OkUrl'            => 'https://domain.com/success',
+                    'FailUrl'          => 'https://domain.com/fail_url',
+                    'Rnd'              => 'rand',
                 ],
-                'txType' => 'Auth',
-                'expected' => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
+                'expected'    => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
             ],
         ];
     }
