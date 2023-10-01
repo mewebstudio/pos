@@ -45,8 +45,9 @@ class GarantiPos extends AbstractGateway
     {
         $request = $request->request;
         $bankResponse = null;
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
-            // todo mdstatus 7 oldugunda hash, hashparam deger gelmiyor, check3dhash calismiyor
+
+        // mdstatus 7 oldugunda hash, hashparam degerler gelmiyor, dolasiyla check3dhash calismiyor
+        if ($request->get('mdstatus') !== '7' && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
             throw new HashMismatchException();
         }
 
