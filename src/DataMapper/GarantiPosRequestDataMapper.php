@@ -17,7 +17,10 @@ use Mews\Pos\Gateways\AbstractGateway;
 class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     /** @var string */
-    public const API_VERSION = '512';
+    public const API_VERSION = 'v0.01';
+
+    /** @var string */
+    public const API_3D_VERSION = '512';
 
     /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
@@ -77,7 +80,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $result = [
             'Mode'        => $this->getMode(),
-            'Version'     => self::API_VERSION,
+            'Version'     => self::API_3D_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
                 'IPAddress'    => $responseData['customeripaddress'],
@@ -340,7 +343,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $inputs = [
             'secure3dsecuritylevel' => $this->secureTypeMappings[$account->getModel()],
             'mode'                  => $this->getMode(),
-            'apiversion'            => self::API_VERSION,
+            'apiversion'            => self::API_3D_VERSION,
             'terminalprovuserid'    => $account->getUsername(),
             'terminaluserid'        => $account->getUsername(),
             'terminalmerchantid'    => $account->getClientId(),
