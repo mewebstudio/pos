@@ -17,7 +17,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     /** @var string */
-    public const API_VERSION = 'v0.01';
+    public const API_VERSION = '512';
 
     /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
@@ -71,6 +71,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
+            'currency' => $responseData['txncurrencycode'],
         ];
         $hash = $this->crypt->createHash($account, $hashData);
 

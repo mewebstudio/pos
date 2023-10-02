@@ -79,7 +79,7 @@ function doPayment(\Mews\Pos\PosInterface $pos, string $transaction, ?\Mews\Pos\
 $testCards = [
     'visa1' => [
         'number' => '4282209004348015',
-        'year' => '22',
+        'year' => '30',
         'month' => '08',
         'cvv' => '123',
         'name' => 'John Doe',

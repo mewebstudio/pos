@@ -19,6 +19,7 @@ class GarantiPosCrypt extends AbstractCrypt
             $account->getTerminalId(),
             $requestData['id'],
             $requestData['amount'],
+			$requestData['currency'],
             $requestData['success_url'],
             $requestData['fail_url'],
             $txType,
@@ -27,7 +28,7 @@ class GarantiPosCrypt extends AbstractCrypt
             $this->createSecurityData($account, $txType),
         ];
 
-        return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map));
+		return $this->hashStringUpperCase( implode( static::HASH_SEPARATOR, $map ), 'sha512' );
     }
 
     /**
@@ -58,17 +59,17 @@ class GarantiPosCrypt extends AbstractCrypt
      * @param GarantiPosAccount       $account
      * {@inheritDoc}
      */
-    public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string
-    {
-        $map = [
+    public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string{
+        $map = array(
             $requestData['id'],
             $account->getTerminalId(),
-            isset($card) ? $card->getNumber() : null,
+            isset( $card ) ? $card->getNumber() : null,
             $requestData['amount'],
-            $this->createSecurityData($account, $txType),
-        ];
+            $requestData['currency'],
+            $this->createSecurityData( $account, $txType ),
+        );
 
-        return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map));
+        return $this->hashStringUpperCase( implode( static::HASH_SEPARATOR, $map ), 'sha512' );
     }
 
     /**
@@ -96,8 +97,8 @@ class GarantiPosCrypt extends AbstractCrypt
      *
      * @return string
      */
-    protected function hashStringUpperCase(string $str): string
+	protected function hashStringUpperCase( string $str, $algo = 'sha1' ): string 
     {
-        return strtoupper(hash(static::HASH_ALGORITHM, $str));
-    }
+		return strtoupper( hash( $algo, $str ) );
+	}
 }
