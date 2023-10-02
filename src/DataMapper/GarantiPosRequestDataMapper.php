@@ -17,10 +17,7 @@ use Mews\Pos\Gateways\AbstractGateway;
 class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 {
     /** @var string */
-    public const API_VERSION = 'v0.01';
-
-    /** @var string */
-    public const API_3D_VERSION = '512';
+    public const API_VERSION = '512';
 
     /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
@@ -74,13 +71,13 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
-            'currency' => $responseData['txncurrencycode'],
+            'currency' => $this->mapCurrency($order->currency),
         ];
         $hash = $this->crypt->createHash($account, $hashData);
 
         $result = [
             'Mode'        => $this->getMode(),
-            'Version'     => self::API_3D_VERSION,
+            'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, $hash),
             'Customer'    => [
                 'IPAddress'    => $responseData['customeripaddress'],
@@ -123,6 +120,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
+            'currency' => $this->mapCurrency($order->currency),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType($txType), $card);
 
@@ -166,6 +164,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $hashData = [
             'id' => (string) $order->id,
             'amount' => self::amountFormat($order->amount),
+            'currency' => $this->mapCurrency($order->currency),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_POST_PAY), $card);
 
@@ -199,6 +198,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
+            'currency' => $this->mapCurrency($order->currency),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_STATUS));
 
@@ -234,6 +234,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
+            'currency' => $this->mapCurrency($order->currency),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_CANCEL));
 
@@ -270,6 +271,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
+            'currency' => $this->mapCurrency($order->currency),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_REFUND));
 
@@ -306,6 +308,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $hashData = [
             'id' => $order->id,
             'amount' => self::amountFormat($order->amount),
+            'currency' => $this->mapCurrency($order->currency),
         ];
         $hash = $this->crypt->createHash($account, $hashData, $this->mapTxType(AbstractGateway::TX_HISTORY));
 
@@ -343,7 +346,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $inputs = [
             'secure3dsecuritylevel' => $this->secureTypeMappings[$account->getModel()],
             'mode'                  => $this->getMode(),
-            'apiversion'            => self::API_3D_VERSION,
+            'apiversion'            => self::API_VERSION,
             'terminalprovuserid'    => $account->getUsername(),
             'terminaluserid'        => $account->getUsername(),
             'terminalmerchantid'    => $account->getClientId(),
