@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
@@ -24,10 +27,10 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper implements P
     public function mapPaymentResponse(array $rawPaymentResponseData): array
     {
         $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
-        if ($rawPaymentResponseData === []) {
+        if ([] === $rawPaymentResponseData) {
             return $this->getDefaultPaymentResponse();
         }
-        
+
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
         $status                 = self::TX_DECLINED;
         $procReturnCode         = $this->getProcReturnCode($rawPaymentResponseData);

@@ -55,6 +55,12 @@ class EstPosCrypt extends AbstractCrypt
         return false;
     }
 
+    /**
+     * @param AbstractPosAccount   $account
+     * @param array<string, mixed> $requestData
+     *
+     * @return string
+     */
     public function createHash(AbstractPosAccount $account, array $requestData): string
     {
         throw new NotImplementedException();

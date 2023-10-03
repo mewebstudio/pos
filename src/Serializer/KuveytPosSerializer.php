@@ -11,11 +11,13 @@ use DOMDocument;
 use DOMElement;
 use DOMNamedNodeMap;
 use DOMNodeList;
+use Exception;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Serializer;
+use Throwable;
 use function in_array;
 use function sprintf;
 use function strip_tags;
@@ -57,7 +59,7 @@ class KuveytPosSerializer implements SerializerInterface
      */
     public function encode(array $data, string $txType)
     {
-        if ($txType === PosInterface::TX_HISTORY) {
+        if (PosInterface::TX_HISTORY === $txType) {
             throw new DomainException(sprintf('Serialization of the transaction %s is not supported', $txType));
         }
 
@@ -79,12 +81,12 @@ class KuveytPosSerializer implements SerializerInterface
 
         try {
             return $this->serializer->decode($data, XmlEncoder::FORMAT);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             if ($this->isHTML($data)) {
                 // 3D form data icin enrollment istegi gonderiyoruz, o istegin cevabi icinde form olan HTML donuyor.
                 return $this->transformReceived3DFormData($data);
             }
-            throw new \Exception($data, $e->getCode(), $e);
+            throw new Exception($data, $e->getCode(), $e);
         }
     }
 

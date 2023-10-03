@@ -163,9 +163,11 @@ class PayFlexV4Pos extends AbstractGateway
      * Müşteriden kredi kartı bilgilerini aldıktan sonra GET 7/24 MPI’a kart “Kredi Kartı Kayıt Durumu”nun
      * (Enrollment Status) sorulması, yani kart 3-D Secure programına dâhil mi yoksa değil mi sorgusu
      *
+     * @phpstan-param PosInterface::TX_*           $txType
+     *
      * @param array<string, int|string|float|null> $order
      * @param AbstractCreditCard                   $card
-     * @param PosInterface::TX_*                   $txType
+     * @param string                               $txType
      *
      * @return array<string, mixed>
      *

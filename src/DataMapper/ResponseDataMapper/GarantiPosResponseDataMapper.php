@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
@@ -241,6 +244,16 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
         return $this->emptyStringsToNull($rawResponseData);
     }
 
+    /**
+     * 100001 => 1000.01
+     * @param string $amount
+     *
+     * @return float
+     */
+    public static function amountFormat(string $amount): float
+    {
+        return ((float) $amount) / 100;
+    }
 
     /**
      * returns mapped data of the common response data among all 3d models.
@@ -285,17 +298,6 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
     }
 
     /**
-     * 100001 => 1000.01
-     * @param string $amount
-     *
-     * @return float
-     */
-    public static function amountFormat(string $amount): float
-    {
-        return ((float) $amount) / 100;
-    }
-
-    /**
      * @param string $mdStatus
      *
      * @return string
@@ -329,7 +331,9 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements
     /**
      * Get ProcReturnCode
      *
-     * @param PaymentStatusModel $response
+     * @phpstan-param PaymentStatusModel $response
+     *
+     * @param array $response
      *
      * @return string|null
      */

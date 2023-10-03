@@ -135,6 +135,14 @@ class PosNetV1Pos extends AbstractGateway
 
     /**
      * @inheritDoc
+     */
+    public function history(array $meta): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
+    }
+
+    /**
+     * @inheritDoc
      *
      * @return array<string, mixed>
      */
@@ -168,13 +176,5 @@ class PosNetV1Pos extends AbstractGateway
 
             throw $e;
         }
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function history(array $meta): PosInterface
-    {
-        throw new UnsupportedTransactionTypeException();
     }
 }

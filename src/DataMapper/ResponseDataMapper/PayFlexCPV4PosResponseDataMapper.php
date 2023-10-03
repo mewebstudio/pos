@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
@@ -139,78 +142,6 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper implem
     }
 
     /**
-     * @param array<string, string> $responseData
-     *
-     * @return array{order_id: string|null, trans_id: string|null, auth_code: string|null,
-     *     ref_ret_num: string|null, proc_return_code: string|null,
-     *     status: string, status_detail: string|null, error_code: string|null,
-     *     error_message: string|null, all: array<string, string|null>}
-     */
-    private function getCommonPaymentResponse(array $responseData): array
-    {
-        $status     = self::TX_DECLINED;
-        $resultCode = $this->getProcReturnCode($responseData);
-
-        $errorCode = $responseData['ErrorCode'] ?? null;
-        $errorMsg  = null;
-        if (null !== $errorCode) {
-            $resultCode = $errorCode;
-            $errorMsg   = $responseData['Message'] ?? $responseData['ResponseMessage'];
-        } elseif (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
-            $status = self::TX_APPROVED;
-        } else {
-            $errorMsg = $responseData['Message'];
-        }
-
-        $response = $this->getDefaultPaymentResponse();
-
-        $response['proc_return_code'] = $resultCode;
-        $response['status'] = $status;
-        $response['status_detail'] = null;
-        $response['error_code'] = (self::TX_DECLINED === $status) ? $resultCode : null;
-        $response['error_message'] = $errorMsg;
-        $response['all'] = $responseData;
-
-        return $response;
-    }
-
-    /**
-     * @param array<string, string> $responseData
-     *
-     * @return array{order_id: string|null, trans_id: string|null, auth_code: string|null,
-     *     ref_ret_num: string|null, proc_return_code: string|null,
-     *     status: string, status_detail: string|null, error_code: string|null,
-     *     error_message: string|null, all: array<string, string|null>}
-     */
-    private function getCommonNonSecureResponse(array $responseData): array
-    {
-        $status     = self::TX_DECLINED;
-        $resultCode = $this->getProcReturnCode($responseData);
-
-        $errorCode       = $responseData['ErrorCode'] ?? null;
-        $statusDetail    = null;
-        if (null !== $errorCode) {
-            $resultCode   = $errorCode;
-            $statusDetail = $responseData['ResponseMessage'];
-        } elseif (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
-            $status = self::TX_APPROVED;
-        } else {
-            $statusDetail = $responseData['ResultDetail'];
-        }
-
-        $response = $this->getDefaultPaymentResponse();
-
-        $response['proc_return_code'] = $resultCode;
-        $response['status'] = $status;
-        $response['status_detail'] = $statusDetail;
-        $response['error_code'] = (self::TX_DECLINED === $status) ? $resultCode : null;
-        $response['error_message'] = $statusDetail;
-        $response['all'] = $responseData;
-
-        return $response;
-    }
-
-    /**
      * {@inheritDoc}
      */
     public function mapHistoryResponse(array $rawResponseData): array
@@ -242,5 +173,77 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper implem
         }
 
         return $response['ResultCode'] ?? null;
+    }
+
+    /**
+     * @param array<string, string> $responseData
+     *
+     * @return array{order_id: string|null, trans_id: string|null, auth_code: string|null,
+     *     ref_ret_num: string|null, proc_return_code: string|null,
+     *     status: string, status_detail: string|null, error_code: string|null,
+     *     error_message: string|null, all: array<string, string|null>}
+     */
+    private function getCommonNonSecureResponse(array $responseData): array
+    {
+        $status     = self::TX_DECLINED;
+        $resultCode = $this->getProcReturnCode($responseData);
+
+        $errorCode       = $responseData['ErrorCode'] ?? null;
+        $statusDetail    = null;
+        if (null !== $errorCode) {
+            $resultCode   = $errorCode;
+            $statusDetail = $responseData['ResponseMessage'];
+        } elseif (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
+            $status = self::TX_APPROVED;
+        } else {
+            $statusDetail = $responseData['ResultDetail'];
+        }
+
+        $response = $this->getDefaultPaymentResponse();
+
+        $response['proc_return_code'] = $resultCode;
+        $response['status']           = $status;
+        $response['status_detail']    = $statusDetail;
+        $response['error_code']       = (self::TX_DECLINED === $status) ? $resultCode : null;
+        $response['error_message']    = $statusDetail;
+        $response['all']              = $responseData;
+
+        return $response;
+    }
+
+    /**
+     * @param array<string, string> $responseData
+     *
+     * @return array{order_id: string|null, trans_id: string|null, auth_code: string|null,
+     *     ref_ret_num: string|null, proc_return_code: string|null,
+     *     status: string, status_detail: string|null, error_code: string|null,
+     *     error_message: string|null, all: array<string, string|null>}
+     */
+    private function getCommonPaymentResponse(array $responseData): array
+    {
+        $status     = self::TX_DECLINED;
+        $resultCode = $this->getProcReturnCode($responseData);
+
+        $errorCode = $responseData['ErrorCode'] ?? null;
+        $errorMsg  = null;
+        if (null !== $errorCode) {
+            $resultCode = $errorCode;
+            $errorMsg   = $responseData['Message'] ?? $responseData['ResponseMessage'];
+        } elseif (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
+            $status = self::TX_APPROVED;
+        } else {
+            $errorMsg = $responseData['Message'];
+        }
+
+        $response = $this->getDefaultPaymentResponse();
+
+        $response['proc_return_code'] = $resultCode;
+        $response['status']           = $status;
+        $response['status_detail']    = null;
+        $response['error_code']       = (self::TX_DECLINED === $status) ? $resultCode : null;
+        $response['error_message']    = $errorMsg;
+        $response['all']              = $responseData;
+
+        return $response;
     }
 }

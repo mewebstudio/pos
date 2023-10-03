@@ -69,6 +69,9 @@ class PosNetCrypt extends AbstractCrypt
         return true;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function createHash(AbstractPosAccount $account, array $requestData): string
     {
         throw new NotImplementedException();

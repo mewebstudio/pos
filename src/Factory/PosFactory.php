@@ -73,10 +73,11 @@ use Psr\Log\NullLogger;
 class PosFactory
 {
     /**
-     * @param AbstractPosAccount   $posAccount
-     * @param array|string         $config     config path or config array
-     * @param HttpClient|null      $client
-     * @param LoggerInterface|null $logger
+     * @param AbstractPosAccount       $posAccount
+     * @param array|string             $config config path or config array
+     * @param EventDispatcherInterface $eventDispatcher
+     * @param HttpClient|null          $client
+     * @param LoggerInterface|null     $logger
      *
      * @return PosInterface
      *
@@ -84,14 +85,14 @@ class PosFactory
      * @throws BankNotFoundException
      */
     public static function createPosGateway(
-        AbstractPosAccount $posAccount,
-                           $config,
+        AbstractPosAccount       $posAccount,
+                                 $config,
         EventDispatcherInterface $eventDispatcher,
-        ?HttpClient        $client = null,
-        ?LoggerInterface   $logger = null
+        ?HttpClient              $client = null,
+        ?LoggerInterface         $logger = null
     ): PosInterface
     {
-        if ($logger === null) {
+        if (null === $logger) {
             $logger = new NullLogger();
         }
 
@@ -99,7 +100,7 @@ class PosFactory
             $config = require $config;
         }
 
-        if ($client === null) {
+        if (null === $client) {
             $client = HttpClientFactory::createDefaultHttpClient();
         }
 
@@ -169,7 +170,7 @@ class PosFactory
             return new $classMappings[$gatewayClass]($eventDispatcher, $crypt, $currencies);
         }
 
-        if ($gatewayClass === PayFlexV4Pos::class) {
+        if (PayFlexV4Pos::class === $gatewayClass) {
             return new PayFlexV4PosRequestDataMapper($eventDispatcher, null, $currencies);
         }
 

@@ -46,7 +46,7 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
      */
     public function encode(array $data, string $txType): string
     {
-        if ($txType === PosInterface::TX_HISTORY || $txType === PosInterface::TX_STATUS) {
+        if (PosInterface::TX_HISTORY === $txType || PosInterface::TX_STATUS === $txType) {
             throw new DomainException(sprintf('Serialization of the transaction %s is not supported', $txType));
         }
 
@@ -70,6 +70,14 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
         throw $notEncodableValueException;
     }
 
+    /**
+     * must be called after making sure that $str does not contain XML string.
+     * Because for XML strings it will also return true.
+     *
+     * @param string $str
+     *
+     * @return bool
+     */
     private function isHTML(string $str): bool
     {
         return $str !== strip_tags($str);

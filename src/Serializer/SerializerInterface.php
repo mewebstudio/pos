@@ -19,8 +19,8 @@ interface SerializerInterface
     /**
      * @phpstan-param PosInterface::TX_* $txType
      *
-     * @param array<string, mixed>       $data
-     * @param string                     $txType
+     * @param array<string, mixed> $data
+     * @param string               $txType
      *
      * @return string|array<string, mixed> returns XML/JSON string or $data itself when encoding is not needed
      */
@@ -29,8 +29,8 @@ interface SerializerInterface
     /**
      * @phpstan-param PosInterface::TX_* $txType
      *
-     * @param string                     $data response received from the bank
-     * @param string                     $txType
+     * @param string $data response received from the bank
+     * @param string $txType
      *
      * @return array<string, mixed>
      */

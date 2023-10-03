@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
@@ -109,92 +112,6 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
     }
 
     /**
-     * Get ProcReturnCode
-     *
-     * @param array<string, string> $response
-     *
-     * @return string|null
-     */
-    protected function getProcReturnCode(array $response): ?string
-    {
-        return $response['ResponseCode'] ?? null;
-    }
-
-
-    /**
-     * @param string $mdStatus
-     *
-     * @return string
-     */
-    protected function mapResponseTransactionSecurity(string $mdStatus): string
-    {
-        // todo implement
-        return 'MPI fallback';
-    }
-
-    /**
-     * Get Status Detail Text
-     *
-     * @param string|null $procReturnCode
-     *
-     * @return string|null
-     */
-    protected function getStatusDetail(?string $procReturnCode): ?string
-    {
-        return $procReturnCode ? ($this->codes[$procReturnCode] ?? $procReturnCode) : null;
-    }
-
-    /**
-     * returns mapped data of the common response data among all 3d models.
-     *
-     * @param array<string, string> $raw3DAuthResponseData
-     *
-     * @return array<string, string>
-     */
-    protected function map3DCommonResponseData(array $raw3DAuthResponseData): array
-    {
-        $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
-        $status                = self::TX_DECLINED;
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-            $status = self::TX_APPROVED;
-        }
-
-        /** @var array<string, string> $vPosMessage */
-        $vPosMessage = [];
-        if (isset($raw3DAuthResponseData['VPosMessage'])) {
-            /** @var array<string, string> $vPosMessage */
-            $vPosMessage = $raw3DAuthResponseData['VPosMessage'];
-            $orderId     = $vPosMessage['MerchantOrderId'];
-        } else {
-            $orderId = $raw3DAuthResponseData['MerchantOrderId'];
-        }
-
-        $default = [
-            'order_id'             => $orderId,
-            'transaction_security' => $this->mapResponseTransactionSecurity('todo'),
-            'proc_return_code'     => $procReturnCode,
-            'md_status'            => null,
-            'status'               => $status,
-            'status_detail'        => $this->getStatusDetail($procReturnCode),
-            'amount'               => null,
-            'currency'             => null,
-            'tx_status'            => null,
-            'error_code'           => self::TX_APPROVED !== $status ? $procReturnCode : null,
-            'md_error_message'     => self::TX_APPROVED !== $status ? $raw3DAuthResponseData['ResponseMessage'] : null,
-            '3d_all'               => $raw3DAuthResponseData,
-        ];
-
-        if (self::TX_APPROVED === $status) {
-            $default['amount']        = $vPosMessage['Amount'];
-            $default['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
-            $default['masked_number'] = $vPosMessage['CardNumber'];
-        }
-
-        return $default;
-    }
-
-    /**
      * @param array $rawResponseData
      * {@inheritdoc}
      */
@@ -291,7 +208,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         }
 
         $responseResults = $rawResponseData['PartialDrawbackResult']['Results'];
-        if ($status !== self::TX_APPROVED && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
+        if (self::TX_APPROVED !== $status && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
             $responseResult = $responseResults['Result'][0];
             $result['error_code'] = $responseResult['ErrorCode'];
             $result['error_message'] = $responseResult['ErrorMessage'];
@@ -348,7 +265,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         }
 
         $responseResults = $rawResponseData['SaleReversalResult']['Results'];
-        if ($status !== self::TX_APPROVED && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
+        if (self::TX_APPROVED !== $status && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
             $responseResult = $responseResults['Result'][0];
             $result['error_code'] = $responseResult['ErrorCode'];
             $result['error_message'] = $responseResult['ErrorMessage'];
@@ -374,6 +291,9 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         return $result;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function mapHistoryResponse(array $rawResponseData): array
     {
         return $this->emptyStringsToNull($rawResponseData);
@@ -390,6 +310,17 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         return (float) $amount / 100;
     }
 
+    /**
+     * Get ProcReturnCode
+     *
+     * @param array<string, string> $response
+     *
+     * @return string|null
+     */
+    protected function getProcReturnCode(array $response): ?string
+    {
+        return $response['ResponseCode'] ?? null;
+    }
 
     /**
      * @param string $currency currency code that is accepted by bank
@@ -402,5 +333,78 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements 
         $currencyNormalized = str_pad($currency, 4, '0', STR_PAD_LEFT);
 
         return parent::mapCurrency($currencyNormalized);
+    }
+
+    /**
+     * Get Status Detail Text
+     *
+     * @param string|null $procReturnCode
+     *
+     * @return string|null
+     */
+    protected function getStatusDetail(?string $procReturnCode): ?string
+    {
+        return $procReturnCode ? ($this->codes[$procReturnCode] ?? $procReturnCode) : null;
+    }
+
+    /**
+     * @param string $mdStatus
+     *
+     * @return string
+     */
+    protected function mapResponseTransactionSecurity(string $mdStatus): string
+    {
+        // todo implement
+        return 'MPI fallback';
+    }
+
+    /**
+     * returns mapped data of the common response data among all 3d models.
+     *
+     * @param array<string, string> $raw3DAuthResponseData
+     *
+     * @return array<string, string>
+     */
+    protected function map3DCommonResponseData(array $raw3DAuthResponseData): array
+    {
+        $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
+        $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
+        $status                = self::TX_DECLINED;
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        /** @var array<string, string> $vPosMessage */
+        $vPosMessage = [];
+        if (isset($raw3DAuthResponseData['VPosMessage'])) {
+            /** @var array<string, string> $vPosMessage */
+            $vPosMessage = $raw3DAuthResponseData['VPosMessage'];
+            $orderId     = $vPosMessage['MerchantOrderId'];
+        } else {
+            $orderId = $raw3DAuthResponseData['MerchantOrderId'];
+        }
+
+        $default = [
+            'order_id'             => $orderId,
+            'transaction_security' => $this->mapResponseTransactionSecurity('todo'),
+            'proc_return_code'     => $procReturnCode,
+            'md_status'            => null,
+            'status'               => $status,
+            'status_detail'        => $this->getStatusDetail($procReturnCode),
+            'amount'               => null,
+            'currency'             => null,
+            'tx_status'            => null,
+            'error_code'           => self::TX_APPROVED !== $status ? $procReturnCode : null,
+            'md_error_message'     => self::TX_APPROVED !== $status ? $raw3DAuthResponseData['ResponseMessage'] : null,
+            '3d_all'               => $raw3DAuthResponseData,
+        ];
+
+        if (self::TX_APPROVED === $status) {
+            $default['amount']        = $vPosMessage['Amount'];
+            $default['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
+            $default['masked_number'] = $vPosMessage['CardNumber'];
+        }
+
+        return $default;
     }
 }

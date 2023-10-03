@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Entity\Card;
 

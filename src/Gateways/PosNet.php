@@ -44,9 +44,11 @@ class PosNet extends AbstractGateway
      * Get OOS transaction data
      * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
      *
-     * @param array<string, int|string|float|null>          $order
-     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
-     * @param AbstractCreditCard                            $card
+     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     *
+     * @param array<string, int|string|float|null> $order
+     * @param string                               $txType
+     * @param AbstractCreditCard                   $card
      *
      * @return array{approved: string, respCode: string, respText: string, oosRequestDataResponse?: array{data1: string, data2: string, sign: string}}
      */
@@ -181,6 +183,20 @@ class PosNet extends AbstractGateway
         return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), null, $data['oosRequestDataResponse']);
     }
 
+    /** @return PosNetAccount */
+    public function getAccount(): AbstractPosAccount
+    {
+        return $this->account;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function history(array $meta): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
+    }
+
     /**
      * @inheritDoc
      *
@@ -204,19 +220,5 @@ class PosNet extends AbstractGateway
         $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    /** @return PosNetAccount */
-    public function getAccount(): AbstractPosAccount
-    {
-        return $this->account;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function history(array $meta): PosInterface
-    {
-        throw new UnsupportedTransactionTypeException();
     }
 }

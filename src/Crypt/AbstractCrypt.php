@@ -20,14 +20,12 @@ abstract class AbstractCrypt implements CryptInterface
     /** @var LoggerInterface */
     protected $logger;
 
+    /**
+     * @param LoggerInterface $logger
+     */
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-    }
-
-    protected function hashString(string $str): string
-    {
-        return base64_encode(hash(static::HASH_ALGORITHM, $str, true));
     }
 
     /**
@@ -52,6 +50,16 @@ abstract class AbstractCrypt implements CryptInterface
         $hashVal = $paramsVal.$storeKey;
 
         return $this->hashString($hashVal);
+    }
+
+    /**
+     * @param string $str
+     *
+     * @return string
+     */
+    protected function hashString(string $str): string
+    {
+        return base64_encode(hash(static::HASH_ALGORITHM, $str, true));
     }
 
     /**

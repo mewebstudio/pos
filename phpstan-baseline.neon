@@ -86,13 +86,13 @@ parameters:
 			path: src/DataMapper/EstPosRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\EstPosRequestDataMapper\\:\\:getRecurringRequestOrderData\\(\\) has parameter \\$order with no type specified\\.$#"
+			message: "#^Parameter \\#1 \\$currency of method Mews\\\\Pos\\\\DataMapper\\\\AbstractRequestDataMapper\\:\\:mapCurrency\\(\\) expects 'EUR'\\|'GBP'\\|'JPY'\\|'RUB'\\|'TRY'\\|'USD', string given\\.$#"
 			count: 1
 			path: src/DataMapper/EstPosRequestDataMapper.php
 
 		-
-			message: "#^Parameter \\#1 \\$currency of method Mews\\\\Pos\\\\DataMapper\\\\AbstractRequestDataMapper\\:\\:mapCurrency\\(\\) expects 'EUR'\\|'GBP'\\|'JPY'\\|'RUB'\\|'TRY'\\|'USD', string given\\.$#"
-			count: 1
+			message: "#^Parameter \\#1 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\EstPosRequestDataMapper\\:\\:getRecurringRequestOrderData\\(\\) expects array\\{recurringFrequency\\: int, recurringFrequencyType\\: string, recurringInstallmentCount\\: int\\}, array\\<string, mixed\\> given\\.$#"
+			count: 2
 			path: src/DataMapper/EstPosRequestDataMapper.php
 
 		-
@@ -159,11 +159,6 @@ parameters:
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\InterPosRequestDataMapper\\:\\:createNonSecurePaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/InterPosRequestDataMapper.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\KuveytPosRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DataMapper/KuveytPosRequestDataMapper.php
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\KuveytPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) has parameter \\$responseData with no value type specified in iterable type array\\.$#"

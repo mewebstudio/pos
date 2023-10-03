@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
@@ -38,7 +41,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper implements Pay
     public function mapPaymentResponse(array $rawPaymentResponseData): array
     {
         $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
-        if ($rawPaymentResponseData === []) {
+        if ([] === $rawPaymentResponseData) {
             return $this->getDefaultPaymentResponse();
         }
 

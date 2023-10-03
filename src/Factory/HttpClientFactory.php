@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Factory;
 
@@ -11,6 +14,13 @@ use Psr\Http\Message\StreamFactoryInterface;
 
 class HttpClientFactory
 {
+    /**
+     * @param ClientInterface|null         $client
+     * @param RequestFactoryInterface|null $requestFactory
+     * @param StreamFactoryInterface|null  $streamFactory
+     *
+     * @return HttpClient
+     */
     public static function createHttpClient(ClientInterface $client = null, RequestFactoryInterface $requestFactory = null, StreamFactoryInterface $streamFactory = null): HttpClient
     {
         $client = $client ?? Psr18ClientDiscovery::find();
@@ -24,6 +34,9 @@ class HttpClientFactory
         );
     }
 
+    /**
+     * @return HttpClient
+     */
     public static function createDefaultHttpClient(): HttpClient
     {
         return self::createHttpClient(

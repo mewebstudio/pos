@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
@@ -144,9 +147,9 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper implemen
         $orderStatus = 'COMPLETED';
         if ('true' === $txResultInfo['IsCanceled']) {
             $orderStatus = 'CANCELED';
-        } elseif('true' === $txResultInfo['IsReversed']) {
+        } elseif ('true' === $txResultInfo['IsReversed']) {
             $orderStatus = 'REVERSED';
-        } elseif('true' === $txResultInfo['IsRefunded']) {
+        } elseif ('true' === $txResultInfo['IsRefunded']) {
             $orderStatus = 'REFUNDED';
         }
 
@@ -191,34 +194,6 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper implemen
     }
 
     /**
-     * @param array<string, string> $responseData
-     *
-     * @return array<string, string>
-     */
-    private function getCommonPaymentResponse(array $responseData): array
-    {
-        $status     = self::TX_DECLINED;
-        $resultCode = $this->getProcReturnCode($responseData);
-        if (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
-            $status = self::TX_APPROVED;
-        }
-
-        return [
-            'trans_id'         => null,
-            'auth_code'        => null,
-            'ref_ret_num'      => null,
-            'order_id'         => null,
-            'eci'              => null,
-            'proc_return_code' => $resultCode,
-            'status'           => $status,
-            'status_detail'    => $responseData['ResultDetail'],
-            'error_code'       => (self::TX_DECLINED === $status) ? $resultCode : null,
-            'error_message'    => (self::TX_DECLINED === $status) ? $responseData['ResultDetail'] : null,
-            'all'              => $responseData,
-        ];
-    }
-
-    /**
      * {@inheritDoc}
      */
     public function mapHistoryResponse(array $rawResponseData): array
@@ -246,5 +221,33 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper implemen
     protected function getProcReturnCode(array $response): ?string
     {
         return $response['ResultCode'] ?? null;
+    }
+
+    /**
+     * @param array<string, string> $responseData
+     *
+     * @return array<string, string>
+     */
+    private function getCommonPaymentResponse(array $responseData): array
+    {
+        $status     = self::TX_DECLINED;
+        $resultCode = $this->getProcReturnCode($responseData);
+        if (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        return [
+            'trans_id'         => null,
+            'auth_code'        => null,
+            'ref_ret_num'      => null,
+            'order_id'         => null,
+            'eci'              => null,
+            'proc_return_code' => $resultCode,
+            'status'           => $status,
+            'status_detail'    => $responseData['ResultDetail'],
+            'error_code'       => (self::TX_DECLINED === $status) ? $resultCode : null,
+            'error_message'    => (self::TX_DECLINED === $status) ? $responseData['ResultDetail'] : null,
+            'all'              => $responseData,
+        ];
     }
 }

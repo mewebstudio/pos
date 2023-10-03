@@ -23,9 +23,11 @@ class RequestDataPreparedEvent
     private $txType;
 
     /**
+     * @phpstan-param PosInterface::TX_* $txType
+     *
      * @param array<string, mixed> $requestData
      * @param string               $bank
-     * @param PosInterface::TX_*   $txType
+     * @param string               $txType
      */
     public function __construct(
         array  $requestData,

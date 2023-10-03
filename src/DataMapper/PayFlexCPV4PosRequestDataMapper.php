@@ -89,10 +89,13 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
+     * @phpstan-param PosInterface::TX_*       $txType
+     * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
+     *
      * @param PayFlexAccount                       $account
      * @param array<string, int|string|float|null> $order
-     * @param PosInterface::TX_*                   $txType
-     * @param PosInterface::MODEL_3D_*             $paymentModel
+     * @param string                               $txType
+     * @param string                               $paymentModel
      * @param AbstractCreditCard|null              $card
      *
      * @return array<string, string>

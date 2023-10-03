@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Factory;
 
@@ -45,16 +48,16 @@ class CreditCardFactory
         $expireMonth = str_pad($expireMonth, 2, '0', STR_PAD_LEFT);
         $expDate  = DateTimeImmutable::createFromFormat('Ymd', $expireYear.$expireMonth.'01');
 
-        if (! $expDate instanceof DateTimeImmutable) {
+        if (!$expDate instanceof DateTimeImmutable) {
             throw new DomainException('INVALID DATE FORMAT');
         }
 
         $supportedCardTypes = array_keys($pos->getCardTypeMapping());
-        if ($supportedCardTypes !== [] && empty($cardType)) {
+        if ([] !== $supportedCardTypes && empty($cardType)) {
             throw new CardTypeRequiredException($pos::NAME);
         }
 
-        if ($supportedCardTypes !== [] && !in_array($cardType, $supportedCardTypes)) {
+        if ([] !== $supportedCardTypes && !in_array($cardType, $supportedCardTypes, true)) {
             throw new CardTypeNotSupportedException($cardType);
         }
 

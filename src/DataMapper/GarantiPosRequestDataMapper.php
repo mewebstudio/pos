@@ -74,7 +74,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, ''),
+            'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
                 'IPAddress'    => $responseData['customeripaddress'],
                 'EmailAddress' => $responseData['customeremailaddress'],
@@ -120,7 +120,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, ''),
+            'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
                 'EmailAddress' => $order['email'],
@@ -161,7 +161,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, ''),
+            'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
                 'EmailAddress' => $order['email'],
@@ -194,7 +194,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, ''),
+            'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
                 'IPAddress'    => $order['ip'] ?? '',
                 'EmailAddress' => $order['email'] ?? '',
@@ -229,7 +229,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, '', true),
+            'Terminal'    => $this->getTerminalData($account, true),
             'Customer'    => [
                 'IPAddress'    => $order['ip'] ?? '',
                 'EmailAddress' => $order['email'] ?? '',
@@ -265,7 +265,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, '', true),
+            'Terminal'    => $this->getTerminalData($account, true),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
                 'EmailAddress' => $order['email'],
@@ -301,7 +301,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, ''),
+            'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
                 'IPAddress'    => $order['ip'] ?? '',
                 'EmailAddress' => $order['email'] ?? '',
@@ -480,17 +480,16 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * @param GarantiPosAccount $account
-     * @param string            $hash
      * @param bool              $isRefund
      *
      * @return array{ProvUserID: string, UserID: string, HashData: string, ID: string, MerchantID: string}
      */
-    private function getTerminalData(AbstractPosAccount $account, string $hash, bool $isRefund = false): array
+    private function getTerminalData(AbstractPosAccount $account, bool $isRefund = false): array
     {
         return [
             'ProvUserID' => $isRefund ? $account->getRefundUsername() : $account->getUsername(),
             'UserID'     => $isRefund ? $account->getRefundUsername() : $account->getUsername(),
-            'HashData'   => $hash,
+            'HashData'   => '',
             'ID'         => $account->getTerminalId(),
             'MerchantID' => $account->getClientId(),
         ];

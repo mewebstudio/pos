@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Client;
 
@@ -40,7 +43,12 @@ class HttpClient
     }
 
     /**
-     * @param PostPayload|null $payload
+     * @phpstan-param PostPayload|null $payload
+     *
+     * @param string     $path
+     * @param array|null $payload
+     *
+     * @return ResponseInterface
      */
     public function post(string $path, ?array $payload = []): ResponseInterface
     {
@@ -48,7 +56,13 @@ class HttpClient
     }
 
     /**
-     * @param PostPayload|null $payload
+     * @phpstan-param PostPayload|null $payload
+     *
+     * @param string     $method
+     * @param string     $path
+     * @param array|null $payload
+     *
+     * @return ResponseInterface
      */
     private function send(string $method, string $path, ?array $payload = []): ResponseInterface
     {
@@ -58,7 +72,11 @@ class HttpClient
     }
 
     /**
-     * @param PostPayload|null $payload
+     * @phpstan-param PostPayload|null $payload
+     *
+     * @param array|null $payload
+     *
+     * @return RequestInterface
      */
     private function createRequest(string $method, string $url, ?array $payload = []): RequestInterface
     {

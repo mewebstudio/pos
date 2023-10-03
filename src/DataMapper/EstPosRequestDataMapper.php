@@ -262,9 +262,12 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
+     * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
+     * @phpstan-param PosInterface::TX_*       $txType
+     *
      * @param array<string, string|int|float|null> $order
-     * @param PosInterface::MODEL_3D*              $paymentModel
-     * @param PosInterface::TX_*                   $txType
+     * @param string                               $paymentModel
+     * @param string                               $txType
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
@@ -356,9 +359,11 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
+     * @param array{recurringFrequency: int, recurringFrequencyType: string, recurringInstallmentCount: int} $order
+     *
      * @return array{PbOrder: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}}
      */
-    private function getRecurringRequestOrderData($order): array
+    private function getRecurringRequestOrderData(array $order): array
     {
         return [
             'PbOrder' => [

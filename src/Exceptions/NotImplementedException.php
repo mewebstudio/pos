@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Exceptions;
 

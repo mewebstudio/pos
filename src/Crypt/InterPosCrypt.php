@@ -49,12 +49,15 @@ class InterPosCrypt extends AbstractCrypt
         $this->logger->log(LogLevel::ERROR, 'hash check failed', [
             'data' => $data,
             'generated_hash' => $actualHash,
-            'expected_hash' => $data['HASH']
+            'expected_hash' => $data['HASH'],
         ]);
 
         return false;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function createHash(AbstractPosAccount $account, array $requestData): string
     {
         throw new NotImplementedException();

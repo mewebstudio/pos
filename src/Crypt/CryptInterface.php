@@ -32,8 +32,8 @@ interface CryptInterface
     /**
      * create hash for non-3D actions
      *
-     * @param AbstractPosAccount      $account
-     * @param array<string, mixed>    $requestData
+     * @param AbstractPosAccount   $account
+     * @param array<string, mixed> $requestData
      *
      * @return string
      */

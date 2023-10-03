@@ -76,7 +76,7 @@ abstract class AbstractRequestDataMapper
     {
         $this->eventDispatcher = $eventDispatcher;
         $this->crypt           = $crypt;
-        if ($currencyMappings !== []) {
+        if ([] !== $currencyMappings) {
             $this->currencyMappings = $currencyMappings;
         }
     }
@@ -86,6 +86,7 @@ abstract class AbstractRequestDataMapper
      *
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
+     * @param string                               $txType
      * @param array                                $responseData gateway'den gelen cevap
      *
      * @return array
@@ -97,6 +98,7 @@ abstract class AbstractRequestDataMapper
      *
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
+     * @param string                               $txType
      * @param AbstractCreditCard                   $card
      *
      * @return array
@@ -120,6 +122,21 @@ abstract class AbstractRequestDataMapper
     abstract public function createStatusRequestData(AbstractPosAccount $account, array $order): array;
 
     /**
+     * @phpstan-param PosInterface::TX_*           $txType
+     * @phpstan-param PosInterface::MODEL_3D_*     $paymentModel
+     *
+     * @param AbstractPosAccount                   $account
+     * @param array<string, string|int|float|null> $order
+     * @param string                               $paymentModel
+     * @param string                               $txType
+     * @param string                               $gatewayURL
+     * @param AbstractCreditCard|null              $card
+     *
+     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
+     */
+    abstract public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array;
+
+    /**
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
      *
@@ -134,21 +151,6 @@ abstract class AbstractRequestDataMapper
      * @return array
      */
     abstract public function createRefundRequestData(AbstractPosAccount $account, array $order): array;
-
-    /**
-     * @phpstan-param PosInterface::TX_*           $txType
-     * @phpstan-param PosInterface::MODEL_3D_*     $paymentModel
-     *
-     * @param AbstractPosAccount                   $account
-     * @param array<string, string|int|float|null> $order
-     * @param string                               $gatewayURL
-     * @param string                               $paymentModel
-     * @param string                               $txType
-     * @param AbstractCreditCard|null              $card
-     *
-     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
-     */
-    abstract public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array;
 
     /**
      * @param AbstractPosAccount                   $account
@@ -231,7 +233,9 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @param PosInterface::CURRENCY_* $currency
+     * @phpstan-param PosInterface::CURRENCY_* $currency
+     *
+     * @param string $currency
      *
      * @return string currency code that is accepted by bank
      */
@@ -242,6 +246,8 @@ abstract class AbstractRequestDataMapper
 
     /**
      * @phpstan-param PosInterface::TX_* $txType
+     *
+     * @param string $txType
      *
      * @return string
      *

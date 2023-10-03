@@ -120,11 +120,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
+     * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
+     * @phpstan-param PosInterface::TX_*       $txType
+     *
      * @param KuveytPosAccount                     $account
      * @param array<string, int|string|float|null> $order
-     * @param PosInterface::MODEL_3D_*             $paymentModel
-     * @param PosInterface::TX_*                   $txType
-     * @param AbstractCreditCard                   $card
+     * @param string                               $paymentModel
+     * @param string                               $txType
+     * @param AbstractCreditCard|null              $card
+     *
+     * @return array<string, string>
      */
     public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, ?AbstractCreditCard $card = null): array
     {

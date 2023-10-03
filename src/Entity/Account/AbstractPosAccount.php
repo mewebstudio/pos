@@ -1,8 +1,9 @@
 <?php
-
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Entity\Account;
-
 
 abstract class AbstractPosAccount
 {
@@ -33,11 +34,12 @@ abstract class AbstractPosAccount
 
     /**
      * AbstractPosAccount constructor.
-     * @param string $bank
-     * @param string $clientId
-     * @param string $username
-     * @param string $password
-     * @param string $lang
+     *
+     * @param string      $bank
+     * @param string      $clientId
+     * @param string      $username
+     * @param string      $password
+     * @param string      $lang
      * @param string|null $storeKey
      */
     public function __construct(string $bank, string $clientId, string $username, string $password, string $lang, ?string $storeKey = null)

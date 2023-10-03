@@ -18,6 +18,7 @@ abstract class AbstractRequestDataMapperCrypt extends AbstractRequestDataMapper
     protected $crypt;
 
     /**
+     * @param EventDispatcherInterface                $eventDispatcher
      * @param CryptInterface                          $crypt
      * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
      */

@@ -174,9 +174,11 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @param array<string, mixed>                                                    $contents
-     * @param PosInterface::TX_STATUS|PosInterface::TX_REFUND|PosInterface::TX_CANCEL $txType
-     * @param string|null                                                             $url
+     * @phpstan-param PosInterface::TX_STATUS|PosInterface::TX_REFUND|PosInterface::TX_CANCEL $txType
+     *
+     * @param array<string, mixed> $contents
+     * @param string               $txType
+     * @param string|null          $url
      *
      * @return array<string, mixed>
      *
@@ -228,10 +230,13 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
+     * @phpstan-param  PosInterface::MODEL_3D_* $paymentModel
+     * @phpstan-param  PosInterface::TX_*       $txType
+     *
      * @param KuveytPosAccount                     $account
      * @param array<string, int|string|float|null> $order
-     * @param PosInterface::MODEL_3D_*             $paymentModel
-     * @param PosInterface::TX_*                   $txType
+     * @param string                               $paymentModel
+     * @param string                               $txType
      * @param string                               $gatewayURL
      * @param AbstractCreditCard|null              $card
      *

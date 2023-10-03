@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
@@ -56,7 +59,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper implement
     {
         $status = self::TX_DECLINED;
         $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
-        if ($rawPaymentResponseData === []) {
+        if ([] === $rawPaymentResponseData) {
             return $this->getDefaultPaymentResponse();
         }
 

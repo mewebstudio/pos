@@ -67,6 +67,9 @@ class PayForPosCrypt extends AbstractCrypt
         return false;
     }
 
+    /**
+     * @inheritdoc
+     */
     public function createHash(AbstractPosAccount $account, array $requestData): string
     {
         throw new NotImplementedException();

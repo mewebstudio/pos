@@ -151,33 +151,16 @@ class PayFlexCPV4Pos extends AbstractGateway
     }
 
     /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, ?string $url = null): array
-    {
-        $url = $url ?? $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
-
-        if (!is_string($contents)) {
-            throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
-        }
-
-        $response = $this->client->post($url, ['body' => $contents]);
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    /**
      *
      * ORTAK ÖDEME SİSTEMİNE İŞLEM KAYDETME
      *
-     * @param array<string, int|string|float|null>          $order
-     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
-     * @param PosInterface::MODEL_3D_*                      $paymentModel
-     * @param AbstractCreditCard                            $card
+     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                      $paymentModel
+     *
+     * @param array<string, int|string|float|null> $order
+     * @param string                               $txType
+     * @param string                               $paymentModel
+     * @param AbstractCreditCard|null              $card
      *
      * Basarili durumda donen cevap formati: array{CommonPaymentUrl: string, PaymentToken: string, ErrorCode: null,
      * ResponseMessage: null} Basarisiz durumda donen cevap formati: array{CommonPaymentUrl: null, PaymentToken: null,
@@ -213,5 +196,25 @@ class PayFlexCPV4Pos extends AbstractGateway
         $response = $this->send($requestData, $txType);
 
         return $response;
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * @return array<string, mixed>
+     */
+    protected function send($contents, string $txType, ?string $url = null): array
+    {
+        $url = $url ?? $this->getApiURL();
+        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+
+        if (!is_string($contents)) {
+            throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
+        }
+
+        $response = $this->client->post($url, ['body' => $contents]);
+        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
+
+        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 }

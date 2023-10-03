@@ -78,10 +78,13 @@ interface PosInterface
     /**
      * returns form data, key values, necessary for 3D payment
      *
-     * @param array<string, mixed>                          $order
-     * @param PosInterface::MODEL_3D_*                      $paymentModel
-     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
-     * @param AbstractCreditCard|null                       $card
+     * @phpstan-param PosInterface::MODEL_3D_*                      $paymentModel
+     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     *
+     * @param array<string, mixed>    $order
+     * @param string                  $paymentModel
+     * @param string                  $txType
+     * @param AbstractCreditCard|null $card
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
@@ -89,10 +92,11 @@ interface PosInterface
 
     /**
      * Regular Payment
+     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
      *
-     * @param array<string, mixed>                          $order
-     * @param AbstractCreditCard                            $card
-     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @param array<string, mixed> $order
+     * @param AbstractCreditCard   $card
+     * @param string               $txType
      *
      * @return PosInterface
      */
@@ -109,11 +113,12 @@ interface PosInterface
 
     /**
      * Make 3D Payment
+     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
      *
-     * @param Request                                       $request
-     * @param array<string, mixed>                          $order
-     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
-     * @param AbstractCreditCard                            $card simdilik sadece PayFlexV4Pos icin card isteniyor.
+     * @param Request                 $request
+     * @param array<string, mixed>    $order
+     * @param string                  $txType
+     * @param AbstractCreditCard|null $card simdilik sadece PayFlexV4Pos icin card isteniyor.
      *
      * @return PosInterface
      */
@@ -142,10 +147,13 @@ interface PosInterface
      *
      * can be used for all kind of payment transactions and payment models
      *
-     * @param PosInterface::MODEL_*                                                   $paymentModel
-     * @param array<string, mixed>                                                    $order
-     * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY|PosInterface::TX_POST_PAY $txType
-     * @param AbstractCreditCard|null                                                 $card
+     * @phpstan-param PosInterface::MODEL_*                                                   $paymentModel
+     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY|PosInterface::TX_POST_PAY $txType
+     *
+     * @param string                  $paymentModel
+     * @param array<string, mixed>    $order
+     * @param string                  $txType
+     * @param AbstractCreditCard|null $card
      *
      * @return PosInterface
      *

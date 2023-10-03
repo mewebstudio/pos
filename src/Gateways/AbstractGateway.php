@@ -125,7 +125,9 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @param self::TX_* $txType
+     * @phpstan-param self::TX_* $txType
+     *
+     * @param string|null $txType
      *
      * @return string
      */
@@ -405,13 +407,15 @@ abstract class AbstractGateway implements PosInterface
     /**
      * Send requests to bank APIs
      *
+     * @phpstan-param PosInterface::TX_* $txType
+     *
      * @param array<string, mixed>|string $contents data to send
-     * @param PosInterface::TX_*          $txType
+     * @param string                      $txType
      * @param string|null                 $url      URL address of the API
      *
      * @return array<string, mixed>
      */
-    abstract protected function send($contents, string $txType, ?string $url = null);
+    abstract protected function send($contents, string $txType, ?string $url = null): array;
 
     /**
      * return values are used as a key in config file

@@ -25,7 +25,7 @@ class EstV3PosCrypt extends AbstractCrypt
         ksort($requestData, SORT_NATURAL | SORT_FLAG_CASE);
         foreach (array_keys($requestData) as $key) {
             // this part is needed only to create hash from the bank response
-            if (in_array(strtolower($key), ['hash', 'encoding']))  {
+            if (in_array(strtolower($key), ['hash', 'encoding'], true)) {
                 unset($requestData[$key]);
             }
         }
@@ -54,14 +54,20 @@ class EstV3PosCrypt extends AbstractCrypt
         }
 
         $this->logger->log(LogLevel::ERROR, 'hash check failed', [
-            'data' => $data,
+            'data'           => $data,
             'generated_hash' => $actualHash,
-            'expected_hash' => $data['HASH']
+            'expected_hash'  => $data['HASH'],
         ]);
 
         return false;
     }
 
+    /**
+     * @param AbstractPosAccount   $account
+     * @param array<string, mixed> $requestData
+     *
+     * @return string
+     */
     public function createHash(AbstractPosAccount $account, array $requestData): string
     {
         throw new NotImplementedException();

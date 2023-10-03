@@ -270,9 +270,11 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
+     * @phpstan-param PosInterface::TX_* $txType
+     *
      * @param PosNetAccount                        $account
      * @param array<string, int|string|float|null> $order
-     * @param PosInterface::TX_*                   $txType
+     * @param string                               $txType
      */
     public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
     {
@@ -301,9 +303,9 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
-     * @param PosNetAccount                                 $account
-     * @param array<string, int|string|float|null>          $order
-     * @param array<string, mixed>                          $responseData
+     * @param PosNetAccount                        $account
+     * @param array<string, int|string|float|null> $order
+     * @param array<string, mixed>                 $responseData
      *
      * @return array<string, string|array<string, string>>
      */
@@ -395,6 +397,10 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * formats installment in 00, 02, 06 format
+     *
+     * @param int|null $installment
+     *
+     * @return string
      */
     public function mapInstallment(?int $installment): string
     {

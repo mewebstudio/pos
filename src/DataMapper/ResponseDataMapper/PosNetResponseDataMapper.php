@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
@@ -45,7 +48,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
     {
         $status = self::TX_DECLINED;
         $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
-        if ($rawPaymentResponseData === []) {
+        if ([] === $rawPaymentResponseData) {
             return $this->getDefaultPaymentResponse();
         }
 
@@ -271,7 +274,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
             $authCode = $transactionDetails['authCode'] ?? null;
 
             if (is_array($transactionDetails)) {
-                if ($transactionDetails !== []) {
+                if ([] !== $transactionDetails) {
                     $state    = $transactionDetails[0]['state'];
                     $authCode = $transactionDetails[0]['authCode'];
                 }

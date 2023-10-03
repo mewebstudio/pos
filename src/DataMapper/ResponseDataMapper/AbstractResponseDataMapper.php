@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
@@ -71,7 +74,7 @@ abstract class AbstractResponseDataMapper
      *
      * @return string
      */
-    protected abstract function mapResponseTransactionSecurity(string $mdStatus): string;
+    abstract protected function mapResponseTransactionSecurity(string $mdStatus): string;
 
     /**
      * @param string $currency currency code that is accepted by bank

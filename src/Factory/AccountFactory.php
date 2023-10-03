@@ -125,14 +125,15 @@ class AccountFactory
     }
 
     /**
-     * @param string                          $bank
-     * @param string                          $merchantId Üye işyeri numarası
-     * @param string                          $password   Üye işyeri şifres
-     * @param string                          $terminalNo İşlemin hangi terminal üzerinden gönderileceği bilgisi.
-     *                                                    VB007000...
-     * @param string                          $model
-     * @param PayFlexAccount::MERCHANT_TYPE_* $merchantType
-     * @param null                            $subMerchantId
+     * @phpstan-param PayFlexAccount::MERCHANT_TYPE_* $merchantType
+     *
+     * @param string $bank
+     * @param string $merchantId Üye işyeri numarası
+     * @param string $password   Üye işyeri şifres
+     * @param string $terminalNo İşlemin hangi terminal üzerinden gönderileceği bilgisi. dVB007000...
+     * @param string $model
+     * @param int    $merchantType
+     * @param null   $subMerchantId
      *
      * @return PayFlexAccount
      *

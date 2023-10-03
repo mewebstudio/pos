@@ -434,6 +434,8 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
+     * @param int|null $installment
+     *
      * formats installment
      * @return numeric-string
      */
