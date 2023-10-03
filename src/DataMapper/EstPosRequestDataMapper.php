@@ -99,8 +99,8 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
          * https://www.isbank.com.tr/is-ticari/imece-kart
          */
         if (isset($order->is_imece_card) && true === $order->is_imece_card) {
-            $requestData['Extra']['IMCKOD'] = 'İmece Ürün Bilgisi';
-            $requestData['Extra']['FDONEM'] = 'Faizsiz Dönem Bilgisi';
+            $requestData['Extra']['IMCKOD'] = (string) ($order->imckod ?? '');
+            $requestData['Extra']['FDONEM'] = (string) ($order->fdonem ?? '');
         }
 
         if (isset($order->recurringFrequency)) {
