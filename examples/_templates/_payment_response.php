@@ -42,6 +42,18 @@ try {
              */
         });
 
+    /**
+     * Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği
+     *
+     * $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
+     * if ($event->getTxType() === PosInterface::TX_PAY) {
+     *     $data         = $event->getRequestData();
+     *     $data['Extra']['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
+     *     $data['Extra']['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı
+     *     $event->setRequestData($data);
+     * }
+     * });*/
+
     doPayment($pos, $paymentModel, $transaction, $order, $card);
 } catch (HashMismatchException $e) {
     dd($e);

@@ -1,5 +1,6 @@
 <?php
 
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -47,6 +48,25 @@ try {
              *
              * Bu asamada bu Event sadece PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos gatewayler'de trigger edilir.
              */
+        });
+
+        /**
+         * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
+         */
+        $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event) {
+            /**
+             * Örneğin İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
+            $supportedPaymentModels = [
+                AbstractGateway::MODEL_3D_PAY,
+                AbstractGateway::MODEL_3D_PAY_HOSTING,
+                AbstractGateway::MODEL_3D_HOST,
+            ];
+            if ($event->getTxType() === PosInterface::TX_PAY && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
+                $formInputs           = $event->getRequestData();
+                $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
+                $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
+                $event->setRequestData($formInputs);
+            }*/
         });
 
     $formData = $pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $transaction, $card);
