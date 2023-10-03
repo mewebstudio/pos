@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.15.0] - 2023-10-03
+### New Features
+- **GarantiPos** - `sha512` hashleme desteği eklendi.
+
+
 ## [0.14.0] - 2023-09-09
 ### New Features
 - **İşbank Asseco** - İMECE kart ile ödeme desteği eklendi.
