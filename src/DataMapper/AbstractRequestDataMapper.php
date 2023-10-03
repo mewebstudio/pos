@@ -10,12 +10,16 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * AbstractRequestDataMapper
  */
 abstract class AbstractRequestDataMapper
 {
+    /** @var EventDispatcherInterface */
+    protected $eventDispatcher;
+
     /** @var array<PosInterface::MODEL_*, string> */
     protected $secureTypeMappings = [];
 
@@ -64,12 +68,14 @@ abstract class AbstractRequestDataMapper
     protected $crypt;
 
     /**
-     * @param CryptInterface|null   $crypt
+     * @param EventDispatcherInterface                $eventDispatcher
+     * @param CryptInterface|null                     $crypt
      * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
      */
-    public function __construct(?CryptInterface $crypt = null, array $currencyMappings = [])
+    public function __construct(EventDispatcherInterface $eventDispatcher, ?CryptInterface $crypt = null, array $currencyMappings = [])
     {
-        $this->crypt = $crypt;
+        $this->eventDispatcher = $eventDispatcher;
+        $this->crypt           = $crypt;
         if ($currencyMappings !== []) {
             $this->currencyMappings = $currencyMappings;
         }
@@ -131,7 +137,7 @@ abstract class AbstractRequestDataMapper
 
     /**
      * @phpstan-param PosInterface::TX_*           $txType
-     * @phpstan-param PosInterface::MODEL_*        $paymentModel
+     * @phpstan-param PosInterface::MODEL_3D_*     $paymentModel
      *
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
@@ -154,9 +160,9 @@ abstract class AbstractRequestDataMapper
     abstract public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array;
 
     /**
-     * @return CryptInterface
+     * @return CryptInterface|null
      */
-    public function getCrypt(): CryptInterface
+    public function getCrypt(): ?CryptInterface
     {
         return $this->crypt;
     }

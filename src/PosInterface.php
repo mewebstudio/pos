@@ -79,7 +79,7 @@ interface PosInterface
      * returns form data, key values, necessary for 3D payment
      *
      * @param array<string, mixed>                          $order
-     * @param PosInterface::MODEL_*                         $paymentModel
+     * @param PosInterface::MODEL_3D_*                      $paymentModel
      * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
      * @param AbstractCreditCard|null                       $card
      *

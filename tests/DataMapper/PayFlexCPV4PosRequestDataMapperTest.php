@@ -16,6 +16,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
@@ -43,7 +44,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         );
 
         $crypt                   = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
-        $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($crypt);
+        $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
     }
 
     /**
@@ -94,7 +95,13 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DEnrollmentCheckData(AbstractPosAccount $account, array $order, string $txType, ?CreditCard $card, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);
+        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
+            $account,
+            $order,
+            $txType,
+            PosInterface::MODEL_3D_SECURE,
+            $card
+        );
         $this->assertEquals($expectedData, $actual);
     }
 

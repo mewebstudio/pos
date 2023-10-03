@@ -6,6 +6,7 @@ use Mews\Pos\DataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 class PayFlexV4PosResponseDataMapperTest extends TestCase
@@ -17,7 +18,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $requestDataMapper  = new PayFlexV4PosRequestDataMapper();
+        $requestDataMapper  = new PayFlexV4PosRequestDataMapper($this->createMock(EventDispatcherInterface::class));
         $this->responseDataMapper = new PayFlexV4PosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),

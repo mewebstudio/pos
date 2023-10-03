@@ -70,6 +70,7 @@ class PayFlexCPV4Pos extends AbstractGateway
         /** @var array{TransactionId: string, PaymentToken: string} $queryParams */
         $queryParams = $request->query->all();
 
+        // Burda odemenin basarili olup olmadigini sorguluyoruz.
         $requestData = $this->requestDataMapper->create3DPaymentStatusRequestData($this->account, $queryParams);
 
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_PAY);
@@ -129,7 +130,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $data */
-        $data = $this->registerPayment($order, $txType, $card);
+        $data = $this->registerPayment($order, $txType, $paymentModel, $card);
 
         if (null !== $data['ErrorCode']) {
             $this->logger->log(LogLevel::ERROR, 'payment register fail response', $data);
@@ -175,6 +176,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @param array<string, int|string|float|null>          $order
      * @param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @param PosInterface::MODEL_3D_*                      $paymentModel
      * @param AbstractCreditCard                            $card
      *
      * Basarili durumda donen cevap formati: array{CommonPaymentUrl: string, PaymentToken: string, ErrorCode: null,
@@ -185,12 +187,13 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @throws Exception
      */
-    public function registerPayment(array $order, string $txType, AbstractCreditCard $card = null): array
+    public function registerPayment(array $order, string $txType, string $paymentModel, AbstractCreditCard $card = null): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $this->account,
             $order,
             $txType,
+            $paymentModel,
             $card
         );
 

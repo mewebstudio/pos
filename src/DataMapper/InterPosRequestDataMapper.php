@@ -7,6 +7,7 @@ namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
@@ -214,6 +215,10 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             $inputs['Expiry']   = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
             $inputs['Cvv2']     = $card->getCvv();
         }
+
+        $event = new Before3DFormHashCalculatedEvent($inputs, $account->getBank(), $txType, $paymentModel);
+        $this->eventDispatcher->dispatch($event);
+        $inputs = $event->getRequestData();
 
         $inputs['Hash'] = $this->crypt->create3DHash($account, $inputs);
 

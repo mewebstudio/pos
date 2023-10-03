@@ -8,6 +8,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 class InterPosResponseDataMapperTest extends TestCase
@@ -20,7 +21,7 @@ class InterPosResponseDataMapperTest extends TestCase
         parent::setUp();
 
         $crypt                    = PosFactory::getGatewayCrypt(InterPos::class, new NullLogger());
-        $requestDataMapper        = new InterPosRequestDataMapper($crypt);
+        $requestDataMapper        = new InterPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
         $this->responseDataMapper = new InterPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),

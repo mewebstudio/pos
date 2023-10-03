@@ -13,8 +13,8 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * PayForPosRequestDataMapperTest
@@ -62,10 +62,11 @@ class PayForPosRequestDataMapperTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
 
         $crypt = PosFactory::getGatewayCrypt(PayForPos::class, new NullLogger());
-        $this->requestDataMapper = new PayForPosRequestDataMapper($crypt);
+        $this->requestDataMapper = new PayForPosRequestDataMapper($dispatcher, $crypt);
         $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 

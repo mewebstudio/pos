@@ -123,7 +123,7 @@ class PosFactory
         $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
 
         $crypt              = self::getGatewayCrypt($class, $logger);
-        $requestDataMapper  = self::getGatewayRequestMapper($class, $currencies, $crypt);
+        $requestDataMapper  = self::getGatewayRequestMapper($class, $eventDispatcher, $currencies, $crypt);
         $responseDataMapper = self::getGatewayResponseMapper($class, $requestDataMapper, $logger);
         $serializer         = self::getGatewaySerializer($class);
 
@@ -142,12 +142,13 @@ class PosFactory
 
     /**
      * @param class-string                            $gatewayClass
+     * @param EventDispatcherInterface                $eventDispatcher
      * @param array<PosInterface::CURRENCY_*, string> $currencies
      * @param CryptInterface|null                     $crypt
      *
      * @return AbstractRequestDataMapper
      */
-    public static function getGatewayRequestMapper(string $gatewayClass, array $currencies = [], ?CryptInterface $crypt = null): AbstractRequestDataMapper
+    public static function getGatewayRequestMapper(string $gatewayClass, EventDispatcherInterface $eventDispatcher, array $currencies = [], ?CryptInterface $crypt = null): AbstractRequestDataMapper
     {
         $classMappings = [
             EstPos::class         => EstPosRequestDataMapper::class,
@@ -165,11 +166,11 @@ class PosFactory
                 throw new InvalidArgumentException(sprintf('Gateway %s requires Crypt instance', $gatewayClass));
             }
 
-            return new $classMappings[$gatewayClass]($crypt, $currencies);
+            return new $classMappings[$gatewayClass]($eventDispatcher, $crypt, $currencies);
         }
 
         if ($gatewayClass === PayFlexV4Pos::class) {
-            return new PayFlexV4PosRequestDataMapper(null, $currencies);
+            return new PayFlexV4PosRequestDataMapper($eventDispatcher, null, $currencies);
         }
 
         throw new DomainException('unsupported gateway');

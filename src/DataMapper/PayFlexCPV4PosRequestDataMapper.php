@@ -8,6 +8,7 @@ namespace Mews\Pos\DataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
@@ -91,11 +92,12 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
      * @param PayFlexAccount                       $account
      * @param array<string, int|string|float|null> $order
      * @param PosInterface::TX_*                   $txType
+     * @param PosInterface::MODEL_3D_*             $paymentModel
      * @param AbstractCreditCard|null              $card
      *
      * @return array<string, string>
      */
-    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $txType, ?AbstractCreditCard $card = null): array
+    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $txType, string $paymentModel, ?AbstractCreditCard $card = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -148,6 +150,10 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         if ($order['installment']) {
             $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
         }
+
+        $event = new Before3DFormHashCalculatedEvent($requestData, $account->getBank(), $txType, $paymentModel);
+        $this->eventDispatcher->dispatch($event);
+        $requestData = $event->getRequestData();
 
         $requestData['HashedData'] = $this->crypt->create3DHash($account, $requestData);
 

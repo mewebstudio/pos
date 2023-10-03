@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
@@ -349,6 +350,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             ];
         }
         $inputs += $cardData;
+
+        $event = new Before3DFormHashCalculatedEvent($inputs, $account->getBank(), $txType, $paymentModel);
+        $this->eventDispatcher->dispatch($event);
+        $inputs = $event->getRequestData();
 
         $inputs['Mac'] = $this->crypt->create3DHash($account, $inputs);
 

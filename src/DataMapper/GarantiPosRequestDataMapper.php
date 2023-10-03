@@ -9,6 +9,7 @@ use Mews\Pos\Crypt\GarantiPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\PosInterface;
 
 /**
@@ -351,14 +352,18 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'customeripaddress'     => (string) $order['ip'],
         ];
 
-        $inputs['secure3dhash'] = $this->crypt->create3DHash($account, $inputs);
-
         if ($card instanceof AbstractCreditCard) {
             $inputs['cardnumber']          = $card->getNumber();
             $inputs['cardexpiredatemonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
             $inputs['cardexpiredateyear']  = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
             $inputs['cardcvv2']            = $card->getCvv();
         }
+
+        $event = new Before3DFormHashCalculatedEvent($inputs, $account->getBank(), $txType, $paymentModel);
+        $this->eventDispatcher->dispatch($event);
+        $inputs = $event->getRequestData();
+
+        $inputs['secure3dhash'] = $this->crypt->create3DHash($account, $inputs);
 
         return [
             'gateway' => $gatewayURL,

@@ -71,11 +71,6 @@ parameters:
 			path: src/DataMapper/AbstractRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\AbstractRequestDataMapper\\:\\:getCrypt\\(\\) should return Mews\\\\Pos\\\\Crypt\\\\CryptInterface but returns Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\|null\\.$#"
-			count: 1
-			path: src/DataMapper/AbstractRequestDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\EstPosRequestDataMapper\\:\\:create3DPaymentRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/EstPosRequestDataMapper.php
@@ -311,11 +306,6 @@ parameters:
 			path: src/DataMapper/PosNetRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetRequestDataMapper\\:\\:create3DResolveMerchantRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\PosNetRequestDataMapper\\:\\:createCancelRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/DataMapper/PosNetRequestDataMapper.php
@@ -509,6 +499,11 @@ parameters:
 			message: "#^Property Mews\\\\Pos\\\\Gateways\\\\AbstractGateway\\:\\:\\$responseDataMapper \\(Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\NonPaymentResponseMapperInterface&Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PaymentResponseMapperInterface\\) does not accept Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PaymentResponseMapperInterface\\.$#"
 			count: 1
 			path: src/Gateways/AbstractGateway.php
+
+		-
+			message: "#^Cannot call method check3DHash\\(\\) on Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\|null\\.$#"
+			count: 3
+			path: src/Gateways/EstPos.php
 
 		-
 			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\{Order\\: array\\<string, array\\<string, string\\|null\\>\\|string\\>, Response\\: array\\<string, string\\>, Transaction\\: array\\<string, array\\<string, string\\>\\|string\\>\\}\\|null, array\\<string, mixed\\>\\|null given\\.$#"

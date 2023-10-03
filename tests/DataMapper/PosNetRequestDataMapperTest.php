@@ -16,8 +16,8 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * PosNetRequestDataMapperTest
@@ -63,9 +63,10 @@ class PosNetRequestDataMapperTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $pos = PosFactory::createPosGateway($this->account, $config, new EventDispatcher());
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $pos = PosFactory::createPosGateway($this->account, $config, $dispatcher);
         $crypt = PosFactory::getGatewayCrypt(PosNet::class, new NullLogger());
-        $this->requestDataMapper = new PosNetRequestDataMapper($crypt);
+        $this->requestDataMapper = new PosNetRequestDataMapper($dispatcher, $crypt);
         $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 

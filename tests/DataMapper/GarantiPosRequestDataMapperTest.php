@@ -15,8 +15,8 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * GarantiPosRequestDataMapperTest
@@ -67,10 +67,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'ip'          => '156.155.154.153',
         ];
 
-        $pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
 
         $crypt                   = PosFactory::getGatewayCrypt(GarantiPos::class, new NullLogger());
-        $this->requestDataMapper = new GarantiPosRequestDataMapper($crypt);
+        $this->requestDataMapper = new GarantiPosRequestDataMapper($dispatcher, $crypt);
         $this->requestDataMapper->setTestMode(true);
 
         $this->card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');

@@ -51,7 +51,7 @@ class PosNetV1PosTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config, $this->createMock(EventDispatcherInterface::class));
 
         $this->pos->setTestMode(true);
 
@@ -83,11 +83,11 @@ class PosNetV1PosTest extends TestCase
      */
     public function testMake3DPayment(array $order, array $threeDResponseData, array $paymentResponseData, array $expectedData)
     {
-        $request = Request::create('', 'POST', $threeDResponseData);
-        $crypt = PosFactory::getGatewayCrypt(PosNetV1Pos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(PosNetV1Pos::class, [], $crypt);
+        $request        = Request::create('', 'POST', $threeDResponseData);
+        $crypt          = PosFactory::getGatewayCrypt(PosNetV1Pos::class, new NullLogger());
+        $requestMapper  = PosFactory::getGatewayRequestMapper(PosNetV1Pos::class, $this->createMock(EventDispatcherInterface::class), [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(PosNetV1Pos::class, $requestMapper, new NullLogger());
-        $serializer = PosFactory::getGatewaySerializer(PosNetV1Pos::class);
+        $serializer     = PosFactory::getGatewaySerializer(PosNetV1Pos::class);
 
         $posMock = $this->getMockBuilder(PosNetV1Pos::class)
             ->setConstructorArgs([

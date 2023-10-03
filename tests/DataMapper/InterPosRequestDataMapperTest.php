@@ -14,8 +14,8 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * InterPosRequestDataMapperTest
@@ -66,11 +66,12 @@ class InterPosRequestDataMapperTest extends TestCase
             'rand'        => 'rand',
         ];
 
-        $pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
 
         $crypt = PosFactory::getGatewayCrypt(InterPos::class, new NullLogger());
 
-        $this->requestDataMapper = new InterPosRequestDataMapper($crypt);
+        $this->requestDataMapper = new InterPosRequestDataMapper($dispatcher, $crypt);
 
         $this->card = CreditCardFactory::create($pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }

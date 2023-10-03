@@ -8,6 +8,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 class KuveytPosResponseDataMapperTest extends TestCase
@@ -20,7 +21,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
         parent::setUp();
 
         $crypt                    = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
-        $requestDataMapper        = new KuveytPosRequestDataMapper($crypt);
+        $requestDataMapper        = new KuveytPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
         $this->responseDataMapper = new KuveytPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),

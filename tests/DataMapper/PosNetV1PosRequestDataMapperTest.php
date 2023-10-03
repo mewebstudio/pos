@@ -47,12 +47,13 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
-        $pos = PosFactory::createPosGateway($this->account, $config, new EventDispatcher());
+        $dispatcher = new EventDispatcher();
+        $pos = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
         $this->card = CreditCardFactory::create($pos, '5400619360964581', '20', '01', '056', 'ahmet');
 
         $crypt                   = PosFactory::getGatewayCrypt(PosNetV1Pos::class, new NullLogger());
-        $this->requestDataMapper = new PosNetV1PosRequestDataMapper($crypt);
+        $this->requestDataMapper = new PosNetV1PosRequestDataMapper($dispatcher, $crypt);
     }
 
     /**

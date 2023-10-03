@@ -301,11 +301,11 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     }
 
     /**
-     * @param PosNetAccount                        $account
-     * @param array<string, int|string|float|null> $order
-     * @param array<string, mixed>                 $responseData
+     * @param PosNetAccount                                 $account
+     * @param array<string, int|string|float|null>          $order
+     * @param array<string, mixed>                          $responseData
      *
-     * @return array
+     * @return array<string, string|array<string, string>>
      */
     public function create3DResolveMerchantRequestData(AbstractPosAccount $account, array $order, array $responseData): array
     {

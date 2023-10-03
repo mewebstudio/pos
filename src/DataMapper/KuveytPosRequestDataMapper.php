@@ -10,6 +10,7 @@ use Mews\Pos\Crypt\KuveytPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
@@ -121,7 +122,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
     /**
      * @param KuveytPosAccount                     $account
      * @param array<string, int|string|float|null> $order
-     * @param PosInterface::MODEL_*                $paymentModel
+     * @param PosInterface::MODEL_3D_*             $paymentModel
      * @param PosInterface::TX_*                   $txType
      * @param AbstractCreditCard                   $card
      */
@@ -151,6 +152,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             $inputs['CardExpireDateMonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
             $inputs['CardCVV2']            = $card->getCvv();
         }
+
+        $event = new Before3DFormHashCalculatedEvent($inputs, $account->getBank(), $txType, $paymentModel);
+        $this->eventDispatcher->dispatch($event);
+        $inputs = $event->getRequestData();
 
         $inputs['HashData'] = $this->crypt->create3DHash($account, $inputs);
 

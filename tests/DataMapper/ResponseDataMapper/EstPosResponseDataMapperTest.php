@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
@@ -8,6 +11,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 class EstPosResponseDataMapperTest extends TestCase
@@ -20,7 +24,7 @@ class EstPosResponseDataMapperTest extends TestCase
         parent::setUp();
 
         $crypt             = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
-        $requestDataMapper = new EstPosRequestDataMapper($crypt);
+        $requestDataMapper = new EstPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
 
         $this->responseDataMapper = new EstPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),

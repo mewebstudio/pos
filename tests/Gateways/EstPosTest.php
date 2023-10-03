@@ -17,6 +17,7 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\EstPosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
@@ -68,7 +69,7 @@ class EstPosTest extends TestCase
             'rand'        => microtime(),
         ];
 
-        $this->pos             = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
+        $this->pos = PosFactory::createPosGateway($this->account, $this->config, $this->createMock(EventDispatcherInterface::class));
         $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
@@ -92,7 +93,7 @@ class EstPosTest extends TestCase
         $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['authFail1']['paymentData']);
 
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
+        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
@@ -159,7 +160,7 @@ class EstPosTest extends TestCase
         $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['authFail1']['paymentData']);
 
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
+        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
@@ -192,7 +193,7 @@ class EstPosTest extends TestCase
     public function testStatus(array $testData, bool $isSuccess): void
     {
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
+        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
@@ -300,7 +301,7 @@ class EstPosTest extends TestCase
     public function testCancelSuccess()
     {
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
+        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
@@ -335,7 +336,7 @@ class EstPosTest extends TestCase
     public function testCancelFail()
     {
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
+        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 
@@ -370,7 +371,7 @@ class EstPosTest extends TestCase
     public function testRefundFail()
     {
         $crypt = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, [], $crypt);
+        $requestMapper = PosFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), [], $crypt);
         $responseMapper = PosFactory::getGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = PosFactory::getGatewaySerializer(EstPos::class);
 

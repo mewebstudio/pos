@@ -8,7 +8,7 @@ namespace Mews\Pos\Event;
 use Mews\Pos\PosInterface;
 
 /**
- * This event is generated when a API request data is prepared.
+ * This event is generated when an API request data is prepared.
  * By listening to this event you can update request data before it is sent to the bank API.
  */
 class RequestDataPreparedEvent

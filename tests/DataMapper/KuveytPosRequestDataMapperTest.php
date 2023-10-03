@@ -17,8 +17,8 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * KuveytPosRequestDataMapperTest
@@ -68,7 +68,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $pos = PosFactory::createPosGateway($this->account, $config, new EventDispatcher());
+        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $pos = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
         $this->card = CreditCardFactory::create(
             $pos,
@@ -81,7 +82,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         );
 
         $crypt                   = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
-        $this->requestDataMapper = new KuveytPosRequestDataMapper($crypt);
+        $this->requestDataMapper = new KuveytPosRequestDataMapper($dispatcher, $crypt);
     }
 
     /**

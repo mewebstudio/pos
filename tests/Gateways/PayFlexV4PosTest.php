@@ -95,7 +95,7 @@ class PayFlexV4PosTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionCode(2005);
 
-        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class);
+        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class, $this->createMock(EventDispatcherInterface::class));
         $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
         $serializer     = PosFactory::getGatewaySerializer(PayFlexV4Pos::class);
 
@@ -123,7 +123,7 @@ class PayFlexV4PosTest extends TestCase
     {
         $enrollmentResponse = PayFlexV4PosRequestDataMapperTest::getSampleEnrollmentSuccessResponseDataProvider();
 
-        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class);
+        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class, $this->createMock(EventDispatcherInterface::class));
         $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
         $serializer     = PosFactory::getGatewaySerializer(PayFlexV4Pos::class);
 

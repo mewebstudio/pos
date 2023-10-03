@@ -7,6 +7,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PosNet;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 class PosNetResponseDataMapperTest extends TestCase
@@ -19,7 +20,7 @@ class PosNetResponseDataMapperTest extends TestCase
         parent::setUp();
 
         $crypt                    = PosFactory::getGatewayCrypt(PosNet::class, new NullLogger());
-        $requestDataMapper        = new PosNetRequestDataMapper($crypt);
+        $requestDataMapper        = new PosNetRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
         $this->responseDataMapper = new PosNetResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),

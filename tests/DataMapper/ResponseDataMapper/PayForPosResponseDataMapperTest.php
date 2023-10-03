@@ -7,6 +7,7 @@ use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 class PayForPosResponseDataMapperTest extends TestCase
@@ -18,7 +19,7 @@ class PayForPosResponseDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $requestDataMapper  = new PayForPosRequestDataMapper(new PayForPosCrypt(new NullLogger()));
+        $requestDataMapper        = new PayForPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), new PayForPosCrypt(new NullLogger()));
         $this->responseDataMapper = new PayForPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),

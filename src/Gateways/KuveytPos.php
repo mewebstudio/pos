@@ -230,7 +230,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @param KuveytPosAccount                     $account
      * @param array<string, int|string|float|null> $order
-     * @param PosInterface::MODEL_*                $paymentModel
+     * @param PosInterface::MODEL_3D_*             $paymentModel
      * @param PosInterface::TX_*                   $txType
      * @param string                               $gatewayURL
      * @param AbstractCreditCard|null              $card

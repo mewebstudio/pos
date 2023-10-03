@@ -7,6 +7,7 @@ namespace Mews\Pos\DataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\PosInterface;
 
 /**
@@ -251,6 +252,10 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $data = $this->create3DFormDataCommon($account, $preparedOrder, $paymentModel, $txType, $gatewayURL, $card);
 
+        $event = new Before3DFormHashCalculatedEvent($data['inputs'], $account->getBank(), $txType, $paymentModel);
+        $this->eventDispatcher->dispatch($event);
+        $data['inputs'] = $event->getRequestData();
+
         $data['inputs']['hash'] = $this->crypt->create3DHash($account, $data['inputs']);
 
         return $data;
@@ -258,7 +263,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * @param array<string, string|int|float|null> $order
-     * @param PosInterface::MODEL_*                $paymentModel
+     * @param PosInterface::MODEL_3D*              $paymentModel
      * @param PosInterface::TX_*                   $txType
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
@@ -283,7 +288,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             // todo add custom data dynamically instead of hard coding them
         ];
 
-        if ($card !== null) {
+        if ($card instanceof AbstractCreditCard) {
             $inputs['cardType']                        = $this->cardTypeMapping[$card->getType()];
             $inputs['pan']                             = $card->getNumber();
             $inputs['Ecom_Payment_Card_ExpDate_Month'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
