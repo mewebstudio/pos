@@ -120,10 +120,6 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
         }
 
-        if (isset($order['extraData'])) {
-            $requestData['SessionInfo'] = $order['extraData'];
-        }
-
         if ($account->isSubBranch()) {
             $requestData['SubMerchantId'] = $account->getSubMerchantId();
         }

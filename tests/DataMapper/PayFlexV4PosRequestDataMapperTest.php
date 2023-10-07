@@ -14,6 +14,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
+
 /**
  * PayFlexV4PosRequestDataMapperTest
  */
@@ -55,7 +56,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'rand'        => microtime(true),
-            'extraData'   => microtime(true),
             'ip'          => '127.0.0.1',
         ];
 
@@ -306,7 +306,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'ClientIp'                => $order['ip'],
             'CurrencyCode'            => '949',
             'CurrencyAmount'          => $order['amount'],
-            'OrderDescription'        => '',
             'TransactionId'           => $order['id'],
             'Pan'                     => $card->getNumber(),
             'Cvv'                     => $card->getCvv(),
@@ -343,7 +342,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'Currency'                  => '949',
             'SuccessUrl'                => $order['success_url'],
             'FailureUrl'                => $order['fail_url'],
-            'SessionInfo'               => $order['extraData'],
             'Pan'                       => $card->getNumber(),
             'ExpiryDate'                => '2112',
             'BrandName'                 => '100',

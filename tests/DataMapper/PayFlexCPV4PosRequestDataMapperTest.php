@@ -145,7 +145,6 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'rand'        => microtime(true),
-            'extraData'   => microtime(true),
             'ip'          => '127.0.0.1',
         ];
 

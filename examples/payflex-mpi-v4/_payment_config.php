@@ -49,7 +49,6 @@ function getNewOrder(
 ): array {
     $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 
-    $order['extraData'] = $session->getId(); //optional, istekte SessionInfo degere atanir
     if ($tekrarlanan) {
         $order['installment'] = 0; //Tekrarlayan ödemeler taksitli olamaz.
         $order = array_merge($order, [

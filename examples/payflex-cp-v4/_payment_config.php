@@ -49,8 +49,6 @@ function getNewOrder(
 ): array {
     $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 
-    $order['extraData'] = $session->getId(); //optional, istekte SessionInfo degere atanir
-
     return $order;
 }
 
