@@ -111,7 +111,6 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'Amount'               => '1,01',
                 'TransactionType'      => 'Sale',
                 'OrderID'              => '2023030913ED',
-                'OrderDescription'     => null,
                 'InstallmentCount'     => '',
                 'IsSecure'             => 'True',
                 'AllowNotEnrolledCard' => 'True',

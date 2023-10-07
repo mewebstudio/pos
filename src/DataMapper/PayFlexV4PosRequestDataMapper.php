@@ -72,7 +72,6 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
                 'CAVV'                    => $responseData['Cavv'],
                 'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
                 'OrderId'                 => (string) $order['id'],
-                'OrderDescription'        => (string) ($order['description'] ?? ''),
                 'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0', // ECommerce
             ];

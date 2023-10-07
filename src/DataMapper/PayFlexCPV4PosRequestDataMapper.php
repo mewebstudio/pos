@@ -112,7 +112,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'AmountCode'           => $this->mapCurrency($order['currency']),
             'Amount'               => self::amountFormat($order['amount']),
             'OrderID'              => (string) $order['id'],
-            'OrderDescription'     => (string) ($order['description'] ?? null),
             'IsSecure'             => 'true', // Işlemin 3D yapılıp yapılmayacağına dair flag, alabileceği değerler: 'true', 'false'
             /**
              * 3D Programına Dahil Olmayan Kartlar ile İşlem Yapma Flagi: "3D İşlem Flagi" (IsSecure) "true" gönderilmiş
