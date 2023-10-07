@@ -181,7 +181,6 @@ class EstPosRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'          => '2020110828BC',
-            'user_id'     => '1535',
             'ip'          => '192.168.1.0',
             'amount'      => 100.01,
             'installment' => '0',
@@ -209,7 +208,6 @@ class EstPosRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'                        => '2020110828BC',
-            'user_id'                   => '1535',
             'ip'                        => '192.168.1.0',
             'amount'                    => 100.01,
             'installment'               => 0,
@@ -389,7 +387,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'Type'                    => 'Auth',
             'IPAddress'               => $order['ip'],
             'OrderId'                 => $order['id'],
-            'UserId'                  => $order['user_id'] ?? null,
             'Total'                   => 100.01,
             'Currency'                => '949',
             'Taksit'                  => '',
@@ -465,7 +462,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'Type'      => 'Auth',
             'IPAddress' => $order['ip'],
             'OrderId'   => $order['id'],
-            'UserId'    => $order['user_id'] ?? null,
             'Total'     => '100.25',
             'Currency'  => '949',
             'Taksit'    => '',
