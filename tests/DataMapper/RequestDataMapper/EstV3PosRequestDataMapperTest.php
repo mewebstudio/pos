@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-namespace Mews\Pos\Tests\DataMapper;
+namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
-use Mews\Pos\DataMapper\EstV3PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
@@ -36,7 +36,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos_test.php';
+        $this->config = require __DIR__.'/../../../config/pos_test.php';
 
         $this->account = AccountFactory::createEstPosAccount(
             'akbankv3',

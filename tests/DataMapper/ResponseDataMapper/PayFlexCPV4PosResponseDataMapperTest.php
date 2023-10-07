@@ -3,7 +3,7 @@
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
 use Generator;
-use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;

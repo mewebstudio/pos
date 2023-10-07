@@ -2,7 +2,7 @@
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\PosNetV1PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PosNetV1Pos;

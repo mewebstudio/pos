@@ -2,7 +2,7 @@
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\InterPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\InterPos;

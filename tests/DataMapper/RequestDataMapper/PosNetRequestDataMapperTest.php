@@ -2,11 +2,11 @@
 /**
  * @license MIT
  */
-namespace Mews\Pos\Tests\DataMapper;
+namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
 use Exception;
 use InvalidArgumentException;
-use Mews\Pos\DataMapper\PosNetRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -39,7 +39,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $config = require __DIR__.'/../../config/pos_test.php';
+        $config = require __DIR__.'/../../../config/pos_test.php';
 
         $this->account = AccountFactory::createPosNetAccount(
             'yapikredi',

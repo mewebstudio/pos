@@ -2,9 +2,9 @@
 /**
  * @license MIT
  */
-namespace Mews\Pos\Tests\DataMapper;
+namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
-use Mews\Pos\DataMapper\PayFlexV4PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -35,7 +35,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $config = require __DIR__.'/../../config/pos_test.php';
+        $config = require __DIR__.'/../../../config/pos_test.php';
 
         $this->account = AccountFactory::createPayFlexAccount(
             'vakifbank',

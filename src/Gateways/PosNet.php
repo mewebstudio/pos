@@ -8,7 +8,7 @@ namespace Mews\Pos\Gateways;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
-use Mews\Pos\DataMapper\PosNetRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;

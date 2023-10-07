@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-namespace Mews\Pos\Tests\DataMapper;
+namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
-use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -40,7 +40,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos_test.php';
+        $this->config = require __DIR__.'/../../../config/pos_test.php';
 
         $this->account = AccountFactory::createGarantiPosAccount(
             'garanti',

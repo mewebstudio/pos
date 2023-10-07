@@ -5,7 +5,7 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use Exception;
-use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -16,7 +16,7 @@ use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
-use Mews\Pos\Tests\DataMapper\PayFlexCPV4PosRequestDataMapperTest;
+use Mews\Pos\Tests\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapperTest;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;

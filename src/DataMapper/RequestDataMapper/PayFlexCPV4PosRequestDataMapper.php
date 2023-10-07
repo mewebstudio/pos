@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-namespace Mews\Pos\DataMapper;
+namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;

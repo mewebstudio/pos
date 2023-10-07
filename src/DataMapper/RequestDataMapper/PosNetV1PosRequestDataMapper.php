@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-namespace Mews\Pos\DataMapper;
+namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Exception;
 use InvalidArgumentException;

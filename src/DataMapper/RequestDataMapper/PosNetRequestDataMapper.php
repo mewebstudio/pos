@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-namespace Mews\Pos\DataMapper;
+namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Exception;
 use InvalidArgumentException;
@@ -465,7 +465,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             'auth_code'   => $order['auth_code'] ?? null,
         ];
 
-        if (isset($orderTemp['id'])) {
+        if (null !== $orderTemp['id']) {
             $orderTemp['payment_model'] = $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE;
         }
 
@@ -485,7 +485,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ];
 
-        if (isset($orderTemp['id'])) {
+        if (null !== $orderTemp['id']) {
             $orderTemp['payment_model'] = $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE;
         }
 

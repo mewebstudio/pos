@@ -14,7 +14,7 @@ use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Tests\DataMapper\PayFlexV4PosRequestDataMapperTest;
+use Mews\Pos\Tests\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;

@@ -4,7 +4,7 @@
  */
 namespace Mews\Pos\Tests\Gateways;
 
-use Mews\Pos\DataMapper\AbstractRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;

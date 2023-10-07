@@ -2,7 +2,7 @@
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\PayFlexV4PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;

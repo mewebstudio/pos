@@ -3,10 +3,10 @@
  * @license MIT
  */
 
-namespace Mews\Pos\Tests\DataMapper;
+namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
 use Generator;
-use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\BankClassNullException;
@@ -46,7 +46,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $config = require __DIR__.'/../../config/pos_test.php';
+        $config = require __DIR__.'/../../../config/pos_test.php';
 
         $this->account = AccountFactory::createKuveytPosAccount(
             'kuveytpos',

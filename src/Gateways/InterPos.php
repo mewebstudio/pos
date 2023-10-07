@@ -6,7 +6,7 @@
 namespace Mews\Pos\Gateways;
 
 use InvalidArgumentException;
-use Mews\Pos\DataMapper\InterPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;

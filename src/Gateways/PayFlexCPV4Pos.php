@@ -7,7 +7,7 @@ namespace Mews\Pos\Gateways;
 
 use Exception;
 use InvalidArgumentException;
-use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;

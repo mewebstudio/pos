@@ -5,7 +5,7 @@
 namespace Mews\Pos\Gateways;
 
 use InvalidArgumentException;
-use Mews\Pos\DataMapper\PosNetV1PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;

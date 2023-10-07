@@ -4,7 +4,7 @@
  */
 namespace Mews\Pos\Gateways;
 
-use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;

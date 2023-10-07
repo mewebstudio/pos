@@ -10,7 +10,7 @@ use Generator;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\KuveytPosSerializer;
-use Mews\Pos\Tests\DataMapper\KuveytPosRequestDataMapperTest;
+use Mews\Pos\Tests\DataMapper\RequestDataMapper\KuveytPosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use function iterator_to_array;
 

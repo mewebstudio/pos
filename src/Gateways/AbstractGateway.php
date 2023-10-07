@@ -7,7 +7,7 @@ namespace Mews\Pos\Gateways;
 
 use LogicException;
 use Mews\Pos\Client\HttpClient;
-use Mews\Pos\DataMapper\AbstractRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\NonPaymentResponseMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PaymentResponseMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;

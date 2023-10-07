@@ -5,7 +5,7 @@
 
 namespace Mews\Pos\Gateways;
 
-use Mews\Pos\DataMapper\PayForPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;

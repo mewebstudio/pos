@@ -5,7 +5,7 @@
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\EstPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\EstPos;

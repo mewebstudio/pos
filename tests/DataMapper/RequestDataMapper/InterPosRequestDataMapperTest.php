@@ -2,9 +2,9 @@
 /**
  * @license MIT
  */
-namespace Mews\Pos\Tests\DataMapper;
+namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
-use Mews\Pos\DataMapper\InterPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -39,7 +39,7 @@ class InterPosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../config/pos_test.php';
+        $this->config = require __DIR__.'/../../../config/pos_test.php';
 
         $userCode     = 'InterTestApi';
         $userPass     = '3';

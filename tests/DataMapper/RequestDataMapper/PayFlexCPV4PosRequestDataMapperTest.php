@@ -3,9 +3,9 @@
  * @license MIT
  */
 
-namespace Mews\Pos\Tests\DataMapper;
+namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
-use Mews\Pos\DataMapper\PayFlexCPV4PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -125,7 +125,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
 
     public static function registerDataProvider(): iterable
     {
-        $config = require __DIR__.'/../../config/pos_test.php';
+        $config = require __DIR__.'/../../../config/pos_test.php';
 
         $account = AccountFactory::createPayFlexAccount(
             'vakifbank-cp',

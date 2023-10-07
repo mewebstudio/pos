@@ -5,7 +5,7 @@
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\GarantiPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\GarantiPos;

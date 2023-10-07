@@ -8,7 +8,7 @@ namespace Mews\Pos\Gateways;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
-use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
