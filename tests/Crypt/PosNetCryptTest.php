@@ -69,7 +69,6 @@ class PosNetCryptTest extends TestCase
             [
                 'requestData' => [
                     'id' => 'TST_190620093100_024',
-                    'email' => 'test@test.com',
                     'amount' => 175,
                       'installment' => 0,
                       'currency' => 'TL',

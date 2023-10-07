@@ -137,7 +137,6 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
 
         $order = [
             'id'          => 'order222',
-            'email'       => 'test@test.com',
             'amount'      => 100.00,
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,

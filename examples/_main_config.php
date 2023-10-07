@@ -84,7 +84,7 @@ function createNewPaymentOrderCommon(
 
         //gateway'e gore zorunlu olan degerler
         'ip'          => $ip, //EstPos, Garanti, KuveytPos, VakifBank
-        'email'       => 'mail@customer.com', // EstPos, Garanti, KuveytPos, VakifBank
+        'email'       => 'mail@customer.com', // Garanti
         'user_id'     => md5(uniqid(time())), // EstPos
         'rand'        => md5(uniqid(time())), //EstPos, Garanti, PayFor, InterPos, VakifBank
     ];

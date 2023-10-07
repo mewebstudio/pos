@@ -436,7 +436,6 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'amount'           => 112,
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
                 'transaction_type' => PosInterface::TX_PAY,
-                'email'            => 'email@example.com',
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -461,7 +460,6 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'amount'           => 112,
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
                 'transaction_type' => PosInterface::TX_PAY,
-                'email'            => 'email@example.com',
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -486,7 +484,6 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
                 'amount'           => 112,
                 'transaction_type' => PosInterface::TX_PRE_PAY,
-                'email'            => 'email@example.com',
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
