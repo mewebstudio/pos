@@ -106,7 +106,6 @@ class EstPosCryptTest extends TestCase
                     'sID'                             => '1',
                     'ACQBIN'                          => '406456',
                     'Ecom_Payment_Card_ExpDate_Year'  => '30',
-                    'Email'                           => 'mail@customer.com',
                     'MaskedPan'                       => '435508***4358',
                     'clientIp'                        => '89.244.149.137',
                     'iReqDetail'                      => '',

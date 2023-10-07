@@ -78,7 +78,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $requestData = $this->getRequestAccountData($account) + [
                 'Type'                    => $this->mapTxType($txType),
                 'IPAddress'               => (string) ($order['ip'] ?? ''),
-                'Email'                   => (string) $order['email'],
                 'OrderId'                 => (string) $order['id'],
                 'UserId'                  => (string) ($order['user_id'] ?? ''),
                 'Total'                   => (string) $order['amount'],
@@ -100,7 +99,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
-     * @return array{PbOrder?: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}, Type: string, IPAddress: mixed, Email: mixed, OrderId: mixed, UserId: mixed, Total: mixed, Currency: string, Taksit: string, Number: string, Expires: string, Cvv2Val: string, Mode: string, Name: string, Password: string, ClientId: string}
+     * @return array{PbOrder?: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}, Type: string, IPAddress: mixed, OrderId: mixed, UserId: mixed, Total: mixed, Currency: string, Taksit: string, Number: string, Expires: string, Cvv2Val: string, Mode: string, Name: string, Password: string, ClientId: string}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
     {
@@ -109,7 +108,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $requestData = $this->getRequestAccountData($account) + [
                 'Type'      => $this->mapTxType($txType),
                 'IPAddress' => (string) ($order['ip'] ?? ''),
-                'Email'     => (string) $order['email'],
                 'OrderId'   => (string) $order['id'],
                 'UserId'    => (string) ($order['user_id'] ?? ''),
                 'Total'     => (string) $order['amount'],
@@ -276,8 +274,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'currency'  => $this->mapCurrency((string) $order['currency']),
             'taksit'    => $this->mapInstallment((int) $order['installment']),
             'islemtipi' => $this->mapTxType($txType),
-            'Email'     => (string) $order['email'],
-            // todo add custom data dynamically instead of hard coding them
         ];
 
         if ($card instanceof AbstractCreditCard) {

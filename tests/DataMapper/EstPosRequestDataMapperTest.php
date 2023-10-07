@@ -52,7 +52,6 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->order = [
             'id'          => 'order222',
             'ip'          => '127.0.0.1',
-            'email'       => 'test@test.com',
             'amount'      => '100.25',
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
@@ -182,7 +181,6 @@ class EstPosRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'          => '2020110828BC',
-            'email'       => 'samp@iexample.com',
             'user_id'     => '1535',
             'ip'          => '192.168.1.0',
             'amount'      => 100.01,
@@ -211,7 +209,6 @@ class EstPosRequestDataMapperTest extends TestCase
     {
         $order = [
             'id'                        => '2020110828BC',
-            'email'                     => 'samp@iexample.com',
             'user_id'                   => '1535',
             'ip'                        => '192.168.1.0',
             'amount'                    => 100.01,
@@ -251,7 +248,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'clientid'  => $this->account->getClientId(),
             'storetype' => PosInterface::MODEL_3D_SECURE,
             'hash'      => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
-            'Email'     => $this->order['email'],
             'amount'    => $this->order['amount'],
             'oid'       => $this->order['id'],
             'okUrl'     => $this->order['success_url'],
@@ -305,7 +301,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'clientid'  => $this->account->getClientId(),
             'storetype' => '3d_host',
             'hash'      => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
-            'Email'     => $this->order['email'],
             'amount'    => $this->order['amount'],
             'oid'       => $this->order['id'],
             'okUrl'     => $this->order['success_url'],
@@ -393,7 +388,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'ClientId'                => $account->getClientId(),
             'Type'                    => 'Auth',
             'IPAddress'               => $order['ip'],
-            'Email'                   => $order['email'],
             'OrderId'                 => $order['id'],
             'UserId'                  => $order['user_id'] ?? null,
             'Total'                   => 100.01,
@@ -470,7 +464,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'ClientId'  => $account->getClientId(),
             'Type'      => 'Auth',
             'IPAddress' => $order['ip'],
-            'Email'     => $order['email'],
             'OrderId'   => $order['id'],
             'UserId'    => $order['user_id'] ?? null,
             'Total'     => '100.25',
