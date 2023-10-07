@@ -271,11 +271,6 @@ parameters:
 			path: src/DataMapper/PosNetRequestDataMapper.php
 
 		-
-			message: "#^Cannot assign offset 'koiCode' to array\\<string, int\\|string\\>\\|string\\.$#"
-			count: 1
-			path: src/DataMapper/PosNetRequestDataMapper.php
-
-		-
 			message: "#^Cannot assign offset 'orderID' to array\\<string, int\\|string\\>\\|string\\.$#"
 			count: 1
 			path: src/DataMapper/PosNetRequestDataMapper.php

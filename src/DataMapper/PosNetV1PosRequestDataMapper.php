@@ -149,10 +149,6 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
-        if (isset($order['koiCode']) && $order['koiCode'] > 0) {
-            $requestData['KOICode'] = $order['koiCode'];
-        }
-
         return $requestData;
     }
 
@@ -356,12 +352,6 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapperCrypt
         $inputs = $event->getRequestData();
 
         $inputs['Mac'] = $this->crypt->create3DHash($account, $inputs);
-
-
-        if (isset($order['koiCode']) && $order['koiCode'] > 0) {
-            $inputs['UseJokerVadaa'] = '1';
-            $inputs['KOICode']       = (string) $order['koiCode'];
-        }
 
         return [
             'gateway' => $gatewayURL,

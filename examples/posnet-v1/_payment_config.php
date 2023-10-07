@@ -46,12 +46,6 @@ function getNewOrder(
     bool $tekrarlanan = false,
     string $lang = PosInterface::LANG_TR
 ): array {
-    /**
-     * useJokerVadaa: Sadece TDS sistemini kullanacak Üye İşyerleri için, 3D-Secure doğrulamasından
-     * önce Joker Vadaa(üye işyerlerine özel ek taksit ve öteleme kampanyaları)
-     * sorgulamasını ve kullanımını aktif etmek için kullanılır. Opsiyoneldir.
-     * useJokerVadaa degeri $order->koiCode = 1; sekilde set etebilirsiniz.
-     */
     return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 }
 

@@ -27,20 +27,38 @@ if (!$order) {
 
 try {
     /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
-    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
-            /**
-             * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
-             * Ornek:
-             * if ($event->getTxType() === PosInterface::TX_PAY) {
-             *     $data = $event->getRequestData();
-             *     $data['abcd'] = '1234';
-             *     $event->setRequestData($data);
-             * }
-             *
-             * Bu asamada bu Event genellikle 1 kere trigger edilir.
-             * Bir tek PosNet MODEL_3D_SECURE odemede 2 kere API call'i yapildigi icin bu event 2 kere trigger edilir.
-             */
-        });
+    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($pos, $paymentModel) {
+        /**
+         * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
+         * Ornek:
+         * if ($event->getTxType() === PosInterface::TX_PAY) {
+         *     $data = $event->getRequestData();
+         *     $data['abcd'] = '1234';
+         *     $event->setRequestData($data);
+         * }
+         *
+         * Bu asamada bu Event genellikle 1 kere trigger edilir.
+         * Bir tek PosNet MODEL_3D_SECURE odemede 2 kere API call'i yapildigi icin bu event 2 kere trigger edilir.
+         */
+
+        /**
+         * KOICode - 1: Ek Taksit 2: Taksit Atlatma 3: Ekstra Puan 4: Kontur Kazanım 5: Ekstre Erteleme 6: Özel Vade Farkı
+         */
+        if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos && $event->getTxType() === PosInterface::TX_PAY) {
+            // Albaraka PosNet KOICode ekleme
+            // $data            = $event->getRequestData();
+            // $data['KOICode'] = '1';
+            // $event->setRequestData($data);
+        }
+        if ($pos instanceof \Mews\Pos\Gateways\PosNet
+            && $event->getTxType() === PosInterface::TX_PAY
+            && PosInterface::MODEL_NON_SECURE === $paymentModel) {
+            // Yapikredi PosNet KOICode ekleme
+            // $data            = $event->getRequestData();
+            // $data['sale']['koiCode'] = '1';
+            // $event->setRequestData($data);
+        }
+    });
 
     /**
      * Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği

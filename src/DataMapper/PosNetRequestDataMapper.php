@@ -96,7 +96,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
     {
         $order = $this->preparePaymentOrder($order);
 
-        $requestData = [
+        return [
             'mid'                                 => $account->getClientId(),
             'tid'                                 => $account->getTerminalId(),
             'tranDateRequired'                    => '1',
@@ -110,12 +110,6 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'cvc'          => $card->getCvv(),
             ],
         ];
-
-        if (isset($order['koiCode']) && $order['koiCode'] > 0) {
-            $requestData[strtolower($this->mapTxType($txType))]['koiCode'] = $order['koiCode'];
-        }
-
-        return $requestData;
     }
 
     /**
@@ -249,18 +243,18 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
         $inputs = [
             'mid'               => $account->getClientId(),
             'posnetID'          => $account->getPosNetId(),
-            'vftCode'           => $account->promotion_code ?? null, //todo bunun account icine veya order icin tasinmasi gerekiyor
             'posnetData'        => $extraData['data1'], //Ödeme bilgilerini içermektedir.
             'posnetData2'       => $extraData['data2'], //Kart bilgileri request içerisinde bulunuyorsa bu alan oluşturulmaktadır
             'digest'            => $extraData['sign'],  //Servis imzası.
             'merchantReturnURL' => $order['success_url'],
-            'url'               => '', //todo belki kaldirabiliriz
+            /**
+             * url - Yönlendirilen sayfanın adresi (URL – bilgi amaçlı)
+             * YKB tarafından verilen Java Script fonksiyonu (posnet.js içerisindeki) tarafından
+             * set edilir. Form içerisinde bulundurulması yeterlidir.
+             */
+            'url'               => '',
             'lang'              => $this->getLang($account, $order),
         ];
-
-        if (isset($order['koiCode']) && $order['koiCode'] > 0) {
-            $inputs['useJokerVadaa'] = '1';
-        }
 
         return [
             'gateway' => $gatewayURL,

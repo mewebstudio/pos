@@ -5,6 +5,11 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+/**
+ * Bu kod MODEL_3D_SECURE, MODEL_3D_PAY, MODEL_3D_HOST odemeler icin gereken HTML form verisini olusturur.
+ * Odeme olmayan (iade, iptal, durum) veya MODEL_NON_SECURE islemlerde kullanilmaz.
+ */
+
 require '_config.php';
 require '../../_templates/_header.php';
 
@@ -69,7 +74,43 @@ try {
             }*/
         });
 
+
+
     $formData = $pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $transaction, $card);
+
+
+    /**
+     * PosNet vftCode - VFT Kampanya kodunu. Vade Farklı işlemler için kullanılacak olan kampanya kodunu belirler.
+     * Üye İşyeri için tanımlı olan kampanya kodu, İşyeri Yönetici Ekranlarına giriş
+     * yapıldıktan sonra, Üye İşyeri bilgileri sayfasından öğrenilebilinir.
+     */
+    if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
+        // YapiKredi
+        // $formData['inputs']['vftCode'] = 'xxx';
+    }
+    if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
+        // Albaraka
+        // $formData['inputs']['VftCode'] = 'xxx';
+    }
+
+    /**
+     * KOICode - Joker Vadaa Kampanya Kodu.
+     * Degerler - 1: Ek Taksit 2: Taksit Atlatma 3: Ekstra Puan 4: Kontur Kazanım 5: Ekstre Erteleme 6: Özel Vade Farkı
+     * İşyeri, UseJokerVadaa alanını 1 yaparak bankanın joker vadaa sorgu ve müşteri joker vadaa
+     * kampanya seçim ekranının açılmasını ve Joker Vadaa kampanya seçiminin müşteriye bırakılmasını
+     * sağlayabilir. İşyeri, müşterilere ortak ödeme sayfasında kampanya sunulmasını istemiyorsa
+     * UseJokerVadaa alanını 0 set etmesi gerekir.
+     */
+    if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
+        // Albaraka
+        // $formData['inputs']['UseJokerVadaa'] = '1';
+        // $formData['inputs']['KOICode']       = 'xxx';
+    }
+    if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
+        // YapiKredi
+        // $formData['inputs']['useJokerVadaa'] = '1';
+    }
+
     //dd($formData);
 } catch (\Throwable $e) {
     dd($e);

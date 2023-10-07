@@ -317,7 +317,6 @@ class PosNetRequestDataMapperTest extends TestCase
             'mid'               => $account->getClientId(),
             'posnetID'          => $account->getPosNetId(),
             'digest'            => $oosTxResponseData['sign'],
-            'vftCode'           => $account->promotion_code ?? null,
             'merchantReturnURL' => $order['success_url'],
             'url'               => '',
             'lang'              => 'tr',
