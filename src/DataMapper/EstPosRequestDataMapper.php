@@ -77,7 +77,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $requestData = $this->getRequestAccountData($account) + [
                 'Type'                    => $this->mapTxType($txType),
-                'IPAddress'               => (string) ($order['ip'] ?? ''),
+                'IPAddress'               => (string) $order['ip'],
                 'OrderId'                 => (string) $order['id'],
                 'Total'                   => (string) $order['amount'],
                 'Currency'                => $this->mapCurrency($order['currency']),
@@ -106,7 +106,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
         $requestData = $this->getRequestAccountData($account) + [
                 'Type'      => $this->mapTxType($txType),
-                'IPAddress' => (string) ($order['ip'] ?? ''),
+                'IPAddress' => (string) $order['ip'],
                 'OrderId'   => (string) $order['id'],
                 'Total'     => (string) $order['amount'],
                 'Currency'  => $this->mapCurrency($order['currency']),
@@ -302,6 +302,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
         return array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
+            'ip'          => $order['ip'],
         ]);
     }
 
