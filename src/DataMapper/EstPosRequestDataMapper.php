@@ -91,12 +91,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'Mode'                    => 'P',
             ];
 
-        if ($order['name']) {
-            $requestData['BillTo'] = [
-                'Name' => (string) $order['name'],
-            ];
-        }
-
         if (isset($order['recurringFrequency'])) {
             $requestData += $this->getRecurringRequestOrderData($order);
         }
@@ -106,7 +100,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
 
     /**
      * {@inheritDoc}
-     * @return array{PbOrder?: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}, Type: string, IPAddress: mixed, Email: mixed, OrderId: mixed, UserId: mixed, Total: mixed, Currency: string, Taksit: string, Number: string, Expires: string, Cvv2Val: string, Mode: string, BillTo: array{Name: mixed}, Name: string, Password: string, ClientId: string}
+     * @return array{PbOrder?: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}, Type: string, IPAddress: mixed, Email: mixed, OrderId: mixed, UserId: mixed, Total: mixed, Currency: string, Taksit: string, Number: string, Expires: string, Cvv2Val: string, Mode: string, Name: string, Password: string, ClientId: string}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
     {
@@ -125,9 +119,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
                 'Expires'   => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'Cvv2Val'   => $card->getCvv(),
                 'Mode'      => 'P',
-                'BillTo'    => [
-                    'Name' => (string) ($order['name'] ?? ''),
-                ],
             ];
 
         if (isset($order['recurringFrequency'])) {
@@ -285,8 +276,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'currency'  => $this->mapCurrency((string) $order['currency']),
             'taksit'    => $this->mapInstallment((int) $order['installment']),
             'islemtipi' => $this->mapTxType($txType),
-            // custom data, any key value pairs can be used
-            'firmaadi'  => (string) $order['name'],
             'Email'     => (string) $order['email'],
             // todo add custom data dynamically instead of hard coding them
         ];

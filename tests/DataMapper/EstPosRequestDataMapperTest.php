@@ -52,7 +52,6 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->order = [
             'id'          => 'order222',
             'ip'          => '127.0.0.1',
-            'name'        => 'siparis veren',
             'email'       => 'test@test.com',
             'amount'      => '100.25',
             'installment' => 0,
@@ -184,7 +183,6 @@ class EstPosRequestDataMapperTest extends TestCase
         $order = [
             'id'          => '2020110828BC',
             'email'       => 'samp@iexample.com',
-            'name'        => 'john doe',
             'user_id'     => '1535',
             'ip'          => '192.168.1.0',
             'amount'      => 100.01,
@@ -214,7 +212,6 @@ class EstPosRequestDataMapperTest extends TestCase
         $order = [
             'id'                        => '2020110828BC',
             'email'                     => 'samp@iexample.com',
-            'name'                      => 'john doe',
             'user_id'                   => '1535',
             'ip'                        => '192.168.1.0',
             'amount'                    => 100.01,
@@ -254,7 +251,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'clientid'  => $this->account->getClientId(),
             'storetype' => PosInterface::MODEL_3D_SECURE,
             'hash'      => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
-            'firmaadi'  => $this->order['name'],
             'Email'     => $this->order['email'],
             'amount'    => $this->order['amount'],
             'oid'       => $this->order['id'],
@@ -309,7 +305,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'clientid'  => $this->account->getClientId(),
             'storetype' => '3d_host',
             'hash'      => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
-            'firmaadi'  => $this->order['name'],
             'Email'     => $this->order['email'],
             'amount'    => $this->order['amount'],
             'oid'       => $this->order['id'],
@@ -410,11 +405,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'PayerAuthenticationCode' => $responseData['cavv'],
             'Mode'                    => 'P',
         ];
-        if (isset($order['name'])) {
-            $requestData['BillTo'] = [
-                'Name' => $order['name'],
-            ];
-        }
 
         if (isset($order['recurringFrequency'])) {
             $requestData['PbOrder'] = [
@@ -490,9 +480,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'Expires'   => '01/22',
             'Cvv2Val'   => $card->getCvv(),
             'Mode'      => 'P',
-            'BillTo'    => [
-                'Name' => $order['name'] ?: null,
-            ],
         ];
     }
 

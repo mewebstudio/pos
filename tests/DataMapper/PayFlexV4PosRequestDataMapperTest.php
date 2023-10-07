@@ -48,7 +48,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
 
         $this->order = [
             'id'          => 'order222',
-            'name'        => 'siparis veren',
             'email'       => 'test@test.com',
             'amount'      => 100.00,
             'installment' => 0,

@@ -76,12 +76,9 @@ class EstPosSerializerTest extends TestCase
                 'Expires' => '12/21',
                 'Cvv2Val' => '122',
                 'Mode' => 'P',
-                'BillTo' => [
-                    'Name' => 'siparis veren',
-                ],
             ],
             'expected' => '<?xml version="1.0" encoding="ISO-8859-9"?>
-<CC5Request><Name>ISBANKAPI</Name><Password>ISBANK07</Password><ClientId>700655000200</ClientId><Type>Auth</Type><IPAddress></IPAddress><Email>test@test.com</Email><OrderId>order222</OrderId><UserId></UserId><Total>100.25</Total><Currency>949</Currency><Taksit></Taksit><Number>5555444433332222</Number><Expires>12/21</Expires><Cvv2Val>122</Cvv2Val><Mode>P</Mode><BillTo><Name>siparis veren</Name></BillTo></CC5Request>
+<CC5Request><Name>ISBANKAPI</Name><Password>ISBANK07</Password><ClientId>700655000200</ClientId><Type>Auth</Type><IPAddress></IPAddress><Email>test@test.com</Email><OrderId>order222</OrderId><UserId></UserId><Total>100.25</Total><Currency>949</Currency><Taksit></Taksit><Number>5555444433332222</Number><Expires>12/21</Expires><Cvv2Val>122</Cvv2Val><Mode>P</Mode></CC5Request>
 ',
         ];
     }

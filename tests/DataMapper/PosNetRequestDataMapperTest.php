@@ -52,7 +52,6 @@ class PosNetRequestDataMapperTest extends TestCase
 
         $this->order = [
             'id'          => 'TST_190620093100_024',
-            'name'        => 'siparis veren',
             'email'       => 'test@test.com',
             'amount'      => '1.75',
             'installment' => 0,

@@ -58,7 +58,6 @@ class EstPosTest extends TestCase
 
         $this->order = [
             'id'          => 'order222',
-            'name'        => 'siparis veren',
             'email'       => 'test@test.com',
             'amount'      => '100.25',
             'installment' => 0,

@@ -50,7 +50,6 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $this->order = [
             'id'          => 'order222',
             'ip'          => '127.0.0.1',
-            'name'        => 'siparis veren',
             'email'       => 'test@test.com',
             'amount'      => '100.25',
             'installment' => 0,
@@ -82,7 +81,6 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $inputs = [
             'clientid'      => $account->getClientId(),
             'storetype'     => PosInterface::MODEL_3D_SECURE,
-            'firmaadi'      => $this->order['name'],
             'Email'         => $this->order['email'],
             'amount'        => $this->order['amount'],
             'oid'           => $this->order['id'],
@@ -142,7 +140,6 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $inputs     = [
             'clientid'  => $this->account->getClientId(),
             'storetype' => '3d_host',
-            'firmaadi'  => $this->order['name'],
             'Email'     => $this->order['email'],
             'amount'    => $this->order['amount'],
             'oid'       => $this->order['id'],

@@ -52,7 +52,6 @@ class PayForPosRequestDataMapperTest extends TestCase
         $this->order = [
             'id'          => '2020110828BC',
             'email'       => 'mail@customer.com', // optional
-            'name'        => 'John Doe', // optional
             'amount'      => 100.01,
             'installment' => '0',
             'currency'    => PosInterface::CURRENCY_TRY,
