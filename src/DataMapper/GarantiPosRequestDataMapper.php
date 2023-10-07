@@ -194,8 +194,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
-                'IPAddress'    => $order['ip'] ?? '',
-                'EmailAddress' => $order['email'] ?? '',
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -229,8 +229,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account, true),
             'Customer'    => [
-                'IPAddress'    => $order['ip'] ?? '',
-                'EmailAddress' => $order['email'] ?? '',
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -301,8 +301,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
-                'IPAddress'    => $order['ip'] ?? '',
-                'EmailAddress' => $order['email'] ?? '',
+                'IPAddress'    => $order['ip'],
+                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -346,7 +346,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'orderid'               => (string) $order['id'],
             'successurl'            => (string) $order['success_url'],
             'errorurl'              => (string) $order['fail_url'],
-            'customeremailaddress'  => $order['email'] ?? '',
+            'customeremailaddress'  => $order['email'],
             'customeripaddress'     => (string) $order['ip'],
         ];
 
@@ -397,8 +397,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'amount'      => $order['amount'],
-            'ip'          => $order['ip'] ?? '',
-            'email'       => $order['email'] ?? '',
+            'ip'          => $order['ip'],
+            'email'       => $order['email'],
         ]);
     }
 
@@ -412,7 +412,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'ref_ret_num' => $order['ref_ret_num'],
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'amount'      => $order['amount'],
-            'ip'          => $order['ip'] ?? '',
+            'ip'          => $order['ip'],
             'email'       => $order['email'] ?? '',
         ];
     }
