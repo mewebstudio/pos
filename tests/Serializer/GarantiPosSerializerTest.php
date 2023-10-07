@@ -74,20 +74,6 @@ class GarantiPosSerializerTest extends TestCase
                 ],
                 'Order'       => [
                     'OrderID'     => 'order222',
-                    'AddressList' => [
-                        'Address' => [
-                            'Type'        => 'B',
-                            'Name'        => 'siparis veren',
-                            'LastName'    => '',
-                            'Company'     => '',
-                            'Text'        => '',
-                            'District'    => '',
-                            'City'        => '',
-                            'PostalCode'  => '',
-                            'Country'     => '',
-                            'PhoneNumber' => '',
-                        ],
-                    ],
                 ],
                 'Transaction' => [
                     'Type'                  => 'sales',
@@ -99,7 +85,7 @@ class GarantiPosSerializerTest extends TestCase
                 ],
             ],
             'expected' => '<?xml version="1.0" encoding="UTF-8"?>
-<GVPSRequest><Mode>TEST</Mode><Version>v0.01</Version><Terminal><ProvUserID>PROVAUT</ProvUserID><UserID>PROVAUT</UserID><HashData>3732634F78053D42304B0966E263629FE44E258B</HashData><ID>30691298</ID><MerchantID>7000679</MerchantID></Terminal><Customer><IPAddress></IPAddress><EmailAddress>test@test.com</EmailAddress></Customer><Card><Number>5555444433332222</Number><ExpireDate>1221</ExpireDate><CVV2>122</CVV2></Card><Order><OrderID>order222</OrderID><AddressList><Address><Type>B</Type><Name>siparis veren</Name><LastName></LastName><Company></Company><Text></Text><District></District><City></City><PostalCode></PostalCode><Country></Country><PhoneNumber></PhoneNumber></Address></AddressList></Order><Transaction><Type>sales</Type><InstallmentCnt></InstallmentCnt><Amount>10025</Amount><CurrencyCode>949</CurrencyCode><CardholderPresentCode>0</CardholderPresentCode><MotoInd>N</MotoInd></Transaction></GVPSRequest>
+<GVPSRequest><Mode>TEST</Mode><Version>v0.01</Version><Terminal><ProvUserID>PROVAUT</ProvUserID><UserID>PROVAUT</UserID><HashData>3732634F78053D42304B0966E263629FE44E258B</HashData><ID>30691298</ID><MerchantID>7000679</MerchantID></Terminal><Customer><IPAddress></IPAddress><EmailAddress>test@test.com</EmailAddress></Customer><Card><Number>5555444433332222</Number><ExpireDate>1221</ExpireDate><CVV2>122</CVV2></Card><Order><OrderID>order222</OrderID></Order><Transaction><Type>sales</Type><InstallmentCnt></InstallmentCnt><Amount>10025</Amount><CurrencyCode>949</CurrencyCode><CardholderPresentCode>0</CardholderPresentCode><MotoInd>N</MotoInd></Transaction></GVPSRequest>
 ',
         ];
     }

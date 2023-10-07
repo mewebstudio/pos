@@ -56,7 +56,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $this->order = [
             'id'          => 'order222',
-            'name'        => 'siparis veren',
             'email'       => 'test@test.com',
             'amount'      => '100.25',
             'installment' => 0,
@@ -337,20 +336,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Order'       => [
                 'OrderID'     => $order['id'],
-                'AddressList' => [
-                    'Address' => [
-                        'Type'        => 'B',
-                        'Name'        => $order['name'],
-                        'LastName'    => '',
-                        'Company'     => '',
-                        'Text'        => '',
-                        'District'    => '',
-                        'City'        => '',
-                        'PostalCode'  => '',
-                        'Country'     => '',
-                        'PhoneNumber' => '',
-                    ],
-                ],
             ],
             'Transaction' => [
                 'Type'                  => 'sales',
@@ -522,7 +507,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $order = [
             'id'          => '2020110828BC',
-            'name'        => 'siparis veren',
             'email'       => 'test@test.com',
             'amount'      => '100.25',
             'installment' => 0,
@@ -565,20 +549,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
                     ],
                     'Order'       => [
                         'OrderID'     => '2020110828BC',
-                        'AddressList' => [
-                            'Address' => [
-                                'Type'        => 'B',
-                                'Name'        => 'siparis veren',
-                                'LastName'    => '',
-                                'Company'     => '',
-                                'Text'        => '',
-                                'District'    => '',
-                                'City'        => '',
-                                'PostalCode'  => '',
-                                'Country'     => '',
-                                'PhoneNumber' => '',
-                            ],
-                        ],
                     ],
                     'Transaction' => [
                         'Type'                  => 'sales',

@@ -81,7 +81,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             ],
             'Order'       => [
                 'OrderID'     => $responseData['orderid'],
-                'AddressList' => $this->getOrderAddressData($order),
             ],
             'Transaction' => [
                 'Type'                  => $responseData['txntype'],
@@ -128,7 +127,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Card'        => $this->getCardData($card),
             'Order'       => [
                 'OrderID'     => $order['id'],
-                'AddressList' => $this->getOrderAddressData($order),
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType($txType),
@@ -506,29 +504,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'Number'     => $card->getNumber(),
             'ExpireDate' => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
             'CVV2'       => $card->getCvv(),
-        ];
-    }
-
-    /**
-     * @param $order
-     *
-     * @return array{Address: array{Type: string, Name: string, LastName: string, Company: string, Text: string, District: string, City: string, PostalCode: string, Country: string, PhoneNumber: string}}
-     */
-    private function getOrderAddressData($order): array
-    {
-        return [
-            'Address' => [
-                'Type'        => 'B', //S - shipping, B - billing
-                'Name'        => (string) $order['name'],
-                'LastName'    => '',
-                'Company'     => '',
-                'Text'        => '',
-                'District'    => '',
-                'City'        => '',
-                'PostalCode'  => '',
-                'Country'     => '',
-                'PhoneNumber' => '',
-            ],
         ];
     }
 
