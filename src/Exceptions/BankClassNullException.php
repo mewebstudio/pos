@@ -20,7 +20,7 @@ class BankClassNullException extends Exception
      * @param int            $code
      * @param Throwable|null $previous
      */
-    public function __construct($message = 'Class must be specified!', $code = 331, Throwable $previous = null)
+    public function __construct(string $message = 'Class must be specified!', int $code = 331, Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }

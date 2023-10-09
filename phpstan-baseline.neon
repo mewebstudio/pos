@@ -166,21 +166,6 @@ parameters:
 			path: src/Entity/Card/AbstractCreditCard.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Exceptions\\\\HashMismatchException\\:\\:__construct\\(\\) has parameter \\$message with no type specified\\.$#"
-			count: 1
-			path: src/Exceptions/HashMismatchException.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Exceptions\\\\NotImplementedException\\:\\:__construct\\(\\) has parameter \\$code with no type specified\\.$#"
-			count: 1
-			path: src/Exceptions/NotImplementedException.php
-
-		-
-			message: "#^Method Mews\\\\Pos\\\\Exceptions\\\\NotImplementedException\\:\\:__construct\\(\\) has parameter \\$message with no type specified\\.$#"
-			count: 1
-			path: src/Exceptions/NotImplementedException.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Factory\\\\PosFactory\\:\\:createPosGateway\\(\\) has parameter \\$config with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Factory/PosFactory.php

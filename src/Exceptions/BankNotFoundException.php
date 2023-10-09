@@ -20,7 +20,7 @@ class BankNotFoundException extends Exception
      * @param int            $code
      * @param Throwable|null $previous
      */
-    public function __construct($message = 'Bank not found!', $code = 330, Throwable $previous = null)
+    public function __construct(string $message = 'Bank not found!', int $code = 330, Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }

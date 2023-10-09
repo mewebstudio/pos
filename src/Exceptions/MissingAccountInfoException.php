@@ -20,7 +20,7 @@ class MissingAccountInfoException extends Exception
      * @param int            $code
      * @param Throwable|null $previous
      */
-    public function __construct($message = 'Missing Account Information!', $code = 430, Throwable $previous = null)
+    public function __construct(string $message = 'Missing Account Information!', int $code = 430, Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }
