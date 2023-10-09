@@ -15,7 +15,7 @@ use Mews\Pos\PosInterface;
 /**
  * Creates request data for GarantiPos Gateway requests
  */
-class GarantiPosRequestDataMapper extends AbstractRequestDataMapperCrypt
+class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /** @var string */
     public const API_VERSION = 'v0.01';

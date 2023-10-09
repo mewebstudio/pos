@@ -6,7 +6,6 @@
 namespace Mews\Pos\Factory;
 
 use DomainException;
-use InvalidArgumentException;
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Crypt\EstPosCrypt;
@@ -14,11 +13,11 @@ use Mews\Pos\Crypt\EstV3PosCrypt;
 use Mews\Pos\Crypt\GarantiPosCrypt;
 use Mews\Pos\Crypt\InterPosCrypt;
 use Mews\Pos\Crypt\KuveytPosCrypt;
+use Mews\Pos\Crypt\NullCrypt;
 use Mews\Pos\Crypt\PayFlexCPV4Crypt;
 use Mews\Pos\Crypt\PayForPosCrypt;
 use Mews\Pos\Crypt\PosNetCrypt;
 use Mews\Pos\Crypt\PosNetV1PosCrypt;
-use Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
@@ -29,7 +28,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
-use Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
@@ -39,6 +38,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
@@ -124,7 +124,7 @@ class PosFactory
         $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
 
         $crypt              = self::getGatewayCrypt($class, $logger);
-        $requestDataMapper  = self::getGatewayRequestMapper($class, $eventDispatcher, $currencies, $crypt);
+        $requestDataMapper  = self::getGatewayRequestMapper($class, $eventDispatcher, $crypt, $currencies);
         $responseDataMapper = self::getGatewayResponseMapper($class, $requestDataMapper, $logger);
         $serializer         = self::getGatewaySerializer($class);
 
@@ -145,11 +145,11 @@ class PosFactory
      * @param class-string                            $gatewayClass
      * @param EventDispatcherInterface                $eventDispatcher
      * @param array<PosInterface::CURRENCY_*, string> $currencies
-     * @param CryptInterface|null                     $crypt
+     * @param CryptInterface                          $crypt
      *
-     * @return AbstractRequestDataMapper
+     * @return RequestDataMapperInterface
      */
-    public static function getGatewayRequestMapper(string $gatewayClass, EventDispatcherInterface $eventDispatcher, array $currencies = [], ?CryptInterface $crypt = null): AbstractRequestDataMapper
+    public static function getGatewayRequestMapper(string $gatewayClass, EventDispatcherInterface $eventDispatcher, CryptInterface $crypt, array $currencies = []): RequestDataMapperInterface
     {
         $classMappings = [
             EstPos::class         => EstPosRequestDataMapper::class,
@@ -163,28 +163,24 @@ class PosFactory
             PayFlexCPV4Pos::class => PayFlexCPV4PosRequestDataMapper::class,
         ];
         if (isset($classMappings[$gatewayClass])) {
-            if (null === $crypt) {
-                throw new InvalidArgumentException(sprintf('Gateway %s requires Crypt instance', $gatewayClass));
-            }
-
             return new $classMappings[$gatewayClass]($eventDispatcher, $crypt, $currencies);
         }
 
         if (PayFlexV4Pos::class === $gatewayClass) {
-            return new PayFlexV4PosRequestDataMapper($eventDispatcher, null, $currencies);
+            return new PayFlexV4PosRequestDataMapper($eventDispatcher, $crypt, $currencies);
         }
 
         throw new DomainException('unsupported gateway');
     }
 
     /**
-     * @param class-string              $gatewayClass
-     * @param AbstractRequestDataMapper $requestDataMapper
-     * @param LoggerInterface           $logger
+     * @param class-string               $gatewayClass
+     * @param RequestDataMapperInterface $requestDataMapper
+     * @param LoggerInterface            $logger
      *
-     * @return AbstractResponseDataMapper
+     * @return ResponseDataMapperInterface
      */
-    public static function getGatewayResponseMapper(string $gatewayClass, AbstractRequestDataMapper $requestDataMapper, LoggerInterface $logger): AbstractResponseDataMapper
+    public static function getGatewayResponseMapper(string $gatewayClass, RequestDataMapperInterface $requestDataMapper, LoggerInterface $logger): ResponseDataMapperInterface
     {
         $classMappings = [
             EstV3Pos::class       => EstPosResponseDataMapper::class,
@@ -214,9 +210,9 @@ class PosFactory
      * @param class-string    $gatewayClass
      * @param LoggerInterface $logger
      *
-     * @return CryptInterface|null
+     * @return CryptInterface
      */
-    public static function getGatewayCrypt(string $gatewayClass, LoggerInterface $logger): ?CryptInterface
+    public static function getGatewayCrypt(string $gatewayClass, LoggerInterface $logger): CryptInterface
     {
         $classMappings = [
             EstV3Pos::class       => EstV3PosCrypt::class,
@@ -234,7 +230,7 @@ class PosFactory
             return new $classMappings[$gatewayClass]($logger);
         }
 
-        return null;
+        return new NullCrypt();
     }
 
     /**

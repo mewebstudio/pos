@@ -7,7 +7,7 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Psr\Log\LogLevel;
 
-class InterPosResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
+class InterPosResponseDataMapper extends AbstractResponseDataMapper
 {
     /**
      * Response Codes

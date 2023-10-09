@@ -15,7 +15,7 @@ use Mews\Pos\PosInterface;
 /**
  * Creates request data for PayFlex Common Payment V4 Gateway requests
  */
-class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapperCrypt
+class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
 {
     /** @var string */
     public const CREDIT_CARD_EXP_DATE_LONG_FORMAT = 'Ym';

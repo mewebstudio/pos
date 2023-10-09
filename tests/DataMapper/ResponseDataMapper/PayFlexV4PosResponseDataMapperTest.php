@@ -2,6 +2,7 @@
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\PosInterface;
@@ -18,7 +19,10 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $requestDataMapper  = new PayFlexV4PosRequestDataMapper($this->createMock(EventDispatcherInterface::class));
+        $requestDataMapper  = new PayFlexV4PosRequestDataMapper(
+            $this->createMock(EventDispatcherInterface::class),
+            $this->createMock(CryptInterface::class)
+        );
         $this->responseDataMapper = new PayFlexV4PosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),

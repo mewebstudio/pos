@@ -8,7 +8,7 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 use Mews\Pos\PosInterface;
 use Psr\Log\LogLevel;
 
-class KuveytPosResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
+class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
 {
     /**
      * Response Codes

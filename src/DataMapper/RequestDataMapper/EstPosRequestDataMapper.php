@@ -13,7 +13,7 @@ use Mews\Pos\PosInterface;
 /**
  * Creates request data for EstPos Gateway requests
  */
-class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
+class EstPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'm/y';

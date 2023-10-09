@@ -14,7 +14,7 @@ use Mews\Pos\PosInterface;
 /**
  * Creates request data for KuveytPos Gateway requests
  */
-class InterPosRequestDataMapper extends AbstractRequestDataMapperCrypt
+class InterPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';

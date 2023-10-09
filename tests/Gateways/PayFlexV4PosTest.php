@@ -6,6 +6,7 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use Exception;
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
@@ -92,7 +93,11 @@ class PayFlexV4PosTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionCode(2005);
 
-        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class, $this->createMock(EventDispatcherInterface::class));
+        $requestMapper  = PosFactory::getGatewayRequestMapper(
+            PayFlexV4Pos::class,
+            $this->createMock(EventDispatcherInterface::class),
+            $this->createMock(CryptInterface::class)
+        );
         $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
         $serializer     = PosFactory::getGatewaySerializer(PayFlexV4Pos::class);
 
@@ -120,7 +125,11 @@ class PayFlexV4PosTest extends TestCase
     {
         $enrollmentResponse = PayFlexV4PosRequestDataMapperTest::getSampleEnrollmentSuccessResponseDataProvider();
 
-        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexV4Pos::class, $this->createMock(EventDispatcherInterface::class));
+        $requestMapper  = PosFactory::getGatewayRequestMapper(
+            PayFlexV4Pos::class,
+            $this->createMock(EventDispatcherInterface::class),
+            $this->createMock(CryptInterface::class)
+        );
         $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
         $serializer     = PosFactory::getGatewaySerializer(PayFlexV4Pos::class);
 

@@ -4,6 +4,7 @@
  */
 namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
@@ -60,7 +61,10 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $pos = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
-        $this->requestDataMapper = new PayFlexV4PosRequestDataMapper($dispatcher);
+        $this->requestDataMapper = new PayFlexV4PosRequestDataMapper(
+            $dispatcher,
+            $this->createMock(CryptInterface::class)
+        );
         $this->card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 

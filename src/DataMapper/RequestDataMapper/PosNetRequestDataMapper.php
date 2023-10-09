@@ -16,7 +16,7 @@ use Mews\Pos\PosInterface;
 /**
  * Creates request data for PosNet Gateway requests
  */
-class PosNetRequestDataMapper extends AbstractRequestDataMapperCrypt
+class PosNetRequestDataMapper extends AbstractRequestDataMapper
 {
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
 

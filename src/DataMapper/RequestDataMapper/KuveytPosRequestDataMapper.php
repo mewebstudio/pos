@@ -17,7 +17,7 @@ use Mews\Pos\PosInterface;
 /**
  * Creates request data for KuveytPos Gateway requests
  */
-class KuveytPosRequestDataMapper extends AbstractRequestDataMapperCrypt
+class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /** @var string */
     public const API_VERSION = '1.0.0';

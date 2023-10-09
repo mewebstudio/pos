@@ -6,6 +6,7 @@
 namespace Mews\Pos\Tests\Gateways;
 
 use Exception;
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
@@ -92,7 +93,11 @@ class PosNetTest extends TestCase
     public function testGet3DFormDataOosTransactionFail()
     {
         $this->expectException(Exception::class);
-        $requestMapper  = PosFactory::getGatewayRequestMapper(PosNet::class, $this->createMock(EventDispatcherInterface::class));
+        $requestMapper  = PosFactory::getGatewayRequestMapper(
+            PosNet::class,
+            $this->createMock(EventDispatcherInterface::class),
+            $this->createMock(CryptInterface::class)
+        );
         $responseMapper = PosFactory::getGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
 
         $posMock = $this->getMockBuilder(PosNet::class)
@@ -129,7 +134,7 @@ class PosNetTest extends TestCase
             'Sign'           => '',
         ]);
         $crypt              = PosFactory::getGatewayCrypt(PosNet::class, new NullLogger());
-        $requestMapper      = PosFactory::getGatewayRequestMapper(PosNet::class, $this->createMock(EventDispatcherInterface::class), [], $crypt);
+        $requestMapper      = PosFactory::getGatewayRequestMapper(PosNet::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper     = PosFactory::getGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
         $serializer     = PosFactory::getGatewaySerializer(PosNet::class);
 

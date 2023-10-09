@@ -8,7 +8,7 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Psr\Log\LogLevel;
 
-class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
+class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
 {
     /** @var string */
     public const PROCEDURE_SUCCESS_CODE = '0000';

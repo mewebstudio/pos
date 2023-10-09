@@ -11,7 +11,7 @@ use Psr\Log\LogLevel;
 /**
  * @phpstan-type PaymentStatusModel array{Order: array<string, string|array<string, string|null>>, Response: array<string, string>, Transaction: array<string, string>|array{Response: array<string, string>}}
  */
-class GarantiPosResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
+class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
 {
     /**
      * Response Codes

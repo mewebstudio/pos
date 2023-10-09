@@ -10,7 +10,7 @@ use Psr\Log\LogLevel;
 /**
  * @phpstan-type PaymentStatusModel array<string, mixed>
  */
-class EstPosResponseDataMapper extends AbstractResponseDataMapper implements PaymentResponseMapperInterface, NonPaymentResponseMapperInterface
+class EstPosResponseDataMapper extends AbstractResponseDataMapper
 {
     /**
      * Response Codes

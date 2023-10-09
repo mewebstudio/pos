@@ -87,7 +87,7 @@ class PayFlexCPV4PosTest extends TestCase
     public function testGet3DFormDataSuccess(): void
     {
         $crypt          = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
-        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexCPV4Pos::class, $this->createMock(EventDispatcherInterface::class), [], $crypt);
+        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexCPV4Pos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexCPV4Pos::class, $requestMapper, new NullLogger());
         $serializer = PosFactory::getGatewaySerializer(PayFlexCPV4Pos::class);
 

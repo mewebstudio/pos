@@ -15,7 +15,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 /**
  * AbstractRequestDataMapper
  */
-abstract class AbstractRequestDataMapper
+abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
 {
     /** @var EventDispatcherInterface */
     protected $eventDispatcher;
@@ -64,15 +64,15 @@ abstract class AbstractRequestDataMapper
     /** @var bool */
     protected $testMode = false;
 
-    /** @var CryptInterface|null */
+    /** @var CryptInterface */
     protected $crypt;
 
     /**
      * @param EventDispatcherInterface                $eventDispatcher
-     * @param CryptInterface|null                     $crypt
+     * @param CryptInterface                          $crypt
      * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
      */
-    public function __construct(EventDispatcherInterface $eventDispatcher, ?CryptInterface $crypt = null, array $currencyMappings = [])
+    public function __construct(EventDispatcherInterface $eventDispatcher, CryptInterface $crypt, array $currencyMappings = [])
     {
         $this->eventDispatcher = $eventDispatcher;
         $this->crypt           = $crypt;
@@ -82,95 +82,15 @@ abstract class AbstractRequestDataMapper
     }
 
     /**
-     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
-     *
-     * @param AbstractPosAccount                   $account
-     * @param array<string, string|int|float|null> $order
-     * @param string                               $txType
-     * @param array                                $responseData gateway'den gelen cevap
-     *
-     * @return array
+     * @inheritDoc
      */
-    abstract public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array;
-
-    /**
-     * @phpstan-param PosInterface::TX_*           $txType
-     *
-     * @param AbstractPosAccount                   $account
-     * @param array<string, string|int|float|null> $order
-     * @param string                               $txType
-     * @param AbstractCreditCard                   $card
-     *
-     * @return array
-     */
-    abstract public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array;
-
-    /**
-     * @param AbstractPosAccount                   $account
-     * @param array<string, string|int|float|null> $order
-     *
-     * @return array
-     */
-    abstract public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array;
-
-    /**
-     * @param AbstractPosAccount                   $account
-     * @param array<string, string|int|float|null> $order
-     *
-     * @return array
-     */
-    abstract public function createStatusRequestData(AbstractPosAccount $account, array $order): array;
-
-    /**
-     * @phpstan-param PosInterface::TX_*           $txType
-     * @phpstan-param PosInterface::MODEL_3D_*     $paymentModel
-     *
-     * @param AbstractPosAccount                   $account
-     * @param array<string, string|int|float|null> $order
-     * @param string                               $paymentModel
-     * @param string                               $txType
-     * @param string                               $gatewayURL
-     * @param AbstractCreditCard|null              $card
-     *
-     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
-     */
-    abstract public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array;
-
-    /**
-     * @param AbstractPosAccount                   $account
-     * @param array<string, string|int|float|null> $order
-     *
-     * @return array
-     */
-    abstract public function createCancelRequestData(AbstractPosAccount $account, array $order): array;
-
-    /**
-     * @param AbstractPosAccount                   $account
-     * @param array<string, string|int|float|null> $order
-     *
-     * @return array
-     */
-    abstract public function createRefundRequestData(AbstractPosAccount $account, array $order): array;
-
-    /**
-     * @param AbstractPosAccount                   $account
-     * @param array<string, string|int|float|null> $order
-     * @param array<string, string|int|float|null> $extraData bankaya gore degisen ozel degerler
-     *
-     * @return array
-     */
-    abstract public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array;
-
-    /**
-     * @return CryptInterface|null
-     */
-    public function getCrypt(): ?CryptInterface
+    public function getCrypt(): CryptInterface
     {
         return $this->crypt;
     }
 
     /**
-     * @return bool
+     * @inheritDoc
      */
     public function isTestMode(): bool
     {
@@ -221,15 +141,11 @@ abstract class AbstractRequestDataMapper
 
 
     /**
-     * @param bool $testMode
-     *
-     * @return AbstractRequestDataMapper
+     * @inheritDoc
      */
-    public function setTestMode(bool $testMode): self
+    public function setTestMode(bool $testMode): void
     {
         $this->testMode = $testMode;
-
-        return $this;
     }
 
     /**

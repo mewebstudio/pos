@@ -7,9 +7,8 @@ namespace Mews\Pos\Gateways;
 
 use LogicException;
 use Mews\Pos\Client\HttpClient;
-use Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper;
-use Mews\Pos\DataMapper\ResponseDataMapper\NonPaymentResponseMapperInterface;
-use Mews\Pos\DataMapper\ResponseDataMapper\PaymentResponseMapperInterface;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Event\RequestDataPreparedEvent;
@@ -47,10 +46,10 @@ abstract class AbstractGateway implements PosInterface
     /** @var HttpClient */
     protected $client;
 
-    /** @var AbstractRequestDataMapper */
+    /** @var RequestDataMapperInterface */
     protected $requestDataMapper;
 
-    /** @var PaymentResponseMapperInterface&NonPaymentResponseMapperInterface */
+    /** @var ResponseDataMapperInterface */
     protected $responseDataMapper;
 
     /** @var SerializerInterface */
@@ -71,8 +70,8 @@ abstract class AbstractGateway implements PosInterface
     public function __construct(
         array                          $config,
         AbstractPosAccount             $account,
-        AbstractRequestDataMapper      $requestDataMapper,
-        PaymentResponseMapperInterface $responseDataMapper,
+        RequestDataMapperInterface     $requestDataMapper,
+        ResponseDataMapperInterface    $responseDataMapper,
         SerializerInterface            $serializer,
         EventDispatcherInterface       $eventDispatcher,
         HttpClient                     $client,

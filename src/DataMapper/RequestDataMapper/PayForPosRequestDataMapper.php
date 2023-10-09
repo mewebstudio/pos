@@ -13,7 +13,7 @@ use Mews\Pos\PosInterface;
 /**
  * Creates request data for PayForPos Gateway requests
  */
-class PayForPosRequestDataMapper extends AbstractRequestDataMapperCrypt
+class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /**
      * Kurum kodudur. (Banka tarafından verilir)

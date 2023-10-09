@@ -7,8 +7,16 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
+use function array_diff_key;
+use function array_flip;
+use function array_intersect_key;
+use function array_keys;
+use function is_numeric;
+use function is_object;
+use function is_string;
+use function trim;
 
-abstract class AbstractResponseDataMapper
+abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
 {
     /** @var string */
     public const TX_APPROVED = 'approved';
