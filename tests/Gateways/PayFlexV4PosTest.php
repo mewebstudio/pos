@@ -13,6 +13,9 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Factory\RequestDataMapperFactory;
+use Mews\Pos\Factory\ResponseDataMapperFactory;
+use Mews\Pos\Factory\SerializerFactory;
 use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapperTest;
@@ -93,13 +96,13 @@ class PayFlexV4PosTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionCode(2005);
 
-        $requestMapper  = PosFactory::getGatewayRequestMapper(
+        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(
             PayFlexV4Pos::class,
             $this->createMock(EventDispatcherInterface::class),
             $this->createMock(CryptInterface::class)
         );
-        $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
-        $serializer     = PosFactory::getGatewaySerializer(PayFlexV4Pos::class);
+        $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
+        $serializer     = SerializerFactory::createGatewaySerializer(PayFlexV4Pos::class);
 
         $posMock = $this->getMockBuilder(PayFlexV4Pos::class)
             ->setConstructorArgs([
@@ -125,13 +128,13 @@ class PayFlexV4PosTest extends TestCase
     {
         $enrollmentResponse = PayFlexV4PosRequestDataMapperTest::getSampleEnrollmentSuccessResponseDataProvider();
 
-        $requestMapper  = PosFactory::getGatewayRequestMapper(
+        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(
             PayFlexV4Pos::class,
             $this->createMock(EventDispatcherInterface::class),
             $this->createMock(CryptInterface::class)
         );
-        $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
-        $serializer     = PosFactory::getGatewaySerializer(PayFlexV4Pos::class);
+        $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PayFlexV4Pos::class, $requestMapper, new NullLogger());
+        $serializer     = SerializerFactory::createGatewaySerializer(PayFlexV4Pos::class);
 
         $posMock = $this->getMockBuilder(PayFlexV4Pos::class)
             ->setConstructorArgs([

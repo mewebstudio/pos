@@ -4,7 +4,7 @@ namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
-use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -19,7 +19,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $crypt                    = PosFactory::getGatewayCrypt(PosNetV1Pos::class, new NullLogger());
+        $crypt                    = CryptFactory::createGatewayCrypt(PosNetV1Pos::class, new NullLogger());
         $requestDataMapper        = new PosNetV1PosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
         $this->responseDataMapper = new PosNetV1PosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),

@@ -7,7 +7,7 @@ namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
-use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +23,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $crypt                    = PosFactory::getGatewayCrypt(GarantiPos::class, new NullLogger());
+        $crypt                    = CryptFactory::createGatewayCrypt(GarantiPos::class, new NullLogger());
         $requestDataMapper        = new GarantiPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
         $this->responseDataMapper = new GarantiPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),

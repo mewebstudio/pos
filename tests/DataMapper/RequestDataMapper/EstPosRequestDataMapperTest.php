@@ -9,6 +9,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
@@ -63,7 +64,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
 
-        $this->requestDataMapper = new EstPosRequestDataMapper($dispatcher, PosFactory::getGatewayCrypt(EstPos::class, new NullLogger()));
+        $this->requestDataMapper = new EstPosRequestDataMapper($dispatcher, CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger()));
         $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
     }
 

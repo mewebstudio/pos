@@ -13,6 +13,7 @@ use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
@@ -81,7 +82,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             AbstractCreditCard::CARD_TYPE_VISA
         );
 
-        $crypt                   = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
+        $crypt                   = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());
         $this->requestDataMapper = new KuveytPosRequestDataMapper($dispatcher, $crypt);
     }
 

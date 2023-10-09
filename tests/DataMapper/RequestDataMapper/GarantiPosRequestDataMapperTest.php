@@ -11,6 +11,7 @@ use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
@@ -69,7 +70,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
 
-        $crypt                   = PosFactory::getGatewayCrypt(GarantiPos::class, new NullLogger());
+        $crypt                   = CryptFactory::createGatewayCrypt(GarantiPos::class, new NullLogger());
         $this->requestDataMapper = new GarantiPosRequestDataMapper($dispatcher, $crypt);
         $this->requestDataMapper->setTestMode(true);
 

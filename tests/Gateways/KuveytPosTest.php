@@ -13,8 +13,12 @@ use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Factory\RequestDataMapperFactory;
+use Mews\Pos\Factory\ResponseDataMapperFactory;
+use Mews\Pos\Factory\SerializerFactory;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapperTest;
@@ -22,7 +26,6 @@ use Mews\Pos\Tests\Serializer\KuveytPosSerializerTest;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -121,9 +124,9 @@ class KuveytPosTest extends TestCase
      */
     public function testGetCommon3DFormDataSuccessResponse(array $sendReturn, array $expected)
     {
-        $crypt         = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
-        $requestMapper = PosFactory::getGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
-        $serializer    = PosFactory::getGatewaySerializer(KuveytPos::class);
+        $crypt         = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());
+        $requestMapper = RequestDataMapperFactory::getGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $serializer    = SerializerFactory::createGatewaySerializer(KuveytPos::class);
 
         $posMock = $this->getMockBuilder(KuveytPos::class)
             ->setConstructorArgs([
@@ -174,10 +177,10 @@ class KuveytPosTest extends TestCase
      */
     public function testMake3DPaymentAuthSuccessProvisionFail()
     {
-        $crypt          = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
-        $requestMapper  = PosFactory::getGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
-        $responseMapper = PosFactory::getGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
-        $serializer     = PosFactory::getGatewaySerializer(KuveytPos::class);
+        $crypt          = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());
+        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
+        $serializer     = SerializerFactory::createGatewaySerializer(KuveytPos::class);
 
         $kuveytPosResponseDataMapperTest = new KuveytPosResponseDataMapperTest();
         $xml                             = '<?xml version="1.0" encoding="UTF-8"?><VPosTransactionResponseContract><VPosMessage><APIVersion>1.0.0</APIVersion><OkUrl>http://localhost:44785/Home/Success</OkUrl><FailUrl>http://localhost:44785/Home/Fail</FailUrl><HashData>lYJYMi/gVO9MWr32Pshaa/zAbSHY=</HashData><MerchantId>80</MerchantId><SubMerchantId>0</SubMerchantId><CustomerId>400235</CustomerId><UserName>apiuser</UserName><CardNumber>4025502306586032</CardNumber><CardHolderName>afafa</CardHolderName><CardType>MasterCard</CardType><BatchID>0</BatchID><TransactionType>Sale</TransactionType><InstallmentCount>0</InstallmentCount><Amount>100</Amount><DisplayAmount>100</DisplayAmount><MerchantOrderId>Order 123</MerchantOrderId><FECAmount>0</FECAmount><CurrencyCode>0949</CurrencyCode><QeryId>0</QeryId><DebtId>0</DebtId><SurchargeAmount>0</SurchargeAmount><SGKDebtAmount>0</SGKDebtAmount><TransactionSecurity>3</TransactionSecurity><TransactionSide>Auto</TransactionSide><EntryGateMethod>VPOS_ThreeDModelPayGate</EntryGateMethod></VPosMessage><IsEnrolled>true</IsEnrolled><IsVirtual>false</IsVirtual><OrderId>0</OrderId><TransactionTime>0001-01-01T00:00:00</TransactionTime><ResponseCode>00</ResponseCode><ResponseMessage>HATATA</ResponseMessage><MD>67YtBfBRTZ0XBKnAHi8c/A==</MD><AuthenticationPacket>WYGDgSIrSHDtYwF/WEN+nfwX63sppA=</AuthenticationPacket><ACSURL>https://acs.bkm.com.tr/mdpayacs/pareq</ACSURL></VPosTransactionResponseContract>';
@@ -216,10 +219,10 @@ class KuveytPosTest extends TestCase
      */
     public function testMake3DPaymentAuthSuccessProvisionSuccess()
     {
-        $crypt                           = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
-        $requestMapper                   = PosFactory::getGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
-        $responseMapper                  = PosFactory::getGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
-        $serializer                      = PosFactory::getGatewaySerializer(KuveytPos::class);
+        $crypt                           = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());
+        $requestMapper                   = RequestDataMapperFactory::getGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $responseMapper                  = ResponseDataMapperFactory::createGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
+        $serializer                      = SerializerFactory::createGatewaySerializer(KuveytPos::class);
         $kuveytPosResponseDataMapperTest = new KuveytPosResponseDataMapperTest();
         $xml                             = '<?xml version="1.0" encoding="UTF-8"?><VPosTransactionResponseContract><VPosMessage><APIVersion>1.0.0</APIVersion><OkUrl>http://localhost:44785/Home/Success</OkUrl><FailUrl>http://localhost:44785/Home/Fail</FailUrl><HashData>lYJYMi/gVO9MWr32Pshaa/zAbSHY=</HashData><MerchantId>80</MerchantId><SubMerchantId>0</SubMerchantId><CustomerId>400235</CustomerId><UserName>apiuser</UserName><CardNumber>4025502306586032</CardNumber><CardHolderName>afafa</CardHolderName><CardType>MasterCard</CardType><BatchID>0</BatchID><TransactionType>Sale</TransactionType><InstallmentCount>0</InstallmentCount><Amount>100</Amount><DisplayAmount>100</DisplayAmount><MerchantOrderId>Order 123</MerchantOrderId><FECAmount>0</FECAmount><CurrencyCode>0949</CurrencyCode><QeryId>0</QeryId><DebtId>0</DebtId><SurchargeAmount>0</SurchargeAmount><SGKDebtAmount>0</SGKDebtAmount><TransactionSecurity>3</TransactionSecurity><TransactionSide>Auto</TransactionSide><EntryGateMethod>VPOS_ThreeDModelPayGate</EntryGateMethod></VPosMessage><IsEnrolled>true</IsEnrolled><IsVirtual>false</IsVirtual><OrderId>0</OrderId><TransactionTime>0001-01-01T00:00:00</TransactionTime><ResponseCode>00</ResponseCode><ResponseMessage>HATATA</ResponseMessage><MD>67YtBfBRTZ0XBKnAHi8c/A==</MD><AuthenticationPacket>WYGDgSIrSHDtYwF/WEN+nfwX63sppA=</AuthenticationPacket><ACSURL>https://acs.bkm.com.tr/mdpayacs/pareq</ACSURL></VPosTransactionResponseContract>';
         $request                         = Request::create('', 'POST', [

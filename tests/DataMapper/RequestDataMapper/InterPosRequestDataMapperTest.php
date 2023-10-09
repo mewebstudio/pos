@@ -10,6 +10,7 @@ use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
@@ -69,7 +70,7 @@ class InterPosRequestDataMapperTest extends TestCase
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
 
-        $crypt = PosFactory::getGatewayCrypt(InterPos::class, new NullLogger());
+        $crypt = CryptFactory::createGatewayCrypt(InterPos::class, new NullLogger());
 
         $this->requestDataMapper = new InterPosRequestDataMapper($dispatcher, $crypt);
 

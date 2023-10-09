@@ -1,10 +1,13 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
-use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -20,7 +23,7 @@ class InterPosResponseDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $crypt                    = PosFactory::getGatewayCrypt(InterPos::class, new NullLogger());
+        $crypt                    = CryptFactory::createGatewayCrypt(InterPos::class, new NullLogger());
         $requestDataMapper        = new InterPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
         $this->responseDataMapper = new InterPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),

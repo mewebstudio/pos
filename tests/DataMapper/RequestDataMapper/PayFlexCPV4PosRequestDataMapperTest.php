@@ -12,6 +12,7 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
@@ -43,7 +44,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             PosInterface::MODEL_3D_SECURE
         );
 
-        $crypt                   = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
+        $crypt                   = CryptFactory::createGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
         $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
     }
 

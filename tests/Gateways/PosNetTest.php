@@ -11,8 +11,12 @@ use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Factory\RequestDataMapperFactory;
+use Mews\Pos\Factory\ResponseDataMapperFactory;
+use Mews\Pos\Factory\SerializerFactory;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
@@ -93,12 +97,12 @@ class PosNetTest extends TestCase
     public function testGet3DFormDataOosTransactionFail()
     {
         $this->expectException(Exception::class);
-        $requestMapper  = PosFactory::getGatewayRequestMapper(
+        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(
             PosNet::class,
             $this->createMock(EventDispatcherInterface::class),
             $this->createMock(CryptInterface::class)
         );
-        $responseMapper = PosFactory::getGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
+        $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
 
         $posMock = $this->getMockBuilder(PosNet::class)
             ->setConstructorArgs([
@@ -133,10 +137,10 @@ class PosNetTest extends TestCase
             'BankPacket'     => '',
             'Sign'           => '',
         ]);
-        $crypt              = PosFactory::getGatewayCrypt(PosNet::class, new NullLogger());
-        $requestMapper      = PosFactory::getGatewayRequestMapper(PosNet::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
-        $responseMapper     = PosFactory::getGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
-        $serializer     = PosFactory::getGatewaySerializer(PosNet::class);
+        $crypt = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
+        $requestMapper = RequestDataMapperFactory::getGatewayRequestMapper(PosNet::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
+        $serializer = SerializerFactory::createGatewaySerializer(PosNet::class);
 
         $this->order['id'] = 'YKB_0000080603153823';
         $posMock           = $this->getMockBuilder(PosNet::class)

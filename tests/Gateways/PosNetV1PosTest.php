@@ -9,15 +9,18 @@ use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Factory\RequestDataMapperFactory;
+use Mews\Pos\Factory\ResponseDataMapperFactory;
+use Mews\Pos\Factory\SerializerFactory;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -84,10 +87,10 @@ class PosNetV1PosTest extends TestCase
     public function testMake3DPayment(array $order, array $threeDResponseData, array $paymentResponseData, array $expectedData)
     {
         $request        = Request::create('', 'POST', $threeDResponseData);
-        $crypt          = PosFactory::getGatewayCrypt(PosNetV1Pos::class, new NullLogger());
-        $requestMapper  = PosFactory::getGatewayRequestMapper(PosNetV1Pos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
-        $responseMapper = PosFactory::getGatewayResponseMapper(PosNetV1Pos::class, $requestMapper, new NullLogger());
-        $serializer     = PosFactory::getGatewaySerializer(PosNetV1Pos::class);
+        $crypt          = CryptFactory::createGatewayCrypt(PosNetV1Pos::class, new NullLogger());
+        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(PosNetV1Pos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PosNetV1Pos::class, $requestMapper, new NullLogger());
+        $serializer     = SerializerFactory::createGatewaySerializer(PosNetV1Pos::class);
 
         $posMock = $this->getMockBuilder(PosNetV1Pos::class)
             ->setConstructorArgs([

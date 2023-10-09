@@ -11,6 +11,7 @@ use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
@@ -52,7 +53,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
 
         $this->card = CreditCardFactory::create($pos, '5400619360964581', '20', '01', '056', 'ahmet');
 
-        $crypt                   = PosFactory::getGatewayCrypt(PosNetV1Pos::class, new NullLogger());
+        $crypt                   = CryptFactory::createGatewayCrypt(PosNetV1Pos::class, new NullLogger());
         $this->requestDataMapper = new PosNetV1PosRequestDataMapper($dispatcher, $crypt);
     }
 

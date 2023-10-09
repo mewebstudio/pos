@@ -1,10 +1,13 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
-use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -20,7 +23,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $crypt                    = PosFactory::getGatewayCrypt(KuveytPos::class, new NullLogger());
+        $crypt                    = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());
         $requestDataMapper        = new KuveytPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
         $this->responseDataMapper = new KuveytPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),

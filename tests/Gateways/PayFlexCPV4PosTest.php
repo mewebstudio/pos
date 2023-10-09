@@ -11,8 +11,12 @@ use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\HttpClientFactory;
 use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Factory\RequestDataMapperFactory;
+use Mews\Pos\Factory\ResponseDataMapperFactory;
+use Mews\Pos\Factory\SerializerFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
@@ -86,10 +90,10 @@ class PayFlexCPV4PosTest extends TestCase
 
     public function testGet3DFormDataSuccess(): void
     {
-        $crypt          = PosFactory::getGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
-        $requestMapper  = PosFactory::getGatewayRequestMapper(PayFlexCPV4Pos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
-        $responseMapper = PosFactory::getGatewayResponseMapper(PayFlexCPV4Pos::class, $requestMapper, new NullLogger());
-        $serializer = PosFactory::getGatewaySerializer(PayFlexCPV4Pos::class);
+        $crypt          = CryptFactory::createGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
+        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(PayFlexCPV4Pos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PayFlexCPV4Pos::class, $requestMapper, new NullLogger());
+        $serializer = SerializerFactory::createGatewaySerializer(PayFlexCPV4Pos::class);
 
         $posMock = $this->getMockBuilder(PayFlexCPV4Pos::class)
             ->setConstructorArgs([

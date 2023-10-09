@@ -7,7 +7,7 @@ namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
-use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +23,7 @@ class EstPosResponseDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $crypt             = PosFactory::getGatewayCrypt(EstPos::class, new NullLogger());
+        $crypt             = CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger());
         $requestDataMapper = new EstPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
 
         $this->responseDataMapper = new EstPosResponseDataMapper(
