@@ -15,7 +15,6 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use function gettype;
 use function is_string;
@@ -76,7 +75,7 @@ class PayFlexCPV4Pos extends AbstractGateway
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_PAY);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -102,7 +101,7 @@ class PayFlexCPV4Pos extends AbstractGateway
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse);
 
-        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -133,11 +132,11 @@ class PayFlexCPV4Pos extends AbstractGateway
         $data = $this->registerPayment($order, $txType, $paymentModel, $card);
 
         if (null !== $data['ErrorCode']) {
-            $this->logger->log(LogLevel::ERROR, 'payment register fail response', $data);
+            $this->logger->error('payment register fail response', $data);
             throw new Exception('İşlem gerçekleştirilemiyor');
         }
 
-        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
+        $this->logger->debug('preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData(
             null,
@@ -183,7 +182,7 @@ class PayFlexCPV4Pos extends AbstractGateway
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -206,14 +205,14 @@ class PayFlexCPV4Pos extends AbstractGateway
     protected function send($contents, string $txType, ?string $url = null): array
     {
         $url = $url ?? $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $this->logger->debug('sending request', ['url' => $url]);
 
         if (!is_string($contents)) {
             throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
         }
 
         $response = $this->client->post($url, ['body' => $contents]);
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }

@@ -7,7 +7,6 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
-use Psr\Log\LogLevel;
 
 class GarantiPosCrypt extends AbstractCrypt
 {
@@ -40,12 +39,12 @@ class GarantiPosCrypt extends AbstractCrypt
         $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'hashparams', ':');
 
         if ($data['hash'] === $actualHash) {
-            $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
+            $this->logger->debug('hash check is successful');
 
             return true;
         }
 
-        $this->logger->log(LogLevel::ERROR, 'hash check failed', [
+        $this->logger->error('hash check failed', [
             'data'           => $data,
             'generated_hash' => $actualHash,
             'expected_hash'  => $data['hash'],

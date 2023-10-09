@@ -7,7 +7,6 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Psr\Log\LogLevel;
 
 class PayForPosCrypt extends AbstractCrypt
 {
@@ -53,12 +52,12 @@ class PayForPosCrypt extends AbstractCrypt
         $hash = $this->hashString($hashStr);
 
         if ($hash === $data['ResponseHash']) {
-            $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
+            $this->logger->debug('hash check is successful');
 
             return true;
         }
 
-        $this->logger->log(LogLevel::ERROR, 'hash check failed', [
+        $this->logger->error('hash check failed', [
             'data'           => $data,
             'generated_hash' => $hash,
             'expected_hash'  => $data['ResponseHash'],

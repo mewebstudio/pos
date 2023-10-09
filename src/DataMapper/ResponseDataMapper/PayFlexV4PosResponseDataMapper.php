@@ -5,8 +5,6 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
-use Psr\Log\LogLevel;
-
 class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
 {
     /** @var string */
@@ -26,7 +24,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+        $this->logger->debug('mapping 3D payment data', [
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);
@@ -176,7 +174,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapPaymentResponse(array $rawPaymentResponseData): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
+        $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
         $rawPaymentResponseData     = $this->emptyStringsToNull($rawPaymentResponseData);
         $commonResponse             = $this->getCommonPaymentResponse($rawPaymentResponseData);
         $commonResponse['order_id'] = $rawPaymentResponseData['OrderId'] ?? null;
@@ -188,7 +186,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             $commonResponse['transaction_type'] = $this->mapTxType($rawPaymentResponseData['TransactionType']);
         }
 
-        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $commonResponse);
+        $this->logger->debug('mapped payment response', $commonResponse);
 
         return $commonResponse;
     }

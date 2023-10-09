@@ -5,8 +5,6 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
-use Psr\Log\LogLevel;
-
 class InterPosResponseDataMapper extends AbstractResponseDataMapper
 {
     /**
@@ -26,7 +24,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapPaymentResponse(array $rawPaymentResponseData): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
+        $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
         if ([] === $rawPaymentResponseData) {
             return $this->getDefaultPaymentResponse();
         }
@@ -51,7 +49,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $result['error_code']       = $rawPaymentResponseData['ErrorCode'];
         $result['error_message']    = $rawPaymentResponseData['ErrorMessage'];
 
-        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $result);
+        $this->logger->debug('mapped payment response', $result);
 
         return $result;
     }
@@ -62,7 +60,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+        $this->logger->debug('mapping 3D payment data', [
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);

@@ -6,7 +6,6 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
-use Psr\Log\LogLevel;
 
 /**
  * @phpstan-type PaymentStatusModel array{Order: array<string, string|array<string, string|null>>, Response: array<string, string>, Transaction: array<string, string>|array{Response: array<string, string>}}
@@ -46,7 +45,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         /** @var PaymentStatusModel $rawPaymentResponseData */
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
         $procReturnCode         = $this->getProcReturnCode($rawPaymentResponseData);
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
+        $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
         $status = self::TX_DECLINED;
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
@@ -68,7 +67,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'all'              => $rawPaymentResponseData,
         ];
 
-        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $mappedResponse);
+        $this->logger->debug('mapped payment response', $mappedResponse);
 
         return $mappedResponse;
     }
@@ -82,7 +81,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         /** @var PaymentStatusModel|null $rawPaymentResponseData */
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+        $this->logger->debug('mapping 3D payment data', [
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);

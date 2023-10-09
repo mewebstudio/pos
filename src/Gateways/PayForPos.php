@@ -13,7 +13,6 @@ use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -58,7 +57,7 @@ class PayForPos extends AbstractGateway
             $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
             $this->eventDispatcher->dispatch($event);
             if ($requestData !== $event->getRequestData()) {
-                $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                $this->logger->debug('Request data is changed via listeners', [
                     'txType'      => $event->getTxType(),
                     'bank'        => $event->getBank(),
                     'initialData' => $requestData,
@@ -70,7 +69,7 @@ class PayForPos extends AbstractGateway
             $contents     = $this->serializer->encode($requestData, $txType);
             $bankResponse = $this->send($contents, $txType);
         } else {
-            $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $request->get('3DStatus')]);
+            $this->logger->error('3d auth fail', ['md_status' => $request->get('3DStatus')]);
         }
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse);
@@ -133,7 +132,7 @@ class PayForPos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
+        $this->logger->debug('preparing 3D form data');
 
         $gatewayURL = $this->get3DGatewayURL();
         if (PosInterface::MODEL_3D_HOST === $paymentModel) {
@@ -152,14 +151,14 @@ class PayForPos extends AbstractGateway
     protected function send($contents, string $txType, ?string $url = null): array
     {
         $url = $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $this->logger->debug('sending request', ['url' => $url]);
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'text/xml; charset=UTF-8',
             ],
             'body'    => $contents,
         ]);
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }

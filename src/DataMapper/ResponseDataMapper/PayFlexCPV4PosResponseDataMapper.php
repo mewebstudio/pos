@@ -6,7 +6,6 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
-use Psr\Log\LogLevel;
 
 class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
 {
@@ -123,7 +122,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapPaymentResponse(array $rawPaymentResponseData): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', $rawPaymentResponseData);
+        $this->logger->debug('mapping payment response', $rawPaymentResponseData);
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
         $commonResponse         = $this->getCommonPaymentResponse($rawPaymentResponseData);
 
@@ -136,7 +135,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
             $commonResponse['eci']              = $rawPaymentResponseData['ECI'];
         }
 
-        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $commonResponse);
+        $this->logger->debug('mapped payment response', $commonResponse);
 
         return $commonResponse;
     }

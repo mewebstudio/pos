@@ -5,8 +5,6 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
-use Psr\Log\LogLevel;
-
 /**
  * @phpstan-type PaymentStatusModel array<string, mixed>
  */
@@ -40,7 +38,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapPaymentResponse(array $rawPaymentResponseData): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
+        $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
         if ([] === $rawPaymentResponseData) {
             return $this->getDefaultPaymentResponse();
         }
@@ -69,7 +67,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'all'              => $rawPaymentResponseData,
         ];
 
-        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $mappedResponse);
+        $this->logger->debug('mapped payment response', $mappedResponse);
 
         return $mappedResponse;
     }
@@ -80,7 +78,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+        $this->logger->debug('mapping 3D payment data', [
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);

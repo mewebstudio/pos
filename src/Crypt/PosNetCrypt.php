@@ -8,7 +8,6 @@ namespace Mews\Pos\Crypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Psr\Log\LogLevel;
 
 class PosNetCrypt extends AbstractCrypt
 {
@@ -55,14 +54,14 @@ class PosNetCrypt extends AbstractCrypt
         $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
 
         if ($this->hashString($hashStr) !== $data['mac']) {
-            $this->logger->log(LogLevel::ERROR, 'hash check failed', [
+            $this->logger->error('hash check failed', [
                 'order_id' => $data['xid'],
             ]);
 
             return false;
         }
 
-        $this->logger->log(LogLevel::DEBUG, 'hash check is successful', [
+        $this->logger->debug('hash check is successful', [
             'order_id' => $data['xid'],
         ]);
 

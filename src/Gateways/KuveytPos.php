@@ -19,7 +19,6 @@ use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LogLevel;
 use RuntimeException;
 use SoapClient;
 use SoapFault;
@@ -82,7 +81,7 @@ class KuveytPos extends AbstractGateway
     public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
         $gatewayUrl = $this->get3DGatewayURL();
-        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
+        $this->logger->debug('preparing 3D form data');
 
         return $this->getCommon3DFormData($this->account, $order, $paymentModel, $txType, $gatewayUrl, $card);
     }
@@ -116,14 +115,14 @@ class KuveytPos extends AbstractGateway
         }
 
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-            $this->logger->log(LogLevel::DEBUG, 'finishing payment');
+            $this->logger->debug('finishing payment');
 
             $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);
 
             $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
             $this->eventDispatcher->dispatch($event);
             if ($requestData !== $event->getRequestData()) {
-                $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                $this->logger->debug('Request data is changed via listeners', [
                     'txType'      => $event->getTxType(),
                     'bank'        => $event->getBank(),
                     'initialData' => $requestData,
@@ -135,11 +134,11 @@ class KuveytPos extends AbstractGateway
             $contents     = $this->serializer->encode($requestData, $txType);
             $bankResponse = $this->send($contents, $txType);
         } else {
-            $this->logger->log(LogLevel::ERROR, '3d auth fail', ['proc_return_code' => $procReturnCode]);
+            $this->logger->error('3d auth fail', ['proc_return_code' => $procReturnCode]);
         }
 
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse);
-        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -160,7 +159,7 @@ class KuveytPos extends AbstractGateway
             return $this->data = $this->sendSoapRequest($contents, $txType);
         }
         $url = $url ?: $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $this->logger->debug('sending request', ['url' => $url]);
         $body     = [
             'body'    => $contents,
             'headers' => [
@@ -168,7 +167,7 @@ class KuveytPos extends AbstractGateway
             ],
         ];
         $response = $this->client->post($url, $body);
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
@@ -213,14 +212,14 @@ class KuveytPos extends AbstractGateway
         try {
             $result = $client->__soapCall($this->requestDataMapper->mapTxType($txType), ['parameters' => ['request' => $contents]]);
         } catch (Throwable $e) {
-            $this->logger->log(LogLevel::ERROR, 'soap error response', [
+            $this->logger->error('soap error response', [
                 'message' => $e->getMessage(),
             ]);
 
             throw $e;
         }
         if (null === $result) {
-            $this->logger->log(LogLevel::ERROR, 'Bankaya istek başarısız!', [
+            $this->logger->error('Bankaya istek başarısız!', [
                 'response' => $result,
             ]);
             throw new RuntimeException('Bankaya istek başarısız!');
@@ -251,7 +250,7 @@ class KuveytPos extends AbstractGateway
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,

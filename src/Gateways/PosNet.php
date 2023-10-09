@@ -18,7 +18,6 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use function gettype;
 use function sprintf;
@@ -59,7 +58,7 @@ class PosNet extends AbstractGateway
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -81,7 +80,7 @@ class PosNet extends AbstractGateway
     {
         $request = $request->request;
 
-        $this->logger->log(LogLevel::DEBUG, 'getting merchant request data');
+        $this->logger->debug('getting merchant request data');
         $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
             $this->account,
             $order,
@@ -91,7 +90,7 @@ class PosNet extends AbstractGateway
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -114,7 +113,7 @@ class PosNet extends AbstractGateway
 
         //if 3D Authentication is successful:
         if (in_array($userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'], [1, 2, 3, 4])) {
-            $this->logger->log(LogLevel::DEBUG, 'finishing payment', [
+            $this->logger->debug('finishing payment', [
                 'md_status' => $userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
             ]);
             $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
@@ -122,7 +121,7 @@ class PosNet extends AbstractGateway
             $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
             $this->eventDispatcher->dispatch($event);
             if ($requestData !== $event->getRequestData()) {
-                $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                $this->logger->debug('Request data is changed via listeners', [
                     'txType'      => $event->getTxType(),
                     'bank'        => $event->getBank(),
                     'initialData' => $requestData,
@@ -134,14 +133,14 @@ class PosNet extends AbstractGateway
             $contents     = $this->serializer->encode($requestData, $txType);
             $bankResponse = $this->send($contents, $txType);
         } else {
-            $this->logger->log(LogLevel::ERROR, '3d auth fail', [
+            $this->logger->error('3d auth fail', [
                 'md_status' => $userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
             ]);
         }
 
         end:
         $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse);
-        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -174,11 +173,11 @@ class PosNet extends AbstractGateway
         $data = $this->getOosTransactionData($order, $txType, $card);
 
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $data['approved']) {
-            $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
+            $this->logger->error('enrollment fail response', $data);
             throw new Exception($data['respText']);
         }
 
-        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
+        $this->logger->debug('preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), null, $data['oosRequestDataResponse']);
     }
@@ -205,7 +204,7 @@ class PosNet extends AbstractGateway
     protected function send($contents, string $txType, ?string $url = null): array
     {
         $url = $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $this->logger->debug('sending request', ['url' => $url]);
 
         if (!is_string($contents)) {
             throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
@@ -217,7 +216,7 @@ class PosNet extends AbstractGateway
             'body'    => sprintf('xmldata=%s', $contents),
         ]);
 
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }

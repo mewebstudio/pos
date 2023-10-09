@@ -15,7 +15,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use function gettype;
 use function is_array;
@@ -60,19 +59,19 @@ class InterPos extends AbstractGateway
         }
 
         if ('1' !== $request->get('3DStatus')) {
-            $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $request->get('3DStatus')]);
+            $this->logger->error('3d auth fail', ['md_status' => $request->get('3DStatus')]);
             /**
              * TODO hata durumu ele alinmasi gerekiyor
              */
         } else {
-            $this->logger->log(LogLevel::DEBUG, 'finishing payment');
+            $this->logger->debug('finishing payment');
 
             $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);
 
             $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
             $this->eventDispatcher->dispatch($event);
             if ($requestData !== $event->getRequestData()) {
-                $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                $this->logger->debug('Request data is changed via listeners', [
                     'txType'      => $event->getTxType(),
                     'bank'        => $event->getBank(),
                     'initialData' => $requestData,
@@ -87,7 +86,7 @@ class InterPos extends AbstractGateway
 
 
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse);
-        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -130,7 +129,7 @@ class InterPos extends AbstractGateway
             $gatewayUrl = $this->get3DGatewayURL();
         }
 
-        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
+        $this->logger->debug('preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $gatewayUrl, $card);
     }
@@ -143,13 +142,13 @@ class InterPos extends AbstractGateway
     protected function send($contents, string $txType, ?string $url = null): array
     {
         $url = $url ?: $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $this->logger->debug('sending request', ['url' => $url]);
         if (!is_array($contents)) {
             throw new InvalidArgumentException(sprintf('Argument type must be array, %s provided.', gettype($contents)));
         }
 
         $response = $this->client->post($url, ['form_params' => $contents]);
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }

@@ -5,8 +5,6 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
-use Psr\Log\LogLevel;
-
 class PosNetResponseDataMapper extends AbstractResponseDataMapper
 {
     /** @var string */
@@ -47,7 +45,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
     public function mapPaymentResponse(array $rawPaymentResponseData): array
     {
         $status = self::TX_DECLINED;
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
+        $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
         if ([] === $rawPaymentResponseData) {
             return $this->getDefaultPaymentResponse();
         }
@@ -82,7 +80,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+        $this->logger->debug('mapping 3D payment data', [
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);

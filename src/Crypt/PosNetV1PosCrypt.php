@@ -7,7 +7,6 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Psr\Log\LogLevel;
 
 class PosNetV1PosCrypt extends AbstractCrypt
 {
@@ -48,14 +47,14 @@ class PosNetV1PosCrypt extends AbstractCrypt
         $actualHash = $this->hashFromParams((string) $account->getStoreKey(), $data, 'MacParams', ':');
 
         if ($actualHash !== $data['Mac']) {
-            $this->logger->log(LogLevel::ERROR, 'hash check failed', [
+            $this->logger->error('hash check failed', [
                 'order_id' => $data['OrderId'],
             ]);
 
             return false;
         }
 
-        $this->logger->log(LogLevel::DEBUG, 'hash check is successful', [
+        $this->logger->debug('hash check is successful', [
             'order_id' => $data['OrderId'],
         ]);
 

@@ -6,7 +6,6 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\PosInterface;
-use Psr\Log\LogLevel;
 
 class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
 {
@@ -27,7 +26,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapPaymentResponse(array $rawPaymentResponseData): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
+        $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
 
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
         $result                 = $this->getDefaultPaymentResponse();
@@ -50,7 +49,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED !== $status) {
             $result['error_code']    = $procReturnCode;
             $result['error_message'] = $rawPaymentResponseData['ResponseMessage'];
-            $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $result);
+            $this->logger->debug('mapped payment response', $result);
 
             return $result;
         }
@@ -70,7 +69,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         $result['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
         $result['masked_number'] = $vPosMessage['CardNumber'];
 
-        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $result);
+        $this->logger->debug('mapped payment response', $result);
 
         return $result;
     }
@@ -80,7 +79,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+        $this->logger->debug('mapping 3D payment data', [
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);

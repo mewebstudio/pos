@@ -15,7 +15,6 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
@@ -87,15 +86,15 @@ class PosNetV1Pos extends AbstractGateway
          *   9: Üye İşyeri 3D-Secure sistemine kayıtlı değil (bankada işyeri ve terminal numarası 3d olarak tanımlı değil.)
          */
         if ('1' !== $mdStatus) {
-            $this->logger->log(LogLevel::ERROR, '3d auth fail', ['md_status' => $mdStatus]);
+            $this->logger->error('3d auth fail', ['md_status' => $mdStatus]);
         } else {
-            $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $mdStatus]);
+            $this->logger->debug('finishing payment', ['md_status' => $mdStatus]);
             $requestData       = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
 
             $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
             $this->eventDispatcher->dispatch($event);
             if ($requestData !== $event->getRequestData()) {
-                $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+                $this->logger->debug('Request data is changed via listeners', [
                     'txType'      => $event->getTxType(),
                     'bank'        => $event->getBank(),
                     'initialData' => $requestData,
@@ -106,11 +105,11 @@ class PosNetV1Pos extends AbstractGateway
 
             $contents          = $this->serializer->encode($requestData, $txType);
             $provisionResponse = $this->send($contents, $txType);
-            $this->logger->log(LogLevel::DEBUG, 'send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
+            $this->logger->debug('send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
         }
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $provisionResponse);
-        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -128,7 +127,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
     {
-        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
+        $this->logger->debug('preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), $card);
     }
@@ -149,7 +148,7 @@ class PosNetV1Pos extends AbstractGateway
     protected function send($contents, string $txType, ?string $url = null): array
     {
         $url = $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $this->logger->debug('sending request', ['url' => $url]);
 
         if (!is_string($contents)) {
             throw new InvalidArgumentException('Invalid data provided');
@@ -163,12 +162,12 @@ class PosNetV1Pos extends AbstractGateway
             'body'    => $body,
         ]);
 
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         try {
             return $this->data = $this->serializer->decode($response->getBody(), $txType);
         } catch (NotEncodableValueException $e) {
-            $this->logger->log(LogLevel::ERROR, 'parsing bank JSON response failed', [
+            $this->logger->error('parsing bank JSON response failed', [
                 'status_code' => $response->getStatusCode(),
                 'response'    => $response->getBody(),
                 'message'     => $e->getMessage(),

@@ -16,7 +16,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use function gettype;
 use function is_string;
@@ -67,7 +66,7 @@ class PayFlexV4Pos extends AbstractGateway
             return $this;
         }
 
-        $this->logger->log(LogLevel::DEBUG, 'finishing payment', ['md_status' => $status]);
+        $this->logger->debug('finishing payment', ['md_status' => $status]);
         /** @var array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $requestData */
         $requestData = $request->all();
         // NOT: diger gatewaylerden farkli olarak payflex kredit bilgilerini bu asamada da istiyor.
@@ -76,7 +75,7 @@ class PayFlexV4Pos extends AbstractGateway
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -90,7 +89,7 @@ class PayFlexV4Pos extends AbstractGateway
         $bankResponse = $this->send($contents, $txType);
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse);
-        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
     }
@@ -139,22 +138,22 @@ class PayFlexV4Pos extends AbstractGateway
          * E:Hata durumu
          */
         if ('E' === $status) {
-            $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
+            $this->logger->error('enrollment fail response', $data);
             throw new Exception($data['ErrorMessage'], $data['MessageErrorCode']);
         }
 
         if ('N' === $status) {
             //half secure olarak devam et yada satisi iptal et.
-            $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
+            $this->logger->error('enrollment fail response', $data);
             throw new Exception('Kart 3-D Secure programına dâhil değil');
         }
 
         if ('U' === $status) {
-            $this->logger->log(LogLevel::ERROR, 'enrollment fail response', $data);
+            $this->logger->error('enrollment fail response', $data);
             throw new Exception('İşlem gerçekleştirilemiyor');
         }
 
-        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
+        $this->logger->debug('preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, null, $paymentModel, $txType, '', null, $data['Message']['VERes']);
     }
@@ -180,7 +179,7 @@ class PayFlexV4Pos extends AbstractGateway
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -200,14 +199,14 @@ class PayFlexV4Pos extends AbstractGateway
     protected function send($contents, string $txType, ?string $url = null): array
     {
         $url = $url ?: $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+        $this->logger->debug('sending request', ['url' => $url]);
 
         if (!is_string($contents)) {
             throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
         }
 
         $response = $this->client->post($url, ['form_params' => ['prmstr' => $contents]]);
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }

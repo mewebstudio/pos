@@ -17,7 +17,6 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\Request;
 use function in_array;
 
@@ -174,7 +173,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $request = Request::createFromGlobals();
 
-        $this->logger->log(LogLevel::DEBUG, 'payment called', [
+        $this->logger->debug('payment called', [
             'card_provided' => (bool) $card,
             'tx_type'       => $txType,
             'model'         => $paymentModel,
@@ -197,7 +196,7 @@ abstract class AbstractGateway implements PosInterface
         } elseif (PosInterface::MODEL_3D_HOST === $paymentModel) {
             $this->make3DHostPayment($request);
         } else {
-            $this->logger->log(LogLevel::ERROR, 'unsupported payment model', ['model' => $paymentModel]);
+            $this->logger->error('unsupported payment model', ['model' => $paymentModel]);
             throw new UnsupportedPaymentModelException();
         }
 
@@ -209,7 +208,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType): PosInterface
     {
-        $this->logger->log(LogLevel::DEBUG, 'making payment', [
+        $this->logger->debug('making payment', [
             'model'   => PosInterface::MODEL_NON_SECURE,
             'tx_type' => $txType,
         ]);
@@ -222,7 +221,7 @@ abstract class AbstractGateway implements PosInterface
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -243,7 +242,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function makeRegularPostPayment(array $order): PosInterface
     {
-        $this->logger->log(LogLevel::DEBUG, 'making payment', [
+        $this->logger->debug('making payment', [
             'model'   => PosInterface::MODEL_NON_SECURE,
             'tx_type' => PosInterface::TX_POST_PAY,
         ]);
@@ -253,7 +252,7 @@ abstract class AbstractGateway implements PosInterface
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_POST_PAY);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -279,7 +278,7 @@ abstract class AbstractGateway implements PosInterface
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_REFUND);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -305,7 +304,7 @@ abstract class AbstractGateway implements PosInterface
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_CANCEL);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -331,7 +330,7 @@ abstract class AbstractGateway implements PosInterface
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_STATUS);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -357,7 +356,7 @@ abstract class AbstractGateway implements PosInterface
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_HISTORY);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
-            $this->logger->log(LogLevel::DEBUG, 'Request data is changed via listeners', [
+            $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
                 'bank'        => $event->getBank(),
                 'initialData' => $requestData,
@@ -382,7 +381,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $this->testMode = $testMode;
         $this->requestDataMapper->setTestMode($testMode);
-        $this->logger->log(LogLevel::DEBUG, 'switching mode', ['mode' => $this->getModeInWord()]);
+        $this->logger->debug('switching mode', ['mode' => $this->getModeInWord()]);
 
         return $this;
     }

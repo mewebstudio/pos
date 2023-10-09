@@ -5,8 +5,6 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
-use Psr\Log\LogLevel;
-
 class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 {
     /**
@@ -44,7 +42,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
     {
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
         $procReturnCode         = $this->getProcReturnCode($rawPaymentResponseData);
-        $this->logger->log(LogLevel::DEBUG, 'mapping payment response', [$rawPaymentResponseData]);
+        $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
 
         $status = self::TX_DECLINED;
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
@@ -64,7 +62,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'all'              => $rawPaymentResponseData,
         ];
 
-        $this->logger->log(LogLevel::DEBUG, 'mapped payment response', $mappedResponse);
+        $this->logger->debug('mapped payment response', $mappedResponse);
 
         return $mappedResponse;
     }
@@ -75,7 +73,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $this->logger->log(LogLevel::DEBUG, 'mapping 3D payment data', [
+        $this->logger->debug('mapping 3D payment data', [
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);
