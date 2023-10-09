@@ -12,6 +12,11 @@ use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Exceptions\CardTypeNotSupportedException;
 use Mews\Pos\Exceptions\CardTypeRequiredException;
 use Mews\Pos\PosInterface;
+use function array_keys;
+use function get_class;
+use function in_array;
+use function preg_replace;
+use function str_pad;
 
 /**
  * CreditCardFactory
@@ -43,6 +48,9 @@ class CreditCardFactory
     ): AbstractCreditCard {
 
         $number = preg_replace('/\s+/', '', $number);
+        if (null === $number) {
+            throw new DomainException(sprintf('Bad credit card number %s', $number));
+        }
         $expireYear =  str_pad($expireYear, 2, '0', STR_PAD_LEFT);
         $expireYear =  str_pad($expireYear, 4, '20', STR_PAD_LEFT);
         $expireMonth = str_pad($expireMonth, 2, '0', STR_PAD_LEFT);
@@ -53,12 +61,13 @@ class CreditCardFactory
         }
 
         $supportedCardTypes = array_keys($pos->getCardTypeMapping());
-        if ([] !== $supportedCardTypes && empty($cardType)) {
-            throw new CardTypeRequiredException($pos::NAME);
-        }
-
-        if ([] !== $supportedCardTypes && !in_array($cardType, $supportedCardTypes, true)) {
-            throw new CardTypeNotSupportedException($cardType);
+        if ([] !== $supportedCardTypes) {
+            if (null === $cardType) {
+                throw new CardTypeRequiredException(get_class($pos));
+            }
+            if (!in_array($cardType, $supportedCardTypes, true)) {
+                throw new CardTypeNotSupportedException($cardType);
+            }
         }
 
         return new CreditCard($number, $expDate, $cvv, $cardHolderName, $cardType);

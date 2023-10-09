@@ -181,21 +181,6 @@ parameters:
 			path: src/Exceptions/NotImplementedException.php
 
 		-
-			message: "#^Access to undefined constant Mews\\\\Pos\\\\PosInterface\\:\\:NAME\\.$#"
-			count: 1
-			path: src/Factory/CreditCardFactory.php
-
-		-
-			message: "#^Parameter \\#1 \\$number of class Mews\\\\Pos\\\\Entity\\\\Card\\\\CreditCard constructor expects string, string\\|null given\\.$#"
-			count: 1
-			path: src/Factory/CreditCardFactory.php
-
-		-
-			message: "#^Parameter \\#1 \\$type of class Mews\\\\Pos\\\\Exceptions\\\\CardTypeNotSupportedException constructor expects string, string\\|null given\\.$#"
-			count: 1
-			path: src/Factory/CreditCardFactory.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Factory\\\\PosFactory\\:\\:createPosGateway\\(\\) has parameter \\$config with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Factory/PosFactory.php
