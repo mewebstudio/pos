@@ -5,6 +5,7 @@
 
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
+use DateTimeInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
@@ -124,17 +125,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         }
 
         if (isset($order['recurringFrequency'])) {
-            $requestData['IsRecurring'] = 'true';
-            // Periyodik İşlem Frekansı
-            $requestData['RecurringFrequency'] = $order['recurringFrequency'];
-            //Day|Month|Year
-            $requestData['RecurringFrequencyType'] = $this->mapRecurringFrequency($order['recurringFrequencyType']);
-            //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
-            $requestData['RecurringInstallmentCount'] = $order['recurringInstallmentCount'];
-            if (isset($order['recurringEndDate'])) {
-                //YYYYMMDD
-                $requestData['RecurringEndDate'] = $order['recurringEndDate'];
-            }
+            $requestData = array_merge($requestData, $this->createRecurringData($order));
         }
 
         return $requestData;
@@ -363,6 +354,26 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId' => $account->getClientId(),
             'Password'   => $account->getPassword(),
             'TerminalNo' => $account->getTerminalId(),
+        ];
+    }
+
+    /**
+     * @param array{recurringFrequency: int, recurringInstallmentCount: int, recurringFrequencyType: string, recurringFrequency: int, recurringEndDate: DateTimeInterface} $order
+     *
+     * @return array{IsRecurring: 'true', RecurringFrequency: string, RecurringFrequencyType: string, RecurringInstallmentCount: string, RecurringEndDate: string}
+     */
+    private function createRecurringData(array $order): array
+    {
+        return [
+            'IsRecurring'               => 'true',
+            'RecurringFrequency'        => (string) $order['recurringFrequency'], // Periyodik İşlem Frekansı
+            'RecurringFrequencyType'    => $this->mapRecurringFrequency($order['recurringFrequencyType']), // Day|Month|Year
+            // recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
+            'RecurringInstallmentCount' => (string) $order['recurringInstallmentCount'],
+            /**
+             * Bu alandaki tarih, kartın son kullanma tarihinden büyükse ACS sunucusu işlemi reddeder.
+             */
+            'RecurringEndDate'          => $order['recurringEndDate']->format('Ymd'),
         ];
     }
 }

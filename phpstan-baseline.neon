@@ -61,6 +61,11 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
 
 		-
+			message: "#^Parameter \\#1 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:createRecurringData\\(\\) expects array\\{recurringFrequency\\: int, recurringInstallmentCount\\: int, recurringFrequencyType\\: string, recurringEndDate\\: DateTimeInterface\\}, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
+
+		-
 			message: "#^Cannot assign offset 'authCode' to array\\<string, string\\>\\|string\\.$#"
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PosNetRequestDataMapper.php

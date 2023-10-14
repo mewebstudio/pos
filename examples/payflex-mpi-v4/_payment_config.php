@@ -21,14 +21,18 @@ function getNewOrder(
 
     if ($tekrarlanan) {
         $order['installment'] = 0; //Tekrarlayan ödemeler taksitli olamaz.
+
+        $recurringFrequency = 3;
+        $recurringFrequencyType = 'MONTH'; //DAY|MONTH|YEAR
+        $endPeriod = $installment * $recurringFrequency;
         $order = array_merge($order, [
             //tekrarlanan odemeler icin (optional):
-            'recurringFrequency'        => 3,
-            'recurringFrequencyType'    => 'MONTH', //DAY|MONTH|YEAR
+            'recurringFrequency'        => $recurringFrequency,
+            'recurringFrequencyType'    => $recurringFrequencyType,
             //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
             'recurringInstallmentCount' => $installment,
-            'recurringEndDate'          => '202112', //optional
-            // yukardaki belirtilen ayarin anlami 3 ayda bir kesintip yap ve bunu toplam 4 kere tekrarla.
+            'recurringEndDate'          => (new DateTime())->modify("+$endPeriod $recurringFrequencyType"),
+            // yukardaki belirtilen ayarin anlami 3 ayda bir kesintip yap ve bunu toplam $installment kadar kere tekrarla.
         ]);
     }
 

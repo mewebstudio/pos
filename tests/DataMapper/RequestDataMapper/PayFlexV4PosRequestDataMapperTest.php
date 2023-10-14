@@ -154,6 +154,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $this->order['recurringFrequencyType'] = 'DAY';
         $this->order['recurringFrequency'] = 3;
         $this->order['recurringInstallmentCount'] = 2;
+        $this->order['recurringEndDate'] = new \DateTime('2023-10-14');
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
         $expectedValue = $this->getSample3DEnrollmentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedValue, $actual);
@@ -359,9 +360,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             $expectedValue['RecurringFrequency'] = $order['recurringFrequency'];
             $expectedValue['RecurringFrequencyType'] = 'Day';
             $expectedValue['RecurringInstallmentCount'] = $order['recurringInstallmentCount'];
-            if (isset($order['recurringEndDate'])) {
-                $expectedValue['RecurringEndDate'] = $order['recurringEndDate'];
-            }
+            $expectedValue['RecurringEndDate'] = '20231014';
         }
 
         return $expectedValue;
