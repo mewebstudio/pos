@@ -90,7 +90,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             ];
 
         if (isset($order['recurringFrequency'])) {
-            $requestData += $this->getRecurringRequestOrderData($order);
+            $requestData += $this->createRecurringData($order);
         }
 
         return $requestData;
@@ -118,7 +118,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             ];
 
         if (isset($order['recurringFrequency'])) {
-            $requestData += $this->getRecurringRequestOrderData($order);
+            $requestData += $this->createRecurringData($order);
         }
 
         return $requestData;
@@ -353,7 +353,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return array{PbOrder: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}}
      */
-    private function getRecurringRequestOrderData(array $order): array
+    private function createRecurringData(array $order): array
     {
         return [
             'PbOrder' => [
