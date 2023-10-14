@@ -9,6 +9,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
@@ -137,29 +138,14 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider three3DEnrollmentRequestDataDataProvider
      */
-    public function testCreate3DEnrollmentCheckData()
+    public function testCreate3DEnrollmentCheckData(array $order, ?AbstractCreditCard $card, array $expected)
     {
-        $expectedValue = $this->getSample3DEnrollmentRequestData($this->account, $this->order, $this->card);
-        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
-        $this->assertEquals($expectedValue, $actual);
-
-
-        $this->order['installment'] = 2;
-        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
-        $expectedValue = $this->getSample3DEnrollmentRequestData($this->account, $this->order, $this->card);
-        $this->assertEquals($expectedValue, $actual);
-
-        $this->order['recurringFrequencyType'] = 'DAY';
-        $this->order['recurringFrequency'] = 3;
-        $this->order['recurringInstallmentCount'] = 2;
-        $this->order['recurringEndDate'] = new \DateTime('2023-10-14');
-        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
-        $expectedValue = $this->getSample3DEnrollmentRequestData($this->account, $this->order, $this->card);
-        $this->assertEquals($expectedValue, $actual);
-        $this->assertArrayHasKey('RecurringFrequency', $actual);
+        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $card);
+        $this->assertEquals($expected, $actual);
     }
+
 
     /**
      * @return void
@@ -326,44 +312,90 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         return $expectedValue;
     }
 
-
-    /**
-     * @param PayFlexAccount          $account
-     * @param array                   $order
-     * @param AbstractCreditCard|null $card
-     *
-     * @return array
-     */
-    private function getSample3DEnrollmentRequestData(AbstractPosAccount $account, array $order, ?AbstractCreditCard $card): array
+    public static function three3DEnrollmentRequestDataDataProvider(): \Generator
     {
-        $expectedValue = [
-            'MerchantId'                => $account->getClientId(),
-            'MerchantPassword'          => $account->getPassword(),
-            'MerchantType'              => $account->getMerchantType(),
-            'PurchaseAmount'            => $order['amount'],
-            'VerifyEnrollmentRequestId' => $order['rand'],
-            'Currency'                  => '949',
-            'SuccessUrl'                => $order['success_url'],
-            'FailureUrl'                => $order['fail_url'],
-            'Pan'                       => $card->getNumber(),
-            'ExpiryDate'                => '2112',
-            'BrandName'                 => '100',
-            'IsRecurring'               => 'false',
+        $order = [
+            'id'          => 'order222',
+            'amount'      => 100.00,
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'success_url' => 'https://domain.com/success',
+            'fail_url'    => 'https://domain.com/fail_url',
+            'rand'        => 'rand123',
+            'ip'          => '127.0.0.1',
         ];
 
-        if ($order['installment']) {
-            $expectedValue['InstallmentCount'] = $this->requestDataMapper->mapInstallment($order['installment']);
-        }
+        $card = new CreditCard('5555444433332222', new \DateTimeImmutable('2021-12-01'), '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
 
-        if (isset($order['recurringFrequency'])) {
-            $expectedValue['IsRecurring'] = 'true';
-            $expectedValue['RecurringFrequency'] = $order['recurringFrequency'];
-            $expectedValue['RecurringFrequencyType'] = 'Day';
-            $expectedValue['RecurringInstallmentCount'] = $order['recurringInstallmentCount'];
-            $expectedValue['RecurringEndDate'] = '20231014';
-        }
+        yield [
+            'order'    => $order,
+            'card'     => $card,
+            'expected' => [
+                'MerchantId'                => '000000000111111',
+                'MerchantPassword'          => '3XTgER89as',
+                'MerchantType'              => 0,
+                'PurchaseAmount'            => '100.00',
+                'VerifyEnrollmentRequestId' => 'rand123',
+                'Currency'                  => '949',
+                'SuccessUrl'                => 'https://domain.com/success',
+                'FailureUrl'                => 'https://domain.com/fail_url',
+                'Pan'                       => '5555444433332222',
+                'ExpiryDate'                => '2112',
+                'BrandName'                 => '100',
+                'IsRecurring'               => 'false',
+            ],
+        ];
 
-        return $expectedValue;
+        $order['installment'] = 2;
+        yield 'with_installment' => [
+            'order'    => $order,
+            'card'     => $card,
+            'expected' => [
+                'MerchantId'                => '000000000111111',
+                'MerchantPassword'          => '3XTgER89as',
+                'MerchantType'              => 0,
+                'PurchaseAmount'            => '100.00',
+                'VerifyEnrollmentRequestId' => 'rand123',
+                'Currency'                  => '949',
+                'SuccessUrl'                => 'https://domain.com/success',
+                'FailureUrl'                => 'https://domain.com/fail_url',
+                'IsRecurring'               => 'false',
+                'InstallmentCount'          => '2',
+                'Pan'                       => '5555444433332222',
+                'ExpiryDate'                => '2112',
+                'BrandName'                 => '100',
+            ],
+        ];
+
+        $order['installment']               = 0;
+        $order['recurringFrequencyType']    = 'DAY';
+        $order['recurringFrequency']        = 3;
+        $order['recurringInstallmentCount'] = 2;
+        $order['recurringEndDate']          = new \DateTime('2023-10-14');
+
+        yield 'with_recurrent_payment' => [
+            'order'    => $order,
+            'card'     => $card,
+            'expected' => [
+                'MerchantId'                => '000000000111111',
+                'MerchantPassword'          => '3XTgER89as',
+                'MerchantType'              => 0,
+                'PurchaseAmount'            => '100.00',
+                'VerifyEnrollmentRequestId' => 'rand123',
+                'Currency'                  => '949',
+                'SuccessUrl'                => 'https://domain.com/success',
+                'FailureUrl'                => 'https://domain.com/fail_url',
+                'IsRecurring'               => 'true',
+                'Pan'                       => '5555444433332222',
+                'ExpiryDate'                => '2112',
+                'BrandName'                 => '100',
+                'RecurringFrequency'        => '3',
+                'RecurringFrequencyType'    => 'Day',
+                'RecurringInstallmentCount' => '2',
+                'RecurringEndDate'          => '20231014',
+            ],
+        ];
+
     }
 
     /**
