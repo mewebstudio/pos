@@ -88,7 +88,7 @@ class PosNetV1PosTest extends TestCase
     {
         $request        = Request::create('', 'POST', $threeDResponseData);
         $crypt          = CryptFactory::createGatewayCrypt(PosNetV1Pos::class, new NullLogger());
-        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(PosNetV1Pos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(PosNetV1Pos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PosNetV1Pos::class, $requestMapper, new NullLogger());
         $serializer     = SerializerFactory::createGatewaySerializer(PosNetV1Pos::class);
 

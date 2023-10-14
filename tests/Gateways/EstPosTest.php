@@ -95,7 +95,7 @@ class EstPosTest extends TestCase
         $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['authFail1']['paymentData']);
 
         $crypt = CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = RequestDataMapperFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt);
+        $requestMapper = RequestDataMapperFactory::createGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt);
         $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = SerializerFactory::createGatewaySerializer(EstPos::class);
 
@@ -162,7 +162,7 @@ class EstPosTest extends TestCase
         $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['authFail1']['paymentData']);
 
         $crypt = CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = RequestDataMapperFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $requestMapper = RequestDataMapperFactory::createGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = SerializerFactory::createGatewaySerializer(EstPos::class);
 
@@ -195,7 +195,7 @@ class EstPosTest extends TestCase
     public function testStatus(array $testData, bool $isSuccess): void
     {
         $crypt = CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = RequestDataMapperFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $requestMapper = RequestDataMapperFactory::createGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = SerializerFactory::createGatewaySerializer(EstPos::class);
 
@@ -303,7 +303,7 @@ class EstPosTest extends TestCase
     public function testCancelSuccess()
     {
         $crypt = CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = RequestDataMapperFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $requestMapper = RequestDataMapperFactory::createGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = SerializerFactory::createGatewaySerializer(EstPos::class);
 
@@ -338,7 +338,7 @@ class EstPosTest extends TestCase
     public function testCancelFail()
     {
         $crypt = CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = RequestDataMapperFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $requestMapper = RequestDataMapperFactory::createGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = SerializerFactory::createGatewaySerializer(EstPos::class);
 
@@ -373,7 +373,7 @@ class EstPosTest extends TestCase
     public function testRefundFail()
     {
         $crypt = CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger());
-        $requestMapper = RequestDataMapperFactory::getGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $requestMapper = RequestDataMapperFactory::createGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(EstPos::class, $requestMapper, new NullLogger());
         $serializer = SerializerFactory::createGatewaySerializer(EstPos::class);
 

@@ -44,7 +44,7 @@ class RequestDataMapperFactory
      *
      * @return RequestDataMapperInterface
      */
-    public static function getGatewayRequestMapper(string $gatewayClass, EventDispatcherInterface $eventDispatcher, CryptInterface $crypt, array $currencies = []): RequestDataMapperInterface
+    public static function createGatewayRequestMapper(string $gatewayClass, EventDispatcherInterface $eventDispatcher, CryptInterface $crypt, array $currencies = []): RequestDataMapperInterface
     {
         $classMappings = [
             EstPos::class         => EstPosRequestDataMapper::class,

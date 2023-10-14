@@ -97,7 +97,7 @@ class PosNetTest extends TestCase
     public function testGet3DFormDataOosTransactionFail()
     {
         $this->expectException(Exception::class);
-        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(
+        $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(
             PosNet::class,
             $this->createMock(EventDispatcherInterface::class),
             $this->createMock(CryptInterface::class)
@@ -138,7 +138,7 @@ class PosNetTest extends TestCase
             'Sign'           => '',
         ]);
         $crypt = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
-        $requestMapper = RequestDataMapperFactory::getGatewayRequestMapper(PosNet::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $requestMapper = RequestDataMapperFactory::createGatewayRequestMapper(PosNet::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
         $serializer = SerializerFactory::createGatewaySerializer(PosNet::class);
 

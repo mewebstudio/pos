@@ -125,7 +125,7 @@ class KuveytPosTest extends TestCase
     public function testGetCommon3DFormDataSuccessResponse(array $sendReturn, array $expected)
     {
         $crypt         = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());
-        $requestMapper = RequestDataMapperFactory::getGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $requestMapper = RequestDataMapperFactory::createGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $serializer    = SerializerFactory::createGatewaySerializer(KuveytPos::class);
 
         $posMock = $this->getMockBuilder(KuveytPos::class)
@@ -178,7 +178,7 @@ class KuveytPosTest extends TestCase
     public function testMake3DPaymentAuthSuccessProvisionFail()
     {
         $crypt          = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());
-        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
         $serializer     = SerializerFactory::createGatewaySerializer(KuveytPos::class);
 
@@ -220,7 +220,7 @@ class KuveytPosTest extends TestCase
     public function testMake3DPaymentAuthSuccessProvisionSuccess()
     {
         $crypt                           = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());
-        $requestMapper                   = RequestDataMapperFactory::getGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $requestMapper                   = RequestDataMapperFactory::createGatewayRequestMapper(KuveytPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper                  = ResponseDataMapperFactory::createGatewayResponseMapper(KuveytPos::class, $requestMapper, new NullLogger());
         $serializer                      = SerializerFactory::createGatewaySerializer(KuveytPos::class);
         $kuveytPosResponseDataMapperTest = new KuveytPosResponseDataMapperTest();

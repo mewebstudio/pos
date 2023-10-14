@@ -71,7 +71,7 @@ class PosFactory
         $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
 
         $crypt              = CryptFactory::createGatewayCrypt($class, $logger);
-        $requestDataMapper  = RequestDataMapperFactory::getGatewayRequestMapper($class, $eventDispatcher, $crypt, $currencies);
+        $requestDataMapper  = RequestDataMapperFactory::createGatewayRequestMapper($class, $eventDispatcher, $crypt, $currencies);
         $responseDataMapper = ResponseDataMapperFactory::createGatewayResponseMapper($class, $requestDataMapper, $logger);
         $serializer         = SerializerFactory::createGatewaySerializer($class);
 

@@ -96,7 +96,7 @@ class PayFlexV4PosTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionCode(2005);
 
-        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(
+        $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(
             PayFlexV4Pos::class,
             $this->createMock(EventDispatcherInterface::class),
             $this->createMock(CryptInterface::class)
@@ -128,7 +128,7 @@ class PayFlexV4PosTest extends TestCase
     {
         $enrollmentResponse = PayFlexV4PosRequestDataMapperTest::getSampleEnrollmentSuccessResponseDataProvider();
 
-        $requestMapper  = RequestDataMapperFactory::getGatewayRequestMapper(
+        $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(
             PayFlexV4Pos::class,
             $this->createMock(EventDispatcherInterface::class),
             $this->createMock(CryptInterface::class)
