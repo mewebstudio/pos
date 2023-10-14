@@ -6,25 +6,7 @@ use Mews\Pos\PosInterface;
 require __DIR__.'/../_main_config.php';
 
 $bankTestsUrl = $hostUrl.'/kuveytpos';
-
-$subMenu = [
-    PosInterface::MODEL_3D_SECURE => [
-        'path' => '/3d/index.php',
-        'label' => '3D Ödeme',
-    ],
-    PosInterface::TX_STATUS => [
-        'path' => '/regular/status.php',
-        'label' => 'Ödeme Durumu',
-    ],
-    PosInterface::TX_CANCEL => [
-        'path' => '/regular/cancel.php',
-        'label' => 'İptal',
-    ],
-    PosInterface::TX_REFUND => [
-        'path' => '/regular/refund.php',
-        'label' => 'İade',
-    ],
-];
+$posClass = \Mews\Pos\Gateways\KuveytPos::class;
 
 $installments = [
     0  => 'Peşin',

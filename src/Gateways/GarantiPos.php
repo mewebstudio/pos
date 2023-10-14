@@ -32,6 +32,22 @@ class GarantiPos extends AbstractGateway
     /** @var GarantiPosResponseDataMapper */
     protected $responseDataMapper;
 
+    /** @inheritdoc */
+    protected static $supportedTransactions = [
+        PosInterface::TX_PAY      => [
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_PAY,
+            PosInterface::MODEL_NON_SECURE,
+        ],
+        PosInterface::TX_PRE_PAY  => true,
+        PosInterface::TX_POST_PAY => true,
+        PosInterface::TX_STATUS   => true,
+        PosInterface::TX_CANCEL   => true,
+        PosInterface::TX_REFUND   => true,
+        PosInterface::TX_HISTORY  => true,
+    ];
+
+
     /** @return GarantiPosAccount */
     public function getAccount(): AbstractPosAccount
     {

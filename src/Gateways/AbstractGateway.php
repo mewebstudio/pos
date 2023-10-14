@@ -60,6 +60,11 @@ abstract class AbstractGateway implements PosInterface
     /** @var LoggerInterface */
     protected $logger;
 
+    /**
+     * @var array<PosInterface::TX_*, array<int, PosInterface::MODEL_*>|bool>
+     */
+    protected static $supportedTransactions = [];
+
     /** @var bool */
     private $testMode = false;
 
@@ -422,5 +427,21 @@ abstract class AbstractGateway implements PosInterface
     protected function getModeInWord(): string
     {
         return $this->isTestMode() ? 'test' : 'production';
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function isSupportedTransaction(string $txType, string $paymentModel): bool
+    {
+        if (!isset(static::$supportedTransactions[$txType])) {
+            return false;
+        }
+
+        if (is_bool(static::$supportedTransactions[$txType])) {
+            return static::$supportedTransactions[$txType];
+        }
+
+        return in_array($paymentModel, static::$supportedTransactions[$txType], true);
     }
 }

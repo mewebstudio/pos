@@ -62,7 +62,7 @@ function createCard(\Mews\Pos\PosInterface $pos, array $card): \Mews\Pos\Entity\
 function createNewPaymentOrderCommon(
     string $baseUrl,
     string $ip,
-    string $currency = PosInterface::CURRENCY_TRY,
+    string $currency = \Mews\Pos\PosInterface::CURRENCY_TRY,
     ?int $installment = 0,
     ?string $lang = null
 ): array {

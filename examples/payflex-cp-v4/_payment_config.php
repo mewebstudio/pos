@@ -6,30 +6,7 @@ use Mews\Pos\PosInterface;
 require __DIR__.'/../_main_config.php';
 
 $bankTestsUrl = $hostUrl.'/payflex-cp-v4';
-
-$subMenu = [
-    PosInterface::MODEL_3D_SECURE => [
-        'path' => '/3d-pay/index.php',
-        'label' => '3D Pay Ödeme',
-    ],
-    PosInterface::MODEL_3D_HOST => [
-        'path' => '/3d-host/index.php',
-        'label' => '3D Host Ödeme',
-    ],
-    PosInterface::MODEL_NON_SECURE => [
-        'path' => '/regular/index.php',
-        'label' => 'Non Secure Ödeme',
-    ],
-    PosInterface::TX_CANCEL => [
-        'path' => '/regular/cancel.php',
-        'label' => 'İptal',
-    ],
-    PosInterface::TX_REFUND => [
-        'path' => '/regular/refund.php',
-        'label' => 'İade',
-    ],
-];
-
+$posClass = \Mews\Pos\Gateways\PayFlexCPV4Pos::class;
 
 $installments = [
     0  => 'Peşin',

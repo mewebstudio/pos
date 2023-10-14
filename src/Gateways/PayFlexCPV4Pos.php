@@ -38,6 +38,21 @@ class PayFlexCPV4Pos extends AbstractGateway
     /** @var PayFlexCPV4PosResponseDataMapper */
     protected $responseDataMapper;
 
+    /** @inheritdoc */
+    protected static $supportedTransactions = [
+        PosInterface::TX_PAY      => [
+            PosInterface::MODEL_3D_PAY,
+            PosInterface::MODEL_3D_HOST,
+            PosInterface::MODEL_NON_SECURE,
+        ],
+        PosInterface::TX_PRE_PAY  => true,
+        PosInterface::TX_POST_PAY => true,
+        PosInterface::TX_STATUS   => false,
+        PosInterface::TX_CANCEL   => true,
+        PosInterface::TX_REFUND   => true,
+        PosInterface::TX_HISTORY  => false,
+    ];
+
     /** @return PayFlexAccount */
     public function getAccount(): AbstractPosAccount
     {

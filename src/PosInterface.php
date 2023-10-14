@@ -236,4 +236,15 @@ interface PosInterface
      * @return AbstractPosAccount
      */
     public function getAccount(): AbstractPosAccount;
+
+    /**
+     * @phpstan-param PosInterface::TX_* $txType
+     * @phpstan-param PosInterface::MODEL_* $paymentModel
+     *
+     * @param string $txType
+     * @param string $paymentModel
+     *
+     * @return bool
+     */
+    public static function isSupportedTransaction(string $txType, string $paymentModel): bool;
 }

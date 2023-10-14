@@ -44,6 +44,19 @@ class KuveytPos extends AbstractGateway
     /** @var KuveytPosResponseDataMapper */
     protected $responseDataMapper;
 
+    /** @inheritdoc */
+    protected static $supportedTransactions = [
+        PosInterface::TX_PAY      => [
+            PosInterface::MODEL_3D_SECURE,
+        ],
+        PosInterface::TX_PRE_PAY  => false,
+        PosInterface::TX_POST_PAY => false,
+        PosInterface::TX_STATUS   => true,
+        PosInterface::TX_CANCEL   => true,
+        PosInterface::TX_REFUND   => true,
+        PosInterface::TX_HISTORY  => false,
+    ];
+
     /** @return KuveytPosAccount */
     public function getAccount(): AbstractPosAccount
     {

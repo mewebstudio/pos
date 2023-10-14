@@ -28,6 +28,24 @@ class EstPos extends AbstractGateway
     /** @var EstPosAccount */
     protected $account;
 
+    /** @inheritdoc */
+    protected static $supportedTransactions = [
+        PosInterface::TX_PAY      => [
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_PAY,
+            PosInterface::MODEL_3D_HOST,
+            PosInterface::MODEL_3D_PAY_HOSTING,
+            PosInterface::MODEL_NON_SECURE,
+        ],
+        PosInterface::TX_PRE_PAY  => true,
+        PosInterface::TX_POST_PAY => true,
+        PosInterface::TX_STATUS   => true,
+        PosInterface::TX_CANCEL   => true,
+        PosInterface::TX_REFUND   => true,
+        PosInterface::TX_HISTORY  => true,
+    ];
+
+
     /** @return EstPosAccount */
     public function getAccount(): AbstractPosAccount
     {
