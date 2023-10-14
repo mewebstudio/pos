@@ -81,7 +81,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderId'                 => (string) $order['id'],
                 'Total'                   => (string) $order['amount'],
                 'Currency'                => $this->mapCurrency($order['currency']),
-                'Taksit'                  => $this->mapInstallment($order['installment']),
+                'Taksit'                  => $this->mapInstallment((int) $order['installment']),
                 'Number'                  => $responseData['md'],
                 'PayerTxnId'              => $responseData['xid'],
                 'PayerSecurityLevel'      => $responseData['eci'],
@@ -110,7 +110,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderId'   => (string) $order['id'],
                 'Total'     => (string) $order['amount'],
                 'Currency'  => $this->mapCurrency($order['currency']),
-                'Taksit'    => $this->mapInstallment($order['installment']),
+                'Taksit'    => $this->mapInstallment((int) $order['installment']),
                 'Number'    => $card->getNumber(),
                 'Expires'   => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'Cvv2Val'   => $card->getCvv(),
@@ -258,7 +258,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
-    public function create3DFormDataCommon(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    protected function create3DFormDataCommon(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
         $inputs = [
             'clientid'  => $account->getClientId(),
@@ -289,7 +289,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         ];
     }
 
-    public function mapInstallment(?int $installment): string
+    /**
+     * 0 => ''
+     * 1 => ''
+     * 2 => '2'
+     * @inheritDoc
+     */
+    public function mapInstallment(int $installment): string
     {
         return $installment > 1 ? (string) $installment : '';
     }

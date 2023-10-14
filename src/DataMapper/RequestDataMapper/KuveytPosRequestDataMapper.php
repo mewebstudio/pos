@@ -370,7 +370,13 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
         throw new NotImplementedException();
     }
 
-    public function mapInstallment(?int $installment): string
+    /**
+     * 0 => '0'
+     * 1 => '0'
+     * 2 => '2'
+     * @inheritDoc
+     */
+    public function mapInstallment(int $installment): string
     {
         return $installment > 1 ? (string) $installment : '0';
     }

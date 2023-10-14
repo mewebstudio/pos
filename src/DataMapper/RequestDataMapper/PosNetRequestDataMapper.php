@@ -390,13 +390,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * formats installment in 00, 02, 06 format
-     *
-     * @param int|null $installment
-     *
-     * @return string
+     * 0 => '00'
+     * 1 => '00'
+     * 2 => '02'
+     * @inheritDoc
      */
-    public function mapInstallment(?int $installment): string
+    public function mapInstallment(int $installment): string
     {
         if ($installment > 1) {
             return str_pad((string) $installment, 2, '0', STR_PAD_LEFT);

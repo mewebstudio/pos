@@ -97,7 +97,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderId'          => $order['id'],
                 'PurchAmount'      => $order['amount'],
                 'Currency'         => $this->mapCurrency($order['currency']),
-                'InstallmentCount' => $this->mapInstallment($order['installment']),
+                'InstallmentCount' => $this->mapInstallment((int) $order['installment']),
                 'MOTO'             => self::MOTO,
                 'Lang'             => $this->getLang($account, $order),
                 'CardType'         => $this->cardTypeMapping[$card->getType()],
@@ -206,7 +206,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'Rnd'              => $order['rand'],
             'Lang'             => $this->getLang($account, $order),
             'Currency'         => $this->mapCurrency($order['currency']),
-            'InstallmentCount' => $this->mapInstallment($order['installment']),
+            'InstallmentCount' => $this->mapInstallment((int) $order['installment']),
         ];
 
         if ($card instanceof AbstractCreditCard) {
@@ -229,7 +229,13 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         ];
     }
 
-    public function mapInstallment(?int $installment): string
+    /**
+     * 0 => ''
+     * 1 => ''
+     * 2 => '2'
+     * @inheritDoc
+     */
+    public function mapInstallment(int $installment): string
     {
         return $installment > 1 ? (string) $installment : '';
     }

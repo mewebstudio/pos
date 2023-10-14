@@ -196,7 +196,13 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
         return $this->recurringOrderFrequencyMapping;
     }
 
-    abstract public function mapInstallment(?int $installment): string;
+    /**
+     * formats installment
+     * @param int $installment
+     *
+     * @return string
+     */
+    abstract public function mapInstallment(int $installment): string;
 
     /**
      * bank returns error messages for specified language value

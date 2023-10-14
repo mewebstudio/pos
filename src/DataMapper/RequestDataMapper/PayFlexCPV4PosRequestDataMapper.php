@@ -301,7 +301,13 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         return number_format($amount, 2, '.', '');
     }
 
-    public function mapInstallment(?int $installment): string
+    /**
+     * 0 => '0'
+     * 1 => '0'
+     * 2 => '2'
+     * @inheritDoc
+     */
+    public function mapInstallment(int $installment): string
     {
         return $installment > 1 ? (string) $installment : '0';
     }

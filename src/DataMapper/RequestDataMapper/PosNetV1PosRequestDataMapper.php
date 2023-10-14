@@ -424,12 +424,12 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param int|null $installment
-     *
-     * formats installment
-     * @return numeric-string
+     * 0 => '0'
+     * 1 => '0'
+     * 2 => '2'
+     * @inheritDoc
      */
-    public function mapInstallment(?int $installment): string
+    public function mapInstallment(int $installment): string
     {
         if ($installment > 1) {
             return (string) $installment;
