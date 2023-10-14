@@ -368,7 +368,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return int
      */
-    public static function amountFormat($amount): int
+    public static function amountFormat(float $amount): int
     {
         return (int) (round($amount, 2) * 100);
     }
