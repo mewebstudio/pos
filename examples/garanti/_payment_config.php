@@ -77,12 +77,14 @@ function doPayment(PosInterface $pos, string $paymentModel, string $transaction,
 }
 
 $testCards = [
+    // test kartlar https://dev.garantibbva.com.tr/test-kartlari
     'visa1' => [
-        'number' => '4282209004348015',
-        'year' => '22',
-        'month' => '08',
-        'cvv' => '123',
+        // pin 147852
+        'number' => '5406697543211173',
+        'year' => '27',
+        'month' => '04',
+        'cvv' => '423',
         'name' => 'John Doe',
-        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+        'type' => AbstractCreditCard::CARD_TYPE_MASTERCARD,
     ],
 ];

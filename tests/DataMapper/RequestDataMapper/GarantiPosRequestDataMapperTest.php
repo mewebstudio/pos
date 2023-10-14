@@ -191,7 +191,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $inputs     = [
             'secure3dsecuritylevel' => '3D',
             'mode'                  => 'TEST',
-            'apiversion'            => 'v0.01',
+            'apiversion'            => '512',
             'terminalprovuserid'    => $account->getUsername(),
             'terminaluserid'        => $account->getUsername(),
             'terminalmerchantid'    => $account->getClientId(),
@@ -205,8 +205,8 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'errorurl'              => $this->order['fail_url'],
             'customeremailaddress'  => $this->order['email'],
             'customeripaddress'     => $this->order['ip'],
-            'secure3dhash'          => '1D319D5EA945F5730FF5BCC970FF96690993F4BD',
-            'cardnumber'            => $this->card->getNumber(),
+            'secure3dhash'          => '372D6CB20B2B699D0A6667DFF46E3AA8CF3F9D8C2BB69A7C411895151FFCFAAB5277CCFE3B3A06035FEEFBFBFD40C79DBE51DBF867D0A24B37335A28F0CEFDE2',
+            'cardnumber'            => $card->getNumber(),
             'cardexpiredatemonth'   => '01',
             'cardexpiredateyear'    => '22',
             'cardcvv2'              => $this->card->getCvv(),
@@ -276,15 +276,57 @@ class GarantiPosRequestDataMapperTest extends TestCase
      *
      * @return array
      */
+    private function getSample3DPaymentRequestData(AbstractPosAccount $account, $order, array $responseData): array
+    {
+        return [
+            'Mode'        => 'TEST',
+            'Version'     => '512',
+            'Terminal'    => [
+                'ProvUserID' => $account->getUsername(),
+                'UserID'     => $account->getUsername(),
+                'HashData'   => '0CFE09F107274C6A07292DA061A4EECAB0F5F0CF87F831F2D3626A3346A941126C52D1D95A3B77ADF5AC348B3D25C76BA5D8D98A29557D087D3367BFFACCD25C',
+                'ID'         => $account->getTerminalId(),
+                'MerchantID' => $account->getClientId(),
+            ],
+            'Customer'    => [
+                'IPAddress'    => $responseData['customeripaddress'],
+                'EmailAddress' => $responseData['customeremailaddress'],
+            ],
+            'Order'       => [
+                'OrderID'     => $responseData['orderid'],
+            ],
+            'Transaction' => [
+                'Type'                  => $responseData['txntype'],
+                'InstallmentCnt'        => '',
+                'Amount'                => $responseData['txnamount'],
+                'CurrencyCode'          => $responseData['txncurrencycode'],
+                'CardholderPresentCode' => '13',
+                'MotoInd'               => 'N',
+                'Secure3D'              => [
+                    'AuthenticationCode' => $responseData['cavv'],
+                    'SecurityLevel'      => $responseData['eci'],
+                    'TxnID'              => $responseData['xid'],
+                    'Md'                 => $responseData['md'],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * @param GarantiPosAccount $account
+     * @param                   $order
+     *
+     * @return array
+     */
     private function getSampleCancelXMLData(AbstractPosAccount $account, array $order): array
     {
         return [
             'Mode'        => 'TEST',
-            'Version'     => 'v0.01',
+            'Version'     => '512',
             'Terminal'    => [
                 'ProvUserID' => $account->getRefundUsername(),
                 'UserID'     => $account->getRefundUsername(),
-                'HashData'   => '8DD74209DEEB7D333105E1C69998A827419A3B04',
+                'HashData'   => '35E8410A78E24949D78F5E025B5E05AF470B01385A2ECBFEE6C5B3CDACFF78011D387ECAFDCE4B8453D80D35C2F344F3DAA6F2EF9143079F64DE88401EC5E4F5',
                 'ID'         => $account->getTerminalId(),
                 'MerchantID' => $account->getClientId(),
             ],
@@ -318,11 +360,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
     {
         return [
             'Mode'        => 'TEST',
-            'Version'     => 'v0.01',
+            'Version'     => '512',
             'Terminal'    => [
                 'ProvUserID' => $account->getUsername(),
                 'UserID'     => $account->getUsername(),
-                'HashData'   => '3732634F78053D42304B0966E263629FE44E258B',
+                'HashData'   => '2005F771B622399C0EC7B8BBBE9B5F7989B9587175239F0695C1E5D3BFAA0CF6D747A9CEE64D78B7081CB5193541AD9D129B929653E2B68BCAE6939E281D752E',
                 'ID'         => $account->getTerminalId(),
                 'MerchantID' => $account->getClientId(),
             ],
@@ -359,11 +401,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
     {
         return [
             'Mode'        => 'TEST',
-            'Version'     => 'v0.01',
+            'Version'     => '512',
             'Terminal'    => [
                 'ProvUserID' => $account->getUsername(),
                 'UserID'     => $account->getUsername(),
-                'HashData'   => '00CD5B6C29D4CEA1F3002D785A9F9B09974AD51D',
+                'HashData'   => '0CFE09F107274C6A07292DA061A4EECAB0F5F0CF87F831F2D3626A3346A941126C52D1D95A3B77ADF5AC348B3D25C76BA5D8D98A29557D087D3367BFFACCD25C',
                 'ID'         => $account->getTerminalId(),
                 'MerchantID' => $account->getClientId(),
             ],
@@ -393,11 +435,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
     {
         return [
             'Mode'        => 'TEST',
-            'Version'     => 'v0.01',
+            'Version'     => '512',
             'Terminal'    => [
                 'ProvUserID' => $account->getUsername(),
                 'UserID'     => $account->getUsername(),
-                'HashData'   => '8DD74209DEEB7D333105E1C69998A827419A3B04',
+                'HashData'   => '35E8410A78E24949D78F5E025B5E05AF470B01385A2ECBFEE6C5B3CDACFF78011D387ECAFDCE4B8453D80D35C2F344F3DAA6F2EF9143079F64DE88401EC5E4F5',
                 'ID'         => $account->getTerminalId(),
                 'MerchantID' => $account->getClientId(),
             ],
@@ -429,11 +471,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
     {
         return [
             'Mode'        => 'TEST',
-            'Version'     => 'v0.01',
+            'Version'     => '512',
             'Terminal'    => [
                 'ProvUserID' => $account->getRefundUsername(),
                 'UserID'     => $account->getRefundUsername(),
-                'HashData'   => '01EA91D49CC3039D38894FBB6303EFDAAD7F964D',
+                'HashData'   => 'CF49751B3B793B9E1946A08815451989D0231D68A5B495C6EABA9C400442F2E6B7DF97446CE2D3562780767E634A6ECBAA1DF69F6DF7F447884A71BDE38D12AA',
                 'ID'         => $account->getTerminalId(),
                 'MerchantID' => $account->getClientId(),
             ],
@@ -466,11 +508,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
     {
         return [
             'Mode'        => 'TEST',
-            'Version'     => 'v0.01',
+            'Version'     => '512',
             'Terminal'    => [
                 'ProvUserID' => $account->getUsername(),
                 'UserID'     => $account->getUsername(),
-                'HashData'   => '19460C02029180F8F7E19A4835D62E4118600A34',
+                'HashData'   => '817BA6A5013BD1E75E1C2FE82AA0F2EFEF89033C31563575701BD05F3C20ADC5DD2AF65D9EF8CF81784E9DA787603E0C1321C6909BE920504BEB3A85992440F5',
                 'ID'         => $account->getTerminalId(),
                 'MerchantID' => $account->getClientId(),
             ],

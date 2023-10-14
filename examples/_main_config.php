@@ -83,7 +83,7 @@ function createNewPaymentOrderCommon(
         'fail_url'    => $failUrl, // https://example.com/payment
 
         //gateway'e gore zorunlu olan degerler
-        'ip'          => $ip, //EstPos, Garanti, KuveytPos, VakifBank
+        'ip'          => filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ? $ip : '127.0.0.1', //EstPos, Garanti, KuveytPos, VakifBank
         'email'       => 'mail@customer.com', // Garanti
         'rand'        => md5(uniqid(time())), //EstPos, Garanti, PayFor, InterPos, VakifBank
     ];
