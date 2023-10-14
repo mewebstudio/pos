@@ -8,13 +8,6 @@ require __DIR__.'/../_main_config.php';
 $bankTestsUrl = $hostUrl.'/payflex-cp-v4';
 $posClass = \Mews\Pos\Gateways\PayFlexCPV4Pos::class;
 
-$installments = [
-    0  => 'Peşin',
-    2  => '2 Taksit',
-    6  => '6 Taksit',
-    12 => '12 Taksit',
-];
-
 function getNewOrder(
     string $baseUrl,
     string $ip,
@@ -24,9 +17,7 @@ function getNewOrder(
     bool $tekrarlanan = false,
     string $lang = PosInterface::LANG_TR
 ): array {
-    $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
-
-    return $order;
+    return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 }
 
 function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)

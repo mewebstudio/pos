@@ -21,6 +21,13 @@ $subMenu = [];
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
 
+$installments = [
+    0  => 'Peşin',
+    2  => '2 Taksit',
+    6  => '6 Taksit',
+    12 => '12 Taksit',
+];
+
 function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher): ?\Mews\Pos\PosInterface
 {
     try {

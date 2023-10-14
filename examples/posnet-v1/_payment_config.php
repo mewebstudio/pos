@@ -8,13 +8,6 @@ require __DIR__.'/../_main_config.php';
 $bankTestsUrl = $hostUrl.'/posnet-v1';
 $posClass = \Mews\Pos\Gateways\PosNetV1Pos::class;
 
-$installments = [
-    0  => 'Peşin',
-    2  => '2 Taksit',
-    6  => '6 Taksit',
-    12 => '12 Taksit',
-];
-
 function getNewOrder(
     string $baseUrl,
     string $ip,
