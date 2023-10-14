@@ -71,9 +71,9 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testAmountFormat()
     {
-        $this->assertSame(100000, $this->requestDataMapper::amountFormat(1000));
-        $this->assertSame(100000, $this->requestDataMapper::amountFormat(1000.00));
-        $this->assertSame(100001, $this->requestDataMapper::amountFormat(1000.01));
+        $this->assertSame(100000, $this->requestDataMapper->amountFormat(1000));
+        $this->assertSame(100000, $this->requestDataMapper->amountFormat(1000.00));
+        $this->assertSame(100001, $this->requestDataMapper->amountFormat(1000.01));
     }
 
     /**

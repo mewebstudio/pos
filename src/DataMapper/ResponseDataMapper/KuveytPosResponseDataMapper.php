@@ -65,7 +65,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         $result['ref_ret_num'] = $rawPaymentResponseData['RRN'];
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['trans_id']      = $rawPaymentResponseData['Stan'];
-        $result['amount']        = self::amountFormat($vPosMessage['Amount']);
+        $result['amount']        = $this->amountFormat($vPosMessage['Amount']);
         $result['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
         $result['masked_number'] = $vPosMessage['CardNumber'];
 
@@ -304,7 +304,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @return float
      */
-    public static function amountFormat(string $amount): float
+    public function amountFormat(string $amount): float
     {
         return (float) $amount / 100;
     }

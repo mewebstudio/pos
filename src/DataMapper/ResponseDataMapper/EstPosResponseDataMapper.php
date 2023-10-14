@@ -95,7 +95,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
-            'amount'               => self::amountFormat($raw3DAuthResponseData['amount']),
+            'amount'               => $this->amountFormat($raw3DAuthResponseData['amount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['currency']),
             'eci'                  => null,
             'tx_status'            => null,
@@ -136,7 +136,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
-            'amount'               => self::amountFormat($raw3DAuthResponseData['amount']),
+            'amount'               => $this->amountFormat($raw3DAuthResponseData['amount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['currency']),
             'tx_status'            => null,
             'eci'                  => null,
@@ -178,7 +178,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['mdStatus']),
             'md_status'            => $raw3DAuthResponseData['mdStatus'],
             'status'               => $status,
-            'amount'               => self::amountFormat($raw3DAuthResponseData['amount']),
+            'amount'               => $this->amountFormat($raw3DAuthResponseData['amount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['currency']),
             'tx_status'            => null,
             'masked_number'        => null,
@@ -317,8 +317,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED === $status) {
             $result['auth_code']      = $extra['AUTH_CODE'];
             $result['ref_ret_num']    = $extra['HOST_REF_NUM'];
-            $result['first_amount']   = self::amountFormat($extra['ORIG_TRANS_AMT']);
-            $result['capture_amount'] = null !== $extra['CAPTURE_AMT'] ? self::amountFormat($extra['CAPTURE_AMT']) : null;
+            $result['first_amount']   = $this->amountFormat($extra['ORIG_TRANS_AMT']);
+            $result['capture_amount'] = null !== $extra['CAPTURE_AMT'] ? $this->amountFormat($extra['CAPTURE_AMT']) : null;
             $result['masked_number']  = $extra['PAN'];
             $result['num_code']       = $extra['NUMCODE'];
             $result['capture']        = $result['first_amount'] === $result['capture_amount'];
@@ -385,7 +385,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @return float
      */
-    public static function amountFormat(string $amount): float
+    public function amountFormat(string $amount): float
     {
         return ((float) str_replace('.', '', $amount)) / 100;
     }

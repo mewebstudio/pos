@@ -82,9 +82,9 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testAmountFormat()
     {
-        $this->assertEquals(100000, $this->requestDataMapper::amountFormat(1000));
-        $this->assertEquals(100000, $this->requestDataMapper::amountFormat(1000.00));
-        $this->assertEquals(100001, $this->requestDataMapper::amountFormat(1000.01));
+        $this->assertEquals(100000, $this->requestDataMapper->amountFormat(1000));
+        $this->assertEquals(100000, $this->requestDataMapper->amountFormat(1000.00));
+        $this->assertEquals(100001, $this->requestDataMapper->amountFormat(1000.01));
     }
 
     /**
@@ -447,7 +447,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'Transaction' => [
                 'Type'                  => 'refund',
                 'InstallmentCnt'        => '',
-                'Amount'                => GarantiPosRequestDataMapper::amountFormat($order['amount']),
+                'Amount'                => $this->requestDataMapper->amountFormat($order['amount']),
                 'CurrencyCode'          => '949',
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => 'N',

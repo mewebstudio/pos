@@ -69,7 +69,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
 
         $mappedOrder             = $order;
         $mappedOrder['id']       = self::formatOrderId($order['id']);
-        $mappedOrder['amount']   = self::amountFormat($order['amount']);
+        $mappedOrder['amount']   = $this->amountFormat($order['amount']);
         $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
         $hash = $this->crypt->create3DHash($account, $mappedOrder);
@@ -103,7 +103,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             strtolower($this->mapTxType($txType)) => [
                 'orderID'      => self::formatOrderId($order['id']),
                 'installment'  => $this->mapInstallment($order['installment']),
-                'amount'       => self::amountFormat($order['amount']),
+                'amount'       => $this->amountFormat($order['amount']),
                 'currencyCode' => $this->mapCurrency($order['currency']),
                 'ccno'         => $card->getNumber(),
                 'expDate'      => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
@@ -127,7 +127,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'tranDateRequired'                                      => '1',
             strtolower($this->mapTxType(PosInterface::TX_POST_PAY)) => [
                 'hostLogKey'   => $order['ref_ret_num'],
-                'amount'       => self::amountFormat($order['amount']),
+                'amount'       => $this->amountFormat($order['amount']),
                 'currencyCode' => $this->mapCurrency($order['currency']),
                 'installment'  => $this->mapInstallment($order['installment']),
             ],
@@ -202,7 +202,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'tid'              => $account->getTerminalId(),
             'tranDateRequired' => '1',
             $txType            => [
-                'amount'       => self::amountFormat($order['amount']),
+                'amount'       => $this->amountFormat($order['amount']),
                 'currencyCode' => $this->mapCurrency($order['currency']),
             ],
         ];
@@ -286,7 +286,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'ccno'           => $card->getNumber(),
                 'expDate'        => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'cvc'            => $card->getCvv(),
-                'amount'         => self::amountFormat($order['amount']),
+                'amount'         => $this->amountFormat($order['amount']),
                 'currencyCode'   => $this->mapCurrency($order['currency']),
                 'installment'    => $this->mapInstallment($order['installment']),
                 'XID'            => self::formatOrderId($order['id']),
@@ -309,7 +309,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
 
         $mappedOrder             = $order;
         $mappedOrder['id']       = self::formatOrderId($order['id']);
-        $mappedOrder['amount']   = self::amountFormat($order['amount']);
+        $mappedOrder['amount']   = $this->amountFormat($order['amount']);
         $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
         $hash = $this->crypt->create3DHash($account, $mappedOrder);
@@ -334,7 +334,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return int
      */
-    public static function amountFormat(float $amount): int
+    public function amountFormat(float $amount): int
     {
         return (int) (round($amount, 2) * 100);
     }

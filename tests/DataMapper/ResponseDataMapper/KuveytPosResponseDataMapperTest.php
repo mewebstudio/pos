@@ -34,8 +34,8 @@ class KuveytPosResponseDataMapperTest extends TestCase
 
     public function testAmountFormat()
     {
-        $this->assertEquals(0.1, $this->responseDataMapper::amountFormat("10"));
-        $this->assertEquals(1.01, $this->responseDataMapper::amountFormat("101"));
+        $this->assertEquals(0.1, $this->responseDataMapper->amountFormat("10"));
+        $this->assertEquals(1.01, $this->responseDataMapper->amountFormat("101"));
     }
 
     /**

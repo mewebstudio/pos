@@ -80,7 +80,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'masked_number'        => $raw3DAuthResponseData['Pan'],
             'month'                => null,
             'year'                 => null,
-            'amount'               => self::amountFormat($raw3DAuthResponseData['PurchAmount']),
+            'amount'               => $this->amountFormat($raw3DAuthResponseData['PurchAmount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
             'eci'                  => $raw3DAuthResponseData['Eci'],
             'tx_status'            => $raw3DAuthResponseData['TxnStat'],
@@ -184,7 +184,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'error_message'    => $rawResponseData['ErrorMessage'],
             'ref_ret_num'      => null,
             'order_status'     => null, //todo success cevap alindiginda eklenecek
-            'refund_amount'    => self::amountFormat($rawResponseData['RefundedAmount']),
+            'refund_amount'    => $this->amountFormat($rawResponseData['RefundedAmount']),
             'capture_amount'   => null, //todo success cevap alindiginda eklenecek
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
@@ -208,7 +208,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @return float
      */
-    public static function amountFormat(string $amount): float
+    public function amountFormat(string $amount): float
     {
         return (float) str_replace(',', '.', str_replace('.', '', $amount));
     }

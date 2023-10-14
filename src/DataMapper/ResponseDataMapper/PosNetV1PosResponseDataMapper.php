@@ -45,7 +45,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @return float
      */
-    public static function amountFormat(string $amount): float
+    public function amountFormat(string $amount): float
     {
         return ((int) $amount) / 100;
     }
@@ -107,7 +107,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             'status'               => self::TX_DECLINED,
             'md_status'            => $mdStatus,
             'md_error_message'     => '1' !== $mdStatus ? $raw3DAuthResponseData['MdErrorMessage'] : null,
-            'amount'               => self::amountFormat($raw3DAuthResponseData['Amount']),
+            'amount'               => $this->amountFormat($raw3DAuthResponseData['Amount']),
             '3d_all'               => $raw3DAuthResponseData,
         ];
 

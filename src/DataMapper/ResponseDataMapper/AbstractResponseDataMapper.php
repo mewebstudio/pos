@@ -72,7 +72,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
      *
      * @return float
      */
-    public static function amountFormat(string $amount): float
+    public function amountFormat(string $amount): float
     {
         return (float) $amount;
     }

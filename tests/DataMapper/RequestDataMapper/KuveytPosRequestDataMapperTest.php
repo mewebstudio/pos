@@ -91,10 +91,10 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testAmountFormat()
     {
-        $this->assertEquals(0, $this->requestDataMapper::amountFormat(0));
-        $this->assertEquals(0.0, $this->requestDataMapper::amountFormat(0.0));
-        $this->assertEquals(1025, $this->requestDataMapper::amountFormat(10.25));
-        $this->assertEquals(1000, $this->requestDataMapper::amountFormat(10.00));
+        $this->assertEquals(0, $this->requestDataMapper->amountFormat(0));
+        $this->assertEquals(0.0, $this->requestDataMapper->amountFormat(0.0));
+        $this->assertEquals(1025, $this->requestDataMapper->amountFormat(10.25));
+        $this->assertEquals(1000, $this->requestDataMapper->amountFormat(10.00));
     }
 
     /**
@@ -140,8 +140,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'TransactionType'     => 'Sale',
             'TransactionSecurity' => 3,
             'InstallmentCount'    => $this->order['installment'],
-            'Amount'              => KuveytPosRequestDataMapper::amountFormat($this->order['amount']),
-            'DisplayAmount'       => KuveytPosRequestDataMapper::amountFormat($this->order['amount']),
+            'Amount'              => $this->requestDataMapper->amountFormat($this->order['amount']),
+            'DisplayAmount'       => $this->requestDataMapper->amountFormat($this->order['amount']),
             'CurrencyCode'        => '0949',
             'MerchantOrderId'     => $this->order['id'],
             'OkUrl'               => $this->order['success_url'],

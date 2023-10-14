@@ -73,7 +73,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
      */
     public function testAmountFormat()
     {
-        $this->assertEquals('1000.00', PayFlexV4PosRequestDataMapper::amountFormat(1000));
+        $this->assertEquals('1000.00', $this->requestDataMapper->amountFormat(1000));
     }
 
     /**

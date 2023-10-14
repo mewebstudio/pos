@@ -66,7 +66,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
                 'TransactionId'           => (string) $order['id'],
-                'CurrencyAmount'          => self::amountFormat($order['amount']),
+                'CurrencyAmount'          => $this->amountFormat($order['amount']),
                 'CurrencyCode'            => $this->mapCurrency($order['currency']),
                 'ECI'                     => $responseData['Eci'],
                 'CAVV'                    => $responseData['Cavv'],
@@ -105,7 +105,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'                => $account->getClientId(),
             'MerchantPassword'          => $account->getPassword(),
             'MerchantType'              => $account->getMerchantType(),
-            'PurchaseAmount'            => self::amountFormat($order['amount']),
+            'PurchaseAmount'            => $this->amountFormat($order['amount']),
             'VerifyEnrollmentRequestId' => $order['rand'],
             'Currency'                  => $this->mapCurrency($order['currency']),
             'SuccessUrl'                => $order['success_url'],
@@ -151,7 +151,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
                 'OrderId'                 => (string) $order['id'],
-                'CurrencyAmount'          => self::amountFormat($order['amount']),
+                'CurrencyAmount'          => $this->amountFormat($order['amount']),
                 'CurrencyCode'            => $this->mapCurrency($order['currency']),
                 'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0',
@@ -181,7 +181,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
                 'TransactionType'        => $this->mapTxType(PosInterface::TX_POST_PAY),
                 'ReferenceTransactionId' => (string) $order['id'],
-                'CurrencyAmount'         => self::amountFormat($order['amount']),
+                'CurrencyAmount'         => $this->amountFormat($order['amount']),
                 'CurrencyCode'           => $this->mapCurrency($order['currency']),
                 'ClientIp'               => (string) $order['ip'],
             ];
@@ -248,7 +248,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'TransactionType'        => $this->mapTxType(PosInterface::TX_REFUND),
             'ReferenceTransactionId' => (string) $order['id'],
             'ClientIp'               => (string) $order['ip'],
-            'CurrencyAmount'         => self::amountFormat($order['amount']),
+            'CurrencyAmount'         => $this->amountFormat($order['amount']),
         ];
     }
 
@@ -290,7 +290,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return string ex: 10.1 => 10.10
      */
-    public static function amountFormat(float $amount): string
+    public function amountFormat(float $amount): string
     {
         return number_format($amount, 2, '.', '');
     }
