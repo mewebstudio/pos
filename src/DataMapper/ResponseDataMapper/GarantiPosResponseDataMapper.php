@@ -259,17 +259,17 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @param array<string, string> $raw3DAuthResponseData
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     protected function map3DCommonResponseData(array $raw3DAuthResponseData): array
     {
         $procReturnCode = $raw3DAuthResponseData['procreturncode'];
         $mdStatus       = $raw3DAuthResponseData['mdstatus'];
 
-        $status   = self::TX_DECLINED;
+        $status = self::TX_DECLINED;
 
         if (in_array($mdStatus, ['1', '2', '3', '4']) && 'Error' !== $raw3DAuthResponseData['response']) {
-            $status   = self::TX_APPROVED;
+            $status = self::TX_APPROVED;
         }
 
         return [

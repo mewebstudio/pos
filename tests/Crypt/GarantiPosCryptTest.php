@@ -57,12 +57,13 @@ class GarantiPosCryptTest extends TestCase
               'txnamount' => 10025,
               'txninstallmentcount' => '',
               'txntype' => 'sales',
+              'txncurrencycode' => '949',
               'successurl' => 'https://domain.com/success',
               'errorurl' => 'https://domain.com/fail_url',
         ];
 
         $expected = '372D6CB20B2B699D0A6667DFF46E3AA8CF3F9D8C2BB69A7C411895151FFCFAAB5277CCFE3B3A06035FEEFBFBFD40C79DBE51DBF867D0A24B37335A28F0CEFDE2';
-        $actual = $this->crypt->create3DHash($this->threeDAccount, $requestData, 'sales');
+        $actual = $this->crypt->create3DHash($this->account, $requestData);
         $this->assertSame($expected, $actual);
     }
 

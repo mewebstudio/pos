@@ -18,7 +18,7 @@ use Mews\Pos\PosInterface;
 class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /** @var string */
-    public const API_VERSION = 'v0.01';
+    public const API_VERSION = '512';
 
     /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';

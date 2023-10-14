@@ -106,11 +106,6 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/AbstractResponseDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:map3DCommonResponseData\\(\\) should return array\\<string, string\\> but returns array\\<string, array\\<string, string\\>\\|float\\|string\\|null\\>\\.$#"
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/GarantiPosResponseDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:mapCancelResponse\\(\\) should return array\\<string, string\\> but returns array\\<string, array\\<string, array\\<string, array\\<string, string\\|null\\>\\|string\\>\\|string\\|null\\>\\|string\\|null\\>\\.$#"
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/GarantiPosResponseDataMapper.php
