@@ -20,18 +20,6 @@ function getNewOrder(
     return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 }
 
-function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
-{
-    if (PosInterface::TX_POST_PAY !== $transaction) {
-        /**
-         * diger banklaradan farkli olarak 3d islemler icin de PayFlex bu asamada kredi kart bilgileri istiyor
-         */
-        $pos->payment($paymentModel, $order, $transaction, $card);
-    } else {
-        $pos->payment($paymentModel, $order, $transaction);
-    }
-}
-
 $testCards = [
     'visa1' => [
         // NOTE: 3D Secure sifre 123456

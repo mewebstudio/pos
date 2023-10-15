@@ -20,18 +20,6 @@ function getNewOrder(
     return createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
 }
 
-function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
-{
-    if ($paymentModel === PosInterface::MODEL_NON_SECURE
-        && PosInterface::TX_POST_PAY !== $transaction
-    ) {
-        //bu asamada $card regular/non secure odemede lazim.
-        $pos->payment($paymentModel, $order, $transaction, $card);
-    } else {
-        $pos->payment($paymentModel, $order, $transaction);
-    }
-}
-
 $testCards = [
     // 3d onay kodu 34020
     'visa1' => [

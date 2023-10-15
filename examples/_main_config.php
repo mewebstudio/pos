@@ -1,4 +1,7 @@
 <?php
+
+use Mews\Pos\PosInterface;
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -28,7 +31,33 @@ $installments = [
     12 => '12 Taksit',
 ];
 
-function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher): ?\Mews\Pos\PosInterface
+function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+{
+    if (!$pos::isSupportedTransaction($transaction, $paymentModel)) {
+        throw new \LogicException(
+            sprintf('"%s %s" işlemi %s tarafından desteklenmiyor', $transaction, $paymentModel, get_class($pos))
+        );
+    }
+    if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class
+        && in_array($transaction, [PosInterface::TX_PAY, PosInterface::TX_PRE_PAY], true)
+        && PosInterface::MODEL_3D_SECURE === $paymentModel
+    ) {
+        /**
+         * diger banklaradan farkli olarak 3d islemler icin de PayFlex bu asamada kredi kart bilgileri istiyor
+         */
+        $pos->payment($paymentModel, $order, $transaction, $card);
+
+    } elseif ($paymentModel === PosInterface::MODEL_NON_SECURE
+        && in_array($transaction, [PosInterface::TX_PAY, PosInterface::TX_PRE_PAY], true)
+    ) {
+        // bu asamada $card regular/non secure odemede lazim.
+        $pos->payment($paymentModel, $order, $transaction, $card);
+    } else {
+        $pos->payment($paymentModel, $order, $transaction);
+    }
+}
+
+function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher): ?PosInterface
 {
     try {
         $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
@@ -49,7 +78,7 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\E
     }
 }
 
-function createCard(\Mews\Pos\PosInterface $pos, array $card): \Mews\Pos\Entity\Card\AbstractCreditCard
+function createCard(PosInterface $pos, array $card): \Mews\Pos\Entity\Card\AbstractCreditCard
 {
     try {
         return \Mews\Pos\Factory\CreditCardFactory::create(
@@ -69,7 +98,7 @@ function createCard(\Mews\Pos\PosInterface $pos, array $card): \Mews\Pos\Entity\
 function createNewPaymentOrderCommon(
     string $baseUrl,
     string $ip,
-    string $currency = \Mews\Pos\PosInterface::CURRENCY_TRY,
+    string $currency = PosInterface::CURRENCY_TRY,
     ?int $installment = 0,
     ?string $lang = null
 ): array {
