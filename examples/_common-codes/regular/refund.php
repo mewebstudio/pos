@@ -25,7 +25,7 @@ function createRefundOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
     if (get_class($pos) === \Mews\Pos\Gateways\GarantiPos::class) {
         $refundOrder['email']       = '';
     } elseif (get_class($pos) === \Mews\Pos\Gateways\KuveytPos::class) {
-        $refundOrder['remote_order_id'] = $lastResponse['remote_order_id'];
+        $refundOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
         $refundOrder['auth_code']       = $lastResponse['auth_code'];
         $refundOrder['trans_id']        = $lastResponse['trans_id'];
     } elseif (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class || get_class($pos) === \Mews\Pos\Gateways\PayFlexCPV4Pos::class) {

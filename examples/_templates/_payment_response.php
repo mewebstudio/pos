@@ -88,8 +88,9 @@ $response['order_id']      = $response['order_id'] ?? $order['id'];
 $response['currency']      = $response['currency'] ?? $order['currency'];
 $response['payment_model'] = $paymentModel;
 
-// aşağıdaki veriler sipariş iade işleminde kullanılır.
-$response['amount']      = $order['amount'];
+// aşağıdaki veriler sipariş iade ve iptal işlemlerinde kullanılır.
+$response['amount']           = $order['amount'];
+$response['transaction_type'] = $response['transaction_type'] ?? $transaction;
 
 $session->set('last_response', $response);
 ?>
