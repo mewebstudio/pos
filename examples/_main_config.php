@@ -1,6 +1,7 @@
 <?php
 
 use Mews\Pos\PosInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
@@ -16,7 +17,7 @@ $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSe
     'cookie_samesite' => 'None',
     'cookie_secure' => true,
 ]);
-$session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
+$session        = new Session($sessionHandler);
 $session->start();
 
 $hostUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')."://$_SERVER[HTTP_HOST]";

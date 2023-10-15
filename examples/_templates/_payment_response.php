@@ -82,6 +82,12 @@ if ($pos->isSuccess()) {
     // siparis iptal ve iade islemlerde kullanilir
     $session->set('ref_ret_num', $response['ref_ret_num']);
 }
+
+// aşağıdaki veriler sipariş durum sorgulama isteğinde kullanılır.
+$response['order_id']      = $response['order_id'] ?? $order['id'];
+$response['currency']      = $response['currency'] ?? $order['currency'];
+$response['payment_model'] = $paymentModel;
+
 $session->set('last_response', $response);
 ?>
 
