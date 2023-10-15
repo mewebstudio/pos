@@ -8,6 +8,7 @@ require '../../_templates/_header.php';
 
 function createRefundOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\Session\SessionInterface $session, string $ip): array
 {
+    // başarılı ödeme sonucu dönen $pos->getResponse() verisi
     $lastResponse = $session->get('last_response');
 
     if (!$lastResponse) {

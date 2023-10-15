@@ -8,6 +8,7 @@ require '../../_templates/_header.php';
 
 function createStatusOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\Session\SessionInterface $session, string $ip): array
 {
+    // başarılı ödeme sonucunda dönen $pos->getResponse() verisi
     $lastResponse = $session->get('last_response');
 
     if (!$lastResponse) {
