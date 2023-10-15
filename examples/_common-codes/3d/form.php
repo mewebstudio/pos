@@ -118,6 +118,11 @@ $flowType = $request->get('payment_flow_type');
 ?>
 
 <?php if ($flowType === 'by_redirection') { ?>
+<!--
+    Sık kullanılan yöntem, 3D form verisini bir HTML form içine basıp JS ile otomatik submit ediyoruz.
+    Submit sonucu kullanıcı banka sayfasıne yönlendirilir, işlem sonucundan ise duruma göre websitinizin
+    success veya fail URL'na geri yönlendilir.
+-->
     <?php require '../../_templates/_redirect_form.php'; ?>
     <script>
         $(function () {
@@ -127,22 +132,31 @@ $flowType = $request->get('payment_flow_type');
             }
         })
     </script>
-<?php } elseif ($flowType === 'by_iframe' || $flowType === 'by_popup_window') {
 
+
+
+
+<?php } elseif ($flowType === 'by_iframe' || $flowType === 'by_popup_window') {
     ob_start();
     include('../../_templates/_redirect_iframe_or_popup_window_form.php');
     $renderedForm = ob_get_contents();
     ob_end_clean();
     ?>
+<!--
+    $renderedForm içinde 3D formun veririyle oluşturulan HTML form bulunur.
+    alttaki kodlar ise bu $renderedForm verisini seçilen $flowType'a göre iframe modal box içine veya pop up window içine basar.
+-->
     <div class="alert alert-dismissible" role="alert" id="result-alert">
     </div>
-    <pre id="result-response">
-</pre>
+    <pre id="result-response"></pre>
 
     <script>
         $('#result-alert').hide();
         let messageReceived = false;
 
+        /**
+         * Bankadan geri websitenize yönlendirme yapıldıktan sonra alınan sonuca göre başarılı/başarısız alert box'u gösterir.
+         */
         let displayResponse = function (event) {
             let alertBox = $('#result-alert');
             let data = JSON.parse(event.data);
@@ -158,6 +172,10 @@ $flowType = $request->get('payment_flow_type');
         }
     </script>
 <?php } ?>
+
+
+
+
 <?php if ($flowType === 'by_iframe') { ?>
     <div class="modal fade" tabindex="-1" role="dialog" id="iframe-modal" data-keyboard="false" data-backdrop="static">
         <div class="modal-dialog" role="document" id="iframe-modal-dialog" style="width: 426px;">
@@ -166,12 +184,22 @@ $flowType = $request->get('payment_flow_type');
         </div>
     </div>
     <script>
+        /**
+         * Bankadan geri websitenize yönlendirme yapıldıktan sonra ödeme sonuç verisi iframe/popup içinde olur.
+         * Modal box'ta açılan iframe'den ana pencereye JS'in windowlar arası Message API'ile ödeme sonucunu ana window'a gönderiyoruz.
+         * Alttaki kod ise bu message API event'ni dinler,
+         * message (yani bankadan dönen ödeme sonucu) aldığında sonucu kullanıcıya ana window'da gösterir
+         */
         window.addEventListener('message', function (event) {
             messageReceived = true;
             displayResponse(event);
             $('#iframe-modal').modal('hide');
         });
 
+        /**
+         * modal box'ta iframe ile ödeme yöntemi seçilmiş.
+         * modal box içinde yeni iframe oluşturuyoruz ve iframe içine $renderedForm verisini basıyoruz.
+         */
         let iframe = document.createElement('iframe');
         document.getElementById("iframe-modal-dialog").appendChild(iframe);
         $(iframe).height('500px');
@@ -190,11 +218,45 @@ $flowType = $request->get('payment_flow_type');
             }
         });
     </script>
+
+
+
+
 <?php } elseif ($flowType === 'by_popup_window') { ?>
     <script>
+
         windowWidth = 400;
         let leftPosition = (screen.width / 2) - (windowWidth / 2);
         let popupWindow = window.open('about:blank', 'popup_window', 'toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=no,width=' + windowWidth + ',height=500,left=' + leftPosition + ',top=234');
+        if (null === popupWindow) {
+            // pop up bloke edilmis.
+            alert("pop window'a izin veriniz.");
+        } else {
+            /**
+             * Popup ile ödeme yöntemi seçilmiş.
+             * Popup window içine $renderedForm verisini basıyoruz.
+             */
+            popupWindow.document.write(`<?= $renderedForm; ?>`);
+
+            // fokusu popup windowa odakla
+            window.target = 'popup_window';
+
+            /**
+             * Bankadan geri websitenize yönlendirme yapıldıktan sonra ödeme sonuç verisi iframe/popup içinde olur.
+             * Popup'tan ana pencereye JS'in windowlar arası Message API'ile ödeme sonucunu ana window'a gönderiyoruz.
+             * Alttaki kod ise bu message API event'ni dinler,
+             * message (yani bankadan dönen ödeme sonucu) aldığında sonucu kullanıcıya ana window'da gösterir
+             */
+            window.addEventListener('message', function (event) {
+                messageReceived = true;
+                displayResponse(event);
+                popupWindow.close();
+            });
+        }
+        /**
+         * kullanıcı ödeme işlemine devam etmeden popup window'u kapatabilir.
+         * Burda o durumu kontrol ediyoruz.
+         */
         let closeInterval = setInterval(function () {
             if (popupWindow.closed && !messageReceived) {
                 // windows is closed without completing payment
@@ -205,18 +267,6 @@ $flowType = $request->get('payment_flow_type');
                 alertBox.show();
             }
         }, 1000);
-        if (null === popupWindow) {
-            // pop up bloke edilmis.
-            alert("pop window'a izin veriniz.");
-        } else {
-            popupWindow.document.write(`<?= $renderedForm; ?>`);
-            window.target = 'popup_window';
-            window.addEventListener('message', function (event) {
-                messageReceived = true;
-                displayResponse(event);
-                popupWindow.close();
-            });
-        }
     </script>
 <?php } ?>
 <?php
