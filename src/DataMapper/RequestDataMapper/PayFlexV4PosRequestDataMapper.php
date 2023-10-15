@@ -62,6 +62,9 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, ?AbstractCreditCard $card = null): array
     {
+        if (null === $card) {
+            throw new \LogicException('Ödemeyi tamamlamak için kart bilgiler zorunlu!');
+        }
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($account) + [
@@ -75,14 +78,11 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderId'                 => (string) $order['id'],
                 'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0', // ECommerce
+                'CardHoldersName'         => $card->getHolderName(),
+                'Cvv'                     => $card->getCvv(),
+                'Pan'                     => $card->getNumber(),
+                'Expiry'                  => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
             ];
-
-        if (null !== $card) {
-            $requestData['CardHoldersName'] = $card->getHolderName();
-            $requestData['Cvv']             = $card->getCvv();
-            $requestData['Pan']             = $card->getNumber();
-            $requestData['Expiry']          = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT);
-        }
 
         if ($order['installment']) {
             $requestData['NumberOfInstallments'] = $this->mapInstallment($order['installment']);

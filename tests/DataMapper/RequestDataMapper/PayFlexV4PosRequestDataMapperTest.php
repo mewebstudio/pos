@@ -113,28 +113,21 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider threeDPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData()
+    public function testCreate3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $gatewayResponse, AbstractCreditCard $card, array $expected)
     {
-        $order = $this->order;
-        $order['amount'] = 10.1;
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $gatewayResponse, $card);
+        $this->assertEquals($expected, $actual);
+    }
 
-        $txType = PosInterface::TX_PAY;
-        $gatewayResponse = [
-            'Eci'                       => (string) random_int(1, 100),
-            'Cavv'                      => (string) random_int(1, 100),
-            'VerifyEnrollmentRequestId' => (string) random_int(1, 100),
-        ];
-
-        $expectedValue = $this->getSample3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse, $this->card);
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse, $this->card);
-        $this->assertEquals($expectedValue, $actual);
-
-        $order['installment'] = 2;
-        $expectedValue = $this->getSample3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse, $this->card);
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse, $this->card);
-        $this->assertEquals($expectedValue, $actual);
+    /**
+     * @dataProvider threeDPaymentRequestDataDataProvider
+     */
+    public function testCreate3DPaymentRequestDataWithoutCard(AbstractPosAccount $account, array $order, string $txType, array $gatewayResponse)
+    {
+        $this->expectException(\LogicException::class);
+        $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $gatewayResponse);
     }
 
     /**
@@ -275,41 +268,91 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param PayFlexAccount          $account
-     * @param array                   $order
-     * @param string                  $txType
-     * @param array                   $responseData
-     * @param AbstractCreditCard|null $card
-     *
-     * @return array
-     */
-    private function getSample3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, ?AbstractCreditCard $card): array
+    public static function threeDPaymentRequestDataDataProvider(): \Generator
     {
-        $expectedValue = [
-            'MerchantId'              => $account->getClientId(),
-            'Password'                => $account->getPassword(),
-            'TerminalNo'              => $account->getTerminalId(),
-            'TransactionType'         => $this->requestDataMapper->mapTxType($txType),
-            'OrderId'                 => $order['id'],
-            'ClientIp'                => $order['ip'],
-            'CurrencyCode'            => '949',
-            'CurrencyAmount'          => $order['amount'],
-            'TransactionId'           => $order['id'],
-            'Pan'                     => $card->getNumber(),
-            'Cvv'                     => $card->getCvv(),
-            'CardHoldersName'         => $card->getHolderName(),
-            'Expiry'                  => '202112',
-            'ECI'                     => $responseData['Eci'],
-            'CAVV'                    => $responseData['Cavv'],
-            'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
-            'TransactionDeviceSource' => 0,
-        ];
-        if ($order['installment']) {
-            $expectedValue['NumberOfInstallments'] = $this->requestDataMapper->mapInstallment($order['installment']);
-        }
+        $account = AccountFactory::createPayFlexAccount(
+            'vakifbank',
+            '000000000111111',
+            '3XTgER89as',
+            'VP999999',
+            PosInterface::MODEL_3D_SECURE
+        );
 
-        return $expectedValue;
+        $order = [
+            'id'          => 'order222',
+            'amount'      => 100.00,
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'success_url' => 'https://domain.com/success',
+            'fail_url'    => 'https://domain.com/fail_url',
+            'rand'        => 'rand123',
+            'ip'          => '127.0.0.1',
+        ];
+
+        $responseData = [
+            'Eci'                       => '05',
+            'Cavv'                      => 'AAABCYaRIwAAAVQ1gpEjAAAAAAA=',
+            'VerifyEnrollmentRequestId' => 'ce06048a3e9c0cd1d437803fb38b5ad0',
+        ];
+
+        $card = new CreditCard('5555444433332222', new \DateTimeImmutable('2021-12-01'), '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+
+        yield 'no_installment' => [
+            'account' => $account,
+            'order' => $order,
+            'txType' => PosInterface::TX_PAY,
+            'responseData' => $responseData,
+            'card' => $card,
+            'expected' => [
+                'MerchantId' => '000000000111111',
+                'Password' => '3XTgER89as',
+                'TerminalNo' => 'VP999999',
+                'TransactionType' => 'Sale',
+                'TransactionId' => 'order222',
+                'CurrencyAmount' => '100.00',
+                'CurrencyCode' => '949',
+                'ECI' => '05',
+                'CAVV' => 'AAABCYaRIwAAAVQ1gpEjAAAAAAA=',
+                'MpiTransactionId' => 'ce06048a3e9c0cd1d437803fb38b5ad0',
+                'OrderId' => 'order222',
+                'ClientIp' => '127.0.0.1',
+                'TransactionDeviceSource' => '0',
+                'CardHoldersName' => 'ahmet',
+                'Cvv' => '122',
+                'Pan' => '5555444433332222',
+                'Expiry' => '202112',
+            ],
+        ];
+
+        $order['installment'] = 3;
+
+        yield 'with_installment' => [
+            'account' => $account,
+            'order' => $order,
+            'txType' => PosInterface::TX_PAY,
+            'responseData' => $responseData,
+            'card' => $card,
+            'expected' => [
+                'MerchantId' => '000000000111111',
+                'Password' => '3XTgER89as',
+                'TerminalNo' => 'VP999999',
+                'TransactionType' => 'Sale',
+                'TransactionId' => 'order222',
+                'CurrencyAmount' => '100.00',
+                'CurrencyCode' => '949',
+                'ECI' => '05',
+                'CAVV' => 'AAABCYaRIwAAAVQ1gpEjAAAAAAA=',
+                'MpiTransactionId' => 'ce06048a3e9c0cd1d437803fb38b5ad0',
+                'OrderId' => 'order222',
+                'ClientIp' => '127.0.0.1',
+                'TransactionDeviceSource' => '0',
+                'CardHoldersName' => 'ahmet',
+                'Cvv' => '122',
+                'Pan' => '5555444433332222',
+                'Expiry' => '202112',
+                'NumberOfInstallments' => '3',
+            ],
+        ];
     }
 
     public static function three3DEnrollmentRequestDataDataProvider(): \Generator
