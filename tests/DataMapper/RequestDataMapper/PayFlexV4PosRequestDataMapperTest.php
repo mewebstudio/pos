@@ -169,31 +169,25 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedValue, $actual);
     }
 
-    /**
-     * @return void
-     */
-    public function testCreateCancelRequestData()
+    public function testCreateCancelRequestData(): void
     {
-        $order = $this->order;
-        $order['id'] = '15613133';
+        $order             = $this->order;
+        $order['trans_id'] = '7022b92e-3aa1-44fb-86d4-33658c700c80';
 
-        $expectedValue = $this->getSampleCancelRequestData($this->account, $order);
-        $actualData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
+        $expectedValue = $this->getSampleCancelRequestData();
+        $actualData    = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
         $this->assertEquals($expectedValue, $actualData);
     }
 
-    /**
-     * @return void
-     */
-    public function testCreateRefundRequestData()
+    public function testCreateRefundRequestData(): void
     {
-        $order = $this->order;
-        $order['id'] = '15613133';
-        $order['amount'] = 1000;
+        $order             = $this->order;
+        $order['trans_id'] = '7022b92e-3aa1-44fb-86d4-33658c700c80';
+        $order['amount']   = 1000;
 
-        $expectedValue = $this->getSampleRefundRequestData($this->account, $order);
-        $actualData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
+        $expectedValue = $this->getSampleRefundRequestData();
+        $actualData    = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
         $this->assertEquals($expectedValue, $actualData);
     }
@@ -251,20 +245,14 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleCancelRequestData(AbstractPosAccount $account, array $order): array
+    private function getSampleCancelRequestData(): array
     {
         return [
-            'MerchantId'             => $account->getClientId(),
-            'Password'               => $account->getPassword(),
+            'MerchantId'             => '000000000111111',
+            'Password'               => '3XTgER89as',
             'TransactionType'        => 'Cancel',
-            'ReferenceTransactionId' => $order['id'],
-            'ClientIp'               => $order['ip'],
+            'ReferenceTransactionId' => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+            'ClientIp'               => '127.0.0.1',
         ];
     }
 
@@ -488,20 +476,14 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleRefundRequestData(AbstractPosAccount $account, array $order): array
+    private function getSampleRefundRequestData(): array
     {
         return [
-            'MerchantId'             => $account->getClientId(),
-            'Password'               => $account->getPassword(),
+            'MerchantId'             => '000000000111111',
+            'Password'               => '3XTgER89as',
             'TransactionType'        => 'Refund',
-            'ReferenceTransactionId' => $order['id'],
-            'ClientIp'               => $order['ip'],
+            'ReferenceTransactionId' => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+            'ClientIp'               => '127.0.0.1',
             'CurrencyAmount'         => '1000.00',
         ];
     }

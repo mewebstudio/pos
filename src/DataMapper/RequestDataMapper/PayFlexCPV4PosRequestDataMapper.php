@@ -230,7 +230,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($account) + [
                 'TransactionType'        => $this->mapTxType(PosInterface::TX_CANCEL),
-                'ReferenceTransactionId' => (string) $order['id'],
+                'ReferenceTransactionId' => (string) $order['trans_id'],
                 'ClientIp'               => (string) $order['ip'],
             ];
     }
@@ -249,7 +249,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($account) + [
                 'TransactionType'        => $this->mapTxType(PosInterface::TX_REFUND),
-                'ReferenceTransactionId' => (string) $order['id'],
+                'ReferenceTransactionId' => (string) $order['trans_id'],
                 'ClientIp'               => (string) $order['ip'],
                 'CurrencyAmount'         => $this->amountFormat($order['amount']),
             ];
@@ -333,6 +333,29 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
             'id'       => $order['id'],
             'amount'   => $order['amount'],
             'currency' => $order['currency'] ?? PosInterface::CURRENCY_TRY,
+            'ip'       => $order['ip'],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareRefundOrder(array $order): array
+    {
+        return [
+            'trans_id' => $order['trans_id'],
+            'ip'       => $order['ip'],
+            'amount'   => $order['amount'],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareCancelOrder(array $order): array
+    {
+        return [
+            'trans_id' => $order['trans_id'],
             'ip'       => $order['ip'],
         ];
     }

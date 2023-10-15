@@ -199,7 +199,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
                  * TransactionId dikkate alınmaktadır.
                  * OrderID ile sorgulamada bu OrderId ile başarılı işlem varsa başarılı işlem, yoksa son gönderilen işlem raporda görüntülenecektir
                  */
-                'TransactionId' => '',
+                'TransactionId' => (string) ($order['trans_id'] ?? ''),
                 'OrderId'       => (string) $order['id'],
                 'AuthCode'      => '',
             ],
@@ -219,7 +219,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
             'TransactionType'        => $this->mapTxType(PosInterface::TX_CANCEL),
-            'ReferenceTransactionId' => (string) $order['id'],
+            'ReferenceTransactionId' => (string) $order['trans_id'],
             'ClientIp'               => (string) $order['ip'],
         ];
     }
@@ -237,7 +237,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
             'TransactionType'        => $this->mapTxType(PosInterface::TX_REFUND),
-            'ReferenceTransactionId' => (string) $order['id'],
+            'ReferenceTransactionId' => (string) $order['trans_id'],
             'ClientIp'               => (string) $order['ip'],
             'CurrencyAmount'         => $this->amountFormat($order['amount']),
         ];
@@ -329,6 +329,29 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     {
         return [
             'id' => $order['id'],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareRefundOrder(array $order): array
+    {
+        return [
+            'trans_id' => $order['trans_id'],
+            'ip'       => $order['ip'],
+            'amount'   => $order['amount'],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareCancelOrder(array $order): array
+    {
+        return [
+            'trans_id' => $order['trans_id'],
+            'ip'       => $order['ip'],
         ];
     }
 
