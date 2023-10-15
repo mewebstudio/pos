@@ -6,7 +6,7 @@ require '_config.php';
 $templateTitle = 'Refund Order';
 require '../../_templates/_header.php';
 
-$order = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', PosInterface::CURRENCY_TRY), $session);
+$order = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', PosInterface::CURRENCY_TRY));
 // Refund Order
 $order = [
     'id'     => $order['id'], //ReferenceTransactionId

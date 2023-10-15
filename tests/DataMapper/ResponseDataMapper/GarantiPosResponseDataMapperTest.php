@@ -77,7 +77,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider refundTestDataProvider
      */
-    public function testMapRefundResponse2(array $responseData, array $expectedData)
+    public function testMapRefundResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
         unset($actualData['all']);

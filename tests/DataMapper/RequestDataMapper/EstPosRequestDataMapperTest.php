@@ -176,63 +176,13 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider threeDPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData()
+    public function testCreate3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, array $expected)
     {
-        $order = [
-            'id'          => '2020110828BC',
-            'ip'          => '192.168.1.0',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-        ];
-        $responseData = [
-            'md'   => '1',
-            'xid'  => '100000005xid',
-            'eci'  => '100000005eci',
-            'cavv' => 'cavv',
-        ];
-
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, PosInterface::TX_PAY, $responseData);
-
-        $expectedData = $this->getSample3DPaymentRequestData($this->account, $order, $responseData);
-        $this->assertEquals($expectedData, $actual);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $responseData);
+        $this->assertEquals($expected, $actual);
     }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DPaymentRequestDataRecurringOrder()
-    {
-        $order = [
-            'id'                        => '2020110828BC',
-            'ip'                        => '192.168.1.0',
-            'amount'                    => 100.01,
-            'installment'               => 0,
-            'currency'                  => PosInterface::CURRENCY_TRY,
-            'success_url'               => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'                  => 'http://localhost/finansbank-payfor/3d/response.php',
-            'recurringFrequency'        => 3,
-            'recurringFrequencyType'    => 'MONTH',
-            'recurringInstallmentCount' => 4,
-        ];
-
-        $responseData = [
-            'md'   => '1',
-            'xid'  => '100000005xid',
-            'eci'  => '100000005eci',
-            'cavv' => 'cavv',
-        ];
-
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, PosInterface::TX_PAY, $responseData);
-
-        $expectedData = $this->getSample3DPaymentRequestData($this->account, $order, $responseData);
-        $this->assertEquals($expectedData, $actual);
-    }
-
 
     /**
      * @return void
@@ -372,42 +322,95 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedData, $actual);
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param array              $order
-     * @param array              $responseData
-     *
-     * @return array
-     */
-    private function getSample3DPaymentRequestData(AbstractPosAccount $account, array $order, array $responseData): array
+
+    public static function threeDPaymentRequestDataDataProvider(): \Generator
     {
-        $requestData = [
-            'Name'                    => $account->getUsername(),
-            'Password'                => $account->getPassword(),
-            'ClientId'                => $account->getClientId(),
-            'Type'                    => 'Auth',
-            'IPAddress'               => $order['ip'],
-            'OrderId'                 => $order['id'],
-            'Total'                   => 100.01,
-            'Currency'                => '949',
-            'Taksit'                  => '',
-            'Number'                  => $responseData['md'],
-            'PayerTxnId'              => $responseData['xid'],
-            'PayerSecurityLevel'      => $responseData['eci'],
-            'PayerAuthenticationCode' => $responseData['cavv'],
-            'Mode'                    => 'P',
+        $account = AccountFactory::createEstPosAccount(
+            'akbank',
+            '700655000200',
+            'ISBANKAPI',
+            'ISBANK07',
+            PosInterface::MODEL_3D_SECURE,
+            'TRPS0200'
+        );
+
+        $order = [
+            'id'          => 'order222',
+            'ip'          => '127.0.0.1',
+            'amount'      => '100.25',
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'success_url' => 'https://domain.com/success',
+            'fail_url'    => 'https://domain.com/fail_url',
+            'lang'        => 'tr',
+            'rand'        => 'rand',
         ];
 
-        if (isset($order['recurringFrequency'])) {
-            $requestData['PbOrder'] = [
-                'OrderType'              => 0,
-                'OrderFrequencyInterval' => $order['recurringFrequency'],
-                'OrderFrequencyCycle'    => 'M',
-                'TotalNumberPayments'    => $order['recurringInstallmentCount'],
-            ];
-        }
+        $responseData = [
+            'md'   => '1',
+            'xid'  => '100000005xid',
+            'eci'  => '100000005eci',
+            'cavv' => 'cavv',
+        ];
 
-        return $requestData;
+        yield [
+            'account'      => $account,
+            'order'        => $order,
+            'txType'       => PosInterface::TX_PAY,
+            'responseData' => $responseData,
+            'expected'     => [
+                'Name'                    => 'ISBANKAPI',
+                'Password'                => 'ISBANK07',
+                'ClientId'                => '700655000200',
+                'Type'                    => 'Auth',
+                'IPAddress'               => '127.0.0.1',
+                'OrderId'                 => 'order222',
+                'Total'                   => '100.25',
+                'Currency'                => '949',
+                'Taksit'                  => '',
+                'Number'                  => '1',
+                'PayerTxnId'              => '100000005xid',
+                'PayerSecurityLevel'      => '100000005eci',
+                'PayerAuthenticationCode' => 'cavv',
+                'Mode'                    => 'P',
+            ],
+        ];
+
+        $order['recurring']   = [
+            'frequency'     => 2,
+            'frequencyType' => 'MONTH',
+            'installment'   => 3,
+        ];
+        $order['installment'] = 0;
+
+        yield 'recurring_order' => [
+            'account'      => $account,
+            'order'        => $order,
+            'txType'       => PosInterface::TX_PAY,
+            'responseData' => $responseData,
+            'expected'     => [
+                'Name'                    => 'ISBANKAPI',
+                'Password'                => 'ISBANK07',
+                'ClientId'                => '700655000200',
+                'Type'                    => 'Auth',
+                'IPAddress'               => '127.0.0.1',
+                'OrderId'                 => 'order222',
+                'Total'                   => '100.25',
+                'Currency'                => '949',
+                'Taksit'                  => '',
+                'Number'                  => '1',
+                'PayerTxnId'              => '100000005xid',
+                'PayerSecurityLevel'      => '100000005eci',
+                'PayerAuthenticationCode' => 'cavv',
+                'Mode'                    => 'P',
+                'PbOrder'                 => [
+                    'OrderType'              => '0',
+                    'OrderFrequencyInterval' => '2',
+                    'OrderFrequencyCycle'    => 'M',
+                    'TotalNumberPayments'    => '3',
+                ],
+            ],
+        ];
     }
 
     /**

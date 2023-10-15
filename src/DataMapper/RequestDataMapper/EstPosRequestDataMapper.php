@@ -89,8 +89,8 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
                 'Mode'                    => 'P',
             ];
 
-        if (isset($order['recurringFrequency'])) {
-            $requestData += $this->createRecurringData($order);
+        if (isset($order['recurring'])) {
+            $requestData += $this->createRecurringData($order['recurring']);
         }
 
         return $requestData;
@@ -117,8 +117,8 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
                 'Mode'      => 'P',
             ];
 
-        if (isset($order['recurringFrequency'])) {
-            $requestData += $this->createRecurringData($order);
+        if (isset($order['recurring'])) {
+            $requestData += $this->createRecurringData($order['recurring']);
         }
 
         return $requestData;
@@ -349,20 +349,20 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param array{recurringFrequency: int, recurringFrequencyType: string, recurringInstallmentCount: int} $order
+     * @param array{frequency: int, frequencyType: string, installment: int} $recurringData
      *
      * @return array{PbOrder: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}}
      */
-    private function createRecurringData(array $order): array
+    private function createRecurringData(array $recurringData): array
     {
         return [
             'PbOrder' => [
-                'OrderType'              => '0',
+                'OrderType'              => '0', // 0: Varsayılan, taksitsiz
                 // Periyodik İşlem Frekansı
-                'OrderFrequencyInterval' => (string) $order['recurringFrequency'],
-                //D|M|Y
-                'OrderFrequencyCycle'    => $this->mapRecurringFrequency($order['recurringFrequencyType']),
-                'TotalNumberPayments'    => (string) $order['recurringInstallmentCount'],
+                'OrderFrequencyInterval' => (string) $recurringData['frequency'],
+                // D|M|Y
+                'OrderFrequencyCycle'    => $this->mapRecurringFrequency($recurringData['frequencyType']),
+                'TotalNumberPayments'    => (string) $recurringData['installment'],
             ],
         ];
     }

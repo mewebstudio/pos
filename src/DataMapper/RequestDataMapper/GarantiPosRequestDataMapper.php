@@ -98,8 +98,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
         ];
 
-        if (isset($order['recurringInstallmentCount'])) {
-            $result['Recurring'] = $this->createRecurringData($order);
+        if (isset($order['recurring'])) {
+            $result['Recurring'] = $this->createRecurringData($order['recurring']);
         }
 
         $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
@@ -138,8 +138,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
         ];
 
-        if (isset($order['recurringInstallmentCount'])) {
-            $result['Recurring'] = $this->createRecurringData($order);
+        if (isset($order['recurring'])) {
+            $result['Recurring'] = $this->createRecurringData($order['recurring']);
         }
 
         $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
@@ -530,18 +530,18 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      *   </PaymentList>
      * </Recurring>
      *
-     * @param array{recurringInstallmentCount: int, recurringFrequencyType: string, recurringFrequency: int, startDate: string|null, recurringType: 'R'|'G'|null} $order
+     * @param array{installment: int, frequencyType: string, frequency: int, startDate?: \DateTimeInterface} $recurringData
      *
      * @return array{TotalPaymentNum: string, FrequencyType: string, FrequencyInterval: string, Type: mixed, StartDate: string}
      */
-    private function createRecurringData(array $order): array
+    private function createRecurringData(array $recurringData): array
     {
         return [
-            'TotalPaymentNum'   => (string) $order['recurringInstallmentCount'], //kac kere tekrarlanacak
-            'FrequencyType'     => $this->mapRecurringFrequency((string) $order['recurringFrequencyType']), //Monthly, weekly, daily
-            'FrequencyInterval' => (string) $order['recurringFrequency'],
-            'Type'              => (string) ($order['recurringType'] ?? 'R'), //R:Sabit Tutarli   G:Degisken Tuta
-            'StartDate'         => (string) ($order['startDate'] ?? ''),
+            'TotalPaymentNum'   => (string) $recurringData['installment'], //kac kere tekrarlanacak
+            'FrequencyType'     => $this->mapRecurringFrequency($recurringData['frequencyType']), //Monthly, weekly, daily
+            'FrequencyInterval' => (string) $recurringData['frequency'],
+            'Type'              => 'R', // R:Sabit Tutarli   G:Degisken Tuta
+            'StartDate'         => isset($recurringData['startDate']) ? $recurringData['startDate']->format('Ymd') : '',
         ];
     }
 }

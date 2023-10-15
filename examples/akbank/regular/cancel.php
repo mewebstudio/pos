@@ -6,15 +6,15 @@ $templateTitle = 'Cancel Order';
 require '_config.php';
 require '../../_templates/_header.php';
 
-$ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', PosInterface::CURRENCY_TRY), $session);
+$ord = $session->get('order') ?: getNewOrder($baseUrl, $ip, $request->get('currency', PosInterface::CURRENCY_TRY));
 
-if (isset($ord['recurringFrequency'])) {
-    //tekrarlanan odemenin durumunu sorgulamak icin:
+if (isset($ord['recurring'])) {
+    // tekrarlanan odemenin durumunu sorgulamak icin:
     $order = [
         // tekrarlanan odeme sonucunda banktan donen deger: $response['Extra']['RECURRINGID']
         'id' => $ord['id'],
-        //hangi taksidi iptal etmek istiyoruz:
-        'recurringOrderInstallmentNumber' => $ord['recurringInstallmentCount'],
+        // hangi taksidi iptal etmek istiyoruz:
+        'recurringOrderInstallmentNumber' => $ord['recurring']['installment'],
     ];
     // Not: bu islem sadece bekleyen odemeyi iptal eder
 } else {

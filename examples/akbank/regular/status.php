@@ -9,7 +9,7 @@ require '../../_templates/_header.php';
 $ord = $session->get('order');
 $lastResponse = $session->get('last_response');
 
-if (isset($ord['recurringFrequency']) && $lastResponse && $lastResponse->recurring_id) {
+if (isset($ord['recurring']) && $lastResponse && $lastResponse->recurring_id) {
     //tekrarlanan odemenin durumunu sorgulamak icin:
     $order = [
         // tekrarlanan odeme sonucunda banktan donen deger: $response['Extra']['RECURRINGID']

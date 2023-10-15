@@ -124,8 +124,8 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['SubMerchantId'] = $account->getSubMerchantId();
         }
 
-        if (isset($order['recurringFrequency'])) {
-            $requestData = array_merge($requestData, $this->createRecurringData($order));
+        if (isset($order['recurring'])) {
+            $requestData = array_merge($requestData, $this->createRecurringData($order['recurring']));
         }
 
         return $requestData;
@@ -358,22 +358,22 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param array{recurringFrequency: int, recurringInstallmentCount: int, recurringFrequencyType: string, recurringFrequency: int, recurringEndDate: DateTimeInterface} $order
+     * @param array{frequency: int, installment: int, frequencyType: string, recurringFrequency: int, endDate: DateTimeInterface} $recurringData
      *
      * @return array{IsRecurring: 'true', RecurringFrequency: string, RecurringFrequencyType: string, RecurringInstallmentCount: string, RecurringEndDate: string}
      */
-    private function createRecurringData(array $order): array
+    private function createRecurringData(array $recurringData): array
     {
         return [
             'IsRecurring'               => 'true',
-            'RecurringFrequency'        => (string) $order['recurringFrequency'], // Periyodik İşlem Frekansı
-            'RecurringFrequencyType'    => $this->mapRecurringFrequency($order['recurringFrequencyType']), // Day|Month|Year
+            'RecurringFrequency'        => (string) $recurringData['frequency'], // Periyodik İşlem Frekansı
+            'RecurringFrequencyType'    => $this->mapRecurringFrequency($recurringData['frequencyType']), // Day|Month|Year
             // recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
-            'RecurringInstallmentCount' => (string) $order['recurringInstallmentCount'],
+            'RecurringInstallmentCount' => (string) $recurringData['installment'],
             /**
              * Bu alandaki tarih, kartın son kullanma tarihinden büyükse ACS sunucusu işlemi reddeder.
              */
-            'RecurringEndDate'          => $order['recurringEndDate']->format('Ymd'),
+            'RecurringEndDate'          => $recurringData['endDate']->format('Ymd'),
         ];
     }
 }

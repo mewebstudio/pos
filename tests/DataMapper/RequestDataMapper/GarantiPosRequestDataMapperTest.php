@@ -534,7 +534,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    public static function create3DPaymentRequestDataDataProvider(): array
+    public static function create3DPaymentRequestDataDataProvider(): \Generator
     {
         $account = AccountFactory::createGarantiPosAccount(
             'garanti',
@@ -560,53 +560,106 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'ip'          => '156.155.154.153',
         ];
 
-        return [
-            [
-                'account'      => $account,
-                'order'        => $order,
-                'responseData' => [
-                    'orderid'              => '2020110828BC',
-                    'md'                   => '1',
-                    'xid'                  => '100000005xid',
-                    'eci'                  => '100000005eci',
-                    'cavv'                 => 'cavv',
-                    'txncurrencycode'      => '949',
-                    'txnamount'            => '100.25',
-                    'txntype'              => 'sales',
-                    'customeripaddress'    => '127.0.0.1',
-                    'customeremailaddress' => 'test@test.com',
+        $responseData = [
+            'orderid'              => '2020110828BC',
+            'md'                   => '1',
+            'xid'                  => '100000005xid',
+            'eci'                  => '100000005eci',
+            'cavv'                 => 'cavv',
+            'txncurrencycode'      => '949',
+            'txnamount'            => '100.25',
+            'txntype'              => 'sales',
+            'customeripaddress'    => '127.0.0.1',
+            'customeremailaddress' => 'test@test.com',
+        ];
+
+        yield [
+            'account'      => $account,
+            'order'        => $order,
+            'responseData' => $responseData,
+            'expected'     => [
+                'Mode'        => 'TEST',
+                'Version'     => '512',
+                'Terminal'    => [
+                    'ProvUserID' => $account->getUsername(),
+                    'UserID'     => $account->getUsername(),
+                    'HashData'   => 'C7806BCDC5874CD227C4B7278302077F6B3E463A9C74497F263E8AF08844DEF364F4D7A089084A705D4210B9B36841E0919B72F804729F466BF00472C53AFD8B',
+                    'ID'         => $account->getTerminalId(),
+                    'MerchantID' => $account->getClientId(),
                 ],
-                'expected' => [
-                    'Mode'        => 'TEST',
-                    'Version'     => '512',
-                    'Terminal'    => [
-                        'ProvUserID' => $account->getUsername(),
-                        'UserID'     => $account->getUsername(),
-                        'HashData'   => 'C7806BCDC5874CD227C4B7278302077F6B3E463A9C74497F263E8AF08844DEF364F4D7A089084A705D4210B9B36841E0919B72F804729F466BF00472C53AFD8B',
-                        'ID'         => $account->getTerminalId(),
-                        'MerchantID' => $account->getClientId(),
+                'Customer'    => [
+                    'IPAddress'    => '127.0.0.1',
+                    'EmailAddress' => 'test@test.com',
+                ],
+                'Order'       => [
+                    'OrderID' => '2020110828BC',
+                ],
+                'Transaction' => [
+                    'Type'                  => 'sales',
+                    'InstallmentCnt'        => '',
+                    'Amount'                => '100.25',
+                    'CurrencyCode'          => '949',
+                    'CardholderPresentCode' => '13',
+                    'MotoInd'               => 'N',
+                    'Secure3D'              => [
+                        'AuthenticationCode' => 'cavv',
+                        'SecurityLevel'      => '100000005eci',
+                        'TxnID'              => '100000005xid',
+                        'Md'                 => '1',
                     ],
-                    'Customer'    => [
-                        'IPAddress'    => '127.0.0.1',
-                        'EmailAddress' => 'test@test.com',
+                ],
+            ],
+        ];
+
+        $order['recurring']   = [
+            'frequency'     => 2,
+            'frequencyType' => 'MONTH',
+            'installment'   => 3,
+            'startDate'     => new \DateTimeImmutable('2023-10-15'),
+        ];
+        $order['installment'] = 0;
+
+        yield 'recurring_order' => [
+            'account'      => $account,
+            'order'        => $order,
+            'responseData' => $responseData,
+            'expected'     => [
+                'Mode'        => 'TEST',
+                'Version'     => '512',
+                'Terminal'    => [
+                    'ProvUserID' => $account->getUsername(),
+                    'UserID'     => $account->getUsername(),
+                    'HashData'   => 'C7806BCDC5874CD227C4B7278302077F6B3E463A9C74497F263E8AF08844DEF364F4D7A089084A705D4210B9B36841E0919B72F804729F466BF00472C53AFD8B',
+                    'ID'         => $account->getTerminalId(),
+                    'MerchantID' => $account->getClientId(),
+                ],
+                'Customer'    => [
+                    'IPAddress'    => '127.0.0.1',
+                    'EmailAddress' => 'test@test.com',
+                ],
+                'Order'       => [
+                    'OrderID' => '2020110828BC',
+                ],
+                'Transaction' => [
+                    'Type'                  => 'sales',
+                    'InstallmentCnt'        => '',
+                    'Amount'                => '100.25',
+                    'CurrencyCode'          => '949',
+                    'CardholderPresentCode' => '13',
+                    'MotoInd'               => 'N',
+                    'Secure3D'              => [
+                        'AuthenticationCode' => 'cavv',
+                        'SecurityLevel'      => '100000005eci',
+                        'TxnID'              => '100000005xid',
+                        'Md'                 => '1',
                     ],
-                    'Order'       => [
-                        'OrderID'     => '2020110828BC',
-                    ],
-                    'Transaction' => [
-                        'Type'                  => 'sales',
-                        'InstallmentCnt'        => '',
-                        'Amount'                => '100.25',
-                        'CurrencyCode'          => '949',
-                        'CardholderPresentCode' => '13',
-                        'MotoInd'               => 'N',
-                        'Secure3D'              => [
-                            'AuthenticationCode' => 'cavv',
-                            'SecurityLevel'      => '100000005eci',
-                            'TxnID'              => '100000005xid',
-                            'Md'                 => '1',
-                        ],
-                    ],
+                ],
+                'Recurring'   => [
+                    'TotalPaymentNum'   => '3',
+                    'FrequencyType'     => 'M',
+                    'FrequencyInterval' => '2',
+                    'Type'              => 'R',
+                    'StartDate'         => '20231015',
                 ],
             ],
         ];

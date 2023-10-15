@@ -60,6 +60,11 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
+     *  TODO tekrarlanan odemeler icin daha fazla bilgi lazim, Deniz bank dokumantasyonunda hic bir aciklama yok
+     *  ornek kodlarda ise sadece bu alttaki 2 veriyi gondermis.
+     * 'MaturityPeriod' => 1,
+     * 'PaymentFrequency' => 2,
+     *
      * {@inheritDoc}
      *
      * @param array{MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $responseData

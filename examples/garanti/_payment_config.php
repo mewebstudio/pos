@@ -8,26 +8,6 @@ require __DIR__.'/../_main_config.php';
 $bankTestsUrl = $hostUrl.'/garanti';
 $posClass = \Mews\Pos\Gateways\GarantiPos::class;
 
-function getNewOrder(
-    string $baseUrl,
-    string $ip,
-    string $currency,
-    \Symfony\Component\HttpFoundation\Session\Session $session,
-    ?int $installment = 0,
-    bool $tekrarlanan = false,
-    string $lang = PosInterface::LANG_TR
-): array {
-    $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
-    if ($tekrarlanan) {
-        $order['installment'] = 0; //Tekrarlayan ödemeler taksitli olamaz.
-        $order['recurringFrequencyType'] = 'MONTH';
-        $order['recurringFrequency'] = 2;
-        $order['recurringInstallmentCount'] = $installment;
-    }
-
-    return $order;
-}
-
 $testCards = [
 /*    'visa1' => [
         'number' => '4282209004348015',

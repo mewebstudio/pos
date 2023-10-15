@@ -1,35 +1,11 @@
 <?php
 
 use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\PosInterface;
 
 require __DIR__.'/../_main_config.php';
 
 $bankTestsUrl = $hostUrl.'/akbank';
 $posClass = \Mews\Pos\Gateways\EstV3Pos::class;
-
-function getNewOrder(
-    string $baseUrl,
-    string $ip,
-    string $currency,
-    \Symfony\Component\HttpFoundation\Session\Session $session,
-    ?int $installment = 0,
-    bool $tekrarlanan = false,
-    string $lang = PosInterface::LANG_TR
-): array {
-    $order = createNewPaymentOrderCommon($baseUrl, $ip, $currency, $installment, $lang);
-
-    if ($tekrarlanan) {
-        $order['installment'] = 0; //Tekrarlayan ödemeler taksitli olamaz.
-        //tekrarlanan odemeler icin (optional):
-        $order['recurringFrequency'] = 3;
-        $order['recurringFrequencyType'] = 'MONTH'; //DAY|WEEK|MONTH|YEAR
-        //recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
-        $order['recurringInstallmentCount'] = $installment;
-    }
-
-    return $order;
-}
 
 $testCards = [
     'visa2' => [

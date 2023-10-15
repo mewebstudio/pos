@@ -11,7 +11,6 @@ $order = getNewOrder(
     $baseUrl,
     $ip,
     $request->get('currency', PosInterface::CURRENCY_TRY),
-    $session,
     $request->get('installment'),
     false,
     $request->get('lang', PosInterface::LANG_TR)

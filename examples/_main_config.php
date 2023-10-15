@@ -27,6 +27,7 @@ $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
 $installments = [
     0  => 'Peşin',
     2  => '2 Taksit',
+    3  => '3 Taksit',
     6  => '6 Taksit',
     12 => '12 Taksit',
 ];
@@ -95,11 +96,12 @@ function createCard(PosInterface $pos, array $card): \Mews\Pos\Entity\Card\Abstr
     }
 }
 
-function createNewPaymentOrderCommon(
+function getNewOrder(
     string $baseUrl,
     string $ip,
     string $currency = PosInterface::CURRENCY_TRY,
     ?int $installment = 0,
+    bool $tekrarlanan = false,
     ?string $lang = null
 ): array {
 
@@ -113,20 +115,38 @@ function createNewPaymentOrderCommon(
         'amount'      => 1.01,
         'currency'    => $currency,
         'installment' => $installment,
+        'ip'          => filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ? $ip : '127.0.0.1',
 
-        //3d, 3d_pay, 3d_host odemeler icin zorunlu
+        // 3d, 3d_pay, 3d_host odemeler icin zorunlu
         'success_url' => $successUrl, // https://example.com/payment
         'fail_url'    => $failUrl, // https://example.com/payment
 
-        //gateway'e gore zorunlu olan degerler
-        'ip'          => filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ? $ip : '127.0.0.1', //EstPos, Garanti, KuveytPos, VakifBank
+        // gateway'e gore zorunlu olan degerler
         'email'       => 'mail@customer.com', // Garanti
-        'rand'        => md5(uniqid(time())), //EstPos, Garanti, PayFor, InterPos, VakifBank
+        'rand'        => md5(uniqid(time())), // EstPos, Garanti, PayFor, InterPos, VakifBank
     ];
 
     if ($lang) {
         //lang degeri verilmezse account (EstPosAccount) dili kullanilacak
         $order['lang'] = $lang;
+    }
+
+    if ($tekrarlanan) {
+        // Desteleyen Gatewayler: GarantiPos, EstPos, PayFlexV4
+
+        $order['installment'] = 0; // Tekrarlayan ödemeler taksitli olamaz.
+
+        $recurringFrequency     = 3;
+        $recurringFrequencyType = 'MONTH'; // DAY|WEEK|MONTH|YEAR
+        $endPeriod              = $installment * $recurringFrequency;
+
+        $order['recurring'] = [
+            'frequency'     => $recurringFrequency,
+            'frequencyType' => $recurringFrequencyType,
+            'installment'   => $installment,
+            'startDate'     => new \DateTimeImmutable(), // GarantiPos optional
+            'endDate'       => (new DateTime())->modify("+$endPeriod $recurringFrequencyType"), // Sadece PayFlexV4'te zorunlu
+        ];
     }
 
     return $order;

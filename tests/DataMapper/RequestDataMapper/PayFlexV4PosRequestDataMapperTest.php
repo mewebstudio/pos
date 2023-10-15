@@ -410,11 +410,13 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             ],
         ];
 
-        $order['installment']               = 0;
-        $order['recurringFrequencyType']    = 'DAY';
-        $order['recurringFrequency']        = 3;
-        $order['recurringInstallmentCount'] = 2;
-        $order['recurringEndDate']          = new \DateTime('2023-10-14');
+        $order['installment'] = 0;
+        $order['recurring']   = [
+            'frequency'     => 3,
+            'frequencyType' => 'MONTH',
+            'installment'   => 2,
+            'endDate'       => (new \DateTimeImmutable('2023-10-14'))->modify("+6 MONTH"),
+        ];
 
         yield 'with_recurrent_payment' => [
             'order'    => $order,
@@ -433,12 +435,11 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
                 'ExpiryDate'                => '2112',
                 'BrandName'                 => '100',
                 'RecurringFrequency'        => '3',
-                'RecurringFrequencyType'    => 'Day',
+                'RecurringFrequencyType'    => 'Month',
                 'RecurringInstallmentCount' => '2',
-                'RecurringEndDate'          => '20231014',
+                'RecurringEndDate'          => '20240414',
             ],
         ];
-
     }
 
     /**

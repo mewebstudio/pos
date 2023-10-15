@@ -36,16 +36,6 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
 
 		-
-			message: "#^Parameter \\#1 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\EstPosRequestDataMapper\\:\\:createRecurringData\\(\\) expects array\\{recurringFrequency\\: int, recurringFrequencyType\\: string, recurringInstallmentCount\\: int\\}, array\\<string, mixed\\> given\\.$#"
-			count: 2
-			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: "#^Parameter \\#1 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\GarantiPosRequestDataMapper\\:\\:createRecurringData\\(\\) expects array\\{recurringInstallmentCount\\: int, recurringFrequencyType\\: string, recurringFrequency\\: int, startDate\\: string\\|null, recurringType\\: 'G'\\|'R'\\|null\\}, array\\<string, mixed\\> given\\.$#"
-			count: 2
-			path: src/DataMapper/RequestDataMapper/GarantiPosRequestDataMapper.php
-
-		-
 			message: "#^Default value of the parameter \\#7 \\$extraData \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\PayFlexCPV4PosRequestDataMapper\\:\\:create3DFormData\\(\\) is incompatible with type array\\{CommonPaymentUrl\\: string, PaymentToken\\: string\\}\\.$#"
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PayFlexCPV4PosRequestDataMapper.php
@@ -57,11 +47,6 @@ parameters:
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:create3DEnrollmentCheckRequestData\\(\\) return type has no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
-			message: "#^Parameter \\#1 \\$order of method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\PayFlexV4PosRequestDataMapper\\:\\:createRecurringData\\(\\) expects array\\{recurringFrequency\\: int, recurringInstallmentCount\\: int, recurringFrequencyType\\: string, recurringEndDate\\: DateTimeInterface\\}, array\\<string, mixed\\> given\\.$#"
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
 

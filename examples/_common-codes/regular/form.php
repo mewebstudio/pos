@@ -8,7 +8,6 @@ $order = getNewOrder(
     $baseUrl,
     $ip,
     $request->get('currency', PosInterface::CURRENCY_TRY),
-    $session,
     $request->get('installment'),
     $request->get('is_recurring', 0) == 1,
     $request->get('lang', PosInterface::LANG_TR)
