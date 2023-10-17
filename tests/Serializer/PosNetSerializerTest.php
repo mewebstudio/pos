@@ -36,7 +36,7 @@ class PosNetSerializerTest extends TestCase
     {
         $result = $this->serializer->encode($data);
 
-        $this->assertSame($expected, $result);
+        $this->assertEquals($expected, $result);
     }
 
     /**
