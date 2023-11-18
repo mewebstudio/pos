@@ -111,14 +111,14 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - [Docker ile test ortamı](#docker-ile-test-ortami)
 
 ### Ozellikler
-  - Standart E-Commerce modeliyle ödeme (`AbstractGateway::MODEL_NON_SECURE`)
-  - 3D Secure modeliyle ödeme (`AbstractGateway::MODEL_3D_SECURE`)
-  - 3D Pay modeliyle ödeme (`AbstractGateway::MODEL_3D_PAY`)
-  - 3D Host modeliyle ödeme (`AbstractGateway::MODEL_3D_HOST`)
-  - Sipariş/Ödeme sorgulama (`AbstractGateway::TX_STATUS`)
-  - Sipariş/Ödeme geçmişi sorgulama (`AbstractGateway::TX_HISTORY`)
-  - Sipariş/Para iadesi yapma (`AbstractGateway::TX_REFUND`)
-  - Sipariş iptal etme (`AbstractGateway::TX_CANCEL`)
+  - Standart E-Commerce modeliyle ödeme (`PosInterface::MODEL_NON_SECURE`)
+  - 3D Secure modeliyle ödeme (`PosInterface::MODEL_3D_SECURE`)
+  - 3D Pay modeliyle ödeme (`PosInterface::MODEL_3D_PAY`)
+  - 3D Host modeliyle ödeme (`PosInterface::MODEL_3D_HOST`)
+  - Sipariş/Ödeme sorgulama (`PosInterface::TX_STATUS`)
+  - Sipariş/Ödeme geçmişi sorgulama (`PosInterface::TX_HISTORY`)
+  - Sipariş/Para iadesi yapma (`PosInterface::TX_REFUND`)
+  - Sipariş iptal etme (`PosInterface::TX_CANCEL`)
   - Tekrarlanan (Recurring) ödeme talimatları
   - İşbank [İMECE kart](https://www.isbank.com.tr/is-ticari/imece-kart) kart ile ödeme desteği
   - [PSR-3](https://www.php-fig.org/psr/psr-3/) logger desteği
@@ -126,7 +126,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 #### Farkli Gateway'ler Tek islem akisi
 * Farklı bankaya geçiş yapmak için sadece doğru `AccountFactory` method'u kullanarak account degistirmek yeterli.
-* **3D**, **3DPay**, **3DHost** ödemeler arasında geçiş yapmak için tek yapmanız gereken Account konfigurasyonunda account tipini değiştirmek (`AbstractGateway::MODEL_3D_PAY` vs.). İşlem akışı aynı olduğu için kod değiştirmenize gerek kalmıyor.
+* **3D**, **3DPay**, **3DHost** ödemeler arasında geçiş yapmak için tek yapmanız gereken Account konfigurasyonunda account tipini değiştirmek (`PosInterface::MODEL_3D_PAY` vs.). İşlem akışı aynı olduğu için kod değiştirmenize gerek kalmıyor.
 * Aynı tip işlem için farklı POS Gateway'lerden dönen değerler aynı formata normalize edilmiş durumda. Yani kod güncellemenize gerek yok.
 * Aynı tip işlem için farklı Gateway gönderilecek değerler de genel olarak aynı formatta olacak şekilde normalize edişmiştir.
 
@@ -176,9 +176,9 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
 'yourClientID',
 'yourKullaniciAdi',
 'yourSifre',
-AbstractGateway::MODEL_3D_SECURE, //storetype
+PosInterface::MODEL_3D_SECURE, //storetype
 'yourStoreKey',
-AbstractGateway::LANG_TR
+PosInterface::LANG_TR
 );
 
 // API kullanıcı hesabı ile paket bir değişkene aktarılıyor
@@ -217,7 +217,7 @@ $order = [
     'rand'        => md5(uniqid(time())), // EstPos, Garanti, PayFor, InterPos, VakifBank. Rastegele değer.
 
     //lang degeri verilmezse account (EstPosAccount) dili kullanılacak
-    'lang' => AbstractGateway::LANG_TR, //LANG_TR|LANG_EN. Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
+    'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, //LANG_TR|LANG_EN. Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
 $session->set('order', $order);
 
@@ -233,7 +233,7 @@ $card = \Mews\Pos\Factory\CreditCardFactory::create(
   );
 
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri tanımlanıyor.
-$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY, $card);
+$pos->prepare($order, \Mews\Pos\PosInterface::TX_PAY, $card);
 
 try {
     // $formData icerigi form olarak banka gateway'ne yonlendirilir.
@@ -251,7 +251,7 @@ require 'config.php';
 
 $order = $session->get('order');
 
-$pos->prepare($order, \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
+$pos->prepare($order, \Mews\Pos\PosInterface::TX_PAY);
 
 // Ödeme tamamlanıyor,
 // Ödeme modeli (3D Secure, 3D Pay, 3D Host, Non Secure) $account tarafında belirlenir.
@@ -406,27 +406,27 @@ Bu isteği göndermeden ödeme tamamlanmaz.
 ### Otorizasyon, Ön Otorizasyon, Ön Provizyon Kapama İşlemler arasındaki farklar
 - **Otorizasyon** - bildiğimiz ve genel olarak kullandığımız işlem. Tek seferde ödeme işlemi biter.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
-İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_PAY`
+İşlemin kütüphanedeki karşılığı `PosInterface::TX_PAY`
 - **Ön Otorizasyon** - müşteriden parayı direk çekmek yerine, işlem sonucunda para bloke edilir.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
-İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_PRE_PAY`
+İşlemin kütüphanedeki karşılığı `PosInterface::TX_PRE_PAY`
 - **Ön Provizyon Kapama** - ön provizyon sonucunda bloke edilen miktarın satışını tamamlar.
 Ön otorizasyon yapıldıktan sonra, örneğin 1 hafta sonra, Post Otorizasyon isteği gönderilebilinir.
 Bu işlem için kullanıcıdan kredi kart bilgisi _alınmaz_.
 Onun yerine bazı gateway'ler `orderId` degeri isteri, bazıları ise ön provizyon sonucu dönen banka tarafındaki `orderId`'yi ister.
 Satıcı _ön otorizasyon_ isteği iptal etmek isterse de `cancel` isteği gönderir.
-Post Otorizasyon İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_POST_PAY`
+Post Otorizasyon İşlemin kütüphanedeki karşılığı `PosInterface::TX_POST_PAY`
 - Bu 3 çeşit işlemler bütün ödeme modelleri (NonSecure, 3D, 3DPay ve 3DHost) tarafından desteklenir.
 
 ### Refund ve Cancel işlemler arasındaki farklar
 - **Refund** - Tamamlanan ödemeyi iade etmek için kullanılır.
 Bu işlem gün kapandıktan _sonra_ yapılabilir.
 İade işlemi için _miktar zorunlu_, çünkü ödenen ve iade edilen miktarı aynı olmayabilir.
-İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_REFUND`
+İşlemin kütüphanedeki karşılığı `PosInterface::TX_REFUND`
 - **Cancel** - Tamamlanan ödemeyi iptal etmek için kullanılır.
 Ödeme yapıldıktan sonra gün kapanmadan yapılabilir. Gün kapandıktan sonra `refund` işlemi kullanmak zorundasınız.
 Genel olarak _miktar_ bilgisi _istenmez_, ancak bazı Gateway'ler ister.
-İşlemin kütüphanedeki karşılığı `AbstractGateway::TX_CANCEL`
+İşlemin kütüphanedeki karşılığı `PosInterface::TX_CANCEL`
 
 ## Docker ile test ortami
 Makinenizde Docker kurulu olmasi gerekiyor.

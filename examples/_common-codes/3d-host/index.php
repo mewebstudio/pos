@@ -39,9 +39,9 @@ $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (Request
         /**
          * Örneğin İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
         $supportedPaymentModels = [
-        AbstractGateway::MODEL_3D_PAY,
-        AbstractGateway::MODEL_3D_PAY_HOSTING,
-        AbstractGateway::MODEL_3D_HOST,
+            \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY,
+            \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY_HOSTING,
+            \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
         ];
         if ($event->getTxType() === PosInterface::TX_PAY && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
         $formInputs           = $event->getRequestData();
