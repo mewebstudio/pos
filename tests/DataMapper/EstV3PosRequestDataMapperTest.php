@@ -61,7 +61,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => 'tr',
-            'rand'        => microtime(),
+            'rand'        => 'rand-21212',
         ];
 
         $this->pos = PosFactory::createPosGateway($this->threeDAccount);
@@ -92,6 +92,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'oid'           => $this->order['id'],
             'okUrl'         => $this->order['success_url'],
             'failUrl'       => $this->order['fail_url'],
+            'callbackUrl'   => $this->order['fail_url'],
             'rnd'           => $this->order['rand'],
             'hashAlgorithm' => 'ver3',
             'lang'          => 'tr',
@@ -100,7 +101,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'taksit'        => '',
         ];
 
-        $hash           = $this->requestDataMapper->getCrypt()->create3DHash($account, $inputs, $txType);
+        $hash           = '7MGmDH2CY9jlFd4kVHwdvlyt07hIqkiBWVR8bkjAiaaRhK2XUHyvrDLqv0vlG6YY8bXChDkLfnDwVLi3Pvg5lQ==';
         $inputs['hash'] = $hash;
         $form           = [
             'gateway' => $gatewayURL,
@@ -123,7 +124,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $form['inputs']['cv2']                             = $card->getCvv();
 
         unset($form['inputs']['hash']);
-        $form['inputs']['hash'] = $this->requestDataMapper->getCrypt()->create3DHash($account, $form['inputs'], $txType);
+        $form['inputs']['hash'] = '7EgK2aMhS848ZMEkl2d0s1dFXlMhCy4LS5FFk+k/FbEmmVqBqx6TtQ1Yg7aW0KQa/5hrQODwBVT3SCUwfXHEsg==';
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
@@ -163,6 +164,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'oid'       => $this->order['id'],
             'okUrl'     => $this->order['success_url'],
             'failUrl'   => $this->order['fail_url'],
+            'callbackUrl' => $this->order['fail_url'],
             'rnd'       => $this->order['rand'],
             'hashAlgorithm' => 'ver3',
             'lang'      => 'tr',
@@ -175,7 +177,8 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'method'  => 'POST',
             'inputs'  => $inputs,
         ];
-        $form['inputs']['hash']       = $this->requestDataMapper->getCrypt()->create3DHash($account, $inputs, AbstractGateway::TX_PAY);
+
+        $form['inputs']['hash']       = 'pxvr9oG9G6v2AU/Lci3qs7OiBAwcvAaLotG5rorJVe31DJN/wlVDReWpqFSJojTLPs6pPiS1L1U+QkE0dJJBKw==';
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $pos->getAccount(),

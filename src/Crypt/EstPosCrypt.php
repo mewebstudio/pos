@@ -23,6 +23,7 @@ class EstPosCrypt extends AbstractCrypt
             $txType,
             $requestData['installment'],
             $requestData['rand'],
+            $requestData['fail_url'], // callbackUrl
             $account->getStoreKey(),
         ];
 

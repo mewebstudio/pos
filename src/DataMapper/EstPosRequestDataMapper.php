@@ -268,6 +268,8 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'oid'       => $order->id,
             'okUrl'     => $order->success_url,
             'failUrl'   => $order->fail_url,
+            // musteri 3D onay sayfasinda islemleri tamamlamadan kapatirsa, banka bu sayfaya bir istek gonderecek.
+            'callbackUrl' => $order->fail_url,
             'rnd'       => $order->rand,
             'lang'      => $this->getLang($account, $order),
             'currency'  => $this->mapCurrency($order->currency),
