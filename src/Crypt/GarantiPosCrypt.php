@@ -40,6 +40,9 @@ class GarantiPosCrypt extends AbstractCrypt
      */
     public function check3DHash(AbstractPosAccount $account, array $data): bool
     {
+        if (null === $account->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
         $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'hashparams', ':');
 
         if ($data['hash'] === $actualHash) {

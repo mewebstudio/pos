@@ -14,6 +14,9 @@ class KuveytPosCrypt extends AbstractCrypt
      */
     public function create3DHash(AbstractPosAccount $account, array $requestData): string
     {
+        if (null === $account->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
         $hashedPassword = $this->hashString($account->getStoreKey());
 
         $hashData = [
@@ -45,6 +48,9 @@ class KuveytPosCrypt extends AbstractCrypt
      */
     public function createHash(AbstractPosAccount $account, array $requestData): string
     {
+        if (null === $account->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
         $hashedPassword = $this->hashString($account->getStoreKey());
 
         $hashData = [

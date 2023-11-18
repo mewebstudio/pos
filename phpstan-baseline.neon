@@ -11,26 +11,6 @@ parameters:
 			path: src/Client/HttpClient.php
 
 		-
-			message: "#^Parameter \\#1 \\$storeKey of method Mews\\\\Pos\\\\Crypt\\\\AbstractCrypt\\:\\:hashFromParams\\(\\) expects string, string\\|null given\\.$#"
-			count: 1
-			path: src/Crypt/EstPosCrypt.php
-
-		-
-			message: "#^Parameter \\#1 \\$storeKey of method Mews\\\\Pos\\\\Crypt\\\\AbstractCrypt\\:\\:hashFromParams\\(\\) expects string, string\\|null given\\.$#"
-			count: 1
-			path: src/Crypt/GarantiPosCrypt.php
-
-		-
-			message: "#^Parameter \\#1 \\$storeKey of method Mews\\\\Pos\\\\Crypt\\\\AbstractCrypt\\:\\:hashFromParams\\(\\) expects string, string\\|null given\\.$#"
-			count: 1
-			path: src/Crypt/InterPosCrypt.php
-
-		-
-			message: "#^Parameter \\#1 \\$str of method Mews\\\\Pos\\\\Crypt\\\\AbstractCrypt\\:\\:hashString\\(\\) expects string, string\\|null given\\.$#"
-			count: 2
-			path: src/Crypt/KuveytPosCrypt.php
-
-		-
 			message: "#^Parameter \\#1 \\$currency of method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\AbstractRequestDataMapper\\:\\:mapCurrency\\(\\) expects 'EUR'\\|'GBP'\\|'JPY'\\|'RUB'\\|'TRY'\\|'USD', string given\\.$#"
 			count: 1
 			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
@@ -83,11 +63,6 @@ parameters:
 		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\PosNetV1PosRequestDataMapper\\:\\:create3DFormData\\(\\) has parameter \\$extraData with no type specified\\.$#"
 			count: 1
-			path: src/DataMapper/RequestDataMapper/PosNetV1PosRequestDataMapper.php
-
-		-
-			message: "#^Parameter \\#1 \\$storeKey of method Mews\\\\Pos\\\\Crypt\\\\CryptInterface\\:\\:hashFromParams\\(\\) expects string, string\\|null given\\.$#"
-			count: 5
 			path: src/DataMapper/RequestDataMapper/PosNetV1PosRequestDataMapper.php
 
 		-

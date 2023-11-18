@@ -146,7 +146,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
         if ($order['installment'] > 1) {
             $requestData['InstallmentType'] = 'Y';
         }
-
+        if (null === $account->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
@@ -181,7 +183,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
         if ($order['installment'] > 1) {
             $requestData['InstallmentType'] = 'Y';
         }
-
+        if (null === $account->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
@@ -208,7 +212,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'PaymentFacilitatorData' => null,
             'OrderId'                => self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']),
         ];
-
+        if (null === $account->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
@@ -243,7 +249,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
         } else {
             $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']);
         }
-
+        if (null === $account->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
@@ -283,7 +291,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['Amount']       = $this->amountFormat($order['amount']);
             $requestData['CurrencyCode'] = $this->mapCurrency($order['currency']);
         }
-
+        if (null === $account->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;

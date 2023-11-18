@@ -44,7 +44,10 @@ class PosNetV1PosCrypt extends AbstractCrypt
      */
     public function check3DHash(AbstractPosAccount $account, array $data): bool
     {
-        $actualHash = $this->hashFromParams((string) $account->getStoreKey(), $data, 'MacParams', ':');
+        if (null === $account->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
+        $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'MacParams', ':');
 
         if ($actualHash !== $data['Mac']) {
             $this->logger->error('hash check failed', [
