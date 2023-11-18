@@ -36,7 +36,8 @@ class PayFlexV4PosSerializerTest extends TestCase
      */
     public function testEncode(array $data, string $txType, string $expected)
     {
-        $result = $this->serializer->encode($data, $txType);
+        $result   = $this->serializer->encode($data, $txType);
+        $expected = str_replace(["\r"], '', $expected);
 
         $this->assertSame($expected, $result);
     }

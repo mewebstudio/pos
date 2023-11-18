@@ -41,7 +41,8 @@ class EstPosSerializerTest extends TestCase
      */
     public function testEncode(array $data, string $expected): void
     {
-        $result = $this->serializer->encode($data);
+        $result   = $this->serializer->encode($data);
+        $expected = str_replace(["\r"], '', $expected);
 
         $this->assertSame($expected, $result);
     }
