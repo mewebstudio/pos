@@ -19,17 +19,19 @@ $session->start();
 $hostUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')."://$_SERVER[HTTP_HOST]";
 $subMenu = [];
 
+$handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
+$logger = new \Monolog\Logger('pos', [$handler]);
+
 function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mews\Pos\PosInterface
 {
     try {
-        $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
-        $logger = new \Monolog\Logger('pos', [$handler]);
-
 /*        $client = new HttpClient(
             new \Http\Client\Curl\Client(),
             new \Slim\Psr7\Factory\RequestFactory(),
             new \Slim\Psr7\Factory\StreamFactory()
         );*/
+
+        global $logger;
 
         $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
         $pos->setTestMode(true);
