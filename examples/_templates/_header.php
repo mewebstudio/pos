@@ -45,6 +45,7 @@
     <div class="container" style="max-width: 640px;">
         <h2 class="text-center"><?= $templateTitle; ?></h2>
         <hr>
+        <?php if(isset($posClass)): ?>
         <nav class="collapse navbar-collapse" id="sub-navbar">
             <ul class="nav navbar-nav">
                 <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_PAY, \Mews\Pos\PosInterface::MODEL_3D_SECURE)): ?>
@@ -77,5 +78,6 @@
 
             </ul>
         </nav>
+        <?php endif; ?>
         <hr>
 
