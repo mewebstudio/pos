@@ -45,7 +45,11 @@ abstract class AbstractCreditCard implements CreditCardInterface
      */
     public function __construct(string $number, DateTimeImmutable $expDate, string $cvv, ?string $cardHolderName = null, ?string $cardType = null)
     {
-        $this->number     = preg_replace('/\s+/', '', $number);
+        $number = \preg_replace('/\s+/', '', $number);
+        if (null === $number) {
+            throw new \Exception('Kredit numarası formatlanamadı!');
+        }
+        $this->number     = $number;
         $this->expDate    = $expDate;
         $this->cvv        = $cvv;
         $this->holderName = $cardHolderName;

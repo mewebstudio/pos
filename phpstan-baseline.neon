@@ -116,11 +116,6 @@ parameters:
 			path: src/Entity/Account/GarantiPosAccount.php
 
 		-
-			message: "#^Property Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\:\\:\\$number \\(string\\) does not accept string\\|null\\.$#"
-			count: 1
-			path: src/Entity/Card/AbstractCreditCard.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Factory\\\\PosFactory\\:\\:createPosGateway\\(\\) has parameter \\$config with no value type specified in iterable type array\\.$#"
 			count: 1
 			path: src/Factory/PosFactory.php
