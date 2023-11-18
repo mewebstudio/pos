@@ -8,8 +8,8 @@ use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
@@ -25,7 +25,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /** @var PayFlexAccount */
     public $account;
 
-    /** @var AbstractCreditCard */
+    /** @var CreditCardInterface */
     private $card;
 
     /** @var PayFlexV4PosRequestDataMapper */
@@ -66,7 +66,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             $dispatcher,
             $this->createMock(CryptInterface::class)
         );
-        $this->card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+        $this->card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**
@@ -115,7 +115,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $gatewayResponse, AbstractCreditCard $card, array $expected)
+    public function testCreate3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $gatewayResponse, CreditCardInterface $card, array $expected)
     {
         $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $gatewayResponse, $card);
         $this->assertEquals($expected, $actual);
@@ -133,7 +133,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider three3DEnrollmentRequestDataDataProvider
      */
-    public function testCreate3DEnrollmentCheckData(array $order, ?AbstractCreditCard $card, array $expected)
+    public function testCreate3DEnrollmentCheckData(array $order, ?CreditCardInterface $card, array $expected)
     {
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $card);
         $this->assertEquals($expected, $actual);
@@ -283,7 +283,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'VerifyEnrollmentRequestId' => 'ce06048a3e9c0cd1d437803fb38b5ad0',
         ];
 
-        $card = new CreditCard('5555444433332222', new \DateTimeImmutable('2021-12-01'), '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+        $card = new CreditCard('5555444433332222', new \DateTimeImmutable('2021-12-01'), '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
 
         yield 'no_installment' => [
             'account' => $account,
@@ -356,7 +356,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $card = new CreditCard('5555444433332222', new \DateTimeImmutable('2021-12-01'), '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+        $card = new CreditCard('5555444433332222', new \DateTimeImmutable('2021-12-01'), '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
 
         yield [
             'order'    => $order,
@@ -431,14 +431,14 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param PayFlexAccount     $account
-     * @param array              $order
-     * @param string             $txType
-     * @param AbstractCreditCard $card
+     * @param PayFlexAccount      $account
+     * @param array               $order
+     * @param string              $txType
+     * @param CreditCardInterface $card
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         return [
             'MerchantId'              => $account->getClientId(),

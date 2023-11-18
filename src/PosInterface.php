@@ -6,7 +6,7 @@
 namespace Mews\Pos;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -81,26 +81,26 @@ interface PosInterface
      * @phpstan-param PosInterface::MODEL_3D_*                      $paymentModel
      * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
      *
-     * @param array<string, mixed>    $order
-     * @param string                  $paymentModel
-     * @param string                  $txType
-     * @param AbstractCreditCard|null $card
+     * @param array<string, mixed>     $order
+     * @param string                   $paymentModel
+     * @param string                   $txType
+     * @param CreditCardInterface|null $card
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, ?AbstractCreditCard $card = null): array;
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $card = null): array;
 
     /**
      * Regular Payment
      * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
      *
      * @param array<string, mixed> $order
-     * @param AbstractCreditCard   $card
+     * @param CreditCardInterface  $card
      * @param string               $txType
      *
      * @return PosInterface
      */
-    public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType): PosInterface;
+    public function makeRegularPayment(array $order, CreditCardInterface $card, string $txType): PosInterface;
 
     /**
      * Ön Provizyon kapama işlemi
@@ -115,14 +115,14 @@ interface PosInterface
      * Make 3D Payment
      * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
      *
-     * @param Request                 $request
-     * @param array<string, mixed>    $order
-     * @param string                  $txType
-     * @param AbstractCreditCard|null $card simdilik sadece PayFlexV4Pos icin card isteniyor.
+     * @param Request                  $request
+     * @param array<string, mixed>     $order
+     * @param string                   $txType
+     * @param CreditCardInterface|null $card simdilik sadece PayFlexV4Pos icin card isteniyor.
      *
      * @return PosInterface
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface;
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface;
 
     /**
      * Just returns formatted data of 3d_pay payment response
@@ -150,16 +150,16 @@ interface PosInterface
      * @phpstan-param PosInterface::MODEL_*                                                   $paymentModel
      * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY|PosInterface::TX_POST_PAY $txType
      *
-     * @param string                  $paymentModel
-     * @param array<string, mixed>    $order
-     * @param string                  $txType
-     * @param AbstractCreditCard|null $card
+     * @param string                   $paymentModel
+     * @param array<string, mixed>     $order
+     * @param string                   $txType
+     * @param CreditCardInterface|null $card
      *
      * @return PosInterface
      *
      * @throws UnsupportedPaymentModelException
      */
-    public function payment(string $paymentModel, array $order, string $txType, ?AbstractCreditCard $card = null): PosInterface;
+    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $card = null): PosInterface;
 
     /**
      * Refund Order
@@ -228,7 +228,7 @@ interface PosInterface
     public function isTestMode(): bool;
 
     /**
-     * @return array<AbstractCreditCard::CARD_TYPE_*, string>
+     * @return array<CreditCardInterface::CARD_TYPE_*, string>
      */
     public function getCardTypeMapping(): array;
 
@@ -249,6 +249,7 @@ interface PosInterface
     public static function isSupportedTransaction(string $txType, string $paymentModel): bool;
 
     /**
+     * TODO delete
      * @return array<int, PosInterface::MODEL_*>
      */
     public static function getSupportedPaymentModels(): array;

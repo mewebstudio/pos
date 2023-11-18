@@ -11,7 +11,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\PosInterface;
@@ -63,7 +63,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      * todo implement
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -141,7 +141,7 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * {@inheritDoc}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
     {
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $data */
         $data = $this->registerPayment($order, $txType, $paymentModel, $card);
@@ -174,7 +174,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
      * @param string                               $paymentModel
-     * @param AbstractCreditCard|null              $card
+     * @param CreditCardInterface|null             $card
      *
      * Basarili durumda donen cevap formati: array{CommonPaymentUrl: string, PaymentToken: string, ErrorCode: null,
      * ResponseMessage: null} Basarisiz durumda donen cevap formati: array{CommonPaymentUrl: null, PaymentToken: null,
@@ -184,7 +184,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @throws Exception
      */
-    public function registerPayment(array $order, string $txType, string $paymentModel, AbstractCreditCard $card = null): array
+    public function registerPayment(array $order, string $txType, string $paymentModel, CreditCardInterface $card = null): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $this->account,

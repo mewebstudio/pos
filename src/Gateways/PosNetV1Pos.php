@@ -9,7 +9,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -77,7 +77,7 @@ class PosNetV1Pos extends AbstractGateway
      * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
     {
         $request           = $request->request;
         $provisionResponse = null;
@@ -139,7 +139,7 @@ class PosNetV1Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
     {
         $this->logger->debug('preparing 3D form data');
 

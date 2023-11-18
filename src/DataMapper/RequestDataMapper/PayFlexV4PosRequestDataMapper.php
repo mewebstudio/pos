@@ -8,7 +8,7 @@ namespace Mews\Pos\DataMapper\RequestDataMapper;
 use DateTimeInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
@@ -39,10 +39,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritdoc}
      */
     protected $cardTypeMapping = [
-        AbstractCreditCard::CARD_TYPE_VISA       => '100',
-        AbstractCreditCard::CARD_TYPE_MASTERCARD => '200',
-        AbstractCreditCard::CARD_TYPE_TROY       => '300',
-        AbstractCreditCard::CARD_TYPE_AMEX       => '400',
+        CreditCardInterface::CARD_TYPE_VISA       => '100',
+        CreditCardInterface::CARD_TYPE_MASTERCARD => '200',
+        CreditCardInterface::CARD_TYPE_TROY       => '300',
+        CreditCardInterface::CARD_TYPE_AMEX       => '400',
     ];
 
     /**
@@ -60,7 +60,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritDoc}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, ?AbstractCreditCard $card = null): array
+    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, ?CreditCardInterface $card = null): array
     {
         if (null === $card) {
             throw new \LogicException('Ödemeyi tamamlamak için kart bilgiler zorunlu!');
@@ -94,11 +94,11 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param PayFlexAccount                       $account
      * @param array<string, int|string|float|null> $order
-     * @param AbstractCreditCard                   $card
+     * @param CreditCardInterface                  $card
      *
      * @return array
      */
-    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, AbstractCreditCard $card): array
+    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, CreditCardInterface $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -135,7 +135,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * @param PayFlexAccount $account
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -259,7 +259,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return array{gateway: string, method: 'POST', inputs: array{PaReq: string, TermUrl: string, MD: string}}
      */
-    public function create3DFormData(?AbstractPosAccount $account, ?array $order, ?string $paymentModel, ?string $txType, ?string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = []): array
+    public function create3DFormData(?AbstractPosAccount $account, ?array $order, ?string $paymentModel, ?string $txType, ?string $gatewayURL, ?CreditCardInterface $card = null, array $extraData = []): array
     {
         $inputs = [
             'PaReq'   => $extraData['PaReq'],

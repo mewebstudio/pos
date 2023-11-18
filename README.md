@@ -229,7 +229,7 @@ $card = \Mews\Pos\Factory\CreditCardFactory::create(
     '12',
     '123',
     'john',
-    AbstractCreditCard::CARD_TYPE_VISA, //bankaya göre zorunlu
+    \Mews\Pos\Entity\Card\CreditCardInterface::CARD_TYPE_VISA, //bankaya göre zorunlu
   );
 
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri tanımlanıyor.

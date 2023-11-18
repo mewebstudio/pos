@@ -6,7 +6,7 @@
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
@@ -53,10 +53,10 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritdoc}
      */
     protected $cardTypeMapping = [
-        AbstractCreditCard::CARD_TYPE_VISA       => '0',
-        AbstractCreditCard::CARD_TYPE_MASTERCARD => '1',
-        AbstractCreditCard::CARD_TYPE_AMEX       => '2',
-        AbstractCreditCard::CARD_TYPE_TROY       => '3',
+        CreditCardInterface::CARD_TYPE_VISA       => '0',
+        CreditCardInterface::CARD_TYPE_MASTERCARD => '1',
+        CreditCardInterface::CARD_TYPE_AMEX       => '2',
+        CreditCardInterface::CARD_TYPE_TROY       => '3',
     ];
 
     /**
@@ -92,7 +92,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -196,7 +196,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -214,7 +214,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'InstallmentCount' => $this->mapInstallment((int) $order['installment']),
         ];
 
-        if ($card instanceof AbstractCreditCard) {
+        if ($card instanceof CreditCardInterface) {
             $inputs['CardType'] = $this->cardTypeMapping[$card->getType()];
             $inputs['Pan']      = $card->getNumber();
             $inputs['Expiry']   = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);

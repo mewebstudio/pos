@@ -6,7 +6,7 @@
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\PosInterface;
 
@@ -75,7 +75,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{MbrId: string, MOTO: string, OrderId: string, SecureType: string, TxnType: string, PurchAmount: string, Currency: string, InstallmentCount: string, Lang: string, CardHolderName: string|null, Pan: string, Expiry: string, Cvv2: string, MerchantId: string, UserCode: string, UserPass: string}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -197,7 +197,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -217,7 +217,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'Rnd'              => (string) $order['rand'],
         ];
 
-        if ($card instanceof AbstractCreditCard) {
+        if ($card instanceof CreditCardInterface) {
             $inputs['CardHolderName'] = $card->getHolderName() ?? '';
             $inputs['Pan']            = $card->getNumber();
             $inputs['Expiry']         = $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);

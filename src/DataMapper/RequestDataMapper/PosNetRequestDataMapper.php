@@ -9,7 +9,7 @@ use Exception;
 use InvalidArgumentException;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
@@ -92,7 +92,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -233,7 +233,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      *
      * @throws Exception
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, array $extraData = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null, array $extraData = null): array
     {
         if (null === $extraData) {
             throw new InvalidArgumentException('$extraData can not be null');
@@ -270,7 +270,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
      */
-    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         $order = $this->preparePaymentOrder($order);
 

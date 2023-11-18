@@ -175,7 +175,7 @@ Gateway için ayrı ayrı olan (örn. `CreditCardEstPos`) CreditCard class'ları
   '12',
   '123',
   'john',
-  AbstractCreditCard::CARD_TYPE_VISA, //bankaya göre zorunlu
+  CreditCardInterface::CARD_TYPE_VISA, //bankaya göre zorunlu
   );
   ```
   daha fazla örnek için `examples` klasöre bakınız.

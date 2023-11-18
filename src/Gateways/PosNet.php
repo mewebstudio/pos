@@ -12,7 +12,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
@@ -61,11 +61,11 @@ class PosNet extends AbstractGateway
      *
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
-     * @param AbstractCreditCard                   $card
+     * @param CreditCardInterface                  $card
      *
      * @return array{approved: string, respCode: string, respText: string, oosRequestDataResponse?: array{data1: string, data2: string, sign: string}}
      */
-    public function getOosTransactionData(array $order, string $txType, AbstractCreditCard $card): array
+    public function getOosTransactionData(array $order, string $txType, CreditCardInterface $card): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $card);
 
@@ -90,7 +90,7 @@ class PosNet extends AbstractGateway
      * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
     {
         $request = $request->request;
 
@@ -178,9 +178,9 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
     {
-        if (!$card instanceof AbstractCreditCard) {
+        if (!$card instanceof CreditCardInterface) {
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 

@@ -6,7 +6,7 @@ namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -25,7 +25,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     /** @var AbstractPosAccount */
     private $account;
 
-    /** @var AbstractCreditCard */
+    /** @var CreditCardInterface */
     private $card;
 
     /** @var PayForPosRequestDataMapper */
@@ -337,13 +337,13 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param AbstractPosAccount $account
-     * @param array              $order
-     * @param AbstractCreditCard $card
+     * @param AbstractPosAccount  $account
+     * @param array               $order
+     * @param CreditCardInterface $card
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, AbstractCreditCard $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, CreditCardInterface $card): array
     {
         return [
             'MbrId'            => '5',

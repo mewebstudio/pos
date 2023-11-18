@@ -8,7 +8,7 @@ namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 use InvalidArgumentException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -24,7 +24,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 class PosNetV1PosRequestDataMapperTest extends TestCase
 {
-    /** @var AbstractCreditCard */
+    /** @var CreditCardInterface */
     private $card;
 
     /** @var PosNetV1PosRequestDataMapperTest */

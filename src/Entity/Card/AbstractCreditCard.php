@@ -10,20 +10,8 @@ use DateTimeImmutable;
 /**
  * Class AbstractCreditCard
  */
-abstract class AbstractCreditCard
+abstract class AbstractCreditCard implements CreditCardInterface
 {
-    /** @var string */
-    public const CARD_TYPE_VISA = 'visa';
-
-    /** @var string */
-    public const CARD_TYPE_MASTERCARD = 'master';
-
-    /** @var string */
-    public const CARD_TYPE_AMEX = 'amex';
-
-    /** @var string */
-    public const CARD_TYPE_TROY = 'troy';
-
     /**
      * 16 digit credit card number without spaces
      * @var string
@@ -65,8 +53,7 @@ abstract class AbstractCreditCard
     }
 
     /**
-     * returns card number without white spaces
-     * @return string
+     * @inheritDoc
      */
     public function getNumber(): string
     {
@@ -74,11 +61,7 @@ abstract class AbstractCreditCard
     }
 
     /**
-     * returns exp year in 2 digit format
-     *
-     * @param string $format
-     *
-     * @return string
+     * @inheritDoc
      */
     public function getExpireYear(string $format = 'y'): string
     {
@@ -86,11 +69,7 @@ abstract class AbstractCreditCard
     }
 
     /**
-     * returns exp year in 2 digit format. i.e '01' '02' '12'
-     *
-     * @param string $format
-     *
-     * @return string
+     * @inheritDoc
      */
     public function getExpireMonth(string $format = 'm'): string
     {
@@ -98,11 +77,7 @@ abstract class AbstractCreditCard
     }
 
     /**
-     * returns card exp date month and year combined.
-     *
-     * @param string $format
-     *
-     * @return string
+     * @inheritDoc
      */
     public function getExpirationDate(string $format = 'ym'): string
     {
@@ -110,7 +85,7 @@ abstract class AbstractCreditCard
     }
 
     /**
-     * @return string
+     * @inheritDoc
      */
     public function getCvv(): string
     {
@@ -118,7 +93,7 @@ abstract class AbstractCreditCard
     }
 
     /**
-     * @return string|null
+     * @inheritDoc
      */
     public function getHolderName(): ?string
     {
@@ -126,15 +101,17 @@ abstract class AbstractCreditCard
     }
 
     /**
-     * @param string|null $name
+     * @inheritDoc
      */
-    public function setHolderName(?string $name)
+    public function setHolderName(?string $name): CreditCardInterface
     {
         $this->holderName = $name;
+
+        return $this;
     }
 
     /**
-     * @return string|null
+     * @inheritDoc
      */
     public function getType(): ?string
     {

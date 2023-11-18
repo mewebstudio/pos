@@ -141,11 +141,6 @@ parameters:
 			path: src/Entity/Account/GarantiPosAccount.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\:\\:setHolderName\\(\\) has no return type specified\\.$#"
-			count: 1
-			path: src/Entity/Card/AbstractCreditCard.php
-
-		-
 			message: "#^Property Mews\\\\Pos\\\\Entity\\\\Card\\\\AbstractCreditCard\\:\\:\\$number \\(string\\) does not accept string\\|null\\.$#"
 			count: 1
 			path: src/Entity/Card/AbstractCreditCard.php

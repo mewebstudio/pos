@@ -9,7 +9,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\PosInterface;
@@ -57,7 +57,7 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
     {
         $request      = $request->request;
         $bankResponse = null;
@@ -146,7 +146,7 @@ class PayForPos extends AbstractGateway
     /**
      * {@inheritDoc}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
     {
         $this->logger->debug('preparing 3D form data');
 

@@ -7,8 +7,8 @@ namespace Mews\Pos\Factory;
 
 use DateTimeImmutable;
 use DomainException;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\CardTypeNotSupportedException;
 use Mews\Pos\Exceptions\CardTypeRequiredException;
 use Mews\Pos\PosInterface;
@@ -24,8 +24,6 @@ use function str_pad;
 class CreditCardFactory
 {
     /**
-     * AbstractCreditCard constructor.
-     *
      * @param PosInterface $pos
      * @param string       $number         credit card number with or without spaces
      * @param string       $expireYear     accepts year in 1, 2 and 4 digit format. accepted year formats '1' (2001),
@@ -36,7 +34,7 @@ class CreditCardFactory
      * @param string|null  $cardHolderName
      * @param string|null  $cardType       examples values: visa, master. bankaya gore zorunlu
      *
-     * @return AbstractCreditCard
+     * @return CreditCardInterface
      */
     public static function create(
         PosInterface $pos,
@@ -46,7 +44,7 @@ class CreditCardFactory
         string       $cvv,
         ?string      $cardHolderName = null,
         ?string      $cardType = null
-    ): AbstractCreditCard
+    ): CreditCardInterface
     {
 
         $number = preg_replace('/\s+/', '', $number);

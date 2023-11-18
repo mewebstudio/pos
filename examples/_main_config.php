@@ -33,7 +33,7 @@ $installments = [
     12 => '12 Taksit',
 ];
 
-function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\AbstractCreditCard $card)
+function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\CreditCardInterface $card)
 {
     if (!$pos::isSupportedTransaction($transaction, $paymentModel)) {
         throw new \LogicException(
@@ -80,7 +80,7 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\E
     }
 }
 
-function createCard(PosInterface $pos, array $card): \Mews\Pos\Entity\Card\AbstractCreditCard
+function createCard(PosInterface $pos, array $card): \Mews\Pos\Entity\Card\CreditCardInterface
 {
     try {
         return \Mews\Pos\Factory\CreditCardFactory::create(

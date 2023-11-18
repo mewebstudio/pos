@@ -1,7 +1,6 @@
 <?php
 
-use Mews\Pos\Entity\Card\AbstractCreditCard;
-use Mews\Pos\PosInterface;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 
 require __DIR__.'/../_main_config.php';
 
@@ -15,7 +14,7 @@ $testCards = [
         'month' => '08',
         'cvv' => '123',
         'name' => 'John Doe',
-        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+        'type' => CreditCardInterface::CARD_TYPE_VISA,
     ],*/
     'visa1' => [
         // pin 147852
@@ -24,7 +23,7 @@ $testCards = [
         'month' => '02',
         'cvv' => '423',
         'name' => 'John Doe',
-        'type' => AbstractCreditCard::CARD_TYPE_MASTERCARD,
+        'type' => CreditCardInterface::CARD_TYPE_MASTERCARD,
     ],
     // test kartlar https://dev.garantibbva.com.tr/test-kartlari
     'visa2' => [
@@ -34,6 +33,6 @@ $testCards = [
         'month' => '04',
         'cvv' => '423',
         'name' => 'John Doe',
-        'type' => AbstractCreditCard::CARD_TYPE_MASTERCARD,
+        'type' => CreditCardInterface::CARD_TYPE_MASTERCARD,
     ],
 ];

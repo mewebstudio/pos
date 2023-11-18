@@ -8,8 +8,8 @@ namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Entity\Card\CreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -150,7 +150,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         $pos = PosFactory::createPosGateway($account, $config, new EventDispatcher());
         $pos->setTestMode(true);
 
-        $card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+        $card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
 
         yield 'with_card_1' => [
             'account'  => $account,

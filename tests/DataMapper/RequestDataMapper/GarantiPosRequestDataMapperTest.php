@@ -8,7 +8,7 @@ namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -27,7 +27,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /** @var AbstractPosAccount */
     private $account;
 
-    /** @var AbstractCreditCard */
+    /** @var CreditCardInterface */
     private $card;
 
     /** @var GarantiPosRequestDataMapper */
@@ -350,13 +350,13 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param GarantiPosAccount  $account
-     * @param array              $order
-     * @param AbstractCreditCard $card
+     * @param GarantiPosAccount   $account
+     * @param array               $order
+     * @param CreditCardInterface $card
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, AbstractCreditCard $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, CreditCardInterface $card): array
     {
         return [
             'Mode'        => 'TEST',

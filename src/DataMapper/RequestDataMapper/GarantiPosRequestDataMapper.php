@@ -8,7 +8,7 @@ namespace Mews\Pos\DataMapper\RequestDataMapper;
 use Mews\Pos\Crypt\GarantiPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\PosInterface;
 
@@ -112,7 +112,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -327,7 +327,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      * @param GarantiPosAccount $account
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -350,7 +350,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'customeripaddress'     => (string) $order['ip'],
         ];
 
-        if ($card instanceof AbstractCreditCard) {
+        if ($card instanceof CreditCardInterface) {
             $inputs['cardnumber']          = $card->getNumber();
             $inputs['cardexpiredatemonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
             $inputs['cardexpiredateyear']  = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
@@ -500,11 +500,11 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param AbstractCreditCard $card
+     * @param CreditCardInterface $card
      *
      * @return array{Number: string, ExpireDate: string, CVV2: string}
      */
-    private function getCardData(AbstractCreditCard $card): array
+    private function getCardData(CreditCardInterface $card): array
     {
         return [
             'Number'     => $card->getNumber(),

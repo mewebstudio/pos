@@ -7,7 +7,7 @@ namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -30,7 +30,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
      */
     protected $txTypeMappings = [];
 
-    /** @var array<AbstractCreditCard::CARD_TYPE_*, string> */
+    /** @var array<CreditCardInterface::CARD_TYPE_*, string> */
     protected $cardTypeMapping = [];
 
     /** @var array<PosInterface::LANG_*, string> */
@@ -108,7 +108,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * @return array<AbstractCreditCard::CARD_TYPE_*, string>
+     * @return array<CreditCardInterface::CARD_TYPE_*, string>
      */
     public function getCardTypeMapping(): array
     {

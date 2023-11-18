@@ -10,7 +10,7 @@ use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\PosInterface;
@@ -174,7 +174,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function payment(string $paymentModel, array $order, string $txType, ?AbstractCreditCard $card = null): PosInterface
+    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $card = null): PosInterface
     {
         $request = Request::createFromGlobals();
 
@@ -190,7 +190,7 @@ abstract class AbstractGateway implements PosInterface
         }
 
         if (PosInterface::MODEL_NON_SECURE === $paymentModel) {
-            if (!$card instanceof AbstractCreditCard) {
+            if (!$card instanceof CreditCardInterface) {
                 throw new LogicException('Bu işlem için kredi kartı bilgileri zorunlu!');
             }
             $this->makeRegularPayment($order, $card, $txType);
@@ -211,7 +211,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType): PosInterface
+    public function makeRegularPayment(array $order, CreditCardInterface $card, string $txType): PosInterface
     {
         $this->logger->debug('making payment', [
             'model'   => PosInterface::MODEL_NON_SECURE,

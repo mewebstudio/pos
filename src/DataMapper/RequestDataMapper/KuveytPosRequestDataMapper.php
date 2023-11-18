@@ -9,7 +9,7 @@ use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Crypt\KuveytPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
@@ -50,9 +50,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected $cardTypeMapping = [
-        AbstractCreditCard::CARD_TYPE_VISA       => 'Visa',
-        AbstractCreditCard::CARD_TYPE_MASTERCARD => 'MasterCard',
-        AbstractCreditCard::CARD_TYPE_TROY       => 'Troy',
+        CreditCardInterface::CARD_TYPE_VISA       => 'Visa',
+        CreditCardInterface::CARD_TYPE_MASTERCARD => 'MasterCard',
+        CreditCardInterface::CARD_TYPE_TROY       => 'Troy',
     ];
 
     /**
@@ -127,11 +127,11 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      * @param array<string, int|string|float|null> $order
      * @param string                               $paymentModel
      * @param string                               $txType
-     * @param AbstractCreditCard|null              $card
+     * @param CreditCardInterface|null             $card
      *
      * @return array<string, string>
      */
-    public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, ?AbstractCreditCard $card = null): array
+    public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, ?CreditCardInterface $card = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -149,7 +149,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 'FailUrl'             => $order['fail_url'],
             ];
 
-        if ($card instanceof AbstractCreditCard) {
+        if ($card instanceof CreditCardInterface) {
             $inputs['CardHolderName']      = $card->getHolderName();
             $inputs['CardType']            = $this->cardTypeMapping[$card->getType()];
             $inputs['CardNumber']          = $card->getNumber();
@@ -178,7 +178,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         throw new NotImplementedException();
     }
@@ -221,7 +221,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'InstallmentMaturityCommisionFlag' => 0,
                     'HashData'                         => '',
                     'SubMerchantId'                    => 0,
-                    'CardType'                         => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], // Default gönderilebilir.
+                    'CardType'                         => $this->cardTypeMapping[CreditCardInterface::CARD_TYPE_VISA], // Default gönderilebilir.
                     'BatchID'                          => 0,
                     'TransactionType'                  => $this->mapTxType(PosInterface::TX_STATUS),
                     'InstallmentCount'                 => 0,
@@ -272,7 +272,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'InstallmentMaturityCommisionFlag' => 0,
                     'HashData'                         => '',
                     'SubMerchantId'                    => 0,
-                    'CardType'                         => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], //Default gönderilebilir.
+                    'CardType'                         => $this->cardTypeMapping[CreditCardInterface::CARD_TYPE_VISA], //Default gönderilebilir.
                     'BatchID'                          => 0,
                     'TransactionType'                  => $this->mapTxType(PosInterface::TX_CANCEL),
                     'InstallmentCount'                 => 0,
@@ -323,7 +323,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'InstallmentMaturityCommisionFlag' => 0,
                     'HashData'                         => '',
                     'SubMerchantId'                    => 0,
-                    'CardType'                         => $this->cardTypeMapping[AbstractCreditCard::CARD_TYPE_VISA], //Default gönderilebilir.
+                    'CardType'                         => $this->cardTypeMapping[CreditCardInterface::CARD_TYPE_VISA], //Default gönderilebilir.
                     'BatchID'                          => 0,
                     'TransactionType'                  => $this->mapTxType(PosInterface::TX_REFUND),
                     'InstallmentCount'                 => 0,
@@ -353,7 +353,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
     {
         return [
             'gateway' => $gatewayURL,

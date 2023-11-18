@@ -4,7 +4,7 @@
  */
 namespace Mews\Pos\Tests\Factory;
 
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\CardTypeNotSupportedException;
 use Mews\Pos\Exceptions\CardTypeRequiredException;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -34,7 +34,7 @@ class CreditCardFactoryTest extends TestCase
             '02',
             '123',
             'john',
-            AbstractCreditCard::CARD_TYPE_VISA
+            CreditCardInterface::CARD_TYPE_VISA
         );
 
         $this->assertSame('4444555566667777', $card->getNumber());
@@ -62,7 +62,7 @@ class CreditCardFactoryTest extends TestCase
             '12',
             '123',
             'john',
-            AbstractCreditCard::CARD_TYPE_VISA
+            CreditCardInterface::CARD_TYPE_VISA
         );
         $this->assertNotEmpty($card);
     }
@@ -83,7 +83,7 @@ class CreditCardFactoryTest extends TestCase
             '12',
             '123',
             'john',
-            AbstractCreditCard::CARD_TYPE_AMEX
+            CreditCardInterface::CARD_TYPE_AMEX
         );
     }
 

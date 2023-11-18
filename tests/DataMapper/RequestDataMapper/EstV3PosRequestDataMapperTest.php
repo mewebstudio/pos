@@ -7,7 +7,7 @@ namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -23,7 +23,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
     /** @var AbstractPosAccount */
     private $account;
 
-    /** @var AbstractCreditCard */
+    /** @var CreditCardInterface */
     private $card;
 
     /** @var EstV3PosRequestDataMapper */
@@ -65,7 +65,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
         $crypt                   = CryptFactory::createGatewayCrypt(EstV3Pos::class, new NullLogger());
         $this->requestDataMapper = new EstV3PosRequestDataMapper($dispatcher, $crypt);
-        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**

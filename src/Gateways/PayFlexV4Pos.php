@@ -11,7 +11,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
@@ -62,7 +62,7 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
     {
         $request = $request->request;
         $status = $request->get('Status');
@@ -135,9 +135,9 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * {@inheritDoc}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
     {
-        if (!$card instanceof AbstractCreditCard) {
+        if (!$card instanceof CreditCardInterface) {
             throw new LogicException('Kredi kartı bilgileri eksik!');
         }
 
@@ -179,14 +179,14 @@ class PayFlexV4Pos extends AbstractGateway
      * @phpstan-param PosInterface::TX_*           $txType
      *
      * @param array<string, int|string|float|null> $order
-     * @param AbstractCreditCard                   $card
+     * @param CreditCardInterface                  $card
      * @param string                               $txType
      *
      * @return array<string, mixed>
      *
      * @throws Exception
      */
-    public function sendEnrollmentRequest(array $order, AbstractCreditCard $card, string $txType): array
+    public function sendEnrollmentRequest(array $order, CreditCardInterface $card, string $txType): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $card);
 

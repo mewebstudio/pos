@@ -9,7 +9,7 @@ use InvalidArgumentException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -25,7 +25,7 @@ use Psr\Log\NullLogger;
  */
 class PosNetRequestDataMapperTest extends TestCase
 {
-    /** @var AbstractCreditCard */
+    /** @var CreditCardInterface */
     private $card;
 
     /** @var PosNetRequestDataMapper */
@@ -413,13 +413,13 @@ class PosNetRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param PosNetAccount      $account
-     * @param array              $order
-     * @param AbstractCreditCard $card
+     * @param PosNetAccount       $account
+     * @param array               $order
+     * @param CreditCardInterface $card
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, AbstractCreditCard $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, CreditCardInterface $card): array
     {
         return [
             'mid'              => $account->getClientId(),
@@ -502,13 +502,13 @@ class PosNetRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param PosNetAccount      $account
-     * @param                    $order
-     * @param AbstractCreditCard $card
+     * @param PosNetAccount       $account
+     * @param                     $order
+     * @param CreditCardInterface $card
      *
      * @return array
      */
-    private function getSample3DEnrollmentCheckRequestData(PosNetAccount $account, array $order, AbstractCreditCard $card): array
+    private function getSample3DEnrollmentCheckRequestData(PosNetAccount $account, array $order, CreditCardInterface $card): array
     {
         return [
             'mid'            => $account->getClientId(),

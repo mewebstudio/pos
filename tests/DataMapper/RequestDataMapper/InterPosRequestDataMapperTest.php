@@ -7,7 +7,7 @@ namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -26,7 +26,7 @@ class InterPosRequestDataMapperTest extends TestCase
     /** @var AbstractPosAccount */
     private $account;
 
-    /** @var AbstractCreditCard */
+    /** @var CreditCardInterface */
     private $card;
 
     /** @var InterPosRequestDataMapper */
@@ -74,7 +74,7 @@ class InterPosRequestDataMapperTest extends TestCase
 
         $this->requestDataMapper = new InterPosRequestDataMapper($dispatcher, $crypt);
 
-        $this->card = CreditCardFactory::create($pos, '5555444433332222', '21', '12', '122', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+        $this->card = CreditCardFactory::create($pos, '5555444433332222', '21', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**
@@ -345,13 +345,13 @@ class InterPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param array              $order
-     * @param AbstractCreditCard $card
-     * @param InterPosAccount    $account
+     * @param array               $order
+     * @param CreditCardInterface $card
+     * @param InterPosAccount     $account
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(array $order, AbstractCreditCard $card, InterPosAccount $account): array
+    private function getSampleNonSecurePaymentRequestData(array $order, CreditCardInterface $card, InterPosAccount $account): array
     {
         $requestData = [
             'UserCode'         => $account->getUsername(),

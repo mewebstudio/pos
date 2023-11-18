@@ -1,6 +1,6 @@
 <?php
 
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 
 require __DIR__.'/../_main_config.php';
 
@@ -14,7 +14,7 @@ $testCards = [
         'month' => '12',
         'cvv' => '000',
         'name' => 'John Doe',
-        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+        'type' => CreditCardInterface::CARD_TYPE_VISA,
     ],
     'visaZiraat' => [
         'number' => '4546711234567894',
@@ -22,7 +22,7 @@ $testCards = [
         'month' => '12',
         'cvv' => '000',
         'name' => 'John Doe',
-        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+        'type' => CreditCardInterface::CARD_TYPE_VISA,
     ],
     'masterZiraat' => [
         'number' => '5401341234567891',
@@ -30,7 +30,7 @@ $testCards = [
         'month' => '12',
         'cvv' => '000',
         'name' => 'John Doe',
-        'type' => AbstractCreditCard::CARD_TYPE_MASTERCARD,
+        'type' => CreditCardInterface::CARD_TYPE_MASTERCARD,
     ],
     'visa1' => [
         'number' => '4546711234567894',
@@ -38,7 +38,7 @@ $testCards = [
         'month' => '12',
         'cvv' => '000',
         'name' => 'John Doe',
-        'type' => AbstractCreditCard::CARD_TYPE_VISA,
+        'type' => CreditCardInterface::CARD_TYPE_VISA,
     ],
     'visa_isbank_imece' => [
         /**
@@ -52,6 +52,6 @@ $testCards = [
         'month'  => '10',
         'cvv'    => '123',
         'name'   => 'John Doe',
-        'type'   => AbstractCreditCard::CARD_TYPE_VISA,
+        'type'   => CreditCardInterface::CARD_TYPE_VISA,
     ],
 ];

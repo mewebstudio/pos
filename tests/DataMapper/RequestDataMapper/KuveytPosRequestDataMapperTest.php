@@ -8,7 +8,7 @@ namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 use Generator;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Factory\AccountFactory;
@@ -29,7 +29,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /** @var KuveytPosAccount */
     public $account;
 
-    /** @var AbstractCreditCard */
+    /** @var CreditCardInterface */
     private $card;
 
     /** @var KuveytPosRequestDataMapper */
@@ -79,7 +79,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             1,
             '123',
             'John Doe',
-            AbstractCreditCard::CARD_TYPE_VISA
+            CreditCardInterface::CARD_TYPE_VISA
         );
 
         $crypt                   = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());

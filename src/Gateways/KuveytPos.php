@@ -12,7 +12,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -91,7 +91,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, AbstractCreditCard $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
     {
         $gatewayUrl = $this->get3DGatewayURL();
         $this->logger->debug('preparing 3D form data');
@@ -102,7 +102,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function makeRegularPayment(array $order, AbstractCreditCard $card, string $txType): PosInterface
+    public function makeRegularPayment(array $order, CreditCardInterface $card, string $txType): PosInterface
     {
         throw new NotImplementedException();
     }
@@ -110,7 +110,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, AbstractCreditCard $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
     {
         $gatewayResponse = $request->request->get('AuthenticationResponse');
         if (!is_string($gatewayResponse)) {
@@ -250,13 +250,13 @@ class KuveytPos extends AbstractGateway
      * @param string                               $paymentModel
      * @param string                               $txType
      * @param string                               $gatewayURL
-     * @param AbstractCreditCard|null              $card
+     * @param CreditCardInterface|null             $card
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      *
      * @throws Exception
      */
-    private function getCommon3DFormData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    private function getCommon3DFormData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $paymentModel, $txType, $card);
 

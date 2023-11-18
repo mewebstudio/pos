@@ -7,7 +7,7 @@ namespace Mews\Pos\Tests\Gateways;
 
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Exceptions\NotImplementedException;
@@ -38,7 +38,7 @@ class KuveytPosTest extends TestCase
 
     private $config;
 
-    /** @var AbstractCreditCard */
+    /** @var CreditCardInterface */
     private $card;
 
     private $order;
@@ -90,7 +90,7 @@ class KuveytPosTest extends TestCase
             1,
             '123',
             'John Doe',
-            AbstractCreditCard::CARD_TYPE_VISA
+            CreditCardInterface::CARD_TYPE_VISA
         );
     }
 

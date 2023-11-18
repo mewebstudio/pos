@@ -6,7 +6,7 @@ namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -25,7 +25,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /** @var AbstractPosAccount */
     private $account;
 
-    /** @var AbstractCreditCard */
+    /** @var CreditCardInterface */
     private $card;
 
     /** @var EstPosRequestDataMapper */
@@ -65,7 +65,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
 
         $this->requestDataMapper = new EstPosRequestDataMapper($dispatcher, CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger()));
-        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', AbstractCreditCard::CARD_TYPE_VISA);
+        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**
@@ -453,11 +453,11 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @param AbstractPosAccount $account
      * @param array              $order
-     * @param AbstractCreditCard $card
+     * @param CreditCardInterface $card
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, AbstractCreditCard $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, CreditCardInterface $card): array
     {
         return [
             'Name'      => $account->getUsername(),

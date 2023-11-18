@@ -9,7 +9,7 @@ use Exception;
 use InvalidArgumentException;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
@@ -107,7 +107,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -305,7 +305,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @throws Exception
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null, $extraData = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null, $extraData = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -324,7 +324,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'OpenNewWindow'     => '0',
         ];
 
-        if ($card instanceof AbstractCreditCard) {
+        if ($card instanceof CreditCardInterface) {
             $cardData = [
                 'CardNo'         => $card->getNumber(),
                 // Kod calisiyor ancak burda bir tutarsizlik var: ExpireDate vs ExpiredDate

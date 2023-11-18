@@ -6,7 +6,7 @@
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\PosInterface;
 
@@ -41,8 +41,8 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritdoc}
      */
     protected $cardTypeMapping = [
-        AbstractCreditCard::CARD_TYPE_VISA       => '1',
-        AbstractCreditCard::CARD_TYPE_MASTERCARD => '2',
+        CreditCardInterface::CARD_TYPE_VISA       => '1',
+        CreditCardInterface::CARD_TYPE_MASTERCARD => '2',
     ];
 
     /**
@@ -100,7 +100,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{PbOrder?: array{OrderType: string, OrderFrequencyInterval: string, OrderFrequencyCycle: string, TotalNumberPayments: string}, Type: string, IPAddress: string, OrderId: string, Total: string, Currency: string, Taksit: string, Number: string, Expires: string, Cvv2Val: string, Mode: string, Name: string, Password: string, ClientId: string}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -233,7 +233,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
     {
         $preparedOrder = $this->preparePaymentOrder($order);
 
@@ -258,7 +258,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
-    protected function create3DFormDataCommon(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    protected function create3DFormDataCommon(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
     {
         $inputs = [
             'clientid'  => $account->getClientId(),
@@ -274,7 +274,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'islemtipi' => $this->mapTxType($txType),
         ];
 
-        if ($card instanceof AbstractCreditCard) {
+        if ($card instanceof CreditCardInterface) {
             $inputs['cardType']                        = $this->cardTypeMapping[$card->getType()];
             $inputs['pan']                             = $card->getNumber();
             $inputs['Ecom_Payment_Card_ExpDate_Month'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);

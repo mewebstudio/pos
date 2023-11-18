@@ -7,7 +7,7 @@ namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\PosInterface;
 
 interface RequestDataMapperInterface
@@ -23,7 +23,7 @@ interface RequestDataMapperInterface
     public function getCurrencyMappings(): array;
 
     /**
-     * @return array<AbstractCreditCard::CARD_TYPE_*, string>
+     * @return array<CreditCardInterface::CARD_TYPE_*, string>
      */
     public function getCardTypeMapping(): array;
 
@@ -51,11 +51,11 @@ interface RequestDataMapperInterface
      * @param string                               $paymentModel
      * @param string                               $txType
      * @param string                               $gatewayURL
-     * @param AbstractCreditCard|null              $card
+     * @param CreditCardInterface|null             $card
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array;
+    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array;
 
     /**
      * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
@@ -75,11 +75,11 @@ interface RequestDataMapperInterface
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
      * @param string                               $txType
-     * @param AbstractCreditCard                   $card
+     * @param CreditCardInterface                  $card
      *
      * @return array<string, mixed>
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array;
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array;
 
     /**
      * @param AbstractPosAccount                   $account

@@ -7,7 +7,7 @@ namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
@@ -37,10 +37,10 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritdoc}
      */
     protected $cardTypeMapping = [
-        AbstractCreditCard::CARD_TYPE_VISA       => '100',
-        AbstractCreditCard::CARD_TYPE_MASTERCARD => '200',
-        AbstractCreditCard::CARD_TYPE_TROY       => '300',
-        AbstractCreditCard::CARD_TYPE_AMEX       => '400',
+        CreditCardInterface::CARD_TYPE_VISA       => '100',
+        CreditCardInterface::CARD_TYPE_MASTERCARD => '200',
+        CreditCardInterface::CARD_TYPE_TROY       => '300',
+        CreditCardInterface::CARD_TYPE_AMEX       => '400',
     ];
 
     /**
@@ -66,7 +66,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @param PayFlexAccount $account
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, ?AbstractCreditCard $card = null): array
+    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, ?CreditCardInterface $card = null): array
     {
         throw new NotImplementedException();
     }
@@ -96,11 +96,11 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
      * @param string                               $paymentModel
-     * @param AbstractCreditCard|null              $card
+     * @param CreditCardInterface|null             $card
      *
      * @return array<string, string>
      */
-    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $txType, string $paymentModel, ?AbstractCreditCard $card = null): array
+    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $txType, string $paymentModel, ?CreditCardInterface $card = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -138,7 +138,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
             'CustomItems'          => '',
         ];
 
-        if ($card instanceof AbstractCreditCard) {
+        if ($card instanceof CreditCardInterface) {
             $requestData += [
                 'BrandNumber'     => $this->cardTypeMapping[$card->getType()],
                 'CVV'             => $card->getCvv(),
@@ -170,7 +170,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return array<string, string>
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, AbstractCreditCard $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -272,13 +272,13 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      * @return array{gateway: string, method: 'GET', inputs: array{Ptkn: string}}
      */
     public function create3DFormData(
-        ?AbstractPosAccount $account,
-        ?array              $order,
-        ?string             $paymentModel,
-        ?string             $txType,
-        ?string             $gatewayURL,
-        ?AbstractCreditCard $card = null,
-        array               $extraData = []): array
+        ?AbstractPosAccount  $account,
+        ?array               $order,
+        ?string              $paymentModel,
+        ?string              $txType,
+        ?string              $gatewayURL,
+        ?CreditCardInterface $card = null,
+        array                $extraData = []): array
     {
         return [
             'gateway' => $extraData['CommonPaymentUrl'],
