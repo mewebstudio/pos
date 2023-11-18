@@ -247,10 +247,4 @@ interface PosInterface
      * @return bool
      */
     public static function isSupportedTransaction(string $txType, string $paymentModel): bool;
-
-    /**
-     * TODO delete
-     * @return array<int, PosInterface::MODEL_*>
-     */
-    public static function getSupportedPaymentModels(): array;
 }

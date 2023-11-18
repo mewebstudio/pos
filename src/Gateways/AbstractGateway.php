@@ -444,26 +444,4 @@ abstract class AbstractGateway implements PosInterface
 
         return in_array($paymentModel, static::$supportedTransactions[$txType], true);
     }
-
-    /**
-     * @inheritDoc
-     */
-    public static function getSupportedPaymentModels(): array
-    {
-        if (!isset(static::$supportedTransactions[PosInterface::TX_PAY])) {
-            return [];
-        }
-
-        if (is_bool(static::$supportedTransactions[PosInterface::TX_PAY])) {
-            return [
-                PosInterface::MODEL_NON_SECURE,
-                PosInterface::MODEL_3D_SECURE,
-                PosInterface::MODEL_3D_HOST,
-                PosInterface::MODEL_3D_PAY,
-                PosInterface::MODEL_3D_PAY_HOSTING,
-            ];
-        }
-
-        return static::$supportedTransactions[PosInterface::TX_PAY];
-    }
 }
