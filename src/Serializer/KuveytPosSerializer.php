@@ -27,14 +27,13 @@ class KuveytPosSerializer implements SerializerInterface
     /**
      * @var string[]
      */
-    private $nonPaymentTransactions = [
+    private array $nonPaymentTransactions = [
         PosInterface::TX_REFUND,
         PosInterface::TX_STATUS,
         PosInterface::TX_CANCEL,
     ];
 
-    /** @var Serializer */
-    private $serializer;
+    private Serializer $serializer;
 
     public function __construct()
     {
@@ -86,7 +85,7 @@ class KuveytPosSerializer implements SerializerInterface
                 // 3D form data icin enrollment istegi gonderiyoruz, o istegin cevabi icinde form olan HTML donuyor.
                 return $this->transformReceived3DFormData($data);
             }
-            
+
             throw new Exception($data, $throwable->getCode(), $throwable);
         }
     }

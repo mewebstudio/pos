@@ -11,8 +11,7 @@ use Symfony\Component\Serializer\Serializer;
 
 class GarantiPosSerializer implements SerializerInterface
 {
-    /** @var Serializer */
-    private $serializer;
+    private Serializer $serializer;
 
     public function __construct()
     {

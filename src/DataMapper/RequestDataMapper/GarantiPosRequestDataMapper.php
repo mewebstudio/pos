@@ -490,6 +490,9 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      */
     private function getTerminalData(AbstractPosAccount $account, bool $isRefund = false): array
     {
+        if ($isRefund && null === $account->getRefundUsername()) {
+            throw new \LogicException('Bu işlem için refundUsername tanımlı olması gerekir!');
+        }
         return [
             'ProvUserID' => $isRefund ? $account->getRefundUsername() : $account->getUsername(),
             'UserID'     => $isRefund ? $account->getRefundUsername() : $account->getUsername(),

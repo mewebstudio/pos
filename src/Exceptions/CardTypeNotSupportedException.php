@@ -13,8 +13,7 @@ use Throwable;
  */
 class CardTypeNotSupportedException extends DomainException
 {
-    /** @var string */
-    private $type;
+    private string $type;
 
     /**
      * BankNotFoundException constructor.

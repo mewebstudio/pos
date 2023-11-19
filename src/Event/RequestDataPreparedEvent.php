@@ -14,13 +14,12 @@ use Mews\Pos\PosInterface;
 class RequestDataPreparedEvent
 {
     /** @var array<string, mixed> */
-    private $requestData;
+    private array $requestData;
 
-    /** @var string */
-    private $bank;
+    private string $bank;
 
     /** @var PosInterface::TX_* */
-    private $txType;
+    private string $txType;
 
     /**
      * @phpstan-param PosInterface::TX_* $txType

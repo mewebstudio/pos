@@ -31,7 +31,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     protected $logger;
 
     /** @var array<string, PosInterface::CURRENCY_*> */
-    private $currencyMappings;
+    private array $currencyMappings;
 
     /** @var array<string, PosInterface::TX_*> */
     protected $txTypeMappings;

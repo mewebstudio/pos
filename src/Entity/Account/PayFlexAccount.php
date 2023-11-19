@@ -17,20 +17,19 @@ class PayFlexAccount extends AbstractPosAccount
     public const MERCHANT_TYPE_SUB_DEALER = 2;
 
     /** @var int[] */
-    private static $merchantTypes = [
+    private static array $merchantTypes = [
         self::MERCHANT_TYPE_STANDARD,
         self::MERCHANT_TYPE_MAIN_DEALER,
         self::MERCHANT_TYPE_SUB_DEALER,
     ];
 
-    /** @var string */
-    private $terminalId;
+    private string $terminalId;
 
     /**
      * Banka tarafından Üye işyerine iletilmektedir
      * @var self::MERCHANT_TYPE_*
      */
-    private $merchantType;
+    private int $merchantType;
 
     /**
      * Ör:00000000000471
@@ -40,9 +39,8 @@ class PayFlexAccount extends AbstractPosAccount
      * MerchantType: 0 ise, gönderilmemeli
      * MerchantType: 1 ise, Ana bayi kendi adına işlem geçiyor ise gönderilmemeli,
      * Altbayisi adına işlem geçiyor ise zorunludur.
-     * @var string|null
      */
-    private $subMerchantId;
+    private ?string $subMerchantId;
 
     /**
      * @param string                $bank

@@ -15,7 +15,7 @@ use Mews\Pos\PosInterface;
 class Before3DFormHashCalculatedEvent extends RequestDataPreparedEvent
 {
     /** @var PosInterface::MODEL_3D_* */
-    private $paymentModel;
+    private string $paymentModel;
 
     /**
      * @param PosInterface::MODEL_3D_* $paymentModel

@@ -17,8 +17,7 @@ use function strip_tags;
 
 class PayFlexV4PosSerializer implements SerializerInterface
 {
-    /** @var Serializer */
-    private $serializer;
+    private Serializer $serializer;
 
     public function __construct()
     {

@@ -13,10 +13,7 @@ use function in_array;
 
 class EstPosSerializer implements SerializerInterface
 {
-    /**
-     * @var Serializer
-     */
-    private $serializer;
+    private Serializer $serializer;
 
     public function __construct()
     {

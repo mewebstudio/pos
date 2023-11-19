@@ -65,8 +65,7 @@ abstract class AbstractGateway implements PosInterface
      */
     protected static $supportedTransactions = [];
 
-    /** @var bool */
-    private $testMode = false;
+    private bool $testMode = false;
 
     /**
      * @param array{gateway_endpoints: array{payment_api: string, gateway_3d: string, gateway_3d_host?: string, query_api?: string}} $config

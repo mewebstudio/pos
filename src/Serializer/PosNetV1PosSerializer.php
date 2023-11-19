@@ -11,10 +11,7 @@ use Symfony\Component\Serializer\Serializer;
 
 class PosNetV1PosSerializer implements SerializerInterface
 {
-    /**
-     * @var Serializer
-     */
-    private $serializer;
+    private Serializer $serializer;
 
     public function __construct()
     {
