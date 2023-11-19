@@ -11,8 +11,7 @@ use PHPUnit\Framework\TestCase;
 
 class InterPosSerializerTest extends TestCase
 {
-    /** @var InterPosSerializer */
-    private $serializer;
+    private InterPosSerializer $serializer;
 
     protected function setUp(): void
     {

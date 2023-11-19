@@ -15,13 +15,11 @@ use Psr\Log\NullLogger;
 class PayFlexCP4CryptTest extends TestCase
 {
     /** @var array<string, string>|array<string, float> */
-    public $order = [];
+    public array $order = [];
 
-    /** @var PayFlexCPV4Crypt */
-    public $crypt;
+    public PayFlexCPV4Crypt $crypt;
 
-    /** @var PayFlexAccount */
-    private $account;
+    private PayFlexAccount $account;
 
     protected function setUp(): void
     {

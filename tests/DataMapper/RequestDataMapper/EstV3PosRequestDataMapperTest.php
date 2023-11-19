@@ -6,7 +6,7 @@
 namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -20,14 +20,11 @@ use Psr\Log\NullLogger;
 
 class EstV3PosRequestDataMapperTest extends TestCase
 {
-    /** @var AbstractPosAccount */
-    private $account;
+    private EstPosAccount $account;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    /** @var EstV3PosRequestDataMapper */
-    private $requestDataMapper;
+    private EstV3PosRequestDataMapper $requestDataMapper;
 
     private $order;
 

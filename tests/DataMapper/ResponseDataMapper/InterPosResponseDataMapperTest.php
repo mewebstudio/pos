@@ -16,8 +16,7 @@ use Psr\Log\NullLogger;
 
 class InterPosResponseDataMapperTest extends TestCase
 {
-    /** @var InterPosResponseDataMapper */
-    private $responseDataMapper;
+    private InterPosResponseDataMapper $responseDataMapper;
 
     protected function setUp(): void
     {

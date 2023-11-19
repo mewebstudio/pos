@@ -11,11 +11,9 @@ use Psr\Log\NullLogger;
 
 class PayForPosCryptTest extends TestCase
 {
-    /** @var PayForPosCrypt */
-    public $crypt;
+    public PayForPosCrypt $crypt;
 
-    /** @var PayForAccount */
-    private $account;
+    private PayForAccount $account;
 
     protected function setUp(): void
     {

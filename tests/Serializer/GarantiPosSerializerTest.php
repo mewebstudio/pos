@@ -13,8 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 class GarantiPosSerializerTest extends TestCase
 {
-    /** @var GarantiPosSerializer */
-    private $serializer;
+    private GarantiPosSerializer $serializer;
 
     protected function setUp(): void
     {

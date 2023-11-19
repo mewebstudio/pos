@@ -17,13 +17,11 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 class GarantiPosTest extends TestCase
 {
-    /** @var GarantiPosAccount */
-    private $account;
+    private GarantiPosAccount $account;
 
     private $config;
 
-    /** @var GarantiPos */
-    private $pos;
+    private GarantiPos $pos;
 
     protected function setUp(): void
     {

@@ -26,16 +26,13 @@ use Psr\Log\NullLogger;
  */
 class KuveytPosRequestDataMapperTest extends TestCase
 {
-    /** @var KuveytPosAccount */
-    public $account;
+    public KuveytPosAccount $account;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    /** @var KuveytPosRequestDataMapper */
-    private $requestDataMapper;
+    private KuveytPosRequestDataMapper $requestDataMapper;
 
-    private $order;
+    private array $order;
 
     /**
      * @return void
@@ -147,15 +144,12 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'OkUrl'               => $this->order['success_url'],
             'FailUrl'             => $this->order['fail_url'],
         ];
-
-        if ($card !== null) {
-            $inputs['CardHolderName']      = $card->getHolderName();
-            $inputs['CardType']            = 'Visa';
-            $inputs['CardNumber']          = $card->getNumber();
-            $inputs['CardExpireDateYear']  = '25';
-            $inputs['CardExpireDateMonth'] = '01';
-            $inputs['CardCVV2']            = $card->getCvv();
-        }
+        $inputs['CardHolderName']      = $card->getHolderName();
+        $inputs['CardType']            = 'Visa';
+        $inputs['CardNumber']          = $card->getNumber();
+        $inputs['CardExpireDateYear']  = '25';
+        $inputs['CardExpireDateMonth'] = '01';
+        $inputs['CardCVV2']            = $card->getCvv();
 
         $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_PAY, $card);
         $this->assertEquals($inputs, $result);

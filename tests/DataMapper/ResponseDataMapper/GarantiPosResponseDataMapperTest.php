@@ -16,8 +16,7 @@ use Psr\Log\NullLogger;
 
 class GarantiPosResponseDataMapperTest extends TestCase
 {
-    /** @var GarantiPosResponseDataMapper */
-    private $responseDataMapper;
+    private GarantiPosResponseDataMapper $responseDataMapper;
 
     protected function setUp(): void
     {

@@ -19,21 +19,32 @@ use Mews\Pos\PosInterface;
  */
 class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
 {
+    /** @var string */
     public const API_VERSION = 'V100';
+
+    /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
 
     /**
      * PosNet requires order id with specific length
+     * @var int
      */
     private const ORDER_ID_LENGTH = 20;
+
     /**
      * order id total length including prefix;
+     * @var int
      */
     private const ORDER_ID_TOTAL_LENGTH = 24;
 
+    /** @var string */
     private const ORDER_ID_3D_PREFIX = 'TDS_';
-    private const ORDER_ID_3D_PAY_PREFIX = '';  //?
-    private const ORDER_ID_REGULAR_PREFIX = '';  //?
+
+    /** @var string */
+    private const ORDER_ID_3D_PAY_PREFIX = ''; //?
+
+    /** @var string */
+    private const ORDER_ID_REGULAR_PREFIX = ''; //?
 
     /**
      * {@inheritDoc}
@@ -146,9 +157,11 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
         if ($order['installment'] > 1) {
             $requestData['InstallmentType'] = 'Y';
         }
+
         if (null === $account->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
+
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
@@ -183,9 +196,11 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
         if ($order['installment'] > 1) {
             $requestData['InstallmentType'] = 'Y';
         }
+
         if (null === $account->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
+
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
@@ -215,6 +230,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
         if (null === $account->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
+
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
@@ -249,9 +265,11 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
         } else {
             $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']);
         }
+
         if (null === $account->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
+
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
@@ -291,9 +309,11 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['Amount']       = $this->amountFormat($order['amount']);
             $requestData['CurrencyCode'] = $this->mapCurrency($order['currency']);
         }
+
         if (null === $account->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
+
         $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
@@ -355,6 +375,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
                 'UseOOS' => '1',
             ];
         }
+
         $inputs += $cardData;
 
         $event = new Before3DFormHashCalculatedEvent($inputs, $account->getBank(), $txType, $paymentModel);
@@ -420,10 +441,11 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
         if (null === $padLength) {
             $padLength = self::ORDER_ID_LENGTH;
         }
+
         if (strlen($orderId) > $padLength) {
             throw new InvalidArgumentException(sprintf(
             // Banka tarafindan belirlenen kisitlama
-                'Saglanan siparis ID\'nin (%s) uzunlugu %d karakter. Siparis ID %d karakterden uzun olamaz!',
+                "Saglanan siparis ID'nin (%s) uzunlugu %d karakter. Siparis ID %d karakterden uzun olamaz!",
                 $orderId,
                 strlen($orderId),
                 $padLength

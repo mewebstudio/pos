@@ -30,19 +30,15 @@ use Symfony\Component\HttpFoundation\Request;
 
 class PayFlexCPV4PosTest extends TestCase
 {
-    /** @var PayFlexAccount */
-    private $account;
+    private PayFlexAccount $account;
 
-    /** @var PayFlexCPV4Pos */
-    private $pos;
+    private PayFlexCPV4Pos $pos;
 
-    private $config;
+    private array $config;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    /** @var array */
-    private $order = [];
+    private array $order = [];
 
     protected function setUp(): void
     {

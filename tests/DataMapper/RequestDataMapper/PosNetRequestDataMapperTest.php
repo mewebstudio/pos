@@ -25,16 +25,13 @@ use Psr\Log\NullLogger;
  */
 class PosNetRequestDataMapperTest extends TestCase
 {
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    /** @var PosNetRequestDataMapper */
-    private $requestDataMapper;
+    private PosNetRequestDataMapper $requestDataMapper;
 
-    private $order;
+    private array $order;
 
-    /** @var PosNetAccount */
-    private $account;
+    private PosNetAccount $account;
 
     protected function setUp(): void
     {
@@ -381,7 +378,7 @@ class PosNetRequestDataMapperTest extends TestCase
                         'mac'          => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
                     ],
                 ]
-            ]
+            ],
         ];
     }
 

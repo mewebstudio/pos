@@ -24,14 +24,11 @@ use Psr\Log\NullLogger;
  */
 class GarantiPosRequestDataMapperTest extends TestCase
 {
-    /** @var AbstractPosAccount */
-    private $account;
+    private GarantiPosAccount $account;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    /** @var GarantiPosRequestDataMapper */
-    private $requestDataMapper;
+    private GarantiPosRequestDataMapper $requestDataMapper;
 
     private $order;
 
@@ -268,48 +265,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $expectedData = $this->getSampleRefundXMLData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
-    }
-
-    /**
-     * @param GarantiPosAccount $account
-     * @param array             $order
-     *
-     * @return array
-     */
-    private function getSample3DPaymentRequestData(AbstractPosAccount $account, $order, array $responseData): array
-    {
-        return [
-            'Mode'        => 'TEST',
-            'Version'     => '512',
-            'Terminal'    => [
-                'ProvUserID' => $account->getUsername(),
-                'UserID'     => $account->getUsername(),
-                'HashData'   => '0CFE09F107274C6A07292DA061A4EECAB0F5F0CF87F831F2D3626A3346A941126C52D1D95A3B77ADF5AC348B3D25C76BA5D8D98A29557D087D3367BFFACCD25C',
-                'ID'         => $account->getTerminalId(),
-                'MerchantID' => $account->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress'    => $responseData['customeripaddress'],
-                'EmailAddress' => $responseData['customeremailaddress'],
-            ],
-            'Order'       => [
-                'OrderID'     => $responseData['orderid'],
-            ],
-            'Transaction' => [
-                'Type'                  => $responseData['txntype'],
-                'InstallmentCnt'        => '',
-                'Amount'                => $responseData['txnamount'],
-                'CurrencyCode'          => $responseData['txncurrencycode'],
-                'CardholderPresentCode' => '13',
-                'MotoInd'               => 'N',
-                'Secure3D'              => [
-                    'AuthenticationCode' => $responseData['cavv'],
-                    'SecurityLevel'      => $responseData['eci'],
-                    'TxnID'              => $responseData['xid'],
-                    'Md'                 => $responseData['md'],
-                ],
-            ],
-        ];
     }
 
     /**

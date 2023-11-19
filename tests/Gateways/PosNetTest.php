@@ -32,18 +32,15 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PosNetTest extends TestCase
 {
-    /** @var PosNetAccount */
-    private $account;
+    private PosNetAccount $account;
 
-    private $config;
+    private array $config;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    private $order;
+    private array $order;
 
-    /** @var PosNet */
-    private $pos;
+    private PosNet $pos;
 
     protected function setUp(): void
     {

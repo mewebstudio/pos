@@ -14,8 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 class PayFlexV4PosSerializerTest extends TestCase
 {
-    /** @var PayFlexV4PosSerializer */
-    private $serializer;
+    private PayFlexV4PosSerializer $serializer;
 
     protected function setUp(): void
     {

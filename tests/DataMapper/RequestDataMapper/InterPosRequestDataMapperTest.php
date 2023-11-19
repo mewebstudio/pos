@@ -5,7 +5,6 @@
 namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
@@ -23,14 +22,11 @@ use Psr\Log\NullLogger;
  */
 class InterPosRequestDataMapperTest extends TestCase
 {
-    /** @var AbstractPosAccount */
-    private $account;
+    private InterPosAccount $account;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    /** @var InterPosRequestDataMapper */
-    private $requestDataMapper;
+    private InterPosRequestDataMapper $requestDataMapper;
 
     private $order;
 

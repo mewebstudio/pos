@@ -33,18 +33,15 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class KuveytPosTest extends TestCase
 {
-    /** @var KuveytPosAccount */
-    private $account;
+    private KuveytPosAccount $account;
 
-    private $config;
+    private array $config;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    private $order;
+    private array $order;
 
-    /** @var KuveytPos */
-    private $pos;
+    private KuveytPos $pos;
 
     /**
      * @return void
@@ -146,6 +143,7 @@ class KuveytPosTest extends TestCase
             ->onlyMethods(['send'])
             ->getMock();
         $posMock->setTestMode(true);
+
         $response = '<?xml version="1.0" encoding="ISO-8859-1"?>
 <KuveytTurkVPosMessage><MerchantId>496</MerchantId><CustomerId>400235</CustomerId><UserName>apiuser1</UserName><APIVersion>1.0.0</APIVersion><TransactionType>Sale</TransactionType><TransactionSecurity>3</TransactionSecurity><InstallmentCount>0</InstallmentCount><Amount>1001</Amount><DisplayAmount>1001</DisplayAmount><CurrencyCode>0949</CurrencyCode><MerchantOrderId>2020110828BC</MerchantOrderId><OkUrl>http://localhost/finansbank-payfor/3d/response.php</OkUrl><FailUrl>http://localhost/finansbank-payfor/3d/response.php</FailUrl><CardHolderName>John Doe</CardHolderName><CardType>Visa</CardType><CardNumber>4155650100416111</CardNumber><CardExpireDateYear>25</CardExpireDateYear><CardExpireDateMonth>01</CardExpireDateMonth><CardCVV2>123</CardCVV2><HashData>gqMMbwYulxyJ+8M8qnbGT/21gHU=</HashData></KuveytTurkVPosMessage>
 ';

@@ -16,8 +16,7 @@ use function iterator_to_array;
 
 class KuveytPosSerializerTest extends TestCase
 {
-    /** @var KuveytPosSerializer */
-    private $serializer;
+    private KuveytPosSerializer $serializer;
 
     protected function setUp(): void
     {

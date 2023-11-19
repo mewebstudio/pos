@@ -16,8 +16,7 @@ use Psr\Log\NullLogger;
 
 class KuveytPosResponseDataMapperTest extends TestCase
 {
-    /** @var KuveytPosResponseDataMapper */
-    private $responseDataMapper;
+    private KuveytPosResponseDataMapper $responseDataMapper;
 
     protected function setUp(): void
     {
@@ -496,7 +495,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                         'OrderContract' => [
                             'IsSelected'          => false,
                             'IsSelectable'        => true,
-                            'OrderId'             => 114293600,
+                            'OrderId'             => 114_293_600,
                             'MerchantOrderId'     => '2023070849CD',
                             'MerchantId'          => 496,
                             'CardHolderName'      => 'John Doe',
@@ -701,7 +700,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                         'Stan'            => '298460',
                         'ResponseCode'    => '28',
                         'ResponseMessage' => 'İptal Edilen İşlem İade Yapılamaz',
-                        'OrderId'         => 114293625,
+                        'OrderId'         => 114_293_625,
                         'TransactionTime' => '2023-07-09T13:38:00.9396957',
                         'MerchantOrderId' => '202307093C2D',
                         'CurrencyCode'    => '0949',
@@ -767,7 +766,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                         'Stan' => '298463',
                         'ResponseCode' => '00',
                         'ResponseMessage' => 'OTORİZASYON VERİLDİ',
-                        'OrderId' => 114293626,
+                        'OrderId' => 114_293_626,
                         'TransactionTime' => '2023-07-09T14:07:41.9306297',
                         'MerchantOrderId' => '202307091285',
                         'CurrencyCode' => '0949',

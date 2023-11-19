@@ -11,11 +11,9 @@ use Psr\Log\NullLogger;
 
 class PosNetV1PosCryptTest extends TestCase
 {
-    /** @var PosNetV1PosCrypt */
-    public $crypt;
+    public PosNetV1PosCrypt $crypt;
 
-    /** @var PosNetAccount */
-    private $account;
+    private PosNetAccount $account;
 
     protected function setUp(): void
     {

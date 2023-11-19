@@ -12,8 +12,7 @@ use PHPUnit\Framework\TestCase;
 
 class PosNetSerializerTest extends TestCase
 {
-    /** @var PosNetSerializer */
-    private $serializer;
+    private PosNetSerializer $serializer;
 
     protected function setUp(): void
     {

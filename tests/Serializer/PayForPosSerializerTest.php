@@ -13,8 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 class PayForPosSerializerTest extends TestCase
 {
-    /** @var PayForPosSerializer */
-    private $serializer;
+    private PayForPosSerializer $serializer;
 
     protected function setUp(): void
     {

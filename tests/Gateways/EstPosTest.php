@@ -31,17 +31,15 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class EstPosTest extends TestCase
 {
-    /** @var EstPosAccount */
-    private $account;
+    private EstPosAccount $account;
 
     /** @var EstPos */
-    private $pos;
+    private PosInterface $pos;
 
     /** @var array<string, mixed> */
     private $config;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
     private $order;
 

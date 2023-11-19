@@ -22,16 +22,13 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  */
 class PayFlexV4PosRequestDataMapperTest extends TestCase
 {
-    /** @var PayFlexAccount */
-    public $account;
+    public PayFlexAccount $account;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    /** @var PayFlexV4PosRequestDataMapper */
-    private $requestDataMapper;
+    private PayFlexV4PosRequestDataMapper $requestDataMapper;
 
-    private $order;
+    private array $order;
 
     protected function setUp(): void
     {

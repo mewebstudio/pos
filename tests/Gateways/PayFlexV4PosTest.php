@@ -29,19 +29,15 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 class PayFlexV4PosTest extends TestCase
 {
-    /** @var PayFlexAccount */
-    private $account;
+    private PayFlexAccount $account;
 
-    /** @var PayFlexV4Pos */
-    private $pos;
+    private PayFlexV4Pos $pos;
 
-    private $config;
+    private array $config;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    /** @var array */
-    private $order = [];
+    private array $order = [];
 
     protected function setUp(): void
     {

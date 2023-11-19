@@ -12,8 +12,7 @@ use Psr\Log\NullLogger;
 
 class PayFlexV4PosResponseDataMapperTest extends TestCase
 {
-    /** @var PayFlexV4PosRequestDataMapper */
-    private $responseDataMapper;
+    private PayFlexV4PosResponseDataMapper $responseDataMapper;
 
     protected function setUp(): void
     {

@@ -12,8 +12,7 @@ use Psr\Log\NullLogger;
 
 class PosNetV1PosResponseDataMapperTest extends TestCase
 {
-    /** @var PosNetV1PosResponseDataMapper */
-    private $responseDataMapper;
+    private PosNetV1PosResponseDataMapper $responseDataMapper;
 
     protected function setUp(): void
     {

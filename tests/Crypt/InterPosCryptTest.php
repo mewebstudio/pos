@@ -3,7 +3,7 @@
 namespace Mews\Pos\Tests\Crypt;
 
 use Mews\Pos\Crypt\InterPosCrypt;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -11,11 +11,9 @@ use Psr\Log\NullLogger;
 
 class InterPosCryptTest extends TestCase
 {
-    /** @var AbstractPosAccount */
-    private $account;
+    private InterPosAccount $account;
 
-    /** @var InterPosCrypt */
-    private $crypt;
+    private InterPosCrypt $crypt;
 
     protected function setUp(): void
     {

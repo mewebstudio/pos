@@ -18,19 +18,28 @@ use Mews\Pos\PosInterface;
  */
 class PosNetRequestDataMapper extends AbstractRequestDataMapper
 {
+    /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
 
     /**
      * PosNet requires order id with specific length
+     * @var int
      */
     private const ORDER_ID_LENGTH = 20;
+
     /**
      * order id total length including prefix;
+     * @var int
      */
     private const ORDER_ID_TOTAL_LENGTH = 24;
 
+    /** @var string */
     private const ORDER_ID_3D_PREFIX = 'TDSC';
-    private const ORDER_ID_3D_PAY_PREFIX = '';  //?
+
+    /** @var string */
+    private const ORDER_ID_3D_PAY_PREFIX = ''; //?
+
+    /** @var string */
     private const ORDER_ID_REGULAR_PREFIX = '';  //?
 
     /**
@@ -238,6 +247,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         if (null === $extraData) {
             throw new InvalidArgumentException('$extraData can not be null');
         }
+
         $order = $this->preparePaymentOrder($order);
 
         $inputs = [
@@ -376,10 +386,11 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         if (null === $padLength) {
             $padLength = self::ORDER_ID_LENGTH;
         }
+
         if (strlen($orderId) > $padLength) {
             throw new InvalidArgumentException(sprintf(
             // Banka tarafindan belirlenen kisitlama
-                'Saglanan siparis ID\'nin (%s) uzunlugu %d karakter. Siparis ID %d karakterden uzun olamaz!',
+                "Saglanan siparis ID'nin (%s) uzunlugu %d karakter. Siparis ID %d karakterden uzun olamaz!",
                 $orderId,
                 strlen($orderId),
                 $padLength

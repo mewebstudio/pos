@@ -21,14 +21,11 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class InterPosTest extends TestCase
 {
-    /** @var InterPosAccount */
-    private $account;
+    private InterPosAccount $account;
 
-    /** @var InterPos */
-    private $pos;
+    private InterPos $pos;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
     private $config;
 

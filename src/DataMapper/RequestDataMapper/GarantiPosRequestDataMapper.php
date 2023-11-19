@@ -493,6 +493,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         if ($isRefund && null === $account->getRefundUsername()) {
             throw new \LogicException('Bu işlem için refundUsername tanımlı olması gerekir!');
         }
+        
         return [
             'ProvUserID' => $isRefund ? $account->getRefundUsername() : $account->getUsername(),
             'UserID'     => $isRefund ? $account->getRefundUsername() : $account->getUsername(),

@@ -26,11 +26,9 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 class PayFlexCPV4PosRequestDataMapperTest extends TestCase
 {
-    /** @var PayFlexAccount */
-    public $account;
+    public PayFlexAccount $account;
 
-    /** @var PayFlexCPV4PosRequestDataMapper */
-    private $requestDataMapper;
+    private PayFlexCPV4PosRequestDataMapper $requestDataMapper;
 
     protected function setUp(): void
     {

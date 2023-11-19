@@ -3,7 +3,7 @@
 namespace Mews\Pos\Tests\Crypt;
 
 use Mews\Pos\Crypt\EstPosCrypt;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -11,11 +11,9 @@ use Psr\Log\NullLogger;
 
 class EstPosCryptTest extends TestCase
 {
-    /** @var AbstractPosAccount */
-    private $account;
+    private EstPosAccount $account;
 
-    /** @var EstPosCrypt */
-    private $crypt;
+    private EstPosCrypt $crypt;
 
     protected function setUp(): void
     {

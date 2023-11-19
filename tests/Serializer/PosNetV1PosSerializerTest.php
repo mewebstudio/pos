@@ -7,14 +7,12 @@ namespace Mews\Pos\Tests\Serializer;
 
 use Generator;
 use Mews\Pos\Gateways\PosNetV1Pos;
-use Mews\Pos\Serializer\PosNetSerializer;
 use Mews\Pos\Serializer\PosNetV1PosSerializer;
 use PHPUnit\Framework\TestCase;
 
 class PosNetV1PosSerializerTest extends TestCase
 {
-    /** @var PosNetSerializer */
-    private $serializer;
+    private PosNetV1PosSerializer $serializer;
 
     protected function setUp(): void
     {

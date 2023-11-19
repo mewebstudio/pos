@@ -14,8 +14,7 @@ use PHPUnit\Framework\TestCase;
 
 class EstPosSerializerTest extends TestCase
 {
-    /** @var EstPosSerializer */
-    private $serializer;
+    private EstPosSerializer $serializer;
 
     protected function setUp(): void
     {

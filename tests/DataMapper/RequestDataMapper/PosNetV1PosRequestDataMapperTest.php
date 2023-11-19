@@ -24,14 +24,11 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 class PosNetV1PosRequestDataMapperTest extends TestCase
 {
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    /** @var PosNetV1PosRequestDataMapperTest */
-    private $requestDataMapper;
+    private PosNetV1PosRequestDataMapper $requestDataMapper;
 
-    /** @var PosNetAccount */
-    private $account;
+    private PosNetAccount $account;
 
     protected function setUp(): void
     {

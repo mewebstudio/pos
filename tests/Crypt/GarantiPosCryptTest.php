@@ -3,7 +3,7 @@
 namespace Mews\Pos\Tests\Crypt;
 
 use Mews\Pos\Crypt\GarantiPosCrypt;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -11,11 +11,9 @@ use Psr\Log\NullLogger;
 
 class GarantiPosCryptTest extends TestCase
 {
-    /** @var AbstractPosAccount */
-    private $account;
+    private GarantiPosAccount $account;
 
-    /** @var GarantiPosCrypt */
-    private $crypt;
+    private GarantiPosCrypt $crypt;
 
     protected function setUp(): void
     {

@@ -17,13 +17,11 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
  */
 class PayForTest extends TestCase
 {
-    /** @var PayForAccount */
-    private $account;
+    private PayForAccount $account;
 
-    private $config;
+    private array $config;
 
-    /** @var PayForPos */
-    private $pos;
+    private PayForPos $pos;
 
     protected function setUp(): void
     {

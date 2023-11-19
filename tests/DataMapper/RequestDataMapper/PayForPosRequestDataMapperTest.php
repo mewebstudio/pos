@@ -6,6 +6,7 @@ namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -22,18 +23,15 @@ use Psr\Log\NullLogger;
  */
 class PayForPosRequestDataMapperTest extends TestCase
 {
-    /** @var AbstractPosAccount */
-    private $account;
+    private PayForAccount $account;
 
-    /** @var CreditCardInterface */
-    private $card;
+    private CreditCardInterface $card;
 
-    /** @var PayForPosRequestDataMapper */
-    private $requestDataMapper;
+    private PayForPosRequestDataMapper $requestDataMapper;
 
-    private $order;
+    private array $order;
 
-    private $config;
+    private array $config;
 
     protected function setUp(): void
     {
