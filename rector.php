@@ -18,31 +18,14 @@ return static function (RectorConfig $rectorConfig): void {
         SetList::CODING_STYLE,
         SetList::EARLY_RETURN,
         SetList::DEAD_CODE,
-        SetList::PSR_4,
-        LevelSetList::UP_TO_PHP_72,
-    ]);
-
-    $rectorConfig->rules([
-        \Rector\CodingStyle\Rector\MethodCall\PreferThisOrSelfMethodCallRector::class,
-        \Rector\CodingStyle\Rector\ClassMethod\DataProviderArrayItemsNewlinedRector::class,
-        \Rector\TypeDeclaration\Rector\ClassMethod\ArrayShapeFromConstantArrayReturnRector::class,
+        LevelSetList::UP_TO_PHP_74,
     ]);
 
     $rectorConfig->skip([
-        \Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector::class,
         \Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector::class,
-        \Rector\TypeDeclaration\Rector\ClassMethod\ArrayShapeFromConstantArrayReturnRector::class => [
-            __DIR__ . '/src/DataMapper/ResponseDataMapper',
-        ],
-    ]);
-
-    $rectorConfig->ruleWithConfiguration(\Rector\CodingStyle\Rector\FuncCall\ConsistentPregDelimiterRector::class, [
-        \Rector\CodingStyle\Rector\FuncCall\ConsistentPregDelimiterRector::DELIMITER => '/',
-    ]);
-
-    $rectorConfig->ruleWithConfiguration(\Rector\CodingStyle\Rector\Property\InlineSimplePropertyAnnotationRector::class, [
-        'var',
-        'phpstan-var',
-        'property',
+        \Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector::class,
+        \Rector\CodingStyle\Rector\Class_\AddArrayDefaultToArrayPropertyRector::class,
+        \Rector\Php74\Rector\Property\RestoreDefaultNullToNullableTypePropertyRector::class,
+        \Rector\Php74\Rector\LNumber\AddLiteralSeparatorToNumberRector::class,
     ]);
 };
