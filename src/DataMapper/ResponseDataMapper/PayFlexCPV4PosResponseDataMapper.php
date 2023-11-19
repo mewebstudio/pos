@@ -167,11 +167,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     protected function getProcReturnCode(array $response): ?string
     {
-        if (isset($response['Rc'])) {
-            return $response['Rc'];
-        }
-
-        return $response['ResultCode'] ?? null;
+        return $response['Rc'] ?? $response['ResultCode'] ?? null;
     }
 
     /**

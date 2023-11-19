@@ -85,7 +85,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         ]);
         $threeDResponse = $this->map3DCommonResponseData($raw3DAuthResponseData);
 
-        if (empty($rawPaymentResponseData)) {
+        if (null === $rawPaymentResponseData || [] === $rawPaymentResponseData) {
             return array_merge($this->getDefaultPaymentResponse(), $threeDResponse);
         }
 
@@ -142,7 +142,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         if (!isset($data['OrderContract'])) {
             return $result;
         }
-        
+
         $orderContract  = $rawResponseData['GetMerchantOrderDetailResult']['Value']['OrderContract'];
         $procReturnCode = $this->getProcReturnCode($orderContract);
 

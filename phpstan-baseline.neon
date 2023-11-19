@@ -16,11 +16,6 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\GarantiPosRequestDataMapper\\:\\:getTerminalData\\(\\) should return array\\{ProvUserID\\: string, UserID\\: string, HashData\\: string, ID\\: string, MerchantID\\: string\\} but returns array\\{ProvUserID\\: string\\|null, UserID\\: string\\|null, HashData\\: '', ID\\: string, MerchantID\\: string\\}\\.$#"
-			count: 1
-			path: src/DataMapper/RequestDataMapper/GarantiPosRequestDataMapper.php
-
-		-
 			message: "#^Default value of the parameter \\#7 \\$extraData \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\PayFlexCPV4PosRequestDataMapper\\:\\:create3DFormData\\(\\) is incompatible with type array\\{CommonPaymentUrl\\: string, PaymentToken\\: string\\}\\.$#"
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PayFlexCPV4PosRequestDataMapper.php

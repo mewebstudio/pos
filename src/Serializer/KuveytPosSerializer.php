@@ -173,9 +173,19 @@ class KuveytPosSerializer implements SerializerInterface
                 }
             }
 
-            if ($key && null !== $value && !in_array($key, ['submit', 'submitBtn'])) {
-                $inputs[$key] = $value;
+            if (!$key) {
+                continue;
             }
+
+            if (null === $value) {
+                continue;
+            }
+
+            if (\in_array($key, ['submit', 'submitBtn'])) {
+                continue;
+            }
+
+            $inputs[$key] = $value;
         }
 
         return $inputs;

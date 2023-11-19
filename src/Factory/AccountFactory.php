@@ -197,7 +197,7 @@ class AccountFactory
      */
     private static function checkPayFlexBankMerchantType(int $merchantType, ?string $subMerchantId)
     {
-        if (PayFlexAccount::MERCHANT_TYPE_SUB_DEALER === $merchantType && empty($subMerchantId)) {
+        if (PayFlexAccount::MERCHANT_TYPE_SUB_DEALER === $merchantType && (null === $subMerchantId || '' === $subMerchantId)) {
             throw new MissingAccountInfoException('SubMerchantId is required for sub branches!');
         }
 

@@ -27,9 +27,9 @@ class InterPosTest extends TestCase
 
     private CreditCardInterface $card;
 
-    private $config;
+    private array $config;
 
-    private $order;
+    private array $order;
 
     protected function setUp(): void
     {
