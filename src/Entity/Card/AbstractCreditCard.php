@@ -49,6 +49,7 @@ abstract class AbstractCreditCard implements CreditCardInterface
         if (null === $number) {
             throw new \Exception('Kredit numarası formatlanamadı!');
         }
+
         $this->number     = $number;
         $this->expDate    = $expDate;
         $this->cvv        = $cvv;

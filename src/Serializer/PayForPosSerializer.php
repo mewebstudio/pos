@@ -61,7 +61,7 @@ class PayForPosSerializer implements SerializerInterface
          * </Hash>\r\n
          * redundant whitespaces causes non-empty value for response properties
          */
-        $response = preg_replace('/\\r\\n\s*/', '', $data);
+        $response = preg_replace('/\r\n\s*/', '', $data);
         if (null === $response) {
             throw new NotEncodableValueException();
         }

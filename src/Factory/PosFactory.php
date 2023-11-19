@@ -39,7 +39,7 @@ class PosFactory
         ?LoggerInterface         $logger = null
     ): PosInterface
     {
-        if (null === $logger) {
+        if (!$logger instanceof \Psr\Log\LoggerInterface) {
             $logger = new NullLogger();
         }
 
@@ -47,7 +47,7 @@ class PosFactory
             $config = require $config;
         }
 
-        if (null === $client) {
+        if (!$client instanceof \Mews\Pos\Client\HttpClient) {
             $client = HttpClientFactory::createDefaultHttpClient();
         }
 

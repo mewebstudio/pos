@@ -166,11 +166,12 @@ class KuveytPos extends AbstractGateway
     {
         if (in_array($txType, [PosInterface::TX_REFUND, PosInterface::TX_STATUS, PosInterface::TX_CANCEL], true)) {
             if (!is_array($contents)) {
-                throw new InvalidArgumentException("Invalid data type provided for $txType transaction!");
+                throw new InvalidArgumentException(sprintf('Invalid data type provided for %s transaction!', $txType));
             }
 
             return $this->data = $this->sendSoapRequest($contents, $txType);
         }
+
         $url = $url ?: $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
         $body     = [
@@ -213,6 +214,7 @@ class KuveytPos extends AbstractGateway
                 'crypto_method'     => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
             ];
         }
+
         $options = [
             'trace'          => true,
             'encoding'       => 'UTF-8',
@@ -224,13 +226,14 @@ class KuveytPos extends AbstractGateway
         $client = new SoapClient($url, $options);
         try {
             $result = $client->__soapCall($this->requestDataMapper->mapTxType($txType), ['parameters' => ['request' => $contents]]);
-        } catch (Throwable $e) {
+        } catch (Throwable $throwable) {
             $this->logger->error('soap error response', [
-                'message' => $e->getMessage(),
+                'message' => $throwable->getMessage(),
             ]);
 
-            throw $e;
+            throw $throwable;
         }
+
         if (null === $result) {
             $this->logger->error('Bankaya istek başarısız!', [
                 'response' => $result,

@@ -51,8 +51,10 @@ class CreditCardFactory
         if (null === $number) {
             throw new DomainException(sprintf('Bad credit card number %s', $number));
         }
+
         $expireYear =  str_pad($expireYear, 2, '0', STR_PAD_LEFT);
         $expireYear =  str_pad($expireYear, 4, '20', STR_PAD_LEFT);
+
         $expireMonth = str_pad($expireMonth, 2, '0', STR_PAD_LEFT);
         $expDate     = DateTimeImmutable::createFromFormat('Ymd', $expireYear.$expireMonth.'01');
 
@@ -65,6 +67,7 @@ class CreditCardFactory
             if (null === $cardType) {
                 throw new CardTypeRequiredException(get_class($pos));
             }
+
             if (!in_array($cardType, $supportedCardTypes, true)) {
                 throw new CardTypeNotSupportedException($cardType);
             }

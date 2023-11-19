@@ -193,6 +193,7 @@ abstract class AbstractGateway implements PosInterface
             if (!$card instanceof CreditCardInterface) {
                 throw new LogicException('Bu işlem için kredi kartı bilgileri zorunlu!');
             }
+
             $this->makeRegularPayment($order, $card, $txType);
         } elseif (PosInterface::MODEL_3D_SECURE === $paymentModel) {
             $this->make3DPayment($request, $order, $txType, $card);

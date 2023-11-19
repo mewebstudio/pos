@@ -17,6 +17,7 @@ class KuveytPosCrypt extends AbstractCrypt
         if (null === $account->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
+        
         $hashedPassword = $this->hashString($account->getStoreKey());
 
         $hashData = [
@@ -51,6 +52,7 @@ class KuveytPosCrypt extends AbstractCrypt
         if (null === $account->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
+        
         $hashedPassword = $this->hashString($account->getStoreKey());
 
         $hashData = [

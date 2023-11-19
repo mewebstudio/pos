@@ -40,6 +40,7 @@ class InterPosSerializer implements SerializerInterface
         if (false === $resultValues) {
             throw new NotEncodableValueException();
         }
+
         $result = [];
         foreach ($resultValues as $val) {
             [$key, $value] = explode('=', $val);

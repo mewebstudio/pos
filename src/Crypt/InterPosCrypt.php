@@ -40,6 +40,7 @@ class InterPosCrypt extends AbstractCrypt
         if (null === $account->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
+        
         $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'HASHPARAMS', ':');
 
         if ($data['HASH'] === $actualHash) {

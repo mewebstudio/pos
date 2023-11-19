@@ -37,6 +37,7 @@ abstract class AbstractCrypt implements CryptInterface
         if ('' === $hashParams) {
             return '';
         }
+
         /**
          * @var non-empty-string $hashParams ex: "MerchantNo:TerminalNo:ReferenceCode:OrderId"
          */

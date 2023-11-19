@@ -62,9 +62,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, ?CreditCardInterface $card = null): array
     {
-        if (null === $card) {
+        if (!$card instanceof \Mews\Pos\Entity\Card\CreditCardInterface) {
             throw new \LogicException('Ödemeyi tamamlamak için kart bilgiler zorunlu!');
         }
+        
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($account) + [
@@ -125,7 +126,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         }
 
         if (isset($order['recurring'])) {
-            $requestData = array_merge($requestData, $this->createRecurringData($order['recurring']));
+            return array_merge($requestData, $this->createRecurringData($order['recurring']));
         }
 
         return $requestData;

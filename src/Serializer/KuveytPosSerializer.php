@@ -81,12 +81,13 @@ class KuveytPosSerializer implements SerializerInterface
 
         try {
             return $this->serializer->decode($data, XmlEncoder::FORMAT);
-        } catch (Throwable $e) {
+        } catch (Throwable $throwable) {
             if ($this->isHTML($data)) {
                 // 3D form data icin enrollment istegi gonderiyoruz, o istegin cevabi icinde form olan HTML donuyor.
                 return $this->transformReceived3DFormData($data);
             }
-            throw new Exception($data, $e->getCode(), $e);
+            
+            throw new Exception($data, $throwable->getCode(), $throwable);
         }
     }
 

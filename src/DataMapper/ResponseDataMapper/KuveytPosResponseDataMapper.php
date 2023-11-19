@@ -142,6 +142,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         if (!isset($data['OrderContract'])) {
             return $result;
         }
+        
         $orderContract  = $rawResponseData['GetMerchantOrderDetailResult']['Value']['OrderContract'];
         $procReturnCode = $this->getProcReturnCode($orderContract);
 

@@ -223,6 +223,7 @@ class PosNet extends AbstractGateway
         if (!is_string($contents)) {
             throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
         }
+        
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/x-www-form-urlencoded',

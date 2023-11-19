@@ -167,6 +167,7 @@ class PosNetV1Pos extends AbstractGateway
         if (!is_string($contents)) {
             throw new InvalidArgumentException('Invalid data provided');
         }
+        
         $body = $contents;
 
         $response = $this->client->post($url, [
@@ -180,14 +181,14 @@ class PosNetV1Pos extends AbstractGateway
 
         try {
             return $this->data = $this->serializer->decode($response->getBody(), $txType);
-        } catch (NotEncodableValueException $e) {
+        } catch (NotEncodableValueException $notEncodableValueException) {
             $this->logger->error('parsing bank JSON response failed', [
                 'status_code' => $response->getStatusCode(),
                 'response'    => $response->getBody(),
-                'message'     => $e->getMessage(),
+                'message'     => $notEncodableValueException->getMessage(),
             ]);
 
-            throw $e;
+            throw $notEncodableValueException;
         }
     }
 }

@@ -89,7 +89,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         $commonResult = $this->map3DCommonResponseData($raw3DAuthResponseData);
 
         // todo refactor
-        if (in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'])) {
+        if (\in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'])) {
             //these data only available on success
             $commonResult['auth_code']     = $raw3DAuthResponseData['authcode'];
             $commonResult['trans_id']      = $raw3DAuthResponseData['transid'];
@@ -100,8 +100,9 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             $commonResult['cavv']          = $raw3DAuthResponseData['cavv'];
         }
 
-        $paymentStatus = self::TX_DECLINED;
-        if (in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4']) && null !== $rawPaymentResponseData) {
+        $paymentStatus         = self::TX_DECLINED;
+        $mappedPaymentResponse = [];
+        if (\in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4']) && null !== $rawPaymentResponseData) {
             $transaction    = $rawPaymentResponseData['Transaction'];
             $procReturnCode = $this->getProcReturnCode($rawPaymentResponseData);
             if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
@@ -122,7 +123,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             ];
         }
 
-        if (empty($mappedPaymentResponse)) {
+        if ([] === $mappedPaymentResponse) {
             return array_merge($this->getDefaultPaymentResponse(), $commonResult);
         }
 
