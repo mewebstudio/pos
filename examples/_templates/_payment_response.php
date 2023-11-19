@@ -7,6 +7,20 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 require_once '_config.php';
 require '../../_templates/_header.php';
 
+if ($pos instanceof \Mews\Pos\Gateways\EstV3Pos || $pos instanceof \Mews\Pos\Gateways\EstPos) {
+    /**
+     * Asseco'da callbackUrl == failUrl olarak tanimlidir.
+     * Eger kullanici 3D Auth sayfasinda islemini tamamlamadan tarayci sekmesini kapatirsa
+     * Asseco callbackUrl'a (yani failUrl'a) istek gonderir: https://github.com/mewebstudio/pos/issues/165
+     */
+    $logger->info('payment response', [
+        'method'       => $request->getMethod(),
+        'data_query'   => $request->query->all(),
+        'data_request' => $request->request->all(),
+    ]);
+}
+
+
 if (($request->getMethod() !== 'POST' && AbstractGateway::TX_POST_PAY !== $transaction)
     // PayFlex-CP GET request ile cevapliyor
     && ($request->getMethod() === 'GET' && [] === $request->query->all())
