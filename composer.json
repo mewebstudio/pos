@@ -41,7 +41,7 @@
         "php-http/curl-client": "^2.2",
         "phpstan/phpstan": "^1.9",
         "phpstan/phpstan-strict-rules": "^1.4",
-        "phpunit/phpunit": "^8.5",
+        "phpunit/phpunit": "^9",
         "rector/rector": "^0.18",
         "slim/psr7": "^1.4",
         "squizlabs/php_codesniffer": "^3.5",

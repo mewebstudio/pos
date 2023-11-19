@@ -10,16 +10,23 @@
         processIsolation="false"
         stopOnFailure="false">
 
-    <testsuite name="Integration">
+    <coverage cacheDirectory="var/coverage-cache"
+              includeUncoveredFiles="true"
+              processUncoveredFiles="true"
+              pathCoverage="false"
+              ignoreDeprecatedCodeUnits="true"
+              disableCodeCoverageIgnore="true">
+        <report>
+            <html outputDirectory="var/coverage-report-html"/>
+            <xml outputDirectory="var/coverage-report-xml"/>
+            <text outputFile="php://stdout" showOnlySummary="true"/>
+        </report>
+        <include>
+            <directory>src</directory>
+        </include>
+    </coverage>
+
+    <testsuite name="unit">
         <directory>tests</directory>
     </testsuite>
-
-    <filter>
-        <whitelist>
-            <directory suffix=".php">src</directory>
-            <exclude>
-                <directory>vendor</directory>
-            </exclude>
-        </whitelist>
-    </filter>
 </phpunit>
