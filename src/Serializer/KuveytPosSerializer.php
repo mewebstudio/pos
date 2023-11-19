@@ -24,9 +24,7 @@ use function strip_tags;
 
 class KuveytPosSerializer implements SerializerInterface
 {
-    /**
-     * @var string[]
-     */
+    /** @var string[] */
     private array $nonPaymentTransactions = [
         PosInterface::TX_REFUND,
         PosInterface::TX_STATUS,

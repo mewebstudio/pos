@@ -499,6 +499,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'MerchantID' => $account->getClientId(),
             ];
         }
+        
         if (null === $account->getRefundUsername()) {
             throw new \LogicException('Bu işlem için refundUsername tanımlı olması gerekir!');
         }
