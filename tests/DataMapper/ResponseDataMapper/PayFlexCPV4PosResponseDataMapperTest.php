@@ -14,7 +14,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
-
+/**
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper
+ */
 class PayFlexCPV4PosResponseDataMapperTest extends TestCase
 {
     private PayFlexCPV4PosResponseDataMapper $responseDataMapper;

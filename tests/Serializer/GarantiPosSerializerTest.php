@@ -11,6 +11,9 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\GarantiPosSerializer;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \Mews\Pos\Serializer\GarantiPosSerializer
+ */
 class GarantiPosSerializerTest extends TestCase
 {
     private GarantiPosSerializer $serializer;

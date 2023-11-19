@@ -9,6 +9,9 @@ use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
+/**
+ * @covers \Mews\Pos\Crypt\EstV3PosCrypt
+ */
 class EstV3PosCryptTest extends TestCase
 {
     private EstPosAccount $account;

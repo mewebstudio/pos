@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Tests\DataMapper\ResponseDataMapper;
 
@@ -10,6 +13,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
+/**
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper
+ */
 class PosNetResponseDataMapperTest extends TestCase
 {
     private PosNetResponseDataMapper $responseDataMapper;

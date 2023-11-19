@@ -11,6 +11,9 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\PayForPosSerializer;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \Mews\Pos\Serializer\PayForPosSerializer
+ */
 class PayForPosSerializerTest extends TestCase
 {
     private PayForPosSerializer $serializer;

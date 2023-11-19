@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
- * PayForTest
+ * @covers \Mews\Pos\Gateways\PayForPos
  */
 class PayForTest extends TestCase
 {

@@ -14,6 +14,9 @@ use Mews\Pos\Tests\DataMapper\RequestDataMapper\KuveytPosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
 use function iterator_to_array;
 
+/**
+ * @covers \Mews\Pos\Serializer\KuveytPosSerializer
+ */
 class KuveytPosSerializerTest extends TestCase
 {
     private KuveytPosSerializer $serializer;

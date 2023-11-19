@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 namespace Mews\Pos\Tests\Crypt;
 
 use Mews\Pos\Crypt\PosNetCrypt;
@@ -9,6 +11,9 @@ use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
+/**
+ * @covers \Mews\Pos\Crypt\PosNetCrypt
+ */
 class PosNetCryptTest extends TestCase
 {
     public PosNetCrypt $crypt;

@@ -19,7 +19,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 /**
- * PayForPosRequestDataMapperTest
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper
  */
 class PayForPosRequestDataMapperTest extends TestCase
 {

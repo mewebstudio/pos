@@ -28,6 +28,9 @@ use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
+/**
+ * @covers \Mews\Pos\Gateways\PayFlexCPV4Pos
+ */
 class PayFlexCPV4PosTest extends TestCase
 {
     private PayFlexAccount $account;

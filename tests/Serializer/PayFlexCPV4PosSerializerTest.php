@@ -13,9 +13,11 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\PayFlexCPV4PosSerializer;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \Mews\Pos\Serializer\PayFlexCPV4PosSerializer
+ */
 class PayFlexCPV4PosSerializerTest extends TestCase
 {
-
     private PayFlexCPV4PosSerializer $serializer;
 
     protected function setUp(): void

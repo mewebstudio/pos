@@ -21,7 +21,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 /**
- * PosNetRequestDataMapperTest
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper
  */
 class PosNetRequestDataMapperTest extends TestCase
 {

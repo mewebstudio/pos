@@ -10,6 +10,9 @@ use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\Serializer\PosNetSerializer;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \Mews\Pos\Serializer\PosNetSerializer
+ */
 class PosNetSerializerTest extends TestCase
 {
     private PosNetSerializer $serializer;

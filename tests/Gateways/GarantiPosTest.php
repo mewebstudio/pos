@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
- * GarantiPosTest
+ * @covers \Mews\Pos\Gateways\GarantiPos
  */
 class GarantiPosTest extends TestCase
 {

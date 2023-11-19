@@ -11,6 +11,9 @@ use Mews\Pos\Factory\AccountFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
+/**
+ * @covers \Mews\Pos\Crypt\KuveytPosCrypt
+ */
 class KuveytPosCryptTest extends TestCase
 {
     public KuveytPosCrypt $crypt;

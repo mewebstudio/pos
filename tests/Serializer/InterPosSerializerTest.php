@@ -9,6 +9,9 @@ use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Serializer\InterPosSerializer;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \Mews\Pos\Serializer\InterPosSerializer
+ */
 class InterPosSerializerTest extends TestCase
 {
     private InterPosSerializer $serializer;

@@ -27,14 +27,13 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * EstPosTest
+ * @covers \Mews\Pos\Gateways\EstPos
  */
 class EstPosTest extends TestCase
 {
     private EstPosAccount $account;
 
-    /** @var EstPos */
-    private PosInterface $pos;
+    private EstPos $pos;
 
     /** @var array<string, mixed> */
     private $config;

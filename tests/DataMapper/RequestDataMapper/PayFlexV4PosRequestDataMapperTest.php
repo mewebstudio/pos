@@ -18,7 +18,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
- * PayFlexV4PosRequestDataMapperTest
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper
  */
 class PayFlexV4PosRequestDataMapperTest extends TestCase
 {

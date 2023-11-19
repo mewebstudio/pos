@@ -22,7 +22,7 @@ use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
- * PayFlexCPV4PosRequestDataMapperTest
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper
  */
 class PayFlexCPV4PosRequestDataMapperTest extends TestCase
 {

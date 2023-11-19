@@ -13,7 +13,7 @@ use Mews\Pos\Gateways\GarantiPos;
 use PHPUnit\Framework\TestCase;
 
 /**
- * CreditCardFactoryTest
+ * @covers \Mews\Pos\Factory\CreditCardFactory
  */
 class CreditCardFactoryTest extends TestCase
 {

@@ -24,7 +24,7 @@ use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * PosNetV1Pos tests
+ * @covers \Mews\Pos\Gateways\PosNetV1Pos
  */
 class PosNetV1PosTest extends TestCase
 {

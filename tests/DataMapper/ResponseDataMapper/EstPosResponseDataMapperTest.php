@@ -14,6 +14,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
+/**
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper
+ */
 class EstPosResponseDataMapperTest extends TestCase
 {
     private EstPosResponseDataMapper $responseDataMapper;

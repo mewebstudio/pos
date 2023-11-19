@@ -20,7 +20,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 /**
- * GarantiPosRequestDataMapperTest
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper
  */
 class GarantiPosRequestDataMapperTest extends TestCase
 {

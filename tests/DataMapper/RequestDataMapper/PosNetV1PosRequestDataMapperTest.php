@@ -20,7 +20,7 @@ use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
- * PosNetV1PosRequestDataMapperTest
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper
  */
 class PosNetV1PosRequestDataMapperTest extends TestCase
 {

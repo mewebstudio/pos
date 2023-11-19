@@ -28,7 +28,7 @@ use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * PosNetTest
+ * @covers \Mews\Pos\Gateways\PosNet
  */
 class PosNetTest extends TestCase
 {

@@ -22,7 +22,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 /**
- * KuveytPosRequestDataMapperTest
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper
  */
 class KuveytPosRequestDataMapperTest extends TestCase
 {

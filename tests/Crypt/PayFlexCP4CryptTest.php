@@ -12,6 +12,9 @@ use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
+/**
+ * @covers \Mews\Pos\Crypt\PayFlexCPV4Crypt
+ */
 class PayFlexCP4CryptTest extends TestCase
 {
     /** @var array<string, string>|array<string, float> */

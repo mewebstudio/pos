@@ -29,7 +29,7 @@ use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * KuveytPosTest
+ * @covers \Mews\Pos\Gateways\KuveytPos
  */
 class KuveytPosTest extends TestCase
 {

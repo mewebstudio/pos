@@ -12,6 +12,9 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EstPosSerializer;
 use PHPUnit\Framework\TestCase;
 
+/**
+ * @covers \Mews\Pos\Serializer\EstPosSerializer
+ */
 class EstPosSerializerTest extends TestCase
 {
     private EstPosSerializer $serializer;

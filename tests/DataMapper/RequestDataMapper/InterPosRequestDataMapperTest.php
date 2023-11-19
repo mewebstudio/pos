@@ -18,7 +18,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 /**
- * InterPosRequestDataMapperTest
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper
  */
 class InterPosRequestDataMapperTest extends TestCase
 {

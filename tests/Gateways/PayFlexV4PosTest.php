@@ -25,7 +25,7 @@ use Psr\Log\NullLogger;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
- * PayFlexV4PosTest
+ * @covers \Mews\Pos\Gateways\PayFlexV4Pos
  */
 class PayFlexV4PosTest extends TestCase
 {

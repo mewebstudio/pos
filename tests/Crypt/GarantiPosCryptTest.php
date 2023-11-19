@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Tests\Crypt;
 
@@ -9,6 +12,9 @@ use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
+/**
+ * @covers \Mews\Pos\Crypt\GarantiPosCrypt
+ */
 class GarantiPosCryptTest extends TestCase
 {
     private GarantiPosAccount $account;

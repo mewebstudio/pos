@@ -18,6 +18,9 @@ use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
+/**
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper
+ */
 class EstV3PosRequestDataMapperTest extends TestCase
 {
     private EstPosAccount $account;
