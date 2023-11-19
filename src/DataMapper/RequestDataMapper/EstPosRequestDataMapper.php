@@ -261,17 +261,18 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     protected function create3DFormDataCommon(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
     {
         $inputs = [
-            'clientid'  => $account->getClientId(),
-            'storetype' => $this->secureTypeMappings[$paymentModel],
-            'amount'    => (string) $order['amount'],
-            'oid'       => (string) $order['id'],
-            'okUrl'     => (string) $order['success_url'],
-            'failUrl'   => (string) $order['fail_url'],
-            'rnd'       => (string) $order['rand'],
-            'lang'      => $this->getLang($account, $order),
-            'currency'  => $this->mapCurrency((string) $order['currency']),
-            'taksit'    => $this->mapInstallment((int) $order['installment']),
-            'islemtipi' => $this->mapTxType($txType),
+            'clientid'    => $account->getClientId(),
+            'storetype'   => $this->secureTypeMappings[$paymentModel],
+            'amount'      => (string) $order['amount'],
+            'oid'         => (string) $order['id'],
+            'okUrl'       => (string) $order['success_url'],
+            'failUrl'     => (string) $order['fail_url'],
+            'callbackUrl' => (string) $order['fail_url'],
+            'rnd'         => (string) $order['rand'],
+            'lang'        => $this->getLang($account, $order),
+            'currency'    => $this->mapCurrency((string) $order['currency']),
+            'taksit'      => $this->mapInstallment((int) $order['installment']),
+            'islemtipi'   => $this->mapTxType($txType),
         ];
 
         if ($card instanceof CreditCardInterface) {

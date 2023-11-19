@@ -94,7 +94,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'taksit'        => '',
         ];
 
-        $hash           = '7MGmDH2CY9jlFd4kVHwdvlyt07hIqkiBWVR8bkjAiaaRhK2XUHyvrDLqv0vlG6YY8bXChDkLfnDwVLi3Pvg5lQ==';
+        $hash           = 'nRzSpmIHxn9KvyOl8uJDIicDMemBiOcfQgmPxe3KvCT4Z4fnbOle+FgSx8lanbUQHOIAGQ+6bApDRc6e+tZcMw==';
         $inputs['hash'] = $hash;
         $form           = [
             'gateway' => $gatewayURL,
@@ -118,7 +118,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $form['inputs']['cv2']                             = $card->getCvv();
 
         unset($form['inputs']['hash']);
-        $form['inputs']['hash'] = '7EgK2aMhS848ZMEkl2d0s1dFXlMhCy4LS5FFk+k/FbEmmVqBqx6TtQ1Yg7aW0KQa/5hrQODwBVT3SCUwfXHEsg==';
+        $form['inputs']['hash'] = 'ZXFP3/lcGmROjZL0q8cWbTNfFp07SewcHS1CUWu2sU0seQW0oWQcnwNOzQRDjm22KpA8UpdnyISzESu7Frd8XA==';
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,
@@ -137,28 +137,28 @@ class EstV3PosRequestDataMapperTest extends TestCase
     {
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
 
-        $inputs     = [
-            'clientid'  => $this->account->getClientId(),
-            'storetype' => '3d_host',
-            'amount'    => $this->order['amount'],
-            'oid'       => $this->order['id'],
-            'okUrl'     => $this->order['success_url'],
-            'failUrl'   => $this->order['fail_url'],
-            'callbackUrl' => $this->order['fail_url'],
-            'rnd'       => $this->order['rand'],
+        $inputs = [
+            'clientid'      => $this->account->getClientId(),
+            'storetype'     => '3d_host',
+            'amount'        => $this->order['amount'],
+            'oid'           => $this->order['id'],
+            'okUrl'         => $this->order['success_url'],
+            'failUrl'       => $this->order['fail_url'],
+            'callbackUrl'   => $this->order['fail_url'],
+            'rnd'           => $this->order['rand'],
             'hashAlgorithm' => 'ver3',
-            'lang'      => 'tr',
-            'currency'  => '949',
-            'TranType'  => 'Auth',
-            'taksit'    => '',
+            'lang'          => 'tr',
+            'currency'      => '949',
+            'TranType'      => 'Auth',
+            'taksit'        => '',
         ];
-        $form       = [
+        $form   = [
             'gateway' => $gatewayURL,
             'method'  => 'POST',
             'inputs'  => $inputs,
         ];
 
-        $form['inputs']['hash']       = 'pxvr9oG9G6v2AU/Lci3qs7OiBAwcvAaLotG5rorJVe31DJN/wlVDReWpqFSJojTLPs6pPiS1L1U+QkE0dJJBKw==';
+        $form['inputs']['hash'] = 'TLRkwt3AHJCyfZvjXXoG1Z56sWGVKMk7cKQqNQAGaYx8y16SOKR6SAnznRlgC3vaazQ+VtqO7PprqcOds2wN1w==';
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->account,

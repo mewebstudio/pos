@@ -111,7 +111,11 @@ class KuveytPosSerializer implements SerializerInterface
     private function transformReceived3DFormData(string $response): array
     {
         $dom = new DOMDocument();
-        $dom->loadHTML($response);
+        /**
+         * Kuveyt Pos started sending HTML with custom HTML tags such as <APM_DO_NOT_TOUCH>.
+         * Without LIBXML_NOERROR flag loadHTML throws "Tag apm_do_not_touch invalid in Entity" exception
+         */
+        $dom->loadHTML($response, LIBXML_NOERROR);
 
         $gatewayURL = '';
         /** @var DOMElement $formNode */

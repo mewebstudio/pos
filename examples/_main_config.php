@@ -62,7 +62,6 @@ function doPayment(PosInterface $pos, string $paymentModel, string $transaction,
     }
 }
 
-
 function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher): ?PosInterface
 {
     try {
@@ -74,7 +73,7 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\E
         $config = require __DIR__.'/../config/pos_test.php';
         global $logger;
 
-        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
+        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher, null, $logger);
         $pos->setTestMode(true);
 
         return $pos;

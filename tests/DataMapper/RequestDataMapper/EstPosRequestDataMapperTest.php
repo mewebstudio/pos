@@ -194,18 +194,19 @@ class EstPosRequestDataMapperTest extends TestCase
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
 
         $inputs = [
-            'clientid'  => $this->account->getClientId(),
-            'storetype' => PosInterface::MODEL_3D_SECURE,
-            'hash'      => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
-            'amount'    => $this->order['amount'],
-            'oid'       => $this->order['id'],
-            'okUrl'     => $this->order['success_url'],
-            'failUrl'   => $this->order['fail_url'],
-            'rnd'       => $this->order['rand'],
-            'lang'      => 'tr',
-            'currency'  => 949,
-            'islemtipi' => 'Auth',
-            'taksit'    => '',
+            'clientid'    => $this->account->getClientId(),
+            'storetype'   => PosInterface::MODEL_3D_SECURE,
+            'hash'        => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
+            'amount'      => $this->order['amount'],
+            'oid'         => $this->order['id'],
+            'okUrl'       => $this->order['success_url'],
+            'failUrl'     => $this->order['fail_url'],
+            'callbackUrl' => $this->order['fail_url'],
+            'rnd'         => $this->order['rand'],
+            'lang'        => 'tr',
+            'currency'    => 949,
+            'islemtipi'   => 'Auth',
+            'taksit'      => '',
         ];
         $form   = [
             'gateway' => $gatewayURL,
@@ -247,18 +248,19 @@ class EstPosRequestDataMapperTest extends TestCase
     {
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
         $inputs     = [
-            'clientid'  => $this->account->getClientId(),
-            'storetype' => '3d_host',
-            'hash'      => 'S7UxUAohxaxzl35WxHyDfuQx0sg=',
-            'amount'    => $this->order['amount'],
-            'oid'       => $this->order['id'],
-            'okUrl'     => $this->order['success_url'],
-            'failUrl'   => $this->order['fail_url'],
-            'rnd'       => $this->order['rand'],
-            'lang'      => 'tr',
-            'currency'  => '949',
-            'islemtipi'  => 'Auth',
-            'taksit'    => '',
+            'clientid'    => $this->account->getClientId(),
+            'storetype'   => '3d_host',
+            'hash'        => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
+            'amount'      => $this->order['amount'],
+            'oid'         => $this->order['id'],
+            'okUrl'       => $this->order['success_url'],
+            'failUrl'     => $this->order['fail_url'],
+            'callbackUrl' => $this->order['fail_url'],
+            'rnd'         => $this->order['rand'],
+            'lang'        => 'tr',
+            'currency'    => '949',
+            'islemtipi'   => 'Auth',
+            'taksit'      => '',
         ];
         $form       = [
             'gateway' => $gatewayURL,
