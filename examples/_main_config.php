@@ -23,6 +23,9 @@ $session->start();
 $hostUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')."://$_SERVER[HTTP_HOST]";
 $subMenu = [];
 
+$handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
+$logger = new \Monolog\Logger('pos', [$handler]);
+
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
 
 $installments = [
@@ -59,19 +62,19 @@ function doPayment(PosInterface $pos, string $paymentModel, string $transaction,
     }
 }
 
+
 function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher): ?PosInterface
 {
     try {
-        $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
-        $logger = new \Monolog\Logger('pos', [$handler]);
-
 /*        $client = new HttpClient(
             new \Http\Client\Curl\Client(),
             new \Slim\Psr7\Factory\RequestFactory(),
             new \Slim\Psr7\Factory\StreamFactory()
         );*/
         $config = require __DIR__.'/../config/pos_test.php';
-        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher, null, $logger);
+        global $logger;
+
+        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
         $pos->setTestMode(true);
 
         return $pos;

@@ -15,6 +15,7 @@
         "ext-SimpleXML": "*",
         "ext-dom": "*",
         "ext-json": "*",
+        "ext-libxml": "*",
         "ext-openssl": "*",
         "php-http/discovery": "^1.14",
         "psr/http-client-implementation": "*",

@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.16.0] - 2023-11-20
+### New Features
+- **Asseco** - #167 3D form verisine `callbackUrl`eklendi.
+  Order verisinde yer alan **fail_url** callbackUrl'a atanmakdadır.
+
 ## [0.15.0] - 2023-10-03
 ### New Features
 - **GarantiPos** - `sha512` hashleme desteği eklendi.
