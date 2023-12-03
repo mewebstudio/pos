@@ -120,14 +120,16 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - Sipariş/Para iadesi yapma (`PosInterface::TX_REFUND`)
   - Sipariş iptal etme (`PosInterface::TX_CANCEL`)
   - Tekrarlanan (Recurring) ödeme talimatları
-  - İşbank [İMECE kart](https://www.isbank.com.tr/is-ticari/imece-kart) kart ile ödeme desteği
   - [PSR-3](https://www.php-fig.org/psr/psr-3/) logger desteği
   - [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP Client desteği
 
 #### Farkli Gateway'ler Tek islem akisi
 * Farklı bankaya geçiş yapmak için sadece doğru `AccountFactory` method'u kullanarak account degistirmek yeterli.
-* **3D**, **3DPay**, **3DHost** ödemeler arasında geçiş yapmak için tek yapmanız gereken Account konfigurasyonunda account tipini değiştirmek (`PosInterface::MODEL_3D_PAY` vs.). İşlem akışı aynı olduğu için kod değiştirmenize gerek kalmıyor.
-* Aynı tip işlem için farklı POS Gateway'lerden dönen değerler aynı formata normalize edilmiş durumda. Yani kod güncellemenize gerek yok.
+* **3D**, **3DPay**, **3DHost** ödemeler arasında geçiş yapmak için tek yapmanız gereken
+Account konfigurasyonunda account tipini değiştirmek (`PosInterface::MODEL_3D_PAY` vs.).
+İşlem akışı aynı olduğu için kod değiştirmenize gerek kalmıyor.
+* Aynı tip işlem için farklı POS Gateway'lerden dönen değerler aynı formata normalize edilmiş durumda.
+Yani kod güncellemenize gerek yok.
 * Aynı tip işlem için farklı Gateway gönderilecek değerler de genel olarak aynı formatta olacak şekilde normalize edişmiştir.
 
 ### Latest updates
@@ -135,11 +137,12 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 Son yapılan değişiklikler için [`CHANGELOG`](./docs/CHANGELOG.md).
 
 ### Minimum Gereksinimler
-  - PHP >= 7.2.5
+  - PHP >= 7.4
   - ext-dom
   - ext-json
   - ext-openssl
   - ext-SimpleXML
+  - ext-soap (sadece KuveytPos için)
   - PSR-18 HTTP Client
 
 ### Kurulum
@@ -156,11 +159,6 @@ $ composer require php-http/curl-client nyholm/psr7 mews/pos
 ```
 Diğer PSR-18 uygulamasını sağlayan kütühaneler: https://packagist.org/providers/psr/http-client-implementation
 
-### Unit testler çalıştırma
-Projenin root klasoründe bu satırı çalıştırmanız gerekiyor
-```sh
-$ ./vendor/bin/phpunit
-```
 
 ### Örnek ödeme kodu
 **config.php (Ayar dosyası)**
@@ -172,18 +170,21 @@ require './vendor/autoload.php';
 // API kullanıcı bilgileri
 // AccountFactory kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
-'akbank', //pos config'deki ayarın index name'i
-'yourClientID',
-'yourKullaniciAdi',
-'yourSifre',
-PosInterface::MODEL_3D_SECURE, //storetype
-'yourStoreKey',
-PosInterface::LANG_TR
+    'akbank', //pos config'deki ayarın index name'i
+    'yourClientID',
+    'yourKullaniciAdi',
+    'yourSifre',
+    PosInterface::MODEL_3D_SECURE, // storetype
+    'yourStoreKey',
+    PosInterface::LANG_TR
 );
 
-// API kullanıcı hesabı ile paket bir değişkene aktarılıyor
+$eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
+
 try {
-    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account);
+    $config = require __DIR__.'/../config/pos_test.php';
+
+    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher);
     //değere göre API URL'leri test veya production değerler kullanılır.
     $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
@@ -201,7 +202,7 @@ require 'config.php';
 $order = [
     'id'          => 'BENZERSIZ-SIPERIS-ID',
     'amount'      => 1.01,
-    'currency'    => 'TRY', //TRY|USD|EUR, optional. default: TRY
+    'currency'    => \Mews\Pos\PosInterface::CURRENCY_TRY, //optional. default: TRY
     'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
 
     //MODEL_3D_SECURE, MODEL_3D_PAY, MODEL_3D_HOST odemeler icin zorunlu
@@ -211,7 +212,7 @@ $order = [
     'rand'        => md5(uniqid(time())), // EstPos, Garanti, PayFor, InterPos, VakifBank. Rastegele değer.
 
     //lang degeri verilmezse account (EstPosAccount) dili kullanılacak
-    'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, //LANG_TR|LANG_EN. Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
+    'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
 $session->set('order', $order);
 
@@ -232,7 +233,12 @@ $pos->prepare($order, \Mews\Pos\PosInterface::TX_PAY, $card);
 try {
     // $formData icerigi form olarak banka gateway'ne yonlendirilir.
     // /examples/template/_redirect_form.php bakınız.
-    $formData = $pos->get3DFormData();
+    $formData = $pos->get3DFormData(
+        $order,
+        \Mews\Pos\PosInterface::MODEL_3D_SECURE,
+        \Mews\Pos\PosInterface::TX_PAY,
+        $card
+    );
 } catch (\Throwable $e) {
     dd($e);
 }
@@ -245,13 +251,15 @@ require 'config.php';
 
 $order = $session->get('order');
 
-$pos->prepare($order, \Mews\Pos\PosInterface::TX_PAY);
-
 // Ödeme tamamlanıyor,
-// Ödeme modeli (3D Secure, 3D Pay, 3D Host, Non Secure) $account tarafında belirlenir.
-// $card değeri Non Secure modelde ve Vakıfbank için 3DPay ve 3DSecure ödemede zorunlu.
 try  {
-    $pos->payment($card);
+    $pos->payment(
+        \Mews\Pos\PosInterface::MODEL_3D_SECURE,
+        $order,
+        \Mews\Pos\PosInterface::TX_PAY,
+        // $card değeri Non Secure modelde ve Vakıfbank için 3DPay ve 3DSecure ödemede zorunlu.
+        $card
+    );
 
     // Ödeme başarılı mı?
     $pos->isSuccess();
@@ -266,50 +274,37 @@ try  {
 ### Farkli Banka Sanal Poslarını Eklemek
 Kendi projenizin dizinindeyken
 ```sh
-$ cp ./vendor/mews/pos/config/pos.php ./pos_ayarlar.php
+$ cp ./vendor/mews/pos/config/pos_production.php ./pos_ayarlar.php
 ```
 ya da;
 
-Projenizde bir ayar dosyası oluşturup (pos_ayarlar.php gibi), paket içerisinde `./config/pos.php` dosyasının içeriğini buraya kopyalayın.
+Projenizde bir ayar dosyası oluşturup (`pos_ayarlar.php` gibi),
+paket içerisinde `./config/pos_production.php` dosyasının içeriğini buraya kopyalayın.
 
 ```php
 <?php
 
 return [
-
-    //param birimleri Gateway'ler icinde tanımlıdır, özel bir mapping istemediğiniz sürece boş bırakınız
-    'currencies'    => [
-//        'TRY'       => 949,
-//        'USD'       => 840,
-    ],
-
     // Banka sanal pos tanımlamaları
     'banks'         => [
         'akbank'    => [
             'name'  => 'AKBANK T.A.S.',
-            'class' => \Mews\Pos\Gateways\EstV3Pos::class,
-            'urls'  => [
-                'production'    => 'https://www.sanalakpos.com/fim/api',
-                'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
-                'gateway'       => [
-                    'production'    => 'https://www.sanalakpos.com/fim/est3Dgate',
-                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
-                ],
-            ]
+            'class' => Mews\Pos\Gateways\EstV3Pos::class,
+            'gateway_endpoints'  => [
+                'payment_api'     => 'https://www.sanalakpos.com/fim/api',
+                'gateway_3d'      => 'https://www.sanalakpos.com/fim/est3Dgate',
+                'gateway_3d_host' => 'https://sanalpos.sanalakpos.com.tr/fim/est3Dgate',
+            ],
         ],
 
         // Yeni eklenen banka
         'isbank'    => [
             'name'  => 'İŞ BANKASI .A.S.',
             'class' => \Mews\Pos\Gateways\EstV3Pos::class, // Altyapı sınıfı
-            'urls'  => [
-                'production'    => 'xxxx', // API Url
-                'test'          => 'xxxx', // API Test Url
-                'gateway'       => [
-                    'production'    => 'xxxx', // 3d Kapı Url
-                    'test'          => 'xxxx', // 3d Test Kapı Url
-                ],
-            ]
+            'gateway_endpoints'  => [
+                'payment_api'     => 'https://sanalpos.isbank.com.tr/fim/api',
+                'gateway_3d'      => 'https://sanalpos.isbank.com.tr/fim/est3Dgate',
+            ],
         ],
     ]
 ];
@@ -319,8 +314,8 @@ return [
 Bundan sonra nesnemizi, yeni ayarlarımıza göre oluşturup kullanmamız gerekir. Örnek:
 ```php
 //yeni ayar yolu ya da degeri
-$yeni_ayarlar = require './pos_ayarlar.php';
-$pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeni_ayarlar);
+$yeniAyarlar = require './pos_ayarlar.php';
+$pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeniAyarlar);
 ```
 
 ## Ornek Kodlar
@@ -385,7 +380,13 @@ composer require monolog/monolog
 ```php
 $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
 $logger = new \Monolog\Logger('pos', [$handler]);
-$pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
+$pos = \Mews\Pos\Factory\PosFactory::createPosGateway(
+    $account,
+    $config,
+    $eventDispatcher,
+    null,
+    $logger
+);
 ```
 
 ## Genel Kultur
@@ -423,11 +424,21 @@ Genel olarak _miktar_ bilgisi _istenmez_, ancak bazı Gateway'ler ister.
 İşlemin kütüphanedeki karşılığı `PosInterface::TX_CANCEL`
 
 ## Docker ile test ortami
-Makinenizde Docker kurulu olmasi gerekiyor.
-Projenin root klasöründe `docker-compose up` komutu çalıştırmanız yeterli.
+1. Makinenizde Docker kurulu olmasi gerekiyor.
+2. Projenin root klasöründe `docker-compose up -d` komutu çalıştırınız.
+3. ```sh
+    $ composer require php-http/curl-client nyholm/psr7 mews/pos
+    ```
 **Note**: localhost port 80 boş olması gerekiyor.
 Sorunsuz çalışması durumda kod örneklerine http://localhost/akbank/3d/index.php şekilde erişebilirsiniz.
 http://localhost/ URL projenin `examples` klasörünün içine bakar.
+
+### Unit testler çalıştırma
+Projenin root klasoründe bu satırı çalıştırmanız gerekiyor
+```sh
+$ ./vendor/bin/phpunit
+```
+
 
 > Değerli yorum, öneri ve katkılarınızı
 >
