@@ -40,17 +40,6 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
-     * "100001" => 1000.01
-     * @param string $amount
-     *
-     * @return float
-     */
-    public function amountFormat(string $amount): float
-    {
-        return ((int) $amount) / 100;
-    }
-
-    /**
      * {@inheritDoc}
      */
     public function mapPaymentResponse(array $rawPaymentResponseData): array
@@ -107,7 +96,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             'status'               => self::TX_DECLINED,
             'md_status'            => $mdStatus,
             'md_error_message'     => '1' !== $mdStatus ? $raw3DAuthResponseData['MdErrorMessage'] : null,
-            'amount'               => $this->amountFormat($raw3DAuthResponseData['Amount']),
+            'amount'               => $this->formatAmount($raw3DAuthResponseData['Amount']),
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
@@ -248,5 +237,16 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
     protected function getProcReturnCode(array $response): ?string
     {
         return $response['ServiceResponseData']['ResponseCode'] ?? null;
+    }
+
+    /**
+     * "100001" => 1000.01
+     * @param string $amount
+     *
+     * @return float
+     */
+    protected function formatAmount(string $amount): float
+    {
+        return ((int) $amount) / 100;
     }
 }

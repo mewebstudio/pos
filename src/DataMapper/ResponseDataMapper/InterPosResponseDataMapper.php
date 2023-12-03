@@ -80,7 +80,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'masked_number'        => $raw3DAuthResponseData['Pan'],
             'month'                => null,
             'year'                 => null,
-            'amount'               => $this->amountFormat($raw3DAuthResponseData['PurchAmount']),
+            'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
             'eci'                  => $raw3DAuthResponseData['Eci'],
             'tx_status'            => $raw3DAuthResponseData['TxnStat'],
@@ -184,7 +184,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'error_message'    => $rawResponseData['ErrorMessage'],
             'ref_ret_num'      => null,
             'order_status'     => null, //todo success cevap alindiginda eklenecek
-            'refund_amount'    => $this->amountFormat($rawResponseData['RefundedAmount']),
+            'refund_amount'    => $this->formatAmount($rawResponseData['RefundedAmount']),
             'capture_amount'   => null, //todo success cevap alindiginda eklenecek
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
@@ -199,18 +199,6 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     public function mapHistoryResponse(array $rawResponseData): array
     {
         return $this->emptyStringsToNull($rawResponseData);
-    }
-
-    /**
-     * 0 => 0.0
-     * 1.056,2 => 1056.2
-     * @param string $amount
-     *
-     * @return float
-     */
-    public function amountFormat(string $amount): float
-    {
-        return (float) str_replace(',', '.', str_replace('.', '', $amount));
     }
 
     /**
@@ -252,5 +240,17 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     protected function getProcReturnCode(array $response): ?string
     {
         return $response['ProcReturnCode'] ?? null;
+    }
+
+    /**
+     * 0 => 0.0
+     * 1.056,2 => 1056.2
+     * @param string $amount
+     *
+     * @return float
+     */
+    protected function formatAmount(string $amount): float
+    {
+        return (float) \str_replace(',', '.', str_replace('.', '', $amount));
     }
 }

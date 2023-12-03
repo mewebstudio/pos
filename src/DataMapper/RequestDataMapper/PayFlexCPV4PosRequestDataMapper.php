@@ -110,7 +110,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
             'HostTerminalId'       => $account->getTerminalId(),
             'TransactionType'      => $this->mapTxType($txType),
             'AmountCode'           => $this->mapCurrency($order['currency']),
-            'Amount'               => $this->amountFormat($order['amount']),
+            'Amount'               => $this->formatAmount($order['amount']),
             'OrderID'              => (string) $order['id'],
             'IsSecure'             => 'true', // Işlemin 3D yapılıp yapılmayacağına dair flag, alabileceği değerler: 'true', 'false'
             /**
@@ -177,7 +177,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
                 'OrderId'                 => (string) $order['id'],
-                'CurrencyAmount'          => $this->amountFormat($order['amount']),
+                'CurrencyAmount'          => $this->formatAmount($order['amount']),
                 'CurrencyCode'            => $this->mapCurrency($order['currency']),
                 'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0',
@@ -202,7 +202,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
                 'TransactionType'        => $this->mapTxType(PosInterface::TX_POST_PAY),
                 'ReferenceTransactionId' => (string) $order['id'],
-                'CurrencyAmount'         => $this->amountFormat($order['amount']),
+                'CurrencyAmount'         => $this->formatAmount($order['amount']),
                 'CurrencyCode'           => $this->mapCurrency($order['currency']),
                 'ClientIp'               => (string) $order['ip'],
             ];
@@ -251,7 +251,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
                 'TransactionType'        => $this->mapTxType(PosInterface::TX_REFUND),
                 'ReferenceTransactionId' => (string) $order['trans_id'],
                 'ClientIp'               => (string) $order['ip'],
-                'CurrencyAmount'         => $this->amountFormat($order['amount']),
+                'CurrencyAmount'         => $this->formatAmount($order['amount']),
             ];
     }
 
@@ -296,9 +296,9 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return string ex: 10.1 => 10.10
      */
-    public function amountFormat(float $amount): string
+    protected function formatAmount(float $amount): string
     {
-        return number_format($amount, 2, '.', '');
+        return \number_format($amount, 2, '.', '');
     }
 
     /**

@@ -96,7 +96,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
                 'MD'                  => $responseData['MD'],
             ],
             'MACParams'             => 'MerchantNo:TerminalNo:SecureTransactionId:CavvData:Eci:MdStatus',
-            'Amount'                => $this->amountFormat($order['amount']),
+            'Amount'                => $this->formatAmount($order['amount']),
             'CurrencyCode'          => self::mapCurrency($order['currency']),
             'PointAmount'           => 0,
             'OrderId'               => self::formatOrderId($order['id']),
@@ -144,7 +144,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'IsTDSecureMerchant'     => null,
             'PaymentInstrumentType'  => 'CARD',
             'ThreeDSecureData'       => null,
-            'Amount'                 => $this->amountFormat($order['amount']),
+            'Amount'                 => $this->formatAmount($order['amount']),
             'CurrencyCode'           => $this->mapCurrency($order['currency']),
             'OrderId'                => self::formatOrderId($order['id']),
             'InstallmentCount'       => $this->mapInstallment($order['installment']),
@@ -186,7 +186,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'DealerData'             => null,
             'IsEncrypted'            => null,
             'PaymentFacilitatorData' => null,
-            'Amount'                 => $this->amountFormat($order['amount']),
+            'Amount'                 => $this->formatAmount($order['amount']),
             'CurrencyCode'           => $this->mapCurrency($order['currency']),
             'ReferenceCode'          => $order['ref_ret_num'],
             'InstallmentCount'       => $this->mapInstallment($order['installment']),
@@ -306,7 +306,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
         }
 
         if ($order['payment_model'] === PosInterface::MODEL_NON_SECURE) {
-            $requestData['Amount']       = $this->amountFormat($order['amount']);
+            $requestData['Amount']       = $this->formatAmount($order['amount']);
             $requestData['CurrencyCode'] = $this->mapCurrency($order['currency']);
         }
 
@@ -345,7 +345,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'PosnetID'          => $account->getPosNetId(),
             'TransactionType'   => $this->mapTxType($txType),
             'OrderId'           => self::formatOrderId($order['id']),
-            'Amount'            => (string) $this->amountFormat($order['amount']),
+            'Amount'            => (string) $this->formatAmount($order['amount']),
             'CurrencyCode'      => $this->mapCurrency($order['currency']),
             'MerchantReturnURL' => (string) $order['success_url'],
             'InstallmentCount'  => $this->mapInstallment($order['installment']),
@@ -389,19 +389,6 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'method'  => 'POST',
             'inputs'  => $inputs,
         ];
-    }
-
-    /**
-     * Get amount
-     * formats 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
-     */
-    public function amountFormat(float $amount): int
-    {
-        return (int) (round($amount, 2) * 100);
     }
 
     /**
@@ -453,6 +440,19 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
         }
 
         return str_pad($orderId, $padLength, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Get amount
+     * formats 10.01 to 1001
+     *
+     * @param float $amount
+     *
+     * @return int
+     */
+    protected function formatAmount(float $amount): int
+    {
+        return (int) (\round($amount, 2) * 100);
     }
 
     /**

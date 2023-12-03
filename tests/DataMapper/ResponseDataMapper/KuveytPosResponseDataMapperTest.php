@@ -34,10 +34,16 @@ class KuveytPosResponseDataMapperTest extends TestCase
         );
     }
 
-    public function testAmountFormat()
+    /**
+     * @return void
+     */
+    public function testFormatAmount()
     {
-        $this->assertEquals(0.1, $this->responseDataMapper->amountFormat("10"));
-        $this->assertEquals(1.01, $this->responseDataMapper->amountFormat("101"));
+        $class  = new \ReflectionObject($this->responseDataMapper);
+        $method = $class->getMethod('formatAmount');
+        $method->setAccessible(true);
+        $this->assertSame(0.1, $method->invokeArgs($this->responseDataMapper, [10]));
+        $this->assertSame(1.01, $method->invokeArgs($this->responseDataMapper, [101]));
     }
 
     /**

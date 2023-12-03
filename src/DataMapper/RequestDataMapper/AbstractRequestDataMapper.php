@@ -205,6 +205,16 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     abstract public function mapInstallment(int $installment): string;
 
     /**
+     * @param float $amount
+     *
+     * @return mixed
+     */
+    protected function formatAmount(float $amount)
+    {
+        return $amount;
+    }
+
+    /**
      * bank returns error messages for specified language value
      * usually accepted values are tr,en
      *

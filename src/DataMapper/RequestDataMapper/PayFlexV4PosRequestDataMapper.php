@@ -65,13 +65,13 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         if (!$card instanceof \Mews\Pos\Entity\Card\CreditCardInterface) {
             throw new \LogicException('Ödemeyi tamamlamak için kart bilgiler zorunlu!');
         }
-        
+
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
                 'TransactionId'           => (string) $order['id'],
-                'CurrencyAmount'          => $this->amountFormat($order['amount']),
+                'CurrencyAmount'          => $this->formatAmount($order['amount']),
                 'CurrencyCode'            => $this->mapCurrency($order['currency']),
                 'ECI'                     => $responseData['Eci'],
                 'CAVV'                    => $responseData['Cavv'],
@@ -107,7 +107,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'                => $account->getClientId(),
             'MerchantPassword'          => $account->getPassword(),
             'MerchantType'              => $account->getMerchantType(),
-            'PurchaseAmount'            => $this->amountFormat($order['amount']),
+            'PurchaseAmount'            => $this->formatAmount($order['amount']),
             'VerifyEnrollmentRequestId' => $order['rand'],
             'Currency'                  => $this->mapCurrency($order['currency']),
             'SuccessUrl'                => $order['success_url'],
@@ -143,7 +143,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
                 'TransactionType'         => $this->mapTxType($txType),
                 'OrderId'                 => (string) $order['id'],
-                'CurrencyAmount'          => $this->amountFormat($order['amount']),
+                'CurrencyAmount'          => $this->formatAmount($order['amount']),
                 'CurrencyCode'            => $this->mapCurrency($order['currency']),
                 'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0',
@@ -173,7 +173,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
                 'TransactionType'        => $this->mapTxType(PosInterface::TX_POST_PAY),
                 'ReferenceTransactionId' => (string) $order['id'],
-                'CurrencyAmount'         => $this->amountFormat($order['amount']),
+                'CurrencyAmount'         => $this->formatAmount($order['amount']),
                 'CurrencyCode'           => $this->mapCurrency($order['currency']),
                 'ClientIp'               => (string) $order['ip'],
             ];
@@ -240,7 +240,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'TransactionType'        => $this->mapTxType(PosInterface::TX_REFUND),
             'ReferenceTransactionId' => (string) $order['trans_id'],
             'ClientIp'               => (string) $order['ip'],
-            'CurrencyAmount'         => $this->amountFormat($order['amount']),
+            'CurrencyAmount'         => $this->formatAmount($order['amount']),
         ];
     }
 
@@ -282,9 +282,9 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return string ex: 10.1 => 10.10
      */
-    public function amountFormat(float $amount): string
+    protected function formatAmount(float $amount): string
     {
-        return number_format($amount, 2, '.', '');
+        return \number_format($amount, 2, '.', '');
     }
 
     /**

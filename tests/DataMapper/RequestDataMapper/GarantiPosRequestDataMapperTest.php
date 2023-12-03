@@ -76,11 +76,14 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testAmountFormat()
+    public function testFormatAmount()
     {
-        $this->assertEquals(100000, $this->requestDataMapper->amountFormat(1000));
-        $this->assertEquals(100000, $this->requestDataMapper->amountFormat(1000.00));
-        $this->assertEquals(100001, $this->requestDataMapper->amountFormat(1000.01));
+        $class  = new \ReflectionObject($this->requestDataMapper);
+        $method = $class->getMethod('formatAmount');
+        $method->setAccessible(true);
+        $this->assertSame(100000, $method->invokeArgs($this->requestDataMapper, [1000]));
+        $this->assertSame(100000, $method->invokeArgs($this->requestDataMapper, [1000.00]));
+        $this->assertSame(100001, $method->invokeArgs($this->requestDataMapper, [1000.01]));
     }
 
     /**
@@ -243,22 +246,12 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider refundOrderDataProvider
      */
-    public function testCreateRefundRequestData()
+    public function testCreateRefundRequestData(GarantiPosAccount $account, array $order, array $expectedData)
     {
-        $order = [
-            'id'          => '2020110828BC',
-            'ip'          => '127.15.15.1',
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'amount'      => 123.1,
-            'ref_ret_num' => '831803579226',
-            'installment' => 0,
-        ];
+        $actual = $this->requestDataMapper->createRefundRequestData($account, $order);
 
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-
-        $expectedData = $this->getSampleRefundXMLData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -407,38 +400,55 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param GarantiPosAccount $account
-     * @param array             $order
-     *
-     * @return array
-     */
-    private function getSampleRefundXMLData(AbstractPosAccount $account, array $order): array
+    public static function refundOrderDataProvider(): \Generator
     {
-        return [
-            'Mode'        => 'TEST',
-            'Version'     => '512',
-            'Terminal'    => [
-                'ProvUserID' => $account->getRefundUsername(),
-                'UserID'     => $account->getRefundUsername(),
-                'HashData'   => 'CF49751B3B793B9E1946A08815451989D0231D68A5B495C6EABA9C400442F2E6B7DF97446CE2D3562780767E634A6ECBAA1DF69F6DF7F447884A71BDE38D12AA',
-                'ID'         => $account->getTerminalId(),
-                'MerchantID' => $account->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress'    => $order['ip'],
-            ],
-            'Order'       => [
-                'OrderID' => $order['id'],
-            ],
-            'Transaction' => [
-                'Type'                  => 'refund',
-                'InstallmentCnt'        => '',
-                'Amount'                => $this->requestDataMapper->amountFormat($order['amount']),
-                'CurrencyCode'          => '949',
-                'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
-                'OriginalRetrefNum'     => $order['ref_ret_num'],
+        $order = [
+            'id'          => '2020110828BC',
+            'ip'          => '127.15.15.1',
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'amount'      => 123.1,
+            'ref_ret_num' => '831803579226',
+            'installment' => 0,
+        ];
+        $account = AccountFactory::createGarantiPosAccount(
+            'garanti',
+            '7000679',
+            'PROVAUT',
+            '123qweASD/',
+            '30691298',
+            PosInterface::MODEL_3D_SECURE,
+            '12345678',
+            'PROVRFN',
+            '123qweASD/'
+        );
+        yield [
+            'account'      => $account,
+            'order'        => $order,
+            'expectedData' => [
+                'Mode'        => 'TEST',
+                'Version'     => '512',
+                'Terminal'    => [
+                    'ProvUserID' => 'PROVRFN',
+                    'UserID'     => 'PROVRFN',
+                    'HashData'   => 'CF49751B3B793B9E1946A08815451989D0231D68A5B495C6EABA9C400442F2E6B7DF97446CE2D3562780767E634A6ECBAA1DF69F6DF7F447884A71BDE38D12AA',
+                    'ID'         => '30691298',
+                    'MerchantID' => '7000679',
+                ],
+                'Customer'    => [
+                    'IPAddress' => '127.15.15.1',
+                ],
+                'Order'       => [
+                    'OrderID' => '2020110828BC',
+                ],
+                'Transaction' => [
+                    'Type'                  => 'refund',
+                    'InstallmentCnt'        => '',
+                    'Amount'                => '12310',
+                    'CurrencyCode'          => '949',
+                    'CardholderPresentCode' => '0',
+                    'MotoInd'               => 'N',
+                    'OriginalRetrefNum'     => '831803579226',
+                ],
             ],
         ];
     }

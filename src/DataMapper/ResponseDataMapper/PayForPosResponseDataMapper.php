@@ -204,7 +204,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'order_status'     => $orderStatus,
             'transaction_type' => null === $rawResponseData['TxnType'] ? null : $this->mapTxType($rawResponseData['TxnType']),
             'masked_number'    => $rawResponseData['CardMask'] ?? null,
-            'amount'           => null !== $rawResponseData['PurchAmount'] ? $this->amountFormat($rawResponseData['PurchAmount']) : null,
+            'amount'           => null !== $rawResponseData['PurchAmount'] ? $this->formatAmount($rawResponseData['PurchAmount']) : null,
             'currency'         => $this->mapCurrency($rawResponseData['Currency']),
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
@@ -235,7 +235,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         return [
             'transaction_security' => $raw3DAuthResponseData['SecureType'],
             'masked_number'        => $raw3DAuthResponseData['CardMask'],
-            'amount'               => $this->amountFormat($raw3DAuthResponseData['PurchAmount']),
+            'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
             'tx_status'            => $raw3DAuthResponseData['TxnResult'],
             'md_status'            => $raw3DAuthResponseData['3DStatus'],

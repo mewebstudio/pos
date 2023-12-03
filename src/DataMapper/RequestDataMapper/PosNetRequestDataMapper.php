@@ -78,7 +78,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
 
         $mappedOrder             = $order;
         $mappedOrder['id']       = self::formatOrderId($order['id']);
-        $mappedOrder['amount']   = $this->amountFormat($order['amount']);
+        $mappedOrder['amount']   = $this->formatAmount($order['amount']);
         $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
         $hash = $this->crypt->create3DHash($account, $mappedOrder);
@@ -112,7 +112,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             strtolower($this->mapTxType($txType)) => [
                 'orderID'      => self::formatOrderId($order['id']),
                 'installment'  => $this->mapInstallment($order['installment']),
-                'amount'       => $this->amountFormat($order['amount']),
+                'amount'       => $this->formatAmount($order['amount']),
                 'currencyCode' => $this->mapCurrency($order['currency']),
                 'ccno'         => $card->getNumber(),
                 'expDate'      => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
@@ -136,7 +136,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'tranDateRequired'                                      => '1',
             strtolower($this->mapTxType(PosInterface::TX_POST_PAY)) => [
                 'hostLogKey'   => $order['ref_ret_num'],
-                'amount'       => $this->amountFormat($order['amount']),
+                'amount'       => $this->formatAmount($order['amount']),
                 'currencyCode' => $this->mapCurrency($order['currency']),
                 'installment'  => $this->mapInstallment($order['installment']),
             ],
@@ -211,7 +211,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'tid'              => $account->getTerminalId(),
             'tranDateRequired' => '1',
             $txType            => [
-                'amount'       => $this->amountFormat($order['amount']),
+                'amount'       => $this->formatAmount($order['amount']),
                 'currencyCode' => $this->mapCurrency($order['currency']),
             ],
         ];
@@ -296,7 +296,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'ccno'           => $card->getNumber(),
                 'expDate'        => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'cvc'            => $card->getCvv(),
-                'amount'         => $this->amountFormat($order['amount']),
+                'amount'         => $this->formatAmount($order['amount']),
                 'currencyCode'   => $this->mapCurrency($order['currency']),
                 'installment'    => $this->mapInstallment($order['installment']),
                 'XID'            => self::formatOrderId($order['id']),
@@ -319,7 +319,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
 
         $mappedOrder             = $order;
         $mappedOrder['id']       = self::formatOrderId($order['id']);
-        $mappedOrder['amount']   = $this->amountFormat($order['amount']);
+        $mappedOrder['amount']   = $this->formatAmount($order['amount']);
         $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
         $hash = $this->crypt->create3DHash($account, $mappedOrder);
@@ -334,19 +334,6 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'mac'          => $hash,
             ],
         ];
-    }
-
-    /**
-     * Get amount
-     * formats 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
-     */
-    public function amountFormat(float $amount): int
-    {
-        return (int) (round($amount, 2) * 100);
     }
 
     /**
@@ -397,7 +384,20 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             ));
         }
 
-        return str_pad($orderId, $padLength, '0', STR_PAD_LEFT);
+        return \str_pad($orderId, $padLength, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Get amount
+     * formats 10.01 to 1001
+     *
+     * @param float $amount
+     *
+     * @return int
+     */
+    protected function formatAmount(float $amount): int
+    {
+        return (int) (\round($amount, 2) * 100);
     }
 
     /**

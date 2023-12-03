@@ -69,9 +69,12 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testAmountFormat()
+    public function testFormatAmount()
     {
-        $this->assertEquals('1000.00', $this->requestDataMapper->amountFormat(1000));
+        $class  = new \ReflectionObject($this->requestDataMapper);
+        $method = $class->getMethod('formatAmount');
+        $method->setAccessible(true);
+        $this->assertSame('1000.00', $method->invokeArgs($this->requestDataMapper, [1000]));
     }
 
     /**

@@ -223,7 +223,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         return [
             'order_id'         => $rawResponseData['Order']['OrderID'] ?? null,
             'group_id'         => $rawResponseData['Order']['GroupID'] ?? null,
-            'amount'           => null !== $rawResponseData['Order']['OrderInqResult']['AuthAmount'] ? $this->amountFormat($rawResponseData['Order']['OrderInqResult']['AuthAmount']) : null,
+            'amount'           => null !== $rawResponseData['Order']['OrderInqResult']['AuthAmount'] ? $this->formatAmount($rawResponseData['Order']['OrderInqResult']['AuthAmount']) : null,
             'trans_id'         => null,
             'auth_code'        => $transaction['AuthCode'] ?? null,
             'ref_ret_num'      => $transaction['RetrefNum'] ?? null,
@@ -250,7 +250,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @return float
      */
-    public function amountFormat(string $amount): float
+    protected function formatAmount(string $amount): float
     {
         return ((float) $amount) / 100;
     }
@@ -284,7 +284,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'status'               => $status,
             'status_detail'        => $this->getStatusDetail($procReturnCode),
             'masked_number'        => null,
-            'amount'               => $this->amountFormat($raw3DAuthResponseData['txnamount']),
+            'amount'               => $this->formatAmount($raw3DAuthResponseData['txnamount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['txncurrencycode']),
             'tx_status'            => null,
             'eci'                  => null,

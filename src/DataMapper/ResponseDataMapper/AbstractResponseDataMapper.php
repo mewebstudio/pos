@@ -67,22 +67,22 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     }
 
     /**
-     * "1000.01" => 1000.01
-     * @param string $amount
-     *
-     * @return float
-     */
-    public function amountFormat(string $amount): float
-    {
-        return (float) $amount;
-    }
-
-    /**
      * @param string $mdStatus
      *
      * @return string
      */
     abstract protected function mapResponseTransactionSecurity(string $mdStatus): string;
+
+    /**
+     * "1000.01" => 1000.01
+     * @param string $amount
+     *
+     * @return float
+     */
+    protected function formatAmount(string $amount): float
+    {
+        return (float) $amount;
+    }
 
     /**
      * @param string $currency currency code that is accepted by bank

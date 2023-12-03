@@ -80,9 +80,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return int
      */
-    public function amountFormat(float $amount): int
+    protected function formatAmount(float $amount): int
     {
-        return (int) (round($amount, 2) * 100);
+        return (int) (\round($amount, 2) * 100);
     }
 
     /**
@@ -108,7 +108,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 'TransactionType'              => $this->mapTxType($txType),
                 'InstallmentCount'             => $responseData['VPosMessage']['InstallmentCount'],
                 'Amount'                       => $responseData['VPosMessage']['Amount'],
-                'DisplayAmount'                => $this->amountFormat($responseData['VPosMessage']['Amount']),
+                'DisplayAmount'                => $this->formatAmount($responseData['VPosMessage']['Amount']),
                 'CurrencyCode'                 => $responseData['VPosMessage']['CurrencyCode'],
                 'MerchantOrderId'              => $responseData['VPosMessage']['MerchantOrderId'],
                 'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],
@@ -140,9 +140,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 'TransactionType'     => $this->mapTxType($txType),
                 'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
                 'InstallmentCount'    => $this->mapInstallment($order['installment']),
-                'Amount'              => $this->amountFormat($order['amount']),
+                'Amount'              => $this->formatAmount($order['amount']),
                 //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
-                'DisplayAmount'       => $this->amountFormat($order['amount']),
+                'DisplayAmount'       => $this->formatAmount($order['amount']),
                 'CurrencyCode'        => $this->mapCurrency($order['currency']),
                 'MerchantOrderId'     => $order['id'],
                 'OkUrl'               => $order['success_url'],
@@ -260,7 +260,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'LanguageId'            => 0,
             'CustomerId'            => $account->getCustomerId(),
             'MailOrTelephoneOrder'  => true,
-            'Amount'                => $this->amountFormat($order['amount']),
+            'Amount'                => $this->formatAmount($order['amount']),
             'MerchantId'            => $account->getClientId(),
             'OrderId'               => $order['remote_order_id'],
             'RRN'                   => $order['ref_ret_num'],
@@ -276,9 +276,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'BatchID'                          => 0,
                     'TransactionType'                  => $this->mapTxType(PosInterface::TX_CANCEL),
                     'InstallmentCount'                 => 0,
-                    'Amount'                           => $this->amountFormat($order['amount']),
-                    'DisplayAmount'                    => $this->amountFormat($order['amount']),
-                    'CancelAmount'                     => $this->amountFormat($order['amount']),
+                    'Amount'                           => $this->formatAmount($order['amount']),
+                    'DisplayAmount'                    => $this->formatAmount($order['amount']),
+                    'CancelAmount'                     => $this->formatAmount($order['amount']),
                     'MerchantOrderId'                  => $order['id'],
                     'FECAmount'                        => 0,
                     'CurrencyCode'                     => $this->mapCurrency($order['currency']),
@@ -311,7 +311,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'LanguageId'            => 0,
             'CustomerId'            => $account->getCustomerId(),
             'MailOrTelephoneOrder'  => true,
-            'Amount'                => $this->amountFormat($order['amount']),
+            'Amount'                => $this->formatAmount($order['amount']),
             'MerchantId'            => $account->getClientId(),
             'OrderId'               => $order['remote_order_id'],
             'RRN'                   => $order['ref_ret_num'],
@@ -327,9 +327,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'BatchID'                          => 0,
                     'TransactionType'                  => $this->mapTxType(PosInterface::TX_REFUND),
                     'InstallmentCount'                 => 0,
-                    'Amount'                           => $this->amountFormat($order['amount']),
+                    'Amount'                           => $this->formatAmount($order['amount']),
                     'DisplayAmount'                    => 0,
-                    'CancelAmount'                     => $this->amountFormat($order['amount']),
+                    'CancelAmount'                     => $this->formatAmount($order['amount']),
                     'MerchantOrderId'                  => $order['id'],
                     'FECAmount'                        => 0,
                     'CurrencyCode'                     => $this->mapCurrency($order['currency']),
