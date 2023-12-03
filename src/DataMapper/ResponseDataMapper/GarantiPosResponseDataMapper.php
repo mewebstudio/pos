@@ -89,7 +89,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         $commonResult = $this->map3DCommonResponseData($raw3DAuthResponseData);
 
         // todo refactor
-        if (\in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'])) {
+        if (\in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'], true)) {
             //these data only available on success
             $commonResult['auth_code']     = $raw3DAuthResponseData['authcode'];
             $commonResult['trans_id']      = $raw3DAuthResponseData['transid'];
@@ -143,7 +143,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             $commonResult['status'] = self::PROCEDURE_SUCCESS_CODE === $procReturnCode ? self::TX_APPROVED : self::TX_DECLINED;
         }
 
-        if (in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'])) {
+        if (\in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'], true)) {
             $commonResult['auth_code']     = $raw3DAuthResponseData['authcode'];
             $commonResult['trans_id']      = $raw3DAuthResponseData['transid'];
             $commonResult['ref_ret_num']   = $raw3DAuthResponseData['hostrefnum'];
@@ -292,7 +292,6 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'error_code'           => 'Error' === $raw3DAuthResponseData['response'] ? $procReturnCode : null,
             'error_message'        => $raw3DAuthResponseData['errmsg'],
             'md_error_message'     => $raw3DAuthResponseData['mderrormessage'],
-            'email'                => $raw3DAuthResponseData['customeremailaddress'],
             '3d_all'               => $raw3DAuthResponseData,
         ];
     }

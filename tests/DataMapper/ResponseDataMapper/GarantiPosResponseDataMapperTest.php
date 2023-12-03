@@ -112,7 +112,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         ],
                         'Customer'    => [
                             'IPAddress'    => '172.26.0.1',
-                            'EmailAddress' => 'mail@customer.com',
                         ],
                         'Order'       => [
                             'OrderID' => '20221101D723',
@@ -169,7 +168,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         ],
                         'Customer'    => [
                             'IPAddress'    => '172.26.0.1',
-                            'EmailAddress' => 'mail@customer.com',
                         ],
                         'Order'       => [
                             'OrderID' => '2022110189E1',
@@ -260,7 +258,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'secure3dhash'          => 'DCC371FD21BCFDEE9F9B4B86D3CD304C34D3FD51',
                     'secure3dsecuritylevel' => '3D',
                     'txncurrencycode'       => '949',
-                    'customeremailaddress'  => 'mail@customer.com',
                     'errorurl'              => 'http://localhost/garanti/3d/response.php',
                     'terminalmerchantid'    => '7000679',
                     'mode'                  => 'TEST',
@@ -280,7 +277,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     ],
                     'Customer'    => [
                         'IPAddress'    => '172.26.0.1',
-                        'EmailAddress' => 'mail@customer.com',
                     ],
                     'Order'       => [
                         'OrderID' => '20221101295D',
@@ -330,7 +326,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'error_code'           => '0002',
                     'error_message'        => 'Giriş yaptığınız işlem tipi için zorunlu alanları kontrol ediniz',
                     'md_error_message'     => 'Authenticated',
-                    'email'                => 'mail@customer.com',
                     'group_id'             => null,
                     'batch_num'            => null,
                 ],
@@ -380,7 +375,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'secure3dhash'          => '06A4AA2C344F7F1E1CF7610E64797D9282A0D638',
                     'secure3dsecuritylevel' => '3D_PAY',
                     'txncurrencycode'       => '949',
-                    'customeremailaddress'  => 'mail@customer.com',
                     'errorurl'              => 'http://localhost/garanti/3d-pay/response.php',
                     'terminalmerchantid'    => '7000679',
                     'mode'                  => 'TEST',
@@ -409,7 +403,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'error_code'           => null,
                     'error_message'        => null,
                     'md_error_message'     => 'Authenticated',
-                    'email'                => 'mail@customer.com',
                 ],
             ],
             'authFail'     => [
@@ -428,7 +421,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'secure3dhash'          => '8C191C2BB01B2E77DAF0CD71436001E561A8ED56',
                     'secure3dsecuritylevel' => '3D_PAY',
                     'txncurrencycode'       => '949',
-                    'customeremailaddress'  => 'mail@customer.com',
                     'errorurl'              => 'http://localhost/garanti/3d-pay/response.php',
                     'terminalmerchantid'    => '7000679',
                     'mode'                  => 'TEST',
@@ -458,7 +450,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'error_code'           => '99',
                     'error_message'        => 'Sistem Hatasi',
                     'md_error_message'     => 'Sistem Hatasi',
-                    'email'                => 'mail@customer.com',
                 ],
             ],
             'paymentFail1' => [
@@ -499,7 +490,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'secure3dhash'          => '65CA0086F1859CF01CC3CE692B20E432853B35E7',
                     'secure3dsecuritylevel' => '3D_PAY',
                     'txncurrencycode'       => '949',
-                    'customeremailaddress'  => 'mail@customer.com',
                     'errorurl'              => 'http://localhost/garanti/3d-pay/response.php',
                     'terminalmerchantid'    => '7000679',
                     'mode'                  => 'TEST',
@@ -528,7 +518,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'error_code'           => null,
                     'error_message'        => 'TxnAmount field must not be zero DOUBLE value because of the Mandatory Rule:zero',
                     'md_error_message'     => 'Authenticated',
-                    'email'                => 'mail@customer.com',
                 ],
             ],
         ];
@@ -550,7 +539,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         ],
                         'Customer'    => [
                             'IPAddress'    => '172.26.0.1',
-                            'EmailAddress' => 'mail@customer.com',
                         ],
                         'Order'       => [
                             'OrderID' => '20221101EB13',
@@ -638,7 +626,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         ],
                         'Customer'    => [
                             'IPAddress'    => '172.26.0.1',
-                            'EmailAddress' => '',
                         ],
                         'Order'       => [
                             'OrderID'        => '20221101295D',
@@ -731,7 +718,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         ],
                         'Customer'    => [
                             'IPAddress'    => '172.26.0.1',
-                            'EmailAddress' => 'mail@customer.com',
                         ],
                         'Order'       => [
                             'OrderID' => '20221101C9B8',
@@ -793,7 +779,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         ],
                         'Customer'    => [
                             'IPAddress'    => '172.26.0.1',
-                            'EmailAddress' => 'mail@customer.com',
                         ],
                         'Order'       => [
                             'OrderID' => '20221101EB13',
@@ -855,7 +840,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         ],
                         'Customer'    => [
                             'IPAddress'    => '172.26.0.1',
-                            'EmailAddress' => '',
                         ],
                         'Order'       => [
                             'OrderID'            => '20221101EB13',

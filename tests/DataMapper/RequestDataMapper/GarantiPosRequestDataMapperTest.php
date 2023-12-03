@@ -54,7 +54,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $this->order = [
             'id'          => 'order222',
-            'email'       => 'test@test.com',
             'amount'      => '100.25',
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
@@ -146,7 +145,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'amount'      => '1.00',
             'ref_ret_num' => '831803579226',
             'installment' => 0,
-            'email'       => 'email@example.com',
         ];
 
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
@@ -200,7 +198,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'orderid'               => $this->order['id'],
             'successurl'            => $this->order['success_url'],
             'errorurl'              => $this->order['fail_url'],
-            'customeremailaddress'  => $this->order['email'],
             'customeripaddress'     => $this->order['ip'],
             'secure3dhash'          => '372D6CB20B2B699D0A6667DFF46E3AA8CF3F9D8C2BB69A7C411895151FFCFAAB5277CCFE3B3A06035FEEFBFBFD40C79DBE51DBF867D0A24B37335A28F0CEFDE2',
             'cardnumber'            => $this->card->getNumber(),
@@ -237,7 +234,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
             'amount'      => 1,
-            'email'       => 'email@example.com',
         ];
 
         $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
@@ -257,7 +253,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'currency'    => PosInterface::CURRENCY_TRY,
             'amount'      => 123.1,
             'ref_ret_num' => '831803579226',
-            'email'       => 'email@example.com',
             'installment' => 0,
         ];
 
@@ -287,7 +282,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -325,7 +319,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Card'        => [
                 'Number'     => $card->getNumber(),
@@ -366,7 +359,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -400,7 +392,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -436,7 +427,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -473,7 +463,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             ],
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -505,7 +494,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $order = [
             'id'          => '2020110828BC',
-            'email'       => 'test@test.com',
             'amount'      => '100.25',
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
@@ -525,7 +513,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'txnamount'            => '100.25',
             'txntype'              => 'sales',
             'customeripaddress'    => '127.0.0.1',
-            'customeremailaddress' => 'test@test.com',
         ];
 
         yield [
@@ -544,7 +531,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 ],
                 'Customer'    => [
                     'IPAddress'    => '127.0.0.1',
-                    'EmailAddress' => 'test@test.com',
                 ],
                 'Order'       => [
                     'OrderID' => '2020110828BC',
@@ -590,7 +576,6 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 ],
                 'Customer'    => [
                     'IPAddress'    => '127.0.0.1',
-                    'EmailAddress' => 'test@test.com',
                 ],
                 'Order'       => [
                     'OrderID' => '2020110828BC',

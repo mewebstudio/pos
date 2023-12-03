@@ -208,12 +208,6 @@ $order = [
     //Success ve Fail URL'ler farklı olabilir ama kütüphane success ve fail için aynı kod çalıştırır.
     'success_url' => 'https://example.com/response.php',
     'fail_url'    => 'https://example.com/response.php',
-
-    //gateway'e gore zorunlu olan degerler
-    'ip'          => $ip, //EstPos, Garanti, KuveytPos, VakifBank
-    'email'       => 'mail@customer.com', // EstPos, Garanti, KuveytPos, VakifBank
-    'name'        => 'John Doe', // EstPos, Garanti
-    'user_id'     => 'Müşteri ID', // EstPos
     'rand'        => md5(uniqid(time())), // EstPos, Garanti, PayFor, InterPos, VakifBank. Rastegele değer.
 
     //lang degeri verilmezse account (EstPosAccount) dili kullanılacak

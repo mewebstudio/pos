@@ -125,7 +125,6 @@ function getNewOrder(
         'fail_url'    => $failUrl, // https://example.com/payment
 
         // gateway'e gore zorunlu olan degerler
-        'email'       => 'mail@customer.com', // Garanti
         'rand'        => md5(uniqid(time())), // EstPos, Garanti, PayFor, InterPos, VakifBank
     ];
 

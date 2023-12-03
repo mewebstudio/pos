@@ -67,7 +67,7 @@ class GarantiPos extends AbstractGateway
             throw new HashMismatchException();
         }
 
-        if (in_array($request->get('mdstatus'), [1, 2, 3, 4])) {
+        if (\in_array($request->get('mdstatus'), ['1', '2', '3', '4'], true)) {
             $this->logger->debug('finishing payment', ['md_status' => $request->get('mdstatus')]);
 
             $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());

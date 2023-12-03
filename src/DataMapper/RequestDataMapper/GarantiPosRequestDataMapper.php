@@ -77,7 +77,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
                 'IPAddress'    => $responseData['customeripaddress'],
-                'EmailAddress' => $responseData['customeremailaddress'],
             ],
             'Order'       => [
                 'OrderID'     => $responseData['orderid'],
@@ -122,7 +121,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Card'        => $this->getCardData($card),
             'Order'       => [
@@ -162,7 +160,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -195,7 +192,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -230,7 +226,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Terminal'    => $this->getTerminalData($account, true),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -266,7 +261,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Terminal'    => $this->getTerminalData($account, true),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -302,7 +296,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Terminal'    => $this->getTerminalData($account),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
-                'EmailAddress' => $order['email'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -346,7 +339,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'orderid'               => (string) $order['id'],
             'successurl'            => (string) $order['success_url'],
             'errorurl'              => (string) $order['fail_url'],
-            'customeremailaddress'  => $order['email'],
             'customeripaddress'     => (string) $order['ip'],
         ];
 
@@ -404,7 +396,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'amount'      => $order['amount'],
             'ip'          => $order['ip'],
-            'email'       => $order['email'],
         ]);
     }
 
@@ -419,7 +410,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'amount'      => $order['amount'],
             'ip'          => $order['ip'],
-            'email'       => $order['email'] ?? '',
         ];
     }
 
@@ -433,7 +423,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'amount'      => 1, //sabit deger gonderilmesi gerekiyor
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'ip'          => $order['ip'] ?? '',
-            'email'       => $order['email'] ?? '',
             'installment' => 0,
         ];
     }
@@ -457,7 +446,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'ref_ret_num' => $order['ref_ret_num'],
             'ip'          => $order['ip'] ?? '',
-            'email'       => $order['email'] ?? '',
             'installment' => 0,
         ];
     }
@@ -499,7 +487,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'MerchantID' => $account->getClientId(),
             ];
         }
-        
+
         if (null === $account->getRefundUsername()) {
             throw new \LogicException('Bu işlem için refundUsername tanımlı olması gerekir!');
         }
