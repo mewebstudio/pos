@@ -117,7 +117,19 @@ try {
 $flowType = $request->get('payment_flow_type');
 ?>
 
-<?php if ($flowType === 'by_redirection') { ?>
+
+    <!------------------------------------------------------------------------------------------------------------->
+    <!--
+        Alttaki kodlarda secilen islem akisina gore
+            - redirect ile odeme
+            - modal box'ta odeme
+            - pop up window'da odeme
+        gereken kodlari calistiryoruz.
+        Size gereken odeme akis yontemine gore alttaki kodlari kullaniniz.
+    -->
+    <!------------------------------------------------------------------------------------------------------------->
+
+<?php if ('by_redirection' === $flowType) : ?>
 <!--
     Sık kullanılan yöntem, 3D form verisini bir HTML form içine basıp JS ile otomatik submit ediyoruz.
     Submit sonucu kullanıcı banka sayfasıne yönlendirilir, işlem sonucundan ise duruma göre websitinizin
@@ -136,14 +148,14 @@ $flowType = $request->get('payment_flow_type');
 
 
 
-<?php } elseif ($flowType === 'by_iframe' || $flowType === 'by_popup_window') {
+<?php elseif ('by_iframe' === $flowType || 'by_popup_window' === $flowType) :
     ob_start();
     include('../../_templates/_redirect_iframe_or_popup_window_form.php');
     $renderedForm = ob_get_contents();
     ob_end_clean();
     ?>
 <!--
-    $renderedForm içinde 3D formun veririyle oluşturulan HTML form bulunur.
+    $renderedForm içinde 3D formun verileriyle oluşturulan HTML form bulunur.
     alttaki kodlar ise bu $renderedForm verisini seçilen $flowType'a göre iframe modal box içine veya pop up window içine basar.
 -->
     <div class="alert alert-dismissible" role="alert" id="result-alert">
@@ -171,12 +183,12 @@ $flowType = $request->get('payment_flow_type');
             alertBox.show();
         }
     </script>
-<?php } ?>
+<?php endif; ?>
 
 
 
 
-<?php if ($flowType === 'by_iframe') { ?>
+<?php if ('by_iframe' === $flowType) : ?>
     <div class="modal fade" tabindex="-1" role="dialog" id="iframe-modal" data-keyboard="false" data-backdrop="static">
         <div class="modal-dialog" role="document" id="iframe-modal-dialog" style="width: 426px;">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"
@@ -222,7 +234,7 @@ $flowType = $request->get('payment_flow_type');
 
 
 
-<?php } elseif ($flowType === 'by_popup_window') { ?>
+<?php elseif ('by_popup_window' === $flowType) : ?>
     <script>
 
         windowWidth = 400;
@@ -268,6 +280,6 @@ $flowType = $request->get('payment_flow_type');
             }
         }, 1000);
     </script>
-<?php } ?>
+<?php endif; ?>
 <?php
 require '../../_templates/_footer.php';
