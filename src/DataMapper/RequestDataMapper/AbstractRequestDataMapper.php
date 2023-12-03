@@ -190,7 +190,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
      *
      * @return string
      */
-    abstract public function mapInstallment(int $installment): string;
+    abstract protected function mapInstallment(int $installment): string;
 
     /**
      * @phpstan-param PosInterface::CURRENCY_* $currency

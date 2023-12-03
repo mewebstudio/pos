@@ -406,10 +406,10 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      * 2 => '02'
      * @inheritDoc
      */
-    public function mapInstallment(int $installment): string
+    protected function mapInstallment(int $installment): string
     {
         if ($installment > 1) {
-            return str_pad((string) $installment, 2, '0', STR_PAD_LEFT);
+            return \str_pad((string) $installment, 2, '0', STR_PAD_LEFT);
         }
 
         return '00';

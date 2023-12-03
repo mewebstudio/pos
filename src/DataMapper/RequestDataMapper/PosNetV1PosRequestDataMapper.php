@@ -461,7 +461,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
      * 2 => '2'
      * @inheritDoc
      */
-    public function mapInstallment(int $installment): string
+    protected function mapInstallment(int $installment): string
     {
         if ($installment > 1) {
             return (string) $installment;

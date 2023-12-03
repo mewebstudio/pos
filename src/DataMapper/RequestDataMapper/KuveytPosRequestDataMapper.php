@@ -73,19 +73,6 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     protected $crypt;
 
     /**
-     * Amount Formatter
-     * converts 100 to 10000, or 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
-     */
-    protected function formatAmount(float $amount): int
-    {
-        return (int) (\round($amount, 2) * 100);
-    }
-
-    /**
      * @param KuveytPosAccount $account
      *
      * {@inheritDoc}
@@ -371,12 +358,25 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * Amount Formatter
+     * converts 100 to 10000, or 10.01 to 1001
+     *
+     * @param float $amount
+     *
+     * @return int
+     */
+    protected function formatAmount(float $amount): int
+    {
+        return (int) (\round($amount, 2) * 100);
+    }
+
+    /**
      * 0 => '0'
      * 1 => '0'
      * 2 => '2'
      * @inheritDoc
      */
-    public function mapInstallment(int $installment): string
+    protected function mapInstallment(int $installment): string
     {
         return $installment > 1 ? (string) $installment : '0';
     }

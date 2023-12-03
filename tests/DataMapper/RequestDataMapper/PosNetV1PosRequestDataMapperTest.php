@@ -92,8 +92,10 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testMapInstallment($installment, $expected)
     {
-        $actual = $this->requestDataMapper->mapInstallment($installment);
-        $this->assertSame($expected, $actual);
+        $class  = new \ReflectionObject($this->requestDataMapper);
+        $method = $class->getMethod('mapInstallment');
+        $method->setAccessible(true);
+        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
     }
 
     /**

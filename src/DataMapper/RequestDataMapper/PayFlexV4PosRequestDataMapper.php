@@ -293,7 +293,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * 2 => '2'
      * @inheritDoc
      */
-    public function mapInstallment(int $installment): string
+    protected function mapInstallment(int $installment): string
     {
         return $installment > 1 ? (string) $installment : '0';
     }
