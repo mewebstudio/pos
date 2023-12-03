@@ -75,7 +75,7 @@ try {
 
 
 
-    $formData = $pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $transaction, $card);
+    $formData = $pos->get3DFormData($order, $paymentModel, $transaction, $card);
 
 
     /**

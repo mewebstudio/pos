@@ -16,7 +16,7 @@ $testCards = [
         'name' => 'John Doe',
         'type' => CreditCardInterface::CARD_TYPE_VISA,
     ],*/
-    'visa1' => [
+    'visa2' => [
         // pin 147852
         'number' => '5549604173790011',
         'year' => '24',
@@ -26,7 +26,7 @@ $testCards = [
         'type' => CreditCardInterface::CARD_TYPE_MASTERCARD,
     ],
     // test kartlar https://dev.garantibbva.com.tr/test-kartlari
-    'visa2' => [
+    'visa1' => [
         // pin 147852
         'number' => '5406697543211173',
         'year' => '27',
