@@ -8,7 +8,9 @@ use Exception;
 use InvalidArgumentException;
 use LogicException;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -31,16 +33,16 @@ class PayFlexV4Pos extends AbstractGateway
     public const NAME = 'PayFlexV4';
 
     /** @var PayFlexAccount */
-    protected $account;
+    protected AbstractPosAccount $account;
 
     /** @var PayFlexV4PosRequestDataMapper */
-    protected $requestDataMapper;
+    protected RequestDataMapperInterface $requestDataMapper;
 
     /** @var PayFlexV4PosResponseDataMapper */
-    protected $responseDataMapper;
+    protected ResponseDataMapperInterface $responseDataMapper;
 
     /** @inheritdoc */
-    protected static $supportedTransactions = [
+    protected static array $supportedTransactions = [
         PosInterface::TX_PAY      => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_NON_SECURE,

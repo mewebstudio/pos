@@ -6,7 +6,9 @@
 namespace Mews\Pos\Gateways;
 
 use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -24,16 +26,16 @@ class PayForPos extends AbstractGateway
     public const NAME = 'PayForPOS';
 
     /** @var PayForAccount */
-    protected $account;
+    protected AbstractPosAccount $account;
 
     /** @var PayForPosRequestDataMapper */
-    protected $requestDataMapper;
+    protected RequestDataMapperInterface$requestDataMapper;
 
     /** @var PayForPosResponseDataMapper */
-    protected $responseDataMapper;
+    protected ResponseDataMapperInterface $responseDataMapper;
 
     /** @inheritdoc */
-    protected static $supportedTransactions = [
+    protected static array $supportedTransactions = [
         PosInterface::TX_PAY      => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_3D_PAY,

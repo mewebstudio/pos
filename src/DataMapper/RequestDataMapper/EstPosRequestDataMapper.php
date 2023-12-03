@@ -27,7 +27,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    protected $txTypeMappings = [
+    protected array $txTypeMappings = [
         PosInterface::TX_PAY      => 'Auth',
         PosInterface::TX_PRE_PAY  => 'PreAuth',
         PosInterface::TX_POST_PAY => 'PostAuth',
@@ -40,7 +40,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritdoc}
      */
-    protected $cardTypeMapping = [
+    protected array $cardTypeMapping = [
         CreditCardInterface::CARD_TYPE_VISA       => '1',
         CreditCardInterface::CARD_TYPE_MASTERCARD => '2',
     ];
@@ -48,7 +48,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritdoc}
      */
-    protected $recurringOrderFrequencyMapping = [
+    protected array $recurringOrderFrequencyMapping = [
         'DAY'   => 'D',
         'WEEK'  => 'W',
         'MONTH' => 'M',
@@ -58,7 +58,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritdoc}
      */
-    protected $secureTypeMappings = [
+    protected array $secureTypeMappings = [
         PosInterface::MODEL_3D_SECURE      => '3d',
         PosInterface::MODEL_3D_PAY         => '3d_pay',
         PosInterface::MODEL_3D_PAY_HOSTING => '3d_pay_hosting',

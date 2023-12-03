@@ -9,7 +9,9 @@ use Exception;
 use InvalidArgumentException;
 use LogicException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -31,16 +33,16 @@ class PosNet extends AbstractGateway
     public const NAME = 'PosNet';
 
     /** @var PosNetAccount */
-    protected $account;
+    protected AbstractPosAccount $account;
 
     /** @var PosNetRequestDataMapper */
-    protected $requestDataMapper;
+    protected RequestDataMapperInterface $requestDataMapper;
 
     /** @var PosNetResponseDataMapper */
-    protected $responseDataMapper;
+    protected ResponseDataMapperInterface $responseDataMapper;
 
     /** @inheritdoc */
-    protected static $supportedTransactions = [
+    protected static array $supportedTransactions = [
         PosInterface::TX_PAY      => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_NON_SECURE,
@@ -223,7 +225,7 @@ class PosNet extends AbstractGateway
         if (!is_string($contents)) {
             throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
         }
-        
+
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/x-www-form-urlencoded',

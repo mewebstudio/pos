@@ -14,27 +14,22 @@ abstract class AbstractCreditCard implements CreditCardInterface
 {
     /**
      * 16 digit credit card number without spaces
-     * @var string
      */
-    protected $number;
+    protected string $number;
 
-    /** @var DateTimeImmutable */
-    protected $expDate;
+    protected DateTimeImmutable $expDate;
 
-    /** @var string */
-    protected $cvv;
+    protected string $cvv;
 
-    /** @var string|null */
-    protected $holderName;
+    protected ?string $holderName;
 
     /**
-     * visa, master, troy, amex, ...
-     * @var string|null
+     * @phpstan-var CreditCardInterface::CARD_TYPE_*
      */
-    protected $type;
+    protected ?string $type;
 
     /**
-     * AbstractCreditCard constructor.
+     * @phpstan-param CreditCardInterface::CARD_TYPE_*|null $cardType
      *
      * @param string            $number   credit card number with or without spaces
      * @param DateTimeImmutable $expDate

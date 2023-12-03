@@ -15,7 +15,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @var array<string, string>
      */
-    protected $codes = [
+    protected array $codes = [
         self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
     ];
 

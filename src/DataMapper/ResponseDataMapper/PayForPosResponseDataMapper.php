@@ -12,7 +12,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @var array<int|string, string>
      */
-    protected $codes = [
+    protected array $codes = [
         self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
 
         '96'   => 'general_error',

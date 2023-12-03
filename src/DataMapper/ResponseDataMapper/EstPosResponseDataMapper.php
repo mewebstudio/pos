@@ -15,7 +15,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @var array<int|string, string>
      */
-    protected $codes = [
+    protected array $codes = [
         self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
 
         '01' => 'bank_call',

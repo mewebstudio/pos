@@ -5,7 +5,9 @@
 namespace Mews\Pos\Gateways;
 
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -24,16 +26,16 @@ class GarantiPos extends AbstractGateway
     public const NAME = 'GarantiPay';
 
     /** @var GarantiPosAccount */
-    protected $account;
+    protected AbstractPosAccount $account;
 
     /** @var GarantiPosRequestDataMapper */
-    protected $requestDataMapper;
+    protected RequestDataMapperInterface $requestDataMapper;
 
     /** @var GarantiPosResponseDataMapper */
-    protected $responseDataMapper;
+    protected ResponseDataMapperInterface $responseDataMapper;
 
     /** @inheritdoc */
-    protected static $supportedTransactions = [
+    protected static array $supportedTransactions = [
         PosInterface::TX_PAY      => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_3D_PAY,

@@ -7,7 +7,9 @@ namespace Mews\Pos\Gateways;
 
 use InvalidArgumentException;
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -30,16 +32,16 @@ class InterPos extends AbstractGateway
     public const NAME = 'InterPos';
 
     /** @var InterPosAccount */
-    protected $account;
+    protected AbstractPosAccount $account;
 
     /** @var InterPosRequestDataMapper */
-    protected $requestDataMapper;
+    protected RequestDataMapperInterface $requestDataMapper;
 
     /** @var InterPosResponseDataMapper */
-    protected $responseDataMapper;
+    protected ResponseDataMapperInterface $responseDataMapper;
 
     /** @inheritdoc */
-    protected static $supportedTransactions = [
+    protected static array $supportedTransactions = [
         PosInterface::TX_PAY      => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_3D_PAY,

@@ -23,47 +23,40 @@ use function in_array;
 abstract class AbstractGateway implements PosInterface
 {
     /** @var array{gateway_endpoints: array{payment_api: string, gateway_3d: string, gateway_3d_host?: string, query_api?: string}} */
-    protected $config;
+    protected array $config;
 
-    /** @var AbstractPosAccount */
-    protected $account;
+    protected AbstractPosAccount $account;
 
     /**
      * Processed Response Data
      *
      * @var array<string, mixed>|null
      */
-    protected $response;
+    protected ?array $response;
 
     /**
      * Raw Response Data From Bank
      *
      * @var array<string, mixed>|null
      */
-    protected $data;
+    protected ?array $data;
 
-    /** @var HttpClient */
-    protected $client;
+    protected HttpClient $client;
 
-    /** @var RequestDataMapperInterface */
-    protected $requestDataMapper;
+    protected RequestDataMapperInterface $requestDataMapper;
 
-    /** @var ResponseDataMapperInterface */
-    protected $responseDataMapper;
+    protected ResponseDataMapperInterface $responseDataMapper;
 
-    /** @var SerializerInterface */
-    protected $serializer;
+    protected SerializerInterface $serializer;
 
-    /** @var EventDispatcherInterface */
-    protected $eventDispatcher;
+    protected EventDispatcherInterface $eventDispatcher;
 
-    /** @var LoggerInterface */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * @var array<PosInterface::TX_*, array<int, PosInterface::MODEL_*>|bool>
      */
-    protected static $supportedTransactions = [];
+    protected static array $supportedTransactions = [];
 
     private bool $testMode = false;
 

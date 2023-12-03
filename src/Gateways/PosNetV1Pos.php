@@ -6,7 +6,9 @@ namespace Mews\Pos\Gateways;
 
 use InvalidArgumentException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -24,17 +26,16 @@ class PosNetV1Pos extends AbstractGateway
     public const NAME = 'PosNetV1';
 
     /** @var PosNetAccount */
-    protected $account;
+    protected AbstractPosAccount $account;
 
     /** @var PosNetV1PosRequestDataMapper */
-    protected $requestDataMapper;
-
+    protected RequestDataMapperInterface $requestDataMapper;
 
     /** @var PosNetV1PosResponseDataMapper */
-    protected $responseDataMapper;
+    protected ResponseDataMapperInterface $responseDataMapper;
 
     /** @inheritdoc */
-    protected static $supportedTransactions = [
+    protected static array $supportedTransactions = [
         PosInterface::TX_PAY      => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_NON_SECURE,
@@ -167,7 +168,7 @@ class PosNetV1Pos extends AbstractGateway
         if (!is_string($contents)) {
             throw new InvalidArgumentException('Invalid data provided');
         }
-        
+
         $body = $contents;
 
         $response = $this->client->post($url, [

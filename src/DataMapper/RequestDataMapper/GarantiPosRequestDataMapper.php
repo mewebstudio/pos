@@ -5,6 +5,7 @@
 
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Crypt\GarantiPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
@@ -35,7 +36,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    protected $secureTypeMappings = [
+    protected array $secureTypeMappings = [
         PosInterface::MODEL_3D_SECURE => '3D',
         PosInterface::MODEL_3D_PAY    => '3D_PAY',
     ];
@@ -43,7 +44,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    protected $txTypeMappings = [
+    protected array $txTypeMappings = [
         PosInterface::TX_PAY      => 'sales',
         PosInterface::TX_PRE_PAY  => 'preauth',
         PosInterface::TX_POST_PAY => 'postauth',
@@ -53,14 +54,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         PosInterface::TX_STATUS   => 'orderinq',
     ];
 
-    protected $recurringOrderFrequencyMapping = [
+    protected array $recurringOrderFrequencyMapping = [
         'DAY'   => 'D',
         'WEEK'  => 'W',
         'MONTH' => 'M',
     ];
 
     /** @var GarantiPosCrypt */
-    protected $crypt;
+    protected CryptInterface $crypt;
 
     /**
      * @param GarantiPosAccount $account

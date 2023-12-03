@@ -17,24 +17,23 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  */
 abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
 {
-    /** @var EventDispatcherInterface */
-    protected $eventDispatcher;
+    protected EventDispatcherInterface $eventDispatcher;
 
     /** @var array<PosInterface::MODEL_*, string> */
-    protected $secureTypeMappings = [];
+    protected array $secureTypeMappings = [];
 
     /**
      * Transaction Types
      *
      * @var array<PosInterface::TX_*, string>
      */
-    protected $txTypeMappings = [];
+    protected array $txTypeMappings = [];
 
     /** @var array<CreditCardInterface::CARD_TYPE_*, string> */
-    protected $cardTypeMapping = [];
+    protected array $cardTypeMapping = [];
 
     /** @var array<PosInterface::LANG_*, string> */
-    protected $langMappings = [
+    protected array $langMappings = [
         PosInterface::LANG_TR => 'tr',
         PosInterface::LANG_EN => 'en',
     ];
@@ -46,7 +45,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
      *
      * @var non-empty-array<PosInterface::CURRENCY_*, string>
      */
-    protected $currencyMappings = [
+    protected array $currencyMappings = [
         PosInterface::CURRENCY_TRY => '949',
         PosInterface::CURRENCY_USD => '840',
         PosInterface::CURRENCY_EUR => '978',
@@ -59,13 +58,11 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
      * period mapping for recurring orders
      * @var array<'DAY'|'WEEK'|'MONTH'|'YEAR', string>
      */
-    protected $recurringOrderFrequencyMapping = [];
+    protected array $recurringOrderFrequencyMapping = [];
 
-    /** @var bool */
-    protected $testMode = false;
+    protected bool $testMode = false;
 
-    /** @var CryptInterface */
-    protected $crypt;
+    protected CryptInterface $crypt;
 
     /**
      * @param EventDispatcherInterface                $eventDispatcher

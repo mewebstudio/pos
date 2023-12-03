@@ -27,14 +27,13 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     /** @var string */
     public const PROCEDURE_SUCCESS_CODE = '00';
 
-    /** @var LoggerInterface */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /** @var array<string, PosInterface::CURRENCY_*> */
     private array $currencyMappings;
 
     /** @var array<string, PosInterface::TX_*> */
-    protected $txTypeMappings;
+    protected array $txTypeMappings;
 
     /**
      * @param array<PosInterface::CURRENCY_*, string> $currencyMappings

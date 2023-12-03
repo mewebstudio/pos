@@ -31,7 +31,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritdoc}
      */
-    protected $secureTypeMappings = [
+    protected array $secureTypeMappings = [
         PosInterface::MODEL_3D_SECURE  => '3',
         PosInterface::MODEL_NON_SECURE => '0',
     ];
@@ -39,7 +39,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    protected $txTypeMappings = [
+    protected array $txTypeMappings = [
         PosInterface::TX_PAY    => 'Sale',
         PosInterface::TX_CANCEL => 'SaleReversal',
         PosInterface::TX_STATUS => 'GetMerchantOrderDetail',
@@ -49,7 +49,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    protected $cardTypeMapping = [
+    protected array $cardTypeMapping = [
         CreditCardInterface::CARD_TYPE_VISA       => 'Visa',
         CreditCardInterface::CARD_TYPE_MASTERCARD => 'MasterCard',
         CreditCardInterface::CARD_TYPE_TROY       => 'Troy',
@@ -60,7 +60,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritdoc}
      */
-    protected $currencyMappings = [
+    protected array $currencyMappings = [
         PosInterface::CURRENCY_TRY => '0949',
         PosInterface::CURRENCY_USD => '0840',
         PosInterface::CURRENCY_EUR => '0978',
@@ -69,8 +69,8 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
         PosInterface::CURRENCY_RUB => '0810',
     ];
 
-    /** @var CryptInterface|KuveytPosCrypt */
-    protected $crypt;
+    /** @var KuveytPosCrypt */
+    protected CryptInterface $crypt;
 
     /**
      * @param KuveytPosAccount $account

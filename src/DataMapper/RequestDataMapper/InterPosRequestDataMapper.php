@@ -28,7 +28,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritdoc}
      */
-    protected $secureTypeMappings = [
+    protected array $secureTypeMappings = [
         PosInterface::MODEL_3D_SECURE  => '3DModel',
         PosInterface::MODEL_3D_PAY     => '3DPay',
         PosInterface::MODEL_3D_HOST    => '3DHost',
@@ -40,7 +40,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritdoc}
      */
-    protected $txTypeMappings = [
+    protected array $txTypeMappings = [
         PosInterface::TX_PAY      => 'Auth',
         PosInterface::TX_PRE_PAY  => 'PreAuth',
         PosInterface::TX_POST_PAY => 'PostAuth',
@@ -52,7 +52,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritdoc}
      */
-    protected $cardTypeMapping = [
+    protected array $cardTypeMapping = [
         CreditCardInterface::CARD_TYPE_VISA       => '0',
         CreditCardInterface::CARD_TYPE_MASTERCARD => '1',
         CreditCardInterface::CARD_TYPE_AMEX       => '2',

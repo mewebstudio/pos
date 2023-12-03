@@ -31,7 +31,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
 
     /** {@inheritdoc} */
-    protected $secureTypeMappings = [
+    protected array $secureTypeMappings = [
         PosInterface::MODEL_3D_SECURE  => '3DModel',
         PosInterface::MODEL_3D_PAY     => '3DPay',
         PosInterface::MODEL_3D_HOST    => '3DHost',
@@ -41,7 +41,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    protected $txTypeMappings = [
+    protected array $txTypeMappings = [
         PosInterface::TX_PAY      => 'Auth',
         PosInterface::TX_PRE_PAY  => 'PreAuth',
         PosInterface::TX_POST_PAY => 'PostAuth',

@@ -26,10 +26,10 @@ class EstPos extends AbstractGateway
     public const NAME = 'EstPos';
 
     /** @var EstPosAccount */
-    protected $account;
+    protected AbstractPosAccount $account;
 
     /** @inheritdoc */
-    protected static $supportedTransactions = [
+    protected static array $supportedTransactions = [
         PosInterface::TX_PAY      => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_3D_PAY,

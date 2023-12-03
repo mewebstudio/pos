@@ -17,8 +17,7 @@ abstract class AbstractCrypt implements CryptInterface
     /** @var string */
     protected const HASH_SEPARATOR = '';
 
-    /** @var LoggerInterface */
-    protected $logger;
+    protected LoggerInterface $logger;
 
     /**
      * @param LoggerInterface $logger

@@ -24,6 +24,8 @@ use function str_pad;
 class CreditCardFactory
 {
     /**
+     * @phpstan-param CreditCardInterface::CARD_TYPE_* $cardType
+     *
      * @param PosInterface $pos
      * @param string       $number         credit card number with or without spaces
      * @param string       $expireYear     accepts year in 1, 2 and 4 digit format. accepted year formats '1' (2001),
@@ -32,7 +34,7 @@ class CreditCardFactory
      * @param string       $expireMonth    single digit or double digit month values are accepted
      * @param string       $cvv
      * @param string|null  $cardHolderName
-     * @param string|null  $cardType       examples values: visa, master. bankaya gore zorunlu
+     * @param string|null  $cardType       bankaya gore zorunlu
      *
      * @return CreditCardInterface
      */

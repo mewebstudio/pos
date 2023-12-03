@@ -45,7 +45,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    protected $txTypeMappings = [
+    protected array $txTypeMappings = [
         PosInterface::TX_PAY      => 'Sale',
         PosInterface::TX_PRE_PAY  => 'Auth',
         PosInterface::TX_POST_PAY => 'Capt',
@@ -57,7 +57,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    protected $currencyMappings = [
+    protected array $currencyMappings = [
         PosInterface::CURRENCY_TRY => 'TL',
         PosInterface::CURRENCY_USD => 'US',
         PosInterface::CURRENCY_EUR => 'EU',

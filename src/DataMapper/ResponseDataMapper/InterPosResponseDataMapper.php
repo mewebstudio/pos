@@ -12,7 +12,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @var array<int|string, string>
      */
-    protected $codes = [
+    protected array $codes = [
         self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
         '81'                         => 'bank_call',
         'E31'                        => 'invalid_transaction',

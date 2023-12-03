@@ -73,7 +73,7 @@ interface CreditCardInterface
     public function setHolderName(?string $name): self;
 
     /**
-     * @return string|null
+     * @return CreditCardInterface::CARD_TYPE_*|null
      */
     public function getType(): ?string;
 }

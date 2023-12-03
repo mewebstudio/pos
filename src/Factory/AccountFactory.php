@@ -21,6 +21,8 @@ use Mews\Pos\PosInterface;
 class AccountFactory
 {
     /**
+     * @phpstan-param PosInterface::LANG_* $lang
+     *
      * @param string      $bank
      * @param string      $clientId Üye iş yeri numarası
      * @param string      $kullaniciAdi
@@ -41,6 +43,8 @@ class AccountFactory
     }
 
     /**
+     * @phpstan-param PosInterface::LANG_* $lang
+     *
      * @param string      $bank
      * @param string      $merchantId
      * @param string      $userCode
@@ -61,6 +65,8 @@ class AccountFactory
     }
 
     /**
+     * @phpstan-param PosInterface::LANG_* $lang
+     *
      * @param string      $bank
      * @param string      $merchantId Üye işyeri Numarası
      * @param string      $userId
@@ -85,6 +91,8 @@ class AccountFactory
 
 
     /**
+     * @phpstan-param PosInterface::LANG_* $lang
+     *
      * @param string      $bank
      * @param string      $merchantId Mağaza Numarası
      * @param string      $username   POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı
@@ -105,6 +113,8 @@ class AccountFactory
     }
 
     /**
+     * @phpstan-param PosInterface::LANG_* $lang
+     *
      * @param string      $bank
      * @param string      $merchantId
      * @param string      $terminalId
@@ -147,6 +157,8 @@ class AccountFactory
     }
 
     /**
+     * @phpstan-param PosInterface::LANG_* $lang
+     *
      * @param string      $bank
      * @param string      $shopCode
      * @param string      $userCode

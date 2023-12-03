@@ -5,42 +5,38 @@
 
 namespace Mews\Pos\Entity\Account;
 
+use Mews\Pos\PosInterface;
+
 abstract class AbstractPosAccount
 {
-    /** @var string */
-    protected $clientId;
+    protected string $clientId;
 
-    /** @var string */
-    protected $username;
+    protected string $username;
 
-    /** @var string */
-    protected $password;
+    protected string $password;
 
     /**
      * required for non regular account models
-     * @var string|null
      */
-    protected $storeKey;
+    protected ?string $storeKey;
 
-    /** @var string */
-    protected $lang;
+    /** @var PosInterface::LANG_* */
+    protected string $lang;
 
     /**
      * bank key name used in configuration file
-     *
-     * @var string
      */
-    protected $bank;
+    protected string $bank;
 
     /**
      * AbstractPosAccount constructor.
      *
-     * @param string      $bank
-     * @param string      $clientId
-     * @param string      $username
-     * @param string      $password
-     * @param string      $lang
-     * @param string|null $storeKey
+     * @param string               $bank
+     * @param string               $clientId
+     * @param string               $username
+     * @param string               $password
+     * @param PosInterface::LANG_* $lang
+     * @param string|null          $storeKey
      */
     public function __construct(string $bank, string $clientId, string $username, string $password, string $lang, ?string $storeKey = null)
     {

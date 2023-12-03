@@ -18,14 +18,11 @@ use function http_build_query;
  */
 class HttpClient
 {
-    /** @var ClientInterface */
-    protected $client;
+    protected ClientInterface $client;
 
-    /** @var RequestFactoryInterface */
-    protected $requestFactory;
+    protected RequestFactoryInterface $requestFactory;
 
-    /** @var StreamFactoryInterface */
-    protected $streamFactory;
+    protected StreamFactoryInterface $streamFactory;
 
     /**
      * @param ClientInterface         $client

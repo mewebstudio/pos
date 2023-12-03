@@ -26,7 +26,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    protected $txTypeMappings = [
+    protected array $txTypeMappings = [
         PosInterface::TX_PAY      => 'Sale',
         PosInterface::TX_PRE_PAY  => 'Auth',
         PosInterface::TX_POST_PAY => 'Capture',
@@ -38,7 +38,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritdoc}
      */
-    protected $cardTypeMapping = [
+    protected array $cardTypeMapping = [
         CreditCardInterface::CARD_TYPE_VISA       => '100',
         CreditCardInterface::CARD_TYPE_MASTERCARD => '200',
         CreditCardInterface::CARD_TYPE_TROY       => '300',
@@ -48,7 +48,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritdoc}
      */
-    protected $recurringOrderFrequencyMapping = [
+    protected array $recurringOrderFrequencyMapping = [
         'DAY'   => 'Day',
         'MONTH' => 'Month',
         'YEAR'  => 'Year',
