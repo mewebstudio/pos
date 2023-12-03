@@ -13,7 +13,7 @@ $order = [
     //siparis tarihi
     //'reqDate'  => '20201031',
     //veya siparis ID
-    'order_id' => $ord ? $ord['id'] : '20201031C06E',
+    'orderId' => $ord ? $ord['id'] : '20201031C06E',
 ];
 
 $transaction = PosInterface::TX_HISTORY;
