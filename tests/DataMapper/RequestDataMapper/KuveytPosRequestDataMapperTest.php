@@ -102,8 +102,11 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testMapCurrency()
     {
-        $this->assertEquals('0949', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_TRY));
-        $this->assertEquals('0978', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_EUR));
+        $class  = new \ReflectionObject($this->requestDataMapper);
+        $method = $class->getMethod('mapCurrency');
+        $method->setAccessible(true);
+        $this->assertSame('0949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
+        $this->assertSame('0978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
     }
 
     /**

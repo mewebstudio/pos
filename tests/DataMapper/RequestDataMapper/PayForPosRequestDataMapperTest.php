@@ -72,8 +72,11 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testMapCurrency()
     {
-        $this->assertEquals('949', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_TRY));
-        $this->assertEquals('978', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_EUR));
+        $class  = new \ReflectionObject($this->requestDataMapper);
+        $method = $class->getMethod('mapCurrency');
+        $method->setAccessible(true);
+        $this->assertSame('949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
+        $this->assertSame('978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
     }
 
     /**

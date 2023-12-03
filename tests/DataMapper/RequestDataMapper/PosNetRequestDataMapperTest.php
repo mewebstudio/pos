@@ -71,8 +71,11 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testMapCurrency()
     {
-        $this->assertEquals('TL', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_TRY));
-        $this->assertEquals('EU', $this->requestDataMapper->mapCurrency(PosInterface::CURRENCY_EUR));
+        $class  = new \ReflectionObject($this->requestDataMapper);
+        $method = $class->getMethod('mapCurrency');
+        $method->setAccessible(true);
+        $this->assertSame('TL', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
+        $this->assertSame('EU', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
     }
 
     /**

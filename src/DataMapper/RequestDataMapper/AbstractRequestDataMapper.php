@@ -149,18 +149,6 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * @phpstan-param PosInterface::CURRENCY_* $currency
-     *
-     * @param string $currency
-     *
-     * @return string currency code that is accepted by bank
-     */
-    public function mapCurrency(string $currency): string
-    {
-        return $this->currencyMappings[$currency] ?? $currency;
-    }
-
-    /**
      * @phpstan-param PosInterface::TX_* $txType
      *
      * @param string $txType
@@ -203,6 +191,18 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
      * @return string
      */
     abstract public function mapInstallment(int $installment): string;
+
+    /**
+     * @phpstan-param PosInterface::CURRENCY_* $currency
+     *
+     * @param string $currency
+     *
+     * @return string currency code that is accepted by bank
+     */
+    protected function mapCurrency(string $currency): string
+    {
+        return $this->currencyMappings[$currency] ?? $currency;
+    }
 
     /**
      * @param float $amount
