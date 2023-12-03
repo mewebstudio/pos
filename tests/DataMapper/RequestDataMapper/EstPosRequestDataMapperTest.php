@@ -67,12 +67,15 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @testWith ["MONTH", "M"]
+     *            ["M", "M"]
      */
-    public function testMapRecurringFrequency()
+    public function testMapRecurringFrequency(string $frequency, string $expected): void
     {
-        $this->assertEquals('M', $this->requestDataMapper->mapRecurringFrequency('MONTH'));
-        $this->assertEquals('M', $this->requestDataMapper->mapRecurringFrequency('M'));
+        $class  = new \ReflectionObject($this->requestDataMapper);
+        $method = $class->getMethod('mapRecurringFrequency');
+        $method->setAccessible(true);
+        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$frequency]));
     }
 
     /**

@@ -98,16 +98,6 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * @param string $period
-     *
-     * @return string
-     */
-    public function mapRecurringFrequency(string $period): string
-    {
-        return $this->recurringOrderFrequencyMapping[$period] ?? $period;
-    }
-
-    /**
      * @return array<CreditCardInterface::CARD_TYPE_*, string>
      */
     public function getCardTypeMapping(): array
@@ -212,6 +202,16 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     protected function formatAmount(float $amount)
     {
         return $amount;
+    }
+
+    /**
+     * @param string $period
+     *
+     * @return string
+     */
+    protected function mapRecurringFrequency(string $period): string
+    {
+        return $this->recurringOrderFrequencyMapping[$period] ?? $period;
     }
 
     /**
