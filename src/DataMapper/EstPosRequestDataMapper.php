@@ -261,6 +261,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public function create3DFormDataCommon(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
+        
         $inputs = [
             'clientid'  => $account->getClientId(),
             'storetype' => $this->secureTypeMappings[$account->getModel()],

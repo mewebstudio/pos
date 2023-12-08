@@ -95,13 +95,14 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'callbackUrl'   => $this->order['fail_url'],
             'rnd'           => $this->order['rand'],
             'hashAlgorithm' => 'ver3',
+            'refreshtime'   => '10',
             'lang'          => 'tr',
-            'currency'      => 949,
+            'currency'      => '949',
             'TranType'      => 'Auth',
             'taksit'        => '',
         ];
 
-        $hash           = '7MGmDH2CY9jlFd4kVHwdvlyt07hIqkiBWVR8bkjAiaaRhK2XUHyvrDLqv0vlG6YY8bXChDkLfnDwVLi3Pvg5lQ==';
+        $hash           = '06DYVTzCUae0u99v6uO08kih+3ADmTkqbGYakt30kNQj+5Hrt26701fXWMS+TFrqtsU1ongDfukk9fjTq5mZTQ==';
         $inputs['hash'] = $hash;
         $form           = [
             'gateway' => $gatewayURL,
@@ -124,7 +125,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $form['inputs']['cv2']                             = $card->getCvv();
 
         unset($form['inputs']['hash']);
-        $form['inputs']['hash'] = '7EgK2aMhS848ZMEkl2d0s1dFXlMhCy4LS5FFk+k/FbEmmVqBqx6TtQ1Yg7aW0KQa/5hrQODwBVT3SCUwfXHEsg==';
+        $form['inputs']['hash'] = 'jXlIRQn+vHyvQ9Byxk0v2pGGwnoBc1bPEJaYkcDNOq9JOn7MJr0+l5olODtjYy2KsHMZwjKWLpQevXVIHLtYyw==';
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $this->pos->getAccount(),
@@ -179,7 +180,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'inputs'  => $inputs,
         ];
 
-        $form['inputs']['hash']       = 'pxvr9oG9G6v2AU/Lci3qs7OiBAwcvAaLotG5rorJVe31DJN/wlVDReWpqFSJojTLPs6pPiS1L1U+QkE0dJJBKw==';
+        $form['inputs']['hash']       = 'vAxgy0o5YS3CdmqblwAOCuZTpNQ6p6XdhPn3WZqT3LfZoCf2un/Vhr+NlGV5yZiJZYZgZ8l20UAUfH+dhakKAA==';
 
         $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
             $pos->getAccount(),
