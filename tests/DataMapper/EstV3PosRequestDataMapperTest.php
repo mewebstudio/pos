@@ -167,6 +167,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'callbackUrl' => $this->order['fail_url'],
             'rnd'       => $this->order['rand'],
             'hashAlgorithm' => 'ver3',
+            'refreshtime' => '10',
             'lang'      => 'tr',
             'currency'  => '949',
             'TranType'  => 'Auth',
