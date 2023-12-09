@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Tests\Crypt;
 
@@ -34,17 +37,8 @@ class EstPosCryptTest extends TestCase
         $this->crypt = new EstPosCrypt(new NullLogger());
     }
 
-    public function testCreate3DHash()
+    public function testCreate3DHash(): void
     {
-        $this->account = AccountFactory::createEstPosAccount(
-            'akbank',
-            '700655000200',
-            'ISBANKAPI',
-            'ISBANK07',
-            PosInterface::MODEL_3D_SECURE,
-            'TRPS0200'
-        );
-
         $requestData = [
             'oid'       => 'order222',
             'amount'    => '100.25',
