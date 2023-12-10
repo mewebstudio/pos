@@ -15,6 +15,9 @@ $order = getNewOrder(
 $session->set('order', $order);
 $transaction = $request->get('tx', PosInterface::TX_PAY);
 
+// examples'da post odeme butonu gostermek icin degeri kullanilir.
+$session->set('tx', $transaction);
+
 $card = createCard($pos, $request->request->all());
 
 require '../../_templates/_payment_response.php';

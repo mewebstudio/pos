@@ -20,6 +20,15 @@ return [
                 'gateway_3d_host' => 'https://sanalpos.sanalakpos.com.tr/fim/est3Dgate',
             ],
         ],
+        'akode'               => [
+            'name'  => 'AKBANK T.A.S.',
+            'class' => Mews\Pos\Gateways\AkOdePos::class,
+            'gateway_endpoints'  => [
+                'payment_api'     => 'https://api.akodepos.com/api/Payment',
+                'gateway_3d'      => 'https://api.akodepos.com/api/Payment/ProcessCardForm',
+                'gateway_3d_host' => 'https://api.akodepos.com/api/Payment/threeDSecure',
+            ],
+        ],
         'finansbank'           => [
             'name'  => 'QNB Finansbank',
             'class' => Mews\Pos\Gateways\EstV3Pos::class,

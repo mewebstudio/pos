@@ -125,7 +125,7 @@ function getNewOrder(
         'fail_url'    => $failUrl, // https://example.com/payment
 
         // gateway'e gore zorunlu olan degerler
-        'rand'        => md5(uniqid(time())), // EstPos, Garanti, PayFor, InterPos, VakifBank
+        'rand'        => substr(md5(uniqid(time())), 0, 23), // AkOdePos, EstPos, Garanti, PayFor, InterPos, VakifBank
     ];
 
     if ($lang) {

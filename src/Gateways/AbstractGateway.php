@@ -120,13 +120,15 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @phpstan-param self::TX_* $txType
+     * @phpstan-param self::TX_*    $txType
+     * @phpstan-param self::MODEL_* $paymentModel
      *
      * @param string|null $txType
+     * @param string|null $paymentModel
      *
      * @return string
      */
-    public function getApiURL(string $txType = null): string
+    public function getApiURL(string $txType = null, string $paymentModel = null): string
     {
         return $this->config['gateway_endpoints']['payment_api'];
     }
@@ -229,7 +231,7 @@ abstract class AbstractGateway implements PosInterface
         }
 
         $contents       = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send($contents, $txType);
+        $bankResponse   = $this->send($contents, $txType, PosInterface::MODEL_NON_SECURE);
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse);
 
         return $this;
@@ -260,7 +262,7 @@ abstract class AbstractGateway implements PosInterface
         }
 
         $contents       = $this->serializer->encode($requestData, PosInterface::TX_POST_PAY);
-        $bankResponse   = $this->send($contents, PosInterface::TX_POST_PAY);
+        $bankResponse   = $this->send($contents, PosInterface::TX_POST_PAY, PosInterface::MODEL_NON_SECURE);
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse);
 
         return $this;
@@ -286,7 +288,7 @@ abstract class AbstractGateway implements PosInterface
         }
 
         $data           = $this->serializer->encode($requestData, PosInterface::TX_REFUND);
-        $bankResponse   = $this->send($data, PosInterface::TX_REFUND);
+        $bankResponse   = $this->send($data, PosInterface::TX_REFUND, PosInterface::MODEL_NON_SECURE);
         $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
 
         return $this;
@@ -312,7 +314,7 @@ abstract class AbstractGateway implements PosInterface
         }
 
         $data           = $this->serializer->encode($requestData, PosInterface::TX_CANCEL);
-        $bankResponse   = $this->send($data, PosInterface::TX_CANCEL);
+        $bankResponse   = $this->send($data, PosInterface::TX_CANCEL, PosInterface::MODEL_NON_SECURE);
         $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
 
         return $this;
@@ -338,7 +340,7 @@ abstract class AbstractGateway implements PosInterface
         }
 
         $data           = $this->serializer->encode($requestData, PosInterface::TX_STATUS);
-        $bankResponse   = $this->send($data, PosInterface::TX_STATUS, $this->getQueryAPIUrl());
+        $bankResponse   = $this->send($data, PosInterface::TX_STATUS, PosInterface::MODEL_NON_SECURE, $this->getQueryAPIUrl());
         $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
 
         return $this;
@@ -364,7 +366,7 @@ abstract class AbstractGateway implements PosInterface
         }
 
         $data           = $this->serializer->encode($requestData, PosInterface::TX_HISTORY);
-        $bankResponse   = $this->send($data, PosInterface::TX_HISTORY);
+        $bankResponse   = $this->send($data, PosInterface::TX_HISTORY, PosInterface::MODEL_NON_SECURE);
         $this->response = $this->responseDataMapper->mapHistoryResponse($bankResponse);
 
         return $this;
@@ -403,15 +405,17 @@ abstract class AbstractGateway implements PosInterface
     /**
      * Send requests to bank APIs
      *
-     * @phpstan-param PosInterface::TX_* $txType
+     * @phpstan-param PosInterface::TX_*    $txType
+     * @phpstan-param PosInterface::MODEL_* $paymentModel
      *
      * @param array<string, mixed>|string $contents data to send
      * @param string                      $txType
+     * @param string                      $paymentModel
      * @param string|null                 $url      URL address of the API
      *
      * @return array<string, mixed>
      */
-    abstract protected function send($contents, string $txType, ?string $url = null): array;
+    abstract protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array;
 
     /**
      * return values are used as a key in config file

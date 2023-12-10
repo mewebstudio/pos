@@ -7,6 +7,7 @@ namespace Mews\Pos\Factory;
 
 use DomainException;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\ResponseDataMapper\AkOdePosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
@@ -17,6 +18,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\Gateways\AkOdePos;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
@@ -44,6 +46,7 @@ class ResponseDataMapperFactory
     public static function createGatewayResponseMapper(string $gatewayClass, RequestDataMapperInterface $requestDataMapper, LoggerInterface $logger): ResponseDataMapperInterface
     {
         $classMappings = [
+            AkOdePos::class       => AkOdePosResponseDataMapper::class,
             EstV3Pos::class       => EstPosResponseDataMapper::class,
             EstPos::class         => EstPosResponseDataMapper::class,
             GarantiPos::class     => GarantiPosResponseDataMapper::class,

@@ -18,6 +18,15 @@ return [
                 'gateway_3d'      => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
             ],
         ],
+        'akode'               => [
+            'name'  => 'AKBANK T.A.S.',
+            'class' => Mews\Pos\Gateways\AkOdePos::class,
+            'gateway_endpoints'  => [
+                'payment_api'     => 'https://ent.akodepos.com/api/Payment',
+                'gateway_3d'      => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
+                'gateway_3d_host' => 'https://ent.akodepos.com/api/Payment/threeDSecure',
+            ],
+        ],
         'yapikredi'            => [
             'name'  => 'Yapıkredi',
             'class' => Mews\Pos\Gateways\PosNet::class,

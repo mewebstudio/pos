@@ -75,6 +75,24 @@ interface PosInterface
     /** @var string */
     public const CURRENCY_RUB = 'RUB';
 
+    /** @var string */
+    public const PAYMENT_STATUS_ERROR = 'ERROR';
+
+    /** @var string */
+    public const PAYMENT_STATUS_PAYMENT_COMPLETED = 'PAYMENT_COMPLETED';
+
+    /** @var string */
+    public const PAYMENT_STATUS_CANCELED = 'CANCELED';
+
+    /** @var string */
+    public const PAYMENT_STATUS_PARTIALLY_REFUNDED = 'PARTIALLY_REFUNDED';
+
+    /** @var string */
+    public const PAYMENT_STATUS_FULLY_REFUNDED = 'FULLY_REFUNDED';
+
+    /** @var string */
+    public const PAYMENT_STATUS_PRE_AUTH_COMPLETED = 'PRE_AUTH_COMPLETED';
+
     /**
      * returns form data, key values, necessary for 3D payment
      *

@@ -102,7 +102,7 @@ class PayFlexV4Pos extends AbstractGateway
 
 
         $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send($contents, $txType);
+        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
@@ -204,7 +204,7 @@ class PayFlexV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->send($requestData, $txType, $this->get3DGatewayURL());
+        return $this->send($requestData, $txType, PosInterface::MODEL_3D_SECURE, $this->get3DGatewayURL());
     }
 
     /**
@@ -212,7 +212,7 @@ class PayFlexV4Pos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, ?string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
     {
         $url = $url ?: $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);

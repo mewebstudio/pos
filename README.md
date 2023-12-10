@@ -10,6 +10,17 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 ### Deskteklenen Payment Gateway'ler / Bankalar:
 
+- **AKÖde**
+
+  Desktekleyen bankalar: Akbank
+
+  Desteklenen özellikler:
+    - NonSecure, 3DPay ve 3DHost ödeme
+    - Ödeme İptal ve İade
+    - Ödeme durum sorgulama
+    - Tarihçe sorgulama
+
+
 - **EST POS** (Asseco/Payten)
 
     Desktekleyen bankalar: Akbank, TEB, İşbank, Şekerbank, Halkbank ve Finansbank
@@ -115,10 +126,11 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - 3D Secure modeliyle ödeme (`PosInterface::MODEL_3D_SECURE`)
   - 3D Pay modeliyle ödeme (`PosInterface::MODEL_3D_PAY`)
   - 3D Host modeliyle ödeme (`PosInterface::MODEL_3D_HOST`)
-  - Sipariş/Ödeme sorgulama (`PosInterface::TX_STATUS`)
+  - Sipariş/Ödeme durum sorgulama (`PosInterface::TX_STATUS`)
   - Sipariş/Ödeme geçmişi sorgulama (`PosInterface::TX_HISTORY`)
   - Sipariş/Para iadesi yapma (`PosInterface::TX_REFUND`)
   - Sipariş iptal etme (`PosInterface::TX_CANCEL`)
+  - Farklı Para birimler ile ödeme desteği
   - Tekrarlanan (Recurring) ödeme talimatları
   - [PSR-3](https://www.php-fig.org/psr/psr-3/) logger desteği
   - [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP Client desteği

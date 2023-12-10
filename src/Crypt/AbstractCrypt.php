@@ -47,7 +47,7 @@ abstract class AbstractCrypt implements CryptInterface
             $paramsVal .= $this->recursiveFind($data, $paramKey);
         }
 
-        $hashVal = $paramsVal.$storeKey;
+        $hashVal = $this->concatenateHashKey($storeKey, $paramsVal);
 
         return $this->hashString($hashVal);
     }
@@ -60,6 +60,17 @@ abstract class AbstractCrypt implements CryptInterface
     protected function hashString(string $str): string
     {
         return base64_encode(hash(static::HASH_ALGORITHM, $str, true));
+    }
+
+    /**
+     * @param string $hashKey
+     * @param string $hashString
+     *
+     * @return string
+     */
+    protected function concatenateHashKey(string $hashKey, string $hashString): string
+    {
+        return $hashString.$hashKey;
     }
 
     /**

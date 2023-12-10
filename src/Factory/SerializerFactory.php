@@ -6,6 +6,7 @@
 namespace Mews\Pos\Factory;
 
 use DomainException;
+use Mews\Pos\Serializer\AkOdePosSerializer;
 use Mews\Pos\Serializer\EstPosSerializer;
 use Mews\Pos\Serializer\GarantiPosSerializer;
 use Mews\Pos\Serializer\InterPosSerializer;
@@ -31,6 +32,7 @@ class SerializerFactory
     {
         /** @var SerializerInterface[] $serializers */
         $serializers = [
+            AkOdePosSerializer::class,
             EstPosSerializer::class,
             GarantiPosSerializer::class,
             InterPosSerializer::class,

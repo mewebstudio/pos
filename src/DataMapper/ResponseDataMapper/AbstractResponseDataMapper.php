@@ -50,13 +50,13 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     }
 
     /**
-     * @param string $txType
+     * @param string|int $txType
      *
-     * @return string
+     * @return string|null
      */
-    public function mapTxType(string $txType): string
+    public function mapTxType($txType): ?string
     {
-        return $this->txTypeMappings[$txType] ?? $txType;
+        return $this->txTypeMappings[$txType] ?? null;
     }
 
     /**

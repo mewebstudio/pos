@@ -57,7 +57,7 @@ class PosNetV1Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function getApiURL(string $txType = null): string
+    public function getApiURL(string $txType = null, string $paymentModel = null): string
     {
         if (null !== $txType) {
             return parent::getApiURL().'/'.$this->requestDataMapper->mapTxType($txType);
@@ -119,7 +119,7 @@ class PosNetV1Pos extends AbstractGateway
             }
 
             $contents          = $this->serializer->encode($requestData, $txType);
-            $provisionResponse = $this->send($contents, $txType);
+            $provisionResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
             $this->logger->debug('send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
         }
 
@@ -160,7 +160,7 @@ class PosNetV1Pos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, ?string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
     {
         $url = $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);

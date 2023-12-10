@@ -19,6 +19,7 @@ function createStatusOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
         'id'       => $lastResponse['order_id'], // MerchantOrderId
         'currency' => $lastResponse['currency'] ?? PosInterface::CURRENCY_TRY,
         'ip'       => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
+        'rand'     => substr(md5(uniqid(time())), 0, 23), //AkOde
     ];
     if (get_class($pos) === \Mews\Pos\Gateways\KuveytPos::class) {
         $statusOrder['remote_order_id'] = $lastResponse['remote_order_id']; // OrderId

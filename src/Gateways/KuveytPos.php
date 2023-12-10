@@ -147,7 +147,7 @@ class KuveytPos extends AbstractGateway
             }
 
             $contents     = $this->serializer->encode($requestData, $txType);
-            $bankResponse = $this->send($contents, $txType);
+            $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
         } else {
             $this->logger->error('3d auth fail', ['proc_return_code' => $procReturnCode]);
         }
@@ -164,7 +164,7 @@ class KuveytPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, string $url = null): array
     {
         if (in_array($txType, [PosInterface::TX_REFUND, PosInterface::TX_STATUS, PosInterface::TX_CANCEL], true)) {
             if (!is_array($contents)) {
@@ -282,7 +282,7 @@ class KuveytPos extends AbstractGateway
         /**
          * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse
          */
-        $decodedResponse = $this->send($data, $txType, $gatewayURL);
+        $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
 
         return $this->requestDataMapper->create3DFormData($this->account, $decodedResponse['form_inputs'], $paymentModel, $txType, $decodedResponse['gateway'], $card);
     }

@@ -85,7 +85,7 @@ class PosNet extends AbstractGateway
 
         $xml         = $this->serializer->encode($requestData, $txType);
 
-        return $this->send($xml, $txType);
+        return $this->send($xml, $txType, PosInterface::MODEL_3D_SECURE);
     }
 
     /**
@@ -116,7 +116,7 @@ class PosNet extends AbstractGateway
         }
 
         $contents           = $this->serializer->encode($requestData, $txType);
-        $userVerifyResponse = $this->send($contents, $txType);
+        $userVerifyResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
         $bankResponse       = null;
 
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $userVerifyResponse['approved']) {
@@ -147,7 +147,7 @@ class PosNet extends AbstractGateway
             }
 
             $contents     = $this->serializer->encode($requestData, $txType);
-            $bankResponse = $this->send($contents, $txType);
+            $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
         } else {
             $this->logger->error('3d auth fail', [
                 'md_status' => $userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
@@ -217,7 +217,7 @@ class PosNet extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, ?string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
     {
         $url = $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);

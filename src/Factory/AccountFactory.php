@@ -5,6 +5,7 @@
 
 namespace Mews\Pos\Factory;
 
+use Mews\Pos\Entity\Account\AkOdePosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
@@ -40,6 +41,19 @@ class AccountFactory
         self::checkParameters($model, $storeKey);
 
         return new EstPosAccount($bank, $clientId, $kullaniciAdi, $password, $lang, $storeKey);
+    }
+
+    /**
+     * @param string $bank
+     * @param string $clientId
+     * @param string $apiUser
+     * @param string $apiPass
+     *
+     * @return AkOdePosAccount
+     */
+    public static function createAkOdePosAccount(string $bank, string $clientId, string $apiUser, string $apiPass): AkOdePosAccount
+    {
+        return new AkOdePosAccount($bank, $clientId, $apiUser, '', PosInterface::LANG_TR, $apiPass);
     }
 
     /**
