@@ -344,7 +344,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      */
     protected function getStatusDetail(?string $procReturnCode): ?string
     {
-        return $procReturnCode ? ($this->codes[$procReturnCode] ?? $procReturnCode) : null;
+        return $this->codes[$procReturnCode] ?? $procReturnCode;
     }
 
     /**

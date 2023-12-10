@@ -432,7 +432,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      */
     protected function getStatusDetail(?string $procReturnCode): ?string
     {
-        return $procReturnCode ? ($this->codes[$procReturnCode] ?? null) : null;
+        return $this->codes[$procReturnCode] ?? null;
     }
 
     /**
