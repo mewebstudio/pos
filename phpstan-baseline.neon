@@ -116,11 +116,6 @@ parameters:
 			path: src/Factory/PosFactory.php
 
 		-
-			message: "#^Access to undefined constant Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\ResponseDataMapperInterface\\:\\:TX_APPROVED\\.$#"
-			count: 1
-			path: src/Gateways/AbstractGateway.php
-
-		-
 			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\{Order\\: array\\<string, array\\<string, string\\|null\\>\\|string\\>, Response\\: array\\<string, string\\>, Transaction\\: array\\<string, array\\<string, string\\>\\|string\\>\\}\\|null, array\\<string, mixed\\>\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/GarantiPos.php

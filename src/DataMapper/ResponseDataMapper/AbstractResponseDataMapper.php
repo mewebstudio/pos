@@ -19,12 +19,6 @@ use function trim;
 abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
 {
     /** @var string */
-    public const TX_APPROVED = 'approved';
-
-    /** @var string */
-    public const TX_DECLINED = 'declined';
-
-    /** @var string */
     public const PROCEDURE_SUCCESS_CODE = '00';
 
     protected LoggerInterface $logger;
