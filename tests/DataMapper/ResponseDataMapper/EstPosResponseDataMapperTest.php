@@ -628,6 +628,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'rnd'                             => 'kP/2JB5ajHJt+yVhHNG9',
                     'HASHPARAMS'                      => 'clientid:oid:AuthCode:ProcReturnCode:Response:mdStatus:cavv:eci:md:rnd:',
                     'HASHPARAMSVAL'                   => '7006550002002022103030CBP3789100Approved1ABABByBkEgAAAABllJMDdVWUGZE=05435508:EC9CDC37975501A4B29BBD5BE1580279238BF88D888B23E7ECC293581C75EE40:4333:##700655000200kP/2JB5ajHJt+yVhHNG9',
+                    'NATIONALIDNO'                    => '',
                 ],
                 'expectedData' => [
                     'transaction_security' => 'Full 3D Secure',

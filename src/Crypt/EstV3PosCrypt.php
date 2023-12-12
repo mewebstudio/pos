@@ -22,8 +22,13 @@ class EstV3PosCrypt extends AbstractCrypt
     {
         ksort($requestData, SORT_NATURAL | SORT_FLAG_CASE);
         foreach (array_keys($requestData) as $key) {
-            // this part is needed only to create hash from the bank response
-            if (in_array(strtolower($key), ['hash', 'encoding']))  {
+            /**
+             * this part is needed only to create hash from the bank response
+             * 
+             * nationalidno:Ziraat ödeme dönüşlerinde checkHash arrayi içerisinde yer alabiliyor. Hash string içine dahil edildiğinde hataya sebep oluyor,
+             * Payten tarafından hash içerisinde olmaması gerektiği teyidi alındı.
+             */
+            if (in_array(strtolower($key), ['hash', 'encoding' , 'nationalidno']))  {
                 unset($requestData[$key]);
             }
         }
