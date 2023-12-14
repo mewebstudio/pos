@@ -261,6 +261,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
      */
     public function create3DFormDataCommon(AbstractPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
     {
+        
         $inputs = [
             'clientid'  => $account->getClientId(),
             'storetype' => $this->secureTypeMappings[$account->getModel()],
@@ -270,6 +271,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapperCrypt
             'failUrl'   => $order->fail_url,
             // musteri 3D onay sayfasinda islemleri tamamlamadan kapatirsa, banka bu sayfaya bir istek gonderecek.
             'callbackUrl' => $order->fail_url,
+            'refreshTime' => '10', //callbackUrl sisteminin doğru çalışması için eklenmesi gereken parametre
             'rnd'       => $order->rand,
             'lang'      => $this->getLang($account, $order),
             'currency'  => $this->mapCurrency($order->currency),
