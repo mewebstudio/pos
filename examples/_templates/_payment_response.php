@@ -60,17 +60,16 @@ try {
         }
     });
 
-    /**
-     * Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği
-     *
-     * $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
-     * if ($event->getTxType() === PosInterface::TX_TYPE_PAY) {
-     *     $data         = $event->getRequestData();
-     *     $data['Extra']['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
-     *     $data['Extra']['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı
-     *     $event->setRequestData($data);
-     * }
-     * });*/
+
+//    //Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği
+//    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($paymentModel) {
+//        if ($event->getTxType() === PosInterface::TX_TYPE_PAY && PosInterface::MODEL_3D_SECURE === $paymentModel) {
+//            $data                    = $event->getRequestData();
+//            $data['Extra']['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
+//            $data['Extra']['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı
+//            $event->setRequestData($data);
+//        }
+//    });
 
     if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
         // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
@@ -84,20 +83,18 @@ try {
 $response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
-    // siparis iptal ve iade islemlerde kullanilir
-    $session->set('ref_ret_num', $response['ref_ret_num']);
+    // aşağıdaki veriler sipariş durum sorgulama isteğinde kullanılır.
+    $response['order_id']      = $response['order_id'] ?? $order['id'];
+    $response['currency']      = $response['currency'] ?? $order['currency'];
+    $response['payment_model'] = $paymentModel;
+
+    // aşağıdaki veriler sipariş iade ve iptal işlemlerinde kullanılır.
+    $response['amount']           = $order['amount'];
+    $response['transaction_type'] = $response['transaction_type'] ?? $transaction;
+
+    $session->set('last_response', $response);
 }
 
-// aşağıdaki veriler sipariş durum sorgulama isteğinde kullanılır.
-$response['order_id']      = $response['order_id'] ?? $order['id'];
-$response['currency']      = $response['currency'] ?? $order['currency'];
-$response['payment_model'] = $paymentModel;
-
-// aşağıdaki veriler sipariş iade ve iptal işlemlerinde kullanılır.
-$response['amount']           = $order['amount'];
-$response['transaction_type'] = $response['transaction_type'] ?? $transaction;
-
-$session->set('last_response', $response);
 ?>
 
     <div class="result">
