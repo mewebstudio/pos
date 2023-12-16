@@ -29,9 +29,9 @@ class EstPosRequestDataMapperTest extends TestCase
 
     private EstPosRequestDataMapper $requestDataMapper;
 
-    private $order;
+    private array $order;
 
-    private $config;
+    private array $config;
 
     protected function setUp(): void
     {
@@ -207,7 +207,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'oid'         => $this->order['id'],
             'okUrl'       => $this->order['success_url'],
             'failUrl'     => $this->order['fail_url'],
-            'callbackUrl' => $this->order['fail_url'],
             'rnd'         => $this->order['rand'],
             'lang'        => 'tr',
             'currency'    => 949,
@@ -261,7 +260,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'oid'         => $this->order['id'],
             'okUrl'       => $this->order['success_url'],
             'failUrl'     => $this->order['fail_url'],
-            'callbackUrl' => $this->order['fail_url'],
             'rnd'         => $this->order['rand'],
             'lang'        => 'tr',
             'currency'    => '949',

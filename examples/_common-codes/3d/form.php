@@ -57,20 +57,28 @@ try {
         /**
          * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
          */
-        $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event) {
-            /**
-             * Örneğin İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
-            $supportedPaymentModels = [
-                \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY,
-                \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY_HOSTING,
-                \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
-            ];
-            if ($event->getTxType() === PosInterface::TX_PAY && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
-                $formInputs           = $event->getRequestData();
-                $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
-                $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
-                $event->setRequestData($formInputs);
-            }*/
+        $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event) use ($pos): void {
+            if (get_class($pos) === \Mews\Pos\Gateways\EstPos::class || get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+                /**
+                 * Örnek 1: İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
+                    $supportedPaymentModels = [
+                    \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY,
+                    \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY_HOSTING,
+                    \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
+                    ];
+                    if ($event->getTxType() === PosInterface::TX_PAY && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
+                    $formInputs           = $event->getRequestData();
+                    $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
+                    $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
+                    $event->setRequestData($formInputs);
+                }*/
+
+//                // Örnek 2: callbackUrl eklenmesi
+//                $formInputs                = $event->getRequestData();
+//                $formInputs['callbackUrl'] = $formInputs['failUrl'];
+//                $formInputs['refreshTime'] = '10'; // birim: saniye; callbackUrl sisteminin doğru çalışması için eklenmesi gereken parametre
+//                $event->setRequestData($formInputs);
+            }
         });
 
 
