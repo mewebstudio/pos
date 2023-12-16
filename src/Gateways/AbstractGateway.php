@@ -381,7 +381,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $this->testMode = $testMode;
         $this->requestDataMapper->setTestMode($testMode);
-        $this->logger->debug('switching mode', ['mode' => $this->getModeInWord()]);
+        $this->logger->debug('switching mode', ['is_test_mode' => $this->isTestMode()]);
 
         return $this;
     }
@@ -416,15 +416,6 @@ abstract class AbstractGateway implements PosInterface
      * @return array<string, mixed>
      */
     abstract protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array;
-
-    /**
-     * return values are used as a key in config file
-     * @return string
-     */
-    protected function getModeInWord(): string
-    {
-        return $this->isTestMode() ? 'test' : 'production';
-    }
 
     /**
      * @inheritDoc
