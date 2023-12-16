@@ -4,7 +4,7 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 
 require __DIR__.'/../_main_config.php';
 
-$bankTestsUrl = $hostUrl.'/ykb';
+$bankTestsUrl = $hostUrl.'/posnet-ykb';
 $posClass = \Mews\Pos\Gateways\PosNet::class;
 
 $testCards = [
