@@ -7,6 +7,7 @@ namespace Mews\Pos\Factory;
 
 use DateTimeImmutable;
 use DomainException;
+use Exception;
 use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\CardTypeNotSupportedException;
@@ -37,6 +38,10 @@ class CreditCardFactory
      * @param string|null  $cardType       bankaya gore zorunlu
      *
      * @return CreditCardInterface
+     *
+     * @throws CardTypeRequiredException
+     * @throws CardTypeNotSupportedException
+     * @throws Exception
      */
     public static function create(
         PosInterface $pos,
