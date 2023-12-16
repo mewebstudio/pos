@@ -21,20 +21,26 @@ class EstV3PosCrypt extends AbstractCrypt
      */
     public function create3DHash(AbstractPosAccount $account, array $requestData): string
     {
-        ksort($requestData, SORT_NATURAL | SORT_FLAG_CASE);
-        foreach (array_keys($requestData) as $key) {
-            // this part is needed only to create hash from the bank response
-            if (in_array(strtolower($key), ['hash', 'encoding'], true)) {
+        \ksort($requestData, SORT_NATURAL | SORT_FLAG_CASE);
+        foreach (\array_keys($requestData) as $key) {
+            /**
+             * this part is needed only to create hash from the bank response
+             *
+             * nationalidno: Ziraat ödeme dönüşlerinde checkHash arrayi içerisinde yer alabiliyor.
+             *  Hash string içine dahil edildiğinde hataya sebep oluyor,
+             *  Payten tarafından hash içerisinde olmaması gerektiği teyidi alındı.
+             */
+            if (\in_array(\strtolower($key), ['hash', 'encoding' , 'nationalidno']))  {
                 unset($requestData[$key]);
             }
         }
 
         $requestData[] = $account->getStoreKey();
         // escape | and \ characters
-        $data = str_replace("\\", "\\\\", array_values($requestData));
-        $data = str_replace(self::HASH_SEPARATOR, "\\".self::HASH_SEPARATOR, $data);
+        $data = \str_replace("\\", "\\\\", \array_values($requestData));
+        $data = \str_replace(self::HASH_SEPARATOR, "\\".self::HASH_SEPARATOR, $data);
 
-        $hashStr = implode(self::HASH_SEPARATOR, $data);
+        $hashStr = \implode(self::HASH_SEPARATOR, $data);
 
         return $this->hashString($hashStr);
     }
