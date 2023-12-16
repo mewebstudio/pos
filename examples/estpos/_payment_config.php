@@ -4,7 +4,7 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 
 require __DIR__.'/../_main_config.php';
 
-$bankTestsUrl = $hostUrl.'/akbank';
+$bankTestsUrl = $hostUrl.'/estpos';
 $posClass = \Mews\Pos\Gateways\EstV3Pos::class;
 
 $testCards = [
