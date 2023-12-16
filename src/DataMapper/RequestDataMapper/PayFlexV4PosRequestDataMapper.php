@@ -27,12 +27,12 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_PAY      => 'Sale',
-        PosInterface::TX_PRE_PAY  => 'Auth',
-        PosInterface::TX_POST_PAY => 'Capture',
-        PosInterface::TX_CANCEL   => 'Cancel',
-        PosInterface::TX_REFUND   => 'Refund',
-        PosInterface::TX_STATUS   => 'status',
+        PosInterface::TX_TYPE_PAY      => 'Sale',
+        PosInterface::TX_TYPE_PRE_PAY  => 'Auth',
+        PosInterface::TX_TYPE_POST_PAY => 'Capture',
+        PosInterface::TX_TYPE_CANCEL   => 'Cancel',
+        PosInterface::TX_TYPE_REFUND   => 'Refund',
+        PosInterface::TX_TYPE_STATUS   => 'status',
     ];
 
     /**
@@ -171,7 +171,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'TransactionType'        => $this->mapTxType(PosInterface::TX_POST_PAY),
+                'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_POST_PAY),
                 'ReferenceTransactionId' => (string) $order['id'],
                 'CurrencyAmount'         => $this->formatAmount($order['amount']),
                 'CurrencyCode'           => $this->mapCurrency($order['currency']),
@@ -219,7 +219,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
-            'TransactionType'        => $this->mapTxType(PosInterface::TX_CANCEL),
+            'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
             'ReferenceTransactionId' => (string) $order['trans_id'],
             'ClientIp'               => (string) $order['ip'],
         ];
@@ -237,7 +237,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
-            'TransactionType'        => $this->mapTxType(PosInterface::TX_REFUND),
+            'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
             'ReferenceTransactionId' => (string) $order['trans_id'],
             'ClientIp'               => (string) $order['ip'],
             'CurrencyAmount'         => $this->formatAmount($order['amount']),

@@ -163,7 +163,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         yield 'with_card_1' => [
             'account'  => $account,
             'order'    => $order,
-            'txType'   => PosInterface::TX_PAY,
+            'txType'   => PosInterface::TX_TYPE_PAY,
             'card'     => $card,
             'expected' => [
                 'HostMerchantId'       => '000000000111111',
@@ -193,7 +193,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         yield 'without_card_1_pre_pay' => [
             'account'  => $account,
             'order'    => $order,
-            'txType'   => PosInterface::TX_PRE_PAY,
+            'txType'   => PosInterface::TX_TYPE_PRE_PAY,
             'card'     => null,
             'expected' => [
                 'HostMerchantId'       => '000000000111111',

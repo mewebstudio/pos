@@ -44,7 +44,7 @@ function doPayment(PosInterface $pos, string $paymentModel, string $transaction,
         );
     }
     if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class
-        && in_array($transaction, [PosInterface::TX_PAY, PosInterface::TX_PRE_PAY], true)
+        && in_array($transaction, [PosInterface::TX_TYPE_PAY, PosInterface::TX_TYPE_PRE_PAY], true)
         && PosInterface::MODEL_3D_SECURE === $paymentModel
     ) {
         /**
@@ -53,7 +53,7 @@ function doPayment(PosInterface $pos, string $paymentModel, string $transaction,
         $pos->payment($paymentModel, $order, $transaction, $card);
 
     } elseif ($paymentModel === PosInterface::MODEL_NON_SECURE
-        && in_array($transaction, [PosInterface::TX_PAY, PosInterface::TX_PRE_PAY], true)
+        && in_array($transaction, [PosInterface::TX_TYPE_PAY, PosInterface::TX_TYPE_PRE_PAY], true)
     ) {
         // bu asamada $card regular/non secure odemede lazim.
         $pos->payment($paymentModel, $order, $transaction, $card);

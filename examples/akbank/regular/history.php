@@ -13,7 +13,7 @@ $order = [
     'order_id' => $ord ? $ord['id'] : '973009309',
 ];
 
-$transaction = PosInterface::TX_HISTORY;
+$transaction = PosInterface::TX_TYPE_HISTORY;
 // History Order
 $query = $pos->history($order);
 

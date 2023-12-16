@@ -16,7 +16,7 @@ $order = [
     'pageSize'        => 10, // optional, default: 10
 ];
 
-$transaction = PosInterface::TX_HISTORY;
+$transaction = PosInterface::TX_TYPE_HISTORY;
 // History Order
 $query = $pos->history($order);
 

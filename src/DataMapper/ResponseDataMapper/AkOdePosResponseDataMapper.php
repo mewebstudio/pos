@@ -45,7 +45,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
 
     /**
      * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
-     * @param array<PosInterface::TX_*, string>       $txTypeMappings
+     * @param array<PosInterface::TX_TYPE_*, string>       $txTypeMappings
      * @param LoggerInterface                         $logger
      */
     public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)

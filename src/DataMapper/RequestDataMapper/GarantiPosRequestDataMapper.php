@@ -45,13 +45,13 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_PAY      => 'sales',
-        PosInterface::TX_PRE_PAY  => 'preauth',
-        PosInterface::TX_POST_PAY => 'postauth',
-        PosInterface::TX_CANCEL   => 'void',
-        PosInterface::TX_REFUND   => 'refund',
-        PosInterface::TX_HISTORY  => 'orderhistoryinq',
-        PosInterface::TX_STATUS   => 'orderinq',
+        PosInterface::TX_TYPE_PAY      => 'sales',
+        PosInterface::TX_TYPE_PRE_PAY  => 'preauth',
+        PosInterface::TX_TYPE_POST_PAY => 'postauth',
+        PosInterface::TX_TYPE_CANCEL   => 'void',
+        PosInterface::TX_TYPE_REFUND   => 'refund',
+        PosInterface::TX_TYPE_HISTORY  => 'orderhistoryinq',
+        PosInterface::TX_TYPE_STATUS   => 'orderinq',
     ];
 
     protected array $recurringOrderFrequencyMapping = [
@@ -166,7 +166,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'              => $this->mapTxType(PosInterface::TX_POST_PAY),
+                'Type'              => $this->mapTxType(PosInterface::TX_TYPE_POST_PAY),
                 'Amount'            => $this->formatAmount($order['amount']),
                 'CurrencyCode'      => $this->mapCurrency($order['currency']),
                 'OriginalRetrefNum' => $order['ref_ret_num'],
@@ -198,7 +198,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_STATUS),
+                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_STATUS),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),
@@ -232,7 +232,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_CANCEL),
+                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),
@@ -267,7 +267,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_REFUND),
+                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek,
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),
@@ -302,7 +302,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_HISTORY),
+                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_HISTORY),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),

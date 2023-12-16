@@ -43,23 +43,23 @@ class PosNet extends AbstractGateway
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
-        PosInterface::TX_PAY      => [
+        PosInterface::TX_TYPE_PAY      => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_NON_SECURE,
         ],
-        PosInterface::TX_PRE_PAY  => true,
-        PosInterface::TX_POST_PAY => true,
-        PosInterface::TX_STATUS   => true,
-        PosInterface::TX_CANCEL   => true,
-        PosInterface::TX_REFUND   => true,
-        PosInterface::TX_HISTORY  => false,
+        PosInterface::TX_TYPE_PRE_PAY  => true,
+        PosInterface::TX_TYPE_POST_PAY => true,
+        PosInterface::TX_TYPE_STATUS   => true,
+        PosInterface::TX_TYPE_CANCEL   => true,
+        PosInterface::TX_TYPE_REFUND   => true,
+        PosInterface::TX_TYPE_HISTORY  => false,
     ];
 
     /**
      * Get OOS transaction data
      * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
      *
-     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
      *
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType

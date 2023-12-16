@@ -24,7 +24,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount(
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = PosInterface::TX_PAY;
+$transaction = PosInterface::TX_TYPE_PAY;
 
 $templateTitle = '3D Host Model Payment';
 $paymentModel = PosInterface::MODEL_3D_HOST;

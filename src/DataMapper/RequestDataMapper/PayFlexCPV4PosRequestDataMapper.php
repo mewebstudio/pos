@@ -24,13 +24,13 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_PAY      => 'Sale',
-        PosInterface::TX_PRE_PAY  => 'Auth',
-        PosInterface::TX_POST_PAY => 'Capture',
-        PosInterface::TX_CANCEL   => 'Cancel',
-        PosInterface::TX_REFUND   => 'Refund',
-        PosInterface::TX_HISTORY  => 'TxnHistory',
-        PosInterface::TX_STATUS   => 'OrderInquiry',
+        PosInterface::TX_TYPE_PAY      => 'Sale',
+        PosInterface::TX_TYPE_PRE_PAY  => 'Auth',
+        PosInterface::TX_TYPE_POST_PAY => 'Capture',
+        PosInterface::TX_TYPE_CANCEL   => 'Cancel',
+        PosInterface::TX_TYPE_REFUND   => 'Refund',
+        PosInterface::TX_TYPE_HISTORY  => 'TxnHistory',
+        PosInterface::TX_TYPE_STATUS   => 'OrderInquiry',
     ];
 
     /**
@@ -89,7 +89,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @phpstan-param PosInterface::TX_*       $txType
+     * @phpstan-param PosInterface::TX_TYPE_*       $txType
      * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
      *
      * @param PayFlexAccount                       $account
@@ -200,7 +200,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'TransactionType'        => $this->mapTxType(PosInterface::TX_POST_PAY),
+                'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_POST_PAY),
                 'ReferenceTransactionId' => (string) $order['id'],
                 'CurrencyAmount'         => $this->formatAmount($order['amount']),
                 'CurrencyCode'           => $this->mapCurrency($order['currency']),
@@ -229,7 +229,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareCancelOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'TransactionType'        => $this->mapTxType(PosInterface::TX_CANCEL),
+                'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
                 'ReferenceTransactionId' => (string) $order['trans_id'],
                 'ClientIp'               => (string) $order['ip'],
             ];
@@ -248,7 +248,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareRefundOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'TransactionType'        => $this->mapTxType(PosInterface::TX_REFUND),
+                'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
                 'ReferenceTransactionId' => (string) $order['trans_id'],
                 'ClientIp'               => (string) $order['ip'],
                 'CurrencyAmount'         => $this->formatAmount($order['amount']),

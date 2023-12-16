@@ -159,7 +159,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     public function testCreateNonSecurePaymentRequestData()
     {
         $order = $this->order;
-        $txType = PosInterface::TX_PAY;
+        $txType = PosInterface::TX_TYPE_PAY;
         $order['amount'] = 1000;
 
         $expectedValue = $this->getSampleNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
@@ -300,7 +300,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         yield 'no_installment' => [
             'account' => $account,
             'order' => $order,
-            'txType' => PosInterface::TX_PAY,
+            'txType' => PosInterface::TX_TYPE_PAY,
             'responseData' => $responseData,
             'card' => $card,
             'expected' => [
@@ -329,7 +329,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         yield 'with_installment' => [
             'account' => $account,
             'order' => $order,
-            'txType' => PosInterface::TX_PAY,
+            'txType' => PosInterface::TX_TYPE_PAY,
             'responseData' => $responseData,
             'card' => $card,
             'expected' => [

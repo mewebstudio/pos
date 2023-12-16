@@ -49,7 +49,7 @@ class PayFlexV4PosSerializerTest extends TestCase
         $data = ['abc' => 1];
 
         $this->expectException(DomainException::class);
-        $this->serializer->encode($data, PosInterface::TX_HISTORY);
+        $this->serializer->encode($data, PosInterface::TX_TYPE_HISTORY);
     }
 
     /**
@@ -91,7 +91,7 @@ class PayFlexV4PosSerializerTest extends TestCase
                 'Expiry'                  => '202112',
                 'Cvv'                     => '122',
             ],
-            'txType'   => PosInterface::TX_PAY,
+            'txType'   => PosInterface::TX_TYPE_PAY,
             'expected' => '<VposRequest><MerchantId>000000000111111</MerchantId><Password>3XTgER89as</Password><TerminalNo>VP999999</TerminalNo><TransactionType>Sale</TransactionType><OrderId>order222</OrderId><CurrencyAmount>100.00</CurrencyAmount><CurrencyCode>949</CurrencyCode><ClientIp>127.0.0.1</ClientIp><TransactionDeviceSource>0</TransactionDeviceSource><Pan>5555444433332222</Pan><Expiry>202112</Expiry><Cvv>122</Cvv></VposRequest>',
         ];
 
@@ -107,7 +107,7 @@ class PayFlexV4PosSerializerTest extends TestCase
                     'AuthCode'      => '',
                 ],
             ],
-            'txType'   => PosInterface::TX_STATUS,
+            'txType'   => PosInterface::TX_TYPE_STATUS,
             'expected' => '<?xml version="1.0" encoding="UTF-8"?>
 <SearchRequest><MerchantCriteria><HostMerchantId>000000000111111</HostMerchantId><MerchantPassword>3XTgER89as</MerchantPassword></MerchantCriteria><TransactionCriteria><TransactionId></TransactionId><OrderId>order222</OrderId><AuthCode></AuthCode></TransactionCriteria></SearchRequest>
 ',

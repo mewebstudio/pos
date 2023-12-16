@@ -38,21 +38,21 @@ class AkOdePos extends AbstractGateway
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
-        PosInterface::TX_PAY     => [
+        PosInterface::TX_TYPE_PAY     => [
             PosInterface::MODEL_3D_PAY,
             PosInterface::MODEL_3D_HOST,
             PosInterface::MODEL_NON_SECURE,
         ],
-        PosInterface::TX_PRE_PAY => [
+        PosInterface::TX_TYPE_PRE_PAY => [
             PosInterface::MODEL_3D_PAY,
             PosInterface::MODEL_3D_HOST,
         ],
 
-        PosInterface::TX_HISTORY  => true,
-        PosInterface::TX_POST_PAY => true,
-        PosInterface::TX_CANCEL   => true,
-        PosInterface::TX_REFUND   => true,
-        PosInterface::TX_STATUS   => true,
+        PosInterface::TX_TYPE_HISTORY  => true,
+        PosInterface::TX_TYPE_POST_PAY => true,
+        PosInterface::TX_TYPE_CANCEL   => true,
+        PosInterface::TX_TYPE_REFUND   => true,
+        PosInterface::TX_TYPE_STATUS   => true,
     ];
 
 
@@ -154,7 +154,7 @@ class AkOdePos extends AbstractGateway
      * Bu servis 3D secure başlatılması için session açar ve sessionId bilgisini döner.
      * Bu servisten dönen ThreeDSessionId değeri ödeme formunda veya ortak ödeme sayfa çağırma işleminde kullanılır.
      *
-     * @phpstan-param PosInterface::TX_*           $txType
+     * @phpstan-param PosInterface::TX_TYPE_*           $txType
      * @phpstan-param PosInterface::MODEL_3D_*     $paymentModel
      *
      * @param array<string, int|string|float|null> $order
@@ -216,7 +216,7 @@ class AkOdePos extends AbstractGateway
     }
 
     /**
-     * @phpstan-param PosInterface::TX_*    $txType
+     * @phpstan-param PosInterface::TX_TYPE_*    $txType
      * @phpstan-param PosInterface::MODEL_* $paymentModel
      *
      * @return string
@@ -226,17 +226,17 @@ class AkOdePos extends AbstractGateway
     private function getRequestURIByTransactionType(string $txType, string $paymentModel): string
     {
         $arr = [
-            PosInterface::TX_PAY      => [
+            PosInterface::TX_TYPE_PAY      => [
                 PosInterface::MODEL_NON_SECURE => 'Payment',
                 PosInterface::MODEL_3D_PAY     => 'threeDPayment',
                 PosInterface::MODEL_3D_HOST    => 'threeDPayment',
             ],
-            PosInterface::TX_PRE_PAY  => 'threeDPreAuth',
-            PosInterface::TX_POST_PAY => 'postAuth',
-            PosInterface::TX_CANCEL   => 'void',
-            PosInterface::TX_REFUND   => 'refund',
-            PosInterface::TX_STATUS   => 'inquiry',
-            PosInterface::TX_HISTORY  => 'history',
+            PosInterface::TX_TYPE_PRE_PAY  => 'threeDPreAuth',
+            PosInterface::TX_TYPE_POST_PAY => 'postAuth',
+            PosInterface::TX_TYPE_CANCEL   => 'void',
+            PosInterface::TX_TYPE_REFUND   => 'refund',
+            PosInterface::TX_TYPE_STATUS   => 'inquiry',
+            PosInterface::TX_TYPE_HISTORY  => 'history',
         ];
 
         if (!isset($arr[$txType])) {

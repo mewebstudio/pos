@@ -54,7 +54,7 @@ abstract class AbstractGateway implements PosInterface
     protected LoggerInterface $logger;
 
     /**
-     * @var array<PosInterface::TX_*, array<int, PosInterface::MODEL_*>|bool>
+     * @var array<PosInterface::TX_TYPE_*, array<int, PosInterface::MODEL_*>|bool>
      */
     protected static array $supportedTransactions = [];
 
@@ -120,7 +120,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @phpstan-param self::TX_*    $txType
+     * @phpstan-param self::TX_TYPE_*    $txType
      * @phpstan-param self::MODEL_* $paymentModel
      *
      * @param string|null $txType
@@ -177,7 +177,7 @@ abstract class AbstractGateway implements PosInterface
             'tx_type'       => $txType,
             'model'         => $paymentModel,
         ]);
-        if (PosInterface::TX_POST_PAY === $txType) {
+        if (PosInterface::TX_TYPE_POST_PAY === $txType) {
             $this->makeRegularPostPayment($order);
 
             return $this;
@@ -212,7 +212,7 @@ abstract class AbstractGateway implements PosInterface
             'model'   => PosInterface::MODEL_NON_SECURE,
             'tx_type' => $txType,
         ]);
-        if (in_array($txType, [PosInterface::TX_PAY, PosInterface::TX_PRE_PAY], true)) {
+        if (in_array($txType, [PosInterface::TX_TYPE_PAY, PosInterface::TX_TYPE_PRE_PAY], true)) {
             $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
         } else {
             throw new LogicException(sprintf('Invalid transaction type "%s" provided', $txType));
@@ -244,12 +244,12 @@ abstract class AbstractGateway implements PosInterface
     {
         $this->logger->debug('making payment', [
             'model'   => PosInterface::MODEL_NON_SECURE,
-            'tx_type' => PosInterface::TX_POST_PAY,
+            'tx_type' => PosInterface::TX_TYPE_POST_PAY,
         ]);
 
         $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_POST_PAY);
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_POST_PAY);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -261,8 +261,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $contents       = $this->serializer->encode($requestData, PosInterface::TX_POST_PAY);
-        $bankResponse   = $this->send($contents, PosInterface::TX_POST_PAY, PosInterface::MODEL_NON_SECURE);
+        $contents       = $this->serializer->encode($requestData, PosInterface::TX_TYPE_POST_PAY);
+        $bankResponse   = $this->send($contents, PosInterface::TX_TYPE_POST_PAY, PosInterface::MODEL_NON_SECURE);
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse);
 
         return $this;
@@ -275,7 +275,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_REFUND);
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_REFUND);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -287,8 +287,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, PosInterface::TX_REFUND);
-        $bankResponse   = $this->send($data, PosInterface::TX_REFUND, PosInterface::MODEL_NON_SECURE);
+        $data           = $this->serializer->encode($requestData, PosInterface::TX_TYPE_REFUND);
+        $bankResponse   = $this->send($data, PosInterface::TX_TYPE_REFUND, PosInterface::MODEL_NON_SECURE);
         $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
 
         return $this;
@@ -301,7 +301,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_CANCEL);
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_CANCEL);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -313,8 +313,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, PosInterface::TX_CANCEL);
-        $bankResponse   = $this->send($data, PosInterface::TX_CANCEL, PosInterface::MODEL_NON_SECURE);
+        $data           = $this->serializer->encode($requestData, PosInterface::TX_TYPE_CANCEL);
+        $bankResponse   = $this->send($data, PosInterface::TX_TYPE_CANCEL, PosInterface::MODEL_NON_SECURE);
         $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
 
         return $this;
@@ -327,7 +327,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_STATUS);
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_STATUS);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -339,8 +339,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, PosInterface::TX_STATUS);
-        $bankResponse   = $this->send($data, PosInterface::TX_STATUS, PosInterface::MODEL_NON_SECURE, $this->getQueryAPIUrl());
+        $data           = $this->serializer->encode($requestData, PosInterface::TX_TYPE_STATUS);
+        $bankResponse   = $this->send($data, PosInterface::TX_TYPE_STATUS, PosInterface::MODEL_NON_SECURE, $this->getQueryAPIUrl());
         $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
 
         return $this;
@@ -353,7 +353,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $meta, $meta);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_HISTORY);
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_HISTORY);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -365,8 +365,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, PosInterface::TX_HISTORY);
-        $bankResponse   = $this->send($data, PosInterface::TX_HISTORY, PosInterface::MODEL_NON_SECURE);
+        $data           = $this->serializer->encode($requestData, PosInterface::TX_TYPE_HISTORY);
+        $bankResponse   = $this->send($data, PosInterface::TX_TYPE_HISTORY, PosInterface::MODEL_NON_SECURE);
         $this->response = $this->responseDataMapper->mapHistoryResponse($bankResponse);
 
         return $this;
@@ -405,7 +405,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * Send requests to bank APIs
      *
-     * @phpstan-param PosInterface::TX_*    $txType
+     * @phpstan-param PosInterface::TX_TYPE_*    $txType
      * @phpstan-param PosInterface::MODEL_* $paymentModel
      *
      * @param array<string, mixed>|string $contents data to send

@@ -15,7 +15,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createAkOdePosAccount(
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = $session->get('tx', PosInterface::TX_PAY);
+$transaction = $session->get('tx', PosInterface::TX_TYPE_PAY);
 
 $templateTitle = '3D Pay Model Payment';
 $paymentModel = PosInterface::MODEL_3D_PAY;

@@ -13,7 +13,7 @@ $order = [
     'currency' => $ord['currency'],
     'ip'       => $ord['ip'],
 ];
-$transaction = PosInterface::TX_HISTORY;
+$transaction = PosInterface::TX_TYPE_HISTORY;
 
 // History Order
 $query = $pos->history($order);

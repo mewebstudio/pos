@@ -25,7 +25,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     /**
      * Transaction Types
      *
-     * @var array<PosInterface::TX_*, string>
+     * @var array<PosInterface::TX_TYPE_*, string>
      */
     protected array $txTypeMappings = [];
 
@@ -111,7 +111,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * @return array<PosInterface::TX_*, string>
+     * @return array<PosInterface::TX_TYPE_*, string>
      */
     public function getTxTypeMappings(): array
     {
@@ -136,7 +136,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * @phpstan-param PosInterface::TX_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
      *
      * @param string $txType
      *
@@ -242,7 +242,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * prepares order for TX_POST_PAY type request
+     * prepares order for TX_TYPE_POST_PAY type request
      *
      * @param array<string, mixed> $order
      *

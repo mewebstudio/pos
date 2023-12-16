@@ -126,10 +126,10 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - 3D Secure modeliyle ödeme (`PosInterface::MODEL_3D_SECURE`)
   - 3D Pay modeliyle ödeme (`PosInterface::MODEL_3D_PAY`)
   - 3D Host modeliyle ödeme (`PosInterface::MODEL_3D_HOST`)
-  - Sipariş/Ödeme durum sorgulama (`PosInterface::TX_STATUS`)
-  - Sipariş/Ödeme geçmişi sorgulama (`PosInterface::TX_HISTORY`)
-  - Sipariş/Para iadesi yapma (`PosInterface::TX_REFUND`)
-  - Sipariş iptal etme (`PosInterface::TX_CANCEL`)
+  - Sipariş/Ödeme durum sorgulama (`PosInterface::TX_TYPE_STATUS`)
+  - Sipariş/Ödeme geçmişi sorgulama (`PosInterface::TX_TYPE_HISTORY`)
+  - Sipariş/Para iadesi yapma (`PosInterface::TX_TYPE_REFUND`)
+  - Sipariş iptal etme (`PosInterface::TX_TYPE_CANCEL`)
   - Farklı Para birimler ile ödeme desteği
   - Tekrarlanan (Recurring) ödeme talimatları
   - [PSR-3](https://www.php-fig.org/psr/psr-3/) logger desteği
@@ -239,7 +239,7 @@ $card = \Mews\Pos\Factory\CreditCardFactory::create(
   );
 
 // API kullanıcısı ile oluşturulan $pos değişkenine prepare metoduyla sipariş bilgileri tanımlanıyor.
-$pos->prepare($order, \Mews\Pos\PosInterface::TX_PAY, $card);
+$pos->prepare($order, \Mews\Pos\PosInterface::TX_TYPE_PAY, $card);
 
 try {
     // $formData icerigi form olarak banka gateway'ne yonlendirilir.
@@ -247,7 +247,7 @@ try {
     $formData = $pos->get3DFormData(
         $order,
         \Mews\Pos\PosInterface::MODEL_3D_SECURE,
-        \Mews\Pos\PosInterface::TX_PAY,
+        \Mews\Pos\PosInterface::TX_TYPE_PAY,
         $card
     );
 } catch (\Throwable $e) {
@@ -267,7 +267,7 @@ try  {
     $pos->payment(
         \Mews\Pos\PosInterface::MODEL_3D_SECURE,
         $order,
-        \Mews\Pos\PosInterface::TX_PAY,
+        \Mews\Pos\PosInterface::TX_TYPE_PAY,
         // $card değeri Non Secure modelde ve Vakıfbank için 3DPay ve 3DSecure ödemede zorunlu.
         $card
     );
@@ -412,27 +412,27 @@ Bu isteği göndermeden ödeme tamamlanmaz.
 ### Otorizasyon, Ön Otorizasyon, Ön Provizyon Kapama İşlemler arasındaki farklar
 - **Otorizasyon** - bildiğimiz ve genel olarak kullandığımız işlem. Tek seferde ödeme işlemi biter.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
-İşlemin kütüphanedeki karşılığı `PosInterface::TX_PAY`
+İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_PAY`
 - **Ön Otorizasyon** - müşteriden parayı direk çekmek yerine, işlem sonucunda para bloke edilir.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
-İşlemin kütüphanedeki karşılığı `PosInterface::TX_PRE_PAY`
+İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_PRE_PAY`
 - **Ön Provizyon Kapama** - ön provizyon sonucunda bloke edilen miktarın satışını tamamlar.
 Ön otorizasyon yapıldıktan sonra, örneğin 1 hafta sonra, Post Otorizasyon isteği gönderilebilinir.
 Bu işlem için kullanıcıdan kredi kart bilgisi _alınmaz_.
 Onun yerine bazı gateway'ler `orderId` degeri isteri, bazıları ise ön provizyon sonucu dönen banka tarafındaki `orderId`'yi ister.
 Satıcı _ön otorizasyon_ isteği iptal etmek isterse de `cancel` isteği gönderir.
-Post Otorizasyon İşlemin kütüphanedeki karşılığı `PosInterface::TX_POST_PAY`
+Post Otorizasyon İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_POST_PAY`
 - Bu 3 çeşit işlemler bütün ödeme modelleri (NonSecure, 3D, 3DPay ve 3DHost) tarafından desteklenir.
 
 ### Refund ve Cancel işlemler arasındaki farklar
 - **Refund** - Tamamlanan ödemeyi iade etmek için kullanılır.
 Bu işlem gün kapandıktan _sonra_ yapılabilir.
 İade işlemi için _miktar zorunlu_, çünkü ödenen ve iade edilen miktarı aynı olmayabilir.
-İşlemin kütüphanedeki karşılığı `PosInterface::TX_REFUND`
+İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_REFUND`
 - **Cancel** - Tamamlanan ödemeyi iptal etmek için kullanılır.
 Ödeme yapıldıktan sonra gün kapanmadan yapılabilir. Gün kapandıktan sonra `refund` işlemi kullanmak zorundasınız.
 Genel olarak _miktar_ bilgisi _istenmez_, ancak bazı Gateway'ler ister.
-İşlemin kütüphanedeki karşılığı `PosInterface::TX_CANCEL`
+İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_CANCEL`
 
 ## Docker ile test ortami
 1. Makinenizde Docker kurulu olmasi gerekiyor.

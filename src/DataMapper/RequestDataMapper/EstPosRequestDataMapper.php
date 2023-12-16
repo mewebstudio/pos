@@ -28,13 +28,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_PAY      => 'Auth',
-        PosInterface::TX_PRE_PAY  => 'PreAuth',
-        PosInterface::TX_POST_PAY => 'PostAuth',
-        PosInterface::TX_CANCEL   => 'Void',
-        PosInterface::TX_REFUND   => 'Credit',
-        PosInterface::TX_STATUS   => 'ORDERSTATUS',
-        PosInterface::TX_HISTORY  => 'ORDERHISTORY',
+        PosInterface::TX_TYPE_PAY      => 'Auth',
+        PosInterface::TX_TYPE_PRE_PAY  => 'PreAuth',
+        PosInterface::TX_TYPE_POST_PAY => 'PostAuth',
+        PosInterface::TX_TYPE_CANCEL   => 'Void',
+        PosInterface::TX_TYPE_REFUND   => 'Credit',
+        PosInterface::TX_TYPE_STATUS   => 'ORDERSTATUS',
+        PosInterface::TX_TYPE_HISTORY  => 'ORDERHISTORY',
     ];
 
     /**
@@ -134,7 +134,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'Type'    => $this->mapTxType(PosInterface::TX_POST_PAY),
+                'Type'    => $this->mapTxType(PosInterface::TX_TYPE_POST_PAY),
                 'OrderId' => (string) $order['id'],
             ];
     }
@@ -146,7 +146,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $statusRequestData = $this->getRequestAccountData($account) + [
                 'Extra' => [
-                    $this->mapTxType(PosInterface::TX_STATUS) => 'QUERY',
+                    $this->mapTxType(PosInterface::TX_TYPE_STATUS) => 'QUERY',
                 ],
             ];
 
@@ -188,7 +188,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($account) + [
                 'OrderId' => $order['id'],
-                'Type'    => $this->mapTxType(PosInterface::TX_CANCEL),
+                'Type'    => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
             ];
     }
 
@@ -203,7 +203,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'OrderId'  => (string) $order['id'],
             'Currency' => $this->mapCurrency($order['currency']),
-            'Type'     => $this->mapTxType(PosInterface::TX_REFUND),
+            'Type'     => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
         ];
 
         if (isset($order['amount'])) {
@@ -222,7 +222,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'OrderId' => (string) $extraData['order_id'], //todo orderId ya da id olarak degistirilecek, Payfor'da orderId, Garanti'de id
             'Extra'   => [
-                $this->mapTxType(PosInterface::TX_HISTORY) => 'QUERY',
+                $this->mapTxType(PosInterface::TX_TYPE_HISTORY) => 'QUERY',
             ],
         ];
 
@@ -250,7 +250,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
-     * @phpstan-param PosInterface::TX_*       $txType
+     * @phpstan-param PosInterface::TX_TYPE_*       $txType
      *
      * @param array<string, string|int|float|null> $order
      * @param string                               $paymentModel

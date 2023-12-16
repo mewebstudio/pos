@@ -17,7 +17,7 @@ interface SerializerInterface
     public static function supports(string $gatewayClass): bool;
 
     /**
-     * @phpstan-param PosInterface::TX_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
      *
      * @param array<string, mixed> $data
      * @param string               $txType
@@ -27,7 +27,7 @@ interface SerializerInterface
     public function encode(array $data, string $txType);
 
     /**
-     * @phpstan-param PosInterface::TX_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
      *
      * @param string $data response received from the bank
      * @param string $txType

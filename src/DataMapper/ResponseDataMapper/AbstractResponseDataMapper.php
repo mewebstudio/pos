@@ -26,12 +26,12 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     /** @var array<string, PosInterface::CURRENCY_*> */
     private array $currencyMappings;
 
-    /** @var array<string, PosInterface::TX_*> */
+    /** @var array<string, PosInterface::TX_TYPE_*> */
     protected array $txTypeMappings;
 
     /**
      * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
-     * @param array<PosInterface::TX_*, string>       $txTypeMappings
+     * @param array<PosInterface::TX_TYPE_*, string>       $txTypeMappings
      * @param LoggerInterface                         $logger
      */
     public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)
@@ -42,7 +42,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     }
 
     /**
-     * @return array<string, PosInterface::TX_*>
+     * @return array<string, PosInterface::TX_TYPE_*>
      */
     public function getTxTypeMappings(): array
     {

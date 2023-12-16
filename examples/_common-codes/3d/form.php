@@ -17,7 +17,7 @@ if ($request->getMethod() !== 'POST') {
     echo new RedirectResponse($baseUrl.'index.php');
     exit();
 }
-$transaction = $request->get('tx', PosInterface::TX_PAY);
+$transaction = $request->get('tx', PosInterface::TX_TYPE_PAY);
 $order       = getNewOrder(
     $baseUrl,
     $ip,
@@ -44,7 +44,7 @@ try {
             /**
              * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
              * Ornek:
-             * if ($event->getTxType() === PosInterface::TX_PAY) {
+             * if ($event->getTxType() === PosInterface::TX_TYPE_PAY) {
              *     $data = $event->getRequestData();
              *     $data['abcd'] = '1234';
              *     $event->setRequestData($data);
@@ -66,7 +66,7 @@ try {
                     \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY_HOSTING,
                     \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
                     ];
-                    if ($event->getTxType() === PosInterface::TX_PAY && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
+                    if ($event->getTxType() === PosInterface::TX_TYPE_PAY && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
                     $formInputs           = $event->getRequestData();
                     $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
                     $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.

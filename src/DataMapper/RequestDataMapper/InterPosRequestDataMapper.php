@@ -41,12 +41,12 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritdoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_PAY      => 'Auth',
-        PosInterface::TX_PRE_PAY  => 'PreAuth',
-        PosInterface::TX_POST_PAY => 'PostAuth',
-        PosInterface::TX_CANCEL   => 'Void',
-        PosInterface::TX_REFUND   => 'Refund',
-        PosInterface::TX_STATUS   => 'StatusHistory',
+        PosInterface::TX_TYPE_PAY      => 'Auth',
+        PosInterface::TX_TYPE_PRE_PAY  => 'PreAuth',
+        PosInterface::TX_TYPE_POST_PAY => 'PostAuth',
+        PosInterface::TX_TYPE_CANCEL   => 'Void',
+        PosInterface::TX_TYPE_REFUND   => 'Refund',
+        PosInterface::TX_TYPE_STATUS   => 'StatusHistory',
     ];
 
     /**
@@ -121,7 +121,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'TxnType'     => $this->mapTxType(PosInterface::TX_POST_PAY),
+                'TxnType'     => $this->mapTxType(PosInterface::TX_TYPE_POST_PAY),
                 'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'OrderId'     => null,
                 'orgOrderId'  => (string) $order['id'],
@@ -142,7 +142,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
                 'OrderId'    => null, //todo buraya hangi deger verilecek?
                 'orgOrderId' => (string) $order['id'],
-                'TxnType'    => $this->mapTxType(PosInterface::TX_STATUS),
+                'TxnType'    => $this->mapTxType(PosInterface::TX_TYPE_STATUS),
                 'SecureType' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'Lang'       => $this->getLang($account, $order),
             ];
@@ -159,7 +159,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
                 'OrderId'    => null, //todo buraya hangi deger verilecek?
                 'orgOrderId' => (string) $order['id'],
-                'TxnType'    => $this->mapTxType(PosInterface::TX_CANCEL),
+                'TxnType'    => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
                 'SecureType' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'Lang'       => $this->getLang($account, $order),
             ];
@@ -177,7 +177,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderId'     => null,
                 'orgOrderId'  => (string) $order['id'],
                 'PurchAmount' => (string) $order['amount'],
-                'TxnType'     => $this->mapTxType(PosInterface::TX_REFUND),
+                'TxnType'     => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
                 'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'Lang'        => $this->getLang($account, $order),
                 'MOTO'        => self::MOTO,

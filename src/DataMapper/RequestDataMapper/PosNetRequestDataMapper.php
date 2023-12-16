@@ -46,12 +46,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_PAY      => 'Sale',
-        PosInterface::TX_PRE_PAY  => 'Auth',
-        PosInterface::TX_POST_PAY => 'Capt',
-        PosInterface::TX_CANCEL   => 'reverse',
-        PosInterface::TX_REFUND   => 'return',
-        PosInterface::TX_STATUS   => 'agreement',
+        PosInterface::TX_TYPE_PAY      => 'Sale',
+        PosInterface::TX_TYPE_PRE_PAY  => 'Auth',
+        PosInterface::TX_TYPE_POST_PAY => 'Capt',
+        PosInterface::TX_TYPE_CANCEL   => 'reverse',
+        PosInterface::TX_TYPE_REFUND   => 'return',
+        PosInterface::TX_TYPE_STATUS   => 'agreement',
     ];
 
     /**
@@ -68,7 +68,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @param PosNetAccount      $account
-     * @param PosInterface::TX_* $txType kullanilmiyor
+     * @param PosInterface::TX_TYPE_* $txType kullanilmiyor
      *
      * {@inheritDoc}
      */
@@ -134,7 +134,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'mid'                                                   => $account->getClientId(),
             'tid'                                                   => $account->getTerminalId(),
             'tranDateRequired'                                      => '1',
-            strtolower($this->mapTxType(PosInterface::TX_POST_PAY)) => [
+            strtolower($this->mapTxType(PosInterface::TX_TYPE_POST_PAY)) => [
                 'hostLogKey'   => $order['ref_ret_num'],
                 'amount'       => $this->formatAmount($order['amount']),
                 'currencyCode' => $this->mapCurrency($order['currency']),
@@ -152,7 +152,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->prepareStatusOrder($order);
 
-        $txType = $this->mapTxType(PosInterface::TX_STATUS);
+        $txType = $this->mapTxType(PosInterface::TX_TYPE_STATUS);
 
         return [
             'mid'   => $account->getClientId(),
@@ -172,7 +172,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->prepareCancelOrder($order);
 
-        $txType      = $this->mapTxType(PosInterface::TX_CANCEL);
+        $txType      = $this->mapTxType(PosInterface::TX_TYPE_CANCEL);
         $requestData = [
             'mid'              => $account->getClientId(),
             'tid'              => $account->getTerminalId(),
@@ -205,7 +205,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->prepareRefundOrder($order);
 
-        $txType      = $this->mapTxType(PosInterface::TX_REFUND);
+        $txType      = $this->mapTxType(PosInterface::TX_TYPE_REFUND);
         $requestData = [
             'mid'              => $account->getClientId(),
             'tid'              => $account->getTerminalId(),
@@ -274,7 +274,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @phpstan-param PosInterface::TX_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
      *
      * @param PosNetAccount                        $account
      * @param array<string, int|string|float|null> $order

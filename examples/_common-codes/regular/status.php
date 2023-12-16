@@ -47,7 +47,7 @@ function createStatusOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
 $order = createStatusOrder($pos, $session, $ip);
 dump($order);
 
-$transaction = PosInterface::TX_STATUS;
+$transaction = PosInterface::TX_TYPE_STATUS;
 
 $pos->status($order);
 

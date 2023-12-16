@@ -48,15 +48,15 @@ class KuveytPos extends AbstractGateway
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
-        PosInterface::TX_PAY      => [
+        PosInterface::TX_TYPE_PAY      => [
             PosInterface::MODEL_3D_SECURE,
         ],
-        PosInterface::TX_PRE_PAY  => false,
-        PosInterface::TX_POST_PAY => false,
-        PosInterface::TX_STATUS   => true,
-        PosInterface::TX_CANCEL   => true,
-        PosInterface::TX_REFUND   => true,
-        PosInterface::TX_HISTORY  => false,
+        PosInterface::TX_TYPE_PRE_PAY  => false,
+        PosInterface::TX_TYPE_POST_PAY => false,
+        PosInterface::TX_TYPE_STATUS   => true,
+        PosInterface::TX_TYPE_CANCEL   => true,
+        PosInterface::TX_TYPE_REFUND   => true,
+        PosInterface::TX_TYPE_HISTORY  => false,
     ];
 
     /** @return KuveytPosAccount */
@@ -166,7 +166,7 @@ class KuveytPos extends AbstractGateway
      */
     protected function send($contents, string $txType, string $paymentModel, string $url = null): array
     {
-        if (in_array($txType, [PosInterface::TX_REFUND, PosInterface::TX_STATUS, PosInterface::TX_CANCEL], true)) {
+        if (in_array($txType, [PosInterface::TX_TYPE_REFUND, PosInterface::TX_TYPE_STATUS, PosInterface::TX_TYPE_CANCEL], true)) {
             if (!is_array($contents)) {
                 throw new InvalidArgumentException(sprintf('Invalid data type provided for %s transaction!', $txType));
             }
@@ -189,7 +189,7 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @phpstan-param PosInterface::TX_STATUS|PosInterface::TX_REFUND|PosInterface::TX_CANCEL $txType
+     * @phpstan-param PosInterface::TX_TYPE_STATUS|PosInterface::TX_TYPE_REFUND|PosInterface::TX_TYPE_CANCEL $txType
      *
      * @param array<string, mixed> $contents
      * @param string               $txType
@@ -248,7 +248,7 @@ class KuveytPos extends AbstractGateway
 
     /**
      * @phpstan-param  PosInterface::MODEL_3D_* $paymentModel
-     * @phpstan-param  PosInterface::TX_*       $txType
+     * @phpstan-param  PosInterface::TX_TYPE_*       $txType
      *
      * @param KuveytPosAccount                     $account
      * @param array<string, int|string|float|null> $order

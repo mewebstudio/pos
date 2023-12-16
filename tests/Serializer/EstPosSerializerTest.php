@@ -113,7 +113,7 @@ class EstPosSerializerTest extends TestCase
     <NUMCODE>00</NUMCODE>
   </Extra>
 </CC5Response>',
-            'txType'   => PosInterface::TX_PAY,
+            'txType'   => PosInterface::TX_TYPE_PAY,
             'expected' => [
                 'OrderId'        => '20230910AF6A',
                 'GroupId'        => '20230910AF6A',

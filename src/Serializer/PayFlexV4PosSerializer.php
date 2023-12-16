@@ -45,11 +45,11 @@ class PayFlexV4PosSerializer implements SerializerInterface
      */
     public function encode(array $data, string $txType): string
     {
-        if (PosInterface::TX_HISTORY === $txType) {
+        if (PosInterface::TX_TYPE_HISTORY === $txType) {
             throw new DomainException(sprintf('Serialization of the transaction %s is not supported', $txType));
         }
 
-        if (PosInterface::TX_STATUS === $txType) {
+        if (PosInterface::TX_TYPE_STATUS === $txType) {
             return $this->serializer->encode($data, XmlEncoder::FORMAT, [
                 XmlEncoder::ROOT_NODE_NAME             => 'SearchRequest',
                 XmlEncoder::ENCODING                   => 'UTF-8',

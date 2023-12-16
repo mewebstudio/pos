@@ -50,12 +50,12 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_PAY      => 'Sale',
-        PosInterface::TX_PRE_PAY  => 'Auth',
-        PosInterface::TX_POST_PAY => 'Capture',
-        PosInterface::TX_CANCEL   => 'Reverse',
-        PosInterface::TX_REFUND   => 'Return',
-        PosInterface::TX_STATUS   => 'TransactionInquiry',
+        PosInterface::TX_TYPE_PAY      => 'Sale',
+        PosInterface::TX_TYPE_PRE_PAY  => 'Auth',
+        PosInterface::TX_TYPE_POST_PAY => 'Capture',
+        PosInterface::TX_TYPE_CANCEL   => 'Reverse',
+        PosInterface::TX_TYPE_REFUND   => 'Return',
+        PosInterface::TX_TYPE_STATUS   => 'TransactionInquiry',
     ];
 
     /**
@@ -527,7 +527,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'id'               => $order['id'] ?? null,
             'payment_model'    => $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE,
             'ref_ret_num'      => $order['ref_ret_num'] ?? null,
-            'transaction_type' => $order['transaction_type'] ?? PosInterface::TX_PAY,
+            'transaction_type' => $order['transaction_type'] ?? PosInterface::TX_TYPE_PAY,
         ];
     }
 
@@ -541,7 +541,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'id'               => $order['id'] ?? null,
             'payment_model'    => $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE,
             'ref_ret_num'      => $order['ref_ret_num'] ?? null,
-            'transaction_type' => $order['transaction_type'] ?? PosInterface::TX_PAY,
+            'transaction_type' => $order['transaction_type'] ?? PosInterface::TX_TYPE_PAY,
             'amount'           => $order['amount'],
             'currency'         => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ];

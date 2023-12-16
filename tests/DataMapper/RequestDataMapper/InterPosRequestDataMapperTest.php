@@ -125,7 +125,7 @@ class InterPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($this->order, $this->card, $this->account);
         $this->assertEquals($expectedData, $actual);
@@ -168,7 +168,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'PayerAuthenticationCode' => '4',
         ];
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, PosInterface::TX_PAY, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, PosInterface::TX_TYPE_PAY, $responseData);
 
         $expectedData = $this->getSample3DPaymentRequestData($order, $this->account, $responseData);
         $this->assertEquals($expectedData, $actual);
@@ -400,7 +400,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'without_card' => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
-                'txType'       => PosInterface::TX_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentModel' => PosInterface::MODEL_3D_SECURE,
                 'isWithCard'   => false,
                 'expected'     => [
@@ -425,7 +425,7 @@ class InterPosRequestDataMapperTest extends TestCase
             'with_card'    => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
-                'txType'       => PosInterface::TX_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentModel' => PosInterface::MODEL_3D_SECURE,
                 'isWithCard'   => true,
                 'expected'     => [
@@ -454,7 +454,7 @@ class InterPosRequestDataMapperTest extends TestCase
             '3d_host'      => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx',
-                'txType'       => PosInterface::TX_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentModel' => PosInterface::MODEL_3D_HOST,
                 'isWithCard'   => false,
                 'expected'     => [

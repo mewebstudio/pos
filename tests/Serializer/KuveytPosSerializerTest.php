@@ -48,7 +48,7 @@ class KuveytPosSerializerTest extends TestCase
     public function testEncodeException(): void
     {
         $this->expectException(DomainException::class);
-        $this->serializer->encode(['abc' => 1], PosInterface::TX_HISTORY);
+        $this->serializer->encode(['abc' => 1], PosInterface::TX_TYPE_HISTORY);
     }
 
     /**
@@ -56,7 +56,7 @@ class KuveytPosSerializerTest extends TestCase
      */
     public function testDecodeHtml(string $input, array $expected): void
     {
-        $actual = $this->serializer->decode($input, PosInterface::TX_PAY);
+        $actual = $this->serializer->decode($input, PosInterface::TX_TYPE_PAY);
 
         $this->assertSame($expected, $actual);
     }
@@ -77,19 +77,19 @@ class KuveytPosSerializerTest extends TestCase
         $refundTests = iterator_to_array(KuveytPosRequestDataMapperTest::createRefundRequestDataProvider());
         yield 'test_refund' => [
             'input'    => $refundTests[0]['expected'],
-            'txType'   => PosInterface::TX_REFUND,
+            'txType'   => PosInterface::TX_TYPE_REFUND,
             'expected' => $refundTests[0]['expected'],
         ];
 
         yield 'test_cancel' => [
             'input'    => ['abc' => 1],
-            'txType'   => PosInterface::TX_CANCEL,
+            'txType'   => PosInterface::TX_TYPE_CANCEL,
             'expected' => ['abc' => 1],
         ];
 
         yield 'test_status' => [
             'input'    => ['abc' => 1],
-            'txType'   => PosInterface::TX_STATUS,
+            'txType'   => PosInterface::TX_TYPE_STATUS,
             'expected' => ['abc' => 1],
         ];
     }
@@ -190,7 +190,7 @@ HTML;
     {
         yield [
             'input'    => '<?xml version="1.0" encoding="UTF-8"?><VPosTransactionResponseContract><VPosMessage><APIVersion>1.0.0</APIVersion><OkUrl>http://localhost:44785/Home/Success</OkUrl><FailUrl>http://localhost:44785/Home/Fail</FailUrl><HashData>lYJYMi/gVO9MWr32Pshaa/zAbSHY=</HashData><MerchantId>80</MerchantId><SubMerchantId>0</SubMerchantId><CustomerId>400235</CustomerId><UserName>apiuser</UserName><CardNumber>4025502306586032</CardNumber><CardHolderName>ğĞüÜşŞiİöÖÇçüÜ</CardHolderName><CardType>MasterCard</CardType><BatchID>0</BatchID><TransactionType>Sale</TransactionType><InstallmentCount>0</InstallmentCount><Amount>100</Amount><DisplayAmount>100</DisplayAmount><MerchantOrderId>Order 123</MerchantOrderId><FECAmount>0</FECAmount><CurrencyCode>0949</CurrencyCode><QeryId>0</QeryId><DebtId>0</DebtId><SurchargeAmount>0</SurchargeAmount><SGKDebtAmount>0</SGKDebtAmount><TransactionSecurity>3</TransactionSecurity><TransactionSide>Auto</TransactionSide><EntryGateMethod>VPOS_ThreeDModelPayGate</EntryGateMethod></VPosMessage><IsEnrolled>true</IsEnrolled><IsVirtual>false</IsVirtual><OrderId>0</OrderId><TransactionTime>0001-01-01T00:00:00</TransactionTime><ResponseCode>00</ResponseCode><ResponseMessage>HATATA</ResponseMessage><MD>67YtBfBRTZ0XBKnAHi8c/A==</MD><AuthenticationPacket>WYGDgSIrSHDtYwF/WEN+nfwX63sppA=</AuthenticationPacket><ACSURL>https://acs.bkm.com.tr/mdpayacs/pareq</ACSURL></VPosTransactionResponseContract>',
-            'txType'   => PosInterface::TX_PAY,
+            'txType'   => PosInterface::TX_TYPE_PAY,
             'expected' => [
                 'VPosMessage'          => [
                     'APIVersion'          => '1.0.0',
@@ -237,17 +237,17 @@ HTML;
     {
         yield 'test_cancel' => [
             'input'    => '{"abc": 1}',
-            'txType'   => PosInterface::TX_CANCEL,
+            'txType'   => PosInterface::TX_TYPE_CANCEL,
             'expected' => ['abc' => 1],
         ];
         yield 'test_refund' => [
             'input'    => '{"abc": 1}',
-            'txType'   => PosInterface::TX_REFUND,
+            'txType'   => PosInterface::TX_TYPE_REFUND,
             'expected' => ['abc' => 1],
         ];
         yield 'test_status' => [
             'input'    => '{"abc": 1}',
-            'txType'   => PosInterface::TX_STATUS,
+            'txType'   => PosInterface::TX_TYPE_STATUS,
             'expected' => ['abc' => 1],
         ];
     }

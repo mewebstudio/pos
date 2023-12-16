@@ -88,7 +88,7 @@ class InterPosTest extends TestCase
         $gatewayResponse = $interPosResponseDataMapperTest->threeDPaymentDataProvider()['authFail1']['threeDResponseData'];
         $request = Request::create('', 'POST', $gatewayResponse);
 
-        $this->pos->make3DPayment($request, $this->order, PosInterface::TX_PAY, $this->card);
+        $this->pos->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
         $result = $this->pos->getResponse();
         $this->assertIsArray($result);
 
@@ -107,7 +107,7 @@ class InterPosTest extends TestCase
         $gatewayResponse = $interPosResponseDataMapperTest->threeDPayPaymentDataProvider()['authFail1']['paymentData'];
         $request = Request::create('', 'POST', $gatewayResponse);
 
-        $this->pos->make3DPayment($request, $this->order, PosInterface::TX_PAY, $this->card);
+        $this->pos->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
         $result = $this->pos->getResponse();
         $this->assertIsArray($result);
 

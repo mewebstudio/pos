@@ -13,7 +13,7 @@ use Mews\Pos\PosInterface;
 interface RequestDataMapperInterface
 {
     /**
-     * @return array<PosInterface::TX_*, string>
+     * @return array<PosInterface::TX_TYPE_*, string>
      */
     public function getTxTypeMappings(): array;
 
@@ -43,7 +43,7 @@ interface RequestDataMapperInterface
     public function getCrypt(): CryptInterface;
 
     /**
-     * @phpstan-param PosInterface::TX_*           $txType
+     * @phpstan-param PosInterface::TX_TYPE_*           $txType
      * @phpstan-param PosInterface::MODEL_3D_*     $paymentModel
      *
      * @param AbstractPosAccount                   $account
@@ -58,7 +58,7 @@ interface RequestDataMapperInterface
     public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array;
 
     /**
-     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
      *
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
@@ -70,7 +70,7 @@ interface RequestDataMapperInterface
     public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array;
 
     /**
-     * @phpstan-param PosInterface::TX_*           $txType
+     * @phpstan-param PosInterface::TX_TYPE_*           $txType
      *
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order

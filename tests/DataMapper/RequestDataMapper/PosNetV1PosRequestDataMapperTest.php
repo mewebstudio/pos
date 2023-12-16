@@ -142,7 +142,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData(array $order, array $expectedData)
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account,$order, PosInterface::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account,$order, PosInterface::TX_TYPE_PAY, $this->card);
 
         $this->assertEquals($expectedData, $actual);
     }
@@ -218,7 +218,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         $gatewayUrl = 'https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx';
         yield [
             'order'      => $order,
-            'txType'     => PosInterface::TX_PAY,
+            'txType'     => PosInterface::TX_TYPE_PAY,
             'gatewayUrl' => $gatewayUrl,
             'expected'   => [
                 'inputs'  => [
@@ -373,7 +373,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         ];
         yield [
             'order'        => $order,
-            'txType'       => PosInterface::TX_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 'SecureTransactionId' => '1010028947569644',
                 'CAVV'                => 'jKOBaLBL3hQ+CREBPu1HBQQAAAA=',
@@ -417,7 +417,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'ref_ret_num'      => '159044932490000231',
                 'amount'           => 112,
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
-                'transaction_type' => PosInterface::TX_PAY,
+                'transaction_type' => PosInterface::TX_TYPE_PAY,
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -441,7 +441,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'id'               => '000000002020110828BC',
                 'amount'           => 112,
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
-                'transaction_type' => PosInterface::TX_PAY,
+                'transaction_type' => PosInterface::TX_TYPE_PAY,
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -465,7 +465,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'ref_ret_num'      => '159044932490000231',
                 'amount'           => 112,
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
-                'transaction_type' => PosInterface::TX_PAY,
+                'transaction_type' => PosInterface::TX_TYPE_PAY,
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -489,7 +489,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'ref_ret_num'      => '159044932490000231',
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
                 'amount'           => 112,
-                'transaction_type' => PosInterface::TX_PRE_PAY,
+                'transaction_type' => PosInterface::TX_TYPE_PRE_PAY,
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -515,7 +515,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             'order'    => [
                 'id'               => '000000002020110828BC',
                 'ref_ret_num'      => '159044932490000231',
-                'transaction_type' => PosInterface::TX_PAY,
+                'transaction_type' => PosInterface::TX_TYPE_PAY,
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -538,7 +538,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             'order'    => [
                 'id'               => '000000002020110828BC',
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
-                'transaction_type' => PosInterface::TX_PAY,
+                'transaction_type' => PosInterface::TX_TYPE_PAY,
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -560,7 +560,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         yield 'withReferenceCode' => [
             'order'    => [
                 'ref_ret_num'      => '159044932490000231',
-                'transaction_type' => PosInterface::TX_PAY,
+                'transaction_type' => PosInterface::TX_TYPE_PAY,
             ],
             'expected' => [
                 'ApiType'                => 'JSON',
@@ -582,7 +582,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         yield 'cancelPrePay' => [
             'order'    => [
                 'ref_ret_num'      => '159044932490000231',
-                'transaction_type' => PosInterface::TX_PRE_PAY,
+                'transaction_type' => PosInterface::TX_TYPE_PRE_PAY,
             ],
             'expected' => [
                 'ApiType'                => 'JSON',

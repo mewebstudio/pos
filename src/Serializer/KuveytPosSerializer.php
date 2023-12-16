@@ -26,9 +26,9 @@ class KuveytPosSerializer implements SerializerInterface
 {
     /** @var string[] */
     private array $nonPaymentTransactions = [
-        PosInterface::TX_REFUND,
-        PosInterface::TX_STATUS,
-        PosInterface::TX_CANCEL,
+        PosInterface::TX_TYPE_REFUND,
+        PosInterface::TX_TYPE_STATUS,
+        PosInterface::TX_TYPE_CANCEL,
     ];
 
     private Serializer $serializer;
@@ -56,7 +56,7 @@ class KuveytPosSerializer implements SerializerInterface
      */
     public function encode(array $data, string $txType)
     {
-        if (PosInterface::TX_HISTORY === $txType) {
+        if (PosInterface::TX_TYPE_HISTORY === $txType) {
             throw new DomainException(sprintf('Serialization of the transaction %s is not supported', $txType));
         }
 

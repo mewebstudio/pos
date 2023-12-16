@@ -200,7 +200,7 @@ class AkOdePosTest extends TestCase
     public function testMake3DPayment(Request $request): void
     {
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->make3DPayment($request, [], PosInterface::TX_PAY, $this->card);
+        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY, $this->card);
     }
 
     /**
@@ -279,7 +279,7 @@ class AkOdePosTest extends TestCase
             ->willReturn($mappedResponse);
 
         $this->configureClientResponse(
-            PosInterface::TX_STATUS,
+            PosInterface::TX_TYPE_STATUS,
             'https://ent.akodepos.com/api/Payment/inquiry',
             $requestData,
             $encodedRequest,
@@ -323,7 +323,7 @@ class AkOdePosTest extends TestCase
             ->willReturn($mappedResponse);
 
         $this->configureClientResponse(
-            PosInterface::TX_CANCEL,
+            PosInterface::TX_TYPE_CANCEL,
             'https://ent.akodepos.com/api/Payment/void',
             $requestData,
             $encodedRequest,
@@ -366,7 +366,7 @@ class AkOdePosTest extends TestCase
             ->willReturn($mappedResponse);
 
         $this->configureClientResponse(
-            PosInterface::TX_REFUND,
+            PosInterface::TX_TYPE_REFUND,
             'https://ent.akodepos.com/api/Payment/refund',
             $requestData,
             $encodedRequest,
@@ -410,7 +410,7 @@ class AkOdePosTest extends TestCase
             ->willReturn($mappedResponse);
 
         $this->configureClientResponse(
-            PosInterface::TX_HISTORY,
+            PosInterface::TX_TYPE_HISTORY,
             'https://ent.akodepos.com/api/Payment/history',
             $requestData,
             $encodedRequest,
@@ -482,7 +482,7 @@ class AkOdePosTest extends TestCase
         yield [
             'order'               => AkOdePosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['order'],
             'paymentModel'        => PosInterface::MODEL_3D_PAY,
-            'txType'              => PosInterface::TX_PAY,
+            'txType'              => PosInterface::TX_TYPE_PAY,
             'isWithCard'          => true,
             'requestData'         => AkOdePosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
             'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
@@ -550,52 +550,52 @@ class AkOdePosTest extends TestCase
     {
         return [
             [
-                'txType'       => PosInterface::TX_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentModel' => PosInterface::MODEL_3D_PAY,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPayment',
             ],
             [
-                'txType'       => PosInterface::TX_PRE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
                 'paymentModel' => PosInterface::MODEL_3D_PAY,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPreAuth',
             ],
             [
-                'txType'       => PosInterface::TX_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentModel' => PosInterface::MODEL_3D_HOST,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPayment',
             ],
             [
-                'txType'       => PosInterface::TX_PRE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
                 'paymentModel' => PosInterface::MODEL_3D_HOST,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPreAuth',
             ],
             [
-                'txType'       => PosInterface::TX_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/Payment',
             ],
             [
-                'txType'       => PosInterface::TX_POST_PAY,
+                'txType'       => PosInterface::TX_TYPE_POST_PAY,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/postAuth',
             ],
             [
-                'txType'       => PosInterface::TX_STATUS,
+                'txType'       => PosInterface::TX_TYPE_STATUS,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/inquiry',
             ],
             [
-                'txType'       => PosInterface::TX_CANCEL,
+                'txType'       => PosInterface::TX_TYPE_CANCEL,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/void',
             ],
             [
-                'txType'       => PosInterface::TX_REFUND,
+                'txType'       => PosInterface::TX_TYPE_REFUND,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/refund',
             ],
             [
-                'txType'       => PosInterface::TX_HISTORY,
+                'txType'       => PosInterface::TX_TYPE_HISTORY,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/history',
             ],

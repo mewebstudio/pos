@@ -40,10 +40,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_PAY    => 'Sale',
-        PosInterface::TX_CANCEL => 'SaleReversal',
-        PosInterface::TX_STATUS => 'GetMerchantOrderDetail',
-        PosInterface::TX_REFUND => 'PartialDrawback', // Also there is a "Drawback"
+        PosInterface::TX_TYPE_PAY    => 'Sale',
+        PosInterface::TX_TYPE_CANCEL => 'SaleReversal',
+        PosInterface::TX_TYPE_STATUS => 'GetMerchantOrderDetail',
+        PosInterface::TX_TYPE_REFUND => 'PartialDrawback', // Also there is a "Drawback"
     ];
 
     /**
@@ -108,7 +108,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
-     * @phpstan-param PosInterface::TX_*       $txType
+     * @phpstan-param PosInterface::TX_TYPE_*       $txType
      *
      * @param KuveytPosAccount                     $account
      * @param array<string, int|string|float|null> $order
@@ -210,7 +210,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'SubMerchantId'                    => 0,
                     'CardType'                         => $this->cardTypeMapping[CreditCardInterface::CARD_TYPE_VISA], // Default gönderilebilir.
                     'BatchID'                          => 0,
-                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_STATUS),
+                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_TYPE_STATUS),
                     'InstallmentCount'                 => 0,
                     'Amount'                           => 0,
                     'DisplayAmount'                    => 0,
@@ -261,7 +261,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'SubMerchantId'                    => 0,
                     'CardType'                         => $this->cardTypeMapping[CreditCardInterface::CARD_TYPE_VISA], //Default gönderilebilir.
                     'BatchID'                          => 0,
-                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_CANCEL),
+                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
                     'InstallmentCount'                 => 0,
                     'Amount'                           => $this->formatAmount($order['amount']),
                     'DisplayAmount'                    => $this->formatAmount($order['amount']),
@@ -312,7 +312,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'SubMerchantId'                    => 0,
                     'CardType'                         => $this->cardTypeMapping[CreditCardInterface::CARD_TYPE_VISA], //Default gönderilebilir.
                     'BatchID'                          => 0,
-                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_REFUND),
+                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
                     'InstallmentCount'                 => 0,
                     'Amount'                           => $this->formatAmount($order['amount']),
                     'DisplayAmount'                    => 0,

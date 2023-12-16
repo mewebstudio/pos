@@ -22,25 +22,25 @@ interface PosInterface
     public const LANG_EN = 'en';
 
     /** @var string */
-    public const TX_PAY = 'pay';
+    public const TX_TYPE_PAY = 'pay';
 
     /** @var string */
-    public const TX_PRE_PAY = 'pre';
+    public const TX_TYPE_PRE_PAY = 'pre';
 
     /** @var string */
-    public const TX_POST_PAY = 'post';
+    public const TX_TYPE_POST_PAY = 'post';
 
     /** @var string */
-    public const TX_CANCEL = 'cancel';
+    public const TX_TYPE_CANCEL = 'cancel';
 
     /** @var string */
-    public const TX_REFUND = 'refund';
+    public const TX_TYPE_REFUND = 'refund';
 
     /** @var string */
-    public const TX_STATUS = 'status';
+    public const TX_TYPE_STATUS = 'status';
 
     /** @var string */
-    public const TX_HISTORY = 'history';
+    public const TX_TYPE_HISTORY = 'history';
 
     /** @var string */
     public const MODEL_3D_SECURE = '3d';
@@ -97,7 +97,7 @@ interface PosInterface
      * returns form data, key values, necessary for 3D payment
      *
      * @phpstan-param PosInterface::MODEL_3D_*                      $paymentModel
-     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
      *
      * @param array<string, mixed>     $order
      * @param string                   $paymentModel
@@ -110,7 +110,7 @@ interface PosInterface
 
     /**
      * Regular Payment
-     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
      *
      * @param array<string, mixed> $order
      * @param CreditCardInterface  $card
@@ -131,7 +131,7 @@ interface PosInterface
 
     /**
      * Make 3D Payment
-     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
      *
      * @param Request                  $request
      * @param array<string, mixed>     $order
@@ -166,7 +166,7 @@ interface PosInterface
      * can be used for all kind of payment transactions and payment models
      *
      * @phpstan-param PosInterface::MODEL_*                                                   $paymentModel
-     * @phpstan-param PosInterface::TX_PAY|PosInterface::TX_PRE_PAY|PosInterface::TX_POST_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY|PosInterface::TX_TYPE_POST_PAY $txType
      *
      * @param string                   $paymentModel
      * @param array<string, mixed>     $order
@@ -256,7 +256,7 @@ interface PosInterface
     public function getAccount(): AbstractPosAccount;
 
     /**
-     * @phpstan-param PosInterface::TX_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
      * @phpstan-param PosInterface::MODEL_* $paymentModel
      *
      * @param string $txType

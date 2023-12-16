@@ -105,7 +105,7 @@ class PosNetV1PosTest extends TestCase
         $posMock->setTestMode(true);
         $posMock->expects($this->exactly(1))->method('send')->willReturn($paymentResponseData);
 
-        $posMock->make3DPayment($request, $order, PosInterface::TX_PAY, $this->card);
+        $posMock->make3DPayment($request, $order, PosInterface::TX_TYPE_PAY, $this->card);
         $resp = $posMock->getResponse();
         unset($resp['all'], $resp['3d_all']);
 
@@ -133,12 +133,12 @@ class PosNetV1PosTest extends TestCase
     public static function getApiURLDataProvider(): iterable
     {
         yield [
-            'txType' => PosInterface::TX_PAY,
+            'txType' => PosInterface::TX_TYPE_PAY,
             'expected' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
         ];
 
         yield [
-            'txType' => PosInterface::TX_CANCEL,
+            'txType' => PosInterface::TX_TYPE_CANCEL,
             'expected' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Reverse',
         ];
     }

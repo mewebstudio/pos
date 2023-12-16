@@ -124,7 +124,7 @@ class PayForPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
@@ -421,7 +421,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             'without_card' => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
-                'txType'       => PosInterface::TX_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentModel' => PosInterface::MODEL_3D_SECURE,
                 'isWithCard'   => false,
                 'expected'     => [
@@ -448,7 +448,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             'with_card'    => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
-                'txType'       => PosInterface::TX_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentModel' => PosInterface::MODEL_3D_SECURE,
                 'isWithCard'   => true,
                 'expected'     => [
@@ -479,7 +479,7 @@ class PayForPosRequestDataMapperTest extends TestCase
             '3d_host' => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx',
-                'txType'       => PosInterface::TX_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentModel' => PosInterface::MODEL_3D_HOST,
                 'isWithCard'   => false,
                 'expected'     => [

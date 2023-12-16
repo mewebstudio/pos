@@ -61,7 +61,7 @@ function createCancelOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
 $order = createCancelOrder($pos, $session, $ip);
 dump($order);
 
-$transaction = PosInterface::TX_CANCEL;
+$transaction = PosInterface::TX_TYPE_CANCEL;
 
 $pos->cancel($order);
 

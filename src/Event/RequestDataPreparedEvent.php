@@ -18,11 +18,11 @@ class RequestDataPreparedEvent
 
     private string $bank;
 
-    /** @var PosInterface::TX_* */
+    /** @var PosInterface::TX_TYPE_* */
     private string $txType;
 
     /**
-     * @phpstan-param PosInterface::TX_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
      *
      * @param array<string, mixed> $requestData
      * @param string               $bank
@@ -59,7 +59,7 @@ class RequestDataPreparedEvent
     }
 
     /**
-     * @return PosInterface::TX_*
+     * @return PosInterface::TX_TYPE_*
      */
     public function getTxType(): string
     {

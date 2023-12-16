@@ -48,7 +48,7 @@ function createRefundOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
 $order = createRefundOrder($pos, $session, $ip);
 dump($order);
 
-$transaction = PosInterface::TX_REFUND;
+$transaction = PosInterface::TX_TYPE_REFUND;
 
 $pos->refund($order);
 

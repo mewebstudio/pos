@@ -74,7 +74,7 @@ class AkOdePosSerializerTest extends TestCase
         return [
             'payment_register' => [
                 'input'   => '{"ThreeDSessionId":"PA49E341381C94587AB4CB196DAC10DC02E509578520E4471A3EEE2BB4830AE4F","TransactionId":"2000000000032439","Code":0,"Message":"Ba\u015far\u0131l\u0131"}',
-                'txType'  => PosInterface::TX_PAY,
+                'txType'  => PosInterface::TX_TYPE_PAY,
                 'decoded' => [
                     'ThreeDSessionId' => 'PA49E341381C94587AB4CB196DAC10DC02E509578520E4471A3EEE2BB4830AE4F',
                     'TransactionId'   => '2000000000032439',

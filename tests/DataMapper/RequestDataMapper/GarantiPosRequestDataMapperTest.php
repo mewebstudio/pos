@@ -135,7 +135,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
@@ -225,7 +225,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
             $this->account,
             $this->order,
             PosInterface::MODEL_3D_SECURE,
-            PosInterface::TX_PAY,
+            PosInterface::TX_TYPE_PAY,
             $gatewayURL,
             $this->card
         ));

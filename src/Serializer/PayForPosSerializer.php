@@ -47,7 +47,7 @@ class PayForPosSerializer implements SerializerInterface
      */
     public function decode(string $data, string $txType): array
     {
-        if (PosInterface::TX_HISTORY === $txType) {
+        if (PosInterface::TX_TYPE_HISTORY === $txType) {
             return $this->serializer->decode($data, JsonEncoder::FORMAT);
         }
 
