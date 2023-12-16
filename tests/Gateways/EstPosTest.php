@@ -64,8 +64,7 @@ class EstPosTest extends TestCase
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => 'tr',
-            'rand'        => microtime(),
+            'lang'        => PosInterface::LANG_TR,
         ];
 
         $this->pos = PosFactory::createPosGateway($this->account, $this->config, $this->createMock(EventDispatcherInterface::class));

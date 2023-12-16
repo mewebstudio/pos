@@ -123,9 +123,6 @@ function getNewOrder(
         // 3d, 3d_pay, 3d_host odemeler icin zorunlu
         'success_url' => $successUrl, // https://example.com/payment
         'fail_url'    => $failUrl, // https://example.com/payment
-
-        // gateway'e gore zorunlu olan degerler
-        'rand'        => substr(md5(uniqid(time())), 0, 23), // AkOdePos, EstPos, Garanti, PayFor, InterPos, VakifBank
     ];
 
     if ($lang) {

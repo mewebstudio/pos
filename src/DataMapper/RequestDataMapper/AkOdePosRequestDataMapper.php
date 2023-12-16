@@ -50,7 +50,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
                 'amount'           => $this->formatAmount($order['amount']),
                 'currency'         => (int) $this->mapCurrency($order['currency']),
                 'installmentCount' => (int) $this->mapInstallment($order['installment']),
-                'rnd'              => $order['rand'],
+                'rnd'              => $this->crypt->generateRandomString(),
                 'timeSpan'         => $order['timeSpan'],
             ];
 
@@ -83,7 +83,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
                 'amount'           => $this->formatAmount($order['amount']),
                 'currency'         => (int) $this->mapCurrency($order['currency']),
                 'installmentCount' => (int) $this->mapInstallment($order['installment']),
-                'rnd'              => $order['rand'],
+                'rnd'              => $this->crypt->generateRandomString(),
                 'timeSpan'         => $order['timeSpan'],
                 'cardHolderName'   => $card->getHolderName(),
                 'cardNo'           => $card->getNumber(),
@@ -106,7 +106,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
                 'orderId'  => (string) $order['id'],
                 'amount'   => $this->formatAmount($order['amount']),
-                'rnd'      => $order['rand'],
+                'rnd'      => $this->crypt->generateRandomString(),
                 'timeSpan' => $order['timeSpan'],
             ];
 
@@ -124,7 +124,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = [
                 'orderId'  => (string) $order['id'],
-                'rnd'      => $order['rand'],
+                'rnd'      => $this->crypt->generateRandomString(),
                 'timeSpan' => $order['timeSpan'],
             ];
 
@@ -142,7 +142,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = [
                 'orderId'  => (string) $order['id'],
-                'rnd'      => $order['rand'],
+                'rnd'      => $this->crypt->generateRandomString(),
                 'timeSpan' => $order['timeSpan'],
             ];
 
@@ -160,7 +160,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = [
             'orderId'  => (string) $order['id'],
-            'rnd'      => $order['rand'],
+            'rnd'      => $this->crypt->generateRandomString(),
             'amount'   => $this->formatAmount($order['amount']),
             'timeSpan' => $order['timeSpan'],
         ];
@@ -181,7 +181,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
             'transactionDate' => $order['transactionDate']->format('Ymd'),
             'page'            => $order['page'],
             'pageSize'        => $order['pageSize'],
-            'rnd'             => $order['rand'],
+            'rnd'             => $this->crypt->generateRandomString(),
             'timeSpan'        => $order['timeSpan'],
         ];
 
@@ -254,7 +254,6 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         return \array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
-            'rand'        => $order['rand'],
             'timeSpan'    => $order['timeSpan'] ?? $this->newTimeSpan(),
         ]);
     }
@@ -267,7 +266,6 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'rand'     => $order['rand'],
             'timeSpan' => $order['timeSpan'] ?? $this->newTimeSpan(),
         ];
     }
@@ -279,7 +277,6 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     {
         return \array_merge($order, [
             'id'       => $order['id'],
-            'rand'     => $order['rand'],
             'timeSpan' => $order['timeSpan'] ?? $this->newTimeSpan(),
         ]);
     }
@@ -291,7 +288,6 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     {
         return \array_merge($order, [
             'id'       => $order['id'],
-            'rand'     => $order['rand'],
             'timeSpan' => $order['timeSpan'] ?? $this->newTimeSpan(),
         ]);
     }
@@ -304,7 +300,6 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'id'       => $order['id'],
             'amount'   => $order['amount'],
-            'rand'     => $order['rand'],
             'timeSpan' => $order['timeSpan'] ?? $this->newTimeSpan(),
         ];
     }
@@ -319,7 +314,6 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
             'transactionDate' => $order['transactionDate'],
             'page'            => $order['page'] ?? 1,
             'pageSize'        => $order['pageSize'] ?? 10,
-            'rand'            => $order['rand'],
             'timeSpan'        => $order['timeSpan'] ?? $this->newTimeSpan(),
         ];
     }

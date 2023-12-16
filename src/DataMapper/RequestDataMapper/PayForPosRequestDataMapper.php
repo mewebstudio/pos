@@ -214,7 +214,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'Currency'         => $this->mapCurrency($order['currency']),
             'OkUrl'            => (string) $order['success_url'],
             'FailUrl'          => (string) $order['fail_url'],
-            'Rnd'              => (string) $order['rand'],
+            'Rnd'              => $this->crypt->generateRandomString(),
         ];
 
         if ($card instanceof CreditCardInterface) {

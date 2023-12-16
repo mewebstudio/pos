@@ -221,7 +221,6 @@ $order = [
     //Success ve Fail URL'ler farklı olabilir ama kütüphane success ve fail için aynı kod çalıştırır.
     'success_url' => 'https://example.com/response.php',
     'fail_url'    => 'https://example.com/response.php',
-    'rand'        => md5(uniqid(time())), // EstPos, Garanti, PayFor, InterPos, VakifBank. Rastegele değer.
 
     //lang degeri verilmezse account (EstPosAccount) dili kullanılacak
     'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.

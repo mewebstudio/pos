@@ -5,18 +5,17 @@
 
 namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\AkOdePosRequestDataMapper;
 use Mews\Pos\Entity\Account\AkOdePosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AkOdePos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\AkOdePosRequestDataMapper
@@ -26,6 +25,9 @@ class AkOdePosRequestDataMapperTest extends TestCase
     private AkOdePosAccount $account;
 
     private CreditCardInterface $card;
+
+    /** @var CryptInterface & MockObject */
+    private CryptInterface $crypt;
 
     private AkOdePosRequestDataMapper $requestDataMapper;
 
@@ -45,7 +47,8 @@ class AkOdePosRequestDataMapperTest extends TestCase
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $pos        = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
-        $this->requestDataMapper = new AkOdePosRequestDataMapper($dispatcher, CryptFactory::createGatewayCrypt(AkOdePos::class, new NullLogger()));
+        $this->crypt             = $this->createMock(CryptInterface::class);
+        $this->requestDataMapper = new AkOdePosRequestDataMapper($dispatcher, $this->crypt);
         $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
@@ -85,6 +88,13 @@ class AkOdePosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['rnd']);
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn($expected['hash']);
+
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
     }
@@ -94,6 +104,13 @@ class AkOdePosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DEnrollmentCheckRequestData(array $order, string $paymentModel, string $txType, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['rnd']);
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->willReturn($expected['hash']);
+
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $paymentModel, $txType);
         $this->assertEquals($expected, $actual);
     }
@@ -103,6 +120,13 @@ class AkOdePosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData(array $order, string $txType, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['rnd']);
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn($expected['hash']);
+
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
         $this->assertEquals($expected, $actual);
     }
@@ -112,6 +136,13 @@ class AkOdePosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData(array $order, array $expected)
     {
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['rnd']);
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn($expected['hash']);
+
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
         $this->assertEquals($expected, $actual);
@@ -122,6 +153,13 @@ class AkOdePosRequestDataMapperTest extends TestCase
      */
     public function testCreateHistoryRequestData(array $order, array $expected)
     {
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['rnd']);
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn($expected['hash']);
+
         $actual = $this->requestDataMapper->createHistoryRequestData($this->account, $order);
 
         $this->assertEquals($expected, $actual);
@@ -134,6 +172,12 @@ class AkOdePosRequestDataMapperTest extends TestCase
     public function testGet3DFormData(array $order, string $txType, string $paymentModel, bool $withCard, string $gatewayURL, array $expected)
     {
         $card = $withCard ? $this->card : null;
+
+        $this->crypt->expects(self::never())
+            ->method('create3DHash');
+
+        $this->crypt->expects(self::never())
+            ->method('generateRandomString');
 
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
@@ -152,6 +196,13 @@ class AkOdePosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData(array $order, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['rnd']);
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn($expected['hash']);
+
         $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
         $this->assertEquals($expected, $actualData);
@@ -162,6 +213,13 @@ class AkOdePosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData(array $order, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['rnd']);
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn($expected['hash']);
+
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
         $this->assertEquals($expected, $actual);
@@ -173,7 +231,6 @@ class AkOdePosRequestDataMapperTest extends TestCase
             [
                 'order'    => [
                     'id'       => 'id-12',
-                    'rand'     => 'rand-212s',
                     'timeSpan' => '20231209215355',
                 ],
                 'expected' => [
@@ -194,7 +251,6 @@ class AkOdePosRequestDataMapperTest extends TestCase
             [
                 'order'    => [
                     'id'       => 'id-12',
-                    'rand'     => 'rand-212s',
                     'timeSpan' => '20231209215355',
                 ],
                 'expected' => [
@@ -215,7 +271,6 @@ class AkOdePosRequestDataMapperTest extends TestCase
             [
                 'order'    => [
                     'id'       => 'id-12',
-                    'rand'     => 'rand-212s',
                     'amount'   => 1.02,
                     'timeSpan' => '20231209215355',
                 ],
@@ -240,7 +295,6 @@ class AkOdePosRequestDataMapperTest extends TestCase
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
-            'rand'        => 'rand',
             'timeSpan'    => '20231209214708',
         ];
 
@@ -273,7 +327,6 @@ class AkOdePosRequestDataMapperTest extends TestCase
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
-            'rand'        => 'rand',
             'timeSpan'    => '20231209214708',
         ];
 
@@ -307,7 +360,6 @@ class AkOdePosRequestDataMapperTest extends TestCase
                 'order'    => [
                     'id'       => '2020110828BC',
                     'amount'   => 1.10,
-                    'rand'     => 'raranra',
                     'timeSpan' => '20231209213944',
                 ],
                 'expected' => [
@@ -329,7 +381,6 @@ class AkOdePosRequestDataMapperTest extends TestCase
             [
                 'order'    => [
                     'id'              => '2020110828BC',
-                    'rand'            => 'rand-123',
                     'timeSpan'        => '20231209215355',
                     'transactionDate' => new \DateTime('2023-12-09 00:00:00'),
                 ],
@@ -348,7 +399,6 @@ class AkOdePosRequestDataMapperTest extends TestCase
             [
                 'order'    => [
                     'id'              => '2020110828BC',
-                    'rand'            => 'rand-123',
                     'timeSpan'        => '20231209215355',
                     'page'            => 2,
                     'pageSize'        => 5,

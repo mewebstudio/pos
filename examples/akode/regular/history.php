@@ -14,7 +14,6 @@ $order = [
     'transactionDate' => new DateTime(), // odeme tarihi
     'page'            => 1, // optional, default: 1
     'pageSize'        => 10, // optional, default: 10
-    'rand'            => substr(md5(uniqid(time())), 0, 23), //AkOde
 ];
 
 $transaction = PosInterface::TX_HISTORY;

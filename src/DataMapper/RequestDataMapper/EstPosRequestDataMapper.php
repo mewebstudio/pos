@@ -267,7 +267,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'oid'         => (string) $order['id'],
             'okUrl'       => (string) $order['success_url'],
             'failUrl'     => (string) $order['fail_url'],
-            'rnd'         => (string) $order['rand'],
+            'rnd'         => $this->crypt->generateRandomString(),
             'lang'        => $this->getLang($account, $order),
             'currency'    => $this->mapCurrency((string) $order['currency']),
             'taksit'      => $this->mapInstallment((int) $order['installment']),

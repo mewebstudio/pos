@@ -2,21 +2,21 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper
@@ -29,15 +29,16 @@ class EstPosRequestDataMapperTest extends TestCase
 
     private EstPosRequestDataMapper $requestDataMapper;
 
-    private array $order;
+    /** @var CryptInterface & MockObject */
+    private CryptInterface $crypt;
 
-    private array $config;
+    private array $order;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../../config/pos_test.php';
+        $config = require __DIR__.'/../../../config/pos_test.php';
 
         $this->account = AccountFactory::createEstPosAccount(
             'akbank',
@@ -56,13 +57,13 @@ class EstPosRequestDataMapperTest extends TestCase
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => 'tr',
-            'rand'        => 'rand',
+            'lang'        => PosInterface::LANG_TR,
         ];
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
+        $dispatcher  = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt = $this->createMock(CryptInterface::class);
+        $pos         = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
-        $this->requestDataMapper = new EstPosRequestDataMapper($dispatcher, CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger()));
+        $this->requestDataMapper = new EstPosRequestDataMapper($dispatcher, $this->crypt);
         $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
@@ -156,7 +157,7 @@ class EstPosRequestDataMapperTest extends TestCase
     public function testCreateCancelRecurringOrderRequestData()
     {
         $order = [
-            'id' => '2020110828BC',
+            'id'                              => '2020110828BC',
             'recurringOrderInstallmentNumber' => '2',
         ];
 
@@ -191,94 +192,35 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider threeDFormDataProvider
      */
-    public function testGet3DFormData()
+    public function testGet3DFormData(
+        array  $order,
+        string $gatewayURL,
+        string $txType,
+        string $paymentModel,
+        bool   $isWithCard,
+        array  $expected
+    ): void
     {
-        $txType = PosInterface::TX_PAY;
-        $card       = $this->card;
-        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->willReturn($expected['inputs']['hash']);
 
-        $inputs = [
-            'clientid'    => $this->account->getClientId(),
-            'storetype'   => PosInterface::MODEL_3D_SECURE,
-            'hash'        => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
-            'amount'      => $this->order['amount'],
-            'oid'         => $this->order['id'],
-            'okUrl'       => $this->order['success_url'],
-            'failUrl'     => $this->order['fail_url'],
-            'rnd'         => $this->order['rand'],
-            'lang'        => 'tr',
-            'currency'    => 949,
-            'islemtipi'   => 'Auth',
-            'taksit'      => '',
-        ];
-        $form   = [
-            'gateway' => $gatewayURL,
-            'method'  => 'POST',
-            'inputs'  => $inputs,
-        ];
-        //test without card
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['inputs']['rnd']);
+
+        $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_SECURE,
-            $txType,
-            $gatewayURL
-        ));
-
-        //test with card
-        if ($card) {
-            $form['inputs']['cardType']                        = '1';
-            $form['inputs']['pan']                             = $card->getNumber();
-            $form['inputs']['Ecom_Payment_Card_ExpDate_Month'] = '01';
-            $form['inputs']['Ecom_Payment_Card_ExpDate_Year']  = '22';
-            $form['inputs']['cv2']                             = $card->getCvv();
-        }
-
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_SECURE,
+            $order,
+            $paymentModel,
             $txType,
             $gatewayURL,
-            $card
-        ));
-    }
+            $isWithCard ? $this->card : null
+        );
 
-    /**
-     * @return void
-     */
-    public function testGet3DHostFormData()
-    {
-        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
-        $inputs     = [
-            'clientid'    => $this->account->getClientId(),
-            'storetype'   => '3d_host',
-            'hash'        => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
-            'amount'      => $this->order['amount'],
-            'oid'         => $this->order['id'],
-            'okUrl'       => $this->order['success_url'],
-            'failUrl'     => $this->order['fail_url'],
-            'rnd'         => $this->order['rand'],
-            'lang'        => 'tr',
-            'currency'    => '949',
-            'islemtipi'   => 'Auth',
-            'taksit'      => '',
-        ];
-        $form       = [
-            'gateway' => $gatewayURL,
-            'method'  => 'POST',
-            'inputs'  => $inputs,
-        ];
-
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_HOST,
-            PosInterface::TX_PAY,
-            $gatewayURL
-        ));
+        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -349,7 +291,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => 'tr',
-            'rand'        => 'rand',
         ];
 
         $responseData = [
@@ -419,6 +360,103 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    public static function threeDFormDataProvider(): array
+    {
+        $order = [
+            'id'          => 'order222',
+            'ip'          => '127.0.0.1',
+            'amount'      => '100.25',
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'success_url' => 'https://domain.com/success',
+            'fail_url'    => 'https://domain.com/fail_url',
+            'lang'        => PosInterface::LANG_TR,
+        ];
+
+        return [
+            'without_card' => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => false,
+                'expected'     => [
+                    'gateway' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'clientid'  => '700655000200',
+                        'storetype' => '3d',
+                        'amount'    => '100.25',
+                        'oid'       => 'order222',
+                        'okUrl'     => 'https://domain.com/success',
+                        'failUrl'   => 'https://domain.com/fail_url',
+                        'rnd'       => 'rand-21212',
+                        'lang'      => 'tr',
+                        'currency'  => '949',
+                        'taksit'    => '',
+                        'hash'      => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
+                        'islemtipi' => 'Auth',
+                    ],
+                ],
+            ],
+            'with_card'    => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => true,
+                'expected'     => [
+                    'gateway' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'clientid'                        => '700655000200',
+                        'storetype'                       => '3d',
+                        'amount'                          => '100.25',
+                        'oid'                             => 'order222',
+                        'okUrl'                           => 'https://domain.com/success',
+                        'failUrl'                         => 'https://domain.com/fail_url',
+                        'rnd'                             => 'rand-21212',
+                        'lang'                            => 'tr',
+                        'currency'                        => '949',
+                        'taksit'                          => '',
+                        'islemtipi'                       => 'Auth',
+                        'hash'                            => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
+                        'cardType'                        => '1',
+                        'pan'                             => '5555444433332222',
+                        'Ecom_Payment_Card_ExpDate_Month' => '01',
+                        'Ecom_Payment_Card_ExpDate_Year'  => '22',
+                        'cv2'                             => '123',
+                    ],
+                ],
+            ],
+            '3d_host'      => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_HOST,
+                'isWithCard'   => false,
+                'expected'     => [
+                    'gateway' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'clientid'  => '700655000200',
+                        'storetype' => '3d_host',
+                        'amount'    => '100.25',
+                        'oid'       => 'order222',
+                        'okUrl'     => 'https://domain.com/success',
+                        'failUrl'   => 'https://domain.com/fail_url',
+                        'rnd'       => 'rand-21212',
+                        'lang'      => 'tr',
+                        'currency'  => '949',
+                        'taksit'    => '',
+                        'islemtipi' => 'Auth',
+                        'hash'      => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
+                    ],
+                ],
+            ],
+        ];
+    }
+
     /**
      * @param AbstractPosAccount $account
      * @param array              $order
@@ -448,17 +486,17 @@ class EstPosRequestDataMapperTest extends TestCase
             'Name'     => $account->getUsername(),
             'Password' => $account->getPassword(),
             'ClientId' => $account->getClientId(),
-            'Extra'  => [
-                'RECORDTYPE' => 'Order',
+            'Extra'    => [
+                'RECORDTYPE'         => 'Order',
                 'RECURRINGOPERATION' => 'Cancel',
-                'RECORDID' => $order['id'] . '-' . $order['recurringOrderInstallmentNumber'],
+                'RECORDID'           => $order['id'].'-'.$order['recurringOrderInstallmentNumber'],
             ],
         ];
     }
 
     /**
-     * @param AbstractPosAccount $account
-     * @param array              $order
+     * @param AbstractPosAccount  $account
+     * @param array               $order
      * @param CreditCardInterface $card
      *
      * @return array

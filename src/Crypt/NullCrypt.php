@@ -10,7 +10,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 /**
  * Dummy crypt that can be used if there is no cryptography logic needed.
  */
-class NullCrypt implements CryptInterface
+class NullCrypt extends AbstractCrypt
 {
     /**
      * {@inheritDoc}
@@ -32,14 +32,6 @@ class NullCrypt implements CryptInterface
      * {@inheritDoc}
      */
     public function createHash(AbstractPosAccount $account, array $requestData): string
-    {
-        return '';
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function hashFromParams(string $storeKey, array $data, string $hashParamsKey, string $paramSeparator): string
     {
         return '';
     }

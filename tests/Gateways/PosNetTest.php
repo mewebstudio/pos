@@ -40,7 +40,8 @@ class PosNetTest extends TestCase
 
     private array $order;
 
-    private PosNet $pos;
+    /** @var PosNet */
+    private PosInterface $pos;
 
     protected function setUp(): void
     {
@@ -66,7 +67,6 @@ class PosNetTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => PosInterface::LANG_TR,
-            'rand'        => microtime(),
         ];
 
         $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());

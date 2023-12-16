@@ -108,7 +108,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantPassword'          => $account->getPassword(),
             'MerchantType'              => $account->getMerchantType(),
             'PurchaseAmount'            => $this->formatAmount($order['amount']),
-            'VerifyEnrollmentRequestId' => $order['rand'],
+            'VerifyEnrollmentRequestId' => $this->crypt->generateRandomString(),
             'Currency'                  => $this->mapCurrency($order['currency']),
             'SuccessUrl'                => $order['success_url'],
             'FailureUrl'                => $order['fail_url'],
@@ -126,7 +126,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         }
 
         if (isset($order['recurring'])) {
-            return array_merge($requestData, $this->createRecurringData($order['recurring']));
+            return \array_merge($requestData, $this->createRecurringData($order['recurring']));
         }
 
         return $requestData;

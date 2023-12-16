@@ -2,21 +2,21 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper
@@ -28,6 +28,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     private CreditCardInterface $card;
 
     private PayForPosRequestDataMapper $requestDataMapper;
+
+    /** @var CryptInterface & MockObject */
+    private CryptInterface $crypt;
 
     private array $order;
 
@@ -55,15 +58,14 @@ class PayForPosRequestDataMapperTest extends TestCase
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-            'rand'        => '0.43625700 1604831630',
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
+        $this->crypt = $this->createMock(CryptInterface::class);
+        $dispatcher  = $this->createMock(EventDispatcherInterface::class);
+        $pos         = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
 
-        $crypt = CryptFactory::createGatewayCrypt(PayForPos::class, new NullLogger());
-        $this->requestDataMapper = new PayForPosRequestDataMapper($dispatcher, $crypt);
+        $this->requestDataMapper = new PayForPosRequestDataMapper($dispatcher, $this->crypt);
         $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
@@ -177,95 +179,38 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider threeDFormDataProvider
      */
-    public function testGet3DFormData()
+    public function testGet3DFormData(
+        array  $order,
+        string $gatewayURL,
+        string $txType,
+        string $paymentModel,
+        bool   $isWithCard,
+        array  $expected
+    ): void
     {
-        $card       = $this->card;
-        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
-        $inputs = [
-            'MbrId'            => '5',
-            'MerchantID'       => $this->account->getClientId(),
-            'UserCode'         => $this->account->getUsername(),
-            'OrderId'          => $this->order['id'],
-            'Lang'             => $this->order['lang'],
-            'SecureType'       => '3DModel',
-            'TxnType'          => 'Auth',
-            'PurchAmount'      => $this->order['amount'],
-            'InstallmentCount' => 0,
-            'Currency'         => 949,
-            'OkUrl'            => $this->order['success_url'],
-            'FailUrl'          => $this->order['fail_url'],
-            'Rnd'              => $this->order['rand'],
-            'Hash'             => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
-        ];
-        $form   = [
-            'gateway' => $gatewayURL,
-            'method'  => 'POST',
-            'inputs'  => $inputs,
-        ];
-        //test without card
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_SECURE,
-            PosInterface::TX_PAY,
-            $gatewayURL
-        ));
+        $card = $isWithCard ? $this->card : null;
 
-        //test with card
-        if ($card) {
-            $form['inputs']['CardHolderName'] = $card->getHolderName();
-            $form['inputs']['Pan']            = $card->getNumber();
-            $form['inputs']['Expiry']         = '0122';
-            $form['inputs']['Cvv2']           = $card->getCvv();
-        }
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->willReturn($expected['inputs']['Hash']);
 
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['inputs']['Rnd']);
+
+
+        $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_SECURE,
-            PosInterface::TX_PAY,
+            $order,
+            $paymentModel,
+            $txType,
             $gatewayURL,
             $card
-        ));
-    }
+        );
 
-    /**
-     * @return void
-     */
-    public function testGet3DHostFormData()
-    {
-        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d_host'];
-        $inputs     = [
-            'MbrId'            => '5',
-            'MerchantID'       => $this->account->getClientId(),
-            'UserCode'         => $this->account->getUsername(),
-            'OrderId'          => $this->order['id'],
-            'Lang'             => 'tr',
-            'SecureType'       => '3DHost',
-            'TxnType'          => 'Auth',
-            'PurchAmount'      => $this->order['amount'],
-            'InstallmentCount' => 0,
-            'Currency'         => 949,
-            'OkUrl'            => $this->order['success_url'],
-            'FailUrl'          => $this->order['fail_url'],
-            'Rnd'              => $this->order['rand'],
-            'Hash'             => 'zmSUxYPhmCj7QOzqpk/28LuE1Oc=',
-        ];
-        $form       = [
-            'gateway' => $gatewayURL,
-            'method'  => 'POST',
-            'inputs'  => $inputs,
-        ];
-
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_HOST,
-            PosInterface::TX_PAY,
-            $gatewayURL
-        ));
+        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -458,5 +403,106 @@ class PayForPosRequestDataMapperTest extends TestCase
         }
 
         return $requestData;
+    }
+
+    public static function threeDFormDataProvider(): array
+    {
+        $order = [
+            'id'          => '2020110828BC',
+            'amount'      => 100.01,
+            'installment' => '0',
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'success_url' => 'http://localhost/finansbank-payfor/3d/success.php',
+            'fail_url'    => 'http://localhost/finansbank-payfor/3d/fail.php',
+            'lang'        => PosInterface::LANG_TR,
+        ];
+
+        return [
+            'without_card' => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => false,
+                'expected'     => [
+                    'gateway' => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'MbrId'            => '5',
+                        'MerchantID'       => '085300000009704',
+                        'UserCode'         => 'QNB_API_KULLANICI_3DPAY',
+                        'OrderId'          => '2020110828BC',
+                        'Lang'             => 'tr',
+                        'SecureType'       => '3DModel',
+                        'TxnType'          => 'Auth',
+                        'PurchAmount'      => '100.01',
+                        'InstallmentCount' => '0',
+                        'Currency'         => '949',
+                        'OkUrl'            => 'http://localhost/finansbank-payfor/3d/success.php',
+                        'FailUrl'          => 'http://localhost/finansbank-payfor/3d/fail.php',
+                        'Rnd'              => '1deda47050cd38112cbf91f4',
+                        'Hash'             => 'BSj3xu8dYQbdw5YM4JvTS+vmyUI=',
+                    ],
+                ],
+            ],
+            'with_card'    => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => true,
+                'expected'     => [
+                    'gateway' => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'MbrId'            => '5',
+                        'MerchantID'       => '085300000009704',
+                        'UserCode'         => 'QNB_API_KULLANICI_3DPAY',
+                        'OrderId'          => '2020110828BC',
+                        'Lang'             => 'tr',
+                        'SecureType'       => '3DModel',
+                        'TxnType'          => 'Auth',
+                        'PurchAmount'      => '100.01',
+                        'InstallmentCount' => '0',
+                        'Currency'         => '949',
+                        'OkUrl'            => 'http://localhost/finansbank-payfor/3d/success.php',
+                        'FailUrl'          => 'http://localhost/finansbank-payfor/3d/fail.php',
+                        'Rnd'              => '1deda47050cd38112cbf91f4',
+                        'Hash'             => 'BSj3xu8dYQbdw5YM4JvTS+vmyUI=',
+                        'CardHolderName'   => 'ahmet',
+                        'Pan'              => '5555444433332222',
+                        'Expiry'           => '0122',
+                        'Cvv2'             => '123',
+                    ],
+                ],
+            ],
+            '3d_host' => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_HOST,
+                'isWithCard'   => false,
+                'expected'     => [
+                    'gateway' => 'https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'MbrId'            => '5',
+                        'MerchantID'       => '085300000009704',
+                        'UserCode'         => 'QNB_API_KULLANICI_3DPAY',
+                        'OrderId'          => '2020110828BC',
+                        'Lang'             => 'tr',
+                        'SecureType'       => '3DHost',
+                        'TxnType'          => 'Auth',
+                        'PurchAmount'      => '100.01',
+                        'InstallmentCount' => '0',
+                        'Currency'         => '949',
+                        'OkUrl'            => 'http://localhost/finansbank-payfor/3d/success.php',
+                        'FailUrl'          => 'http://localhost/finansbank-payfor/3d/fail.php',
+                        'Rnd'              => '1deda47050cd38112cbf91f4',
+                        'Hash'             => 'BSj3xu8dYQbdw5YM4JvTS+vmyUI=',
+                    ],
+                ],
+            ],
+        ];
     }
 }

@@ -61,7 +61,6 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-            'rand'        => '0.43625700 1604831630',
             'ip'          => '127.0.0.1',
             'lang'        => PosInterface::LANG_TR,
         ];

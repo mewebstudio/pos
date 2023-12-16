@@ -28,6 +28,18 @@ abstract class AbstractCrypt implements CryptInterface
     }
 
     /**
+     * generates random string for using as a nonce in requests
+     *
+     * @param int<1, max> $length
+     *
+     * @return string
+     */
+    public function generateRandomString(int $length = 24): string
+    {
+        return \substr(\md5(\uniqid(\microtime())), 0, $length - 1);
+    }
+
+    /**
      * @inheritDoc
      */
     public function hashFromParams(string $storeKey, array $data, string $hashParamsKey, string $paramSeparator = ':'): string
@@ -40,7 +52,7 @@ abstract class AbstractCrypt implements CryptInterface
         /**
          * @var non-empty-string $hashParams ex: "MerchantNo:TerminalNo:ReferenceCode:OrderId"
          */
-        $hashParamsArr = explode($paramSeparator, $hashParams);
+        $hashParamsArr = \explode($paramSeparator, $hashParams);
 
         $paramsVal = '';
         foreach ($hashParamsArr as $paramKey) {
@@ -59,7 +71,7 @@ abstract class AbstractCrypt implements CryptInterface
      */
     protected function hashString(string $str): string
     {
-        return base64_encode(hash(static::HASH_ALGORITHM, $str, true));
+        return \base64_encode(\hash(static::HASH_ALGORITHM, $str, true));
     }
 
     /**

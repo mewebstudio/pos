@@ -31,7 +31,8 @@ class PayFlexV4PosTest extends TestCase
 {
     private PayFlexAccount $account;
 
-    private PayFlexV4Pos $pos;
+    /** @var PayFlexV4Pos */
+    private PosInterface $pos;
 
     private array $config;
 
@@ -61,7 +62,6 @@ class PayFlexV4PosTest extends TestCase
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'rand'        => microtime(true),
             'ip'          => '127.0.0.1',
         ];
 

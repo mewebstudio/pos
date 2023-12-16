@@ -23,7 +23,8 @@ class InterPosTest extends TestCase
 {
     private InterPosAccount $account;
 
-    private InterPos $pos;
+    /** @var InterPos */
+    private PosInterface $pos;
 
     private CreditCardInterface $card;
 
@@ -59,7 +60,6 @@ class InterPosTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => PosInterface::LANG_TR,
-            'rand'        => microtime(true),
         ];
 
         $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());

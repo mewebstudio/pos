@@ -208,7 +208,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'OrderId'          => $order['id'],
             'OkUrl'            => $order['success_url'],
             'FailUrl'          => $order['fail_url'],
-            'Rnd'              => $order['rand'],
+            'Rnd'              => $this->crypt->generateRandomString(),
             'Lang'             => $this->getLang($account, $order),
             'Currency'         => $this->mapCurrency($order['currency']),
             'InstallmentCount' => $this->mapInstallment((int) $order['installment']),

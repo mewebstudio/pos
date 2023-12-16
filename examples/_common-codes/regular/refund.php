@@ -21,7 +21,6 @@ function createRefundOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
         'currency'    => $lastResponse['currency'] ?? PosInterface::CURRENCY_TRY,
         'ref_ret_num' => $lastResponse['ref_ret_num'],
         'ip'          => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
-        'rand'        => substr(md5(uniqid(time())), 0, 23), //AkOde
     ];
 
     if (get_class($pos) === \Mews\Pos\Gateways\GarantiPos::class) {

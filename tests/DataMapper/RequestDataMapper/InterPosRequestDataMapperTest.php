@@ -2,20 +2,20 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\DataMapper\RequestDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper
@@ -28,15 +28,16 @@ class InterPosRequestDataMapperTest extends TestCase
 
     private InterPosRequestDataMapper $requestDataMapper;
 
-    private $order;
+    /** @var CryptInterface & MockObject */
+    private CryptInterface $crypt;
 
-    private $config;
+    private array $order;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../../config/pos_test.php';
+        $config = require __DIR__.'/../../../config/pos_test.php';
 
         $userCode     = 'InterTestApi';
         $userPass     = '3';
@@ -60,15 +61,13 @@ class InterPosRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => PosInterface::LANG_TR,
-            'rand'        => 'rand',
         ];
 
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
+        $pos        = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
-        $crypt = CryptFactory::createGatewayCrypt(InterPos::class, new NullLogger());
-
-        $this->requestDataMapper = new InterPosRequestDataMapper($dispatcher, $crypt);
+        $this->crypt             = $this->createMock(CryptInterface::class);
+        $this->requestDataMapper = new InterPosRequestDataMapper($dispatcher, $this->crypt);
 
         $this->card = CreditCardFactory::create($pos, '5555444433332222', '21', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
@@ -176,93 +175,37 @@ class InterPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider threeDFormDataProvider
      */
-    public function testGet3DFormData()
+    public function testGet3DFormData(
+        array  $order,
+        string $gatewayURL,
+        string $txType,
+        string $paymentModel,
+        bool   $isWithCard,
+        array  $expected
+    ): void
     {
-        $account = $this->account;
-        $card   = $this->card;
-        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
+        $card = $isWithCard ? $this->card : null;
 
-        $inputs = [
-            'ShopCode'         => $account->getClientId(),
-            'TxnType'          => 'Auth',
-            'SecureType'       => '3DModel',
-            'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
-            'PurchAmount'      => $this->order['amount'],
-            'OrderId'          => $this->order['id'],
-            'OkUrl'            => $this->order['success_url'],
-            'FailUrl'          => $this->order['fail_url'],
-            'Rnd'              => $this->order['rand'],
-            'Lang'             => $this->order['lang'],
-            'Currency'         => '949',
-            'InstallmentCount' => '',
-        ];
-        $form = [
-            'gateway' => $gatewayURL,
-            'method'  => 'POST',
-            'inputs'  => $inputs,
-        ];
-        //test without card
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->willReturn($expected['inputs']['Hash']);
+
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['inputs']['Rnd']);
+
+        $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_SECURE,
-            PosInterface::TX_PAY,
-            $gatewayURL
-        ));
-
-        //test with card
-        if ($card) {
-            $form['inputs']['CardType'] = '0';
-            $form['inputs']['Pan']      = $card->getNumber();
-            $form['inputs']['Expiry']   = '1221';
-            $form['inputs']['Cvv2']     = $card->getCvv();
-        }
-
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_SECURE,
-            PosInterface::TX_PAY,
+            $order,
+            $paymentModel,
+            $txType,
             $gatewayURL,
             $card
-        ));
-    }
+        );
 
-    /**
-     * @return void
-     */
-    public function testGet3DHostFormData()
-    {
-        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d_host'];
-        $inputs = [
-            'ShopCode'         => $this->account->getClientId(),
-            'TxnType'          => 'Auth',
-            'SecureType'       => '3DHost',
-            'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
-            'PurchAmount'      => $this->order['amount'],
-            'OrderId'          => $this->order['id'],
-            'OkUrl'            => $this->order['success_url'],
-            'FailUrl'          => $this->order['fail_url'],
-            'Rnd'              => $this->order['rand'],
-            'Lang'             => $this->order['lang'],
-            'Currency'         => '949',
-            'InstallmentCount' => '',
-        ];
-        $form = [
-            'gateway' => $gatewayURL,
-            'method'  => 'POST',
-            'inputs'  => $inputs,
-        ];
-
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_HOST,
-            PosInterface::TX_PAY,
-            $gatewayURL
-        ));
+        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -437,6 +380,102 @@ class InterPosRequestDataMapperTest extends TestCase
             'SecureType'  => 'NonSecure',
             'Lang'        => $account->getLang(),
             'MOTO'        => '0',
+        ];
+    }
+
+    public static function threeDFormDataProvider(): array
+    {
+        $order = [
+            'id'          => 'order222',
+            'ip'          => '127.0.0.1',
+            'amount'      => '100.25',
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'success_url' => 'https://domain.com/success',
+            'fail_url'    => 'https://domain.com/fail_url',
+            'lang'        => PosInterface::LANG_TR,
+        ];
+
+        return [
+            'without_card' => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => false,
+                'expected'     => [
+                    'gateway' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'ShopCode'         => '3123',
+                        'TxnType'          => 'Auth',
+                        'SecureType'       => '3DModel',
+                        'PurchAmount'      => '100.25',
+                        'OrderId'          => 'order222',
+                        'OkUrl'            => 'https://domain.com/success',
+                        'FailUrl'          => 'https://domain.com/fail_url',
+                        'Rnd'              => 'rand-12',
+                        'Lang'             => 'tr',
+                        'Currency'         => '949',
+                        'InstallmentCount' => '',
+                        'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
+                    ],
+                ],
+            ],
+            'with_card'    => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => true,
+                'expected'     => [
+                    'gateway' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'ShopCode'         => '3123',
+                        'TxnType'          => 'Auth',
+                        'SecureType'       => '3DModel',
+                        'PurchAmount'      => '100.25',
+                        'OrderId'          => 'order222',
+                        'OkUrl'            => 'https://domain.com/success',
+                        'FailUrl'          => 'https://domain.com/fail_url',
+                        'Rnd'              => 'rand-12',
+                        'Lang'             => 'tr',
+                        'Currency'         => '949',
+                        'InstallmentCount' => '',
+                        'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
+                        'CardType'         => '0',
+                        'Pan'              => '5555444433332222',
+                        'Expiry'           => '1221',
+                        'Cvv2'             => '122',
+                    ],
+                ],
+            ],
+            '3d_host'      => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_HOST,
+                'isWithCard'   => false,
+                'expected'     => [
+                    'gateway' => 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'ShopCode'         => '3123',
+                        'TxnType'          => 'Auth',
+                        'SecureType'       => '3DHost',
+                        'PurchAmount'      => '100.25',
+                        'OrderId'          => 'order222',
+                        'OkUrl'            => 'https://domain.com/success',
+                        'FailUrl'          => 'https://domain.com/fail_url',
+                        'Rnd'              => 'rand-12',
+                        'Lang'             => 'tr',
+                        'Currency'         => '949',
+                        'InstallmentCount' => '',
+                        'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
+                    ],
+                ],
+            ],
         ];
     }
 }

@@ -49,4 +49,14 @@ interface CryptInterface
      * @return string hashed string from values of $hashParams
      */
     public function hashFromParams(string $storeKey, array $data, string $hashParamsKey, string $paramSeparator): string;
+
+
+    /**
+     * generates random string for using as a nonce in requests
+     *
+     * @param int $length
+     *
+     * @return string
+     */
+    public function generateRandomString(int $length = 24): string;
 }

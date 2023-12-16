@@ -59,6 +59,6 @@ class CryptFactory
             return new $classMappings[$gatewayClass]($logger);
         }
 
-        return new NullCrypt();
+        return new NullCrypt($logger);
     }
 }

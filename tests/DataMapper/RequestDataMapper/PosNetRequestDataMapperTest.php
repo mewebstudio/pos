@@ -55,7 +55,6 @@ class PosNetRequestDataMapperTest extends TestCase
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'rand'        => '0.43625700 1604831630',
             'lang'        => PosInterface::LANG_TR,
         ];
 

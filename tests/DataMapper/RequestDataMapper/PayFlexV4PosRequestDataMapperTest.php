@@ -14,6 +14,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
@@ -27,6 +28,9 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     private CreditCardInterface $card;
 
     private PayFlexV4PosRequestDataMapper $requestDataMapper;
+
+    /** @var CryptInterface & MockObject  */
+    private CryptInterface $crypt;
 
     private array $order;
 
@@ -52,17 +56,14 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'rand'        => microtime(true),
             'ip'          => '127.0.0.1',
         ];
 
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $pos = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
-        $this->requestDataMapper = new PayFlexV4PosRequestDataMapper(
-            $dispatcher,
-            $this->createMock(CryptInterface::class)
-        );
+        $this->crypt             = $this->createMock(CryptInterface::class);
+        $this->requestDataMapper = new PayFlexV4PosRequestDataMapper($dispatcher, $this->crypt);
         $this->card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
@@ -143,6 +144,10 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DEnrollmentCheckData(array $order, ?CreditCardInterface $card, array $expected)
     {
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['VerifyEnrollmentRequestId']);
+
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $card);
         $this->assertEquals($expected, $actual);
     }
@@ -281,7 +286,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'rand'        => 'rand123',
             'ip'          => '127.0.0.1',
         ];
 
@@ -360,7 +364,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
             'fail_url'    => 'https://domain.com/fail_url',
-            'rand'        => 'rand123',
             'ip'          => '127.0.0.1',
         ];
 
