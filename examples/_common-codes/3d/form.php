@@ -10,7 +10,10 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
  * Odeme olmayan (iade, iptal, durum) veya MODEL_NON_SECURE islemlerde kullanilmaz.
  */
 
+// ilgili bankanin _config.php dosyasi load ediyoruz.
+// ornegin /examples/finansbank-payfor/3d/_config.php
 require '_config.php';
+
 require '../../_templates/_header.php';
 
 if ($request->getMethod() !== 'POST') {

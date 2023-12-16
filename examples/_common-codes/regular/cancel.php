@@ -3,7 +3,10 @@
 use Mews\Pos\PosInterface;
 
 $templateTitle = 'Refund Order';
+// ilgili bankanin _config.php dosyasi load ediyoruz.
+// ornegin /examples/finansbank-payfor/regular/_config.php
 require '_config.php';
+
 require '../../_templates/_header.php';
 
 function createCancelOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\Session\SessionInterface $session, string $ip): array

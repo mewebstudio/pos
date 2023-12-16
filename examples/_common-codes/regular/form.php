@@ -2,6 +2,8 @@
 
 use Mews\Pos\PosInterface;
 
+// ilgili bankanin _config.php dosyasi load ediyoruz.
+// ornegin /examples/finansbank-payfor/regular/_config.php
 require_once '_config.php';
 
 $order = getNewOrder(

@@ -4,7 +4,10 @@ use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\PosInterface;
 
+// ilgili bankanin _config.php dosyasi load ediyoruz.
+// ornegin /examples/finansbank-payfor/3d-host/_config.php
 require '_config.php';
+
 require '../../_templates/_header.php';
 
 $order = getNewOrder(
