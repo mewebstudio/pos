@@ -165,7 +165,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'proc_return_code' => '0000',
                 'trans_id' => 'b2d71cc5-d242-4b01-8479-d56eb8f74d7c',
                 'ref_ret_num' => '201101240006',
-                'order_status' => 'COMPLETED',
+                'order_status' => 'PAYMENT_COMPLETED',
                 'transaction_type' => 'pay',
                 'capture_amount' => '90.50',
                 'currency' => PosInterface::CURRENCY_TRY,

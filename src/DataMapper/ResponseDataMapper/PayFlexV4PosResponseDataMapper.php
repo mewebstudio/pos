@@ -5,6 +5,8 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\PosInterface;
+
 class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
 {
     /** @var string */
@@ -142,13 +144,13 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         $txResultInfo = $rawResponseData['TransactionSearchResultInfo']['TransactionSearchResultInfo'];
         $orderProcCode = $this->getProcReturnCode($txResultInfo);
 
-        $orderStatus = 'COMPLETED';
+        $orderStatus = PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED;
         if ('true' === $txResultInfo['IsCanceled']) {
-            $orderStatus = 'CANCELED';
+            $orderStatus = PosInterface::PAYMENT_STATUS_CANCELED;
         } elseif ('true' === $txResultInfo['IsReversed']) {
             $orderStatus = 'REVERSED';
         } elseif ('true' === $txResultInfo['IsRefunded']) {
-            $orderStatus = 'REFUNDED';
+            $orderStatus = PosInterface::PAYMENT_STATUS_FULLY_REFUNDED;
         }
 
         return [
