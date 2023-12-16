@@ -29,9 +29,9 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
     private EstV3PosRequestDataMapper $requestDataMapper;
 
-    private $order;
+    private array $order;
 
-    private $config;
+    private array $config;
 
     protected function setUp(): void
     {
@@ -69,66 +69,31 @@ class EstV3PosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider threeDFormDataProvider
      */
-    public function testGet3DFormData()
-    {
+    public function testGet3DFormData(
+        array  $order,
+        string $gatewayURL,
+        string $txType,
+        string $paymentModel,
+        bool   $isWithCard,
+        array  $expected
+    ) {
         $account = $this->account;
-        $txType  = PosInterface::TX_PAY;
-        $card       = $this->card;
-        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
+        $card    = $isWithCard ? $this->card : null;
 
-        $inputs = [
-            'clientid'      => $account->getClientId(),
-            'storetype'     => PosInterface::MODEL_3D_SECURE,
-            'amount'        => $this->order['amount'],
-            'oid'           => $this->order['id'],
-            'okUrl'         => $this->order['success_url'],
-            'failUrl'       => $this->order['fail_url'],
-            'callbackUrl'   => $this->order['fail_url'],
-            'rnd'           => $this->order['rand'],
-            'hashAlgorithm' => 'ver3',
-            'lang'          => 'tr',
-            'currency'      => 949,
-            'TranType'      => 'Auth',
-            'taksit'        => '',
-        ];
-
-        $hash           = 'nRzSpmIHxn9KvyOl8uJDIicDMemBiOcfQgmPxe3KvCT4Z4fnbOle+FgSx8lanbUQHOIAGQ+6bApDRc6e+tZcMw==';
-        $inputs['hash'] = $hash;
-        $form           = [
-            'gateway' => $gatewayURL,
-            'method'  => 'POST',
-            'inputs'  => $inputs,
-        ];
-        //test without card
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_SECURE,
-            $txType,
-            $gatewayURL
-        ));
-
-        //test with card
-        $form['inputs']['cardType']                        = '1';
-        $form['inputs']['pan']                             = $card->getNumber();
-        $form['inputs']['Ecom_Payment_Card_ExpDate_Month'] = '01';
-        $form['inputs']['Ecom_Payment_Card_ExpDate_Year']  = '22';
-        $form['inputs']['cv2']                             = $card->getCvv();
-
-        unset($form['inputs']['hash']);
-        $form['inputs']['hash'] = 'ZXFP3/lcGmROjZL0q8cWbTNfFp07SewcHS1CUWu2sU0seQW0oWQcnwNOzQRDjm22KpA8UpdnyISzESu7Frd8XA==';
-
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $this->order,
-            PosInterface::MODEL_3D_SECURE,
+        $actual = $this->requestDataMapper->create3DFormData(
+            $account,
+            $order,
+            $paymentModel,
             $txType,
             $gatewayURL,
             $card
-        ));
+        );
+
+        $this->assertEquals($expected, $actual);
     }
+
 
     /**
      * @return void
@@ -167,5 +132,109 @@ class EstV3PosRequestDataMapperTest extends TestCase
             PosInterface::TX_PAY,
             $gatewayURL
         ));
+    }
+
+    public static function threeDFormDataProvider(): array
+    {
+        $order = [
+            'id'          => 'order222',
+            'ip'          => '127.0.0.1',
+            'amount'      => '100.25',
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'success_url' => 'https://domain.com/success',
+            'fail_url'    => 'https://domain.com/fail_url',
+            'lang'        => 'tr',
+            'rand'        => 'rand-21212',
+        ];
+
+        return [
+            'without_card' => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => false,
+                'expected'     => [
+                    'gateway' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'clientid'      => '190100000',
+                        'storetype'     => '3d',
+                        'amount'        => '100.25',
+                        'oid'           => 'order222',
+                        'okUrl'         => 'https://domain.com/success',
+                        'failUrl'       => 'https://domain.com/fail_url',
+                        'callbackUrl'   => 'https://domain.com/fail_url',
+                        'rnd'           => 'rand-21212',
+                        'lang'          => 'tr',
+                        'currency'      => '949',
+                        'taksit'        => '',
+                        'TranType'      => 'Auth',
+                        'hashAlgorithm' => 'ver3',
+                        'hash'          => 'nRzSpmIHxn9KvyOl8uJDIicDMemBiOcfQgmPxe3KvCT4Z4fnbOle+FgSx8lanbUQHOIAGQ+6bApDRc6e+tZcMw==',
+                    ],
+                ],
+            ],
+            'with_card'    => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => true,
+                'expected'     => [
+                    'gateway' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'clientid'                        => '190100000',
+                        'storetype'                       => '3d',
+                        'amount'                          => '100.25',
+                        'oid'                             => 'order222',
+                        'okUrl'                           => 'https://domain.com/success',
+                        'failUrl'                         => 'https://domain.com/fail_url',
+                        'callbackUrl'                     => 'https://domain.com/fail_url',
+                        'rnd'                             => 'rand-21212',
+                        'lang'                            => 'tr',
+                        'currency'                        => '949',
+                        'taksit'                          => '',
+                        'TranType'                        => 'Auth',
+                        'hashAlgorithm'                   => 'ver3',
+                        'hash'                            => 'ZXFP3/lcGmROjZL0q8cWbTNfFp07SewcHS1CUWu2sU0seQW0oWQcnwNOzQRDjm22KpA8UpdnyISzESu7Frd8XA==',
+                        'cardType'                        => '1',
+                        'pan'                             => '5555444433332222',
+                        'Ecom_Payment_Card_ExpDate_Month' => '01',
+                        'Ecom_Payment_Card_ExpDate_Year'  => '22',
+                        'cv2'                             => '123',
+                    ],
+                ],
+            ],
+            '3d_host'    => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                'txType'       => PosInterface::TX_PAY,
+                'paymentModel' => PosInterface::MODEL_3D_HOST,
+                'isWithCard'   => false,
+                'expected'     => [
+                    'gateway' => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'clientid'                        => '190100000',
+                        'storetype'                       => '3d_host',
+                        'amount'                          => '100.25',
+                        'oid'                             => 'order222',
+                        'okUrl'                           => 'https://domain.com/success',
+                        'failUrl'                         => 'https://domain.com/fail_url',
+                        'callbackUrl'                     => 'https://domain.com/fail_url',
+                        'rnd'                             => 'rand-21212',
+                        'lang'                            => 'tr',
+                        'currency'                        => '949',
+                        'taksit'                          => '',
+                        'TranType'                        => 'Auth',
+                        'hashAlgorithm'                   => 'ver3',
+                        'hash'                            => 'TLRkwt3AHJCyfZvjXXoG1Z56sWGVKMk7cKQqNQAGaYx8y16SOKR6SAnznRlgC3vaazQ+VtqO7PprqcOds2wN1w==',
+                    ],
+                ],
+            ],
+        ];
     }
 }
