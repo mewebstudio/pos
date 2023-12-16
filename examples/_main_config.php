@@ -94,7 +94,13 @@ function createCard(PosInterface $pos, array $card): \Mews\Pos\Entity\Card\Credi
             $card['name'],
             $card['type'] ?? null
         );
-    } catch (Exception $e) {
+    } catch (\Mews\Pos\Exceptions\CardTypeRequiredException $e) {
+        // bu gateway için kart tipi zorunlu
+        dd($e);
+    } catch (\Mews\Pos\Exceptions\CardTypeNotSupportedException $e) {
+        // sağlanan kart tipi bu gateway tarafından desteklenmiyor
+        dd($e);
+    } catch (\Exception $e) {
         dd($e);
     }
 }

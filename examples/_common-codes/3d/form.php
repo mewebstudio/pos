@@ -30,15 +30,14 @@ $order       = getNewOrder(
     $request->get('lang', PosInterface::LANG_TR)
 );
 $session->set('order', $order);
+$session->set('tx', $transaction);
 
 $card = createCard($pos, $request->request->all());
 
-/**
- * PayFlex'te provizyonu (odemeyi) tamamlamak icin tekrar kredi kart bilgileri isteniyor,
- * bu yuzden kart bilgileri kaydediyoruz
- */
-$session->set('card', $request->request->all());
-$session->set('tx', $transaction);
+if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
+    // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
+    $session->set('card', $request->request->all());
+}
 
 try {
 
@@ -53,7 +52,7 @@ try {
              *     $event->setRequestData($data);
              * }
              *
-             * Bu asamada bu Event sadece PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos gatewayler'de trigger edilir.
+             * Bu asamada bu Event sadece PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos, AkOde gatewayler'de trigger edilir.
              */
         });
 
