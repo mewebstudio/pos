@@ -50,7 +50,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $mappedResponse = [
-            'order_id'         => null,
+            'order_id'         => $rawPaymentResponseData['TransId'],
             'trans_id'         => $rawPaymentResponseData['TransId'],
             'auth_code'        => $rawPaymentResponseData['AuthCode'],
             'ref_ret_num'      => $rawPaymentResponseData['HostRefNum'],
