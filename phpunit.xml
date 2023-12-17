@@ -27,6 +27,6 @@
     </coverage>
 
     <testsuite name="unit">
-        <directory>tests</directory>
+        <directory>tests/Unit</directory>
     </testsuite>
 </phpunit>
