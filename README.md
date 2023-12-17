@@ -117,6 +117,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - [Farklı Banka Sanal Poslarını Eklemek](#farkli-gatewayler-tek-islem-akisi)
 - [Ornek Kodlar](#ornek-kodlar)
   - [3D Secure ve 3D Pay Ödeme Örneği](./docs/THREED-SECURE-AND-PAY-PAYMENT-EXAMPLE.md).
+  - [3D Host Ödeme Örneği](./docs/THREED-HOST-PAYMENT-EXAMPLE.md).
 
 - [Popup Windowda veya Iframe icinde odeme yapma](#popup-windowda-veya-iframe-icinde-odeme-yapma)
 - [Troubleshoots](#troubleshoots)
