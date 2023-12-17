@@ -26,7 +26,6 @@ function createCancelOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
     ];
 
     if (get_class($pos) === \Mews\Pos\Gateways\GarantiPos::class) {
-        $cancelOrder['email']  = '';
         $cancelOrder['amount'] = $lastResponse['amount'];
     } elseif (get_class($pos) === \Mews\Pos\Gateways\KuveytPos::class) {
         $cancelOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
