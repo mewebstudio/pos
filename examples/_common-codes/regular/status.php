@@ -24,10 +24,11 @@ function createStatusOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
         'currency' => $lastResponse['currency'] ?? PosInterface::CURRENCY_TRY,
         'ip'       => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
-    if (get_class($pos) === \Mews\Pos\Gateways\KuveytPos::class) {
+    $gatewayClass = get_class($pos);
+    if (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
         $statusOrder['remote_order_id'] = $lastResponse['remote_order_id']; // OrderId
     }
-    if (get_class($pos) === \Mews\Pos\Gateways\PosNetV1Pos::class || get_class($pos) === \Mews\Pos\Gateways\PosNet::class) {
+    if (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
         /**
          * payment_model:
          * siparis olusturulurken kullanilan odeme modeli
@@ -36,7 +37,7 @@ function createStatusOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
         $statusOrder['payment_model'] = $lastResponse['payment_model'] ?? PosInterface::MODEL_3D_SECURE;
     }
     if (isset($lastResponse['recurring_id'])
-        && get_class($pos) === \Mews\Pos\Gateways\EstPos::class || get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class
+        && (\Mews\Pos\Gateways\EstPos::class === $gatewayClass || \Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass)
     ) {
         // tekrarlanan odemenin durumunu sorgulamak icin:
         $statusOrder = [
