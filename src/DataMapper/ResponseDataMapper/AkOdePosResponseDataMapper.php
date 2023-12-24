@@ -7,7 +7,6 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LoggerInterface;
 
 /**
  * maps the response of AkOde API requests
@@ -42,16 +41,6 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
         4 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
         5 => PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED,
     ];
-
-    /**
-     * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
-     * @param array<PosInterface::TX_TYPE_*, string>  $txTypeMappings
-     * @param LoggerInterface                         $logger
-     */
-    public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)
-    {
-        parent::__construct($currencyMappings, $txTypeMappings, $logger);
-    }
 
     /**
      * @param int $txType
