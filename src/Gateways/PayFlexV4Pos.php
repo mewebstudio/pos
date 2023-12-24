@@ -70,14 +70,14 @@ class PayFlexV4Pos extends AbstractGateway
         $status = $request->get('Status');
         // 3D authorization failed
         if ('Y' !== $status && 'A' !== $status) {
-            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), []);
+            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), [], $txType, $order);
 
             return $this;
         }
 
         if ('A' === $status) {
             // TODO Half 3D Secure
-            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), []);
+            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), [], $txType, $order);
 
             return $this;
         }
@@ -104,7 +104,7 @@ class PayFlexV4Pos extends AbstractGateway
         $contents     = $this->serializer->encode($requestData, $txType);
         $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
 
-        $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse);
+        $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
@@ -113,7 +113,7 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request): PosInterface
+    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -121,7 +121,7 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request): PosInterface
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }

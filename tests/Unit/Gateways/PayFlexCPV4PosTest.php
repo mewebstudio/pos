@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Exception;
@@ -35,7 +36,8 @@ class PayFlexCPV4PosTest extends TestCase
 {
     private PayFlexAccount $account;
 
-    private PayFlexCPV4Pos $pos;
+    /** @var PayFlexCPV4Pos */
+    private PosInterface $pos;
 
     private array $config;
 
@@ -91,7 +93,7 @@ class PayFlexCPV4PosTest extends TestCase
         $crypt          = CryptFactory::createGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
         $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(PayFlexCPV4Pos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
         $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PayFlexCPV4Pos::class, $requestMapper, new NullLogger());
-        $serializer = SerializerFactory::createGatewaySerializer(PayFlexCPV4Pos::class);
+        $serializer     = SerializerFactory::createGatewaySerializer(PayFlexCPV4Pos::class);
 
         $posMock = $this->getMockBuilder(PayFlexCPV4Pos::class)
             ->setConstructorArgs([
@@ -102,7 +104,7 @@ class PayFlexCPV4PosTest extends TestCase
                 $serializer,
                 $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
+                new NullLogger(),
             ])
             ->onlyMethods(['registerPayment'])
             ->getMock();
@@ -127,7 +129,7 @@ class PayFlexCPV4PosTest extends TestCase
                 $this->createMock(SerializerInterface::class),
                 $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
+                new NullLogger(),
             ])
             ->onlyMethods(['registerPayment'])
             ->getMock();
@@ -145,19 +147,19 @@ class PayFlexCPV4PosTest extends TestCase
 
     public function testMake3dPayPaymentFail(): void
     {
-        $failResponseData = iterator_to_array(
-            PayFlexCPV4PosResponseDataMapperTest::threesDPayResponseSamplesProvider()
-                                              )['fail_response_from_gateway_1']['bank_response'];
-        $request = Request::create('', 'GET', $failResponseData);
+        $testData = iterator_to_array(
+                        PayFlexCPV4PosResponseDataMapperTest::threesDPayResponseSamplesProvider()
+                    )['fail_response_from_gateway_1'];
+        $request  = Request::create('', 'GET', $testData['bank_response']);
 
-        $requestMapper  = $this->createMock(PayFlexCPV4PosRequestDataMapper::class);
+        $requestMapper = $this->createMock(PayFlexCPV4PosRequestDataMapper::class);
         $requestMapper->expects($this->never())
             ->method('create3DPaymentStatusRequestData');
 
 
         $responseMapper = $this->createMock(PayFlexCPV4PosResponseDataMapper::class);
         $responseMapper->expects($this->once())
-            ->method('map3DPayResponseData')->with($failResponseData);
+            ->method('map3DPayResponseData')->with($testData['bank_response']);
 
         $pos = new PayFlexCPV4Pos(
             [],
@@ -169,25 +171,25 @@ class PayFlexCPV4PosTest extends TestCase
             HttpClientFactory::createDefaultHttpClient(),
             new NullLogger());
 
-        $pos->make3DPayPayment($request);
+        $pos->make3DPayPayment($request, $testData['order'], $testData['txType']);
     }
 
     public function testMake3dPayPaymentSuccess(): void
     {
-        $bankResponses = iterator_to_array(PayFlexCPV4PosResponseDataMapperTest::threesDPayResponseSamplesProvider());
+        $bankResponses     = \iterator_to_array(PayFlexCPV4PosResponseDataMapperTest::threesDPayResponseSamplesProvider());
         $bankQueryResponse = [
-            'Rc' => '0000',
-            'AuthCode' => '368513',
-            'Message' => 'İŞLEM BAŞARILI',
+            'Rc'            => '0000',
+            'AuthCode'      => '368513',
+            'Message'       => 'İŞLEM BAŞARILI',
             'TransactionId' => '28d2b9c27af545f48d49afc300db246b',
-            'PaymentToken' => 'c6b7cecc2a1846088a4eafc300db246b',
-            'MaskedPan' => '49384601****4205',
+            'PaymentToken'  => 'c6b7cecc2a1846088a4eafc300db246b',
+            'MaskedPan'     => '49384601****4205',
         ];
-        $bankApiResponse = $bankResponses['success_response_from_gateway_1']['bank_response'];
+        $testData          = $bankResponses['success_response_from_gateway_1'];
 
         $request = Request::create('', 'GET', $bankQueryResponse);
 
-        $requestMapper  = $this->createMock(PayFlexCPV4PosRequestDataMapper::class);
+        $requestMapper = $this->createMock(PayFlexCPV4PosRequestDataMapper::class);
         $requestMapper->expects($this->once())
             ->method('create3DPaymentStatusRequestData')->with($this->account, $bankQueryResponse);
 
@@ -204,13 +206,13 @@ class PayFlexCPV4PosTest extends TestCase
                 $this->createMock(SerializerInterface::class),
                 $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
+                new NullLogger(),
             ])
             ->onlyMethods(['send', 'getQueryAPIUrl'])
             ->getMock();
         $posMock->expects($this->once())->method('getQueryAPIUrl')->willReturn($this->pos->getQueryAPIUrl());
-        $posMock->expects($this->once())->method('send')->willReturn([$bankApiResponse]);
+        $posMock->expects($this->once())->method('send')->willReturn([$testData['bank_response']]);
 
-        $posMock->make3DPayPayment($request);
+        $posMock->make3DPayPayment($request, $testData['order'], $testData['txType']);
     }
 }

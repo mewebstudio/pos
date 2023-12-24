@@ -35,9 +35,9 @@ class PayForPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider paymentTestDataProvider
      */
-    public function testMapPaymentResponse(array $responseData, array $expectedData)
+    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData);
+        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         unset($actualData['all']);
         $this->assertSame($expectedData, $actualData);
     }
@@ -45,33 +45,41 @@ class PayForPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentDataProvider
      */
-    public function testMap3DPaymentData(array $threeDResponseData, array $paymentResponse, array $expectedData)
+    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DPaymentData($threeDResponseData, $paymentResponse);
-        unset($actualData['all']);
-        unset($actualData['3d_all']);
+        $actualData = $this->responseDataMapper->map3DPaymentData(
+            $threeDResponseData,
+            $paymentResponse,
+            $txType,
+            $order
+        );
+        unset($actualData['all'], $actualData['3d_all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
     /**
      * @dataProvider threeDPayPaymentDataProvider
      */
-    public function testMap3DPayResponseData(array $responseData, array $expectedData)
+    public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData);
-        unset($actualData['all']);
-        unset($actualData['3d_all']);
+        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
+        unset($actualData['all'], $actualData['3d_all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
     /**
      * @dataProvider threeDHostPaymentDataProvider
      */
-    public function testMap3DHostResponseData(array $responseData, array $expectedData)
+    public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData);
-        unset($actualData['all']);
-        unset($actualData['3d_all']);
+        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
+        unset($actualData['all'], $actualData['3d_all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -105,85 +113,111 @@ class PayForPosResponseDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actualData);
     }
 
-    public function paymentTestDataProvider(): array
+    public static function paymentTestDataProvider(): array
     {
-        return
+        return [
+            'success1' => [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY,
+                'responseData' => [
+                    'AuthCode'       => 'S77788',
+                    'HostRefNum'     => '230422096719',
+                    'ProcReturnCode' => '00',
+                    'TransId'        => '202210313C0D',
+                    'ErrMsg'         => 'Onaylandı',
+                    'CardHolderName' => 'John Doe',
+                ],
+                'expectedData' => [
+                    'transaction_type' => 'pay',
+                    'payment_model'    => 'regular',
+                    'order_id'         => '202210313C0D',
+                    'trans_id'         => '202210313C0D',
+                    'currency'         => 'TRY',
+                    'amount'           => 1.01,
+                    'auth_code'        => 'S77788',
+                    'ref_ret_num'      => '230422096719',
+                    'proc_return_code' => '00',
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'error_code'       => null,
+                    'error_message'    => null,
+                ],
+            ],
+            //fail case
             [
-                //success case
-                [
-                    'responseData' => [
-                        'AuthCode'       => 'S77788',
-                        'HostRefNum'     => '230422096719',
-                        'ProcReturnCode' => '00',
-                        'TransId'        => '202210313C0D',
-                        'ErrMsg'         => 'Onaylandı',
-                        'CardHolderName' => 'John Doe',
-                    ],
-                    'expectedData' => [
-                        'order_id'         => '202210313C0D',
-                        'trans_id'         => '202210313C0D',
-                        'auth_code'        => 'S77788',
-                        'ref_ret_num'      => '230422096719',
-                        'proc_return_code' => '00',
-                        'status'           => 'approved',
-                        'status_detail'    => 'approved',
-                        'error_code'       => null,
-                        'error_message'    => null,
-                    ],
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
                 ],
-                //fail case
-                [
-                    'responseData' => [
-                        'AuthCode'       => '',
-                        'HostRefNum'     => '230422097442',
-                        'ProcReturnCode' => 'M041',
-                        'TransId'        => '2022103155EF',
-                        'ErrMsg'         => 'Geçersiz kart numarası',
-                        'CardHolderName' => 'John Doe',
-                    ],
-                    'expectedData' => [
-                        'order_id'         => '2022103155EF',
-                        'trans_id'         => '2022103155EF',
-                        'auth_code'        => null,
-                        'ref_ret_num'      => '230422097442',
-                        'proc_return_code' => 'M041',
-                        'status'           => 'declined',
-                        'status_detail'    => 'reject',
-                        'error_code'       => 'M041',
-                        'error_message'    => 'Geçersiz kart numarası',
-                    ],
+                'txType'       => PosInterface::TX_TYPE_PAY,
+                'responseData' => [
+                    'AuthCode'       => '',
+                    'HostRefNum'     => '230422097442',
+                    'ProcReturnCode' => 'M041',
+                    'TransId'        => '2022103155EF',
+                    'ErrMsg'         => 'Geçersiz kart numarası',
+                    'CardHolderName' => 'John Doe',
                 ],
-                //post fail case
-                [
-                    'responseData' => [
-                        'AuthCode'       => '',
-                        'HostRefNum'     => '230422097825',
-                        'ProcReturnCode' => 'V013',
-                        'TransId'        => '20221031F9FA2',
-                        'ErrMsg'         => 'Seçili İşlem Bulunamadı!',
-                        'CardHolderName' => '',
-                    ],
-                    'expectedData' => [
-                        'order_id'         => '20221031F9FA2',
-                        'trans_id'         => '20221031F9FA2',
-                        'auth_code'        => null,
-                        'ref_ret_num'      => '230422097825',
-                        'proc_return_code' => 'V013',
-                        'status'           => 'declined',
-                        'status_detail'    => 'reject',
-                        'error_code'       => 'V013',
-                        'error_message'    => 'Seçili İşlem Bulunamadı!',
-                    ],
+                'expectedData' => [
+                    'transaction_type' => 'pay',
+                    'payment_model'    => 'regular',
+                    'order_id'         => '2022103155EF',
+                    'trans_id'         => '2022103155EF',
+                    'currency'         => 'TRY',
+                    'amount'           => 1.01,
+                    'auth_code'        => null,
+                    'ref_ret_num'      => '230422097442',
+                    'proc_return_code' => 'M041',
+                    'status'           => 'declined',
+                    'status_detail'    => 'reject',
+                    'error_code'       => 'M041',
+                    'error_message'    => 'Geçersiz kart numarası',
                 ],
-            ];
+            ],
+            //post fail case
+            [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY,
+                'responseData' => [
+                    'AuthCode'       => '',
+                    'HostRefNum'     => '230422097825',
+                    'ProcReturnCode' => 'V013',
+                    'TransId'        => '20221031F9FA2',
+                    'ErrMsg'         => 'Seçili İşlem Bulunamadı!',
+                    'CardHolderName' => '',
+                ],
+                'expectedData' => [
+                    'transaction_type' => 'pay',
+                    'payment_model'    => 'regular',
+                    'order_id'         => '20221031F9FA2',
+                    'trans_id'         => '20221031F9FA2',
+                    'currency'         => 'TRY',
+                    'amount'           => 1.01,
+                    'auth_code'        => null,
+                    'ref_ret_num'      => '230422097825',
+                    'proc_return_code' => 'V013',
+                    'status'           => 'declined',
+                    'status_detail'    => 'reject',
+                    'error_code'       => 'V013',
+                    'error_message'    => 'Seçili İşlem Bulunamadı!',
+                ],
+            ],
+        ];
     }
 
 
-    public function threeDPaymentDataProvider(): array
+    public static function threeDPaymentDataProvider(): array
     {
         return [
-            [
-                // 3D Auth fail case
+            'auth_fail1' => [
+                'order'              => [],
+                'txType'             => PosInterface::TX_TYPE_PRE_PAY,
                 'threeDResponseData' => [
                     'RequestGuid'                    => '1000000081255934',
                     'TransactionDate'                => '31.10.2022 22:39:44',
@@ -316,7 +350,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'try_again',
                     'error_code'           => 'V034',
                     'error_message'        => '3D Kullanıcı Doğrulama Adımı Başarısız',
-                    'transaction_type'     => 'Auth',
+                    'transaction_type'     => 'pay',
                     'transaction_security' => '3DModel',
                     'masked_number'        => '415565******6111',
                     'amount'               => 1.01,
@@ -327,10 +361,12 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => '3D Kullanıcı Doğrulama Adımı Başarısız',
                     'md_status_detail'     => 'try_again',
                     'eci'                  => null,
+                    'payment_model'        => '3d',
                 ],
             ],
-            [
-                // Success case
+            'success1'   => [
+                'order'              => [],
+                'txType'             => PosInterface::TX_TYPE_PRE_PAY,
                 'threeDResponseData' => [
                     'RequestGuid'                    => '1000000081255931',
                     'TransactionDate'                => '31.10.2022 22:34:18',
@@ -461,7 +497,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'CardHolderName' => 'John Doe',
                 ],
                 'expectedData'       => [
-                    'transaction_type'     => 'Auth',
+                    'transaction_type'     => 'pay',
                     'transaction_security' => '3DModel',
                     'masked_number'        => '415565******6111',
                     'amount'               => 1.01,
@@ -481,16 +517,19 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'approved',
                     'error_code'           => null,
                     'error_message'        => null,
+                    'payment_model'        => '3d',
                 ],
             ],
         ];
     }
 
 
-    public function threeDPayPaymentDataProvider(): array
+    public static function threeDPayPaymentDataProvider(): array
     {
         return [
             'success1'  => [
+                'order'        => [],
+                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
                 'paymentData'  => [
                     'RequestGuid'                    => '1000000081255944',
                     'TransactionDate'                => '31.10.2022 22:56:43',
@@ -617,7 +656,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'auth_code'            => 'S86797',
                     'ref_ret_num'          => '230422100150',
                     'order_id'             => '2022103114B3',
-                    'transaction_type'     => 'Auth',
+                    'transaction_type'     => 'pay',
                     'proc_return_code'     => '00',
                     'status'               => 'approved',
                     'status_detail'        => 'approved',
@@ -636,6 +675,8 @@ class PayForPosResponseDataMapperTest extends TestCase
                 ],
             ],
             'authFail1' => [
+                'order'        => [],
+                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
                 'paymentData'  => [
                     'RequestGuid'                    => '1000000081255948',
                     'TransactionDate'                => '31.10.2022 23:01:36',
@@ -762,7 +803,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'order_id'             => '202210317223',
-                    'transaction_type'     => 'Auth',
+                    'transaction_type'     => 'pay',
                     'proc_return_code'     => 'MR15',
                     'status'               => 'declined',
                     'status_detail'        => 'try_again',
@@ -784,11 +825,12 @@ class PayForPosResponseDataMapperTest extends TestCase
     }
 
 
-    public function threeDHostPaymentDataProvider(): array
+    public static function threeDHostPaymentDataProvider(): array
     {
         return [
-            'success1' => [
-                // success case
+            'success1'   => [
+                'order'        => [],
+                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
                 'paymentData'  => [
                     'RequestGuid'                    => '1000000081265956',
                     'TransactionDate'                => '31.10.2022 23:06:37',
@@ -915,7 +957,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'auth_code'            => 'S28031',
                     'ref_ret_num'          => '230423100695',
                     'order_id'             => '2022103121CA',
-                    'transaction_type'     => 'Auth',
+                    'transaction_type'     => 'pay',
                     'proc_return_code'     => '00',
                     'status'               => 'approved',
                     'status_detail'        => 'approved',
@@ -933,8 +975,9 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'eci'                  => '05',
                 ],
             ],
-            [
-                //  3d fail case
+            'auth_fail1' => [
+                'order'        => [],
+                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
                 'paymentData'  => [
                     'RequestGuid'                    => '1000000081265960',
                     'TransactionDate'                => '31.10.2022 23:10:47',
@@ -1061,7 +1104,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'order_id'             => '202210316DBA',
-                    'transaction_type'     => 'Auth',
+                    'transaction_type'     => 'pay',
                     'proc_return_code'     => 'MR15',
                     'status'               => 'declined',
                     'status_detail'        => 'try_again',

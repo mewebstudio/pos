@@ -20,7 +20,7 @@ function createCancelOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
 
     $cancelOrder = [
         'id'          => $lastResponse['order_id'], // MerchantOrderId
-        'currency'    => $lastResponse['currency'] ?? PosInterface::CURRENCY_TRY,
+        'currency'    => $lastResponse['currency'],
         'ref_ret_num' => $lastResponse['ref_ret_num'],
         'ip'          => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
@@ -41,7 +41,7 @@ function createCancelOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
          * siparis olusturulurken kullanilan odeme modeli
          * orderId'yi dogru şekilde formatlamak icin zorunlu.
          */
-        $cancelOrder['payment_model'] = $lastResponse['payment_model'] ?? PosInterface::MODEL_3D_SECURE;
+        $cancelOrder['payment_model'] = $lastResponse['payment_model'];
         // satis islem disinda baska bir islemi (Ön Provizyon İptali, Provizyon Kapama İptali, vs...) iptal edildiginde saglanmasi gerekiyor
         // 'transaction_type' => $lastResponse['transaction_type'],
     }

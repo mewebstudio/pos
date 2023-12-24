@@ -5,6 +5,8 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\PosInterface;
+
 class InterPosResponseDataMapper extends AbstractResponseDataMapper
 {
     /**
@@ -14,7 +16,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
      */
     protected array $codes = [
         self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
-        '81'                         => 'bank_call',
+        '81'                         => 'invalid_credentials',
         'E31'                        => 'invalid_transaction',
         'E39'                        => 'invalid_transaction',
     ];
@@ -22,11 +24,11 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritDoc}
      */
-    public function mapPaymentResponse(array $rawPaymentResponseData): array
+    public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
     {
         $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
         if ([] === $rawPaymentResponseData) {
-            return $this->getDefaultPaymentResponse();
+            return $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_NON_SECURE);
         }
 
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
@@ -36,7 +38,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $result = $this->getDefaultPaymentResponse();
+        $result = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_NON_SECURE);
 
         $result['proc_return_code'] = $procReturnCode;
         $result['status']           = $status;
@@ -48,6 +50,8 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $result['ref_ret_num']      = $rawPaymentResponseData['HostRefNum'];
         $result['error_code']       = $rawPaymentResponseData['ErrorCode'];
         $result['error_message']    = $rawPaymentResponseData['ErrorMessage'];
+        $result['currency']         = $order['currency'];
+        $result['amount']           = $order['amount'];
 
         $this->logger->debug('mapped payment response', $result);
 
@@ -57,7 +61,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritdoc}
      */
-    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
+    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData, string $txType, array $order): array
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $this->logger->debug('mapping 3D payment data', [
@@ -66,9 +70,9 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         ]);
         $status              = $raw3DAuthResponseData['mdStatus'];
         $procReturnCode      = $this->getProcReturnCode($raw3DAuthResponseData);
-        $paymentResponseData = $this->getDefaultPaymentResponse();
+        $paymentResponseData = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE);
         if (null !== $rawPaymentResponseData) {
-            $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData);
+            $paymentResponseData = $this->map3DPaymentResponse($rawPaymentResponseData, $txType, PosInterface::MODEL_3D_SECURE);
         }
 
         $threeDResponse = [
@@ -76,6 +80,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'proc_return_code'     => $paymentResponseData['proc_return_code'] ?? $procReturnCode,
             'ref_ret_num'          => $paymentResponseData['ref_ret_num'] ?? $raw3DAuthResponseData['HostRefNum'],
             'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['mdStatus']),
+            'payment_model'        => PosInterface::MODEL_3D_SECURE,
             'md_status'            => $status,
             'masked_number'        => $raw3DAuthResponseData['Pan'],
             'month'                => null,
@@ -98,17 +103,25 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritdoc}
      */
-    public function map3DPayResponseData($raw3DAuthResponseData): array
+    public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData);
+        $result = $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData, $txType, $order);
+
+        $result['payment_model'] = PosInterface::MODEL_3D_PAY;
+
+        return $result;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function map3DHostResponseData(array $raw3DAuthResponseData): array
+    public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPayResponseData($raw3DAuthResponseData);
+        $result = $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
+
+        $result['payment_model'] = PosInterface::MODEL_3D_HOST;
+
+        return $result;
     }
 
     /**
@@ -252,5 +265,47 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     protected function formatAmount(string $amount): float
     {
         return (float) \str_replace(',', '.', str_replace('.', '', $amount));
+    }
+
+    /**
+     * @phpstan-param PosInterface::TX_*    $txType
+     * @phpstan-param PosInterface::MODEL_* $paymentModel
+     *
+     * @param array<string, mixed>|null $rawPaymentResponseData
+     * @param string                    $txType
+     * @param string                    $paymentModel
+     *
+     * @return array<string, mixed>
+     */
+    private function map3DPaymentResponse(?array $rawPaymentResponseData, string $txType, string $paymentModel): array
+    {
+        $this->logger->debug('mapping 3d payment response', [$rawPaymentResponseData]);
+        if (null === $rawPaymentResponseData || [] === $rawPaymentResponseData) {
+            return $this->getDefaultPaymentResponse($txType, $paymentModel);
+        }
+
+        $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
+        $status                 = self::TX_DECLINED;
+        $procReturnCode         = $this->getProcReturnCode($rawPaymentResponseData);
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        $result = $this->getDefaultPaymentResponse($txType, $paymentModel);
+
+        $result['proc_return_code'] = $procReturnCode;
+        $result['status']           = $status;
+        $result['status_detail']    = $this->getStatusDetail($procReturnCode);
+        $result['all']              = $rawPaymentResponseData;
+        $result['order_id']         = $rawPaymentResponseData['OrderId'];
+        $result['trans_id']         = $rawPaymentResponseData['TransId'];
+        $result['auth_code']        = $rawPaymentResponseData['AuthCode'];
+        $result['ref_ret_num']      = $rawPaymentResponseData['HostRefNum'];
+        $result['error_code']       = $rawPaymentResponseData['ErrorCode'];
+        $result['error_message']    = $rawPaymentResponseData['ErrorMessage'];
+
+        $this->logger->debug('mapped payment response', $result);
+
+        return $result;
     }
 }

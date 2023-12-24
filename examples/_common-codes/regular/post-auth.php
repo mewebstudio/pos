@@ -20,7 +20,7 @@ function createPostPayOrder(PosInterface $pos, \Symfony\Component\HttpFoundation
     $postAuth = [
         'id'          => $lastResponse['order_id'],
         'amount'      => $lastResponse['amount'],
-        'currency'    => $lastResponse['currency'] ?? PosInterface::CURRENCY_TRY,
+        'currency'    => $lastResponse['currency'],
         'ip'          => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
 

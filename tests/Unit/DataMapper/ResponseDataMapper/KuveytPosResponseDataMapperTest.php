@@ -49,9 +49,9 @@ class KuveytPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider paymentTestDataProvider
      */
-    public function testMapPaymentResponse(array $responseData, array $expectedData)
+    public function testMapPaymentResponse(string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData);
+        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, []);
         unset($actualData['all']);
         $this->assertSame($expectedData, $actualData);
     }
@@ -89,17 +89,23 @@ class KuveytPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentDataProvider
      */
-    public function testMap3DPaymentData(array $threeDResponseData, array $paymentResponse, array $expectedData)
+    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DPaymentData($threeDResponseData, $paymentResponse);
+        $actualData = $this->responseDataMapper->map3DPaymentData(
+            $threeDResponseData,
+            $paymentResponse,
+            $txType,
+            $order
+        );
         unset($actualData['all']);
         unset($actualData['3d_all']);
-        $this->assertSame($expectedData, $actualData);
+        $this->assertEquals($expectedData, $actualData);
     }
 
     public static function paymentTestDataProvider(): iterable
     {
         yield 'fail1' => [
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
                 '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
@@ -114,6 +120,10 @@ class KuveytPosResponseDataMapperTest extends TestCase
             'expectedData' => [
                 'order_id'         => null,
                 'trans_id'         => null,
+                'transaction_type' => 'pay',
+                'currency'         => null,
+                'amount'           => null,
+                'payment_model'    => 'regular',
                 'auth_code'        => null,
                 'ref_ret_num'      => null,
                 'proc_return_code' => 'MetaDataNotFound',
@@ -125,6 +135,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
         ];
 
         yield 'success1' => [
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 'VPosMessage'     => [
                     'OrderId'             => '4480',
@@ -161,6 +172,10 @@ class KuveytPosResponseDataMapperTest extends TestCase
             'expectedData' => [
                 'order_id'         => '660723214',
                 'trans_id'         => '005554',
+                'transaction_type' => 'pay',
+                'currency'         => 'TRY',
+                'amount'           => 1.0,
+                'payment_model'    => 'regular',
                 'auth_code'        => '896626',
                 'ref_ret_num'      => '904115005554',
                 'proc_return_code' => '00',
@@ -169,8 +184,6 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'error_code'       => null,
                 'error_message'    => null,
                 'remote_order_id'  => '4480',
-                'amount'           => 1.0,
-                'currency'         => PosInterface::CURRENCY_TRY,
                 'masked_number'    => '5124********1609',
             ],
         ];
@@ -181,6 +194,8 @@ class KuveytPosResponseDataMapperTest extends TestCase
     {
         return [
             'authSuccessPaymentFail1' => [
+                'order'              => [],
+                'txType'             => PosInterface::TX_TYPE_PAY,
                 'threeDResponseData' => [
                     '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
                     '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
@@ -253,7 +268,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'expectedData'       => [
                     'transaction_security' => 'MPI fallback',
                     'md_status'            => null,
-                    'amount'               => '10',
+                    'amount'               => 0.1,
                     'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => null,
                     'md_error_message'     => null,
@@ -267,9 +282,13 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'status'               => 'declined',
                     'status_detail'        => 'MetaDataNotFound',
                     'error_code'           => 'MetaDataNotFound',
+                    'payment_model'        => '3d',
+                    'transaction_type'     => 'pay',
                 ],
             ],
             'authSuccessPaymentFail2' => [
+                'order'              => [],
+                'txType'             => PosInterface::TX_TYPE_PAY,
                 'threeDResponseData' => [
                     'VPosMessage'          => [
                         'APIVersion'          => '1.0.0',
@@ -321,7 +340,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'expectedData'       => [
                     'transaction_security' => 'MPI fallback',
                     'md_status'            => null,
-                    'amount'               => '100',
+                    'amount'               => 1.0,
                     'currency'             => PosInterface::CURRENCY_TRY,
                     'tx_status'            => null,
                     'md_error_message'     => null,
@@ -335,10 +354,13 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'status'               => 'declined',
                     'status_detail'        => 'invalid_transaction',
                     'error_code'           => 'EmptyMDException',
+                    'payment_model'        => '3d',
+                    'transaction_type'     => 'pay',
                 ],
             ],
             'authFail1'               => [
-                // 3D Auth fail case
+                'order'              => [],
+                'txType'             => PosInterface::TX_TYPE_PAY,
                 'threeDResponseData' => [
                     '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
                     '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
@@ -369,9 +391,13 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'currency'             => null,
                     'tx_status'            => null,
                     'md_error_message'     => 'Şifrelenen veriler (Hashdata) uyuşmamaktadır.',
+                    'payment_model'        => '3d',
+                    'transaction_type'     => 'pay',
                 ],
             ],
             'success1'                => [
+                'order'              => [],
+                'txType'             => PosInterface::TX_TYPE_PAY,
                 'threeDResponseData' => [
                     'VPosMessage'          => [
                         'APIVersion'          => '1.0.0',
@@ -462,6 +488,8 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'currency'             => PosInterface::CURRENCY_TRY,
                     'error_code'           => null,
                     'masked_number'        => '5124********1609',
+                    'payment_model'        => '3d',
+                    'transaction_type'     => 'pay',
                 ],
             ],
         ];
@@ -618,7 +646,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'status'           => 'approved',
                 'error_code'       => null,
                 'status_detail'    => null,
-                'remote_order_id' => '114293600'
+                'remote_order_id'  => '114293600',
             ],
         ];
         yield 'fail1' => [
@@ -767,35 +795,35 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'PartialDrawbackResult' => [
                     'Results' => [],
                     'Success' => null,
-                    'Value' => [
-                        'IsEnrolled' => null,
-                        'IsVirtual' => null,
+                    'Value'   => [
+                        'IsEnrolled'      => null,
+                        'IsVirtual'       => null,
                         'ProvisionNumber' => '241859',
-                        'RRN' => '319014298463',
-                        'Stan' => '298463',
-                        'ResponseCode' => '00',
+                        'RRN'             => '319014298463',
+                        'Stan'            => '298463',
+                        'ResponseCode'    => '00',
                         'ResponseMessage' => 'OTORİZASYON VERİLDİ',
-                        'OrderId' => 114_293_626,
+                        'OrderId'         => 114_293_626,
                         'TransactionTime' => '2023-07-09T14:07:41.9306297',
                         'MerchantOrderId' => '202307091285',
-                        'CurrencyCode' => '0949',
-                        'MerchantId' => null,
-                        'BusinessKey' => '202307099999000000003252996',
+                        'CurrencyCode'    => '0949',
+                        'MerchantId'      => null,
+                        'BusinessKey'     => '202307099999000000003252996',
                     ],
                 ],
             ],
             'expectedData' => [
-                'order_id' => '202307091285',
-                'auth_code' => '241859',
+                'order_id'         => '202307091285',
+                'auth_code'        => '241859',
                 'proc_return_code' => '00',
-                'trans_id' => '298463',
-                'currency' => PosInterface::CURRENCY_TRY,
-                'error_message' => null,
-                'ref_ret_num' => '319014298463',
-                'status' => 'approved',
-                'error_code' => null,
-                'status_detail' => null,
-                'remote_order_id' => '114293626',
+                'trans_id'         => '298463',
+                'currency'         => PosInterface::CURRENCY_TRY,
+                'error_message'    => null,
+                'ref_ret_num'      => '319014298463',
+                'status'           => 'approved',
+                'error_code'       => null,
+                'status_detail'    => null,
+                'remote_order_id'  => '114293626',
             ],
         ];
     }

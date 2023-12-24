@@ -37,9 +37,9 @@ class InterPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider paymentTestDataProvider
      */
-    public function testMapPaymentResponse(array $responseData, array $expectedData)
+    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData);
+        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         unset($actualData['all']);
         $this->assertSame($expectedData, $actualData);
     }
@@ -47,33 +47,41 @@ class InterPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentDataProvider
      */
-    public function testMap3DPaymentData(array $threeDResponseData, array $paymentResponse, array $expectedData)
+    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DPaymentData($threeDResponseData, $paymentResponse);
-        unset($actualData['all']);
-        unset($actualData['3d_all']);
+        $actualData = $this->responseDataMapper->map3DPaymentData(
+            $threeDResponseData,
+            $paymentResponse,
+            $txType,
+            $order
+        );
+        unset($actualData['all'], $actualData['3d_all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
     /**
      * @dataProvider threeDPayPaymentDataProvider
      */
-    public function testMap3DPayResponseData(array $responseData, array $expectedData)
+    public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData);
-        unset($actualData['all']);
-        unset($actualData['3d_all']);
+        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
+        unset($actualData['all'], $actualData['3d_all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
     /**
      * @dataProvider threeDHostPaymentDataProvider
      */
-    public function testMap3DHostResponseData(array $responseData, array $expectedData)
+    public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData);
-        unset($actualData['all']);
-        unset($actualData['3d_all']);
+        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
+        unset($actualData['all'], $actualData['3d_all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -137,8 +145,12 @@ class InterPosResponseDataMapperTest extends TestCase
     {
         return
             [
-                //fail case
-                [
+                'fail1' => [
+                    'order'        => [
+                        'currency' => PosInterface::CURRENCY_TRY,
+                        'amount'   => 1.01,
+                    ],
+                    'txType'       => PosInterface::TX_TYPE_PAY,
                     'responseData' => [
                         'OrderId'               => '20221225662C',
                         'ProcReturnCode'        => '81',
@@ -170,11 +182,15 @@ class InterPosResponseDataMapperTest extends TestCase
                     'expectedData' => [
                         'order_id'         => '20221225662C',
                         'trans_id'         => null,
+                        'transaction_type' => 'pay',
+                        'currency'         => 'TRY',
+                        'amount'           => 1.01,
+                        'payment_model'    => 'regular',
                         'auth_code'        => null,
                         'ref_ret_num'      => 'hostid',
                         'proc_return_code' => '81',
                         'status'           => 'declined',
-                        'status_detail'    => 'bank_call',
+                        'status_detail'    => 'invalid_credentials',
                         'error_code'       => 'B810002',
                         'error_message'    => 'Terminal Aktif Degil',
                     ],
@@ -187,7 +203,8 @@ class InterPosResponseDataMapperTest extends TestCase
     {
         return [
             'authFail1' => [
-                // 3D Auth fail case
+                'order'              => [],
+                'txType'             => PosInterface::TX_TYPE_PAY,
                 'threeDResponseData' => [
                     'Version'                 => null,
                     'MerchantID'              => null,
@@ -237,7 +254,7 @@ class InterPosResponseDataMapperTest extends TestCase
                     'ref_ret_num'          => 'hostid',
                     'proc_return_code'     => '81',
                     'status'               => 'declined',
-                    'status_detail'        => 'bank_call',
+                    'status_detail'        => 'invalid_credentials',
                     'error_code'           => 'B810002',
                     'error_message'        => 'Terminal Aktif Degil',
                     'transaction_security' => 'MPI fallback',
@@ -246,11 +263,13 @@ class InterPosResponseDataMapperTest extends TestCase
                     'month'                => null,
                     'year'                 => null,
                     'amount'               => 1.01,
-                    'currency'             => PosInterface::CURRENCY_TRY,
+                    'currency'             => 'TRY',
                     'eci'                  => null,
                     'tx_status'            => 'N',
                     'cavv'                 => null,
                     'md_error_message'     => 'Terminal Aktif Degil',
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d',
                 ],
             ],
         ];
@@ -261,6 +280,8 @@ class InterPosResponseDataMapperTest extends TestCase
     {
         return [
             'authFail1' => [
+                'order'        => [],
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentData'  => [
                     'Version'                 => '',
                     'MerchantID'              => '',
@@ -309,7 +330,7 @@ class InterPosResponseDataMapperTest extends TestCase
                     'ref_ret_num'          => 'hostid',
                     'proc_return_code'     => '81',
                     'status'               => 'declined',
-                    'status_detail'        => 'bank_call',
+                    'status_detail'        => 'invalid_credentials',
                     'error_code'           => 'B810002',
                     'error_message'        => 'Terminal Aktif Degil',
                     'transaction_security' => 'MPI fallback',
@@ -323,6 +344,8 @@ class InterPosResponseDataMapperTest extends TestCase
                     'tx_status'            => 'N',
                     'cavv'                 => null,
                     'md_error_message'     => 'Terminal Aktif Degil',
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d_pay',
                 ],
             ],
         ];
@@ -332,8 +355,9 @@ class InterPosResponseDataMapperTest extends TestCase
     public function threeDHostPaymentDataProvider(): array
     {
         return [
-            [
-                //  3d fail case
+            '3d_auth_fail1' => [
+                'order'        => [],
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentData'  => [
                     'Version'                 => '',
                     'MerchantID'              => '',
@@ -384,7 +408,7 @@ class InterPosResponseDataMapperTest extends TestCase
                     'ref_ret_num'          => 'hostid',
                     'proc_return_code'     => '81',
                     'status'               => 'declined',
-                    'status_detail'        => 'bank_call',
+                    'status_detail'        => 'invalid_credentials',
                     'error_code'           => 'B810002',
                     'error_message'        => 'Terminal Aktif Degil',
                     'transaction_security' => 'MPI fallback',
@@ -398,6 +422,8 @@ class InterPosResponseDataMapperTest extends TestCase
                     'tx_status'            => 'N',
                     'cavv'                 => null,
                     'md_error_message'     => 'Terminal Aktif Degil',
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d_host',
                 ],
             ],
         ];
@@ -435,7 +461,7 @@ class InterPosResponseDataMapperTest extends TestCase
                         'refund_amount'    => 0.0,
                         'capture_amount'   => null,
                         'status'           => 'declined',
-                        'status_detail'    => 'bank_call',
+                        'status_detail'    => 'invalid_credentials',
                         'capture'          => null,
                     ],
                 ],
@@ -485,7 +511,7 @@ class InterPosResponseDataMapperTest extends TestCase
                         'error_code'       => 'B810002',
                         'error_message'    => 'Terminal Aktif Degil',
                         'status'           => 'declined',
-                        'status_detail'    => 'bank_call',
+                        'status_detail'    => 'invalid_credentials',
                     ],
                 ],
             ];
@@ -534,7 +560,7 @@ class InterPosResponseDataMapperTest extends TestCase
                         'error_code'       => 'B810002',
                         'error_message'    => 'Terminal Aktif Degil',
                         'status'           => 'declined',
-                        'status_detail'    => 'bank_call',
+                        'status_detail'    => 'invalid_credentials',
                     ],
                 ],
             ];

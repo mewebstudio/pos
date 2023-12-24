@@ -134,12 +134,12 @@ class PosNetTest extends TestCase
             'BankPacket'     => '',
             'Sign'           => '',
         ]);
-        $crypt = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
-        $requestMapper = RequestDataMapperFactory::createGatewayRequestMapper(PosNet::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
-        $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
-        $serializer = SerializerFactory::createGatewaySerializer(PosNet::class);
+        $crypt              = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
+        $requestMapper      = RequestDataMapperFactory::createGatewayRequestMapper(PosNet::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
+        $responseMapper     = ResponseDataMapperFactory::createGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
+        $serializer         = SerializerFactory::createGatewaySerializer(PosNet::class);
 
-        $this->order['id'] = 'YKB_0000080603153823';
+        $this->order['id'] = '80603153823';
         $posMock           = $this->getMockBuilder(PosNet::class)
             ->setConstructorArgs([
                 [],
@@ -166,7 +166,8 @@ class PosNetTest extends TestCase
         $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
         $resp = $posMock->getResponse();
         unset($resp['all'], $resp['3d_all']);
-
+        \ksort($bankResponses['expectedData']);
+        \ksort($resp);
         $this->assertSame($bankResponses['expectedData'], $resp);
     }
 

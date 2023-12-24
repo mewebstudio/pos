@@ -144,21 +144,27 @@ interface PosInterface
 
     /**
      * Just returns formatted data of 3d_pay payment response
+     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
      *
-     * @param Request $request
+     * @param Request              $request
+     * @param array<string, mixed> $order
+     * @param string               $txType
      *
      * @return PosInterface
      */
-    public function make3DPayPayment(Request $request): PosInterface;
+    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface;
 
     /**
      * Just returns formatted data of host payment response
+     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
      *
-     * @param Request $request
+     * @param Request              $request
+     * @param array<string, mixed> $order
+     * @param string               $txType
      *
      * @return PosInterface
      */
-    public function make3DHostPayment(Request $request): PosInterface;
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface;
 
     /**
      * Main Payment method

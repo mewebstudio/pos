@@ -155,7 +155,7 @@ class PosNet extends AbstractGateway
         }
 
         end:
-        $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse);
+        $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
@@ -164,7 +164,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request): PosInterface
+    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -172,7 +172,7 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request): PosInterface
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }

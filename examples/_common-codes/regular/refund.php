@@ -22,7 +22,7 @@ function createRefundOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
     $refundOrder = [
         'id'          => $lastResponse['order_id'], // MerchantOrderId
         'amount'      => $lastResponse['amount'],
-        'currency'    => $lastResponse['currency'] ?? PosInterface::CURRENCY_TRY,
+        'currency'    => $lastResponse['currency'],
         'ref_ret_num' => $lastResponse['ref_ret_num'],
         'ip'          => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
@@ -42,7 +42,7 @@ function createRefundOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
          * siparis olusturulurken kullanilan odeme modeli
          * orderId'yi dogru şekilde formatlamak icin zorunlu.
          */
-        $refundOrder['payment_model'] = $lastResponse['payment_model'] ?? PosInterface::MODEL_3D_SECURE;
+        $refundOrder['payment_model'] = $lastResponse['payment_model'];
     }
 
     return $refundOrder;

@@ -21,7 +21,7 @@ function createStatusOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
 
     $statusOrder = [
         'id'       => $lastResponse['order_id'], // MerchantOrderId
-        'currency' => $lastResponse['currency'] ?? PosInterface::CURRENCY_TRY,
+        'currency' => $lastResponse['currency'],
         'ip'       => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
     $gatewayClass = get_class($pos);
@@ -34,7 +34,7 @@ function createStatusOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
          * siparis olusturulurken kullanilan odeme modeli
          * orderId'yi dogru sekilde formatlamak icin zorunlu.
          */
-        $statusOrder['payment_model'] = $lastResponse['payment_model'] ?? PosInterface::MODEL_3D_SECURE;
+        $statusOrder['payment_model'] = $lastResponse['payment_model'];
     }
     if (isset($lastResponse['recurring_id'])
         && (\Mews\Pos\Gateways\EstPos::class === $gatewayClass || \Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass)

@@ -83,15 +83,6 @@ try {
 $response = $pos->getResponse();
 
 if ($pos->isSuccess()) {
-    // aşağıdaki veriler sipariş durum sorgulama isteğinde kullanılır.
-    $response['order_id']      = $response['order_id'] ?? $order['id'];
-    $response['currency']      = $response['currency'] ?? $order['currency'];
-    $response['payment_model'] = $paymentModel;
-
-    // aşağıdaki veriler sipariş iade ve iptal işlemlerinde kullanılır.
-    $response['amount']           = $order['amount'];
-    $response['transaction_type'] = $response['transaction_type'] ?? $transaction;
-
     $session->set('last_response', $response);
 }
 

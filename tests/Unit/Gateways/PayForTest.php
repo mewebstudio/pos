@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Mews\Pos\Entity\Account\PayForAccount;
@@ -21,7 +22,8 @@ class PayForTest extends TestCase
 
     private array $config;
 
-    private PayForPos $pos;
+    /** @var PayForPos */
+    private PosInterface $pos;
 
     protected function setUp(): void
     {

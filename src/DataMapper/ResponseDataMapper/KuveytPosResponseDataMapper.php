@@ -24,13 +24,13 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritDoc}
      */
-    public function mapPaymentResponse(array $rawPaymentResponseData): array
+    public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
     {
         $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
 
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
-        $result                 = $this->getDefaultPaymentResponse();
-        if (empty($rawPaymentResponseData)) {
+        $result                 = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_NON_SECURE);
+        if ([] === $rawPaymentResponseData) {
             return $result;
         }
 
@@ -77,19 +77,22 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritdoc}
      */
-    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
+    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData, string $txType, array $order): array
     {
         $this->logger->debug('mapping 3D payment data', [
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);
         $threeDResponse = $this->map3DCommonResponseData($raw3DAuthResponseData);
-
+        /** @var PosInterface::TX_* $txType */
+        $txType = $threeDResponse['transaction_type'] ?? $txType;
         if (null === $rawPaymentResponseData || [] === $rawPaymentResponseData) {
-            return array_merge($this->getDefaultPaymentResponse(), $threeDResponse);
+            return $this->mergeArraysPreferNonNullValues($this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE), $threeDResponse);
         }
 
-        $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData);
+        $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData, $txType, $order);
+
+        $paymentResponseData['payment_model'] = PosInterface::MODEL_3D_SECURE;
 
         return $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
     }
@@ -97,17 +100,17 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritdoc}
      */
-    public function map3DPayResponseData($raw3DAuthResponseData): array
+    public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData);
+        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData, $txType, $order);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function map3DHostResponseData(array $raw3DAuthResponseData): array
+    public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPayResponseData($raw3DAuthResponseData);
+        return $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
     }
 
     /**
@@ -158,10 +161,10 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
              * LastOrderStatus = 5 => odeme iade edildi
              * LastOrderStatus = 6 => odeme iptal edild
              */
-            $result['order_status']     = $orderContract['LastOrderStatus'];
-            $result['order_id']         = $orderContract['MerchantOrderId'];
-            $result['remote_order_id']  = (string) $orderContract['OrderId'];
-            $result['status']           = $status;
+            $result['order_status']    = $orderContract['LastOrderStatus'];
+            $result['order_id']        = $orderContract['MerchantOrderId'];
+            $result['remote_order_id'] = (string) $orderContract['OrderId'];
+            $result['status']          = $status;
 
             $result['auth_code']      = $orderContract['ProvNumber'];
             $result['ref_ret_num']    = $orderContract['RRN'];
@@ -209,8 +212,8 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
 
         $responseResults = $rawResponseData['PartialDrawbackResult']['Results'];
         if (self::TX_APPROVED !== $status && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
-            $responseResult = $responseResults['Result'][0];
-            $result['error_code'] = $responseResult['ErrorCode'];
+            $responseResult          = $responseResults['Result'][0];
+            $result['error_code']    = $responseResult['ErrorCode'];
             $result['error_message'] = $responseResult['ErrorMessage'];
 
             return $result;
@@ -266,8 +269,8 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
 
         $responseResults = $rawResponseData['SaleReversalResult']['Results'];
         if (self::TX_APPROVED !== $status && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
-            $responseResult = $responseResults['Result'][0];
-            $result['error_code'] = $responseResult['ErrorCode'];
+            $responseResult          = $responseResults['Result'][0];
+            $result['error_code']    = $responseResult['ErrorCode'];
             $result['error_message'] = $responseResult['ErrorMessage'];
 
             return $result;
@@ -387,6 +390,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         $default = [
             'order_id'             => $orderId,
             'transaction_security' => $this->mapResponseTransactionSecurity('todo'),
+            'transaction_type'     => isset($vPosMessage['TransactionType']) ? $this->mapTxType($vPosMessage['TransactionType']) : null,
             'proc_return_code'     => $procReturnCode,
             'md_status'            => null,
             'status'               => $status,
@@ -400,7 +404,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         ];
 
         if (self::TX_APPROVED === $status) {
-            $default['amount']        = $vPosMessage['Amount'];
+            $default['amount']        = $this->formatAmount($vPosMessage['Amount']);
             $default['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
             $default['masked_number'] = $vPosMessage['CardNumber'];
         }

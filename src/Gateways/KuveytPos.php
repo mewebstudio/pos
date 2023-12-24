@@ -68,7 +68,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request): PosInterface
+    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -76,7 +76,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request): PosInterface
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -152,7 +152,7 @@ class KuveytPos extends AbstractGateway
             $this->logger->error('3d auth fail', ['proc_return_code' => $procReturnCode]);
         }
 
-        $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse);
+        $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;

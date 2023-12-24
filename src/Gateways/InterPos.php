@@ -103,7 +103,7 @@ class InterPos extends AbstractGateway
         }
 
 
-        $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse);
+        $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
@@ -112,9 +112,9 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request): PosInterface
+    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
-        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
+        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all(), $txType, $order);
 
         return $this;
     }
@@ -122,9 +122,9 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request): PosInterface
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        return $this->make3DPayPayment($request);
+        return $this->make3DPayPayment($request, $order, $txType);
     }
 
     /**

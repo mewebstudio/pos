@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Exception;
@@ -34,7 +35,8 @@ class PosNetV1PosTest extends TestCase
 
     private CreditCardInterface $card;
 
-    private PosNetV1Pos $pos;
+    /** @var PosNetV1Pos */
+    private PosInterface $pos;
 
     protected function setUp(): void
     {
@@ -98,7 +100,7 @@ class PosNetV1PosTest extends TestCase
                 $serializer,
                 $this->createMock(EventDispatcherInterface::class),
                 HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger()
+                new NullLogger(),
             ])
             ->onlyMethods(['send'])
             ->getMock();
@@ -109,36 +111,38 @@ class PosNetV1PosTest extends TestCase
         $resp = $posMock->getResponse();
         unset($resp['all'], $resp['3d_all']);
 
+        \ksort($expectedData);
+        \ksort($resp);
         $this->assertSame($expectedData, $resp);
     }
 
     public static function make3dPaymentTestProvider(): iterable
     {
-        $dataSamples = iterator_to_array(PosNetV1PosResponseDataMapperTest::threeDPaymentDataProvider());
-
+        $dataSamples  = iterator_to_array(PosNetV1PosResponseDataMapperTest::threeDPaymentDataProvider());
+        $success1Data = $dataSamples['success1'];
         yield 'success1' => [
-            'order' => [
-                'id'          => $dataSamples['success1']['threeDResponseData']['OrderId'],
+            'order'               => [
+                'id'          => $success1Data['expectedData']['order_id'],
                 'amount'      => 1.75,
                 'installment' => 0,
                 'currency'    => PosInterface::CURRENCY_TRY,
                 'success_url' => 'https://domain.com/success',
             ],
-            'threeDResponseData' => $dataSamples['success1']['threeDResponseData'],
-            'paymentResponseData' => $dataSamples['success1']['paymentData'],
-            'expectedData' => $dataSamples['success1']['expectedData'],
+            'threeDResponseData'  => $success1Data['threeDResponseData'],
+            'paymentResponseData' => $success1Data['paymentData'],
+            'expectedData'        => $success1Data['expectedData'],
         ];
     }
 
     public static function getApiURLDataProvider(): iterable
     {
         yield [
-            'txType' => PosInterface::TX_TYPE_PAY,
+            'txType'   => PosInterface::TX_TYPE_PAY,
             'expected' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
         ];
 
         yield [
-            'txType' => PosInterface::TX_TYPE_CANCEL,
+            'txType'   => PosInterface::TX_TYPE_CANCEL,
             'expected' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Reverse',
         ];
     }

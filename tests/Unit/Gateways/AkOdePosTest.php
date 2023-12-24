@@ -149,7 +149,7 @@ class AkOdePosTest extends TestCase
     /**
      * @dataProvider make3DPayPaymentDataProvider
      */
-    public function testMake3DPayPayment(Request $request, array $expectedResponse, bool $isSuccess): void
+    public function testMake3DPayPayment(array $order, string $txType, Request $request, array $expectedResponse, bool $isSuccess): void
     {
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
@@ -163,7 +163,7 @@ class AkOdePosTest extends TestCase
             ->method('map3DPayResponseData')
             ->willReturn($expectedResponse);
 
-        $this->pos->make3DPayPayment($request);
+        $this->pos->make3DPayPayment($request, $order, $txType);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -173,7 +173,7 @@ class AkOdePosTest extends TestCase
     /**
      * @dataProvider make3DPayPaymentDataProvider
      */
-    public function testMake3DHostPayment(Request $request, array $expectedResponse, bool $isSuccess): void
+    public function testMake3DHostPayment(array $order, string $txType, Request $request, array $expectedResponse, bool $isSuccess): void
     {
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
@@ -187,7 +187,7 @@ class AkOdePosTest extends TestCase
             ->method('map3DPayResponseData')
             ->willReturn($expectedResponse);
 
-        $this->pos->make3DHostPayment($request);
+        $this->pos->make3DHostPayment($request, $order, $txType);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
@@ -197,10 +197,10 @@ class AkOdePosTest extends TestCase
     /**
      * @dataProvider make3DPayPaymentDataProvider
      */
-    public function testMake3DPayment(Request $request): void
+    public function testMake3DPayment(array $order, string $txType, Request $request): void
     {
         $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY, $this->card);
+        $this->pos->make3DPayment($request, $order, $txType, $this->card);
     }
 
     /**
@@ -497,11 +497,15 @@ class AkOdePosTest extends TestCase
     {
         return [
             'auth_fail' => [
+                'order'     => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['order'],
+                'txType'    => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['txType'],
                 'request'   => Request::create('', 'POST', AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData']),
                 'expected'  => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['expectedData'],
                 'isSuccess' => false,
             ],
             'success'   => [
+                'order'     => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['order'],
+                'txType'    => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['txType'],
                 'request'   => Request::create('', 'POST', AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']),
                 'expected'  => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['expectedData'],
                 'isSuccess' => true,

@@ -23,10 +23,10 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
      */
     protected array $codes = [
         self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
-        0 => self::TX_APPROVED,
-        101 => 'transaction_not_found',
-        998 => 'invalid_transaction',
-        999 => 'general_error',
+        0                            => self::TX_APPROVED,
+        101                          => 'transaction_not_found',
+        998                          => 'invalid_transaction',
+        999                          => 'general_error',
     ];
 
     /**
@@ -35,17 +35,17 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
      * @var array<int, string>
      */
     protected array $orderStatusMappings = [
-        0  => PosInterface::PAYMENT_STATUS_ERROR,
-        1  => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        2  => PosInterface::PAYMENT_STATUS_CANCELED,
-        3  => PosInterface::PAYMENT_STATUS_PARTIALLY_REFUNDED,
-        4  => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
-        5  => PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED,
+        0 => PosInterface::PAYMENT_STATUS_ERROR,
+        1 => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
+        2 => PosInterface::PAYMENT_STATUS_CANCELED,
+        3 => PosInterface::PAYMENT_STATUS_PARTIALLY_REFUNDED,
+        4 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
+        5 => PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED,
     ];
 
     /**
      * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
-     * @param array<PosInterface::TX_TYPE_*, string>       $txTypeMappings
+     * @param array<PosInterface::TX_TYPE_*, string>  $txTypeMappings
      * @param LoggerInterface                         $logger
      */
     public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)
@@ -70,10 +70,10 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritDoc}
      */
-    public function mapPaymentResponse(array $rawPaymentResponseData): array
+    public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
     {
         $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
-        $defaultResponse = $this->getDefaultPaymentResponse();
+        $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_NON_SECURE);
         if ([] === $rawPaymentResponseData) {
             return $defaultResponse;
         }
@@ -89,6 +89,8 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
 
         $mappedResponse = [
             'order_id'         => $rawPaymentResponseData['OrderId'],
+            'currency'         => $order['currency'],
+            'amount'           => $order['amount'],
             'trans_id'         => $rawPaymentResponseData['TransactionId'],
             'transaction_type' => null,
             'ref_ret_num'      => $rawPaymentResponseData['HostReferenceNumber'],
@@ -108,7 +110,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritdoc}
      */
-    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
+    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData, string $txType, array $order): array
     {
         throw new NotImplementedException();
     }
@@ -116,7 +118,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritdoc}
      */
-    public function map3DPayResponseData(array $raw3DAuthResponseData): array
+    public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
         $status = self::TX_DECLINED;
 
@@ -131,12 +133,14 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $defaultResponse = $this->getDefaultPaymentResponse();
+        $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_PAY);
 
         $response = [
             'order_id'             => $raw3DAuthResponseData['OrderId'],
             'transaction_type'     => null,
             'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['MdStatus']),
+            'currency'             => $order['currency'],
+            'amount'               => $order['amount'],
             'md_status'            => $raw3DAuthResponseData['MdStatus'],
             'status'               => $status,
             'proc_return_code'     => $procReturnCode,
@@ -156,9 +160,13 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritdoc}
      */
-    public function map3DHostResponseData(array $raw3DAuthResponseData): array
+    public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPayResponseData($raw3DAuthResponseData);
+        $result = $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
+
+        $result['payment_model'] = PosInterface::MODEL_3D_HOST;
+
+        return $result;
     }
 
     /**
@@ -271,13 +279,13 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $mappedTransactions = [];
-        $orderId = null;
+        $orderId            = null;
         if (self::TX_APPROVED === $status) {
             foreach ($rawResponseData['Transactions'] as $transaction) {
                 $mappedTransaction = $this->mapStatusResponse($transaction);
                 unset($mappedTransaction['all']);
                 $mappedTransactions[] = $mappedTransaction;
-                $orderId = $mappedTransaction['order_id'];
+                $orderId              = $mappedTransaction['order_id'];
             }
         }
 

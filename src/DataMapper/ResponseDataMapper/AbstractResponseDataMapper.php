@@ -8,7 +8,6 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
 use function array_diff_key;
-use function array_flip;
 use function array_intersect_key;
 use function array_keys;
 use function is_numeric;
@@ -24,21 +23,21 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     protected LoggerInterface $logger;
 
     /** @var array<string, PosInterface::CURRENCY_*> */
-    private array $currencyMappings;
+    protected array $currencyMappings;
 
     /** @var array<string, PosInterface::TX_TYPE_*> */
     protected array $txTypeMappings;
 
     /**
      * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
-     * @param array<PosInterface::TX_TYPE_*, string>       $txTypeMappings
+     * @param array<PosInterface::TX_TYPE_*, string>  $txTypeMappings
      * @param LoggerInterface                         $logger
      */
     public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)
     {
         $this->logger           = $logger;
-        $this->currencyMappings = array_flip($currencyMappings);
-        $this->txTypeMappings   = array_flip($txTypeMappings);
+        $this->currencyMappings = \array_flip($currencyMappings);
+        $this->txTypeMappings   = \array_flip($txTypeMappings);
     }
 
     /**
@@ -52,7 +51,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     /**
      * @param string|int $txType
      *
-     * @return string|null
+     * @return PosInterface::TX_*|null
      */
     public function mapTxType($txType): ?string
     {
@@ -109,15 +108,24 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
 
     /**
      * Returns default payment response data
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::MODEL_*   $paymentModel
+     *
+     * @param string $txType
+     * @param string $paymentModel
      *
      * @return array{order_id: null, trans_id: null, auth_code: null, ref_ret_num: null, proc_return_code: null,
      *     status: string, status_detail: null, error_code: null, error_message: null, all: null}
      */
-    protected function getDefaultPaymentResponse(): array
+    protected function getDefaultPaymentResponse(string $txType, string $paymentModel): array
     {
         return [
             'order_id'         => null,
             'trans_id'         => null,
+            'transaction_type' => $txType,
+            'currency'         => null,
+            'amount'           => null,
+            'payment_model'    => $paymentModel,
             'auth_code'        => null,
             'ref_ret_num'      => null,
             'proc_return_code' => null,

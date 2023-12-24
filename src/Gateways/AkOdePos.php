@@ -93,7 +93,7 @@ class AkOdePos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request): PosInterface
+    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
         $request = $request->request;
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
@@ -104,7 +104,7 @@ class AkOdePos extends AbstractGateway
             $this->logger->error('3d auth fail', ['md_status' => $request->get('MdStatus')]);
         }
 
-        $this->response = $this->responseDataMapper->map3DPayResponseData($request->all());
+        $this->response = $this->responseDataMapper->map3DPayResponseData($request->all(), $txType, $order);
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
@@ -114,9 +114,9 @@ class AkOdePos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request): PosInterface
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        return $this->make3DPayPayment($request);
+        return $this->make3DPayPayment($request, $order, $txType);
     }
 
     /**
@@ -209,6 +209,12 @@ class AkOdePos extends AbstractGateway
         ]);
 
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
+
+        if ($response->getStatusCode() === 204) {
+            $this->logger->warning('response from api is empty');
+
+            return $this->data = [];
+        }
 
         $responseContent = $response->getBody()->getContents();
 

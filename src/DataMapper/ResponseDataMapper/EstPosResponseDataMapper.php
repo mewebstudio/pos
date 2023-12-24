@@ -5,6 +5,8 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\PosInterface;
+
 /**
  * @phpstan-type PaymentStatusModel array<string, mixed>
  */
@@ -36,11 +38,13 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      * @param PaymentStatusModel $rawPaymentResponseData
      * {@inheritDoc}
      */
-    public function mapPaymentResponse(array $rawPaymentResponseData): array
+    public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
     {
         $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
+
+        $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_NON_SECURE);
         if ([] === $rawPaymentResponseData) {
-            return $this->getDefaultPaymentResponse();
+            return $defaultResponse;
         }
 
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
@@ -53,6 +57,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
 
         $mappedResponse = [
             'order_id'         => $rawPaymentResponseData['OrderId'],
+            'currency'         => $order['currency'],
+            'amount'           => $order['amount'],
             'group_id'         => $rawPaymentResponseData['GroupId'],
             'trans_id'         => $rawPaymentResponseData['TransId'],
             'auth_code'        => $rawPaymentResponseData['AuthCode'],
@@ -69,23 +75,23 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
 
         $this->logger->debug('mapped payment response', $mappedResponse);
 
-        return $mappedResponse;
+        return $this->mergeArraysPreferNonNullValues($defaultResponse, $mappedResponse);
     }
 
     /**
      * @param PaymentStatusModel|null $rawPaymentResponseData
      * {@inheritdoc}
      */
-    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
+    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData, string $txType, array $order): array
     {
         $this->logger->debug('mapping 3D payment data', [
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $paymentResponseData   = $this->getDefaultPaymentResponse();
+        $paymentResponseData   = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE);
         if (null !== $rawPaymentResponseData) {
-            $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData);
+            $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData, $txType, $order);
         }
 
         $threeDResponse = [
@@ -109,23 +115,26 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $threeDResponse['cavv'] = $raw3DAuthResponseData['cavv'];
         }
 
-        return $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
+        $result = $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
+        $result['payment_model'] = PosInterface::MODEL_3D_SECURE;
+
+        return $result;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function map3DPayResponseData($raw3DAuthResponseData): array
+    public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
         $status = self::TX_DECLINED;
 
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && in_array($raw3DAuthResponseData['mdStatus'], ['1', '2', '3', '4'])) {
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && \in_array($raw3DAuthResponseData['mdStatus'], ['1', '2', '3', '4'])) {
             $status = self::TX_APPROVED;
         }
 
-        $defaultResponse = $this->getDefaultPaymentResponse();
+        $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_PAY);
 
         $response = [
             'order_id'             => $raw3DAuthResponseData['oid'],
@@ -162,16 +171,16 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritdoc}
      */
-    public function map3DHostResponseData(array $raw3DAuthResponseData): array
+    public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $status                = self::TX_DECLINED;
 
-        if (in_array($raw3DAuthResponseData['mdStatus'], [1, 2, 3, 4])) {
+        if (\in_array($raw3DAuthResponseData['mdStatus'], [1, 2, 3, 4])) {
             $status = self::TX_APPROVED;
         }
 
-        $defaultResponse = $this->getDefaultPaymentResponse();
+        $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_HOST);
 
         $response = [
             'order_id'             => $raw3DAuthResponseData['oid'],

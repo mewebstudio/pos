@@ -90,7 +90,7 @@ class PayForPos extends AbstractGateway
             $this->logger->error('3d auth fail', ['md_status' => $request->get('3DStatus')]);
         }
 
-        $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse);
+        $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);
 
         return $this;
     }
@@ -98,9 +98,9 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request): PosInterface
+    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
-        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
+        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all(), $txType, $order);
 
         return $this;
     }
@@ -108,9 +108,9 @@ class PayForPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request): PosInterface
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        return $this->make3DPayPayment($request);
+        return $this->make3DPayPayment($request, $order, $txType);
     }
 
     /**

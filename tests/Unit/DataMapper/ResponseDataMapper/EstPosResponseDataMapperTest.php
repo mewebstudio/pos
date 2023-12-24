@@ -38,41 +38,53 @@ class EstPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider paymentTestDataProvider
      */
-    public function testMapPaymentResponse(array $responseData, array $expectedData)
+    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData);
+        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
     /**
      * @dataProvider threeDPaymentDataProvider
      */
-    public function testMap3DPaymentData(array $threeDResponseData, array $paymentResponse, array $expectedData)
+    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DPaymentData($threeDResponseData, $paymentResponse);
-        unset($actualData['all']);
-        unset($actualData['3d_all']);
+        $actualData = $this->responseDataMapper->map3DPaymentData(
+            $threeDResponseData,
+            $paymentResponse,
+            $txType,
+            $order,
+        );
+        unset($actualData['all'], $actualData['3d_all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
     /**
      * @dataProvider threeDPayPaymentDataProvider
      */
-    public function testMap3DPayResponseData(array $responseData, array $expectedData)
+    public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData);
+        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
     /**
      * @dataProvider threeDHostPaymentDataProvider
      */
-    public function testMap3DHostResponseData(array $responseData, array $expectedData)
+    public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData);
+        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -120,6 +132,11 @@ class EstPosResponseDataMapperTest extends TestCase
     public static function paymentTestDataProvider(): iterable
     {
         yield 'success1' => [
+            'order'        => [
+                'currency' => PosInterface::CURRENCY_TRY,
+                'amount'   => 1.01,
+            ],
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 'OrderId'        => '202210293885',
                 'GroupId'        => '202210293885',
@@ -144,6 +161,8 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
             ],
             'expectedData' => [
+                'transaction_type' => 'pay',
+                'payment_model'    => 'regular',
                 'order_id'         => '202210293885',
                 'group_id'         => '202210293885',
                 'trans_id'         => '22302V8rE11732',
@@ -155,6 +174,8 @@ class EstPosResponseDataMapperTest extends TestCase
                 'error_code'       => null,
                 'error_message'    => null,
                 'recurring_id'     => null,
+                'currency'         => 'TRY',
+                'amount'           => 1.01,
                 'extra'            => [
                     'SETTLEID'           => '2286',
                     'TRXDATE'            => '20221029 21:58:43',
@@ -171,6 +192,11 @@ class EstPosResponseDataMapperTest extends TestCase
             ],
         ];
         yield 'success2WithoutERRORCODE' => [
+            'order'        => [
+                'currency' => PosInterface::CURRENCY_TRY,
+                'amount'   => 1.01,
+            ],
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 'OrderId'        => '202210293885',
                 'GroupId'        => '202210293885',
@@ -194,6 +220,8 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
             ],
             'expectedData' => [
+                'transaction_type' => 'pay',
+                'payment_model'    => 'regular',
                 'order_id'         => '202210293885',
                 'group_id'         => '202210293885',
                 'trans_id'         => '22302V8rE11732',
@@ -205,6 +233,8 @@ class EstPosResponseDataMapperTest extends TestCase
                 'error_code'       => null,
                 'error_message'    => null,
                 'recurring_id'     => null,
+                'currency'         => 'TRY',
+                'amount'           => 1.01,
                 'extra'            => [
                     'SETTLEID'           => '2286',
                     'TRXDATE'            => '20221029 21:58:43',
@@ -220,6 +250,11 @@ class EstPosResponseDataMapperTest extends TestCase
             ],
         ];
         yield 'fail1' => [
+            'order'        => [
+                'currency' => PosInterface::CURRENCY_TRY,
+                'amount'   => 1.01,
+            ],
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 'OrderId'        => '20221029B541',
                 'GroupId'        => '20221029B541',
@@ -236,7 +271,9 @@ class EstPosResponseDataMapperTest extends TestCase
                     'NUMCODE'   => '992012',
                 ],
             ],
-            'successData'  => [
+            'expectedData' => [
+                'transaction_type' => 'pay',
+                'payment_model'    => 'regular',
                 'order_id'         => '20221029B541',
                 'group_id'         => '20221029B541',
                 'trans_id'         => '22302WcCC13836',
@@ -248,6 +285,8 @@ class EstPosResponseDataMapperTest extends TestCase
                 'error_code'       => 'CORE-2012',
                 'error_message'    => 'Kredi karti numarasi gecerli formatta degil.',
                 'recurring_id'     => null,
+                'currency'         => 'TRY',
+                'amount'           => 1.01,
                 'extra'            => [
                     'SETTLEID'  => null,
                     'TRXDATE'   => '20221029 22:28:01',
@@ -258,6 +297,11 @@ class EstPosResponseDataMapperTest extends TestCase
         ];
 
         yield 'postFail2' => [
+            'order'        => [
+                'currency' => PosInterface::CURRENCY_TRY,
+                'amount'   => 1.01,
+            ],
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 'OrderId'        => '20221030FAC5',
                 'GroupId'        => '20221030FAC5',
@@ -281,7 +325,9 @@ class EstPosResponseDataMapperTest extends TestCase
                     'NUMCODE'            => '00',
                 ],
             ],
-            'successData'  => [
+            'expectedData' => [
+                'transaction_type' => 'pay',
+                'payment_model'    => 'regular',
                 'order_id'         => '20221030FAC5',
                 'group_id'         => '20221030FAC5',
                 'trans_id'         => '22303Md4C19254',
@@ -293,6 +339,8 @@ class EstPosResponseDataMapperTest extends TestCase
                 'error_code'       => null,
                 'error_message'    => null,
                 'recurring_id'     => null,
+                'currency'         => 'TRY',
+                'amount'           => 1.01,
                 'extra'            => [
                     'SETTLEID'           => '2287',
                     'TRXDATE'            => '20221030 12:29:53',
@@ -315,6 +363,11 @@ class EstPosResponseDataMapperTest extends TestCase
     {
         return [
             [
+                'order'              => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'             => PosInterface::TX_TYPE_PAY,
                 // 3D Auth fail case
                 'threeDResponseData' => [
                     'sID'                             => '1',
@@ -378,10 +431,17 @@ class EstPosResponseDataMapperTest extends TestCase
                     'error_code'           => null,
                     'error_message'        => null,
                     'order_id'             => '2022103076E7',
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d',
                 ],
             ],
             [
                 // 3D Success payment fail case
+                'order'              => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'             => PosInterface::TX_TYPE_PAY,
                 'threeDResponseData' => [
                     'TRANID'                          => '',
                     'PAResSyntaxOK'                   => 'true',
@@ -469,10 +529,17 @@ class EstPosResponseDataMapperTest extends TestCase
                         'NUMCODE'   => '992603',
                     ],
                     'order_id'             => '20221030FE4C',
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d',
                 ],
             ],
             [
                 // Success case
+                'order'              => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'             => PosInterface::TX_TYPE_PAY,
                 'threeDResponseData' => [
                     'TRANID'                          => '',
                     'PAResSyntaxOK'                   => 'true',
@@ -566,6 +633,8 @@ class EstPosResponseDataMapperTest extends TestCase
                         'NUMCODE'       => '00',
                     ],
                     'order_id'             => '202210304547',
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d',
                 ],
             ],
         ];
@@ -576,6 +645,11 @@ class EstPosResponseDataMapperTest extends TestCase
     {
         return [
             'success1'  => [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentData'  => [
                     'ReturnOid'                       => '2022103030CB',
                     'TRANID'                          => '',
@@ -658,9 +732,16 @@ class EstPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'approved',
                     'error_code'           => null,
                     'error_message'        => null,
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d_pay',
                 ],
             ],
             'authFail1' => [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentData'  => [
                     'sID'                             => '1',
                     'oid'                             => '2022103008A3',
@@ -722,6 +803,8 @@ class EstPosResponseDataMapperTest extends TestCase
                     'order_id'             => '2022103008A3',
                     'proc_return_code'     => null,
                     'status'               => 'declined',
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d_pay',
                 ],
             ],
         ];
@@ -731,8 +814,12 @@ class EstPosResponseDataMapperTest extends TestCase
     public static function threeDHostPaymentDataProvider(): array
     {
         return [
-            'success1' => [
-                // success case
+            'success1'      => [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentData'  => [
                     'panFirst6'                       => '',
                     'TRANID'                          => '',
@@ -815,10 +902,16 @@ class EstPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => null,
                     'order_id'             => '202210305DCF',
                     'status'               => 'approved',
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d_host',
                 ],
             ],
-            [
-                //  3d fail case
+            '3d_auth_fail1' => [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentData'  => [
                     'panFirst6'                       => '',
                     'TRANID'                          => '',
@@ -899,6 +992,8 @@ class EstPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => 'N-status/Challenge authentication via ACS: https://3ds-acs.test.modirum.com/mdpayacs/creq?token=214705021.1667121056.gc2NvdPjGQ6',
                     'order_id'             => '20221030F11F',
                     'status'               => 'declined',
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d_host',
                 ],
             ],
         ];
@@ -947,7 +1042,7 @@ class EstPosResponseDataMapperTest extends TestCase
                         'error_message'    => 'Record(s) found for 20221030FAC5',
                         'ref_ret_num'      => '230300671782',
                         'order_status'     => "ORD_ID:20221030FAC5\tCHARGE_TYPE_CD:S\tORIG_TRANS_AMT:101\tCAPTURE_AMT:\tTRANS_STAT:A\tAUTH_DTTM:2022-10-30 12:29:53.773\tCAPTURE_DTTM:\tAUTH_CODE:P90325\tTRANS_ID:22303Md4C19254",
-                        'transaction_type'          => null,
+                        'transaction_type' => null,
                         'masked_number'    => '4355 08** **** 4358',
                         'num_code'         => '0',
                         'first_amount'     => 1.01,
@@ -978,7 +1073,7 @@ class EstPosResponseDataMapperTest extends TestCase
                         'error_message'    => 'No record found for 2022103088D22',
                         'ref_ret_num'      => null,
                         'order_status'     => "ORD_ID:\tCHARGE_TYPE_CD:\tORIG_TRANS_AMT:\tCAPTURE_AMT:\tTRANS_STAT:\tAUTH_DTTM:\tCAPTURE_DTTM:\tAUTH_CODE:",
-                        'transaction_type'          => null,
+                        'transaction_type' => null,
                         'masked_number'    => null,
                         'num_code'         => null,
                         'first_amount'     => null,

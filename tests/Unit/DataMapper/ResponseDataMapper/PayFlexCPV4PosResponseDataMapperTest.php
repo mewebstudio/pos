@@ -10,6 +10,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
@@ -37,18 +38,22 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threesDPayResponseSamplesProvider
      */
-    public function testMap3DPayResponseData(array $bankResponse, array $expected): void
+    public function testMap3DPayResponseData(array $order, string $txType, array $bankResponse, array $expected): void
     {
-        $actual = $this->responseDataMapper->map3DPayResponseData($bankResponse);
+        $actual = $this->responseDataMapper->map3DPayResponseData($bankResponse, $txType, $order);
 
         $this->assertNotEmpty($actual['all']);
         unset($actual['all']);
+        \ksort($expected);
+        \ksort($actual);
         $this->assertSame($expected, $actual);
     }
 
     public static function threesDPayResponseSamplesProvider(): Generator
     {
         yield 'fail_response_from_gateway_1' => [
+            'order'         => [],
+            'txType'        => PosInterface::TX_TYPE_PAY,
             'bank_response' => [
                 'Rc'            => '2053',
                 'Message'       => 'VeRes status is E Message : Directory server communication error',
@@ -70,10 +75,16 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'md_error_message'     => null,
                 'transaction_security' => null,
                 'masked_number'        => '49384601****4205',
+                'transaction_type'     => 'pay',
+                'currency'             => null,
+                'amount'               => null,
+                'payment_model'        => '3d_pay',
             ],
         ];
 
         yield 'fail_response_from_gateway_2' => [
+            'order'         => [],
+            'txType'        => PosInterface::TX_TYPE_PAY,
             'bank_response' => [
                 'Rc'            => '0057',
                 'AuthCode'      => '000000',
@@ -97,10 +108,16 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'md_error_message'     => null,
                 'transaction_security' => null,
                 'masked_number'        => '49384601****4205',
+                'transaction_type'     => 'pay',
+                'currency'             => null,
+                'amount'               => null,
+                'payment_model'        => '3d_pay',
             ],
         ];
 
         yield 'success_response_from_gateway_1' => [
+            'order'         => [],
+            'txType'        => PosInterface::TX_TYPE_PRE_PAY,
             'bank_response' => [
                 'Rc'                   => '0000',
                 'AuthCode'             => '735879',
@@ -149,6 +166,10 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'md_error_message'     => null,
                 'transaction_security' => null,
                 'masked_number'        => '49384601****4205',
+                'transaction_type'     => 'pay',
+                'currency'             => 'TRY',
+                'amount'               => 1.0,
+                'payment_model'        => '3d_pay',
             ],
         ];
     }

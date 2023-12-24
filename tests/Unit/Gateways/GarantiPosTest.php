@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Mews\Pos\Entity\Account\GarantiPosAccount;
@@ -21,7 +22,8 @@ class GarantiPosTest extends TestCase
 
     private $config;
 
-    private GarantiPos $pos;
+    /** @var GarantiPos */
+    private PosInterface $pos;
 
     protected function setUp(): void
     {

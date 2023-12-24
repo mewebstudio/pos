@@ -5,6 +5,9 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\PosInterface;
+use Psr\Log\LoggerInterface;
+
 class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
 {
     /** @var string */
@@ -40,14 +43,34 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
+     * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
+     * @param array<PosInterface::TX_TYPE_*, string>  $txTypeMappings
+     * @param LoggerInterface                         $logger
+     */
+    public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)
+    {
+        parent::__construct($currencyMappings, $txTypeMappings, $logger);
+
+        $this->currencyMappings += [
+            '949' => PosInterface::CURRENCY_TRY,
+            '840' => PosInterface::CURRENCY_USD,
+            '978' => PosInterface::CURRENCY_EUR,
+            '826' => PosInterface::CURRENCY_GBP,
+            '392' => PosInterface::CURRENCY_JPY,
+            '643' => PosInterface::CURRENCY_RUB,
+        ];
+    }
+
+    /**
      * {@inheritDoc}
      */
-    public function mapPaymentResponse(array $rawPaymentResponseData): array
+    public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
     {
         $status = self::TX_DECLINED;
         $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
+        $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_NON_SECURE);
         if ([] === $rawPaymentResponseData) {
-            return $this->getDefaultPaymentResponse();
+            return $defaultResponse;
         }
 
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
@@ -59,8 +82,10 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        return [
-            'order_id'         => null,
+        $mappedResponse = [
+            'order_id'         => $order['id'],
+            'currency'         => $order['currency'],
+            'amount'           => $order['amount'],
             'trans_id'         => null,
             'auth_code'        => $rawPaymentResponseData['AuthCode'] ?? null,
             'ref_ret_num'      => $rawPaymentResponseData['ReferenceCode'] ?? null,
@@ -71,12 +96,14 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             'error_message'    => $status !== self::TX_APPROVED ? $rawPaymentResponseData['ServiceResponseData']['ResponseDescription'] : null,
             'all'              => $rawPaymentResponseData,
         ];
+
+        return $this->mergeArraysPreferNonNullValues($defaultResponse, $mappedResponse);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
+    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData, string $txType, array $order): array
     {
         $this->logger->debug('mapping 3D payment data', [
             '3d_auth_response'   => $raw3DAuthResponseData,
@@ -85,22 +112,25 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
 
         $mdStatus            = $raw3DAuthResponseData['MdStatus'];
+        $threeDAuthApproved  = \in_array($mdStatus, ['1', '2', '3', '4'], true);
         $transactionSecurity = $this->mapResponseTransactionSecurity($mdStatus);
-
+        $txType              = $this->mapTxType($raw3DAuthResponseData['TranType']) ?? $txType;
 
         $threeDResponse = [
-            'order_id'             => $raw3DAuthResponseData['OrderId'] ?? null,
+            'order_id'             => $order['id'],
+            'remote_order_id'      => $raw3DAuthResponseData['OrderId'] ?? null,
             'transaction_security' => $transactionSecurity,
             'masked_number'        => $raw3DAuthResponseData['CCPrefix'], // Kredi Kartı Numarası ön eki: 450634
             'proc_return_code'     => null,
+            'currency'             => isset($raw3DAuthResponseData['CurrencyCode']) ? $this->mapCurrency($raw3DAuthResponseData['CurrencyCode']) : null,
             'status'               => self::TX_DECLINED,
             'md_status'            => $mdStatus,
-            'md_error_message'     => '1' !== $mdStatus ? $raw3DAuthResponseData['MdErrorMessage'] : null,
+            'md_error_message'     => $threeDAuthApproved ? null : $raw3DAuthResponseData['MdErrorMessage'],
             'amount'               => $this->formatAmount($raw3DAuthResponseData['Amount']),
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
-        $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData ?? []);
+        $paymentResponseData = $this->map3DPaymentResponseCommon($rawPaymentResponseData ?? [], $txType, PosInterface::MODEL_3D_SECURE);
 
         return $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
     }
@@ -108,17 +138,17 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritdoc}
      */
-    public function map3DPayResponseData($raw3DAuthResponseData): array
+    public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData);
+        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData, $txType, $order);
     }
 
     /**
      * {@inheritdoc}
      */
-    public function map3DHostResponseData(array $raw3DAuthResponseData): array
+    public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPayResponseData($raw3DAuthResponseData);
+        return $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
     }
 
     /**
@@ -248,5 +278,48 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
     protected function formatAmount(string $amount): float
     {
         return ((int) $amount) / 100;
+    }
+
+    /**
+     * @phpstan-param PosInterface::TX_*       $txType
+     * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
+     *
+     * @param array<string, mixed> $rawPaymentResponseData
+     * @param string               $txType
+     * @param string               $paymentModel
+     *
+     * @return array<string, mixed>
+     */
+    private function map3DPaymentResponseCommon(array $rawPaymentResponseData, string $txType, string $paymentModel): array
+    {
+        $status = self::TX_DECLINED;
+        $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
+        $defaultResponse = $this->getDefaultPaymentResponse($txType, $paymentModel);
+        if ([] === $rawPaymentResponseData) {
+            return $defaultResponse;
+        }
+
+        $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
+        $procReturnCode         = $this->getProcReturnCode($rawPaymentResponseData);
+        if (
+            self::PROCEDURE_SUCCESS_CODE === $procReturnCode
+            && $this->getStatusDetail($procReturnCode) === self::TX_APPROVED
+        ) {
+            $status = self::TX_APPROVED;
+        }
+
+        $mappedResponse = [
+            'trans_id'         => null,
+            'auth_code'        => $rawPaymentResponseData['AuthCode'] ?? null,
+            'ref_ret_num'      => $rawPaymentResponseData['ReferenceCode'] ?? null,
+            'proc_return_code' => $procReturnCode,
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail($procReturnCode),
+            'error_code'       => $status !== self::TX_APPROVED ? $procReturnCode : null,
+            'error_message'    => $status !== self::TX_APPROVED ? $rawPaymentResponseData['ServiceResponseData']['ResponseDescription'] : null,
+            'all'              => $rawPaymentResponseData,
+        ];
+
+        return $this->mergeArraysPreferNonNullValues($defaultResponse, $mappedResponse);
     }
 }

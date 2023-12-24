@@ -9,6 +9,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
 use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\PosNetV1Pos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
@@ -37,21 +38,29 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider paymentTestDataProvider
      */
-    public function testMapPaymentResponse(array $responseData, array $expectedData)
+    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData);
+        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
     /**
      * @dataProvider threeDPaymentDataProvider
      */
-    public function testMap3DPaymentData(array $threeDResponseData, array $paymentResponse, array $expectedData)
+    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DPaymentData($threeDResponseData, $paymentResponse);
-        unset($actualData['all']);
-        unset($actualData['3d_all']);
+        $actualData = $this->responseDataMapper->map3DPaymentData(
+            $threeDResponseData,
+            $paymentResponse,
+            $txType,
+            $order
+        );
+        unset($actualData['all'], $actualData['3d_all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -89,6 +98,12 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     public static function paymentTestDataProvider(): iterable
     {
         yield 'fail1' => [
+            'order'        => [
+                'id'       => '202312171800ABC',
+                'currency' => PosInterface::CURRENCY_TRY,
+                'amount'   => 1.01,
+            ],
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'paymentData'  => [
                 'ServiceResponseData' => [
                     'ResponseCode'        => '0127',
@@ -101,8 +116,12 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'MessageData'         => null,
             ],
             'expectedData' => [
-                'order_id'         => null,
+                'transaction_type' => 'pay',
+                'payment_model'    => 'regular',
+                'order_id'         => '202312171800ABC',
                 'trans_id'         => null,
+                'currency'         => 'TRY',
+                'amount'           => 1.01,
                 'auth_code'        => null,
                 'ref_ret_num'      => null,
                 'proc_return_code' => '0127',
@@ -113,6 +132,12 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             ],
         ];
         yield 'success1' => [
+            'order'        => [
+                'id'       => '202312171800ABC',
+                'currency' => PosInterface::CURRENCY_TRY,
+                'amount'   => 1.01,
+            ],
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'paymentData'  => [
                 'ServiceResponseData' => [
                     'ResponseCode'        => '00',
@@ -184,8 +209,12 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 ],
             ],
             'expectedData' => [
-                'order_id'         => null,
+                'transaction_type' => 'pay',
+                'payment_model'    => 'regular',
+                'order_id'         => '202312171800ABC',
                 'trans_id'         => null,
+                'currency'         => 'TRY',
+                'amount'           => 1.01,
                 'auth_code'        => '449324',
                 'ref_ret_num'      => '159044932490000231',
                 'proc_return_code' => '00',
@@ -201,6 +230,10 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     public static function threeDPaymentDataProvider(): \Generator
     {
         yield 'threeDAuthFail1' => [
+            'order'              => [
+                'id' => '20230622A1C9',
+            ],
+            'txType'             => PosInterface::TX_TYPE_PRE_PAY,
             'threeDResponseData' => [
                 'CCPrefix'            => '450634',
                 'TranType'            => 'Sale',
@@ -230,12 +263,20 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'status_detail'        => null,
                 'error_code'           => null,
                 'error_message'        => null,
-                'order_id'             => '0000000020230622A1C9',
+                'order_id'             => '20230622A1C9',
+                'remote_order_id'      => '0000000020230622A1C9',
                 'proc_return_code'     => null,
                 'status'               => 'declined',
+                'currency'             => null,
+                'transaction_type'     => 'pay',
+                'payment_model'        => '3d',
             ],
         ];
         yield 'success1' => [
+            'order'              => [
+                'id' => '80603153823',
+            ],
+            'txType'             => PosInterface::TX_TYPE_PRE_PAY,
             'threeDResponseData' => [
                 'CCPrefix'            => '540061',
                 'TranType'            => 'Sale',
@@ -338,13 +379,21 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'status_detail'        => 'approved',
                 'error_code'           => null,
                 'error_message'        => null,
-                'order_id'             => 'ALA_0000080603153823',
+                'order_id'             => '80603153823',
+                'remote_order_id'      => 'ALA_0000080603153823',
                 'proc_return_code'     => '00',
                 'status'               => 'approved',
+                'currency'             => 'TRY',
+                'transaction_type'     => 'pay',
+                'payment_model'        => '3d',
             ],
         ];
 
         yield 'threeDAuthFail2' => [
+            'order'              => [
+                'id' => '80603153823',
+            ],
+            'txType'             => PosInterface::TX_TYPE_PRE_PAY,
             'threeDResponseData' => [
                 'CCPrefix'            => '540061',
                 'TranType'            => 'Sale',
@@ -378,13 +427,21 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'status_detail'        => null,
                 'error_code'           => null,
                 'error_message'        => null,
-                'order_id'             => 'ALA_0000080603153823',
+                'order_id'             => '80603153823',
+                'remote_order_id'      => 'ALA_0000080603153823',
                 'proc_return_code'     => null,
                 'status'               => 'declined',
+                'currency'             => 'TRY',
+                'transaction_type'     => 'pay',
+                'payment_model'        => '3d',
             ],
         ];
 
         yield 'threeDAuthSuccessButPaymentFail' => [
+            'order'              => [
+                'id' => '202306226A90',
+            ],
+            'txType'             => PosInterface::TX_TYPE_PRE_PAY,
             'threeDResponseData' => [
                 'CCPrefix'            => '450634',
                 'TranType'            => 'Sale',
@@ -424,9 +481,13 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'status_detail'        => null,
                 'error_code'           => '0148',
                 'error_message'        => 'INVALID MID TID IP. Hatalı IP:92.38.180.61',
-                'order_id'             => '00000000202306226A90',
+                'order_id'             => '202306226A90',
+                'remote_order_id'      => '00000000202306226A90',
                 'proc_return_code'     => '0148',
                 'status'               => 'declined',
+                'currency'             => null,
+                'transaction_type'     => 'pay',
+                'payment_model'        => '3d',
             ],
         ];
     }

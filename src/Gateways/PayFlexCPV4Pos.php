@@ -18,9 +18,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
-use function gettype;
-use function is_string;
-use function sprintf;
 
 /**
  * PayFlex Common Payment (Ortak Ödeme) ISD v4.0
@@ -73,12 +70,12 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request): PosInterface
+    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
         $resultCode = $request->query->get('Rc');
         if (null !== $resultCode && $this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $resultCode) {
             $this->logger->error('received error response from the bank', $request->query->all());
-            $this->response = $this->responseDataMapper->map3DPayResponseData($request->query->all());
+            $this->response = $this->responseDataMapper->map3DPayResponseData($request->query->all(), $txType, $order);
 
             return $this;
         }
@@ -116,7 +113,7 @@ class PayFlexCPV4Pos extends AbstractGateway
          */
         $bankResponse = $this->send($requestData, PosInterface::TX_TYPE_PAY, PosInterface::MODEL_3D_SECURE, $this->getQueryAPIUrl());
 
-        $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse);
+        $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse, $txType, $order);
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
@@ -126,9 +123,9 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request): PosInterface
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        return $this->make3DPayPayment($request);
+        return $this->make3DPayPayment($request, $order, $txType);
     }
 
     /**
@@ -224,13 +221,15 @@ class PayFlexCPV4Pos extends AbstractGateway
         $url ??= $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
 
-        if (!is_string($contents)) {
-            throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
+        if (!\is_string($contents)) {
+            throw new InvalidArgumentException(\sprintf('Argument type must be XML string, %s provided.', \gettype($contents)));
         }
 
         $response = $this->client->post($url, ['body' => $contents]);
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
+        $responseContent = $response->getBody()->getContents();
+
+        return $this->data = $this->serializer->decode($responseContent, $txType);
     }
 }

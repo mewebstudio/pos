@@ -93,7 +93,12 @@ class EstPos extends AbstractGateway
             $provisionResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
         }
 
-        $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $provisionResponse);
+        $this->response = $this->responseDataMapper->map3DPaymentData(
+            $request->all(),
+            $provisionResponse,
+            $txType,
+            $order
+        );
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
@@ -102,13 +107,13 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayPayment(Request $request): PosInterface
+    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all());
+        $this->response = $this->responseDataMapper->map3DPayResponseData($request->request->all(), $txType, $order);
 
         return $this;
     }
@@ -116,13 +121,13 @@ class EstPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DHostPayment(Request $request): PosInterface
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
         if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all());
+        $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all(), $txType, $order);
 
         return $this;
     }

@@ -38,10 +38,12 @@ class AkOdePosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider paymentDataProvider
      */
-    public function testMapPaymentResponse(array $responseData, array $expectedData)
+    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData);
+        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -49,20 +51,24 @@ class AkOdePosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPayPaymentDataProvider
      */
-    public function testMap3DPayResponseData(array $responseData, array $expectedData)
+    public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData);
+        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
     /**
      * @dataProvider threeDHostPaymentDataProvider
      */
-    public function testMap3DHostResponseData(array $responseData, array $expectedData)
+    public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData);
+        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -109,6 +115,11 @@ class AkOdePosResponseDataMapperTest extends TestCase
     public static function paymentDataProvider(): iterable
     {
         yield 'success1' => [
+            'order'        => [
+                'currency' => PosInterface::CURRENCY_TRY,
+                'amount'   => 1.01,
+            ],
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 'OrderId'             => '202312053421',
                 'BankResponseCode'    => '00',
@@ -121,10 +132,13 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'Message'             => 'Başarılı',
             ],
             'expectedData' => [
+                'payment_model'    => 'regular',
+                'transaction_type' => 'pay',
                 'auth_code'        => null,
-                'transaction_type' => null,
                 'order_id'         => '202312053421',
                 'trans_id'         => '2000000000032562',
+                'currency'         => 'TRY',
+                'amount'           => 1.01,
                 'ref_ret_num'      => null,
                 'proc_return_code' => '00',
                 'status'           => 'approved',
@@ -134,6 +148,11 @@ class AkOdePosResponseDataMapperTest extends TestCase
             ],
         ];
         yield 'success_post_pay' => [
+            'order'        => [
+                'currency' => PosInterface::CURRENCY_TRY,
+                'amount'   => 1.01,
+            ],
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 'OrderId'             => '202312053F93',
                 'BankResponseCode'    => '00',
@@ -145,10 +164,13 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'Message'             => 'Başarılı',
             ],
             'expectedData' => [
+                'payment_model'    => 'regular',
+                'transaction_type' => 'pay',
                 'auth_code'        => null,
-                'transaction_type' => null,
                 'order_id'         => '202312053F93',
                 'trans_id'         => '2000000000032560',
+                'currency'         => 'TRY',
+                'amount'           => 1.01,
                 'ref_ret_num'      => null,
                 'proc_return_code' => '00',
                 'status'           => 'approved',
@@ -158,6 +180,11 @@ class AkOdePosResponseDataMapperTest extends TestCase
             ],
         ];
         yield 'error_post_pay' => [
+            'order'        => [
+                'currency' => PosInterface::CURRENCY_TRY,
+                'amount'   => 1.01,
+            ],
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 'OrderId'             => '202312053F93',
                 'BankResponseCode'    => null,
@@ -169,10 +196,13 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'Message'             => 'Orjinal Kayıt Bulunamadı',
             ],
             'expectedData' => [
+                'payment_model'    => 'regular',
+                'transaction_type' => 'pay',
                 'auth_code'        => null,
-                'transaction_type' => null,
                 'order_id'         => '202312053F93',
                 'trans_id'         => null,
+                'currency'         => 'TRY',
+                'amount'           => 1.01,
                 'ref_ret_num'      => null,
                 'proc_return_code' => null,
                 'status'           => 'declined',
@@ -182,6 +212,11 @@ class AkOdePosResponseDataMapperTest extends TestCase
             ],
         ];
         yield 'error_hash_error' => [
+            'order'        => [
+                'currency' => PosInterface::CURRENCY_TRY,
+                'amount'   => 1.01,
+            ],
+            'txType'       => PosInterface::TX_TYPE_PAY,
             'responseData' => [
                 'OrderId'             => null,
                 'BankResponseCode'    => null,
@@ -194,10 +229,13 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'Message'             => 'Hash Hatası',
             ],
             'expectedData' => [
+                'payment_model'    => 'regular',
+                'transaction_type' => 'pay',
                 'auth_code'        => null,
-                'transaction_type' => null,
                 'order_id'         => null,
                 'trans_id'         => null,
+                'currency'         => 'TRY',
+                'amount'           => 1.01,
                 'ref_ret_num'      => null,
                 'proc_return_code' => null,
                 'status'           => 'declined',
@@ -473,7 +511,12 @@ class AkOdePosResponseDataMapperTest extends TestCase
     public static function threeDPayPaymentDataProvider(): array
     {
         return [
-            'success1' => [
+            'success1'  => [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentData'  => [
                     'ClientId'            => '1000000494',
                     'OrderId'             => '202312034E91',
@@ -492,7 +535,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'status_detail'        => null,
                     'error_code'           => null,
                     'error_message'        => null,
-                    'transaction_type'     => null,
+                    'transaction_type'     => 'pay',
                     'transaction_security' => 'Full 3D Secure',
                     'md_status'            => '1',
                     'tx_status'            => 'PAYMENT_COMPLETED',
@@ -500,9 +543,17 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'order_id'             => '202312034E91',
                     'proc_return_code'     => '00',
                     'status'               => 'approved',
+                    'payment_model'        => '3d_pay',
+                    'currency'             => 'TRY',
+                    'amount'               => 1.01,
                 ],
             ],
-            'auth_fail'    => [
+            'auth_fail' => [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentData'  => [
                     'ClientId'            => '1000000494',
                     'OrderId'             => '20231203E148',
@@ -519,7 +570,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'status_detail'        => null,
-                    'transaction_type'     => null,
+                    'transaction_type'     => 'pay',
                     'transaction_security' => 'MPI fallback',
                     'md_status'            => '0',
                     'tx_status'            => 'ERROR',
@@ -529,6 +580,9 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'status'               => 'declined',
                     'error_code'           => 'MD:0',
                     'error_message'        => null,
+                    'payment_model'        => '3d_pay',
+                    'currency'             => 'TRY',
+                    'amount'               => 1.01,
                 ],
             ],
         ];
@@ -539,6 +593,11 @@ class AkOdePosResponseDataMapperTest extends TestCase
     {
         return [
             'success1' => [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY,
                 'paymentData'  => [
                     'ClientId'            => '1000000494',
                     'OrderId'             => '20231203626F',
@@ -557,7 +616,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'status_detail'        => null,
                     'error_code'           => null,
                     'error_message'        => null,
-                    'transaction_type'     => null,
+                    'transaction_type'     => 'pay',
                     'transaction_security' => 'Full 3D Secure',
                     'md_status'            => '1',
                     'tx_status'            => 'PAYMENT_COMPLETED',
@@ -565,6 +624,9 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'order_id'             => '20231203626F',
                     'proc_return_code'     => '00',
                     'status'               => 'approved',
+                    'payment_model'        => '3d_host',
+                    'currency'             => 'TRY',
+                    'amount'               => 1.01,
                 ],
             ],
         ];

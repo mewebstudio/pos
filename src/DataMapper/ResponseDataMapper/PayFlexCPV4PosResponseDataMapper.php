@@ -6,6 +6,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\PosInterface;
 
 class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
 {
@@ -25,7 +26,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
      * TODO implement
      * {@inheritdoc}
      */
-    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData): array
+    public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData, string $txType, array $order): array
     {
         throw new NotImplementedException();
     }
@@ -43,11 +44,11 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
      *     PaymentToken: string} $raw3DAuthResponseData
      * {@inheritdoc}
      */
-    public function map3DPayResponseData(array $raw3DAuthResponseData): array
+    public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
 
-        $paymentResponse = $this->getCommonPaymentResponse($raw3DAuthResponseData);
+        $paymentResponse = $this->getCommonPaymentResponse($raw3DAuthResponseData, $txType, PosInterface::MODEL_3D_PAY);
         $paymentResponse['md_status'] = null;
         $paymentResponse['md_error_message'] = null;
         $paymentResponse['transaction_security'] = null;
@@ -56,9 +57,12 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
         $paymentResponse['masked_number'] = $raw3DAuthResponseData['MaskedPan'];
 
         if (self::TX_APPROVED === $paymentResponse['status']) {
-            $paymentResponse['auth_code']   = $raw3DAuthResponseData['AuthCode'];
-            $paymentResponse['ref_ret_num'] = $raw3DAuthResponseData['TransactionId'];
-            $paymentResponse['order_id'] = $raw3DAuthResponseData['OrderID'];
+            $paymentResponse['auth_code']        = $raw3DAuthResponseData['AuthCode'];
+            $paymentResponse['ref_ret_num']      = $raw3DAuthResponseData['TransactionId'];
+            $paymentResponse['order_id']         = $raw3DAuthResponseData['OrderID'];
+            $paymentResponse['currency']         = $this->mapCurrency($raw3DAuthResponseData['AmountCode']);
+            $paymentResponse['amount']           = $this->formatAmount($raw3DAuthResponseData['Amount']);
+            $paymentResponse['transaction_type'] = $this->mapTxType($raw3DAuthResponseData['TransactionType']);
         }
 
         return $paymentResponse;
@@ -77,9 +81,9 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
      *     TransactionId: string,
      *     PaymentToken: string} $raw3DAuthResponseData
      */
-    public function map3DHostResponseData(array $raw3DAuthResponseData): array
+    public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPayResponseData($raw3DAuthResponseData);
+        return $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
     }
 
     /**
@@ -100,10 +104,10 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
         $response = $this->getCommonNonSecureResponse($rawResponseData);
 
         if (self::TX_APPROVED === $response['status']) {
-            $response['order_id'] = $rawResponseData['TransactionId'];
+            $response['order_id']    = $rawResponseData['TransactionId'];
             $response['ref_ret_num'] = $rawResponseData['Rrn'];
-            $response['auth_code'] = $rawResponseData['AuthCode'];
-            $response['trans_id'] = $rawResponseData['TransactionId'];
+            $response['auth_code']   = $rawResponseData['AuthCode'];
+            $response['trans_id']    = $rawResponseData['TransactionId'];
         }
 
         return $response;
@@ -120,13 +124,15 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritDoc}
      */
-    public function mapPaymentResponse(array $rawPaymentResponseData): array
+    public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
     {
         $this->logger->debug('mapping payment response', $rawPaymentResponseData);
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
-        $commonResponse         = $this->getCommonPaymentResponse($rawPaymentResponseData);
+        $commonResponse         = $this->getCommonPaymentResponse($rawPaymentResponseData, $txType, PosInterface::MODEL_NON_SECURE);
 
         if (self::TX_APPROVED === $commonResponse['status']) {
+            $commonResponse['currency']         = $order['currency'];
+            $commonResponse['amount']           = $order['amount'];
             $commonResponse['trans_id']         = $rawPaymentResponseData['TransactionId'];
             $commonResponse['auth_code']        = $rawPaymentResponseData['AuthCode'];
             $commonResponse['ref_ret_num']      = $rawPaymentResponseData['Rrn'];
@@ -194,7 +200,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
             $statusDetail = $responseData['ResultDetail'];
         }
 
-        $response = $this->getDefaultPaymentResponse();
+        $response = $this->getDefaultPaymentResponse(PosInterface::TX_TYPE_PAY, PosInterface::MODEL_3D_SECURE);
 
         $response['proc_return_code'] = $resultCode;
         $response['status']           = $status;
@@ -207,14 +213,19 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::MODEL_*   $paymentModel
+     *
      * @param array<string, string> $responseData
+     * @param string                $txType
+     * @param string                $paymentModel
      *
      * @return array{order_id: string|null, trans_id: string|null, auth_code: string|null,
      *     ref_ret_num: string|null, proc_return_code: string|null,
      *     status: string, status_detail: string|null, error_code: string|null,
      *     error_message: string|null, all: array<string, string|null>}
      */
-    private function getCommonPaymentResponse(array $responseData): array
+    private function getCommonPaymentResponse(array $responseData, string $txType, string $paymentModel): array
     {
         $status     = self::TX_DECLINED;
         $resultCode = $this->getProcReturnCode($responseData);
@@ -230,7 +241,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
             $errorMsg = $responseData['Message'];
         }
 
-        $response = $this->getDefaultPaymentResponse();
+        $response = $this->getDefaultPaymentResponse($txType, $paymentModel);
 
         $response['proc_return_code'] = $resultCode;
         $response['status']           = $status;

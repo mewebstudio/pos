@@ -18,7 +18,6 @@ use Mews\Pos\Serializer\SerializerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use function in_array;
 
 abstract class AbstractGateway implements PosInterface
 {
@@ -192,9 +191,9 @@ abstract class AbstractGateway implements PosInterface
         } elseif (PosInterface::MODEL_3D_SECURE === $paymentModel) {
             $this->make3DPayment($request, $order, $txType, $card);
         } elseif (PosInterface::MODEL_3D_PAY === $paymentModel || PosInterface::MODEL_3D_PAY_HOSTING === $paymentModel) {
-            $this->make3DPayPayment($request);
+            $this->make3DPayPayment($request, $order, $txType);
         } elseif (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            $this->make3DHostPayment($request);
+            $this->make3DHostPayment($request, $order, $txType);
         } else {
             $this->logger->error('unsupported payment model', ['model' => $paymentModel]);
             throw new UnsupportedPaymentModelException();
@@ -232,7 +231,7 @@ abstract class AbstractGateway implements PosInterface
 
         $contents       = $this->serializer->encode($requestData, $txType);
         $bankResponse   = $this->send($contents, $txType, PosInterface::MODEL_NON_SECURE);
-        $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse);
+        $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
 
         return $this;
     }
@@ -242,9 +241,10 @@ abstract class AbstractGateway implements PosInterface
      */
     public function makeRegularPostPayment(array $order): PosInterface
     {
+        $txType = PosInterface::TX_TYPE_POST_PAY;
         $this->logger->debug('making payment', [
             'model'   => PosInterface::MODEL_NON_SECURE,
-            'tx_type' => PosInterface::TX_TYPE_POST_PAY,
+            'tx_type' => $txType,
         ]);
 
         $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
@@ -261,9 +261,9 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $contents       = $this->serializer->encode($requestData, PosInterface::TX_TYPE_POST_PAY);
-        $bankResponse   = $this->send($contents, PosInterface::TX_TYPE_POST_PAY, PosInterface::MODEL_NON_SECURE);
-        $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse);
+        $contents       = $this->serializer->encode($requestData, $txType);
+        $bankResponse   = $this->send($contents, $txType, PosInterface::MODEL_NON_SECURE);
+        $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
 
         return $this;
     }
@@ -426,10 +426,10 @@ abstract class AbstractGateway implements PosInterface
             return false;
         }
 
-        if (is_bool(static::$supportedTransactions[$txType])) {
+        if (\is_bool(static::$supportedTransactions[$txType])) {
             return static::$supportedTransactions[$txType];
         }
 
-        return in_array($paymentModel, static::$supportedTransactions[$txType], true);
+        return \in_array($paymentModel, static::$supportedTransactions[$txType], true);
     }
 }

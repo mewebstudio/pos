@@ -76,11 +76,6 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/GarantiPosResponseDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:mapPaymentResponse\\(\\) should return array\\<string, float\\|string\\|null\\> but returns array\\<string, array\\<string, array\\<string, array\\<string, string\\|null\\>\\|string\\>\\|string\\|null\\>\\|string\\|null\\>\\.$#"
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/GarantiPosResponseDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:mapStatusResponse\\(\\) should return array\\<string, float\\|string\\|null\\> but returns array\\<string, array\\<string, array\\<string, array\\<string, string\\|null\\>\\|string\\>\\|string\\|null\\>\\|float\\|string\\|null\\>\\.$#"
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/GarantiPosResponseDataMapper.php
@@ -88,6 +83,16 @@ parameters:
 		-
 			message: "#^Offset 'AuthAmount' does not exist on array\\<string, string\\|null\\>\\|string\\.$#"
 			count: 1
+			path: src/DataMapper/ResponseDataMapper/GarantiPosResponseDataMapper.php
+
+		-
+			message: "#^Offset 'ErrorMsg' does not exist on array\\<string, string\\>\\|string\\.$#"
+			count: 2
+			path: src/DataMapper/ResponseDataMapper/GarantiPosResponseDataMapper.php
+
+		-
+			message: "#^Offset 'ReasonCode' does not exist on array\\<string, string\\>\\|string\\.$#"
+			count: 2
 			path: src/DataMapper/ResponseDataMapper/GarantiPosResponseDataMapper.php
 
 		-
@@ -104,6 +109,11 @@ parameters:
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PayForPosResponseDataMapper\\:\\:map3DCommonResponseData\\(\\) should return array\\<string, float\\|string\\|null\\> but returns array\\<string, array\\<string, string\\>\\|float\\|string\\|null\\>\\.$#"
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/PayForPosResponseDataMapper.php
+
+		-
+			message: "#^Property Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\AbstractResponseDataMapper\\:\\:\\$currencyMappings \\(array\\<string, 'EUR'\\|'GBP'\\|'JPY'\\|'RUB'\\|'TRY'\\|'USD'\\>\\) does not accept non\\-empty\\-array\\<392\\|643\\|826\\|840\\|949\\|978\\|string, 'EUR'\\|'GBP'\\|'JPY'\\|'RUB'\\|'TRY'\\|'USD'\\>\\.$#"
+			count: 1
+			path: src/DataMapper/ResponseDataMapper/PosNetV1PosResponseDataMapper.php
 
 		-
 			message: "#^Method Mews\\\\Pos\\\\Factory\\\\PosFactory\\:\\:createPosGateway\\(\\) has parameter \\$config with no value type specified in iterable type array\\.$#"
