@@ -260,6 +260,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
             $status = self::TX_APPROVED;
         }
+
         $paymentModel = $this->mapSecurityType($responseData['ThreeDSecureType']);
         $response     = $this->getDefaultPaymentResponse($txType, $paymentModel);
 

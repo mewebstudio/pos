@@ -46,6 +46,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         if ([] === $rawPaymentResponseData) {
             return $defaultPaymentResponse;
         }
+
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
         $procReturnCode         = $this->getProcReturnCode($rawPaymentResponseData);
         $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
@@ -328,6 +329,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         if ([] === $rawPaymentResponseData) {
             return $defaultPaymentResponse;
         }
+
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
         $procReturnCode         = $this->getProcReturnCode($rawPaymentResponseData);
         $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);

@@ -21,7 +21,7 @@ class GarantiPosTest extends TestCase
 
     private CreditCardInterface $card;
 
-    /** @var GarantiPos|PosInterface */
+    /** @var GarantiPos */
     private PosInterface $pos;
 
     private array $lastResponse;

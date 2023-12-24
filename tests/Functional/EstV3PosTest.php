@@ -21,7 +21,7 @@ class EstV3PosTest extends TestCase
 
     private CreditCardInterface $card;
 
-    /** @var PayForPos|PosInterface */
+    /** @var PayForPos */
     private PosInterface $pos;
 
     private array $lastResponse;

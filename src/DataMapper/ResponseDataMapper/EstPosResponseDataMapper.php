@@ -134,6 +134,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && \in_array($raw3DAuthResponseData['mdStatus'], ['1', '2', '3', '4'])) {
             $status = self::TX_APPROVED;
         }
+
         $paymentModel    = $this->mapSecurityType($raw3DAuthResponseData['storetype']);
         $defaultResponse = $this->getDefaultPaymentResponse($txType, $paymentModel);
 

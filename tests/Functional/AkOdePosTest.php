@@ -21,7 +21,7 @@ class AkOdePosTest extends TestCase
 
     private CreditCardInterface $card;
 
-    /** @var AkOdePos|PosInterface */
+    /** @var AkOdePos */
     private PosInterface $pos;
 
     private array $lastResponse;

@@ -40,7 +40,7 @@ trait PaymentTestTrait
                 'frequencyType' => $recurringFrequencyType,
                 'installment'   => $installment,
                 'startDate'     => new \DateTimeImmutable(), // GarantiPos optional
-                'endDate'       => (new \DateTime())->modify("+$endPeriod $recurringFrequencyType"), // Sadece PayFlexV4'te zorunlu
+                'endDate'       => (new \DateTime())->modify(\sprintf('+%d %s', $endPeriod, $recurringFrequencyType)), // Sadece PayFlexV4'te zorunlu
             ];
         }
 
@@ -49,7 +49,7 @@ trait PaymentTestTrait
 
     private function createStatusOrder(PosInterface $pos, array $lastResponse): array
     {
-        if (!$lastResponse) {
+        if ([] === $lastResponse) {
             throw new \LogicException('ödeme verisi bulunamadı, önce ödeme yapınız');
         }
 
@@ -62,6 +62,7 @@ trait PaymentTestTrait
         if (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
             $statusOrder['remote_order_id'] = $lastResponse['remote_order_id']; // OrderId
         }
+
         if (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
             /**
              * payment_model:
@@ -70,11 +71,22 @@ trait PaymentTestTrait
              */
             $statusOrder['payment_model'] = $lastResponse['payment_model'];
         }
-        if (isset($lastResponse['recurring_id'])
-            && (\Mews\Pos\Gateways\EstPos::class === $gatewayClass || \Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass)
-        ) {
+
+        if (!isset($lastResponse['recurring_id'])) {
+            return $statusOrder;
+        }
+        
+        if (\Mews\Pos\Gateways\EstPos::class === $gatewayClass) {
             // tekrarlanan odemenin durumunu sorgulamak icin:
-            $statusOrder = [
+            return [
+                // tekrarlanan odeme sonucunda banktan donen deger: $response['Extra']['RECURRINGID']
+                'recurringId' => $lastResponse['recurring_id'],
+            ];
+        }
+        
+        if (\Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass) {
+            // tekrarlanan odemenin durumunu sorgulamak icin:
+            return [
                 // tekrarlanan odeme sonucunda banktan donen deger: $response['Extra']['RECURRINGID']
                 'recurringId' => $lastResponse['recurring_id'],
             ];
@@ -85,7 +97,7 @@ trait PaymentTestTrait
 
     public function createCancelOrder(PosInterface $pos, array $lastResponse): array
     {
-        if (!$lastResponse) {
+        if ([] === $lastResponse) {
             throw new \LogicException('ödeme verisi bulunamadı, önce ödeme yapınız');
         }
 
@@ -118,12 +130,20 @@ trait PaymentTestTrait
             // 'transaction_type' => $lastResponse['transaction_type'],
         }
 
-
-        if (isset($lastResponse['recurring_id'])
-            && (\Mews\Pos\Gateways\EstPos::class === $gatewayClass || \Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass)
-        ) {
+        if (!isset($lastResponse['recurring_id'])) {
+            return $cancelOrder;
+        }
+        
+        if (\Mews\Pos\Gateways\EstPos::class === $gatewayClass) {
             // tekrarlanan odemeyi iptal etmek icin:
-            $cancelOrder = [
+            return [
+                'recurringOrderInstallmentNumber' => 1, // hangi taksidi iptal etmek istiyoruz?
+            ];
+        }
+        
+        if (\Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass) {
+            // tekrarlanan odemeyi iptal etmek icin:
+            return [
                 'recurringOrderInstallmentNumber' => 1, // hangi taksidi iptal etmek istiyoruz?
             ];
         }

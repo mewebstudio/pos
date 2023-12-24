@@ -151,6 +151,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED === $threeDAuthStatus && self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $paymentStatus = self::TX_APPROVED;
         }
+
         $paymentModel           = $this->mapSecurityType($raw3DAuthResponseData['secure3dsecuritylevel']);
         /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
         $txType = $this->mapTxType($raw3DAuthResponseData['txntype']) ?? $txType;
