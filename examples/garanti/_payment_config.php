@@ -28,10 +28,10 @@ $testCards = [
     // test kartlar https://dev.garantibbva.com.tr/test-kartlari
     'visa1' => [
         // pin 147852
-        'number' => '5406697543211173',
+        'number' => '5549608789641500',
         'year' => '27',
         'month' => '04',
-        'cvv' => '423',
+        'cvv' => '464',
         'name' => 'John Doe',
         'type' => CreditCardInterface::CARD_TYPE_MASTERCARD,
     ],
