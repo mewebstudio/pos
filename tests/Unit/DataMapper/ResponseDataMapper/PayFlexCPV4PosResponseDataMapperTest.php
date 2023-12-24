@@ -31,6 +31,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
         $this->responseDataMapper = new PayFlexCPV4PosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
+            $requestDataMapper->getSecureTypeMappings(),
             new NullLogger()
         );
     }

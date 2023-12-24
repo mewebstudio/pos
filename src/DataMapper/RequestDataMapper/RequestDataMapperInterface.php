@@ -23,6 +23,11 @@ interface RequestDataMapperInterface
     public function getCurrencyMappings(): array;
 
     /**
+     * @return non-empty-array<PosInterface::MODEL_*, string>
+     */
+    public function getSecureTypeMappings(): array;
+
+    /**
      * @return array<CreditCardInterface::CARD_TYPE_*, string>
      */
     public function getCardTypeMapping(): array;

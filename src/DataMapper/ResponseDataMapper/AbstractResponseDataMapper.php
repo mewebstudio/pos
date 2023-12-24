@@ -28,16 +28,21 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     /** @var array<string, PosInterface::TX_TYPE_*> */
     protected array $txTypeMappings;
 
+    /** @var array<string, PosInterface::MODEL_*> */
+    protected array $secureTypeMappings;
+
     /**
      * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
      * @param array<PosInterface::TX_TYPE_*, string>  $txTypeMappings
+     * @param array<PosInterface::MODEL_*, string>    $secureTypeMappings
      * @param LoggerInterface                         $logger
      */
-    public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)
+    public function __construct(array $currencyMappings, array $txTypeMappings, array $secureTypeMappings, LoggerInterface $logger)
     {
-        $this->logger           = $logger;
-        $this->currencyMappings = \array_flip($currencyMappings);
-        $this->txTypeMappings   = \array_flip($txTypeMappings);
+        $this->logger             = $logger;
+        $this->currencyMappings   = \array_flip($currencyMappings);
+        $this->txTypeMappings     = \array_flip($txTypeMappings);
+        $this->secureTypeMappings = \array_flip($secureTypeMappings);
     }
 
     /**
@@ -57,6 +62,17 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     {
         return $this->txTypeMappings[$txType] ?? null;
     }
+
+    /**
+     * @param string|int $txType
+     *
+     * @return PosInterface::MODEL_*|null
+     */
+    public function mapSecurityType($txType): ?string
+    {
+        return $this->secureTypeMappings[$txType] ?? null;
+    }
+
 
     /**
      * @param string $mdStatus
@@ -108,16 +124,16 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
 
     /**
      * Returns default payment response data
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     * @phpstan-param PosInterface::MODEL_*   $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_*    $txType
+     * @phpstan-param PosInterface::MODEL_*|null $paymentModel
      *
-     * @param string $txType
-     * @param string $paymentModel
+     * @param string      $txType
+     * @param string|null $paymentModel
      *
      * @return array{order_id: null, trans_id: null, auth_code: null, ref_ret_num: null, proc_return_code: null,
      *     status: string, status_detail: null, error_code: null, error_message: null, all: null}
      */
-    protected function getDefaultPaymentResponse(string $txType, string $paymentModel): array
+    protected function getDefaultPaymentResponse(string $txType, ?string $paymentModel): array
     {
         return [
             'order_id'         => null,

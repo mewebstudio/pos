@@ -6,6 +6,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\PosInterface;
+use Psr\Log\LoggerInterface;
 
 class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
 {
@@ -22,6 +23,23 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
+     * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
+     * @param array<PosInterface::TX_TYPE_*, string>  $txTypeMappings
+     * @param array<PosInterface::MODEL_*, string>    $secureTypeMappings
+     * @param LoggerInterface                         $logger
+     */
+    public function __construct(array $currencyMappings, array $txTypeMappings, array $secureTypeMappings, LoggerInterface $logger)
+    {
+        parent::__construct($currencyMappings, $txTypeMappings, $secureTypeMappings, $logger);
+
+        $this->secureTypeMappings += [
+            '1' => PosInterface::MODEL_NON_SECURE,
+            '2' => PosInterface::MODEL_3D_SECURE,
+            '3' => PosInterface::MODEL_3D_PAY,
+        ];
+    }
+
+    /**
      * {@inheritdoc}
      */
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData, string $txType, array $order): array
@@ -36,7 +54,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED === $threeDAuthStatus && null !== $rawPaymentResponseData) {
             $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData, $txType, $order);
         } else {
-            $paymentResponseData = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE);
+            $paymentResponseData = $this->getDefaultPaymentResponse($txType, null);
         }
 
         $threeDResponse = [
@@ -57,11 +75,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
-        $result = $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
-
-        $result['payment_model'] = PosInterface::MODEL_3D_SECURE;
-
-        return $result;
+        return $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
     }
 
     /**
@@ -184,7 +198,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
     {
         $this->logger->debug('mapping payment response', [$rawPaymentResponseData]);
         $rawPaymentResponseData             = $this->emptyStringsToNull($rawPaymentResponseData);
-        $commonResponse                     = $this->getCommonPaymentResponse($rawPaymentResponseData, $txType, PosInterface::MODEL_NON_SECURE);
+        $commonResponse                     = $this->getCommonPaymentResponse($rawPaymentResponseData, $txType);
         $commonResponse['order_id']         = $rawPaymentResponseData['OrderId'] ?? null;
         $commonResponse['currency']         = $this->mapCurrency($rawPaymentResponseData['CurrencyCode']);
         $commonResponse['amount']           = (float) $rawPaymentResponseData['TLAmount'];
@@ -233,22 +247,21 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
 
     /**
      * @phpstan-param PosInterface::TX_TYPE_* $txType
-     * @phpstan-param PosInterface::MODEL_*   $paymentModel
      *
      * @param array<string, string> $responseData
      * @param string                $txType
-     * @param string                $paymentModel
      *
      * @return array<string, string>
      */
-    private function getCommonPaymentResponse(array $responseData, string $txType, string $paymentModel): array
+    private function getCommonPaymentResponse(array $responseData, string $txType): array
     {
         $status     = self::TX_DECLINED;
         $resultCode = $this->getProcReturnCode($responseData);
         if (self::PROCEDURE_SUCCESS_CODE === $resultCode) {
             $status = self::TX_APPROVED;
         }
-        $response = $this->getDefaultPaymentResponse($txType, $paymentModel);
+        $paymentModel = $this->mapSecurityType($responseData['ThreeDSecureType']);
+        $response     = $this->getDefaultPaymentResponse($txType, $paymentModel);
 
         $response['proc_return_code'] = $resultCode;
         $response['status']           = $status;

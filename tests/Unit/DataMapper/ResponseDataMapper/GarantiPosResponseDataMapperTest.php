@@ -30,6 +30,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
         $this->responseDataMapper = new GarantiPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
+            $requestDataMapper->getSecureTypeMappings(),
             new NullLogger()
         );
     }

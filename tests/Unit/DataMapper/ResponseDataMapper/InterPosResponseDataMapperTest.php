@@ -30,6 +30,7 @@ class InterPosResponseDataMapperTest extends TestCase
         $this->responseDataMapper = new InterPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
+            $requestDataMapper->getSecureTypeMappings(),
             new NullLogger()
         );
     }

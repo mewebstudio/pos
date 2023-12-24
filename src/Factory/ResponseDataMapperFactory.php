@@ -63,6 +63,7 @@ class ResponseDataMapperFactory
             return new $classMappings[$gatewayClass](
                 $requestDataMapper->getCurrencyMappings(),
                 $requestDataMapper->getTxTypeMappings(),
+                $requestDataMapper->getSecureTypeMappings(),
                 $logger
             );
         }

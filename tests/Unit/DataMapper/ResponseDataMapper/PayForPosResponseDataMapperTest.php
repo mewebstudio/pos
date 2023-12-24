@@ -28,6 +28,7 @@ class PayForPosResponseDataMapperTest extends TestCase
         $this->responseDataMapper = new PayForPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
+            $requestDataMapper->getSecureTypeMappings(),
             new NullLogger()
         );
     }
@@ -146,8 +147,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'error_message'    => null,
                 ],
             ],
-            //fail case
-            [
+            'fail1' => [
                 'order'        => [
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,

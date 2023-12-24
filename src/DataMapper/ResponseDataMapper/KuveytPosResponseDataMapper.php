@@ -87,12 +87,18 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         /** @var PosInterface::TX_* $txType */
         $txType = $threeDResponse['transaction_type'] ?? $txType;
         if (null === $rawPaymentResponseData || [] === $rawPaymentResponseData) {
-            return $this->mergeArraysPreferNonNullValues($this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE), $threeDResponse);
+            /** @var PosInterface::MODEL_3D_* $paymentModel */
+            $paymentModel = $threeDResponse['payment_model'];
+
+            return $this->mergeArraysPreferNonNullValues(
+                $this->getDefaultPaymentResponse($txType, $paymentModel),
+                $threeDResponse
+            );
         }
 
         $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData, $txType, $order);
 
-        $paymentResponseData['payment_model'] = PosInterface::MODEL_3D_SECURE;
+        $paymentResponseData['payment_model'] = $threeDResponse['payment_model'];
 
         return $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
     }
@@ -393,6 +399,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             'transaction_type'     => isset($vPosMessage['TransactionType']) ? $this->mapTxType($vPosMessage['TransactionType']) : null,
             'proc_return_code'     => $procReturnCode,
             'md_status'            => null,
+            'payment_model'        => null,
             'status'               => $status,
             'status_detail'        => $this->getStatusDetail($procReturnCode),
             'amount'               => null,
@@ -404,6 +411,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         ];
 
         if (self::TX_APPROVED === $status) {
+            $default['payment_model'] = $this->mapSecurityType($vPosMessage['TransactionSecurity']);
             $default['amount']        = $this->formatAmount($vPosMessage['Amount']);
             $default['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
             $default['masked_number'] = $vPosMessage['CardNumber'];

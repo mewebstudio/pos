@@ -89,7 +89,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'provision_response' => $rawPaymentResponseData,
         ]);
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $paymentResponseData   = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE);
+        $paymentModel          = $this->mapSecurityType($raw3DAuthResponseData['storetype']);
+        $paymentResponseData   = $this->getDefaultPaymentResponse($txType, $paymentModel);
         if (null !== $rawPaymentResponseData) {
             $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData, $txType, $order);
         }
@@ -116,7 +117,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $result = $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
-        $result['payment_model'] = PosInterface::MODEL_3D_SECURE;
+        $result['payment_model'] = $paymentModel;
 
         return $result;
     }
@@ -133,8 +134,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && \in_array($raw3DAuthResponseData['mdStatus'], ['1', '2', '3', '4'])) {
             $status = self::TX_APPROVED;
         }
-
-        $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_PAY);
+        $paymentModel    = $this->mapSecurityType($raw3DAuthResponseData['storetype']);
+        $defaultResponse = $this->getDefaultPaymentResponse($txType, $paymentModel);
 
         $response = [
             'order_id'             => $raw3DAuthResponseData['oid'],
@@ -180,7 +181,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_HOST);
+        $paymentModel    = $this->mapSecurityType($raw3DAuthResponseData['storetype']);
+        $defaultResponse = $this->getDefaultPaymentResponse($txType, $paymentModel);
 
         $response = [
             'order_id'             => $raw3DAuthResponseData['oid'],

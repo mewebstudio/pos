@@ -30,6 +30,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
         $this->responseDataMapper = new KuveytPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
+            $requestDataMapper->getSecureTypeMappings(),
             new NullLogger()
         );
     }
@@ -97,8 +98,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
             $txType,
             $order
         );
-        unset($actualData['all']);
-        unset($actualData['3d_all']);
+        unset($actualData['all'], $actualData['3d_all']);
         $this->assertEquals($expectedData, $actualData);
     }
 
@@ -391,7 +391,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'currency'             => null,
                     'tx_status'            => null,
                     'md_error_message'     => 'Şifrelenen veriler (Hashdata) uyuşmamaktadır.',
-                    'payment_model'        => '3d',
+                    'payment_model'        => null,
                     'transaction_type'     => 'pay',
                 ],
             ],

@@ -30,6 +30,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
         $this->responseDataMapper = new PosNetV1PosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
+            $requestDataMapper->getSecureTypeMappings(),
             new NullLogger()
         );
     }

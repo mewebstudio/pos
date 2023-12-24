@@ -31,6 +31,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
         $this->responseDataMapper = new PayFlexV4PosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
+            $requestDataMapper->getSecureTypeMappings(),
             new NullLogger()
         );
     }
@@ -427,7 +428,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'error_message'        => 'Üye isyeri IP si sistemde tanimli degil',
                     'amount'               => 100.0,
                     'currency'             => 'TRY',
-                    'payment_model'        => '3d',
+                    'payment_model'        => null,
                     'transaction_type'     => 'pay',
                 ],
             ],

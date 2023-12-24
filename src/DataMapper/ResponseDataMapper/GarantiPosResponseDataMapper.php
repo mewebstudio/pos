@@ -104,7 +104,8 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $paymentStatus          = self::TX_DECLINED;
-        $defaultPaymentResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE);
+        $paymentModel           = $this->mapSecurityType($raw3DAuthResponseData['secure3dsecuritylevel']);
+        $defaultPaymentResponse = $this->getDefaultPaymentResponse($txType, $paymentModel);
         $mappedPaymentResponse  = [];
         if (self::TX_APPROVED === $commonResult['status'] && null !== $rawPaymentResponseData) {
             $transaction    = $rawPaymentResponseData['Transaction'];
@@ -150,10 +151,10 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED === $threeDAuthStatus && self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $paymentStatus = self::TX_APPROVED;
         }
-
+        $paymentModel           = $this->mapSecurityType($raw3DAuthResponseData['secure3dsecuritylevel']);
         $defaultPaymentResponse = $this->getDefaultPaymentResponse(
             $this->mapTxType($raw3DAuthResponseData['txntype']) ?? $txType,
-            PosInterface::MODEL_3D_PAY
+            $paymentModel
         );
         $defaultPaymentResponse['status'] = $paymentStatus;
 

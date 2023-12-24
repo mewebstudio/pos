@@ -31,6 +31,7 @@ class EstPosResponseDataMapperTest extends TestCase
         $this->responseDataMapper = new EstPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
+            $requestDataMapper->getSecureTypeMappings(),
             new NullLogger()
         );
     }

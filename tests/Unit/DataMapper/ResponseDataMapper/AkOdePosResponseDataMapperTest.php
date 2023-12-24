@@ -31,6 +31,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
         $this->responseDataMapper = new AkOdePosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
+            $requestDataMapper->getSecureTypeMappings(),
             new NullLogger()
         );
     }

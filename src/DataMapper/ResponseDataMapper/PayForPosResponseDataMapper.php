@@ -91,8 +91,10 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 
         $txType = isset($rawPaymentResponseData['TxnType']) ? $txType : ($this->mapTxType($raw3DAuthResponseData['TxnType']) ?? $txType);
 
+        /** @var PosInterface::MODEL_3D_* $paymentModel */
+        $paymentModel = $this->mapSecurityType($raw3DAuthResponseData['SecureType']);
         if (self::TX_APPROVED === $threeDAuthStatus && null !== $rawPaymentResponseData) {
-            $paymentResponseData = $this->map3DPaymentResponseCommon($rawPaymentResponseData, $txType, PosInterface::MODEL_3D_SECURE);
+            $paymentResponseData = $this->map3DPaymentResponseCommon($rawPaymentResponseData, $txType, $paymentModel);
         }
 
         $threeDResponse = [
@@ -110,7 +112,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 
         if ([] === $paymentResponseData) {
             $result = $this->mergeArraysPreferNonNullValues(
-                $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE),
+                $this->getDefaultPaymentResponse($txType, $paymentModel),
                 $threeDResponse,
             );
 

@@ -106,6 +106,11 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
 
 		-
+			message: "#^Property Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\AbstractResponseDataMapper\\:\\:\\$secureTypeMappings \\(array\\<string, '3d'\\|'3d_host'\\|'3d_pay'\\|'3d_pay_hosting'\\|'regular'\\>\\) does not accept non\\-empty\\-array\\<1\\|2\\|3\\|string, '3d'\\|'3d_host'\\|'3d_pay'\\|'3d_pay_hosting'\\|'regular'\\>\\.$#"
+			count: 1
+			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PayForPosResponseDataMapper\\:\\:map3DCommonResponseData\\(\\) should return array\\<string, float\\|string\\|null\\> but returns array\\<string, array\\<string, string\\>\\|float\\|string\\|null\\>\\.$#"
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/PayForPosResponseDataMapper.php
