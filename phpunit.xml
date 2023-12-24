@@ -26,7 +26,9 @@
         </include>
     </coverage>
 
-    <testsuite name="unit">
-        <directory>tests/Unit</directory>
-    </testsuite>
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+    </testsuites>
 </phpunit>
