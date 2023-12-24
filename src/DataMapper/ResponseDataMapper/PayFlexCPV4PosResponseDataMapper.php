@@ -200,7 +200,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
             $statusDetail = $responseData['ResultDetail'];
         }
 
-        $response = $this->getDefaultPaymentResponse(PosInterface::TX_TYPE_PAY, PosInterface::MODEL_3D_SECURE);
+        $response = $this->getDefaultPaymentResponse(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE);
 
         $response['proc_return_code'] = $resultCode;
         $response['status']           = $status;
@@ -213,8 +213,8 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     * @phpstan-param PosInterface::MODEL_*   $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_* $txType
+     * @phpstan-param PosInterface::MODEL_*       $paymentModel
      *
      * @param array<string, string> $responseData
      * @param string                $txType

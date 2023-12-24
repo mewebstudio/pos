@@ -41,12 +41,12 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritdoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY      => 'Auth',
-        PosInterface::TX_TYPE_PRE_PAY  => 'PreAuth',
-        PosInterface::TX_TYPE_POST_PAY => 'PostAuth',
-        PosInterface::TX_TYPE_CANCEL   => 'Void',
-        PosInterface::TX_TYPE_REFUND   => 'Refund',
-        PosInterface::TX_TYPE_STATUS   => 'StatusHistory',
+        PosInterface::TX_TYPE_PAY_AUTH      => 'Auth',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'PreAuth',
+        PosInterface::TX_TYPE_PAY_POST_AUTH => 'PostAuth',
+        PosInterface::TX_TYPE_CANCEL        => 'Void',
+        PosInterface::TX_TYPE_REFUND        => 'Refund',
+        PosInterface::TX_TYPE_STATUS        => 'StatusHistory',
     ];
 
     /**
@@ -121,7 +121,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'TxnType'     => $this->mapTxType(PosInterface::TX_TYPE_POST_PAY),
+                'TxnType'     => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'OrderId'     => null,
                 'orgOrderId'  => (string) $order['id'],

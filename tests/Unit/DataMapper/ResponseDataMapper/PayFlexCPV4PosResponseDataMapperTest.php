@@ -54,7 +54,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
     {
         yield 'fail_response_from_gateway_1' => [
             'order'         => [],
-            'txType'        => PosInterface::TX_TYPE_PAY,
+            'txType'        => PosInterface::TX_TYPE_PAY_AUTH,
             'bank_response' => [
                 'Rc'            => '2053',
                 'Message'       => 'VeRes status is E Message : Directory server communication error',
@@ -85,7 +85,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
 
         yield 'fail_response_from_gateway_2' => [
             'order'         => [],
-            'txType'        => PosInterface::TX_TYPE_PAY,
+            'txType'        => PosInterface::TX_TYPE_PAY_AUTH,
             'bank_response' => [
                 'Rc'            => '0057',
                 'AuthCode'      => '000000',
@@ -118,7 +118,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
 
         yield 'success_response_from_gateway_1' => [
             'order'         => [],
-            'txType'        => PosInterface::TX_TYPE_PRE_PAY,
+            'txType'        => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             'bank_response' => [
                 'Rc'                   => '0000',
                 'AuthCode'             => '735879',

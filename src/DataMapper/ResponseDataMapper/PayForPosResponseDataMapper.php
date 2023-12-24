@@ -89,6 +89,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $threeDAuthStatus    = ('1' === $raw3DAuthResponseData['3DStatus']) ? self::TX_APPROVED : self::TX_DECLINED;
         $paymentResponseData = [];
 
+        /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
         $txType = isset($rawPaymentResponseData['TxnType']) ? $txType : ($this->mapTxType($raw3DAuthResponseData['TxnType']) ?? $txType);
 
         /** @var PosInterface::MODEL_3D_* $paymentModel */
@@ -312,8 +313,8 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * @phpstan-param PosInterface::TX_*       $txType
-     * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
      * @param array<string, mixed> $rawPaymentResponseData
      * @param string               $txType

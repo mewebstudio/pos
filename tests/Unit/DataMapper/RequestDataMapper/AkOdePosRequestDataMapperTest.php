@@ -302,7 +302,7 @@ class AkOdePosRequestDataMapperTest extends TestCase
             [
                 'order'        => $order,
                 'paymentModel' => PosInterface::MODEL_3D_PAY,
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'expected'     => [
                     'clientId'         => '1000000494',
                     'apiUser'          => 'POS_ENT_Test_001',
@@ -333,7 +333,7 @@ class AkOdePosRequestDataMapperTest extends TestCase
         return [
             [
                 'order'    => $order,
-                'txType'   => PosInterface::TX_TYPE_PAY,
+                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
                 'expected' => [
                     'clientId'         => '1000000494',
                     'apiUser'          => 'POS_ENT_Test_001',
@@ -424,7 +424,7 @@ class AkOdePosRequestDataMapperTest extends TestCase
         return [
             '3d_host_form_data' => [
                 'order'         => [],
-                'tx_type'       => PosInterface::TX_TYPE_PAY,
+                'tx_type'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'payment_model' => PosInterface::MODEL_3D_HOST,
                 'is_with_card'  => false,
                 'gateway'       => 'https://ent.akodepos.com/api/Payment/threeDSecure/A2A6E942BD2AE4A68BC42FE99D1BC917D67AFF54AB2BA44EBA675843744187708',
@@ -441,7 +441,7 @@ class AkOdePosRequestDataMapperTest extends TestCase
                     'Code'            => 0,
                     'Message'         => 'Başarılı',
                 ],
-                'tx_type'       => PosInterface::TX_TYPE_PAY,
+                'tx_type'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'payment_model' => PosInterface::MODEL_3D_PAY,
                 'is_with_card'  => false,
                 'gateway'       => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',

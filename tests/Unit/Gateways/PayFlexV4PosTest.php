@@ -117,7 +117,7 @@ class PayFlexV4PosTest extends TestCase
         $posMock->expects($this->once())->method('sendEnrollmentRequest')
             ->willReturn(PayFlexV4PosRequestDataMapperTest::getSampleEnrollmentFailResponseDataProvider());
 
-        $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY, $this->card);
+        $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
     }
 
     public function testGet3DFormDataSuccess(): void
@@ -149,7 +149,7 @@ class PayFlexV4PosTest extends TestCase
         $posMock->expects($this->once())->method('sendEnrollmentRequest')
             ->willReturn($enrollmentResponse);
 
-        $result   = $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY, $this->card);
+        $result   = $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
         $expected = [
             'gateway' => $enrollmentResponse['Message']['VERes']['ACSUrl'],
             'method'  => 'POST',

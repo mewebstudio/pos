@@ -268,8 +268,8 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * @phpstan-param PosInterface::TX_*    $txType
-     * @phpstan-param PosInterface::MODEL_* $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
      * @param array<string, mixed>|null $rawPaymentResponseData
      * @param string                    $txType

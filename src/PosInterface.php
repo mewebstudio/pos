@@ -22,13 +22,13 @@ interface PosInterface
     public const LANG_EN = 'en';
 
     /** @var string */
-    public const TX_TYPE_PAY = 'pay';
+    public const TX_TYPE_PAY_AUTH = 'pay';
 
     /** @var string */
-    public const TX_TYPE_PRE_PAY = 'pre';
+    public const TX_TYPE_PAY_PRE_AUTH = 'pre';
 
     /** @var string */
-    public const TX_TYPE_POST_PAY = 'post';
+    public const TX_TYPE_PAY_POST_AUTH = 'post';
 
     /** @var string */
     public const TX_TYPE_CANCEL = 'cancel';
@@ -97,7 +97,7 @@ interface PosInterface
      * returns form data, key values, necessary for 3D payment
      *
      * @phpstan-param PosInterface::MODEL_3D_*                      $paymentModel
-     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, mixed>     $order
      * @param string                   $paymentModel
@@ -110,7 +110,7 @@ interface PosInterface
 
     /**
      * Regular Payment
-     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, mixed> $order
      * @param CreditCardInterface  $card
@@ -131,7 +131,7 @@ interface PosInterface
 
     /**
      * Make 3D Payment
-     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param Request                  $request
      * @param array<string, mixed>     $order
@@ -144,7 +144,7 @@ interface PosInterface
 
     /**
      * Just returns formatted data of 3d_pay payment response
-     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param Request              $request
      * @param array<string, mixed> $order
@@ -156,7 +156,7 @@ interface PosInterface
 
     /**
      * Just returns formatted data of host payment response
-     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param Request              $request
      * @param array<string, mixed> $order
@@ -171,8 +171,8 @@ interface PosInterface
      *
      * can be used for all kind of payment transactions and payment models
      *
-     * @phpstan-param PosInterface::MODEL_*                                                   $paymentModel
-     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY|PosInterface::TX_TYPE_POST_PAY $txType
+     * @phpstan-param PosInterface::MODEL_*       $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_* $txType
      *
      * @param string                   $paymentModel
      * @param array<string, mixed>     $order

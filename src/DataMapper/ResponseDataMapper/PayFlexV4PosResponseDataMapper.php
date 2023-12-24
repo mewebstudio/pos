@@ -246,7 +246,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_* $txType
      *
      * @param array<string, string> $responseData
      * @param string                $txType

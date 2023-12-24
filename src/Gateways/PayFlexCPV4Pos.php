@@ -39,17 +39,17 @@ class PayFlexCPV4Pos extends AbstractGateway
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
-        PosInterface::TX_TYPE_PAY      => [
+        PosInterface::TX_TYPE_PAY_AUTH      => [
             PosInterface::MODEL_3D_PAY,
             PosInterface::MODEL_3D_HOST,
             PosInterface::MODEL_NON_SECURE,
         ],
-        PosInterface::TX_TYPE_PRE_PAY  => true,
-        PosInterface::TX_TYPE_POST_PAY => true,
-        PosInterface::TX_TYPE_STATUS   => false,
-        PosInterface::TX_TYPE_CANCEL   => true,
-        PosInterface::TX_TYPE_REFUND   => true,
-        PosInterface::TX_TYPE_HISTORY  => false,
+        PosInterface::TX_TYPE_PAY_PRE_AUTH  => true,
+        PosInterface::TX_TYPE_PAY_POST_AUTH => true,
+        PosInterface::TX_TYPE_STATUS        => false,
+        PosInterface::TX_TYPE_CANCEL        => true,
+        PosInterface::TX_TYPE_REFUND        => true,
+        PosInterface::TX_TYPE_HISTORY       => false,
     ];
 
     /** @return PayFlexAccount */
@@ -86,7 +86,7 @@ class PayFlexCPV4Pos extends AbstractGateway
         // Burda odemenin basarili olup olmadigini sorguluyoruz.
         $requestData = $this->requestDataMapper->create3DPaymentStatusRequestData($this->account, $queryParams);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_PAY);
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_PAY_AUTH);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -111,7 +111,7 @@ class PayFlexCPV4Pos extends AbstractGateway
          *     TransactionId: string,
          *     PaymentToken: string} $bankResponse
          */
-        $bankResponse = $this->send($requestData, PosInterface::TX_TYPE_PAY, PosInterface::MODEL_3D_SECURE, $this->getQueryAPIUrl());
+        $bankResponse = $this->send($requestData, PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE, $this->getQueryAPIUrl());
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse, $txType, $order);
 
@@ -167,7 +167,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * ORTAK ÖDEME SİSTEMİNE İŞLEM KAYDETME
      *
-     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      * @phpstan-param PosInterface::MODEL_3D_*                      $paymentModel
      *
      * @param array<string, int|string|float|null> $order

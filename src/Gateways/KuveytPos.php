@@ -48,15 +48,15 @@ class KuveytPos extends AbstractGateway
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
-        PosInterface::TX_TYPE_PAY      => [
+        PosInterface::TX_TYPE_PAY_AUTH      => [
             PosInterface::MODEL_3D_SECURE,
         ],
-        PosInterface::TX_TYPE_PRE_PAY  => false,
-        PosInterface::TX_TYPE_POST_PAY => false,
-        PosInterface::TX_TYPE_STATUS   => true,
-        PosInterface::TX_TYPE_CANCEL   => true,
-        PosInterface::TX_TYPE_REFUND   => true,
-        PosInterface::TX_TYPE_HISTORY  => false,
+        PosInterface::TX_TYPE_PAY_PRE_AUTH  => false,
+        PosInterface::TX_TYPE_PAY_POST_AUTH => false,
+        PosInterface::TX_TYPE_STATUS        => true,
+        PosInterface::TX_TYPE_CANCEL        => true,
+        PosInterface::TX_TYPE_REFUND        => true,
+        PosInterface::TX_TYPE_HISTORY       => false,
     ];
 
     /** @return KuveytPosAccount */
@@ -247,8 +247,8 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @phpstan-param  PosInterface::MODEL_3D_* $paymentModel
-     * @phpstan-param  PosInterface::TX_TYPE_*       $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param KuveytPosAccount                     $account
      * @param array<string, int|string|float|null> $order

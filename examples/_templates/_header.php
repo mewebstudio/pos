@@ -49,19 +49,19 @@
         <?php if(isset($posClass)): ?>
         <nav class="collapse navbar-collapse" id="sub-navbar">
             <ul class="nav navbar-nav">
-                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY, \Mews\Pos\PosInterface::MODEL_3D_SECURE)): ?>
+                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH, \Mews\Pos\PosInterface::MODEL_3D_SECURE)): ?>
                     <li> <a href="<?= $bankTestsUrl ?>/3d/index.php">3D Ödeme</a></li>
                 <?php endif; ?>
-                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY, \Mews\Pos\PosInterface::MODEL_3D_PAY)): ?>
+                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH, \Mews\Pos\PosInterface::MODEL_3D_PAY)): ?>
                     <li> <a href="<?= $bankTestsUrl ?>/3d-pay/index.php">3D Pay Ödeme</a></li>
                 <?php endif; ?>
-                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY, \Mews\Pos\PosInterface::MODEL_3D_PAY_HOSTING)): ?>
+                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH, \Mews\Pos\PosInterface::MODEL_3D_PAY_HOSTING)): ?>
                     <li> <a href="<?= $bankTestsUrl ?>/3d-pay-hosting/index.php">3D Pay Hosting Ödeme</a></li>
                 <?php endif; ?>
-                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY, \Mews\Pos\PosInterface::MODEL_3D_HOST)): ?>
+                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH, \Mews\Pos\PosInterface::MODEL_3D_HOST)): ?>
                     <li> <a href="<?= $bankTestsUrl ?>/3d-host/index.php">3D Host Ödeme</a></li>
                 <?php endif; ?>
-                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY, \Mews\Pos\PosInterface::MODEL_NON_SECURE)): ?>
+                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH, \Mews\Pos\PosInterface::MODEL_NON_SECURE)): ?>
                     <li> <a href="<?= $bankTestsUrl ?>/regular/index.php">Non Secure Ödeme</a></li>
                 <?php endif; ?>
                 <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_STATUS, \Mews\Pos\PosInterface::MODEL_NON_SECURE)): ?>

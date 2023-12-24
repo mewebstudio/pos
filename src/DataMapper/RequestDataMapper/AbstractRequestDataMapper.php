@@ -242,7 +242,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * prepares order for TX_TYPE_POST_PAY type request
+     * prepares order for TX_TYPE_PAY_POST_AUTH type request
      *
      * @param array<string, mixed> $order
      *

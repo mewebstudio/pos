@@ -297,7 +297,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     public static function paymentDataProvider(): iterable
     {
         yield 'success_1' => [
-            'txType'       => PosInterface::TX_TYPE_PRE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             'responseData' => [
                 'MerchantId'              => '000100000013506',
                 'TransactionType'         => 'Sale',
@@ -345,7 +345,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
         ];
 
         yield 'fail_1' => [
-            'txType'       => PosInterface::TX_TYPE_PRE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             'responseData' => [
                 'MerchantId'              => '000100000013506',
                 'TransactionType'         => 'Sale',
@@ -389,7 +389,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
         return [
             'authFail1'                 => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'MerchantId'                => '000000000111111',
                     'SubMerchantNo'             => '0',
@@ -434,7 +434,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
             ],
             'auth_success_payment_fail' => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PRE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'threeDResponseData' => [
                     'MerchantId'                => '000100000013506',
                     'Pan'                       => '4938460158754205',
@@ -499,7 +499,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
             ],
             'success1'                  => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PRE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'threeDResponseData' => [
                     'MerchantId'                => '000000000111111',
                     'SubMerchantNo'             => '0',

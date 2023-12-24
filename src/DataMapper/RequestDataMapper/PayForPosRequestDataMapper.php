@@ -42,13 +42,13 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY      => 'Auth',
-        PosInterface::TX_TYPE_PRE_PAY  => 'PreAuth',
-        PosInterface::TX_TYPE_POST_PAY => 'PostAuth',
-        PosInterface::TX_TYPE_CANCEL   => 'Void',
-        PosInterface::TX_TYPE_REFUND   => 'Refund',
-        PosInterface::TX_TYPE_HISTORY  => 'TxnHistory',
-        PosInterface::TX_TYPE_STATUS   => 'OrderInquiry',
+        PosInterface::TX_TYPE_PAY_AUTH      => 'Auth',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'PreAuth',
+        PosInterface::TX_TYPE_PAY_POST_AUTH => 'PostAuth',
+        PosInterface::TX_TYPE_CANCEL        => 'Void',
+        PosInterface::TX_TYPE_REFUND        => 'Refund',
+        PosInterface::TX_TYPE_HISTORY       => 'TxnHistory',
+        PosInterface::TX_TYPE_STATUS        => 'OrderInquiry',
     ];
 
     /**
@@ -108,7 +108,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
                 'MbrId'       => self::MBR_ID,
                 'OrgOrderId'  => (string) $order['id'],
                 'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
-                'TxnType'     => $this->mapTxType(PosInterface::TX_TYPE_POST_PAY),
+                'TxnType'     => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'PurchAmount' => (string) $order['amount'],
                 'Currency'    => $this->mapCurrency($order['currency']),
                 'Lang'        => $this->getLang($account, $order),

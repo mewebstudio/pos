@@ -70,7 +70,7 @@ class PayForPosSerializerTest extends TestCase
 <PAYFORFROMXMLREQUEST>1</PAYFORFROMXMLREQUEST>
 <SESSION_SYSTEM_USER>0</SESSION_SYSTEM_USER>
 </PayforResponse>',
-            'txType'   => PosInterface::TX_TYPE_PAY,
+            'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
             'expected' => [
                 'AuthCode'                    => 'S31432',
                 'HostRefNum'                  => '326011208369',

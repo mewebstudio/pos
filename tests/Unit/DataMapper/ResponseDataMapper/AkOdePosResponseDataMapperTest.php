@@ -120,7 +120,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
             ],
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
                 'OrderId'             => '202312053421',
                 'BankResponseCode'    => '00',
@@ -153,7 +153,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
             ],
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
                 'OrderId'             => '202312053F93',
                 'BankResponseCode'    => '00',
@@ -185,7 +185,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
             ],
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
                 'OrderId'             => '202312053F93',
                 'BankResponseCode'    => null,
@@ -217,7 +217,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
             ],
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
                 'OrderId'             => null,
                 'BankResponseCode'    => null,
@@ -517,7 +517,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'ClientId'            => '1000000494',
                     'OrderId'             => '202312034E91',
@@ -554,7 +554,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'ClientId'            => '1000000494',
                     'OrderId'             => '20231203E148',
@@ -598,7 +598,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'ClientId'            => '1000000494',
                     'OrderId'             => '20231203626F',

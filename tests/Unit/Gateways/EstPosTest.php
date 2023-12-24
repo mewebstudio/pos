@@ -189,7 +189,7 @@ class EstPosTest extends TestCase
 
         $posMock->expects($this->never())->method('send');
 
-        $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
+        $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);

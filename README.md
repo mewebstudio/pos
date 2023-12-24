@@ -305,16 +305,16 @@ Bu isteği göndermeden ödeme tamamlanmaz.
 ### Otorizasyon, Ön Otorizasyon, Ön Provizyon Kapama İşlemler arasındaki farklar
 - **Otorizasyon** - bildiğimiz ve genel olarak kullandığımız işlem. Tek seferde ödeme işlemi biter.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
-İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_PAY`
+İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_PAY_AUTH`
 - **Ön Otorizasyon** - müşteriden parayı direk çekmek yerine, işlem sonucunda para bloke edilir.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
-İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_PRE_PAY`
+İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_PAY_PRE_AUTH`
 - **Ön Provizyon Kapama** - ön provizyon sonucunda bloke edilen miktarın satışını tamamlar.
 Ön otorizasyon yapıldıktan sonra, örneğin 1 hafta sonra, Post Otorizasyon isteği gönderilebilinir.
 Bu işlem için kullanıcıdan kredi kart bilgisi _alınmaz_.
 Onun yerine bazı gateway'ler `orderId` degeri isteri, bazıları ise ön provizyon sonucu dönen banka tarafındaki `orderId`'yi ister.
 Satıcı _ön otorizasyon_ isteği iptal etmek isterse de `cancel` isteği gönderir.
-Post Otorizasyon İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_POST_PAY`
+Post Otorizasyon İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_PAY_POST_AUTH`
 - Bu 3 çeşit işlemler bütün ödeme modelleri (NonSecure, 3D, 3DPay ve 3DHost) tarafından desteklenir.
 
 ### Refund ve Cancel işlemler arasındaki farklar

@@ -119,8 +119,8 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @phpstan-param self::TX_TYPE_*    $txType
-     * @phpstan-param self::MODEL_* $paymentModel
+     * @phpstan-param self::TX_TYPE_* $txType
+     * @phpstan-param self::MODEL_*   $paymentModel
      *
      * @param string|null $txType
      * @param string|null $paymentModel
@@ -176,7 +176,7 @@ abstract class AbstractGateway implements PosInterface
             'tx_type'       => $txType,
             'model'         => $paymentModel,
         ]);
-        if (PosInterface::TX_TYPE_POST_PAY === $txType) {
+        if (PosInterface::TX_TYPE_PAY_POST_AUTH === $txType) {
             $this->makeRegularPostPayment($order);
 
             return $this;
@@ -211,7 +211,7 @@ abstract class AbstractGateway implements PosInterface
             'model'   => PosInterface::MODEL_NON_SECURE,
             'tx_type' => $txType,
         ]);
-        if (in_array($txType, [PosInterface::TX_TYPE_PAY, PosInterface::TX_TYPE_PRE_PAY], true)) {
+        if (in_array($txType, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)) {
             $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
         } else {
             throw new LogicException(sprintf('Invalid transaction type "%s" provided', $txType));
@@ -241,7 +241,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function makeRegularPostPayment(array $order): PosInterface
     {
-        $txType = PosInterface::TX_TYPE_POST_PAY;
+        $txType = PosInterface::TX_TYPE_PAY_POST_AUTH;
         $this->logger->debug('making payment', [
             'model'   => PosInterface::MODEL_NON_SECURE,
             'tx_type' => $txType,
@@ -249,7 +249,7 @@ abstract class AbstractGateway implements PosInterface
 
         $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_POST_PAY);
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_PAY_POST_AUTH);
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -405,8 +405,8 @@ abstract class AbstractGateway implements PosInterface
     /**
      * Send requests to bank APIs
      *
-     * @phpstan-param PosInterface::TX_TYPE_*    $txType
-     * @phpstan-param PosInterface::MODEL_* $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::MODEL_*   $paymentModel
      *
      * @param array<string, mixed>|string $contents data to send
      * @param string                      $txType

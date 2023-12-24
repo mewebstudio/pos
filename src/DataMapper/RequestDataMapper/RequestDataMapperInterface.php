@@ -48,8 +48,8 @@ interface RequestDataMapperInterface
     public function getCrypt(): CryptInterface;
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_*           $txType
-     * @phpstan-param PosInterface::MODEL_3D_*     $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
@@ -63,7 +63,7 @@ interface RequestDataMapperInterface
     public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array;
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_PAY|PosInterface::TX_TYPE_PRE_PAY $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
@@ -75,7 +75,7 @@ interface RequestDataMapperInterface
     public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array;
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_*           $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_* $txType
      *
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order

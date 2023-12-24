@@ -63,8 +63,8 @@
             <?php endif; ?>
             <div class="form-group col-md-4">
                 <select name="tx" id="currency" class="form-control input-lg">
-                    <option value="<?= \Mews\Pos\PosInterface::TX_TYPE_PAY; ?>" selected>Ödeme</option>
-                    <option value="<?= \Mews\Pos\PosInterface::TX_TYPE_PRE_PAY; ?>">Ön Provizyon</option>
+                    <option value="<?= \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH; ?>" selected>Ödeme</option>
+                    <option value="<?= \Mews\Pos\PosInterface::TX_TYPE_PAY_PRE_AUTH; ?>">Ön Provizyon</option>
                 </select>
             </div>
             <div class="form-group col-md-4">

@@ -130,7 +130,7 @@ class EstPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
@@ -303,7 +303,7 @@ class EstPosRequestDataMapperTest extends TestCase
         yield [
             'account'      => $account,
             'order'        => $order,
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => $responseData,
             'expected'     => [
                 'Name'                    => 'ISBANKAPI',
@@ -333,7 +333,7 @@ class EstPosRequestDataMapperTest extends TestCase
         yield 'recurring_order' => [
             'account'      => $account,
             'order'        => $order,
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => $responseData,
             'expected'     => [
                 'Name'                    => 'ISBANKAPI',
@@ -377,7 +377,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'without_card' => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_SECURE,
                 'isWithCard'   => false,
                 'expected'     => [
@@ -402,7 +402,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'with_card'    => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_SECURE,
                 'isWithCard'   => true,
                 'expected'     => [
@@ -432,7 +432,7 @@ class EstPosRequestDataMapperTest extends TestCase
             '3d_host'      => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_HOST,
                 'isWithCard'   => false,
                 'expected'     => [

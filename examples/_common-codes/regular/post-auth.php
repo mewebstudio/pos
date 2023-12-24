@@ -37,7 +37,7 @@ dump($order);
 
 
 $session->set('post_order', $order);
-$transaction = PosInterface::TX_TYPE_POST_PAY;
+$transaction = PosInterface::TX_TYPE_PAY_POST_AUTH;
 $card = null;
 
 require '../../_templates/_payment_response.php';

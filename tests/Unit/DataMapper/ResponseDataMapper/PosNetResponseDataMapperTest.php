@@ -93,7 +93,7 @@ class PosNetResponseDataMapperTest extends TestCase
                         'currency' => PosInterface::CURRENCY_TRY,
                         'amount'   => 1.01,
                     ],
-                    'txType'       => PosInterface::TX_TYPE_PAY,
+                    'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                     'responseData' => [
                         'approved'   => '1',
                         'respCode'   => '',
@@ -134,7 +134,7 @@ class PosNetResponseDataMapperTest extends TestCase
                         'currency' => PosInterface::CURRENCY_TRY,
                         'amount'   => 1.01,
                     ],
-                    'txType'       => PosInterface::TX_TYPE_PAY,
+                    'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                     'responseData' => [
                         'approved' => '0',
                         'respCode' => '0148',
@@ -162,14 +162,14 @@ class PosNetResponseDataMapperTest extends TestCase
                         'currency' => PosInterface::CURRENCY_TRY,
                         'amount'   => 1.01,
                     ],
-                    'txType'       => PosInterface::TX_TYPE_PAY,
+                    'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                     'responseData' => [
                         'order'      => [
                             'id'       => '202312171800ABC',
                             'currency' => PosInterface::CURRENCY_TRY,
                             'amount'   => 1.01,
                         ],
-                        'txType'     => PosInterface::TX_TYPE_PAY,
+                        'txType'     => PosInterface::TX_TYPE_PAY_AUTH,
                         'approved'   => '2',
                         'respCode'   => '0127',
                         'respText'   => 'ORDERID DAHA ONCE KULLANILMIS 0127',
@@ -204,7 +204,7 @@ class PosNetResponseDataMapperTest extends TestCase
                 'order'              => [
                     'id' => '80603153823',
                 ],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'approved'                       => '1',
                     'respCode'                       => '',
@@ -264,7 +264,7 @@ class PosNetResponseDataMapperTest extends TestCase
                 'order'              => [
                     'id' => '80603153823',
                 ],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'oosResolveMerchantDataResponse' => [
                         'xid'            => 'YKB_0000080603153823',
@@ -304,7 +304,7 @@ class PosNetResponseDataMapperTest extends TestCase
                 'order'              => [
                     'id' => '80603153823',
                 ],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'oosResolveMerchantDataResponse' => [
                         'xid'            => 'YKB_0000080603153823',

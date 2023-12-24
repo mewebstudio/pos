@@ -24,16 +24,16 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY      => '1',
-        PosInterface::TX_TYPE_PRE_PAY  => '2',
-        PosInterface::TX_TYPE_POST_PAY => '3',
-        PosInterface::TX_TYPE_CANCEL   => '4',
-        PosInterface::TX_TYPE_REFUND   => '5',
+        PosInterface::TX_TYPE_PAY_AUTH      => '1',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH  => '2',
+        PosInterface::TX_TYPE_PAY_POST_AUTH => '3',
+        PosInterface::TX_TYPE_CANCEL        => '4',
+        PosInterface::TX_TYPE_REFUND        => '5',
     ];
 
     /**
-     * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
-     * @phpstan-param PosInterface::TX_TYPE_*       $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param AkOdePosAccount                      $account
      * @param array<string, int|string|float|null> $order

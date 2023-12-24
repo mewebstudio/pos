@@ -99,7 +99,7 @@ class GarantiPosSerializerTest extends TestCase
             'input'    => '<?xml version="1.0" encoding="UTF-8"?>
 <GVPSRequest><Mode>TEST</Mode><Version>v0.01</Version><Terminal><ProvUserID>PROVAUT</ProvUserID><UserID>PROVAUT</UserID><HashData>8DD74209DEEB7D333105E1C69998A827419A3B04</HashData><ID>30691298</ID><MerchantID>7000679</MerchantID></Terminal><Customer><IPAddress>127.15.15.1</IPAddress><EmailAddress>email@example.com</EmailAddress></Customer><Order><OrderID>2020110828BC</OrderID></Order><Transaction><Type>orderinq</Type><InstallmentCnt></InstallmentCnt><Amount>100</Amount><CurrencyCode>949</CurrencyCode><CardholderPresentCode>0</CardholderPresentCode><MotoInd>N</MotoInd></Transaction></GVPSRequest>
 ',
-            'txType'   => PosInterface::TX_TYPE_PAY,
+            'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
             'expected' => [
                 'Mode'        => 'TEST',
                 'Version'     => 'v0.01',

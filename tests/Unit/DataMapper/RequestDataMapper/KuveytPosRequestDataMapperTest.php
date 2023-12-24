@@ -158,7 +158,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $inputs['CardExpireDateMonth'] = '01';
         $inputs['CardCVV2']            = $card->getCvv();
 
-        $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY, $card);
+        $result = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH, $card);
         $this->assertEquals($inputs, $result);
     }
 
@@ -389,7 +389,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             [
                 'account'      => $account,
                 'order'        => $order,
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'responseData' => [
                     'MD'              => '67YtBfBRTZ0XBKnAHi8c/A==',
                     'VPosMessage'     => [

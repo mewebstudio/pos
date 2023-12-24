@@ -28,13 +28,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY      => 'Auth',
-        PosInterface::TX_TYPE_PRE_PAY  => 'PreAuth',
-        PosInterface::TX_TYPE_POST_PAY => 'PostAuth',
-        PosInterface::TX_TYPE_CANCEL   => 'Void',
-        PosInterface::TX_TYPE_REFUND   => 'Credit',
-        PosInterface::TX_TYPE_STATUS   => 'ORDERSTATUS',
-        PosInterface::TX_TYPE_HISTORY  => 'ORDERHISTORY',
+        PosInterface::TX_TYPE_PAY_AUTH      => 'Auth',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'PreAuth',
+        PosInterface::TX_TYPE_PAY_POST_AUTH => 'PostAuth',
+        PosInterface::TX_TYPE_CANCEL        => 'Void',
+        PosInterface::TX_TYPE_REFUND        => 'Credit',
+        PosInterface::TX_TYPE_STATUS        => 'ORDERSTATUS',
+        PosInterface::TX_TYPE_HISTORY       => 'ORDERHISTORY',
     ];
 
     /**
@@ -134,7 +134,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($account) + [
-                'Type'    => $this->mapTxType(PosInterface::TX_TYPE_POST_PAY),
+                'Type'    => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'OrderId' => (string) $order['id'],
             ];
     }
@@ -249,8 +249,8 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
-     * @phpstan-param PosInterface::TX_TYPE_*       $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, string|int|float|null> $order
      * @param string                               $paymentModel

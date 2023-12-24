@@ -11,7 +11,7 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 require './vendor/autoload.php';
 
 $paymentModel = \Mews\Pos\PosInterface::MODEL_NON_SECURE;
-$transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY;
+$transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
 
 // API kullanıcı bilgileri
 // AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.

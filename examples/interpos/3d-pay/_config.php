@@ -22,7 +22,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount(
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = PosInterface::TX_TYPE_PAY;
+$transaction = PosInterface::TX_TYPE_PAY_AUTH;
 
 $templateTitle = '3D Model Pay Payment';
 $paymentModel = PosInterface::MODEL_3D_PAY;

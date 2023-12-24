@@ -45,13 +45,13 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY      => 'sales',
-        PosInterface::TX_TYPE_PRE_PAY  => 'preauth',
-        PosInterface::TX_TYPE_POST_PAY => 'postauth',
-        PosInterface::TX_TYPE_CANCEL   => 'void',
-        PosInterface::TX_TYPE_REFUND   => 'refund',
-        PosInterface::TX_TYPE_HISTORY  => 'orderhistoryinq',
-        PosInterface::TX_TYPE_STATUS   => 'orderinq',
+        PosInterface::TX_TYPE_PAY_AUTH      => 'sales',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'preauth',
+        PosInterface::TX_TYPE_PAY_POST_AUTH => 'postauth',
+        PosInterface::TX_TYPE_CANCEL        => 'void',
+        PosInterface::TX_TYPE_REFUND        => 'refund',
+        PosInterface::TX_TYPE_HISTORY       => 'orderhistoryinq',
+        PosInterface::TX_TYPE_STATUS        => 'orderinq',
     ];
 
     protected array $recurringOrderFrequencyMapping = [
@@ -166,7 +166,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'              => $this->mapTxType(PosInterface::TX_TYPE_POST_PAY),
+                'Type'              => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'Amount'            => $this->formatAmount($order['amount']),
                 'CurrencyCode'      => $this->mapCurrency($order['currency']),
                 'OriginalRetrefNum' => $order['ref_ret_num'],

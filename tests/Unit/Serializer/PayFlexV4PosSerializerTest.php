@@ -91,7 +91,7 @@ class PayFlexV4PosSerializerTest extends TestCase
                 'Expiry'                  => '202112',
                 'Cvv'                     => '122',
             ],
-            'txType'   => PosInterface::TX_TYPE_PAY,
+            'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
             'expected' => '<VposRequest><MerchantId>000000000111111</MerchantId><Password>3XTgER89as</Password><TerminalNo>VP999999</TerminalNo><TransactionType>Sale</TransactionType><OrderId>order222</OrderId><CurrencyAmount>100.00</CurrencyAmount><CurrencyCode>949</CurrencyCode><ClientIp>127.0.0.1</ClientIp><TransactionDeviceSource>0</TransactionDeviceSource><Pan>5555444433332222</Pan><Expiry>202112</Expiry><Cvv>122</Cvv></VposRequest>',
         ];
 

@@ -15,7 +15,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createAkOdePosAccount(
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = $session->get('tx', PosInterface::TX_TYPE_PAY);
+$transaction = $session->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
 
 $templateTitle = 'Regular Payment';
 $paymentModel = PosInterface::MODEL_NON_SECURE;

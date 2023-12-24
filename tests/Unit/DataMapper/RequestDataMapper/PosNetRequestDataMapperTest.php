@@ -162,7 +162,7 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
 
         $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
@@ -209,7 +209,7 @@ class PosNetRequestDataMapperTest extends TestCase
     public function testCreate3DEnrollmentCheckRequestData()
     {
         $expected = $this->getSample3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
-        $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
+        $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
         $this->assertEquals($expected, $actual);
     }
 
@@ -221,7 +221,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->order['id'] = 'd32458293945098y439244343';
-        $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
+        $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
     }
 
     /**
@@ -368,7 +368,7 @@ class PosNetRequestDataMapperTest extends TestCase
                     'installment' => '0',
                     'currency'    => PosInterface::CURRENCY_TRY,
                 ],
-                'txType' => PosInterface::TX_TYPE_PAY,
+                'txType' => PosInterface::TX_TYPE_PAY_AUTH,
                 'responseData' => [
                     'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
                     'MerchantPacket' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',

@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 require_once '_config.php';
 require '../../_templates/_header.php';
 
-if (($request->getMethod() !== 'POST' && PosInterface::TX_TYPE_POST_PAY !== $transaction)
+if (($request->getMethod() !== 'POST' && PosInterface::TX_TYPE_PAY_POST_AUTH !== $transaction)
     // PayFlex-CP GET request ile cevapliyor
     && ($request->getMethod() === 'GET' && [] === $request->query->all())
 ) {
@@ -16,7 +16,7 @@ if (($request->getMethod() !== 'POST' && PosInterface::TX_TYPE_POST_PAY !== $tra
     exit();
 }
 
-if (PosInterface::TX_TYPE_POST_PAY === $transaction) {
+if (PosInterface::TX_TYPE_PAY_POST_AUTH === $transaction) {
     $order = $session->get('post_order');
 } else {
     $order = $session->get('order');
@@ -31,7 +31,7 @@ try {
         /**
          * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
          * Ornek:
-         * if ($event->getTxType() === PosInterface::TX_TYPE_PAY) {
+         * if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
          *     $data = $event->getRequestData();
          *     $data['abcd'] = '1234';
          *     $event->setRequestData($data);
@@ -44,14 +44,14 @@ try {
         /**
          * KOICode - 1: Ek Taksit 2: Taksit Atlatma 3: Ekstra Puan 4: Kontur Kazanım 5: Ekstre Erteleme 6: Özel Vade Farkı
          */
-        if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos && $event->getTxType() === PosInterface::TX_TYPE_PAY) {
+        if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos && $event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
             // Albaraka PosNet KOICode ekleme
             // $data            = $event->getRequestData();
             // $data['KOICode'] = '1';
             // $event->setRequestData($data);
         }
         if ($pos instanceof \Mews\Pos\Gateways\PosNet
-            && $event->getTxType() === PosInterface::TX_TYPE_PAY
+            && $event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH
             && PosInterface::MODEL_NON_SECURE === $paymentModel) {
             // Yapikredi PosNet KOICode ekleme
             // $data            = $event->getRequestData();
@@ -63,7 +63,7 @@ try {
 
 //    //Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği
 //    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($paymentModel) {
-//        if ($event->getTxType() === PosInterface::TX_TYPE_PAY && PosInterface::MODEL_3D_SECURE === $paymentModel) {
+//        if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && PosInterface::MODEL_3D_SECURE === $paymentModel) {
 //            $data                    = $event->getRequestData();
 //            $data['Extra']['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
 //            $data['Extra']['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı
@@ -90,9 +90,9 @@ if ($pos->isSuccess()) {
 
     <div class="result">
         <h3 class="text-center text-<?= $pos->isSuccess() ? 'success' : 'danger'; ?>">
-            <?php if (PosInterface::TX_TYPE_PAY === $transaction || PosInterface::TX_TYPE_POST_PAY === $transaction) : ?>
+            <?php if (PosInterface::TX_TYPE_PAY_AUTH === $transaction || PosInterface::TX_TYPE_PAY_POST_AUTH === $transaction) : ?>
                 <?= $pos->isSuccess() ? 'Payment is successful!' : 'Payment is not successful!'; ?>
-            <?php elseif (PosInterface::TX_TYPE_PRE_PAY === $transaction) : ?>
+            <?php elseif (PosInterface::TX_TYPE_PAY_PRE_AUTH === $transaction) : ?>
                 <?= $pos->isSuccess() ? 'Pre Authorization is successful!' : 'Pre Authorization is not successful!'; ?>
             <?php endif; ?>
         </h3>
@@ -169,11 +169,11 @@ if ($pos->isSuccess()) {
         <div class="text-right">
             <?php if ($pos->isSuccess()) : ?>
                 <!--yapılan ödeme tipine göre bir sonraki yapılabilecek işlemlerin butonlarını gösteriyoruz.-->
-                <?php if (PosInterface::TX_TYPE_PRE_PAY === $transaction) : ?>
+                <?php if (PosInterface::TX_TYPE_PAY_PRE_AUTH === $transaction) : ?>
                     <a href="<?= $bankTestsUrl ?>/regular/post-auth.php" class="btn btn-lg btn-primary">Finish provisioning
                         ></a>
                 <?php endif; ?>
-                <?php if (PosInterface::TX_TYPE_PAY === $transaction) : ?>
+                <?php if (PosInterface::TX_TYPE_PAY_AUTH === $transaction) : ?>
                     <a href="<?= $bankTestsUrl ?>/regular/cancel.php" class="btn btn-lg btn-danger">Cancel payment</a>
                 <?php endif; ?>
                 <a href="<?= $bankTestsUrl ?>/regular/status.php" class="btn btn-lg btn-default">Payment Status</a>

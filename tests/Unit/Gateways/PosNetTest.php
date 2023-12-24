@@ -117,7 +117,7 @@ class PosNetTest extends TestCase
         $posMock->setTestMode(true);
         $posMock->expects($this->once())->method('getOosTransactionData')->willReturn($this->getSampleOoTransactionFailResponseData());
 
-        $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY, $this->card);
+        $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
     }
 
 
@@ -163,7 +163,7 @@ class PosNetTest extends TestCase
             )
         );
 
-        $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
+        $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
         $resp = $posMock->getResponse();
         unset($resp['all'], $resp['3d_all']);
         \ksort($bankResponses['expectedData']);

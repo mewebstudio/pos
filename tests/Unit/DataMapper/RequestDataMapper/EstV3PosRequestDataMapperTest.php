@@ -103,7 +103,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'without_card' => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_SECURE,
                 'isWithCard'   => false,
                 'expected'     => [
@@ -129,7 +129,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             'with_card'    => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_SECURE,
                 'isWithCard'   => true,
                 'expected'     => [
@@ -160,7 +160,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             '3d_host'      => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_HOST,
                 'isWithCard'   => false,
                 'expected'     => [

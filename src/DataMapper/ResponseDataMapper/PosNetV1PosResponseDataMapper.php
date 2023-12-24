@@ -115,6 +115,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
         $mdStatus            = $raw3DAuthResponseData['MdStatus'];
         $threeDAuthApproved  = \in_array($mdStatus, ['1', '2', '3', '4'], true);
         $transactionSecurity = $this->mapResponseTransactionSecurity($mdStatus);
+        /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
         $txType              = $this->mapTxType($raw3DAuthResponseData['TranType']) ?? $txType;
 
         $threeDResponse = [
@@ -282,8 +283,8 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * @phpstan-param PosInterface::TX_*       $txType
-     * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
      * @param array<string, mixed> $rawPaymentResponseData
      * @param string               $txType

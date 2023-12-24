@@ -20,7 +20,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createPayFlexAccount(
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = PosInterface::TX_TYPE_PAY;
+$transaction = PosInterface::TX_TYPE_PAY_AUTH;
 
 $templateTitle = '3D Pay Model Payment';
 $paymentModel = PosInterface::MODEL_3D_PAY;

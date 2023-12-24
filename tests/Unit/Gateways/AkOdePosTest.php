@@ -482,7 +482,7 @@ class AkOdePosTest extends TestCase
         yield [
             'order'               => AkOdePosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['order'],
             'paymentModel'        => PosInterface::MODEL_3D_PAY,
-            'txType'              => PosInterface::TX_TYPE_PAY,
+            'txType'              => PosInterface::TX_TYPE_PAY_AUTH,
             'isWithCard'          => true,
             'requestData'         => AkOdePosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
             'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
@@ -554,32 +554,32 @@ class AkOdePosTest extends TestCase
     {
         return [
             [
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_PAY,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPayment',
             ],
             [
-                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_PAY,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPreAuth',
             ],
             [
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_HOST,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPayment',
             ],
             [
-                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_HOST,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/threeDPreAuth',
             ],
             [
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/Payment',
             ],
             [
-                'txType'       => PosInterface::TX_TYPE_POST_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_POST_AUTH,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/postAuth',
             ],

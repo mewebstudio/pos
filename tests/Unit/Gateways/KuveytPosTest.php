@@ -151,7 +151,7 @@ class KuveytPosTest extends TestCase
             ->with($response)
             ->willReturn($sendReturn);
 
-        $result = $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY, $this->card);
+        $result = $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
 
         $this->assertSame($expected, $result);
     }
@@ -165,7 +165,7 @@ class KuveytPosTest extends TestCase
             'AuthenticationResponse' => '%3c%3fxml+version%3d%221.0%22+encoding%3d%22utf-8%22%3f%3e%3cVPosTransactionResponseContract+xmlns%3axsd%3d%22http%3a%2f%2fwww.w3.org%2f2001%2fXMLSchema%22+xmlns%3axsi%3d%22http%3a%2f%2fwww.w3.org%2f2001%2fXMLSchema-instance%22%3e%3cIsEnrolled%3etrue%3c%2fIsEnrolled%3e%3cIsVirtual%3efalse%3c%2fIsVirtual%3e%3cResponseCode%3eHashDataError%3c%2fResponseCode%3e%3cResponseMessage%3e%c5%9eifrelenen+veriler+(Hashdata)+uyu%c5%9fmamaktad%c4%b1r.%3c%2fResponseMessage%3e%3cOrderId%3e0%3c%2fOrderId%3e%3cTransactionTime%3e0001-01-01T00%3a00%3a00%3c%2fTransactionTime%3e%3cMerchantOrderId%3e2020110828BC%3c%2fMerchantOrderId%3e%3cReferenceId%3e9b8e2326a9df44c2b2aac0b98b11f0a4%3c%2fReferenceId%3e%3cBusinessKey%3e0%3c%2fBusinessKey%3e%3c%2fVPosTransactionResponseContract%3e',
         ]);
 
-        $this->pos->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
+        $this->pos->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
         $result = $this->pos->getResponse();
         $this->assertIsArray($result);
         $this->assertSame('declined', $result['status']);
@@ -205,7 +205,7 @@ class KuveytPosTest extends TestCase
         $paymentResponse = $kuveytPosResponseDataMapperTest->threeDPaymentDataProvider()['authSuccessPaymentFail2']['paymentData'];
         $posMock->expects($this->once())->method('send')->willReturn($paymentResponse);
 
-        $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
+        $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
         $this->assertSame('declined', $result['status']);
@@ -246,7 +246,7 @@ class KuveytPosTest extends TestCase
         $paymentResponse = $kuveytPosResponseDataMapperTest->threeDPaymentDataProvider()['success1']['paymentData'];
         $posMock->expects($this->once())->method('send')->willReturn($paymentResponse);
 
-        $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY, $this->card);
+        $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
         $result = $posMock->getResponse();
 
         $this->assertIsArray($result);
@@ -259,7 +259,7 @@ class KuveytPosTest extends TestCase
     public function testMakeRegularPayment()
     {
         $this->expectException(NotImplementedException::class);
-        $this->pos->makeRegularPayment([], $this->card, PosInterface::TX_TYPE_PAY);
+        $this->pos->makeRegularPayment([], $this->card, PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     public static function get3DFormDataDataProvider(): array

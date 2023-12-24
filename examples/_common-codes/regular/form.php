@@ -15,7 +15,7 @@ $order = getNewOrder(
     $request->get('lang', PosInterface::LANG_TR)
 );
 $session->set('order', $order);
-$transaction = $request->get('tx', PosInterface::TX_TYPE_PAY);
+$transaction = $request->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
 
 // examples'da post odeme butonu gostermek icin degeri kullanilir.
 $session->set('tx', $transaction);

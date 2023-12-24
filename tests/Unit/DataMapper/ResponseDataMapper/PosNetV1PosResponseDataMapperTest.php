@@ -104,7 +104,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
             ],
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'paymentData'  => [
                 'ServiceResponseData' => [
                     'ResponseCode'        => '0127',
@@ -138,7 +138,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
             ],
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'paymentData'  => [
                 'ServiceResponseData' => [
                     'ResponseCode'        => '00',
@@ -234,7 +234,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             'order'              => [
                 'id' => '20230622A1C9',
             ],
-            'txType'             => PosInterface::TX_TYPE_PRE_PAY,
+            'txType'             => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             'threeDResponseData' => [
                 'CCPrefix'            => '450634',
                 'TranType'            => 'Sale',
@@ -277,7 +277,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             'order'              => [
                 'id' => '80603153823',
             ],
-            'txType'             => PosInterface::TX_TYPE_PRE_PAY,
+            'txType'             => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             'threeDResponseData' => [
                 'CCPrefix'            => '540061',
                 'TranType'            => 'Sale',
@@ -394,7 +394,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             'order'              => [
                 'id' => '80603153823',
             ],
-            'txType'             => PosInterface::TX_TYPE_PRE_PAY,
+            'txType'             => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             'threeDResponseData' => [
                 'CCPrefix'            => '540061',
                 'TranType'            => 'Sale',
@@ -442,7 +442,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             'order'              => [
                 'id' => '202306226A90',
             ],
-            'txType'             => PosInterface::TX_TYPE_PRE_PAY,
+            'txType'             => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             'threeDResponseData' => [
                 'CCPrefix'            => '450634',
                 'TranType'            => 'Sale',

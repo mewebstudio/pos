@@ -20,7 +20,7 @@ $session        = new Session($sessionHandler);
 $session->start();
 
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_HOST;
-$transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY;
+$transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
 
 // API kullanıcı bilgileri
 // AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
@@ -80,7 +80,7 @@ try {
          * 3D form verisini oluşturmak için API isteği Gönderen Gateway'ler: AkOde, PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos
          * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
          * Ornek:
-         * if ($event->getTxType() === PosInterface::TX_TYPE_PAY) {
+         * if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
          *     $data = $event->getRequestData();
          *     $data['abcd'] = '1234';
          *     $event->setRequestData($data);
@@ -101,7 +101,7 @@ try {
                 \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY_HOSTING,
                 \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
                 ];
-                if ($event->getTxType() === PosInterface::TX_TYPE_PAY && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
+                if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
                 $formInputs           = $event->getRequestData();
                 $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
                 $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.

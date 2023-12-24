@@ -10,7 +10,7 @@ use Mews\Pos\PosInterface;
 interface PaymentResponseMapperInterface
 {
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_* $txType
      *
      * @param array<string, mixed> $rawPaymentResponseData
      * @param string               $txType
@@ -21,7 +21,7 @@ interface PaymentResponseMapperInterface
     public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array;
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, string>      $raw3DAuthResponseData
      * @param array<string, string>|null $rawPaymentResponseData null when payment request was not made
@@ -33,7 +33,7 @@ interface PaymentResponseMapperInterface
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData, string $txType, array $order): array;
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, string> $raw3DAuthResponseData
      * @param string                $txType
@@ -44,7 +44,7 @@ interface PaymentResponseMapperInterface
     public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array;
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, string> $raw3DAuthResponseData
      * @param string                $txType

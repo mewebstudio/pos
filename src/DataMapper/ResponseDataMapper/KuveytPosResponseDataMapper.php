@@ -84,7 +84,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             'provision_response' => $rawPaymentResponseData,
         ]);
         $threeDResponse = $this->map3DCommonResponseData($raw3DAuthResponseData);
-        /** @var PosInterface::TX_* $txType */
+        /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
         $txType = $threeDResponse['transaction_type'] ?? $txType;
         if (null === $rawPaymentResponseData || [] === $rawPaymentResponseData) {
             /** @var PosInterface::MODEL_3D_* $paymentModel */

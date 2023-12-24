@@ -122,7 +122,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'responseData' => [
                     'AuthCode'       => 'S77788',
                     'HostRefNum'     => '230422096719',
@@ -152,7 +152,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'responseData' => [
                     'AuthCode'       => '',
                     'HostRefNum'     => '230422097442',
@@ -183,7 +183,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'responseData' => [
                     'AuthCode'       => '',
                     'HostRefNum'     => '230422097825',
@@ -217,7 +217,7 @@ class PayForPosResponseDataMapperTest extends TestCase
         return [
             'auth_fail1' => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PRE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'threeDResponseData' => [
                     'RequestGuid'                    => '1000000081255934',
                     'TransactionDate'                => '31.10.2022 22:39:44',
@@ -366,7 +366,7 @@ class PayForPosResponseDataMapperTest extends TestCase
             ],
             'success1'   => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PRE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'threeDResponseData' => [
                     'RequestGuid'                    => '1000000081255931',
                     'TransactionDate'                => '31.10.2022 22:34:18',
@@ -529,7 +529,7 @@ class PayForPosResponseDataMapperTest extends TestCase
         return [
             'success1'  => [
                 'order'        => [],
-                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'paymentData'  => [
                     'RequestGuid'                    => '1000000081255944',
                     'TransactionDate'                => '31.10.2022 22:56:43',
@@ -676,7 +676,7 @@ class PayForPosResponseDataMapperTest extends TestCase
             ],
             'authFail1' => [
                 'order'        => [],
-                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'paymentData'  => [
                     'RequestGuid'                    => '1000000081255948',
                     'TransactionDate'                => '31.10.2022 23:01:36',
@@ -830,7 +830,7 @@ class PayForPosResponseDataMapperTest extends TestCase
         return [
             'success1'   => [
                 'order'        => [],
-                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'paymentData'  => [
                     'RequestGuid'                    => '1000000081265956',
                     'TransactionDate'                => '31.10.2022 23:06:37',
@@ -977,7 +977,7 @@ class PayForPosResponseDataMapperTest extends TestCase
             ],
             'auth_fail1' => [
                 'order'        => [],
-                'txType'       => PosInterface::TX_TYPE_PRE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'paymentData'  => [
                     'RequestGuid'                    => '1000000081265960',
                     'TransactionDate'                => '31.10.2022 23:10:47',

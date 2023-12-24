@@ -151,7 +151,7 @@ class InterPosResponseDataMapperTest extends TestCase
                         'currency' => PosInterface::CURRENCY_TRY,
                         'amount'   => 1.01,
                     ],
-                    'txType'       => PosInterface::TX_TYPE_PAY,
+                    'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                     'responseData' => [
                         'OrderId'               => '20221225662C',
                         'ProcReturnCode'        => '81',
@@ -205,7 +205,7 @@ class InterPosResponseDataMapperTest extends TestCase
         return [
             'authFail1' => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'Version'                 => null,
                     'MerchantID'              => null,
@@ -282,7 +282,7 @@ class InterPosResponseDataMapperTest extends TestCase
         return [
             'authFail1' => [
                 'order'        => [],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'Version'                 => '',
                     'MerchantID'              => '',
@@ -358,7 +358,7 @@ class InterPosResponseDataMapperTest extends TestCase
         return [
             '3d_auth_fail1' => [
                 'order'        => [],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'Version'                 => '',
                     'MerchantID'              => '',

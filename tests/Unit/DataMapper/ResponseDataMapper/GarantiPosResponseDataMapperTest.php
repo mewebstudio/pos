@@ -112,7 +112,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'responseData' => [
                     'Mode'        => '',
                     'Terminal'    => [
@@ -177,7 +177,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'responseData' => [
                     'Mode'        => '',
                     'Terminal'    => [
@@ -245,7 +245,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
         return [
             'paymentFail1'               => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'xid'                   => 'RszfrwEYe/8xb7rnrPuh6C9pZSQ=',
                     'mdstatus'              => '1',
@@ -359,7 +359,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
             ],
             'paymentFail_wrong_cvc_code' => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'xid'                   => 'fbd8e1ec-3d98-499d-9578-cf5380f208bc',
                     'mdstatus'              => '1',
@@ -475,7 +475,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
             ],
             'success1'                   => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'xid'                   => '748ac354-4bfe-4b40-aa12-5ea025b7399b',
                     'mdstatus'              => '1',
@@ -598,7 +598,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
         return [
             'success1'     => [
                 'order'        => [],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'xid'                   => 'RszfrwEYe/8xb7rnrPuh6C9pZSQ=',
                     'mdstatus'              => '1',
@@ -670,7 +670,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
             ],
             'authFail'     => [
                 'order'        => [],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'mdstatus'              => '7',
                     'mderrormessage'        => 'Sistem Hatasi',
@@ -721,7 +721,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
             ],
             'paymentFail1' => [
                 'order'        => [],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'xid'                   => 'RszfrwEYe/8xb7rnrPuh6C9pZSQ=',
                     'mdstatus'              => '1',

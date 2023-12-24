@@ -105,7 +105,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
     public static function paymentTestDataProvider(): iterable
     {
         yield 'fail1' => [
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
                 '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
                 '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
@@ -135,7 +135,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
         ];
 
         yield 'success1' => [
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
                 'VPosMessage'     => [
                     'OrderId'             => '4480',
@@ -195,7 +195,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
         return [
             'authSuccessPaymentFail1' => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
                     '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
@@ -288,7 +288,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
             ],
             'authSuccessPaymentFail2' => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'VPosMessage'          => [
                         'APIVersion'          => '1.0.0',
@@ -360,7 +360,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
             ],
             'authFail1'               => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
                     '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
@@ -397,7 +397,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
             ],
             'success1'                => [
                 'order'              => [],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'VPosMessage'          => [
                         'APIVersion'          => '1.0.0',

@@ -61,7 +61,7 @@ class PayForPosTest extends TestCase
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
-            PosInterface::TX_TYPE_PAY,
+            PosInterface::TX_TYPE_PAY_AUTH,
             $this->card
         );
 

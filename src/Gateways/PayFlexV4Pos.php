@@ -43,16 +43,16 @@ class PayFlexV4Pos extends AbstractGateway
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
-        PosInterface::TX_TYPE_PAY      => [
+        PosInterface::TX_TYPE_PAY_AUTH      => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_NON_SECURE,
         ],
-        PosInterface::TX_TYPE_PRE_PAY  => true,
-        PosInterface::TX_TYPE_POST_PAY => true,
-        PosInterface::TX_TYPE_STATUS   => true,
-        PosInterface::TX_TYPE_CANCEL   => true,
-        PosInterface::TX_TYPE_REFUND   => true,
-        PosInterface::TX_TYPE_HISTORY  => false,
+        PosInterface::TX_TYPE_PAY_PRE_AUTH  => true,
+        PosInterface::TX_TYPE_PAY_POST_AUTH => true,
+        PosInterface::TX_TYPE_STATUS        => true,
+        PosInterface::TX_TYPE_CANCEL        => true,
+        PosInterface::TX_TYPE_REFUND        => true,
+        PosInterface::TX_TYPE_HISTORY       => false,
     ];
 
     /** @return PayFlexAccount */
@@ -178,7 +178,7 @@ class PayFlexV4Pos extends AbstractGateway
      * Müşteriden kredi kartı bilgilerini aldıktan sonra GET 7/24 MPI’a kart “Kredi Kartı Kayıt Durumu”nun
      * (Enrollment Status) sorulması, yani kart 3-D Secure programına dâhil mi yoksa değil mi sorgusu
      *
-     * @phpstan-param PosInterface::TX_TYPE_*           $txType
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, int|string|float|null> $order
      * @param CreditCardInterface                  $card

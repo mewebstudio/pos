@@ -137,7 +137,7 @@ class EstPosResponseDataMapperTest extends TestCase
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
             ],
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
                 'OrderId'        => '202210293885',
                 'GroupId'        => '202210293885',
@@ -197,7 +197,7 @@ class EstPosResponseDataMapperTest extends TestCase
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
             ],
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
                 'OrderId'        => '202210293885',
                 'GroupId'        => '202210293885',
@@ -255,7 +255,7 @@ class EstPosResponseDataMapperTest extends TestCase
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
             ],
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
                 'OrderId'        => '20221029B541',
                 'GroupId'        => '20221029B541',
@@ -302,7 +302,7 @@ class EstPosResponseDataMapperTest extends TestCase
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
             ],
-            'txType'       => PosInterface::TX_TYPE_PAY,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
                 'OrderId'        => '20221030FAC5',
                 'GroupId'        => '20221030FAC5',
@@ -368,7 +368,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 // 3D Auth fail case
                 'threeDResponseData' => [
                     'sID'                             => '1',
@@ -442,7 +442,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'TRANID'                          => '',
                     'PAResSyntaxOK'                   => 'true',
@@ -540,7 +540,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'             => PosInterface::TX_TYPE_PAY,
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'TRANID'                          => '',
                     'PAResSyntaxOK'                   => 'true',
@@ -650,7 +650,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'ReturnOid'                       => '2022103030CB',
                     'TRANID'                          => '',
@@ -742,7 +742,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'sID'                             => '1',
                     'oid'                             => '2022103008A3',
@@ -820,7 +820,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'panFirst6'                       => '',
                     'TRANID'                          => '',
@@ -912,7 +912,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
-                'txType'       => PosInterface::TX_TYPE_PAY,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentData'  => [
                     'panFirst6'                       => '',
                     'TRANID'                          => '',
