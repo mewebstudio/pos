@@ -382,6 +382,29 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'payment_model'    => 'regular',
             ],
         ];
+        yield 'fail_2' => [
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+            'responseData' => [
+                'ResultCode'       => '9039',
+                'ResultDetail'     => 'Üye işyeri bulunamadı.',
+                'InstallmentTable' => '',
+            ],
+            'expectedData' => [
+                'trans_id'         => null,
+                'auth_code'        => null,
+                'ref_ret_num'      => null,
+                'order_id'         => null,
+                'proc_return_code' => '9039',
+                'status'           => 'declined',
+                'status_detail'    => 'invalid_credentials',
+                'error_code'       => '9039',
+                'error_message'    => 'Üye işyeri bulunamadı.',
+                'transaction_type' => null,
+                'currency'         => null,
+                'amount'           => null,
+                'payment_model'    => null,
+            ],
+        ];
     }
 
     public static function threeDPaymentDataProvider(): array

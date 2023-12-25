@@ -200,9 +200,9 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         $rawPaymentResponseData             = $this->emptyStringsToNull($rawPaymentResponseData);
         $commonResponse                     = $this->getCommonPaymentResponse($rawPaymentResponseData, $txType);
         $commonResponse['order_id']         = $rawPaymentResponseData['OrderId'] ?? null;
-        $commonResponse['currency']         = $this->mapCurrency($rawPaymentResponseData['CurrencyCode']);
-        $commonResponse['amount']           = (float) $rawPaymentResponseData['TLAmount'];
-        $commonResponse['transaction_type'] = $this->mapTxType($rawPaymentResponseData['TransactionType']);
+        $commonResponse['currency']         = isset($rawPaymentResponseData['CurrencyCode']) ? $this->mapCurrency($rawPaymentResponseData['CurrencyCode']) : null;
+        $commonResponse['amount']           = isset($rawPaymentResponseData['TLAmount']) ? $this->formatAmount($rawPaymentResponseData['TLAmount']) : null;
+        $commonResponse['transaction_type'] = isset($rawPaymentResponseData['TransactionType']) ? $this->mapTxType($rawPaymentResponseData['TransactionType']) : null;
 
         if (self::TX_APPROVED === $commonResponse['status']) {
             $commonResponse['trans_id']         = $rawPaymentResponseData['TransactionId'];
@@ -261,7 +261,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $paymentModel = $this->mapSecurityType($responseData['ThreeDSecureType']);
+        $paymentModel = isset($responseData['ThreeDSecureType']) ? $this->mapSecurityType($responseData['ThreeDSecureType']) : null;
         $response     = $this->getDefaultPaymentResponse($txType, $paymentModel);
 
         $response['proc_return_code'] = $resultCode;
