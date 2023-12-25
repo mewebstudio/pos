@@ -16,10 +16,15 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * Response Codes
      *
-     * @var array<string, string>
+     * @var array<string|int, string>
      */
     protected array $codes = [
         self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
+        '0312'                       => 'reject',
+        '1083'                       => 'invalid_transaction',
+        '1059'                       => 'invalid_transaction',
+        '9039'                       => 'invalid_credentials',
+        '9065'                       => 'invalid_credentials',
     ];
 
     /**
@@ -123,7 +128,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             'error_code'       => (self::TX_DECLINED === $status) ? $resultCode : null,
             'error_message'    => (self::TX_DECLINED === $status) ? $rawResponseData['ResultDetail'] : null,
             'status'           => $status,
-            'status_detail'    => $rawResponseData['ResultDetail'],
+            'status_detail'    => $this->getStatusDetail($resultCode),
             'all'              => $rawResponseData,
         ];
     }
@@ -154,7 +159,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
                 'capture_amount'   => null,
                 'currency'         => null,
                 'status'           => $responseInfo['Status'],
-                'status_detail'    => $responseInfo['ResponseMessage'],
+                'status_detail'    => $this->getStatusDetail($procReturnCode),
                 'error_code'       => $procReturnCode,
                 'error_message'    => $responseInfo['ResponseMessage'],
                 'all'              => $rawResponseData,
@@ -184,7 +189,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             'capture_amount'   => $txResultInfo['CurrencyAmount'],
             'currency'         => $this->mapCurrency($txResultInfo['AmountCode']),
             'status'           => self::PROCEDURE_SUCCESS_CODE === $orderProcCode ? self::TX_APPROVED : self::TX_DECLINED,
-            'status_detail'    => $txResultInfo['ResponseMessage'],
+            'status_detail'    => $this->getStatusDetail($procReturnCode),
             'error_code'       => self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['HostResultCode'] : null,
             'error_message'    => self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['ResponseMessage'] : null,
             'all'              => $rawResponseData,
@@ -246,6 +251,16 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @param string|null $procReturnCode
+     *
+     * @return string|null
+     */
+    protected function getStatusDetail(?string $procReturnCode): ?string
+    {
+        return $this->codes[$procReturnCode] ?? null;
+    }
+
+    /**
      * @phpstan-param PosInterface::TX_TYPE_PAY_* $txType
      *
      * @param array<string, string> $responseData
@@ -266,7 +281,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
 
         $response['proc_return_code'] = $resultCode;
         $response['status']           = $status;
-        $response['status_detail']    = $responseData['ResultDetail'];
+        $response['status_detail']    = $this->getStatusDetail($resultCode);
         $response['error_code']       = (self::TX_DECLINED === $status) ? $resultCode : null;
         $response['error_message']    = (self::TX_DECLINED === $status) ? $responseData['ResultDetail'] : null;
         $response['all']              = $responseData;

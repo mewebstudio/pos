@@ -118,7 +118,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'capture_amount'   => null,
                 'currency'         => null,
                 'status'           => 'Error',
-                'status_detail'    => 'Üye isyeri bulunamadi',
+                'status_detail'    => 'invalid_credentials',
                 'error_code'       => '9065',
                 'error_message'    => 'Üye isyeri bulunamadi',
             ],
@@ -179,7 +179,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'capture_amount'   => '90.50',
                 'currency'         => PosInterface::CURRENCY_TRY,
                 'status'           => 'approved',
-                'status_detail'    => 'İŞLEM BAŞARILI',
+                'status_detail'    => 'approved',
                 'error_code'       => null,
                 'error_message'    => null,
             ],
@@ -216,7 +216,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'error_code'       => null,
                 'error_message'    => null,
                 'status'           => 'approved',
-                'status_detail'    => 'İŞLEM BAŞARILI',
+                'status_detail'    => 'approved',
             ],
         ];
 
@@ -235,7 +235,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'error_code'       => '1059',
                 'error_message'    => 'İşlemin tamamı iade edilmiş.',
                 'status'           => 'declined',
-                'status_detail'    => 'İşlemin tamamı iade edilmiş.',
+                'status_detail'    => 'invalid_transaction',
             ],
         ];
     }
@@ -270,7 +270,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'error_code'       => null,
                 'error_message'    => null,
                 'status'           => 'approved',
-                'status_detail'    => 'İŞLEM BAŞARILI',
+                'status_detail'    => 'approved',
             ],
         ];
 
@@ -289,7 +289,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'error_code'       => '1083',
                 'error_message'    => 'Referans islem daha önceden iptal edilmis.',
                 'status'           => 'declined',
-                'status_detail'    => 'Referans islem daha önceden iptal edilmis.',
+                'status_detail'    => 'invalid_transaction',
             ],
         ];
     }
@@ -334,7 +334,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'order_id'         => '202303095646',
                 'proc_return_code' => '0000',
                 'status'           => 'approved',
-                'status_detail'    => 'İŞLEM BAŞARILI',
+                'status_detail'    => 'approved',
                 'error_code'       => null,
                 'error_message'    => null,
                 'transaction_type' => 'pay',
@@ -373,7 +373,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'order_id'         => '20230309EF68',
                 'proc_return_code' => '0312',
                 'status'           => 'declined',
-                'status_detail'    => 'RED-GEÇERSİZ KART',
+                'status_detail'    => 'reject',
                 'error_code'       => '0312',
                 'error_message'    => 'RED-GEÇERSİZ KART',
                 'transaction_type' => 'pay',
@@ -511,7 +511,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'auth_code'            => null,
                     'order_id'             => '202303091489',
                     'status'               => 'declined',
-                    'status_detail'        => 'RED-GEÇERSİZ KART',
+                    'status_detail'        => 'reject',
                     'error_code'           => '0312',
                     'error_message'        => 'RED-GEÇERSİZ KART',
                     'amount'               => 1.01,
@@ -578,7 +578,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'auth_code'            => '822641',
                     'order_id'             => 'order-id-123',
                     'status'               => 'approved',
-                    'status_detail'        => 'İŞLEM BAŞARILI',
+                    'status_detail'        => 'approved',
                     'error_code'           => null,
                     'error_message'        => null,
                     'amount'               => 100.0,
