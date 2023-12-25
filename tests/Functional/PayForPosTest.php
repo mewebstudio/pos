@@ -106,4 +106,44 @@ class PayForPosTest extends TestCase
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
     }
+
+
+    public function testNonSecurePrePaymentSuccess(): array
+    {
+        $order = $this->createPaymentOrder(PosInterface::CURRENCY_TRY, 3);
+
+        $this->pos->payment(
+            PosInterface::MODEL_NON_SECURE,
+            $order,
+            PosInterface::TX_TYPE_PAY_PRE_AUTH,
+            $this->card
+        );
+
+        $this->assertTrue($this->pos->isSuccess());
+
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+
+        return $this->pos->getResponse();
+    }
+
+    /**
+     * @depends testNonSecurePrePaymentSuccess
+     */
+    public function testNonSecurePostPaymentSuccess(array $lastResponse): void
+    {
+        $order = $this->createPostPayOrder($this->pos, $lastResponse);
+
+        $this->pos->payment(
+            PosInterface::MODEL_NON_SECURE,
+            $order,
+            PosInterface::TX_TYPE_PAY_POST_AUTH
+        );
+
+        $this->assertTrue($this->pos->isSuccess());
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+    }
 }

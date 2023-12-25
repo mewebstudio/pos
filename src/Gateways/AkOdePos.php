@@ -237,7 +237,10 @@ class AkOdePos extends AbstractGateway
                 PosInterface::MODEL_3D_PAY     => 'threeDPayment',
                 PosInterface::MODEL_3D_HOST    => 'threeDPayment',
             ],
-            PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'threeDPreAuth',
+            PosInterface::TX_TYPE_PAY_PRE_AUTH  => [
+                PosInterface::MODEL_3D_PAY  => 'threeDPreAuth',
+                PosInterface::MODEL_3D_HOST => 'threeDPreAuth',
+            ],
             PosInterface::TX_TYPE_PAY_POST_AUTH => 'postAuth',
             PosInterface::TX_TYPE_CANCEL        => 'void',
             PosInterface::TX_TYPE_REFUND        => 'refund',

@@ -47,6 +47,27 @@ trait PaymentTestTrait
         return $order;
     }
 
+    private function createPostPayOrder(PosInterface $pos, array $lastResponse): array
+    {
+        $postAuth = [
+            'id'          => $lastResponse['order_id'],
+            'amount'      => $lastResponse['amount'],
+            'currency'    => $lastResponse['currency'],
+            'ip'          => '127.0.0.1',
+        ];
+
+        $gatewayClass = \get_class($pos);
+        if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
+            $postAuth['ref_ret_num'] = $lastResponse['ref_ret_num'];
+        }
+        if (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
+            $postAuth['installment'] = $lastResponse['installment'];
+            $postAuth['ref_ret_num'] = $lastResponse['ref_ret_num'];
+        }
+
+        return $postAuth;
+    }
+
     private function createStatusOrder(PosInterface $pos, array $lastResponse): array
     {
         if ([] === $lastResponse) {
@@ -75,7 +96,7 @@ trait PaymentTestTrait
         if (!isset($lastResponse['recurring_id'])) {
             return $statusOrder;
         }
-        
+
         if (\Mews\Pos\Gateways\EstPos::class === $gatewayClass) {
             // tekrarlanan odemenin durumunu sorgulamak icin:
             return [
@@ -83,7 +104,7 @@ trait PaymentTestTrait
                 'recurringId' => $lastResponse['recurring_id'],
             ];
         }
-        
+
         if (\Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass) {
             // tekrarlanan odemenin durumunu sorgulamak icin:
             return [
@@ -133,14 +154,14 @@ trait PaymentTestTrait
         if (!isset($lastResponse['recurring_id'])) {
             return $cancelOrder;
         }
-        
+
         if (\Mews\Pos\Gateways\EstPos::class === $gatewayClass) {
             // tekrarlanan odemeyi iptal etmek icin:
             return [
                 'recurringOrderInstallmentNumber' => 1, // hangi taksidi iptal etmek istiyoruz?
             ];
         }
-        
+
         if (\Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass) {
             // tekrarlanan odemeyi iptal etmek icin:
             return [
