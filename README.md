@@ -116,9 +116,13 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - [Kurulum](#kurulum)
 - [Farklı Banka Sanal Poslarını Eklemek](#farkli-gatewayler-tek-islem-akisi)
 - [Ornek Kodlar](#ornek-kodlar)
-  - [3D Secure ve 3D Pay Ödeme Örneği](./docs/THREED-SECURE-AND-PAY-PAYMENT-EXAMPLE.md).
-  - [3D Host Ödeme Örneği](./docs/THREED-HOST-PAYMENT-EXAMPLE.md).
-  - [Non Secure Ödeme Örneği](./docs/NON-SECURE-PAYMENT-EXAMPLE.md).
+  - [3D Secure ve 3D Pay Ödeme Örneği](./docs/THREED-SECURE-AND-PAY-PAYMENT-EXAMPLE.md)
+  - [3D Host Ödeme Örneği](./docs/THREED-HOST-PAYMENT-EXAMPLE.md)
+  - [Non Secure Ödeme Örneği](./docs/NON-SECURE-PAYMENT-EXAMPLE.md)
+  - [Ön otorizasyon ve Ön otorizasyon kapama](./docs/PRE-AUTH-POST-EXAMPLE.md)
+  - [Ödeme İptal](./docs/CANCEL-EXAMPLE.md)
+  - [Ödeme İade](./docs/REFUND-EXAMPLE.md)
+  - [Ödeme Durum Sorgulama](./docs/STATUS-EXAMPLE.md)
 
 - [Popup Windowda veya Iframe icinde odeme yapma](#popup-windowda-veya-iframe-icinde-odeme-yapma)
 - [Troubleshoots](#troubleshoots)
@@ -146,7 +150,8 @@ Account konfigurasyonunda account tipini değiştirmek (`PosInterface::MODEL_3D_
 İşlem akışı aynı olduğu için kod değiştirmenize gerek kalmıyor.
 * Aynı tip işlem için farklı POS Gateway'lerden dönen değerler aynı formata normalize edilmiş durumda.
 Yani kod güncellemenize gerek yok.
-* Aynı tip işlem için farklı Gateway gönderilecek değerler de genel olarak aynı formatta olacak şekilde normalize edişmiştir.
+* Aynı tip işlem için farklı Gateway'lere gönderilecek değerler de genel olarak
+aynı formatta olacak şekilde normalize edilmiştir.
 
 ### Latest updates
 
