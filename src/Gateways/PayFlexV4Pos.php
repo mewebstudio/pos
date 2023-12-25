@@ -5,7 +5,6 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
-use InvalidArgumentException;
 use LogicException;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
@@ -19,9 +18,6 @@ use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
-use function gettype;
-use function is_string;
-use function sprintf;
 
 /**
  * PayFlex MPI ISD v4 gateway'i destekler (INNOVA BİLİŞİM ÇÖZÜMLERİ A.Ş)
@@ -99,7 +95,6 @@ class PayFlexV4Pos extends AbstractGateway
             ]);
             $requestData = $event->getRequestData();
         }
-
 
         $contents     = $this->serializer->encode($requestData, $txType);
         $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
@@ -217,11 +212,10 @@ class PayFlexV4Pos extends AbstractGateway
         $url = $url ?: $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
 
-        if (!is_string($contents)) {
-            throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
-        }
+        $isXML = \is_string($contents);
+        $body = $isXML ? ['form_params' => ['prmstr' => $contents]] : ['form_params' => $contents];
 
-        $response = $this->client->post($url, ['form_params' => ['prmstr' => $contents]]);
+        $response = $this->client->post($url, $body);
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
