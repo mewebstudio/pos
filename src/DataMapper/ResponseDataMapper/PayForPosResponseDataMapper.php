@@ -90,8 +90,10 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $threeDAuthStatus    = ('1' === $raw3DAuthResponseData['3DStatus']) ? self::TX_APPROVED : self::TX_DECLINED;
         $paymentResponseData = [];
 
+        $mapped3DResponseData = $this->map3DCommonResponseData($raw3DAuthResponseData);
+
         /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
-        $txType = isset($rawPaymentResponseData['TxnType']) ? $txType : ($this->mapTxType($raw3DAuthResponseData['TxnType']) ?? $txType);
+        $txType = $mapped3DResponseData['transaction_type'] ?? $txType;
 
         /** @var PosInterface::MODEL_3D_* $paymentModel */
         $paymentModel = $this->mapSecurityType($raw3DAuthResponseData['SecureType']);
@@ -103,7 +105,6 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'trans_id'         => null,
             'auth_code'        => $raw3DAuthResponseData['AuthCode'],
             'ref_ret_num'      => $raw3DAuthResponseData['HostRefNum'],
-            'transaction_type' => $txType,
             'order_id'         => $raw3DAuthResponseData['OrderId'],
             'proc_return_code' => $procReturnCode,
             'status'           => self::TX_DECLINED,
@@ -120,11 +121,11 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 
             return $this->mergeArraysPreferNonNullValues(
                 $result,
-                $this->map3DCommonResponseData($raw3DAuthResponseData)
+                $mapped3DResponseData
             );
         }
 
-        $result = $this->mergeArraysPreferNonNullValues($threeDResponse, $this->map3DCommonResponseData($raw3DAuthResponseData));
+        $result = $this->mergeArraysPreferNonNullValues($threeDResponse, $mapped3DResponseData);
 
         return $this->mergeArraysPreferNonNullValues($result, $paymentResponseData);
     }
@@ -142,7 +143,6 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'auth_code'        => $raw3DAuthResponseData['AuthCode'],
             'ref_ret_num'      => $raw3DAuthResponseData['HostRefNum'],
             'order_id'         => $raw3DAuthResponseData['OrderId'],
-            'transaction_type' => $this->mapTxType($raw3DAuthResponseData['TxnType']),
             'proc_return_code' => $procReturnCode,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
@@ -150,9 +150,23 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'error_message'    => (self::TX_APPROVED !== $status) ? $raw3DAuthResponseData['ErrMsg'] : null,
         ];
 
+        $commonThreeDResponseData = $this->map3DCommonResponseData($raw3DAuthResponseData);
+        /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
+        $txType = $commonThreeDResponseData['transaction_type'];
+        /** @var PosInterface::MODEL_3D_* $paymentModel */
+        $paymentModel = $commonThreeDResponseData['payment_model'];
+        $defaultPaymentResponse = $this->getDefaultPaymentResponse(
+            $txType,
+            $paymentModel
+        );
+        $result = $this->mergeArraysPreferNonNullValues(
+            $defaultPaymentResponse,
+            $threeDResponse
+        );
+
         return $this->mergeArraysPreferNonNullValues(
-            $threeDResponse,
-            $this->map3DCommonResponseData($raw3DAuthResponseData)
+            $result,
+            $commonThreeDResponseData
         );
     }
 
@@ -246,33 +260,6 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * returns mapped data of the common response data among all 3d models.
-     *
-     * @param array<string, string> $raw3DAuthResponseData
-     *
-     * @return array<string, string|float|string|null>
-     */
-    protected function map3DCommonResponseData(array $raw3DAuthResponseData): array
-    {
-        $procReturnCode   = $this->getProcReturnCode($raw3DAuthResponseData);
-        $threeDAuthStatus = ('1' === $raw3DAuthResponseData['3DStatus']) ? self::TX_APPROVED : self::TX_DECLINED;
-
-        return [
-            'transaction_security' => $raw3DAuthResponseData['SecureType'],
-            'masked_number'        => $raw3DAuthResponseData['CardMask'],
-            'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
-            'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
-            'tx_status'            => $raw3DAuthResponseData['TxnResult'],
-            'md_status'            => $raw3DAuthResponseData['3DStatus'],
-            'md_error_code'        => (self::TX_DECLINED === $threeDAuthStatus) ? $procReturnCode : null,
-            'md_error_message'     => (self::TX_DECLINED === $threeDAuthStatus) ? $raw3DAuthResponseData['ErrMsg'] : null,
-            'md_status_detail'     => $this->getStatusDetail($procReturnCode),
-            'eci'                  => $raw3DAuthResponseData['Eci'],
-            '3d_all'               => $raw3DAuthResponseData, //todo this should be empty for 3dpay and 3dhost payments
-        ];
-    }
-
-    /**
      * @param string $mdStatus
      *
      * @return string
@@ -355,5 +342,40 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $this->logger->debug('mapped 3d payment response', $mappedResponse);
 
         return $this->mergeArraysPreferNonNullValues($defaultPaymentResponse, $mappedResponse);
+    }
+
+    /**
+     * returns mapped data of the common response data among all 3d models.
+     *
+     * @param array<string, string> $raw3DAuthResponseData
+     *
+     * @return array<string, mixed>
+     */
+    private function map3DCommonResponseData(array $raw3DAuthResponseData): array
+    {
+        $procReturnCode   = $this->getProcReturnCode($raw3DAuthResponseData);
+        $threeDAuthStatus = ('1' === $raw3DAuthResponseData['3DStatus']) ? self::TX_APPROVED : self::TX_DECLINED;
+
+        $result = [
+            'transaction_security' => null,
+            'transaction_type'     => $this->mapTxType($raw3DAuthResponseData['TxnType']),
+            'payment_model'        => $this->mapSecurityType($raw3DAuthResponseData['SecureType']),
+            'masked_number'        => $raw3DAuthResponseData['CardMask'],
+            'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
+            'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
+            'tx_status'            => $raw3DAuthResponseData['TxnResult'],
+            'md_status'            => $raw3DAuthResponseData['3DStatus'],
+            'md_error_code'        => (self::TX_DECLINED === $threeDAuthStatus) ? $procReturnCode : null,
+            'md_error_message'     => (self::TX_DECLINED === $threeDAuthStatus) ? $raw3DAuthResponseData['ErrMsg'] : null,
+            'md_status_detail'     => $this->getStatusDetail($procReturnCode),
+            'eci'                  => $raw3DAuthResponseData['Eci'],
+            '3d_all'               => $raw3DAuthResponseData, //todo this should be empty for 3dpay and 3dhost payments
+        ];
+
+        if (self::TX_APPROVED === $threeDAuthStatus) {
+            $result['installment'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount']);
+        }
+
+        return $result;
     }
 }

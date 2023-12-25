@@ -341,6 +341,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
                 'payment_model'    => 'regular',
+                'installment'      => null,
             ],
         ];
 
@@ -380,6 +381,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
                 'payment_model'    => 'regular',
+                'installment'      => null,
             ],
         ];
         yield 'fail_2' => [
@@ -403,6 +405,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'currency'         => null,
                 'amount'           => null,
                 'payment_model'    => null,
+                'installment'      => null,
             ],
         ];
     }
@@ -453,6 +456,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'currency'             => 'TRY',
                     'payment_model'        => null,
                     'transaction_type'     => 'pay',
+                    'installment'          => 0,
                 ],
             ],
             'auth_success_payment_fail' => [
@@ -518,6 +522,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'currency'             => 'TRY',
                     'payment_model'        => '3d',
                     'transaction_type'     => 'pay',
+                    'installment'          => 0,
                 ],
             ],
             'success1'                  => [
@@ -584,6 +589,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'amount'               => 100.0,
                     'currency'             => 'TRY',
                     'payment_model'        => '3d',
+                    'installment'          => 0,
                 ],
             ],
         ];

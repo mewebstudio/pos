@@ -177,6 +177,7 @@ class EstPosResponseDataMapperTest extends TestCase
                 'recurring_id'     => null,
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
+                'installment'      => null,
                 'extra'            => [
                     'SETTLEID'           => '2286',
                     'TRXDATE'            => '20221029 21:58:43',
@@ -236,6 +237,7 @@ class EstPosResponseDataMapperTest extends TestCase
                 'recurring_id'     => null,
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
+                'installment'      => null,
                 'extra'            => [
                     'SETTLEID'           => '2286',
                     'TRXDATE'            => '20221029 21:58:43',
@@ -288,6 +290,7 @@ class EstPosResponseDataMapperTest extends TestCase
                 'recurring_id'     => null,
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
+                'installment'      => null,
                 'extra'            => [
                     'SETTLEID'  => null,
                     'TRXDATE'   => '20221029 22:28:01',
@@ -342,6 +345,7 @@ class EstPosResponseDataMapperTest extends TestCase
                 'recurring_id'     => null,
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
+                'installment'      => null,
                 'extra'            => [
                     'SETTLEID'           => '2287',
                     'TRXDATE'            => '20221030 12:29:53',
@@ -360,16 +364,15 @@ class EstPosResponseDataMapperTest extends TestCase
     }
 
 
-    public function threeDPaymentDataProvider(): array
+    public static function threeDPaymentDataProvider(): array
     {
         return [
-            [
+            '3d_auth_fail'                 => [
                 'order'              => [
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
                 ],
                 'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
-                // 3D Auth fail case
                 'threeDResponseData' => [
                     'sID'                             => '1',
                     'oid'                             => '2022103076E7',
@@ -434,10 +437,10 @@ class EstPosResponseDataMapperTest extends TestCase
                     'order_id'             => '2022103076E7',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
+                    'installment'          => null,
                 ],
             ],
-            [
-                // 3D Success payment fail case
+            '3d_auth_success_payment_fail' => [
                 'order'              => [
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
@@ -523,6 +526,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'error_code'           => 'CORE-2603',
                     'error_message'        => 'Taksit tablosu icin gecersiz deger',
                     'recurring_id'         => null,
+                    'installment'          => null,
                     'extra'                => [
                         'SETTLEID'  => null,
                         'TRXDATE'   => '20221030 11:45:02',
@@ -534,8 +538,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'payment_model'        => '3d',
                 ],
             ],
-            [
-                // Success case
+            'success1'                     => [
                 'order'              => [
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
@@ -624,6 +627,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'error_code'           => null,
                     'error_message'        => null,
                     'recurring_id'         => null,
+                    'installment'          => null,
                     'extra'                => [
                         'SETTLEID'      => '2400',
                         'TRXDATE'       => '20221030 11:51:41',
@@ -735,6 +739,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'error_message'        => null,
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
+                    'installment'          => null,
                 ],
             ],
             'authFail1' => [
@@ -806,6 +811,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'status'               => 'declined',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
+                    'installment'          => null,
                 ],
             ],
         ];
@@ -905,6 +911,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'status'               => 'approved',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_host',
+                    'installment'          => null,
                 ],
             ],
             '3d_auth_fail1' => [
@@ -995,6 +1002,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'status'               => 'declined',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_host',
+                    'installment'          => null,
                 ],
             ],
         ];

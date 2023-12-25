@@ -111,11 +111,6 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\PayForPosResponseDataMapper\\:\\:map3DCommonResponseData\\(\\) should return array\\<string, float\\|string\\|null\\> but returns array\\<string, array\\<string, string\\>\\|float\\|string\\|null\\>\\.$#"
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/PayForPosResponseDataMapper.php
-
-		-
 			message: "#^Property Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\AbstractResponseDataMapper\\:\\:\\$currencyMappings \\(array\\<string, 'EUR'\\|'GBP'\\|'JPY'\\|'RUB'\\|'TRY'\\|'USD'\\>\\) does not accept non\\-empty\\-array\\<392\\|643\\|826\\|840\\|949\\|978\\|string, 'EUR'\\|'GBP'\\|'JPY'\\|'RUB'\\|'TRY'\\|'USD'\\>\\.$#"
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/PosNetV1PosResponseDataMapper.php

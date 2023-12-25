@@ -67,6 +67,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         $result['trans_id']      = $rawPaymentResponseData['Stan'];
         $result['amount']        = $this->formatAmount($vPosMessage['Amount']);
         $result['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
+        $result['installment']   = $this->mapInstallment($vPosMessage['InstallmentCount']);
         $result['masked_number'] = $vPosMessage['CardNumber'];
 
         $this->logger->debug('mapped payment response', $result);

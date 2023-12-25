@@ -146,6 +146,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'status_detail'    => 'approved',
                 'error_code'       => null,
                 'error_message'    => null,
+                'installment'      => null,
             ],
         ];
         yield 'success_post_pay' => [
@@ -178,6 +179,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'status_detail'    => 'approved',
                 'error_code'       => null,
                 'error_message'    => null,
+                'installment'      => null,
             ],
         ];
         yield 'error_post_pay' => [
@@ -210,6 +212,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'status_detail'    => 'transaction_not_found',
                 'error_code'       => null,
                 'error_message'    => 'Orjinal Kayıt Bulunamadı',
+                'installment'      => null,
             ],
         ];
         yield 'error_hash_error' => [
@@ -243,16 +246,16 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 'status_detail'    => null,
                 'error_code'       => null,
                 'error_message'    => 'Hash Hatası',
+                'installment'      => null,
             ],
         ];
     }
 
 
-    public function threeDPaymentDataProvider(): array
+    public static function threeDPaymentDataProvider(): array
     {
         return [
-            [
-                // 3D Auth fail case
+            'threed_auth_fail1'         => [
                 'threeDResponseData' => [
                     'sID'                             => '1',
                     'oid'                             => '2022103076E7',
@@ -315,10 +318,10 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'error_code'           => null,
                     'error_message'        => null,
                     'order_id'             => '2022103076E7',
+                    'installment'          => null,
                 ],
             ],
-            [
-                // 3D Success payment fail case
+            'auth_success_payment_fail' => [
                 'threeDResponseData' => [
                     'TRANID'                          => '',
                     'PAResSyntaxOK'                   => 'true',
@@ -408,8 +411,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'order_id'             => '20221030FE4C',
                 ],
             ],
-            [
-                // Success case
+            'success1'                  => [
                 'threeDResponseData' => [
                     'TRANID'                          => '',
                     'PAResSyntaxOK'                   => 'true',
@@ -503,6 +505,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                         'NUMCODE'       => '00',
                     ],
                     'order_id'             => '202210304547',
+                    'installment'          => null,
                 ],
             ],
         ];
@@ -547,6 +550,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'payment_model'        => '3d_pay',
                     'currency'             => 'TRY',
                     'amount'               => 1.01,
+                    'installment'          => null,
                 ],
             ],
             'auth_fail' => [
@@ -584,6 +588,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'payment_model'        => '3d_pay',
                     'currency'             => 'TRY',
                     'amount'               => 1.01,
+                    'installment'          => null,
                 ],
             ],
         ];
@@ -628,6 +633,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'payment_model'        => '3d_host',
                     'currency'             => 'TRY',
                     'amount'               => 1.01,
+                    'installment'          => null,
                 ],
             ],
         ];

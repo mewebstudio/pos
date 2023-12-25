@@ -54,6 +54,8 @@ class KuveytPosResponseDataMapperTest extends TestCase
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, []);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -131,6 +133,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'status_detail'    => 'MetaDataNotFound',
                 'error_code'       => 'MetaDataNotFound',
                 'error_message'    => 'Ödeme detayı bulunamadı.',
+                'installment'      => null,
             ],
         ];
 
@@ -185,6 +188,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'error_message'    => null,
                 'remote_order_id'  => '4480',
                 'masked_number'    => '5124********1609',
+                'installment'      => 0,
             ],
         ];
     }
@@ -284,6 +288,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'error_code'           => 'MetaDataNotFound',
                     'payment_model'        => '3d',
                     'transaction_type'     => 'pay',
+                    'installment'          => null,
                 ],
             ],
             'authSuccessPaymentFail2' => [
@@ -356,6 +361,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'error_code'           => 'EmptyMDException',
                     'payment_model'        => '3d',
                     'transaction_type'     => 'pay',
+                    'installment'          => null,
                 ],
             ],
             'authFail1'               => [
@@ -393,6 +399,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => 'Şifrelenen veriler (Hashdata) uyuşmamaktadır.',
                     'payment_model'        => null,
                     'transaction_type'     => 'pay',
+                    'installment'          => null,
                 ],
             ],
             'success1'                => [
@@ -490,6 +497,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'masked_number'        => '5124********1609',
                     'payment_model'        => '3d',
                     'transaction_type'     => 'pay',
+                    'installment'          => 0,
                 ],
             ],
         ];

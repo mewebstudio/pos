@@ -42,6 +42,8 @@ class InterPosResponseDataMapperTest extends TestCase
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -194,6 +196,7 @@ class InterPosResponseDataMapperTest extends TestCase
                         'status_detail'    => 'invalid_credentials',
                         'error_code'       => 'B810002',
                         'error_message'    => 'Terminal Aktif Degil',
+                        'installment'      => null,
                     ],
                 ],
             ];
@@ -271,13 +274,14 @@ class InterPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => 'Terminal Aktif Degil',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
+                    'installment'          => null,
                 ],
             ],
         ];
     }
 
 
-    public function threeDPayPaymentDataProvider(): array
+    public static function threeDPayPaymentDataProvider(): array
     {
         return [
             'authFail1' => [
@@ -347,13 +351,14 @@ class InterPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => 'Terminal Aktif Degil',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
+                    'installment'          => null,
                 ],
             ],
         ];
     }
 
 
-    public function threeDHostPaymentDataProvider(): array
+    public static function threeDHostPaymentDataProvider(): array
     {
         return [
             '3d_auth_fail1' => [
@@ -425,145 +430,143 @@ class InterPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => 'Terminal Aktif Degil',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_host',
+                    'installment'          => null,
                 ],
             ],
         ];
     }
 
 
-    public function statusTestDataProvider(): array
+    public static function statusTestDataProvider(): array
     {
-        return
-            [
-                'fail1' => [
-                    'responseData' => [
-                        'OrderId'        => 'SYSOID121327781',
-                        'ProcReturnCode' => '81',
-                        'BatchNo'        => '',
-                        'TransId'        => '',
-                        'TRXDATE'        => '',
-                        'TxnStat'        => '',
-                        'PurchAmount'    => '0',
-                        'VoidDate'       => '1.1.0001 00:00:00',
-                        'TxnStatus'      => '',
-                        'ChargeTypeCd'   => '',
-                        'ErrorCode'      => 'B810002',
-                        'ErrorMessage'   => 'TR:Terminal Aktif Degil',
-                        'RefundedAmount' => '0',
-                        'AuthCode'       => '',
-                    ],
-                    'expectedData' => [
-                        'order_id'         => 'SYSOID121327781',
-                        'proc_return_code' => '81',
-                        'trans_id'         => null,
-                        'error_message'    => 'TR:Terminal Aktif Degil',
-                        'ref_ret_num'      => null,
-                        'order_status'     => null,
-                        'refund_amount'    => 0.0,
-                        'capture_amount'   => null,
-                        'status'           => 'declined',
-                        'status_detail'    => 'invalid_credentials',
-                        'capture'          => null,
-                    ],
+        return [
+            'fail1' => [
+                'responseData' => [
+                    'OrderId'        => 'SYSOID121327781',
+                    'ProcReturnCode' => '81',
+                    'BatchNo'        => '',
+                    'TransId'        => '',
+                    'TRXDATE'        => '',
+                    'TxnStat'        => '',
+                    'PurchAmount'    => '0',
+                    'VoidDate'       => '1.1.0001 00:00:00',
+                    'TxnStatus'      => '',
+                    'ChargeTypeCd'   => '',
+                    'ErrorCode'      => 'B810002',
+                    'ErrorMessage'   => 'TR:Terminal Aktif Degil',
+                    'RefundedAmount' => '0',
+                    'AuthCode'       => '',
                 ],
-            ];
+                'expectedData' => [
+                    'order_id'         => 'SYSOID121327781',
+                    'proc_return_code' => '81',
+                    'trans_id'         => null,
+                    'error_message'    => 'TR:Terminal Aktif Degil',
+                    'ref_ret_num'      => null,
+                    'order_status'     => null,
+                    'refund_amount'    => 0.0,
+                    'capture_amount'   => null,
+                    'status'           => 'declined',
+                    'status_detail'    => 'invalid_credentials',
+                    'capture'          => null,
+                ],
+            ],
+        ];
     }
 
-    public function cancelTestDataProvider(): array
+    public static function cancelTestDataProvider(): array
     {
-        return
-            [
-                'fail1' => [
-                    'responseData' => [
-                        'OrderId'               => 'SYSOID121330755',
-                        'ProcReturnCode'        => '81',
-                        'HostRefNum'            => 'hostid',
-                        'AuthCode'              => '',
-                        'TxnResult'             => 'Failed',
-                        'ErrorMessage'          => 'Terminal Aktif Degil',
-                        'CampanyId'             => '',
-                        'CampanyInstallCount'   => '0',
-                        'CampanyShiftDateCount' => '0',
-                        'CampanyTxnId'          => '',
-                        'CampanyType'           => '',
-                        'CampanyInstallment'    => '0',
-                        'CampanyDate'           => '0',
-                        'CampanyAmnt'           => '0',
-                        'TRXDATE'               => '',
-                        'TransId'               => '',
-                        'ErrorCode'             => 'B810002',
-                        'EarnedBonus'           => '0',
-                        'UsedBonus'             => '0',
-                        'AvailableBonus'        => '0',
-                        'BonusToBonus'          => '0',
-                        'CampaignBonus'         => '0',
-                        'FoldedBonus'           => '0',
-                        'SurchargeAmount'       => '0',
-                        'Amount'                => '0',
-                        'CardHolderName'        => '',
-                    ],
-                    'expectedData' => [
-                        'order_id'         => 'SYSOID121330755',
-                        'group_id'         => null,
-                        'auth_code'        => null,
-                        'ref_ret_num'      => 'hostid',
-                        'proc_return_code' => '81',
-                        'trans_id'         => null,
-                        'error_code'       => 'B810002',
-                        'error_message'    => 'Terminal Aktif Degil',
-                        'status'           => 'declined',
-                        'status_detail'    => 'invalid_credentials',
-                    ],
+        return [
+            'fail1' => [
+                'responseData' => [
+                    'OrderId'               => 'SYSOID121330755',
+                    'ProcReturnCode'        => '81',
+                    'HostRefNum'            => 'hostid',
+                    'AuthCode'              => '',
+                    'TxnResult'             => 'Failed',
+                    'ErrorMessage'          => 'Terminal Aktif Degil',
+                    'CampanyId'             => '',
+                    'CampanyInstallCount'   => '0',
+                    'CampanyShiftDateCount' => '0',
+                    'CampanyTxnId'          => '',
+                    'CampanyType'           => '',
+                    'CampanyInstallment'    => '0',
+                    'CampanyDate'           => '0',
+                    'CampanyAmnt'           => '0',
+                    'TRXDATE'               => '',
+                    'TransId'               => '',
+                    'ErrorCode'             => 'B810002',
+                    'EarnedBonus'           => '0',
+                    'UsedBonus'             => '0',
+                    'AvailableBonus'        => '0',
+                    'BonusToBonus'          => '0',
+                    'CampaignBonus'         => '0',
+                    'FoldedBonus'           => '0',
+                    'SurchargeAmount'       => '0',
+                    'Amount'                => '0',
+                    'CardHolderName'        => '',
                 ],
-            ];
+                'expectedData' => [
+                    'order_id'         => 'SYSOID121330755',
+                    'group_id'         => null,
+                    'auth_code'        => null,
+                    'ref_ret_num'      => 'hostid',
+                    'proc_return_code' => '81',
+                    'trans_id'         => null,
+                    'error_code'       => 'B810002',
+                    'error_message'    => 'Terminal Aktif Degil',
+                    'status'           => 'declined',
+                    'status_detail'    => 'invalid_credentials',
+                ],
+            ],
+        ];
     }
 
-    public function refundTestDataProvider(): array
+    public static function refundTestDataProvider(): array
     {
-        return
-            [
-                'fail1' => [
-                    'responseData' => [
-                        'OrderId'               => 'SYSOID121332551',
-                        'ProcReturnCode'        => '81',
-                        'HostRefNum'            => 'hostid',
-                        'AuthCode'              => '',
-                        'TxnResult'             => 'Failed',
-                        'ErrorMessage'          => 'Terminal Aktif Degil',
-                        'CampanyId'             => '',
-                        'CampanyInstallCount'   => '0',
-                        'CampanyShiftDateCount' => '0',
-                        'CampanyTxnId'          => '',
-                        'CampanyType'           => '',
-                        'CampanyInstallment'    => '0',
-                        'CampanyDate'           => '0',
-                        'CampanyAmnt'           => '0',
-                        'TRXDATE'               => '',
-                        'TransId'               => '',
-                        'ErrorCode'             => 'B810002',
-                        'EarnedBonus'           => '0',
-                        'UsedBonus'             => '0',
-                        'AvailableBonus'        => '0',
-                        'BonusToBonus'          => '0',
-                        'CampaignBonus'         => '0',
-                        'FoldedBonus'           => '0',
-                        'SurchargeAmount'       => '0',
-                        'Amount'                => '1,01',
-                        'CardHolderName'        => '',
-                    ],
-                    'expectedData' => [
-                        'order_id'         => 'SYSOID121332551',
-                        'group_id'         => null,
-                        'auth_code'        => null,
-                        'ref_ret_num'      => 'hostid',
-                        'proc_return_code' => '81',
-                        'trans_id'         => null,
-                        'error_code'       => 'B810002',
-                        'error_message'    => 'Terminal Aktif Degil',
-                        'status'           => 'declined',
-                        'status_detail'    => 'invalid_credentials',
-                    ],
+        return [
+            'fail1' => [
+                'responseData' => [
+                    'OrderId'               => 'SYSOID121332551',
+                    'ProcReturnCode'        => '81',
+                    'HostRefNum'            => 'hostid',
+                    'AuthCode'              => '',
+                    'TxnResult'             => 'Failed',
+                    'ErrorMessage'          => 'Terminal Aktif Degil',
+                    'CampanyId'             => '',
+                    'CampanyInstallCount'   => '0',
+                    'CampanyShiftDateCount' => '0',
+                    'CampanyTxnId'          => '',
+                    'CampanyType'           => '',
+                    'CampanyInstallment'    => '0',
+                    'CampanyDate'           => '0',
+                    'CampanyAmnt'           => '0',
+                    'TRXDATE'               => '',
+                    'TransId'               => '',
+                    'ErrorCode'             => 'B810002',
+                    'EarnedBonus'           => '0',
+                    'UsedBonus'             => '0',
+                    'AvailableBonus'        => '0',
+                    'BonusToBonus'          => '0',
+                    'CampaignBonus'         => '0',
+                    'FoldedBonus'           => '0',
+                    'SurchargeAmount'       => '0',
+                    'Amount'                => '1,01',
+                    'CardHolderName'        => '',
                 ],
-            ];
+                'expectedData' => [
+                    'order_id'         => 'SYSOID121332551',
+                    'group_id'         => null,
+                    'auth_code'        => null,
+                    'ref_ret_num'      => 'hostid',
+                    'proc_return_code' => '81',
+                    'trans_id'         => null,
+                    'error_code'       => 'B810002',
+                    'error_message'    => 'Terminal Aktif Degil',
+                    'status'           => 'declined',
+                    'status_detail'    => 'invalid_credentials',
+                ],
+            ],
+        ];
     }
 }

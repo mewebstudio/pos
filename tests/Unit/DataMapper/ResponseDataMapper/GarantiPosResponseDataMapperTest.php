@@ -42,6 +42,8 @@ class GarantiPosResponseDataMapperTest extends TestCase
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -169,10 +171,10 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'status_detail'    => 'approved',
                     'error_code'       => null,
                     'error_message'    => null,
+                    'installment'      => null,
                 ],
             ],
-            //fail case
-            [
+            'fail_1'   => [
                 'order'        => [
                     'currency' => PosInterface::CURRENCY_TRY,
                     'amount'   => 1.01,
@@ -234,6 +236,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'status_detail'    => 'invalid_transaction',
                     'error_code'       => '0002',
                     'error_message'    => 'Giriş yaptığınız işlem tipi için zorunlu alanları kontrol ediniz',
+                    'installment'      => null,
                 ],
             ],
         ];
@@ -355,6 +358,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'batch_num'            => null,
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
+                    'installment'          => null,
                 ],
             ],
             'paymentFail_wrong_cvc_code' => [
@@ -471,6 +475,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'batch_num'            => '005546',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
+                    'installment'          => null,
                 ],
             ],
             'success1'                   => [
@@ -587,13 +592,14 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'batch_num'            => '005546',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
+                    'installment'          => null,
                 ],
             ],
         ];
     }
 
 
-    public function threeDPayPaymentDataProvider(): array
+    public static function threeDPayPaymentDataProvider(): array
     {
         return [
             'success1'     => [
@@ -666,6 +672,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => null,
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
+                    'installment'          => null,
                 ],
             ],
             'authFail'     => [
@@ -717,6 +724,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => 'Sistem Hatasi',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
+                    'installment'          => null,
                 ],
             ],
             'paymentFail1' => [
@@ -789,189 +797,189 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => null,
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
+                    'installment'          => null,
                 ],
             ],
         ];
     }
 
 
-    public function statusTestDataProvider(): array
+    public static function statusTestDataProvider(): array
     {
-        return
-            [
-                'success1' => [
-                    'responseData' => [
-                        'Mode'        => '',
-                        'Terminal'    => [
-                            'ProvUserID' => 'PROVAUT',
-                            'UserID'     => 'PROVAUT',
-                            'ID'         => '30691298',
-                            'MerchantID' => '7000679',
-                        ],
-                        'Customer'    => [
-                            'IPAddress' => '172.26.0.1',
-                        ],
-                        'Order'       => [
-                            'OrderID'        => '20221101EB13',
-                            'GroupID'        => '',
-                            'OrderInqResult' => [
-                                // bu kisimdaki veriler baska response'dan alindi
-                                'ChargeType'         => 'S',
-                                'PreAuthAmount'      => '0',
-                                'PreAuthDate'        => '',
-                                'AuthAmount'         => '101',
-                                'AuthDate'           => '2023-01-07 21:27:59.271',
-                                'RecurringInfo'      => 'N',
-                                'RecurringStatus'    => '',
-                                'Status'             => 'APPROVED',
-                                'RemainingBNSAmount' => '0',
-                                'UsedFBBAmount'      => '0',
-                                'UsedChequeType'     => '',
-                                'UsedChequeCount'    => '0',
-                                'UsedChequeAmount'   => '0',
-                                'UsedBnsAmount'      => '0',
-                                'InstallmentCnt'     => '0',
-                                'CardNumberMasked'   => '428220******8015',
-                                'CardRef'            => '',
-                                'Code'               => '00',
-                                'ReasonCode'         => '00',
-                                'SysErrMsg'          => '',
-                                'RetrefNum'          => '300708704369',
-                                'GPID'               => '',
-                                'AuthCode'           => '304919',
-                                'BatchNum'           => '5168',
-                                'SequenceNum'        => '21',
-                                'ProvDate'           => '2023-01-07 21:27:59.253',
-                                'CardHolderName'     => 'HA*** YIL***',
-                                'CardType'           => 'FLEXI',
-                            ],
-                        ],
-                        'Transaction' => [
-                            'Response'         => [
-                                'Source'     => 'HOST',
-                                'Code'       => '00',
-                                'ReasonCode' => '00',
-                                'Message'    => 'Approved',
-                                'ErrorMsg'   => '',
-                                'SysErrMsg'  => '',
-                            ],
-                            'RetrefNum'        => '230508300896',
-                            'AuthCode'         => '304919',
-                            'BatchNum'         => '004951',
-                            'SequenceNum'      => '000026',
-                            'ProvDate'         => '20221101 15:56:43',
-                            'CardNumberMasked' => '428220******8015',
-                            'CardHolderName'   => 'HA*** YIL***',
-                            'CardType'         => 'FLEXI',
-                            'HashData'         => '6A03BADEA1D76DEB1C8014E07E5ADFAFE3E07F3C',
-                            'HostMsgList'      => '',
-                            'RewardInqResult'  => [
-                                'RewardList' => '',
-                                'ChequeList' => '',
-                            ],
-                            'GarantiCardInd'   => 'Y',
+        return [
+            'success1' => [
+                'responseData' => [
+                    'Mode'        => '',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress' => '172.26.0.1',
+                    ],
+                    'Order'       => [
+                        'OrderID'        => '20221101EB13',
+                        'GroupID'        => '',
+                        'OrderInqResult' => [
+                            // bu kisimdaki veriler baska response'dan alindi
+                            'ChargeType'         => 'S',
+                            'PreAuthAmount'      => '0',
+                            'PreAuthDate'        => '',
+                            'AuthAmount'         => '101',
+                            'AuthDate'           => '2023-01-07 21:27:59.271',
+                            'RecurringInfo'      => 'N',
+                            'RecurringStatus'    => '',
+                            'Status'             => 'APPROVED',
+                            'RemainingBNSAmount' => '0',
+                            'UsedFBBAmount'      => '0',
+                            'UsedChequeType'     => '',
+                            'UsedChequeCount'    => '0',
+                            'UsedChequeAmount'   => '0',
+                            'UsedBnsAmount'      => '0',
+                            'InstallmentCnt'     => '0',
+                            'CardNumberMasked'   => '428220******8015',
+                            'CardRef'            => '',
+                            'Code'               => '00',
+                            'ReasonCode'         => '00',
+                            'SysErrMsg'          => '',
+                            'RetrefNum'          => '300708704369',
+                            'GPID'               => '',
+                            'AuthCode'           => '304919',
+                            'BatchNum'           => '5168',
+                            'SequenceNum'        => '21',
+                            'ProvDate'           => '2023-01-07 21:27:59.253',
+                            'CardHolderName'     => 'HA*** YIL***',
+                            'CardType'           => 'FLEXI',
                         ],
                     ],
-                    'expectedData' => [
-                        'order_id'         => '20221101EB13',
-                        'group_id'         => null,
-                        'amount'           => 1.01,
-                        'trans_id'         => null,
-                        'auth_code'        => '304919',
-                        'ref_ret_num'      => '230508300896',
-                        'proc_return_code' => '00',
-                        'status'           => 'approved',
-                        'status_detail'    => 'approved',
-                        'error_code'       => '00',
-                        'error_message'    => null,
+                    'Transaction' => [
+                        'Response'         => [
+                            'Source'     => 'HOST',
+                            'Code'       => '00',
+                            'ReasonCode' => '00',
+                            'Message'    => 'Approved',
+                            'ErrorMsg'   => '',
+                            'SysErrMsg'  => '',
+                        ],
+                        'RetrefNum'        => '230508300896',
+                        'AuthCode'         => '304919',
+                        'BatchNum'         => '004951',
+                        'SequenceNum'      => '000026',
+                        'ProvDate'         => '20221101 15:56:43',
+                        'CardNumberMasked' => '428220******8015',
+                        'CardHolderName'   => 'HA*** YIL***',
+                        'CardType'         => 'FLEXI',
+                        'HashData'         => '6A03BADEA1D76DEB1C8014E07E5ADFAFE3E07F3C',
+                        'HostMsgList'      => '',
+                        'RewardInqResult'  => [
+                            'RewardList' => '',
+                            'ChequeList' => '',
+                        ],
+                        'GarantiCardInd'   => 'Y',
                     ],
                 ],
-                'fail1'    => [
-                    'responseData' => [
-                        'Mode'        => '',
-                        'Terminal'    => [
-                            'ProvUserID' => 'PROVAUT',
-                            'UserID'     => 'PROVAUT',
-                            'ID'         => '30691298',
-                            'MerchantID' => '7000679',
-                        ],
-                        'Customer'    => [
-                            'IPAddress' => '172.26.0.1',
-                        ],
-                        'Order'       => [
-                            'OrderID'        => '20221101295D',
-                            'GroupID'        => '',
-                            'OrderInqResult' => [
-                                'ChargeType'         => '',
-                                'PreAuthAmount'      => '0',
-                                'PreAuthDate'        => '',
-                                'AuthAmount'         => '0',
-                                'AuthDate'           => '',
-                                'RecurringInfo'      => '',
-                                'RecurringStatus'    => '',
-                                'Status'             => '',
-                                'RemainingBNSAmount' => '0',
-                                'UsedFBBAmount'      => '0',
-                                'UsedChequeType'     => '',
-                                'UsedChequeCount'    => '0',
-                                'UsedChequeAmount'   => '0',
-                                'UsedBnsAmount'      => '0',
-                                'InstallmentCnt'     => '0',
-                                'CardNumberMasked'   => 'null',
-                                'CardRef'            => '',
-                                'Code'               => '',
-                                'ReasonCode'         => '',
-                                'SysErrMsg'          => '',
-                                'RetrefNum'          => '',
-                                'GPID'               => '',
-                                'AuthCode'           => '',
-                                'BatchNum'           => '0',
-                                'SequenceNum'        => '0',
-                                'ProvDate'           => '',
-                                'CardHolderName'     => '',
-                                'CardType'           => '',
-                            ],
-                        ],
-                        'Transaction' => [
-                            'Response'         => [
-                                'Source'     => 'GVPS',
-                                'Code'       => '92',
-                                'ReasonCode' => '0110',
-                                'Message'    => 'Declined',
-                                'ErrorMsg'   => 'İşlem bulunamadı',
-                                'SysErrMsg'  => 'ErrorId: 0110',
-                            ],
-                            'RetrefNum'        => '',
-                            'AuthCode'         => '',
-                            'BatchNum'         => '',
-                            'SequenceNum'      => '',
-                            'ProvDate'         => '20221101 15:50:44',
-                            'CardNumberMasked' => '',
-                            'CardHolderName'   => '',
-                            'CardType'         => '',
-                            'HashData'         => '2C5E7171202254F3A721166A2F8D4C1EE9582C13',
-                            'HostMsgList'      => '',
-                            'RewardInqResult'  => [
-                                'RewardList' => '',
-                                'ChequeList' => '',
-                            ],
+                'expectedData' => [
+                    'order_id'         => '20221101EB13',
+                    'group_id'         => null,
+                    'amount'           => 1.01,
+                    'trans_id'         => null,
+                    'auth_code'        => '304919',
+                    'ref_ret_num'      => '230508300896',
+                    'proc_return_code' => '00',
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'error_code'       => '00',
+                    'error_message'    => null,
+                ],
+            ],
+            'fail1'    => [
+                'responseData' => [
+                    'Mode'        => '',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress' => '172.26.0.1',
+                    ],
+                    'Order'       => [
+                        'OrderID'        => '20221101295D',
+                        'GroupID'        => '',
+                        'OrderInqResult' => [
+                            'ChargeType'         => '',
+                            'PreAuthAmount'      => '0',
+                            'PreAuthDate'        => '',
+                            'AuthAmount'         => '0',
+                            'AuthDate'           => '',
+                            'RecurringInfo'      => '',
+                            'RecurringStatus'    => '',
+                            'Status'             => '',
+                            'RemainingBNSAmount' => '0',
+                            'UsedFBBAmount'      => '0',
+                            'UsedChequeType'     => '',
+                            'UsedChequeCount'    => '0',
+                            'UsedChequeAmount'   => '0',
+                            'UsedBnsAmount'      => '0',
+                            'InstallmentCnt'     => '0',
+                            'CardNumberMasked'   => 'null',
+                            'CardRef'            => '',
+                            'Code'               => '',
+                            'ReasonCode'         => '',
+                            'SysErrMsg'          => '',
+                            'RetrefNum'          => '',
+                            'GPID'               => '',
+                            'AuthCode'           => '',
+                            'BatchNum'           => '0',
+                            'SequenceNum'        => '0',
+                            'ProvDate'           => '',
+                            'CardHolderName'     => '',
+                            'CardType'           => '',
                         ],
                     ],
-                    'expectedData' => [
-                        'order_id'         => '20221101295D',
-                        'group_id'         => null,
-                        'amount'           => 0.0,
-                        'trans_id'         => null,
-                        'auth_code'        => null,
-                        'ref_ret_num'      => null,
-                        'proc_return_code' => '92',
-                        'status'           => 'declined',
-                        'status_detail'    => 'invalid_transaction',
-                        'error_code'       => '92',
-                        'error_message'    => 'İşlem bulunamadı',
+                    'Transaction' => [
+                        'Response'         => [
+                            'Source'     => 'GVPS',
+                            'Code'       => '92',
+                            'ReasonCode' => '0110',
+                            'Message'    => 'Declined',
+                            'ErrorMsg'   => 'İşlem bulunamadı',
+                            'SysErrMsg'  => 'ErrorId: 0110',
+                        ],
+                        'RetrefNum'        => '',
+                        'AuthCode'         => '',
+                        'BatchNum'         => '',
+                        'SequenceNum'      => '',
+                        'ProvDate'         => '20221101 15:50:44',
+                        'CardNumberMasked' => '',
+                        'CardHolderName'   => '',
+                        'CardType'         => '',
+                        'HashData'         => '2C5E7171202254F3A721166A2F8D4C1EE9582C13',
+                        'HostMsgList'      => '',
+                        'RewardInqResult'  => [
+                            'RewardList' => '',
+                            'ChequeList' => '',
+                        ],
                     ],
                 ],
-            ];
+                'expectedData' => [
+                    'order_id'         => '20221101295D',
+                    'group_id'         => null,
+                    'amount'           => 0.0,
+                    'trans_id'         => null,
+                    'auth_code'        => null,
+                    'ref_ret_num'      => null,
+                    'proc_return_code' => '92',
+                    'status'           => 'declined',
+                    'status_detail'    => 'invalid_transaction',
+                    'error_code'       => '92',
+                    'error_message'    => 'İşlem bulunamadı',
+                ],
+            ],
+        ];
     }
 
     public function cancelTestDataProvider(): array

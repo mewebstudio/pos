@@ -116,6 +116,7 @@ class PosNetResponseDataMapperTest extends TestCase
                         'order_id'         => '202312171800ABC',
                         'trans_id'         => null,
                         'transaction_type' => 'pay',
+                        'installment'      => 0,
                         'currency'         => 'TRY',
                         'amount'           => 1.01,
                         'payment_model'    => 'regular',
@@ -144,6 +145,7 @@ class PosNetResponseDataMapperTest extends TestCase
                         'order_id'         => '202312171800ABC',
                         'trans_id'         => null,
                         'transaction_type' => 'pay',
+                        'installment'      => null,
                         'currency'         => 'TRY',
                         'amount'           => 1.01,
                         'payment_model'    => 'regular',
@@ -181,6 +183,7 @@ class PosNetResponseDataMapperTest extends TestCase
                         'order_id'         => '202312171800ABC',
                         'trans_id'         => null,
                         'transaction_type' => 'pay',
+                        'installment'      => null,
                         'currency'         => 'TRY',
                         'amount'           => 1.01,
                         'payment_model'    => 'regular',
@@ -245,6 +248,7 @@ class PosNetResponseDataMapperTest extends TestCase
                     'md_status'            => '1',
                     'md_error_message'     => null,
                     'trans_id'             => null,
+                    'installment'          => 0,
                     'auth_code'            => '901477',
                     'ref_ret_num'          => '0000000002P0806031',
                     'error_code'           => null,
@@ -298,6 +302,7 @@ class PosNetResponseDataMapperTest extends TestCase
                     'currency'             => 'TRY',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
+                    'installment'          => null,
                 ],
             ],
             'fail2-md-empty' => [
@@ -338,68 +343,68 @@ class PosNetResponseDataMapperTest extends TestCase
                     'currency'             => 'TRY',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
+                    'installment'          => null,
                 ],
             ],
         ];
     }
 
 
-    public function statusTestDataProvider(): array
+    public static function statusTestDataProvider(): array
     {
-        return
-            [
-                'success1' => [
-                    'responseData' => [
-                        'approved'     => '1',
-                        'transactions' => [
-                            'transaction' => [
-                                'orderID'      => 'TDS_YKB_0000191010111730',
-                                'ccno'         => '4506 34** **** 4637',
-                                'amount'       => '1,16',
-                                'currencyCode' => 'TL',
-                                'authCode'     => '504289',
-                                'tranDate'     => '2019-10-10 11:21:14.281',
-                                'state'        => 'Sale',
-                                'txnStatus'    => '1',
-                                'hostlogkey'   => '021450428990000191',
-                            ],
+        return [
+            'success1' => [
+                'responseData' => [
+                    'approved'     => '1',
+                    'transactions' => [
+                        'transaction' => [
+                            'orderID'      => 'TDS_YKB_0000191010111730',
+                            'ccno'         => '4506 34** **** 4637',
+                            'amount'       => '1,16',
+                            'currencyCode' => 'TL',
+                            'authCode'     => '504289',
+                            'tranDate'     => '2019-10-10 11:21:14.281',
+                            'state'        => 'Sale',
+                            'txnStatus'    => '1',
+                            'hostlogkey'   => '021450428990000191',
                         ],
                     ],
-                    'expectedData' => [
-                        'auth_code'        => '504289',
-                        'trans_id'         => null,
-                        'ref_ret_num'      => '021450428990000191',
-                        'group_id'         => null,
-                        'date'             => '2019-10-10 11:21:14.281',
-                        'transaction_type' => 'pay',
-                        'proc_return_code' => '1',
-                        'status'           => 'approved',
-                        'status_detail'    => 'approved',
-                        'error_code'       => null,
-                        'error_message'    => null,
-                    ],
                 ],
-                'fail1'    => [
-                    'responseData' => [
-                        'approved' => '0',
-                        'respCode' => '0148',
-                        'respText' => 'INVALID MID TID IP. Hatal\u0131 IP:89.244.149.137',
-                    ],
-                    'expectedData' => [
-                        'auth_code'        => null,
-                        'trans_id'         => null,
-                        'ref_ret_num'      => null,
-                        'group_id'         => null,
-                        'date'             => null,
-                        'transaction_type' => null,
-                        'proc_return_code' => '0',
-                        'status'           => 'declined',
-                        'status_detail'    => 'declined',
-                        'error_code'       => '0148',
-                        'error_message'    => 'INVALID MID TID IP. Hatal\u0131 IP:89.244.149.137',
-                    ],
+                'expectedData' => [
+                    'auth_code'        => '504289',
+                    'trans_id'         => null,
+                    'ref_ret_num'      => '021450428990000191',
+                    'group_id'         => null,
+                    'date'             => '2019-10-10 11:21:14.281',
+                    'transaction_type' => 'pay',
+                    'proc_return_code' => '1',
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'error_code'       => null,
+                    'error_message'    => null,
                 ],
-            ];
+            ],
+            'fail1'    => [
+                'responseData' => [
+                    'approved' => '0',
+                    'respCode' => '0148',
+                    'respText' => 'INVALID MID TID IP. Hatal\u0131 IP:89.244.149.137',
+                ],
+                'expectedData' => [
+                    'auth_code'        => null,
+                    'trans_id'         => null,
+                    'ref_ret_num'      => null,
+                    'group_id'         => null,
+                    'date'             => null,
+                    'transaction_type' => null,
+                    'proc_return_code' => '0',
+                    'status'           => 'declined',
+                    'status_detail'    => 'declined',
+                    'error_code'       => '0148',
+                    'error_message'    => 'INVALID MID TID IP. Hatal\u0131 IP:89.244.149.137',
+                ],
+            ],
+        ];
     }
 
     public function cancelTestDataProvider(): array

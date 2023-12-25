@@ -130,6 +130,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'status_detail'    => null,
                 'error_code'       => '0127',
                 'error_message'    => 'ORDERID DAHA ONCE KULLANILMIS',
+                'installment'      => null,
             ],
         ];
         yield 'success1' => [
@@ -223,6 +224,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'status_detail'    => 'approved',
                 'error_code'       => null,
                 'error_message'    => null,
+                'installment'      => 0,
             ],
         ];
     }
@@ -260,6 +262,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'amount'               => 1.01,
                 'trans_id'             => null,
                 'auth_code'            => null,
+                'installment'          => null,
                 'ref_ret_num'          => null,
                 'status_detail'        => null,
                 'error_code'           => null,
@@ -387,6 +390,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'currency'             => 'TRY',
                 'transaction_type'     => 'pay',
                 'payment_model'        => '3d',
+                'installment'          => 0,
             ],
         ];
 
@@ -435,6 +439,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'currency'             => 'TRY',
                 'transaction_type'     => 'pay',
                 'payment_model'        => '3d',
+                'installment'          => null,
             ],
         ];
 
@@ -489,6 +494,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'currency'             => null,
                 'transaction_type'     => 'pay',
                 'payment_model'        => '3d',
+                'installment'          => null,
             ],
         ];
     }

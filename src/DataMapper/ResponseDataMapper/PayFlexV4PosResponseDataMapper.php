@@ -70,6 +70,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             'status'               => $threeDAuthStatus,
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['PurchCurrency']),
             'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
+            'installment'          => $this->mapInstallment($raw3DAuthResponseData['InstallmentCount'] ?? 0),
             'status_detail'        => null,
             'error_code'           => self::TX_DECLINED === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorCode'] : null,
             'error_message'        => self::TX_DECLINED === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorMessage'] : null,

@@ -7,13 +7,6 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
-use function array_diff_key;
-use function array_intersect_key;
-use function array_keys;
-use function is_numeric;
-use function is_object;
-use function is_string;
-use function trim;
 
 abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
 {
@@ -103,6 +96,16 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     }
 
     /**
+     * @param string $installment
+     *
+     * @return int
+     */
+    protected function mapInstallment(string $installment): int
+    {
+        return (int) $installment;
+    }
+
+    /**
      * if 2 arrays has common keys, then non-null value preferred,
      * if both arrays has the non-null values for the same key then value of $arr2 is preferred.
      *
@@ -113,10 +116,10 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
      */
     protected function mergeArraysPreferNonNullValues(array $arr1, array $arr2): array
     {
-        $resultArray     = array_diff_key($arr1, $arr2) + array_diff_key($arr2, $arr1);
-        $commonArrayKeys = array_keys(array_intersect_key($arr1, $arr2));
+        $resultArray     = \array_diff_key($arr1, $arr2) + \array_diff_key($arr2, $arr1);
+        $commonArrayKeys = \array_keys(\array_intersect_key($arr1, $arr2));
         foreach ($commonArrayKeys as $key) {
-            $resultArray[$key] = $arr2[$key] ?: $arr1[$key];
+            $resultArray[$key] = $arr2[$key] ?? $arr1[$key];
         }
 
         return $resultArray;
@@ -139,6 +142,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             'order_id'         => null,
             'trans_id'         => null,
             'transaction_type' => $txType,
+            'installment'      => null,
             'currency'         => null,
             'amount'           => null,
             'payment_model'    => $paymentModel,
@@ -164,12 +168,12 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     protected function emptyStringsToNull($data)
     {
         $result = null;
-        if (is_string($data)) {
-            $data   = trim($data);
+        if (\is_string($data)) {
+            $data   = \trim($data);
             $result = '' === $data ? null : $data;
-        } elseif (is_numeric($data)) {
+        } elseif (\is_numeric($data)) {
             $result = $data;
-        } elseif (is_array($data) || is_object($data)) {
+        } elseif (\is_array($data) || \is_object($data)) {
             $result = [];
             foreach ($data as $key => $value) {
                 $result[$key] = self::emptyStringsToNull($value);

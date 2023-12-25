@@ -97,6 +97,9 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             'error_message'    => $status !== self::TX_APPROVED ? $rawPaymentResponseData['ServiceResponseData']['ResponseDescription'] : null,
             'all'              => $rawPaymentResponseData,
         ];
+        if (self::TX_APPROVED === $status) {
+            $mappedResponse['installment'] = $this->mapInstallment($rawPaymentResponseData['InstallmentData']['InstallmentCount']);
+        }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $mappedResponse);
     }
@@ -321,6 +324,10 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             'error_message'    => $status !== self::TX_APPROVED ? $rawPaymentResponseData['ServiceResponseData']['ResponseDescription'] : null,
             'all'              => $rawPaymentResponseData,
         ];
+
+        if (self::TX_APPROVED === $status) {
+            $mappedResponse['installment'] = $this->mapInstallment($rawPaymentResponseData['InstallmentData']['InstallmentCount']);
+        }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $mappedResponse);
     }
