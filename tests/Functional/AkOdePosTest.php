@@ -104,4 +104,18 @@ class AkOdePosTest extends TestCase
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
     }
+
+    public function testGet3DFormData(): void
+    {
+        $order = $this->createPaymentOrder();
+
+        $formData = $this->pos->get3DFormData(
+            $order,
+            PosInterface::MODEL_3D_PAY,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $this->card
+        );
+
+        $this->assertCount(5, $formData['inputs']);
+    }
 }
