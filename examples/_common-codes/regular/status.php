@@ -10,21 +10,13 @@ require '_config.php';
 
 require '../../_templates/_header.php';
 
-function createStatusOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\Session\SessionInterface $session, string $ip): array
+function createStatusOrder(string $gatewayClass, array $lastResponse, string $ip): array
 {
-    // başarılı ödeme sonucunda dönen $pos->getResponse() verisi
-    $lastResponse = $session->get('last_response');
-
-    if (!$lastResponse) {
-        throw new \LogicException('ödeme verisi bulunamadı, önce ödeme yapınız');
-    }
-
     $statusOrder = [
         'id'       => $lastResponse['order_id'], // MerchantOrderId
         'currency' => $lastResponse['currency'],
         'ip'       => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
-    $gatewayClass = get_class($pos);
     if (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
         $statusOrder['remote_order_id'] = $lastResponse['remote_order_id']; // OrderId
     }
@@ -49,7 +41,7 @@ function createStatusOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\
     return $statusOrder;
 }
 
-$order = createStatusOrder($pos, $session, $ip);
+$order = createStatusOrder(get_class($pos), $session->get('last_response'), $ip);
 dump($order);
 
 $transaction = PosInterface::TX_TYPE_STATUS;

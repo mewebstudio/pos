@@ -6,17 +6,10 @@ use Mews\Pos\PosInterface;
 // ornegin /examples/finansbank-payfor/regular/_config.php
 require '_config.php';
 
-$templateTitle = 'Post Auth Order (ön provizyonu tamamlama)';
+$templateTitle = 'Post Auth Order (ön provizyonu kapama)';
 
-function createPostPayOrder(PosInterface $pos, \Symfony\Component\HttpFoundation\Session\SessionInterface $session, string $ip): array
+function createPostPayOrder(string $gatewayClass, array $lastResponse, string $ip): array
 {
-    // PRE_PAY işlem sonucunda dönen $pos->getResponse() verisi
-    $lastResponse = $session->get('last_response');
-
-    if (!$lastResponse) {
-        throw new \LogicException('ödeme verisi bulunamadı, önce PRE_PAY ödemesi yapınız');
-    }
-
     $postAuth = [
         'id'          => $lastResponse['order_id'],
         'amount'      => $lastResponse['amount'],
@@ -24,7 +17,10 @@ function createPostPayOrder(PosInterface $pos, \Symfony\Component\HttpFoundation
         'ip'          => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
 
-    if (get_class($pos) === \Mews\Pos\Gateways\PosNetV1Pos::class || get_class($pos) === \Mews\Pos\Gateways\PosNet::class) {
+    if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
+        $postAuth['ref_ret_num'] = $lastResponse['ref_ret_num'];
+    }
+    if (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
         $postAuth['installment'] = $lastResponse['installment'];
         $postAuth['ref_ret_num'] = $lastResponse['ref_ret_num'];
     }
@@ -32,7 +28,7 @@ function createPostPayOrder(PosInterface $pos, \Symfony\Component\HttpFoundation
     return $postAuth;
 }
 
-$order = createPostPayOrder($pos, $session, $ip);
+$order = createPostPayOrder(get_class($pos), $session->get('last_response'), $ip);
 dump($order);
 
 

@@ -79,6 +79,8 @@ try {
     doPayment($pos, $paymentModel, $transaction, $order, $card);
 } catch (HashMismatchException $e) {
     dd($e);
+} catch (Exception $e) {
+    dd($e);
 }
 $response = $pos->getResponse();
 
