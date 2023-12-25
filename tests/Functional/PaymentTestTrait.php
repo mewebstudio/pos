@@ -47,7 +47,7 @@ trait PaymentTestTrait
         return $order;
     }
 
-    private function createPostPayOrder(PosInterface $pos, array $lastResponse): array
+    private function createPostPayOrder(string $gatewayClass, array $lastResponse): array
     {
         $postAuth = [
             'id'          => $lastResponse['order_id'],
@@ -56,7 +56,6 @@ trait PaymentTestTrait
             'ip'          => '127.0.0.1',
         ];
 
-        $gatewayClass = \get_class($pos);
         if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
             $postAuth['ref_ret_num'] = $lastResponse['ref_ret_num'];
         }
@@ -69,7 +68,7 @@ trait PaymentTestTrait
         return $postAuth;
     }
 
-    private function createStatusOrder(PosInterface $pos, array $lastResponse): array
+    private function createStatusOrder(string $gatewayClass, array $lastResponse): array
     {
         if ([] === $lastResponse) {
             throw new \LogicException('ödeme verisi bulunamadı, önce ödeme yapınız');
@@ -80,7 +79,6 @@ trait PaymentTestTrait
             'currency' => $lastResponse['currency'],
             'ip'       => '127.0.0.1',
         ];
-        $gatewayClass = get_class($pos);
         if (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
             $statusOrder['remote_order_id'] = $lastResponse['remote_order_id']; // OrderId
         }
@@ -117,7 +115,7 @@ trait PaymentTestTrait
         return $statusOrder;
     }
 
-    public function createCancelOrder(PosInterface $pos, array $lastResponse): array
+    public function createCancelOrder(string $gatewayClass, array $lastResponse): array
     {
         if ([] === $lastResponse) {
             throw new \LogicException('ödeme verisi bulunamadı, önce ödeme yapınız');
@@ -130,7 +128,6 @@ trait PaymentTestTrait
             'ip'          => '127.0.0.1',
         ];
 
-        $gatewayClass = get_class($pos);
         if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
             $cancelOrder['amount'] = $lastResponse['amount'];
         } elseif (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {

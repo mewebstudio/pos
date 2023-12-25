@@ -79,7 +79,7 @@ class PayForPosTest extends TestCase
      */
     public function testStatusSuccess(array $lastResponse): array
     {
-        $statusOrder = $this->createStatusOrder($this->pos, $lastResponse);
+        $statusOrder = $this->createStatusOrder(\get_class($this->pos), $lastResponse);
 
         $this->pos->status($statusOrder);
 
@@ -97,7 +97,7 @@ class PayForPosTest extends TestCase
      */
     public function testCancelSuccess(array $lastResponse): void
     {
-        $statusOrder = $this->createCancelOrder($this->pos, $lastResponse);
+        $statusOrder = $this->createCancelOrder(\get_class($this->pos), $lastResponse);
 
         $this->pos->cancel($statusOrder);
 
@@ -133,7 +133,7 @@ class PayForPosTest extends TestCase
      */
     public function testNonSecurePostPaymentSuccess(array $lastResponse): void
     {
-        $order = $this->createPostPayOrder($this->pos, $lastResponse);
+        $order = $this->createPostPayOrder(\get_class($this->pos), $lastResponse);
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
