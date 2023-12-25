@@ -6,7 +6,6 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
-use InvalidArgumentException;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
@@ -221,11 +220,10 @@ class PayFlexCPV4Pos extends AbstractGateway
         $url ??= $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
 
-        if (!\is_string($contents)) {
-            throw new InvalidArgumentException(\sprintf('Argument type must be XML string, %s provided.', \gettype($contents)));
-        }
+        $isXML = \is_string($contents);
+        $body  = $isXML ? ['body' => $contents] : ['form_params' => $contents];
 
-        $response = $this->client->post($url, ['body' => $contents]);
+        $response = $this->client->post($url, $body);
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         $responseContent = $response->getBody()->getContents();
