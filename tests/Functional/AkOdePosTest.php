@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-namespace Functional;
+namespace Mews\Pos\Tests\Functional;
 
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
@@ -11,7 +11,6 @@ use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\AkOdePos;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Tests\Functional\PaymentTestTrait;
 use Monolog\Test\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
