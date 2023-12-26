@@ -8,7 +8,6 @@ namespace Mews\Pos\DataMapper\RequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
@@ -152,10 +151,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         if ($order['installment']) {
             $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
         }
-
-        $event = new Before3DFormHashCalculatedEvent($requestData, $account->getBank(), $txType, $paymentModel);
-        $this->eventDispatcher->dispatch($event);
-        $requestData = $event->getRequestData();
 
         $requestData['HashedData'] = $this->crypt->create3DHash($account, $requestData);
 
