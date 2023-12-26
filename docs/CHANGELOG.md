@@ -1,4 +1,49 @@
 # Changelog
+## [1.0.0] - 2024-01-??
+### New Features
+
+- API istek verilerinin gateway API'na gönderilmeden önce değiştirebilme.
+Bu özellik `symfony/event-dispatcher` package'i kullanılarak eklendi.
+Kullanım örnekleri için `/examples` ve `/docs` klasörüne bakabilirsiniz.
+Eklenen Eventler:
+  - `\Mews\Pos\Event\Before3DFormHashCalculatedEvent`
+  - `\Mews\Pos\Event\RequestDataPreparedEvent`
+- **AkOdePos** entegrasonu
+- Param birimleri için yeni constantlar eklendi (orn. `PosInterface::CURRENCY_TRY`)
+- yeni `\Mews\Pos\PosInterface::isSupportedTransaction()` methodu eklendi.
+Bu method ile kütüphanenin ilgili gateway için hangi işlemleri destekledigini kontrol edebilirsiniz.
+
+### Changed
+- Kütüphane PHP sürümü **v7.4**'e yükseltildi.
+- Constant'lar `AbstractGateway` sınıfından `PosInterface`'e taşındı.
+- Config yapısı değiştirildi.
+**Test** ve **Prod** ortamları için artık farklı dosyalar kullanılması gerekiyor.
+Bu değişim sonucunda `\Mews\Pos\PosInterface::setTestMode();` işleminin çok da önemi kalmadı.
+Yine de **GarantiPos** için gereklidir. Yeni formata için `/config` klasörüne bakınız.
+- Constant isimleri değiştirildi
+  - `TX_PAY` => `TX_TYPE_PAY_AUTH`
+  - `TX_PRE_PAY` => `TX_TYPE_PAY_PRE_AUTH`
+  - `TX_POST_PAY` => `TX_TYPE_PAY_POST_AUTH`
+- `\Mews\Pos\PosInterface::prepare()` methodu kaldırıldı.
+- Pos sınıfları oluşturmak için kullanılan `\Mews\Pos\Factory\PosFactory::createPosGateway()`
+methodu artık konfigürasyon yolunu (örnek: `./config/pos_test.php`) kabul etmiyor.
+Config verisi **array** olarak sağlanması gerekiyor.
+- $order  verisinden bir zorunlu olmayan alanlar kaldırıldı:
+  - email
+  - name
+  - user_id
+  - rand (artık kütüphane kendisi oluşturuyor)
+
+- _vftcode_ (PosNet), _koiCode_ (PosNet), _imece_ kart (EstPos), _extraData_ (EstPos),
+_callbackUrl_ (EstPos) gibi ekstra değerler kütüphanedeki kodundan kaldırıldı.
+Yerine yeni eklenen eventlarla API isteklere ekstra değerler ekleyebilirsiniz.
+Kullanım örneği için örnek kodlara bakabilirsiniz.
+- **Tekrarlanan ödeme** yapısı biraz değiştirildi (örnek kodlara bakınız).
+- `$response = \Mews\Pos\PosInterface::getResponse();` veri yapısına birkaç ekstra veri eklendi.
+Artık, ödeme **iptal**, **iade**, **durum** sorgulama işlemleri için  `$response` içindeki veriler yeterli.
+- `PosInterface`'e ödeme durumu (order_status) için yeni constant'lar
+(örn: `PAYMENT_STATUS_ERROR`, `PAYMENT_STATUS_PAYMENT_COMPLETED`) eklendi
+ve bu yeni constant'ları kullanacak şekilde güncellemeler yapıldı.
 
 ## [0.16.0] - 2023-11-20
 ### New Features

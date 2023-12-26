@@ -130,7 +130,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - [Docker ile test ortamı](#docker-ile-test-ortami)
 
 ### Ozellikler
-  - Standart E-Commerce modeliyle ödeme (`PosInterface::MODEL_NON_SECURE`)
+  - Non Secure E-Commerce modeliyle ödeme (`PosInterface::MODEL_NON_SECURE`)
   - 3D Secure modeliyle ödeme (`PosInterface::MODEL_3D_SECURE`)
   - 3D Pay modeliyle ödeme (`PosInterface::MODEL_3D_PAY`)
   - 3D Host modeliyle ödeme (`PosInterface::MODEL_3D_HOST`)
@@ -138,6 +138,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - Sipariş/Ödeme geçmişi sorgulama (`PosInterface::TX_TYPE_HISTORY`)
   - Sipariş/Para iadesi yapma (`PosInterface::TX_TYPE_REFUND`)
   - Sipariş iptal etme (`PosInterface::TX_TYPE_CANCEL`)
+  - API istek verilerinin gateway API'na gönderilmeden önce değiştirebilme
   - Farklı Para birimler ile ödeme desteği
   - Tekrarlanan (Recurring) ödeme talimatları
   - [PSR-3](https://www.php-fig.org/psr/psr-3/) logger desteği
@@ -260,7 +261,7 @@ Redirection yapmadan iframe üzerinden veya Popup window içinde ödeme akışı
   `postMessage` API ile banktan dönen cevabı gönderir.
   `form.php` postMessage API'dan gelen mesaji işler ve kullanıcıya gösterir.
 
-#### Dikkkat edilmesi gerekenler
+#### Dikkat edilmesi gerekenler
 - Popup window taraycı tarafından engellenebilir bu yüzden onun yerine
   modal box içinde iframe kullanılması tavsiye edilir.
 
