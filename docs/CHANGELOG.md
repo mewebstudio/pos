@@ -3,14 +3,15 @@
 ### New Features
 
 - API istek verilerinin gateway API'na gönderilmeden önce değiştirebilme.
-Bu özellik `symfony/event-dispatcher` package'i kullanılarak eklendi.
+Bu özellik [psr/event-dispatcher-implementation](https://packagist.org/providers/psr/event-dispatcher-implementation)
+uygulaması kullanılarak eklendi.
 Kullanım örnekleri için `/examples` ve `/docs` klasörüne bakabilirsiniz.
 Eklenen Eventler:
   - `\Mews\Pos\Event\Before3DFormHashCalculatedEvent`
   - `\Mews\Pos\Event\RequestDataPreparedEvent`
-- **AkOdePos** entegrasonu
-- Param birimleri için yeni constantlar eklendi (orn. `PosInterface::CURRENCY_TRY`)
-- yeni `\Mews\Pos\PosInterface::isSupportedTransaction()` methodu eklendi.
+- **AkÖdePos** entegrasonu
+- Param birimleri için yeni constantlar eklendi (örn. `PosInterface::CURRENCY_TRY`)
+- Yeni `\Mews\Pos\PosInterface::isSupportedTransaction()` methodu eklendi.
 Bu method ile kütüphanenin ilgili gateway için hangi işlemleri destekledigini kontrol edebilirsiniz.
 
 ### Changed

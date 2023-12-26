@@ -165,7 +165,8 @@ Son yapılan değişiklikler için [`CHANGELOG`](./docs/CHANGELOG.md).
   - ext-openssl
   - ext-SimpleXML
   - ext-soap (sadece KuveytPos için)
-  - PSR-18 HTTP Client
+  - PSR-18: HTTP Client
+  - PSR-14: Event Dispatcher
 
 ### Kurulum
 ```sh
@@ -177,7 +178,7 @@ Projenizde zaten kurulu PSR-18 uygulaması varsa otomatik onu kullanır.
 
 Veya hızlı başlangıç için:
 ```sh
-$ composer require php-http/curl-client nyholm/psr7 mews/pos
+$ composer require php-http/curl-client nyholm/psr7 symfony/event-dispatcher mews/pos
 ```
 Diğer PSR-18 uygulamasını sağlayan kütühaneler: https://packagist.org/providers/psr/http-client-implementation
 
