@@ -6,6 +6,8 @@
 namespace Mews\Pos\Tests\Functional;
 
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
@@ -19,6 +21,8 @@ class PayForPosTest extends TestCase
     use PaymentTestTrait;
 
     private CreditCardInterface $card;
+    
+    private EventDispatcher $eventDispatcher;
 
     /** @var PayForPos */
     private PosInterface $pos;
@@ -39,8 +43,9 @@ class PayForPosTest extends TestCase
             PosInterface::MODEL_3D_SECURE,
             '12345678'
         );
+        $this->eventDispatcher = new EventDispatcher();
 
-        $this->pos = PosFactory::createPosGateway($account, $config, new EventDispatcher());
+        $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
         $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::create(
@@ -58,6 +63,15 @@ class PayForPosTest extends TestCase
     {
         $order = $this->createPaymentOrder();
 
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $event->getTxType());
+                $this->assertCount(16, $event->getRequestData());
+            });
+
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
@@ -70,6 +84,7 @@ class PayForPosTest extends TestCase
         $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
 
         return $this->pos->getResponse();
     }
@@ -81,12 +96,22 @@ class PayForPosTest extends TestCase
     {
         $statusOrder = $this->createStatusOrder(\get_class($this->pos), $lastResponse);
 
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_STATUS, $event->getTxType());
+                $this->assertCount(8, $event->getRequestData());
+            });
+
         $this->pos->status($statusOrder);
 
         $this->assertTrue($this->pos->isSuccess());
         $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
 
         return $lastResponse;
     }
@@ -99,18 +124,37 @@ class PayForPosTest extends TestCase
     {
         $statusOrder = $this->createCancelOrder(\get_class($this->pos), $lastResponse);
 
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_CANCEL, $event->getTxType());
+                $this->assertCount(9, $event->getRequestData());
+            });
+
         $this->pos->cancel($statusOrder);
 
         $this->assertTrue($this->pos->isSuccess());
         $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
     }
 
 
     public function testNonSecurePrePaymentSuccess(): array
     {
         $order = $this->createPaymentOrder(PosInterface::CURRENCY_TRY, 3);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_PAY_PRE_AUTH, $event->getTxType());
+                $this->assertCount(16, $event->getRequestData());
+            });
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -124,6 +168,7 @@ class PayForPosTest extends TestCase
         $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
 
         return $this->pos->getResponse();
     }
@@ -135,6 +180,15 @@ class PayForPosTest extends TestCase
     {
         $order = $this->createPostPayOrder(\get_class($this->pos), $lastResponse);
 
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_PAY_POST_AUTH, $event->getTxType());
+                $this->assertCount(10, $event->getRequestData());
+            });
+
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
@@ -145,5 +199,33 @@ class PayForPosTest extends TestCase
         $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+    }
+
+    public function testGet3DFormData(): void
+    {
+        $order = $this->createPaymentOrder();
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            Before3DFormHashCalculatedEvent::class,
+            function (Before3DFormHashCalculatedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertCount(17, $event->getFormInputs());
+                $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $event->getTxType());
+                $formInputs = $event->getFormInputs();
+                $formInputs['test_input'] = 'test_value';
+                $event->setFormInputs($formInputs);
+            });
+
+        $formData = $this->pos->get3DFormData(
+            $order,
+            PosInterface::MODEL_3D_PAY,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $this->card
+        );
+        $this->assertCount(19, $formData['inputs']);
+        $this->assertArrayHasKey('test_input', $formData['inputs']);
+        $this->assertTrue($eventIsThrown);
     }
 }
