@@ -116,11 +116,6 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/PosNetV1PosResponseDataMapper.php
 
 		-
-			message: "#^Method Mews\\\\Pos\\\\Factory\\\\PosFactory\\:\\:createPosGateway\\(\\) has parameter \\$config with no value type specified in iterable type array\\.$#"
-			count: 1
-			path: src/Factory/PosFactory.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Factory\\\\PosFactory\\:\\:createPosGateway\\(\\) should return Mews\\\\Pos\\\\PosInterface but returns object\\.$#"
 			count: 1
 			path: src/Factory/PosFactory.php

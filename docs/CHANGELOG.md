@@ -16,6 +16,7 @@ Bu method ile kütüphanenin ilgili gateway için hangi işlemleri destekledigin
 ### Changed
 - Kütüphane PHP sürümü **v7.4**'e yükseltildi.
 - Constant'lar `AbstractGateway` sınıfından `PosInterface`'e taşındı.
+- Constant'lar `AbstractCreditCard` sınıfından `CreditCardInterface`'e taşındı.
 - Config yapısı değiştirildi.
 **Test** ve **Prod** ortamları için artık farklı dosyalar kullanılması gerekiyor.
 Bu değişim sonucunda `\Mews\Pos\PosInterface::setTestMode();` işleminin çok da önemi kalmadı.
@@ -28,6 +29,7 @@ Yine de **GarantiPos** için gereklidir. Yeni formata için `/config` klasörün
 - Pos sınıfları oluşturmak için kullanılan `\Mews\Pos\Factory\PosFactory::createPosGateway()`
 methodu artık konfigürasyon yolunu (örnek: `./config/pos_test.php`) kabul etmiyor.
 Config verisi **array** olarak sağlanması gerekiyor.
+- `\Mews\Pos\Factory\PosFactory::createPosGateway()`'a **EventDispatcher** parametresi eklendi.
 - $order  verisinden bir zorunlu olmayan alanlar kaldırıldı:
   - email
   - name

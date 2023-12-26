@@ -20,8 +20,10 @@ use Psr\Log\NullLogger;
 class PosFactory
 {
     /**
+     * @phpstan-param array{banks: array<string, array{name: string, class?: class-string, gateway_endpoints: array<string, string>}>, currencies?: array<PosInterface::CURRENCY_*, string>} $config
+     *
      * @param AbstractPosAccount       $posAccount
-     * @param array|string             $config config path or config array
+     * @param array                    $config
      * @param EventDispatcherInterface $eventDispatcher
      * @param HttpClient|null          $client
      * @param LoggerInterface|null     $logger
@@ -33,7 +35,7 @@ class PosFactory
      */
     public static function createPosGateway(
         AbstractPosAccount       $posAccount,
-                                 $config,
+        array                    $config,
         EventDispatcherInterface $eventDispatcher,
         ?HttpClient              $client = null,
         ?LoggerInterface         $logger = null
@@ -43,16 +45,12 @@ class PosFactory
             $logger = new NullLogger();
         }
 
-        if (is_string($config)) {
-            $config = require $config;
-        }
-
         if (!$client instanceof \Mews\Pos\Client\HttpClient) {
             $client = HttpClientFactory::createDefaultHttpClient();
         }
 
         // Bank API Exist
-        if (!array_key_exists($posAccount->getBank(), $config['banks'])) {
+        if (!\array_key_exists($posAccount->getBank(), $config['banks'])) {
             throw new BankNotFoundException();
         }
 
