@@ -12,20 +12,33 @@ use Mews\Pos\PosInterface;
  * By listening to this event you can update 3D form input data before the hash is calculated,
  * if changes in input data are used while calculating the hash.
  */
-class Before3DFormHashCalculatedEvent extends RequestDataPreparedEvent
+class Before3DFormHashCalculatedEvent
 {
+    /** @var array<string, string> */
+    private array $formInputs;
+
+    private string $bank;
+
+    /** @var PosInterface::TX_TYPE_PAY_* */
+    private string $txType;
+
     /** @var PosInterface::MODEL_3D_* */
     private string $paymentModel;
 
     /**
-     * @param PosInterface::MODEL_3D_* $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_* $txType
+     * @phpstan-param PosInterface::MODEL_3D_*    $paymentModel
      *
-     * @inheritdoc
+     * @param array<string, string> $formInputs
+     * @param string                $bank
+     * @param string                $txType
+     * @param string                $paymentModel
      */
-    public function __construct(array $requestData, string $bank, string $txType, string $paymentModel)
+    public function __construct(array $formInputs, string $bank, string $txType, string $paymentModel)
     {
-        parent::__construct($requestData, $bank, $txType);
-
+        $this->formInputs   = $formInputs;
+        $this->bank         = $bank;
+        $this->txType       = $txType;
         $this->paymentModel = $paymentModel;
     }
 
@@ -35,5 +48,41 @@ class Before3DFormHashCalculatedEvent extends RequestDataPreparedEvent
     public function getPaymentModel(): string
     {
         return $this->paymentModel;
+    }
+
+    /**
+     * @return PosInterface::TX_TYPE_PAY_*
+     */
+    public function getTxType(): string
+    {
+        return $this->txType;
+    }
+
+    /**
+     * @return string
+     */
+    public function getBank(): string
+    {
+        return $this->bank;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getFormInputs(): array
+    {
+        return $this->formInputs;
+    }
+
+    /**
+     * @param array<string, string> $formInputs
+     *
+     * @return Before3DFormHashCalculatedEvent
+     */
+    public function setFormInputs(array $formInputs): self
+    {
+        $this->formInputs = $formInputs;
+
+        return $this;
     }
 }

@@ -29,7 +29,7 @@ class EstV3PosRequestDataMapper extends EstPosRequestDataMapper
 
         $event = new Before3DFormHashCalculatedEvent($data['inputs'], $account->getBank(), $txType, $paymentModel);
         $this->eventDispatcher->dispatch($event);
-        $data['inputs'] = $event->getRequestData();
+        $data['inputs'] = $event->getFormInputs();
 
         $data['inputs']['hash'] = $this->crypt->create3DHash($account, $data['inputs']);
 

@@ -380,7 +380,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
 
         $event = new Before3DFormHashCalculatedEvent($inputs, $account->getBank(), $txType, $paymentModel);
         $this->eventDispatcher->dispatch($event);
-        $inputs = $event->getRequestData();
+        $inputs = $event->getFormInputs();
 
         $inputs['Mac'] = $this->crypt->create3DHash($account, $inputs);
 

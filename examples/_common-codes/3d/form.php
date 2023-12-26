@@ -69,17 +69,17 @@ try {
                     \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
                     ];
                     if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
-                    $formInputs           = $event->getRequestData();
+                    $formInputs           = $event->getFormInputs();
                     $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
                     $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
-                    $event->setRequestData($formInputs);
+                    $event->setFormInputs($formInputs);
                 }*/
 
 //                // Örnek 2: callbackUrl eklenmesi
-//                $formInputs                = $event->getRequestData();
+//                $formInputs                = $event->getFormInputs();
 //                $formInputs['callbackUrl'] = $formInputs['failUrl'];
 //                $formInputs['refreshTime'] = '10'; // birim: saniye; callbackUrl sisteminin doğru çalışması için eklenmesi gereken parametre
-//                $event->setRequestData($formInputs);
+//                $event->setFormInputs($formInputs);
             }
         });
 

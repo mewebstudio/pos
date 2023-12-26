@@ -135,10 +135,10 @@ try {
                 \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
                 ];
                 if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
-                $formInputs           = $event->getRequestData();
+                $formInputs           = $event->getFormInputs();
                 $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
                 $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
-                $event->setRequestData($formInputs);
+                $event->setFormInputs($formInputs);
             }*/
         }
     });
