@@ -1,7 +1,14 @@
 
-### Örnek 3D Host ödeme kodu
+### Örnek 3DSecure, 3DPay, 3DHost ödeme kodu
 
-3D Host ödemede kredi kart bilgileri bankanın sayfasında alınır.
+3DSecure, 3DPay, 3DHost ödemeniz gereken kodlar arasında tek fark `$paymentModel` değeridir.
+```
+$paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
+// veya
+// $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_PAY;
+// $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_HOST;
+```
+Kütüphane içersinde ödeme modele göre farklı kodlar çalışacak.
 
 ```sh
 $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
@@ -19,7 +26,7 @@ $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSe
 $session        = new Session($sessionHandler);
 $session->start();
 
-$paymentModel = \Mews\Pos\PosInterface::MODEL_3D_HOST;
+$paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
 $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
 
 // API kullanıcı bilgileri
@@ -44,11 +51,12 @@ try {
     // GarantiPos ve KuveytPos'u test ortamda test edebilmek için zorunlu.
     $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
-    dd($e));
+    var_dump($e));
+    exit;
 }
 ```
 
-**form.php**
+**form.php (3DSecure ve 3DPay odemede kullanıcıdan kredi kart bilgileri alındıktan sonra çalışacak kod)**
 ```php
 <?php
 
@@ -71,6 +79,34 @@ $order = [
 ];
 
 $session->set('order', $order);
+
+// Kredi kartı bilgileri
+try {
+$card = null;
+if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
+    $card = \Mews\Pos\Factory\CreditCardFactory::create(
+            $pos,
+            $_REQUEST['card_number'],
+            $_REQUEST['card_year'],
+            $_REQUEST['card_month'],
+            $_REQUEST['card_cvv'],
+            $_REQUEST['card_name'],
+
+            // kart tipi Gateway'e göre zorunlu, alabileceği örnek değer: "visa"
+            // alabileceği alternatif değerler için \Mews\Pos\Entity\Card\CreditCardInterface'a bakınız.
+            $_REQUEST['card_type'] ?? null
+      );
+    } catch (CardTypeRequiredException $e) {
+        // bu gateway için kart tipi zorunlu
+    } catch (CardTypeNotSupportedException $e) {
+        // sağlanan kart tipi bu gateway tarafından desteklenmiyor
+    }
+
+    if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
+        // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
+        $session->set('card', $_REQUEST);
+    }
+}
 
 try {
     /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
@@ -113,10 +149,12 @@ try {
     $formData = $pos->get3DFormData(
         $order,
         $paymentModel,
-        $transactionType
+        $transactionType,
+        $card
     );
 } catch (\Throwable $e) {
-    dd($e);
+    var_dump($e);
+    exit;
 }
 ```
 ```html
@@ -131,6 +169,15 @@ try {
         <button type="submit" class="btn btn-lg btn-block btn-success">Submit</button>
     </div>
 </form>
+<script>
+    $(function () {
+        // Formu JS ile otomatik submit ederek kullaniciyi banka gatewayine yonlendiriyoruz.
+        let redirectForm = $('form.redirect-form')
+        if (redirectForm.length) {
+            redirectForm.submit()
+        }
+    })
+</script>
 ```
 **response.php (gateway'den döndükten sonra çalışacak kod)**
 ```php
@@ -139,12 +186,40 @@ try {
 require 'config.php';
 
 $order = $session->get('order');
+$card  = null;
+if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
+    if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
+        // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
+        $cardData = $session->get('card');
+        $card = \Mews\Pos\Factory\CreditCardFactory::create(
+            $pos,
+            $cardData['card_number'],
+            $cardData['card_year'],
+            $cardData['card_month'],
+            $cardData['card_cvv'],
+            $cardData['card_name'],
+            $cardData['card_type']
+      );
+    }
+}
+
+//    //Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği
+//    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($paymentModel) {
+//        if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && PosInterface::MODEL_3D_SECURE === $paymentModel) {
+//            $data                    = $event->getRequestData();
+//            $data['Extra']['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
+//            $data['Extra']['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı
+//            $event->setRequestData($data);
+//        }
+//    });
+
 // Ödeme tamamlanıyor,
 try  {
     $pos->payment(
         $paymentModel,
         $order,
-        $transactionType
+        $transactionType,
+        $card
     );
 
     // Ödeme başarılı mı?
