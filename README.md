@@ -117,6 +117,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - [Farklı Banka Sanal Poslarını Eklemek](#farkli-gatewayler-tek-islem-akisi)
 - [Ornek Kodlar](#ornek-kodlar)
   - [3DSecure, 3DPay ve 3DHost Ödeme Örneği](./docs/THREED-PAYMENT-EXAMPLE.md)
+  - [3DSecure, 3DPay ve 3DHost Model Box ile Ödeme Örneği](./docs/THREED-SECURE-AND-PAY-PAYMENT-IN-MODALBOX-EXAMPLE.md)
   - [Non Secure Ödeme Örneği](./docs/NON-SECURE-PAYMENT-EXAMPLE.md)
   - [Ön otorizasyon ve Ön otorizasyon kapama](./docs/PRE-AUTH-POST-EXAMPLE.md)
   - [Ödeme İptal](./docs/CANCEL-EXAMPLE.md)
@@ -241,25 +242,11 @@ Fakat,
 - üstelik YKB POSNet ve VakıfBank POS kart bilgilerini website sunucusu tarafından POST edilmesini gerektiriyor.
 
 ### Popup Windowda veya Iframe icinde odeme yapma
-Redirection yapmadan iframe üzerinden veya Popup window içinde ödeme akışı
+Müşteriyi banka sayfasında redirect etmeden **iframe** üzerinden veya **popup window**
+üzerinden ödeme akışı
 `/examples/` içinde 3D ödeme ile örnek PHP ve JS kodlar yer almaktadır.
-Özellikle şu alttaki dosyalarda:
-- [_redirect_iframe_or_popup_window_form.php](examples%2F_templates%2F_redirect_iframe_or_popup_window_form.php) -
-  bu dosyanin içerigi Popup Window'da veya iframe içinde yüklenir
-  ve JS ile içindeki form bankanın 3D gatewayine gönderilermek üzere otomatik olarak submit edilir.
-- [form.php](examples%2F_common-codes%2F3d%2Fform.php) - kullanıcıdan
-   kredi kart bilgileri ve ödeme akış tercihi (iframe, popup window) alındıktan sonra
-   bu dosyada tercih edilen odeme akışa göre
-  - redirekt yapılır
-  - popup window açılır
-  - bootstrap modal box içinde iframe açılır
-- [_payment_secure_response.php](examples%2F_templates%2F_payment_secure_response.php) -
-  banktan dönüşde bu dosyadaki kodlar çalışır. Eğer _iframe/popup window_
-  üzerinden ödeme yapılıyorsa bu dosyanın içeriği de *iframe/popup window*da çalışır ve
-  JS ile current window'un _iframe_'de mı veya _popup window_'da mı oldugunu kontrol eder.
-  Popup window'da ve iframe'de ise _parent_ window'a (yani `form.php`'ye)
-  `postMessage` API ile banktan dönen cevabı gönderir.
-  `form.php` postMessage API'dan gelen mesaji işler ve kullanıcıya gösterir.
+
+Ayrıca Modal Box ile iframe kullarak ödeme örneği [/docs](./docs/THREED-SECURE-AND-PAY-PAYMENT-IN-MODALBOX-EXAMPLE.md)'ta bulabilirsiniz.
 
 #### Dikkat edilmesi gerekenler
 - Popup window taraycı tarafından engellenebilir bu yüzden onun yerine
