@@ -11,10 +11,10 @@ $templateTitle = 'Post Auth Order (ön provizyonu kapama)';
 function createPostPayOrder(string $gatewayClass, array $lastResponse, string $ip): array
 {
     $postAuth = [
-        'id'          => $lastResponse['order_id'],
-        'amount'      => $lastResponse['amount'],
-        'currency'    => $lastResponse['currency'],
-        'ip'          => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
+        'id'       => $lastResponse['order_id'],
+        'amount'   => $lastResponse['amount'],
+        'currency' => $lastResponse['currency'],
+        'ip'       => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
 
     if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
@@ -29,11 +29,7 @@ function createPostPayOrder(string $gatewayClass, array $lastResponse, string $i
 }
 
 $order = createPostPayOrder(get_class($pos), $session->get('last_response'), $ip);
-dump($order);
 
-
-$session->set('post_order', $order);
 $transaction = PosInterface::TX_TYPE_PAY_POST_AUTH;
-$card = null;
 
-require '../../_templates/_payment_response.php';
+require '../../_templates/_finish_non_secure_post_auth_payment.php';

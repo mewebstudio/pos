@@ -6,6 +6,8 @@ use Mews\Pos\PosInterface;
 // ornegin /examples/finansbank-payfor/regular/_config.php
 require_once '_config.php';
 
+$transaction = $request->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
+
 $order = getNewOrder(
     $baseUrl,
     $ip,
@@ -14,12 +16,7 @@ $order = getNewOrder(
     $request->get('is_recurring', 0) == 1,
     $request->get('lang', PosInterface::LANG_TR)
 );
-$session->set('order', $order);
-$transaction = $request->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
-
-// examples'da post odeme butonu gostermek icin degeri kullanilir.
-$session->set('tx', $transaction);
 
 $card = createCard($pos, $request->request->all());
 
-require '../../_templates/_payment_response.php';
+require '../../_templates/_finish_non_secure_payment.php';

@@ -254,7 +254,7 @@ Redirection yapmadan iframe üzerinden veya Popup window içinde ödeme akışı
   - redirekt yapılır
   - popup window açılır
   - bootstrap modal box içinde iframe açılır
-- [_payment_response.php](examples%2F_templates%2F_payment_response.php) -
+- [_payment_secure_response.php](examples%2F_templates%2F_payment_secure_response.php) -
   banktan dönüşde bu dosyadaki kodlar çalışır. Eğer _iframe/popup window_
   üzerinden ödeme yapılıyorsa bu dosyanın içeriği de *iframe/popup window*da çalışır ve
   JS ile current window'un _iframe_'de mı veya _popup window_'da mı oldugunu kontrol eder.
