@@ -17,7 +17,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createKuveytPosAccount(
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = PosInterface::TX_TYPE_PAY_AUTH;
+$transaction = $session->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
 
 $templateTitle = '3D Model Payment';
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;

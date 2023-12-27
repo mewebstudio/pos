@@ -18,7 +18,7 @@ $account = AccountFactory::createPosNetAccount(
 
 $pos = getGateway($account, $eventDispatcher);
 
-$transaction = PosInterface::TX_TYPE_PAY_AUTH;
+$transaction = $session->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
 
 $templateTitle = '3D Model Payment';
 $paymentModel = PosInterface::MODEL_3D_SECURE;
