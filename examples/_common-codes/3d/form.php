@@ -148,7 +148,7 @@ $flowType = $request->get('payment_flow_type');
     <?php require '../../_templates/_redirect_form.php'; ?>
     <script>
         $(function () {
-            var redirectForm = $('form.redirect-form')
+            let redirectForm = $('form.redirect-form')
             if (redirectForm.length) {
                 redirectForm.submit()
             }
@@ -161,16 +161,18 @@ $flowType = $request->get('payment_flow_type');
 <?php elseif ('by_iframe' === $flowType || 'by_popup_window' === $flowType) :
     ob_start();
     include('../../_templates/_redirect_iframe_or_popup_window_form.php');
-    $renderedForm = ob_get_contents();
-    ob_end_clean();
+    $renderedForm = ob_get_clean();
     ?>
 <!--
     $renderedForm içinde 3D formun verileriyle oluşturulan HTML form bulunur.
     alttaki kodlar ise bu $renderedForm verisini seçilen $flowType'a göre iframe modal box içine veya pop up window içine basar.
 -->
     <div class="alert alert-dismissible" role="alert" id="result-alert">
+        <!-- buraya odeme basarili olup olmadini alttaki JS kodlariyla basiyoruz. -->
     </div>
-    <pre id="result-response"></pre>
+    <pre id="result-response">
+        <!-- buraya odeme sonuc verilerinin alttaki JS kodlariyla basiyoruz-->
+    </pre>
 
     <script>
         $('#result-alert').hide();
