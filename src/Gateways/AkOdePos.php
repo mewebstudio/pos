@@ -169,9 +169,7 @@ class AkOdePos extends AbstractGateway
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $this->account,
-            $order,
-            $paymentModel,
-            $txType
+            $order
         );
 
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);

@@ -222,7 +222,7 @@ class AkOdePosTest extends TestCase
         $card = $isWithCard ? $this->card : null;
         $this->requestMapperMock->expects(self::once())
             ->method('create3DEnrollmentCheckRequestData')
-            ->with($this->pos->getAccount(), $order, $paymentModel, $txType)
+            ->with($this->pos->getAccount(), $order)
             ->willReturn($requestData);
 
         $this->configureClientResponse(

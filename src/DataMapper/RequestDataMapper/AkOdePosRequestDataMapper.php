@@ -31,15 +31,12 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
-     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
-     *
      * @param AkOdePosAccount                      $account
      * @param array<string, int|string|float|null> $order
      *
      * @return array<string, string|int>
      */
-    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType): array
+    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order): array
     {
         $order = $this->preparePaymentOrder($order);
 

@@ -111,7 +111,7 @@ class AkOdePosRequestDataMapperTest extends TestCase
             ->method('create3DHash')
             ->willReturn($expected['hash']);
 
-        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $paymentModel, $txType);
+        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
     }
 

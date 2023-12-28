@@ -21,7 +21,7 @@ class GarantiPosTest extends TestCase
     use PaymentTestTrait;
 
     private CreditCardInterface $card;
-    
+
     private EventDispatcher $eventDispatcher;
 
     /** @var GarantiPos */
