@@ -83,5 +83,5 @@ $order = createStatusOrder(get_class($pos), $lastResponse, $ip);
 
 $pos->status($order);
 $response = $pos->getResponse();
-dump($response);
+var_dump($response);
 ```

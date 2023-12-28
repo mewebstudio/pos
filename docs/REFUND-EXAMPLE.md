@@ -81,5 +81,5 @@ $order = createRefundOrder(get_class($pos), $lastResponse, $ip);
 
 $pos->refund($order);
 $response = $pos->getResponse();
-dump($response);
+var_dump($response);
 ```
