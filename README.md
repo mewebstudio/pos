@@ -10,104 +10,20 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 ### Deskteklenen Payment Gateway'ler / Bankalar:
 
-- **AKÖde**
+| Gateway                              | Desktekleyen<br/>bankalar| Desteklenen<br/>Diğer<br/>İşlemler                        | Desteklenen Sorgular|
+|--------------------------------------|-------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------|
+| AKÖde                                | Akbank| NonSecure<br/>3DPay<br/>3DHost                            | İptal<br/>İade<br/>Durum sorgulama<br/>Tarihçe sorgulama |
+| EST POS<br/>(Asseco/Payten)<br/>_deprecated_ | Akbank<br/>TEB<br/>İşbank<br/>Şekerbank<br/>Halkbank<br/>Finansbank | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost<br/>3DPayHost | İptal<br/>İade<br/>Durum sorgulama<br/>Tarihçe sorgulama |
+| EST V3 POS<br/><br/>EstPos altyapının<br/>daha güvenli<br/>(sha512) hash<br/>algoritmasıyla<br/>uygulaması.| -----"----- | -----"-----                                               | -----"-----                                         |
+|   PayFlex MPI VPOS V4 | Ziraat<br/>Vakıfbank<br/>İşbank| NonSecure<br/>3DSecure<br/>                               | İptal<br/>İade<br/>Durum sorgulama|
+|PayFlex<br/>Common Payment V4<br/>(Ortak Ödeme)| Ziraat<br/>Vakıfbank<br/>İşbank| NonSecure<br/>3DPay<br/>3DHost                            | İptal<br/>İade|
+|Garanti Virtual POS|Garanti| NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost               | İptal<br/>İade<br/>Durum sorgulama<br/>Tarihçe sorgulama |
+|PosNet|YapıKredi| NonSecure<br/>3DSecure<br/>                               | İptal<br/>İade<br/>Durum sorgulama                  |
+|PosNetV1<br/>(JSON API)|Albaraka Türk| NonSecure<br/>3DSecure                                    | İptal<br/>İade<br/>Durum sorgulama                  |
+|PayFor|Finansbank<br/>Enpara| NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost               | İptal<br/>İade<br/>Durum sorgulama<br/>Tarihçe sorgulama |
+|InterPOS|Deniz bank| NonSecure<br/> 3DSecure<br/>3DPay<br/>3DHost              | İptal<br/>İade<br/>Durum sorgulama                  |
+|Kuveyt POS|Kuveyt Türk| 3DSecure                                                  | İptal<br/>İade<br/>Durum sorgulama<br/>(SOAP API)   |
 
-  Desktekleyen bankalar: Akbank
-
-  Desteklenen özellikler:
-    - NonSecure, 3DPay ve 3DHost ödeme
-    - Ödeme İptal ve İade
-    - Ödeme durum sorgulama
-    - Tarihçe sorgulama
-
-
-- **EST POS** (Asseco/Payten)
-
-    Desktekleyen bankalar: Akbank, TEB, İşbank, Şekerbank, Halkbank ve Finansbank
-
-    Desteklenen özellikler:
-    - NonSecure, 3DSecure, 3DHost ve 3DPay ödeme
-    - Ödeme İptal ve İade
-    - Ödeme durum sorgulama
-    - Tarihçe sorgulama
-
-
-- **EST POS V3** EstPos altyapının daha güvenli (sha512) hash algoritmasıyla uygulaması.
-
-   Desktekleyen bankalar: Akbank, TEB, İşbank, Şekerbank, Halkbank ve Finansbank.
-
-
-- **PayFlex MPI VPOS V4**
-
-  Desktekleyen bankalar: Ziraat, Vakıfbank ve İşbank.
-
-  Desteklenen özellikler:
-    - NonSecure, 3DSecure ödeme
-    - Ödeme İptal ve İade
-    - Ödeme durum sorgulama
-
-
-- **PayFlex Common Payment V4 (Ortak Ödeme)**
-
-  Desktekleyen bankalar: Ziraat, Vakıfbank ve İşbank.
-
-  Desteklenen özellikler:
-    - NonSecure, 3DHost ve 3DPay ödeme
-    - Ödeme İptal ve İade
-
-
-- **Garanti Virtual POS**
-
-  Desteklenen özellikler:
-    - NonSecure, 3DSecure, 3DHost ve 3DPay ödeme
-    - Ödeme İptal ve İade
-    - Ödeme durum sorgulama
-    - Tarihçe sorgulama
-
-
-- **PosNet**
-
-  Desktekleyen bankalar: YapıKredi.
-
-  Desteklenen özellikler:
-    - NonSecure, 3DSecure ödeme
-    - Ödeme İptal ve İade
-    - Ödeme durum sorgulama
-
-
-- **PosNetV1 (JSON API)**
-
-  Desktekleyen bankalar: Albaraka Türk.
-
-  Desteklenen özellikler:
-    - NonSecure, 3DSecure ödeme
-    - Ödeme İptal ve İade
-    - Ödeme durum sorgulama
-
-
-- **Finansbank PayFor** (Enpara dahil)
-
-  Desteklenen özellikler:
-    - NonSecure, 3DSecure, 3DHost ve 3DPay ödeme
-    - Ödeme İptal ve İade
-    - Ödeme durum sorgulama
-    - Tarihçe sorgulama
-
-
-- **InterPOS (Deniz bank)**
-
-  Desteklenen özellikler:
-    - NonSecure, 3DSecure, 3DHost ve 3DPay ödeme
-    - Ödeme İptal ve İade
-    - Ödeme durum sorgulama
-
-
-- **Kuveyt POS**
-
-  Desteklenen özellikler:
-    - 3DSecure ödeme
-    - Ödeme İptal ve İade (SOAP)
-    - Ödeme durum sorgulama (SOAP)
 
 ### Ana başlıklar
 - [Özellikler](#ozellikler)
