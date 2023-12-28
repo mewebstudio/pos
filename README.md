@@ -33,7 +33,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - [Farklı Banka Sanal Poslarını Eklemek](#farkli-gatewayler-tek-islem-akisi)
 - [Ornek Kodlar](#ornek-kodlar)
   - [3DSecure, 3DPay ve 3DHost Ödeme Örneği](./docs/THREED-PAYMENT-EXAMPLE.md)
-  - [3DSecure, 3DPay ve 3DHost Model Box ile Ödeme Örneği](./docs/THREED-SECURE-AND-PAY-PAYMENT-IN-MODALBOX-EXAMPLE.md)
+  - [3DSecure, 3DPay ve 3DHost Modal Box ile Ödeme Örneği](./docs/THREED-SECURE-AND-PAY-PAYMENT-IN-MODALBOX-EXAMPLE.md)
   - [Non Secure Ödeme Örneği](./docs/NON-SECURE-PAYMENT-EXAMPLE.md)
   - [Ön otorizasyon ve Ön otorizasyon kapama](./docs/PRE-AUTH-POST-EXAMPLE.md)
   - [Ödeme İptal](./docs/CANCEL-EXAMPLE.md)
@@ -61,10 +61,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - [PSR-18](https://www.php-fig.org/psr/psr-18/) HTTP Client desteği
 
 #### Farkli Gateway'ler Tek islem akisi
-* Farklı bankaya geçiş yapmak için sadece doğru `AccountFactory` method'u kullanarak account degistirmek yeterli.
-* **3D**, **3DPay**, **3DHost** ödemeler arasında geçiş yapmak için tek yapmanız gereken
-Account konfigurasyonunda account tipini değiştirmek (`PosInterface::MODEL_3D_PAY` vs.).
-İşlem akışı aynı olduğu için kod değiştirmenize gerek kalmıyor.
+* Bir (**3DSecure**, **3DPay**, **3DHost**, **NonSecure**) ödeme modelden diğerine geçiş çok az değişiklik gerektirir.
 * Aynı tip işlem için farklı POS Gateway'lerden dönen değerler aynı formata normalize edilmiş durumda.
 Yani kod güncellemenize gerek yok.
 * Aynı tip işlem için farklı Gateway'lere gönderilecek değerler de genel olarak
@@ -81,8 +78,8 @@ Son yapılan değişiklikler için [`CHANGELOG`](./docs/CHANGELOG.md).
   - ext-openssl
   - ext-SimpleXML
   - ext-soap (sadece KuveytPos için)
-  - PSR-18: HTTP Client
-  - PSR-14: Event Dispatcher
+  - [PSR-18](https://packagist.org/providers/psr/http-client-implementation): HTTP Client
+  - [PSR-14](https://packagist.org/providers/psr/event-dispatcher-implementation): Event Dispatcher
 
 ### Kurulum
 ```sh
@@ -96,7 +93,7 @@ Veya hızlı başlangıç için:
 ```sh
 $ composer require php-http/curl-client nyholm/psr7 symfony/event-dispatcher mews/pos
 ```
-Diğer PSR-18 uygulamasını sağlayan kütühaneler: https://packagist.org/providers/psr/http-client-implementation
+Diğer PSR-18 uygulamasını sağlayan kütüphaneler: https://packagist.org/providers/psr/http-client-implementation
 
 ### Farkli Banka Sanal Poslarını Eklemek
 Kendi projenizin dizinindeyken
@@ -158,7 +155,7 @@ Fakat,
 - üstelik YKB POSNet ve VakıfBank POS kart bilgilerini website sunucusu tarafından POST edilmesini gerektiriyor.
 
 ### Popup Windowda veya Iframe icinde odeme yapma
-Müşteriyi banka sayfasında redirect etmeden **iframe** üzerinden veya **popup window**
+Müşteriyi banka sayfasına redirect etmeden **iframe** üzerinden veya **popup window**
 üzerinden ödeme akışı
 `/examples/` içinde 3D ödeme ile örnek PHP ve JS kodlar yer almaktadır.
 
@@ -176,14 +173,14 @@ Response'da `samesite` değeri set etmeniz gerekiyor. [çözüm](https://stackov
 - Shared hosting'lerde Cpanel'de gördüğünüz IP'den farklı olarak fiziksel sunucun bir tane daha IP'si olur.
 O IP adres Cpanel'de gözükmez, hosting firmanızdan sorup öğrenmeniz gerekmekte.
 Bu hatayı alırsanız hosting firmanın verdiği IP adrese'de banka gateway'i tarafından izin verilmesini sağlayın.
-- kutuphane ortam degerini de kontrol etmeyi unutmayiniz, ortama gore bankanin URL'leri degisir.
-  - test ortam icin `$pos->setTestMode(true);`
-  - canli ortam icin `$pos->setTestMode(false);` (default olarak `false`)
+- kütüphane ortam degerini de kontrol etmeyi unutmayınız, ortama göre bankanın URL'leri degişir.
+  - test ortamı için `$pos->setTestMode(true);`
+  - canlı ortamı için `$pos->setTestMode(false);` (default olarak `false`)
 
-  _ortam degeri hem bankaya istek gonderirken hem de gelen istegi islerken dogru deger olmasi gerekiyor._
+  _ortam değeri hem bankaya istek gönderirken hem de gelen isteği işlerken doğru deger olması gerekiyor._
 
 ### Debugging
-Kütühane [PSR-3](https://www.php-fig.org/psr/psr-3/) standarta uygun logger uygulamayı destekler.
+Kütüphane [PSR-3](https://www.php-fig.org/psr/psr-3/) standarta uygun logger uygulamayı destekler.
 Örnekler: https://packagist.org/providers/psr/log-implementation .
 
 Monolog logger kullanım örnegi:
@@ -204,12 +201,19 @@ $pos = \Mews\Pos\Factory\PosFactory::createPosGateway(
 
 ## Genel Kultur
 ### NonSecure, 3D Secure, 3DPay ve 3DHost ödeme modeller arasındaki farklar
-- **3D** - Bankaya göre farklı isimler verilebilir, örn. 3D Full. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödemeyi tamamlamak için banka gateway'ne 1 istek daha (_provizyon_ isteği) gönderir.
-Bu isteği göndermeden ödeme tamamlanmaz.
-- **3DPay** - Bankaya göre farklı isimler verilebilir, örn. 3D Half. Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödeme bitmiş sayılır. 3D ödemede yapıldığı gibi ekstra provizyon istek gönderilmez.
-- **3DHost** - Kredi kart girişi için kullanıcı bankanın sayfasına yönledirilir, kredi kart bilgileri girdikten sonra bankanın 3D gateway sayfasına yönlendirilir, ordan da websitenize geri yönlendirilir. Yönlendirme sonucunda ödeme tamanlanmış olur.
+- **3DSecure** - Bankaya göre farklı isimler verilebilir, örn. 3D Full.
+Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödemeyi tamamlamak için
+banka gateway'ne 1 istek daha (_provizyon_ isteği) gönderir.
+Bu isteği göndermeden ödeme **tamamlanmaz**.
+- **3DPay** - Bankaya göre farklı isimler verilebilir, örn. 3D Half.
+Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödeme bitmiş sayılır.
+3DSecure ödemede yapıldığı gibi ekstra provizyon istek gönderilmez.
+- **3DHost** - Kredi kart girişi için kullanıcı bankanın sayfasına yönledirilir,
+kredi kart bilgileri girdikten sonra bankanın 3D gateway sayfasına yönlendirilir,
+ordan da websitenize geri yönlendirilir. Yönlendirme sonucunda ödeme tamanlanmış olur.
 - **NonSecure** - Ödeme işlemi kullanıcı 3D onay işlemi yapmadan gerçekleşir.
-- **NonSecure, 3D ve 3DPay** - Ödemede kredi kart bilgisi websiteniz tarafından alınır. **3DHost** ödemede ise banka websayfasından alınır.
+- **NonSecure, 3DSecure ve 3DPay** - Ödemede kredi kart bilgisi websiteniz tarafından alınır.
+**3DHost** ödemede ise banka websayfasından alınır.
 
 ### Otorizasyon, Ön Otorizasyon, Ön Provizyon Kapama İşlemler arasındaki farklar
 - **Otorizasyon** - bildiğimiz ve genel olarak kullandığımız işlem. Tek seferde ödeme işlemi biter.
@@ -218,17 +222,21 @@ Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
 - **Ön Otorizasyon** - müşteriden parayı direk çekmek yerine, işlem sonucunda para bloke edilir.
 Bu işlem için kullanıcıdan hep kredi kart bilgisini _alınır_.
 İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_PAY_PRE_AUTH`
-- **Ön Provizyon Kapama** - ön provizyon sonucunda bloke edilen miktarın satışını tamamlar.
+- **Ön Provizyon Kapama** - ön provizyon sonucunda bloke edilen miktarın çekimini gerçekleştirir.
 Ön otorizasyon yapıldıktan sonra, örneğin 1 hafta sonra, Post Otorizasyon isteği gönderilebilinir.
 Bu işlem için kullanıcıdan kredi kart bilgisi _alınmaz_.
-Onun yerine bazı gateway'ler `orderId` degeri isteri, bazıları ise ön provizyon sonucu dönen banka tarafındaki `orderId`'yi ister.
+Onun yerine bazı gateway'ler `orderId` degeri istenir,
+bazıları ise ön provizyon sonucu dönen banka tarafındaki `orderId`'yi ister.
 Satıcı _ön otorizasyon_ isteği iptal etmek isterse de `cancel` isteği gönderir.
-Post Otorizasyon İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_PAY_POST_AUTH`
-- Bu 3 çeşit işlemler bütün ödeme modelleri (NonSecure, 3D, 3DPay ve 3DHost) tarafından desteklenir.
+Post Otorizasyon İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_PAY_POST_AUTH`.
+Bu işlem **sadece NonSecure** ödeme modeliyle gerçekleşir.
+- `TX_TYPE_PAY_AUTH` vs `TX_TYPE_PAY_PRE_AUTH` işlemler genelde bütün ödeme modelleri
+(NonSecure, 3DSecure, 3DPay ve 3DHost) tarafından desteklenir.
+
 
 ### Refund ve Cancel işlemler arasındaki farklar
 - **Refund** - Tamamlanan ödemeyi iade etmek için kullanılır.
-Bu işlem gün kapandıktan _sonra_ yapılabilir.
+Bu işlem bazı gatewaylerde sadece gün kapandıktan _sonra_ yapılabilir.
 İade işlemi için _miktar zorunlu_, çünkü ödenen ve iade edilen miktarı aynı olmayabilir.
 İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_REFUND`
 - **Cancel** - Tamamlanan ödemeyi iptal etmek için kullanılır.
@@ -237,13 +245,13 @@ Genel olarak _miktar_ bilgisi _istenmez_, ancak bazı Gateway'ler ister.
 İşlemin kütüphanedeki karşılığı `PosInterface::TX_TYPE_CANCEL`
 
 ## Docker ile test ortami
-1. Makinenizde Docker kurulu olmasi gerekiyor.
+1. Makinenizde Docker kurulu olması gerekir.
 2. Projenin root klasöründe `docker-compose up -d` komutu çalıştırınız.
 3. ```sh
-    $ composer require php-http/curl-client nyholm/psr7 mews/pos
+    $ composer require mews/pos
     ```
 **Note**: localhost port 80 boş olması gerekiyor.
-Sorunsuz çalışması durumda kod örneklerine http://localhost/akbank/3d/index.php şekilde erişebilirsiniz.
+Sorunsuz çalışması durumda kod örneklerine http://localhost/estpos/3d/index.php şekilde erişebilirsiniz.
 http://localhost/ URL projenin `examples` klasörünün içine bakar.
 
 ### Unit testler çalıştırma
