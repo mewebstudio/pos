@@ -30,7 +30,7 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 - [Latest updates](#latest-updates)
 - [Minimum Gereksinimler](#minimum-gereksinimler)
 - [Kurulum](#kurulum)
-- [Farklı Banka Sanal Poslarını Eklemek](#farkli-gatewayler-tek-islem-akisi)
+- [Farklı Banka Sanal Poslarını Eklemek](#farkli-banka-sanal-poslarini-eklemek)
 - [Ornek Kodlar](#ornek-kodlar)
   - [3DSecure, 3DPay ve 3DHost Ödeme Örneği](./docs/THREED-PAYMENT-EXAMPLE.md)
   - [3DSecure, 3DPay ve 3DHost Modal Box ile Ödeme Örneği](./docs/THREED-SECURE-AND-PAY-PAYMENT-IN-MODALBOX-EXAMPLE.md)
@@ -95,7 +95,7 @@ $ composer require php-http/curl-client nyholm/psr7 symfony/event-dispatcher mew
 ```
 Diğer PSR-18 uygulamasını sağlayan kütüphaneler: https://packagist.org/providers/psr/http-client-implementation
 
-### Farkli Banka Sanal Poslarını Eklemek
+### Farkli Banka Sanal Poslarini Eklemek
 Kendi projenizin dizinindeyken
 ```sh
 $ cp ./vendor/mews/pos/config/pos_production.php ./pos_ayarlar.php
