@@ -245,7 +245,8 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
         ];
         if (self::TX_APPROVED === $status) {
             $result['trans_id']       = $rawResponseData['TransactionId'] > 0 ? $rawResponseData['TransactionId'] : null;
-            $result['trans_date']     = $rawResponseData['TransactionDate'] > 0 ? $rawResponseData['TransactionDate'] : null;
+            // ex: 20231209154531
+            $result['trans_date']     = isset($rawResponseData['CreateDate']) > 0 ? new \DateTime($rawResponseData['CreateDate']) : null;
             $result['currency']       = $this->mapCurrency($rawResponseData['Currency']);
             $result['first_amount']   = $this->formatAmount($rawResponseData['Amount']);
             $result['capture_amount'] = $this->formatAmount($rawResponseData['NetAmount']);
@@ -285,6 +286,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             'error_message'    => self::TX_DECLINED === $status ? ($rawResponseData['message'] ?? $rawResponseData['Message']) : null,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($errorCode),
+            'trans_count'      => self::TX_APPROVED === $status ? \count($rawResponseData['Transactions']) : 0,
             'transactions'     => $mappedTransactions,
             'all'              => $rawResponseData,
         ];
