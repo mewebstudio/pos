@@ -35,6 +35,28 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
+     * D : Başarısız işlem
+     * A : Otorizasyon, gün sonu kapanmadan
+     * C : Ön otorizasyon kapama, gün sonu kapanmadan
+     * PN : Bekleyen İşlem
+     * CNCL : İptal Edilmiş İşlem
+     * ERR : Hata Almış İşlem
+     * S : Satış
+     * R : Teknik İptal gerekiyor
+     * V : İptal
+     * @var array<string, string>
+     */
+    protected array $orderStatusMappings = [
+        'D'    => PosInterface::PAYMENT_STATUS_ERROR,
+        'ERR'  => PosInterface::PAYMENT_STATUS_ERROR,
+        'A'    => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
+        'C'    => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
+        'S'    => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
+        'CNCL' => PosInterface::PAYMENT_STATUS_CANCELED,
+        'V'    => PosInterface::PAYMENT_STATUS_CANCELED,
+    ];
+
+    /**
      * @param PaymentStatusModel $rawPaymentResponseData
      * {@inheritDoc}
      */
@@ -397,12 +419,19 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapHistoryResponse(array $rawResponseData): array
     {
-
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
         $status          = self::TX_DECLINED;
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
+        }
+
+        $transactions = [];
+        $i            = 1;
+        while (isset($rawResponseData['Extra']["TRX$i"])) {
+            $rawTx                           = \explode("\t", $rawResponseData['Extra']["TRX$i"]);
+            $transactions[]                  = $this->mapSingleHistoryTransaction($rawTx);
+            $i++;
         }
 
         return [
@@ -411,7 +440,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'proc_return_code' => $procReturnCode,
             'error_message'    => $rawResponseData['ErrMsg'],
             'num_code'         => $rawResponseData['Extra']['NUMCODE'],
-            'trans_count'      => $rawResponseData['Extra']['TRXCOUNT'],
+            'trans_count'      => (int) $rawResponseData['Extra']['TRXCOUNT'],
+            'transactions'     => $transactions,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
             'all'              => $rawResponseData,
@@ -469,5 +499,36 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
     protected function formatAmount(string $amount): float
     {
         return ((float) \str_replace('.', '', $amount)) / 100;
+    }
+
+    /**
+     * @param array{string, string} $rawTx
+     *
+     * @return array<string, string|int|float|null>
+     */
+    private function mapSingleHistoryTransaction(array $rawTx): array
+    {
+        $rawTx                           = $this->emptyStringsToNull($rawTx);
+        $transaction                     = $this->getDefaultStatusResponse();
+        $transaction['auth_code']        = $rawTx[8];
+        $transaction['proc_return_code'] = $rawTx[9];
+        if (self::PROCEDURE_SUCCESS_CODE === $transaction['proc_return_code']) {
+            $transaction['status'] = self::TX_APPROVED;
+        }
+        $transaction['status_detail']    = $this->getStatusDetail($transaction['proc_return_code']);
+        $transaction['trans_id']         = $rawTx[10];
+        /**
+         * S: Auth/PreAuth/PostAuth
+         * C: Refund
+         */
+        $transaction['transaction_type'] = 'S' === $rawTx[0] ? PosInterface::TX_TYPE_PAY_AUTH : PosInterface::TX_TYPE_REFUND;
+        $transaction['order_status']     = $this->orderStatusMappings[$rawTx[1]] ?? null;
+        $transaction['trans_date']       = new \DateTime($rawTx[4]);
+        $transaction['first_amount']     = null === $rawTx[2] ? null : $this->formatAmount($rawTx[2]);
+        $transaction['capture_amount']   = null === $rawTx[3] ? null : $this->formatAmount($rawTx[3]);
+        $transaction['capture']          = self::TX_APPROVED === $transaction['status'] && $transaction['first_amount'] === $transaction['capture_amount'];
+        $transaction['ref_ret_num']      = $rawTx[7];
+
+        return $transaction;
     }
 }

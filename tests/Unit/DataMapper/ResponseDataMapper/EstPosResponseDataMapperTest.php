@@ -125,7 +125,16 @@ class EstPosResponseDataMapperTest extends TestCase
     public function testMapHistoryResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+        if (count($responseData['Extra']) > 0) {
+            foreach ($actualData['transactions'] as $key => $tx) {
+                $this->assertInstanceOf(\DateTimeInterface::class, $tx['trans_date']);
+                unset($actualData['transactions'][$key]['trans_date'], $expectedData['transactions'][$key]['trans_date']);
+            }
+            $this->assertCount($actualData['trans_count'], $actualData['transactions']);
+        }
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -1300,55 +1309,262 @@ class EstPosResponseDataMapperTest extends TestCase
 
     public static function historyTestDataProvider(): array
     {
-        return
-            [
-                'success1' => [
-                    'responseData' => [
-                        'ErrMsg'         => '',
-                        'ProcReturnCode' => '00',
-                        'Response'       => 'Approved',
-                        'OrderId'        => '20221030B3FF',
-                        'Extra'          => [
-                            'TERMINALID' => '00655020',
-                            'MERCHANTID' => '655000200',
-                            'NUMCODE'    => '0',
-                            'TRX1'       => "C\tD\t101\t101\t2022-10-30 12:58:42.906\t2022-10-30 12:58:42.906\t\t\t\t99\t22303M8rC11328",
-                            'TRX2'       => "C\tD\t101\t101\t2022-10-30 12:57:19.847\t2022-10-30 12:57:19.847\t\t\t\t99\t22303M7UA11280",
-                            'TRX3'       => "S\tV\t101\t101\t2022-10-30 12:51:25.405\t2022-10-30 12:51:25.405\t2022-10-30 12:51:29.839\t230300671786\tP43467\t00\t22303MzZG10851",
-                            'TRXCOUNT'   => '3',
-                        ],
-                    ],
-                    'expectedData' => [
-                        'order_id'         => '20221030B3FF',
-                        'proc_return_code' => '00',
-                        'error_message'    => null,
-                        'num_code'         => '0',
-                        'trans_count'      => '3',
-                        'status'           => 'approved',
-                        'status_detail'    => 'approved',
+        return [
+            'success_cancel_success_refund_fail' => [
+                'responseData' => [
+                    'ErrMsg'         => '',
+                    'ProcReturnCode' => '00',
+                    'Response'       => 'Approved',
+                    'OrderId'        => '20240102D8F1',
+                    'Extra'          => [
+                        'TERMINALID' => '00655020',
+                        'MERCHANTID' => '655000200',
+                        'NUMCODE'    => '0',
+                        'TRX1'       => "C\tD\t100\t100\t2024-01-02 21:53:02.486\t2024-01-02 21:53:02.486\t\t\t\t99\t24002V3CG19993",
+                        'TRX2'       => "S\tV\t101\t101\t2024-01-02 21:52:59.261\t2024-01-02 21:52:59.261\t2024-01-02 21:53:01.297\t400200744059\tP78955\t00\t24002V29G19979",
+                        'TRXCOUNT'   => '2',
                     ],
                 ],
-                'fail1'    => [
-                    'responseData' => [
-                        'ErrMsg'         => 'No record found for 20221030B3FF2',
-                        'ProcReturnCode' => '05',
-                        'Response'       => 'Declined',
-                        'OrderId'        => '20221030B3FF2',
-                        'Extra'          => [
-                            'NUMCODE'  => '0',
-                            'TRXCOUNT' => '0',
+                'expectedData' => [
+                    'order_id'         => '20240102D8F1',
+                    'proc_return_code' => '00',
+                    'error_message'    => null,
+                    'num_code'         => '0',
+                    'trans_count'      => 2,
+                    'transactions'     => [
+                        [
+                            'order_id'         => null,
+                            'auth_code'        => null,
+                            'proc_return_code' => '99',
+                            'trans_id'         => '24002V3CG19993',
+                            'error_message'    => null,
+                            'ref_ret_num'      => null,
+                            'order_status'     => 'ERROR',
+                            'transaction_type' => 'refund',
+                            'first_amount'     => 1.0,
+                            'capture_amount'   => 1.0,
+                            'status'           => 'declined',
+                            'error_code'       => null,
+                            'status_detail'    => 'general_error',
+                            'capture'          => false,
+                            'currency'         => null,
+                        ],
+                        [
+                            'order_id'         => null,
+                            'auth_code'        => 'P78955',
+                            'proc_return_code' => '00',
+                            'trans_id'         => '24002V29G19979',
+                            'error_message'    => null,
+                            'ref_ret_num'      => '400200744059',
+                            'order_status'     => 'CANCELED',
+                            'transaction_type' => 'pay',
+                            'first_amount'     => 1.01,
+                            'capture_amount'   => 1.01,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => true,
+                            'currency'         => null,
                         ],
                     ],
-                    'expectedData' => [
-                        'order_id'         => '20221030B3FF2',
-                        'proc_return_code' => '05',
-                        'error_message'    => 'No record found for 20221030B3FF2',
-                        'num_code'         => '0',
-                        'trans_count'      => '0',
-                        'status'           => 'declined',
-                        'status_detail'    => 'reject',
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                ],
+            ],
+            'success_payment_then_cancel_tx'     => [
+                'responseData' => [
+                    'ErrMsg'         => '',
+                    'ProcReturnCode' => '00',
+                    'Response'       => 'Approved',
+                    'OrderId'        => '202401029F10',
+                    'Extra'          => [
+                        'TERMINALID' => '00655020',
+                        'MERCHANTID' => '655000200',
+                        'NUMCODE'    => '0',
+                        'TRX1'       => "S\tV\t101\t101\t2024-01-02 21:47:28.785\t2024-01-02 21:47:28.785\t2024-01-02 21:47:40.156\t400200744054\tP77381\t00\t24002VvdA19109",
+                        'TRXCOUNT'   => '1',
                     ],
                 ],
-            ];
+                'expectedData' => [
+                    'error_message'    => null,
+                    'num_code'         => '0',
+                    'order_id'         => '202401029F10',
+                    'proc_return_code' => '00',
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'trans_count'      => 1,
+                    'transactions'     => [
+                        [
+                            'order_id'         => null,
+                            'auth_code'        => 'P77381',
+                            'proc_return_code' => '00',
+                            'trans_id'         => '24002VvdA19109',
+                            'error_message'    => null,
+                            'ref_ret_num'      => '400200744054',
+                            'order_status'     => 'CANCELED',
+                            'transaction_type' => 'pay',
+                            'first_amount'     => 1.01,
+                            'capture_amount'   => 1.01,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => true,
+                            'currency'         => null,
+                        ],
+                    ],
+                ],
+            ],
+            'success_one_payment_tx'             => [
+                'responseData' => [
+                    'ErrMsg'         => '',
+                    'ProcReturnCode' => '00',
+                    'Response'       => 'Approved',
+                    'OrderId'        => '202401010C20',
+                    'Extra'          => [
+                        'TERMINALID' => '00655020',
+                        'MERCHANTID' => '655000200',
+                        'NUMCODE'    => '0',
+                        'TRX1'       => "S\tC\t101\t101\t2024-01-01 22:15:27.511\t2024-01-01 22:15:27.511\t\t400100743898\tP14578\t00\t24001WPbH16694",
+                        'TRXCOUNT'   => '1',
+                    ],
+                ],
+                'expectedData' => [
+                    'error_message'    => null,
+                    'num_code'         => '0',
+                    'order_id'         => '202401010C20',
+                    'proc_return_code' => '00',
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'trans_count'      => 1,
+                    'transactions'     => [
+                        [
+                            'order_id'         => null,
+                            'auth_code'        => 'P14578',
+                            'proc_return_code' => '00',
+                            'trans_id'         => '24001WPbH16694',
+                            'error_message'    => null,
+                            'ref_ret_num'      => '400100743898',
+                            'order_status'     => 'PAYMENT_COMPLETED',
+                            'transaction_type' => 'pay',
+                            'first_amount'     => 1.01,
+                            'capture_amount'   => 1.01,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => true,
+                            'currency'         => null,
+                        ],
+                    ],
+                ],
+            ],
+            'success_one_pre_auth_tx'            => [
+                'responseData' => [
+                    'ErrMsg'         => '',
+                    'ProcReturnCode' => '00',
+                    'Response'       => 'Approved',
+                    'OrderId'        => '20240101CCCF',
+                    'Extra'          => [
+                        'TERMINALID' => '00655020',
+                        'MERCHANTID' => '655000200',
+                        'NUMCODE'    => '0',
+                        'TRX1'       => "S\tA\t205\t\t2024-01-01 22:28:30.716\t\t\t400100743899\tT56045\t00\t24001WceJ18839",
+                        'TRXCOUNT'   => '1',
+                    ],
+                ],
+                'expectedData' => [
+                    'error_message'    => null,
+                    'num_code'         => '0',
+                    'order_id'         => '20240101CCCF',
+                    'proc_return_code' => '00',
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'trans_count'      => 1,
+                    'transactions'     => [
+                        [
+                            'order_id'         => null,
+                            'auth_code'        => 'T56045',
+                            'proc_return_code' => '00',
+                            'trans_id'         => '24001WceJ18839',
+                            'error_message'    => null,
+                            'ref_ret_num'      => '400100743899',
+                            'order_status'     => 'PAYMENT_COMPLETED',
+                            'transaction_type' => 'pay',
+                            'first_amount'     => 2.05,
+                            'capture_amount'   => null,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => false,
+                            'currency'         => null,
+                        ],
+                    ],
+                ],
+            ],
+            'success_pre_auth_and_post_tx'       => [
+                'responseData' => [
+                    'ErrMsg'         => '',
+                    'ProcReturnCode' => '00',
+                    'Response'       => 'Approved',
+                    'OrderId'        => '202401014456',
+                    'Extra'          => [
+                        'TERMINALID' => '00655020',
+                        'MERCHANTID' => '655000200',
+                        'NUMCODE'    => '0',
+                        'TRX1'       => "S\tC\t200\t200\t2024-01-01 22:37:53.396\t2024-01-01 22:37:53.396\t\t400100743901\tT14446\t00\t24001Wl3G10348",
+                        'TRXCOUNT'   => '1',
+                    ],
+                ],
+                'expectedData' => [
+                    'error_message'    => null,
+                    'num_code'         => '0',
+                    'order_id'         => '202401014456',
+                    'proc_return_code' => '00',
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'trans_count'      => 1,
+                    'transactions'     => [
+                        [
+                            'order_id'         => null,
+                            'auth_code'        => 'T14446',
+                            'proc_return_code' => '00',
+                            'trans_id'         => '24001Wl3G10348',
+                            'error_message'    => null,
+                            'ref_ret_num'      => '400100743901',
+                            'order_status'     => 'PAYMENT_COMPLETED',
+                            'transaction_type' => 'pay',
+                            'first_amount'     => 2.0,
+                            'capture_amount'   => 2.0,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => true,
+                            'currency'         => null,
+                        ],
+                    ],
+                ],
+            ],
+            'fail1'                              => [
+                'responseData' => [
+                    'ErrMsg'         => 'No record found for 20221030B3FF2',
+                    'ProcReturnCode' => '05',
+                    'Response'       => 'Declined',
+                    'OrderId'        => '20221030B3FF2',
+                    'Extra'          => [
+                        'NUMCODE'  => '0',
+                        'TRXCOUNT' => '0',
+                    ],
+                ],
+                'expectedData' => [
+                    'order_id'         => '20221030B3FF2',
+                    'proc_return_code' => '05',
+                    'error_message'    => 'No record found for 20221030B3FF2',
+                    'num_code'         => '0',
+                    'trans_count'      => 0,
+                    'transactions'     => [],
+                    'status'           => 'declined',
+                    'status_detail'    => 'reject',
+                ],
+            ],
+        ];
     }
 }

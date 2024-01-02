@@ -240,7 +240,7 @@ class EstPosTest extends TestCase
 
         $responseMapper = $this->createMock(EstPosResponseDataMapper::class);
         $responseMapper->expects($this->once())->method('mapHistoryResponse')
-            ->willReturn(EstPosResponseDataMapperTest::historyTestDataProvider()['success1']['expectedData']);
+            ->willReturn(EstPosResponseDataMapperTest::historyTestDataProvider()['success_one_payment_tx']['expectedData']);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -257,7 +257,7 @@ class EstPosTest extends TestCase
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
-            EstPosResponseDataMapperTest::historyTestDataProvider()['success1']['responseData']
+            EstPosResponseDataMapperTest::historyTestDataProvider()['success_one_payment_tx']['responseData']
         );
 
         $posMock->history($this->order);
