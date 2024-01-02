@@ -111,18 +111,13 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider postAuthRequestDataProvider
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData()
+    public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expected)
     {
-        $order = [
-            'id' => '2020110828BC',
-        ];
-
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->account, $order);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -457,6 +452,39 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    public static function postAuthRequestDataProvider(): array
+    {
+        return [
+            'without_amount' => [
+                'order'    => [
+                    'id' => '2020110828BC',
+                ],
+                'expected' => [
+                    'Name'     => 'ISBANKAPI',
+                    'Password' => 'ISBANK07',
+                    'ClientId' => '700655000200',
+                    'Type'     => 'PostAuth',
+                    'OrderId'  => '2020110828BC',
+                    'Total'    => null,
+                ],
+            ],
+            'with_amount'    => [
+                'order'    => [
+                    'id'     => '2020110828BC',
+                    'amount' => 1.0,
+                ],
+                'expected' => [
+                    'Name'     => 'ISBANKAPI',
+                    'Password' => 'ISBANK07',
+                    'ClientId' => '700655000200',
+                    'Type'     => 'PostAuth',
+                    'OrderId'  => '2020110828BC',
+                    'Total'    => 1.0,
+                ],
+            ],
+        ];
+    }
+
     /**
      * @param AbstractPosAccount $account
      * @param array              $order
@@ -517,23 +545,6 @@ class EstPosRequestDataMapperTest extends TestCase
             'Expires'   => '01/22',
             'Cvv2Val'   => $card->getCvv(),
             'Mode'      => 'P',
-        ];
-    }
-
-    /**
-     * @param AbstractPosAccount $account
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, array $order): array
-    {
-        return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
-            'Type'     => 'PostAuth',
-            'OrderId'  => $order['id'],
         ];
     }
 

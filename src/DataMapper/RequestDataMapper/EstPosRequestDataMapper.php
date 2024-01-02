@@ -127,7 +127,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      *
-     * @return array{Type: string, OrderId: string, Name: string, Password: string, ClientId: string}
+     * @return array{Type: string, OrderId: string, Name: string, Password: string, ClientId: string, Total: float|null}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
     {
@@ -136,6 +136,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
                 'Type'    => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'OrderId' => (string) $order['id'],
+                'Total'   => isset($order['amount']) ? $this->formatAmount($order['amount']) : null,
             ];
     }
 
@@ -318,7 +319,8 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     protected function preparePostPaymentOrder(array $order): array
     {
         return [
-            'id' => $order['id'],
+            'id'     => $order['id'],
+            'amount' => $order['amount'] ?? null,
         ];
     }
 
