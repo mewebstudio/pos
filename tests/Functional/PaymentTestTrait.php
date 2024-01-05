@@ -5,6 +5,11 @@
 
 namespace Mews\Pos\Tests\Functional;
 
+use Mews\Pos\Gateways\AkOdePos;
+use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\GarantiPos;
+use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 
 trait PaymentTestTrait
@@ -168,5 +173,75 @@ trait PaymentTestTrait
         }
 
         return $cancelOrder;
+    }
+
+    private function createHistoryOrder(string $gatewayClass, array $lastResponse, array $extraData): array
+    {
+        $order = [];
+        if (EstPos::class === $gatewayClass || EstV3Pos::class === $gatewayClass) {
+            $order = [
+                'id' => $lastResponse['order_id'],
+            ];
+        }
+
+        if (AkOdePos::class === $gatewayClass) {
+            $order = [
+                'id'              => $lastResponse['order_id'],
+                'transactionDate' => new \DateTime(), // odeme tarihi
+                'page'            => 1, // optional, default: 1
+                'pageSize'        => 10, // optional, default: 10
+            ];
+        }
+        if (PayForPos::class === $gatewayClass) {
+            if (isset($extraData['reqDate'])) {
+                $order = [
+                    // odeme tarihi
+                    'reqDate'  => $extraData['reqDate'],
+                ];
+            } else {
+                $order = [
+                    'id' => $lastResponse['order_id'],
+                ];
+            }
+        }
+
+        if (GarantiPos::class === $gatewayClass) {
+            $order = [
+                'id'       => $lastResponse['order_id'],
+                'currency' => $lastResponse['currency'],
+                'ip'       => '127.0.0.1',
+            ];
+        }
+
+        return $order;
+    }
+
+    private function createRefundOrder(string $gatewayClass, array $lastResponse): array
+    {
+        $refundOrder = [
+            'id'          => $lastResponse['order_id'], // MerchantOrderId
+            'amount'      => $lastResponse['amount'],
+            'currency'    => $lastResponse['currency'],
+            'ref_ret_num' => $lastResponse['ref_ret_num'],
+            'ip'          => '127.0.0.1',
+        ];
+
+        if (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
+            $refundOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
+            $refundOrder['auth_code']       = $lastResponse['auth_code'];
+            $refundOrder['trans_id']        = $lastResponse['trans_id'];
+        } elseif (\Mews\Pos\Gateways\PayFlexV4Pos::class === $gatewayClass || \Mews\Pos\Gateways\PayFlexCPV4Pos::class === $gatewayClass) {
+            // çalışmazsa $lastResponse['all']['ReferenceTransactionId']; ile denenmesi gerekiyor.
+            $refundOrder['trans_id'] = $lastResponse['trans_id'];
+        } elseif (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
+            /**
+             * payment_model:
+             * siparis olusturulurken kullanilan odeme modeli
+             * orderId'yi dogru şekilde formatlamak icin zorunlu.
+             */
+            $refundOrder['payment_model'] = $lastResponse['payment_model'];
+        }
+
+        return $refundOrder;
     }
 }

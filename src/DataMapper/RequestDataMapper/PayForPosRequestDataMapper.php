@@ -170,6 +170,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param array{id ?: string, reqDate ?: \DateTimeInterface} $extraData
+     *
      * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
@@ -183,11 +185,10 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'Lang'       => $this->getLang($account, $order),
         ];
 
-        if (isset($extraData['orderId'])) {
-            $requestData['OrderId'] = $extraData['orderId'];
+        if (isset($extraData['id'])) {
+            $requestData['OrderId'] = $extraData['id'];
         } elseif (isset($extraData['reqDate'])) {
-            //ReqData YYYYMMDD format
-            $requestData['ReqDate'] = $extraData['reqDate'];
+            $requestData['ReqDate'] = $extraData['reqDate']->format('Ymd');
         }
 
         return $this->getRequestAccountData($account) + $requestData;

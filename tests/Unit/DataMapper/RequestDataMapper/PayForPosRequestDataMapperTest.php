@@ -147,18 +147,12 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider historyRequestDataProvider
      */
-    public function testCreateHistoryRequestData()
+    public function testCreateHistoryRequestData(array $order, array $expectedData)
     {
-        $order = [
-            'orderId' => '2020110828BC',
-            'reqDate' => '20220518',
-        ];
-
         $actual = $this->requestDataMapper->createHistoryRequestData($this->account, [], $order);
 
-        $expectedData = $this->getSampleHistoryRequestData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -377,32 +371,26 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $account
-     * @param array              $customQueryData
-     *
-     * @return array
-     */
-    private function getSampleHistoryRequestData(AbstractPosAccount $account, array $customQueryData): array
+    public static function historyRequestDataProvider(): array
     {
-        $requestData = [
-            'MbrId'      => '5',
-            'MerchantId' => $account->getClientId(),
-            'UserCode'   => $account->getUsername(),
-            'UserPass'   => $account->getPassword(),
-            'SecureType' => 'Report',
-            'TxnType'    => 'TxnHistory',
-            'Lang'       => 'tr',
+        return [
+            [
+                'order'    => [
+                    'orderId' => '2020110828BC',
+                    'reqDate' => new \DateTime('2022-05-18'),
+                ],
+                'expected' => [
+                    'MerchantId' => '085300000009704',
+                    'UserCode'   => 'QNB_API_KULLANICI_3DPAY',
+                    'UserPass'   => 'UcBN0',
+                    'MbrId'      => '5',
+                    'SecureType' => 'Report',
+                    'TxnType'    => 'TxnHistory',
+                    'Lang'       => 'tr',
+                    'ReqDate'    => '20220518',
+                ],
+            ],
         ];
-
-        if (isset($customQueryData['orderId'])) {
-            $requestData['OrderId'] = $customQueryData['orderId'];
-        } elseif (isset($customQueryData['reqDate'])) {
-            //ReqData YYYYMMDD format
-            $requestData['ReqDate'] = $customQueryData['reqDate'];
-        }
-
-        return $requestData;
     }
 
     public static function threeDFormDataProvider(): array
@@ -476,7 +464,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     ],
                 ],
             ],
-            '3d_host' => [
+            '3d_host'      => [
                 'order'        => $order,
                 'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx',
                 'txType'       => PosInterface::TX_TYPE_PAY_AUTH,

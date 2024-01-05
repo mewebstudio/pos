@@ -163,18 +163,12 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider historyRequestDataProvider
      */
-    public function testCreateHistoryRequestData()
+    public function testCreateHistoryRequestData(array $order, array $expected)
     {
-        $order = [
-            'order_id' => '2020110828BC',
-        ];
-
         $actual = $this->requestDataMapper->createHistoryRequestData($this->account, [], $order);
-
-        $expectedData = $this->getSampleHistoryRequestData($this->account, $order);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertEquals($expected, $actual);
     }
 
     /**
@@ -485,6 +479,26 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'    => [
+                    'id' => '2020110828BC',
+                ],
+                'expected' => [
+                    'Name'     => 'ISBANKAPI',
+                    'Password' => 'ISBANK07',
+                    'ClientId' => '700655000200',
+                    'OrderId'  => '2020110828BC',
+                    'Extra'    => [
+                        'ORDERHISTORY' => 'QUERY',
+                    ],
+                ],
+            ],
+        ];
+    }
+
     /**
      * @param AbstractPosAccount $account
      * @param array              $order
@@ -608,24 +622,5 @@ class EstPosRequestDataMapperTest extends TestCase
         }
 
         return $data;
-    }
-
-    /**
-     * @param AbstractPosAccount $account
-     * @param array              $customQueryData
-     *
-     * @return array
-     */
-    private function getSampleHistoryRequestData(AbstractPosAccount $account, array $customQueryData): array
-    {
-        return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
-            'OrderId'  => $customQueryData['order_id'],
-            'Extra'    => [
-                'ORDERHISTORY' => 'QUERY',
-            ],
-        ];
     }
 }

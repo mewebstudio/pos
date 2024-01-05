@@ -221,7 +221,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
     {
         $requestData = [
-            'OrderId' => (string) $extraData['order_id'], //todo orderId ya da id olarak degistirilecek, Payfor'da orderId, Garanti'de id
+            'OrderId' => (string) $extraData['id'],
             'Extra'   => [
                 $this->mapTxType(PosInterface::TX_TYPE_HISTORY) => 'QUERY',
             ],
