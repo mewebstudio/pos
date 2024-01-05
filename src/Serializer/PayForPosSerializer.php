@@ -6,8 +6,6 @@
 namespace Mews\Pos\Serializer;
 
 use Mews\Pos\Gateways\PayForPos;
-use Mews\Pos\PosInterface;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\Serializer;
@@ -23,7 +21,7 @@ class PayForPosSerializer implements SerializerInterface
             XmlEncoder::ENCODING       => 'UTF-8',
         ]);
 
-        $this->serializer = new Serializer([], [$encoder, new JsonEncoder()]);
+        $this->serializer = new Serializer([], [$encoder]);
     }
 
     /**
@@ -47,10 +45,6 @@ class PayForPosSerializer implements SerializerInterface
      */
     public function decode(string $data, string $txType): array
     {
-        if (PosInterface::TX_TYPE_HISTORY === $txType) {
-            return $this->serializer->decode($data, JsonEncoder::FORMAT);
-        }
-
         /**
          * Finansbank XML Response some times are in following format:
          * <MbrId>5</MbrId>\r\n
@@ -60,7 +54,7 @@ class PayForPosSerializer implements SerializerInterface
          * </Hash>\r\n
          * redundant whitespaces causes non-empty value for response properties
          */
-        $response = preg_replace('/\r\n\s*/', '', $data);
+        $response = \preg_replace('/\r\n\s*/', '', $data);
         if (null === $response) {
             throw new NotEncodableValueException();
         }
