@@ -82,6 +82,9 @@ interface PosInterface
     public const PAYMENT_STATUS_PAYMENT_COMPLETED = 'PAYMENT_COMPLETED';
 
     /** @var string */
+    public const PAYMENT_STATUS_PAYMENT_PENDING = 'PAYMENT_PENDING';
+
+    /** @var string */
     public const PAYMENT_STATUS_CANCELED = 'CANCELED';
 
     /** @var string */

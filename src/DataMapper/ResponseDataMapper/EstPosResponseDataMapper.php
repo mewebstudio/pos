@@ -52,6 +52,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         'A'    => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
         'C'    => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
         'S'    => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
+        'PN'   => PosInterface::PAYMENT_STATUS_PAYMENT_PENDING,
         'CNCL' => PosInterface::PAYMENT_STATUS_CANCELED,
         'V'    => PosInterface::PAYMENT_STATUS_CANCELED,
     ];
@@ -138,7 +139,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $threeDResponse['cavv'] = $raw3DAuthResponseData['cavv'];
         }
 
-        $result = $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
+        $result                  = $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
         $result['payment_model'] = $paymentModel;
 
         return $result;
@@ -328,34 +329,30 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (isset($extra['RECURRINGID'])) {
             return $this->mapRecurringStatusResponse($rawResponseData);
         }
+        $defaultResponse = $this->getDefaultStatusResponse();
 
-        $result = [
-            'order_id'         => $rawResponseData['OrderId'],
-            'auth_code'        => null,
-            'proc_return_code' => $procReturnCode,
-            'trans_id'         => $rawResponseData['TransId'],
-            'error_message'    => $rawResponseData['ErrMsg'],
-            'ref_ret_num'      => null,
-            'order_status'     => $extra['ORDERSTATUS'],
-            'transaction_type' => null,
-            'masked_number'    => null,
-            'num_code'         => null,
-            'first_amount'     => null,
-            'capture_amount'   => null,
-            'status'           => $status,
-            'error_code'       => null,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'capture'          => false,
-            'all'              => $rawResponseData,
-        ];
+        $defaultResponse['order_id']         = $rawResponseData['OrderId'];
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $defaultResponse['trans_id']         = $rawResponseData['TransId'];
+        $defaultResponse['error_message']    = self::TX_APPROVED === $status ? null : $rawResponseData['ErrMsg'];
+        $defaultResponse['status']           = $status;
+        $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
+        $defaultResponse['all']              = $rawResponseData;
+
+        $result = $defaultResponse;
         if (self::TX_APPROVED === $status) {
-            $result['auth_code']      = $extra['AUTH_CODE'];
-            $result['ref_ret_num']    = $extra['HOST_REF_NUM'];
-            $result['first_amount']   = $this->formatAmount($extra['ORIG_TRANS_AMT']);
-            $result['capture_amount'] = null !== $extra['CAPTURE_AMT'] ? $this->formatAmount($extra['CAPTURE_AMT']) : null;
-            $result['masked_number']  = $extra['PAN'];
-            $result['num_code']       = $extra['NUMCODE'];
-            $result['capture']        = $result['first_amount'] === $result['capture_amount'];
+            $result['auth_code']        = $extra['AUTH_CODE'];
+            $result['ref_ret_num']      = $extra['HOST_REF_NUM'];
+            $result['first_amount']     = $this->formatAmount($extra['ORIG_TRANS_AMT']);
+            $result['capture_amount']   = null !== $extra['CAPTURE_AMT'] ? $this->formatAmount($extra['CAPTURE_AMT']) : null;
+            $result['masked_number']    = $extra['PAN'];
+            $result['num_code']         = $extra['NUMCODE'];
+            $result['capture']          = $result['first_amount'] === $result['capture_amount'];
+            $txType                     = 'S' === $extra['CHARGE_TYPE_CD'] ? PosInterface::TX_TYPE_PAY_AUTH : PosInterface::TX_TYPE_REFUND;
+            $result['transaction_type'] = $txType;
+            $result['order_status']     = $this->orderStatusMappings[$extra['TRANS_STAT']] ?? null;
+            $result['trans_time']       = isset($extra['AUTH_DTTM']) ? new \DateTime($extra['AUTH_DTTM']) : null;
+            $result['capture_time']     = isset($extra['CAPTURE_DTTM']) ? new \DateTime($extra['CAPTURE_DTTM']) : null;
         }
 
         return $result;
@@ -387,26 +384,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         ];
 
         for ($i = 1; isset($extra[sprintf('ORD_ID_%d', $i)]); ++$i) {
-            $recurringOrder = [
-                'order_id'         => $extra[sprintf('ORD_ID_%d', $i)],
-                'order_status'     => $extra[sprintf('ORDERSTATUS_%d', $i)],
-                'masked_number'    => $extra[sprintf('PAN_%d', $i)],
-                'status'           => $extra[sprintf('TRANS_STAT_%d', $i)], //C => Completed, PN => Pending, CNCL => Canceled
-
-                // following fields are null until transaction is done for respective installment:
-                'auth_code'        => $extra[sprintf('AUTH_CODE_%d', $i)] ?? null,
-                'auth_time'        => $extra[sprintf('AUTH_DTTM_%d', $i)] ?? null,
-                'proc_return_code' => $extra[sprintf('PROC_RET_CD_%d', $i)] ?? null,
-                'trans_id'         => $extra[sprintf('TRANS_ID_%d', $i)] ?? null,
-                'ref_ret_num'      => $extra[sprintf('HOST_REF_NUM_%d', $i)] ?? null,
-                'first_amount'     => $extra[sprintf('ORIG_TRANS_AMT_%d', $i)],
-                'capture_amount'   => $extra[sprintf('CAPTURE_AMT_%d', $i)] ?? null,
-                'capture_time'     => $extra[sprintf('CAPTURE_DTTM_%d', $i)] ?? null,
-            ];
-
-            $recurringOrder['capture'] = $recurringOrder['first_amount'] === $recurringOrder['capture_amount'];
-
-            $recurringOrderResponse['recurringOrders'][] = $recurringOrder;
+            $recurringOrderResponse['recurringOrders'][] = $this->mapSingleRecurringOrderStatus($extra, $i);
         }
 
         return $recurringOrderResponse;
@@ -429,8 +407,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         $transactions = [];
         $i            = 1;
         while (isset($rawResponseData['Extra']["TRX$i"])) {
-            $rawTx                           = \explode("\t", $rawResponseData['Extra']["TRX$i"]);
-            $transactions[]                  = $this->mapSingleHistoryTransaction($rawTx);
+            $rawTx          = \explode("\t", $rawResponseData['Extra']["TRX$i"]);
+            $transactions[] = $this->mapSingleHistoryTransaction($rawTx);
             $i++;
         }
 
@@ -492,6 +470,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * "100001" => 1000.01 odeme durum sorgulandiginda gelen amount format
      * "1000.01" => 1000.01 odeme yapildiginda gelen amount format
+     *
      * @param string $amount
      *
      * @return float
@@ -502,7 +481,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * @param array{string, string} $rawTx
+     * @param array<int, string> $rawTx
      *
      * @return array<string, string|int|float|null>
      */
@@ -515,20 +494,60 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $transaction['proc_return_code']) {
             $transaction['status'] = self::TX_APPROVED;
         }
-        $transaction['status_detail']    = $this->getStatusDetail($transaction['proc_return_code']);
-        $transaction['trans_id']         = $rawTx[10];
+        $transaction['status_detail'] = $this->getStatusDetail($transaction['proc_return_code']);
+        $transaction['trans_id']      = $rawTx[10];
         /**
          * S: Auth/PreAuth/PostAuth
          * C: Refund
          */
         $transaction['transaction_type'] = 'S' === $rawTx[0] ? PosInterface::TX_TYPE_PAY_AUTH : PosInterface::TX_TYPE_REFUND;
         $transaction['order_status']     = $this->orderStatusMappings[$rawTx[1]] ?? null;
-        $transaction['trans_date']       = new \DateTime($rawTx[4]);
+        $transaction['trans_time']       = new \DateTime($rawTx[4]);
         $transaction['first_amount']     = null === $rawTx[2] ? null : $this->formatAmount($rawTx[2]);
         $transaction['capture_amount']   = null === $rawTx[3] ? null : $this->formatAmount($rawTx[3]);
         $transaction['capture']          = self::TX_APPROVED === $transaction['status'] && $transaction['first_amount'] === $transaction['capture_amount'];
         $transaction['ref_ret_num']      = $rawTx[7];
 
         return $transaction;
+    }
+
+    /**
+     * @param array<string|int, string|null> $extra
+     * @param int<1, max>                    $i
+     *
+     * @return array<string, string|float|null>
+     */
+    private function mapSingleRecurringOrderStatus(array $extra, int $i): array
+    {
+        $procReturnCode = $extra[\sprintf('PROC_RET_CD_%d', $i)] ?? null;
+        $status         = self::TX_DECLINED;
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        } elseif (null === $procReturnCode) {
+            $status = null;
+        }
+        $recurringOrder = [
+            'order_id'         => $extra[\sprintf('ORD_ID_%d', $i)],
+            'masked_number'    => $extra[\sprintf('PAN_%d', $i)],
+            'order_status'     => $this->orderStatusMappings[$extra[\sprintf('TRANS_STAT_%d', $i)]] ?? null,
+
+            // following fields are null until transaction is done for respective installment:
+            'auth_code'        => $extra[\sprintf('AUTH_CODE_%d', $i)] ?? null,
+            'proc_return_code' => $procReturnCode,
+            'transaction_type' => 'S' === $extra[\sprintf('CHARGE_TYPE_CD_%d', $i)] ? PosInterface::TX_TYPE_PAY_AUTH : PosInterface::TX_TYPE_REFUND,
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail($procReturnCode),
+            'trans_time'       => isset($extra[\sprintf('AUTH_DTTM_%d', $i)]) ? new \DateTime($extra[\sprintf('AUTH_DTTM_%d', $i)]) : null,
+            'capture_time'     => isset($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) ? new \DateTime($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) : null,
+            'trans_id'         => $extra[\sprintf('TRANS_ID_%d', $i)] ?? null,
+            'ref_ret_num'      => $extra[\sprintf('HOST_REF_NUM_%d', $i)] ?? null,
+            'first_amount'     => isset($extra[\sprintf('ORIG_TRANS_AMT_%d', $i)]) ? $this->formatAmount($extra[\sprintf('ORIG_TRANS_AMT_%d', $i)]) : null,
+            'capture_amount'   => isset($extra[\sprintf('CAPTURE_AMT_%d', $i)]) ? $this->formatAmount($extra[\sprintf('CAPTURE_AMT_%d', $i)]) : null,
+        ];
+
+
+        $recurringOrder['capture'] = $recurringOrder['first_amount'] === $recurringOrder['capture_amount'];
+
+        return $this->mergeArraysPreferNonNullValues($this->getDefaultStatusResponse(), $recurringOrder);
     }
 }

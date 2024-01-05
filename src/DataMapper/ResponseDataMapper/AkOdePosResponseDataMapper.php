@@ -230,7 +230,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             'auth_code'        => $rawResponseData['AuthCode'],
             'proc_return_code' => $procReturnCode,
             'trans_id'         => null,
-            'trans_date'       => null,
+            'trans_time'       => null,
             'error_message'    => $rawResponseData['BankResponseMessage'],
             'ref_ret_num'      => null,
             'masked_number'    => $rawResponseData['CardNo'],
@@ -246,7 +246,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED === $status) {
             $result['trans_id']       = $rawResponseData['TransactionId'] > 0 ? $rawResponseData['TransactionId'] : null;
             // ex: 20231209154531
-            $result['trans_date']     = isset($rawResponseData['CreateDate']) > 0 ? new \DateTime($rawResponseData['CreateDate']) : null;
+            $result['trans_time']     = isset($rawResponseData['CreateDate']) > 0 ? new \DateTime($rawResponseData['CreateDate']) : null;
             $result['currency']       = $this->mapCurrency($rawResponseData['Currency']);
             $result['first_amount']   = $this->formatAmount($rawResponseData['Amount']);
             $result['capture_amount'] = $this->formatAmount($rawResponseData['NetAmount']);

@@ -80,8 +80,8 @@ class AkOdePosResponseDataMapperTest extends TestCase
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
         if (isset($responseData['CreateDate'])) {
-            $this->assertSame($actualData['trans_date']->format('YmdHis'), $responseData['CreateDate']);
-            unset($actualData['trans_date'], $expectedData['trans_date']);
+            $this->assertSame($actualData['trans_time']->format('YmdHis'), $responseData['CreateDate']);
+            unset($actualData['trans_time'], $expectedData['trans_time']);
         }
 
         unset($actualData['all']);
@@ -117,8 +117,8 @@ class AkOdePosResponseDataMapperTest extends TestCase
         if (isset($responseData['Transactions'])) {
             foreach ($responseData['Transactions'] as $key => $tx) {
                 if (isset($tx['CreateDate'])) {
-                    $this->assertSame($actualData['transactions'][$key]['trans_date']->format('YmdHis'), $tx['CreateDate']);
-                    unset($actualData['transactions'][$key]['trans_date'], $expectedData['transactions'][$key]['trans_date']);
+                    $this->assertSame($actualData['transactions'][$key]['trans_time']->format('YmdHis'), $tx['CreateDate']);
+                    unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
                 }
             }
             $this->assertCount($actualData['trans_count'], $actualData['transactions']);
@@ -694,7 +694,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => '00',
                     'trans_id'         => null,
-                    'trans_date'       => null,
+                    'trans_time'       => null,
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => '41595600****7732',
@@ -745,7 +745,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => null,
                     'trans_id'         => null,
-                    'trans_date'       => null,
+                    'trans_time'       => null,
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => null,
@@ -796,7 +796,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => '00',
                     'trans_id'         => null,
-                    'trans_date'       => null,
+                    'trans_time'       => null,
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => '41595600****7732',
@@ -847,7 +847,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => null,
                     'trans_id'         => null,
-                    'trans_date'       => null,
+                    'trans_time'       => null,
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => null,
@@ -1104,7 +1104,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                                 'auth_code'        => null,
                                 'proc_return_code' => '00',
                                 'trans_id'         => 2000000000032596,
-                                'trans_date'       => 20231209,
+                                'trans_time'       => 20231209,
                                 'error_message'    => null,
                                 'ref_ret_num'      => null,
                                 'masked_number'    => '41595600****7732',
@@ -1203,7 +1203,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                                 'auth_code'        => null,
                                 'proc_return_code' => '00',
                                 'trans_id'         => 2000000000032596,
-                                'trans_date'       => 20231209,
+                                'trans_time'       => 20231209,
                                 'error_message'    => null,
                                 'ref_ret_num'      => null,
                                 'masked_number'    => '41595600****7732',
@@ -1222,7 +1222,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                                 'auth_code'        => null,
                                 'proc_return_code' => '00',
                                 'trans_id'         => 2000000000032597,
-                                'trans_date'       => 20231209,
+                                'trans_time'       => 20231209,
                                 'error_message'    => null,
                                 'ref_ret_num'      => null,
                                 'masked_number'    => '41595600****7732',

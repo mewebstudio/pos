@@ -20,7 +20,7 @@ class AkOdePosTest extends TestCase
     use PaymentTestTrait;
 
     private CreditCardInterface $card;
-    
+
     private EventDispatcher $eventDispatcher;
 
     /** @var AkOdePos */
@@ -117,7 +117,7 @@ class AkOdePosTest extends TestCase
      * @depends testNonSecurePaymentSuccess
      * @depends testStatusSuccess
      */
-    public function testCancelSuccess(array $lastResponse): void
+    public function testCancelSuccess(array $lastResponse): array
     {
         $statusOrder = $this->createCancelOrder(\get_class($this->pos), $lastResponse);
 
@@ -131,6 +131,33 @@ class AkOdePosTest extends TestCase
             });
 
         $this->pos->cancel($statusOrder);
+
+        $this->assertTrue($this->pos->isSuccess());
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+
+        return $lastResponse;
+    }
+
+    /**
+     * @depends testCancelSuccess
+     */
+    public function testHistorySuccess(array $lastResponse): void
+    {
+        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), $lastResponse, []);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_HISTORY, $event->getTxType());
+                $this->assertCount(9, $event->getRequestData());
+            });
+
+        $this->pos->history($historyOrder);
 
         $this->assertTrue($this->pos->isSuccess());
         $response = $this->pos->getResponse();

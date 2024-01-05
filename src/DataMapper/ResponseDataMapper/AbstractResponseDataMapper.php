@@ -158,7 +158,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     }
 
     /**
-     * @return array<string, null>
+     * @return array<string, string|null>
      */
     protected function getDefaultStatusResponse(): array
     {
@@ -167,7 +167,8 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             'auth_code'        => null,
             'proc_return_code' => null,
             'trans_id'         => null,
-            'trans_date'       => null,
+            'trans_time'       => null,
+            'capture_time'     => null,
             'error_message'    => null,
             'ref_ret_num'      => null,
             'order_status'     => null,
@@ -177,8 +178,9 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             'status'           => self::TX_DECLINED,
             'error_code'       => null,
             'status_detail'    => null,
-            'capture'          => false,
+            'capture'          => null,
             'currency'         => null,
+            'masked_number'    => null,
         ];
     }
 
