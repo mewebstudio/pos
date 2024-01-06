@@ -82,6 +82,11 @@ class GarantiPosResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
+        $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
+        $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+        unset($actualData['trans_time'], $expectedData['trans_time']);
+        unset($actualData['capture_time'], $expectedData['capture_time']);
+
         unset($actualData['all']);
         $this->assertSame($expectedData, $actualData);
     }
@@ -807,7 +812,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
     public static function statusTestDataProvider(): array
     {
         return [
-            'success1' => [
+            'success_pay'     => [
                 'responseData' => [
                     'Mode'        => '',
                     'Terminal'    => [
@@ -882,19 +887,119 @@ class GarantiPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'order_id'         => '20221101EB13',
-                    'group_id'         => null,
-                    'amount'           => 1.01,
-                    'trans_id'         => null,
                     'auth_code'        => '304919',
-                    'ref_ret_num'      => '230508300896',
                     'proc_return_code' => '00',
-                    'status'           => 'approved',
-                    'status_detail'    => 'approved',
-                    'error_code'       => '00',
+                    'trans_id'         => null,
+                    'trans_time'       => new \DateTime('2023-01-07 21:27:59.253'),
+                    'capture_time'     => new \DateTime('2023-01-07 21:27:59.271'),
                     'error_message'    => null,
+                    'ref_ret_num'      => '300708704369',
+                    'order_status'     => 'APPROVED',
+                    'transaction_type' => null,
+                    'first_amount'     => 1.01,
+                    'capture_amount'   => 1.01,
+                    'status'           => 'approved',
+                    'error_code'       => null,
+                    'status_detail'    => 'approved',
+                    'capture'          => true,
+                    'currency'         => null,
+                    'masked_number'    => '428220******8015',
                 ],
             ],
-            'fail1'    => [
+            'success_pre_pay' => [
+                'responseData' => [
+                    'Mode'        => '',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress'    => '127.0.0.1',
+                        'EmailAddress' => '',
+                    ],
+                    'Order'       => [
+                        'OrderID'        => '2024010649DF',
+                        'GroupID'        => '',
+                        'OrderInqResult' => [
+                            'ChargeType'         => 'S',
+                            'PreAuthAmount'      => '101',
+                            'PreAuthDate'        => '2024-01-06 23:10:05.975',
+                            'AuthAmount'         => '0',
+                            'AuthDate'           => '',
+                            'RecurringInfo'      => 'N',
+                            'RecurringStatus'    => '',
+                            'Status'             => 'WAITINGPOSTAUTH',
+                            'RemainingBNSAmount' => '0',
+                            'UsedFBBAmount'      => '0',
+                            'UsedChequeType'     => '',
+                            'UsedChequeCount'    => '0',
+                            'UsedChequeAmount'   => '0',
+                            'UsedBnsAmount'      => '0',
+                            'InstallmentCnt'     => '3',
+                            'CardNumberMasked'   => '37562400****036',
+                            'CardRef'            => '',
+                            'Code'               => '00',
+                            'ReasonCode'         => '00',
+                            'SysErrMsg'          => '',
+                            'RetrefNum'          => '400609699313',
+                            'GPID'               => '',
+                            'AuthCode'           => '257762',
+                            'BatchNum'           => '5562',
+                            'SequenceNum'        => '57',
+                            'ProvDate'           => '2024-01-06 23:10:06.029',
+                            'CardHolderName'     => 'UT** ER***',
+                            'CardType'           => 'AMEXP',
+                        ],
+                    ],
+                    'Transaction' => [
+                        'Response'         => [
+                            'Source'     => 'GVPS',
+                            'Code'       => '00',
+                            'ReasonCode' => '',
+                            'Message'    => 'Approved',
+                            'ErrorMsg'   => '',
+                            'SysErrMsg'  => '',
+                        ],
+                        'RetrefNum'        => '',
+                        'AuthCode'         => '',
+                        'BatchNum'         => '',
+                        'SequenceNum'      => '',
+                        'ProvDate'         => '20240106 23:10:14',
+                        'CardNumberMasked' => '',
+                        'CardHolderName'   => '',
+                        'CardType'         => '',
+                        'HashData'         => '7A30CEC427029F563C74AFF7DAE5C2B81915E8246F9F087214AB7BEF63271F7BAC21BD39B80222A77BDDAD3CDA9B5E030D719A387FE18CC7F73FCC86E8B8FC2E',
+                        'HostMsgList'      => '',
+                        'RewardInqResult'  => [
+                            'RewardList' => '',
+                            'ChequeList' => '',
+                        ],
+                    ],
+                ],
+                'expectedData' => [
+                    'order_id'         => '2024010649DF',
+                    'auth_code'        => '257762',
+                    'proc_return_code' => '00',
+                    'trans_id'         => null,
+                    'trans_time'       => new \DateTime('2024-01-06 23:10:06.029'),
+                    'capture_time'     => null,
+                    'error_message'    => null,
+                    'ref_ret_num'      => '400609699313',
+                    'order_status'     => 'WAITINGPOSTAUTH',
+                    'transaction_type' => null,
+                    'first_amount'     => 1.01,
+                    'capture_amount'   => 0.0,
+                    'status'           => 'approved',
+                    'error_code'       => null,
+                    'status_detail'    => 'approved',
+                    'capture'          => false,
+                    'currency'         => null,
+                    'masked_number'    => '37562400****036',
+                ],
+            ],
+            'fail1'           => [
                 'responseData' => [
                     'Mode'        => '',
                     'Terminal'    => [
@@ -967,16 +1072,23 @@ class GarantiPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'order_id'         => '20221101295D',
-                    'group_id'         => null,
-                    'amount'           => 0.0,
-                    'trans_id'         => null,
                     'auth_code'        => null,
-                    'ref_ret_num'      => null,
                     'proc_return_code' => '92',
-                    'status'           => 'declined',
-                    'status_detail'    => 'invalid_transaction',
-                    'error_code'       => '92',
+                    'trans_id'         => null,
+                    'trans_time'       => null,
+                    'capture_time'     => null,
                     'error_message'    => 'İşlem bulunamadı',
+                    'ref_ret_num'      => null,
+                    'order_status'     => null,
+                    'transaction_type' => null,
+                    'first_amount'     => null,
+                    'capture_amount'   => null,
+                    'status'           => 'declined',
+                    'error_code'       => '92',
+                    'status_detail'    => 'invalid_transaction',
+                    'capture'          => null,
+                    'currency'         => null,
+                    'masked_number'    => null,
                 ],
             ],
         ];

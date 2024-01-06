@@ -146,16 +146,16 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
 
         $threeDAuthResult = $this->map3DCommonResponseData($raw3DAuthResponseData);
         $threeDAuthStatus = $threeDAuthResult['status'];
-        $paymentStatus = self::TX_DECLINED;
-        $procReturnCode = $raw3DAuthResponseData['procreturncode'];
+        $paymentStatus    = self::TX_DECLINED;
+        $procReturnCode   = $raw3DAuthResponseData['procreturncode'];
         if (self::TX_APPROVED === $threeDAuthStatus && self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $paymentStatus = self::TX_APPROVED;
         }
 
-        $paymentModel           = $this->mapSecurityType($raw3DAuthResponseData['secure3dsecuritylevel']);
+        $paymentModel = $this->mapSecurityType($raw3DAuthResponseData['secure3dsecuritylevel']);
         /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
-        $txType = $this->mapTxType($raw3DAuthResponseData['txntype']) ?? $txType;
-        $defaultPaymentResponse = $this->getDefaultPaymentResponse(
+        $txType                           = $this->mapTxType($raw3DAuthResponseData['txntype']) ?? $txType;
+        $defaultPaymentResponse           = $this->getDefaultPaymentResponse(
             $txType,
             $paymentModel
         );
@@ -213,9 +213,9 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
 
 
         return [
-            'order_id' => $rawResponseData['Order']['OrderID'] ?? null,
-            'group_id' => $rawResponseData['Order']['GroupID'] ?? null,
-            'trans_id' => null,
+            'order_id'         => $rawResponseData['Order']['OrderID'] ?? null,
+            'group_id'         => $rawResponseData['Order']['GroupID'] ?? null,
+            'trans_id'         => null,
             'auth_code'        => $transaction['AuthCode'] ?? null,
             'ref_ret_num'      => $transaction['RetrefNum'] ?? null,
             'proc_return_code' => $procReturnCode,
@@ -241,23 +241,37 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $transaction = $rawResponseData['Transaction'];
-        $amount = $rawResponseData['Order']['OrderInqResult']['AuthAmount'];
+        /** @var array{Response: array<string, string|null>} $transaction */
+        $transaction     = $rawResponseData['Transaction'];
+        /** @var array<string, string|null> $orderInqResult */
+        $orderInqResult  = $rawResponseData['Order']['OrderInqResult'];
+        $defaultResponse = $this->getDefaultStatusResponse();
 
-        return [
+        $result = [
             'order_id'         => $rawResponseData['Order']['OrderID'] ?? null,
-            'group_id'         => $rawResponseData['Order']['GroupID'] ?? null,
-            'amount'           => null !== $amount ? $this->formatAmount($amount) : null,
-            'trans_id'         => null,
-            'auth_code'        => $transaction['AuthCode'] ?? null,
-            'ref_ret_num'      => $transaction['RetrefNum'] ?? null,
+            'auth_code'        => $orderInqResult['AuthCode'] ?? null,
+            'ref_ret_num'      => $orderInqResult['RetrefNum'] ?? null,
             'proc_return_code' => $procReturnCode,
+            'order_status'     => $orderInqResult['Status'],
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => $transaction['Response']['Code'] ?? null,
-            'error_message'    => $transaction['Response']['ErrorMsg'] ?? null,
+            'error_code'       => self::TX_APPROVED === $status ? null : $transaction['Response']['Code'],
+            'error_message'    => self::TX_APPROVED === $status ? null : $transaction['Response']['ErrorMsg'],
             'all'              => $rawResponseData,
         ];
+        if (self::TX_APPROVED === $status) {
+            $transTime                = $orderInqResult['ProvDate'] ?? $orderInqResult['PreAuthDate'];
+            $result['trans_time']     = $transTime === null ? null : new \DateTime($transTime);
+            $result['capture_time']   = null !== $orderInqResult['AuthDate'] ? new \DateTime($orderInqResult['AuthDate']) : null;
+            $result['masked_number']  = $orderInqResult['CardNumberMasked'];
+            $amount                   = $orderInqResult['AuthAmount'];
+            $result['capture_amount'] = null !== $amount ? $this->formatAmount($amount) : null;
+            $firstAmount              = $amount > 0 ? $amount : $orderInqResult['PreAuthAmount'];
+            $result['first_amount']   = null !== $firstAmount ? $this->formatAmount($firstAmount) : null;
+            $result['capture']        = $result['first_amount'] > 0 ? $result['capture_amount'] === $result['first_amount'] : null;
+        }
+
+        return \array_merge($defaultResponse, $result);
     }
 
     /**
@@ -355,9 +369,9 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * Get ProcReturnCode
      *
-     * @phpstan-param PaymentStatusModel $response
+     * @phpstan-param PaymentStatusModel                                    $response
      *
-     * @param array $response
+     * @param array{Transaction: array{Response: array{Code: string|null}}} $response
      *
      * @return string|null
      */

@@ -24,7 +24,7 @@ interface NonPaymentResponseMapperInterface
     /**
      * @param array<string, mixed> $rawResponseData
      *
-     * @return array<string, string|float|null>
+     * @return array<string, mixed>
      */
     public function mapStatusResponse(array $rawResponseData): array;
 
