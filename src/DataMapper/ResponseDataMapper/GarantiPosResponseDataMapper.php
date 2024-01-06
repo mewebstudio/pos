@@ -279,7 +279,37 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapHistoryResponse(array $rawResponseData): array
     {
-        return $this->emptyStringsToNull($rawResponseData);
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        $procReturnCode  = $this->getProcReturnCode($rawResponseData);
+        $status          = self::TX_DECLINED;
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        $mappedTransactions = [];
+        if (self::TX_APPROVED === $status) {
+            $rawTransactions = $rawResponseData['Order']['OrderHistInqResult']['OrderTxnList']['OrderTxn'];
+            if (\count($rawTransactions) !== \count($rawTransactions, COUNT_RECURSIVE)) {
+                foreach ($rawTransactions as $transaction) {
+                    $mappedTransaction    = $this->mapSingleHistoryTransaction($transaction);
+                    $mappedTransactions[] = $mappedTransaction;
+                }
+            } else {
+                $mappedTransactions[] = $this->mapSingleHistoryTransaction($rawTransactions);
+            }
+        }
+
+        return [
+            'order_id'         => $rawResponseData['Order']['OrderID'],
+            'proc_return_code' => $procReturnCode,
+            'error_code'       => self::TX_DECLINED === $status ? $procReturnCode : null,
+            'error_message'    => self::TX_DECLINED === $status ? $rawResponseData['Transaction']['Response']['ErrorMsg'] : null,
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail($procReturnCode),
+            'trans_count'      => \count($mappedTransactions),
+            'transactions'     => $mappedTransactions,
+            'all'              => $rawResponseData,
+        ];
     }
 
     /**
@@ -378,5 +408,44 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
     protected function getProcReturnCode(array $response): ?string
     {
         return $response['Transaction']['Response']['Code'] ?? null;
+    }
+
+    /**
+     * @param array<string, string|null> $rawTx
+     *
+     * @return array<string, int|string|null|float|bool|\DateTime>
+     *
+     * @throws \Exception
+     */
+    private function mapSingleHistoryTransaction(array $rawTx): array
+    {
+        $procReturnCode = $rawTx['Status'];
+        $status         = self::TX_DECLINED;
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        $defaultResponse                     = $this->getDefaultStatusResponse();
+        $defaultResponse['auth_code']        = $rawTx['AuthCode'] ?? null;
+        $defaultResponse['ref_ret_num']      = $rawTx['RetrefNum'] ?? null;
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $defaultResponse['status']           = $status;
+        $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
+        $defaultResponse['error_code']       = self::TX_APPROVED === $status ? null : $procReturnCode;
+        $defaultResponse['transaction_type'] = $rawTx['Type'] === null ? null : $this->mapTxType($rawTx['Type']);
+
+        if (self::TX_APPROVED === $status) {
+            $transTime                         = $rawTx['ProvDate'] ?? $rawTx['PreAuthDate'];
+            $defaultResponse['trans_time']     = new \DateTime($transTime.'000000');
+            $defaultResponse['capture_time']   = null !== $rawTx['AuthDate'] ? new \DateTime($rawTx['AuthDate'].'000000') : null;
+            $amount                            = $rawTx['AuthAmount'];
+            $defaultResponse['capture_amount'] = null !== $amount ? $this->formatAmount($amount) : null;
+            $firstAmount                       = $amount > 0 ? $amount : $rawTx['PreAuthAmount'];
+            $defaultResponse['first_amount']   = null !== $firstAmount ? $this->formatAmount($firstAmount) : null;
+            $defaultResponse['capture']        = $defaultResponse['first_amount'] > 0 ? $defaultResponse['capture_amount'] === $defaultResponse['first_amount'] : null;
+            $defaultResponse['currency']       = '0' !== $rawTx['CurrencyCode'] && null !== $rawTx['CurrencyCode'] ? $this->mapCurrency($rawTx['CurrencyCode']) : null;
+        }
+
+        return $defaultResponse;
     }
 }

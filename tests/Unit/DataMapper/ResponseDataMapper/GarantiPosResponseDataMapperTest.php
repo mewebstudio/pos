@@ -92,6 +92,24 @@ class GarantiPosResponseDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider historyTestDataProvider
+     */
+    public function testMapHistoryResponse(array $responseData, array $expectedData)
+    {
+        $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+        foreach ($actualData['transactions'] as $key => $tx) {
+            unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
+            unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
+            \ksort($actualData['transactions'][$key]);
+            \ksort($expectedData['transactions'][$key]);
+        }
+        $this->assertCount($actualData['trans_count'], $actualData['transactions']);
+
+        unset($actualData['all']);
+        $this->assertSame($expectedData, $actualData);
+    }
+
+    /**
      * @dataProvider refundTestDataProvider
      */
     public function testMapRefundResponse(array $responseData, array $expectedData)
@@ -1218,129 +1236,301 @@ class GarantiPosResponseDataMapperTest extends TestCase
 
     public function historyTestDataProvider(): array
     {
-        return
-            [
-                'success1' => [
-                    'responseData' => [
-                        'Mode'        => '',
-                        'Terminal'    => [
-                            'ProvUserID' => 'PROVAUT',
-                            'UserID'     => 'PROVAUT',
-                            'ID'         => '30691298',
-                            'MerchantID' => '7000679',
+        return [
+            'success_single_pay_tx' => [
+                'responseData' => [
+                    'Mode'        => '',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress'    => '127.0.0.1',
+                        'EmailAddress' => '',
+                    ],
+                    'Order'       => [
+                        'OrderID'            => '2024010662F8',
+                        'GroupID'            => '',
+                        'OrderHistInqResult' => [
+                            'OrderTxnList' => [
+                                'OrderTxn' => [
+                                    'Type'               => 'sales',
+                                    'Status'             => '00',
+                                    'PreAuthAmount'      => '0',
+                                    'AuthAmount'         => '101',
+                                    'PreAuthDate'        => '',
+                                    'AuthDate'           => '20240107',
+                                    'VoidDate'           => '',
+                                    'RetrefNum'          => '400709699645',
+                                    'AuthCode'           => '826886',
+                                    'ReturnCode'         => '00',
+                                    'BatchNum'           => '5562',
+                                    'RemainingBNSAmount' => '0',
+                                    'UsedFBBAmount'      => '0',
+                                    'UsedChequeType'     => '',
+                                    'UsedChequeCount'    => '0',
+                                    'UsedChequeAmount'   => '0',
+                                    'InstallmentCnt'     => '0',
+                                    'CurrencyCode'       => '949',
+                                    'Settlement'         => 'N',
+                                ],
+                            ],
                         ],
-                        'Customer'    => [
-                            'IPAddress' => '172.26.0.1',
+                    ],
+                    'Transaction' => [
+                        'Response'         => [
+                            'Source'     => 'GVPS',
+                            'Code'       => '00',
+                            'ReasonCode' => '',
+                            'Message'    => 'Approved',
+                            'ErrorMsg'   => '',
+                            'SysErrMsg'  => '',
                         ],
-                        'Order'       => [
-                            'OrderID'            => '20221101EB13',
-                            'GroupID'            => '',
-                            'OrderHistInqResult' => [
-                                'OrderTxnList' => [
-                                    'OrderTxn' => [
-                                        0 => [
-                                            'Type'               => 'sales',
-                                            'Status'             => '00',
-                                            'PreAuthAmount'      => '0',
-                                            'AuthAmount'         => '101',
-                                            'PreAuthDate'        => '',
-                                            'AuthDate'           => '20221101',
-                                            'VoidDate'           => '',
-                                            'RetrefNum'          => '230508300896',
-                                            'AuthCode'           => '304919',
-                                            'ReturnCode'         => '00',
-                                            'BatchNum'           => '4951',
-                                            'RemainingBNSAmount' => '0',
-                                            'UsedFBBAmount'      => '0',
-                                            'UsedChequeType'     => '',
-                                            'UsedChequeCount'    => '0',
-                                            'UsedChequeAmount'   => '0',
-                                            'CurrencyCode'       => '949',
-                                            'Settlement'         => 'N',
-                                        ],
-                                        1 => [
-                                            'Type'               => 'refund',
-                                            'Status'             => '01',
-                                            'PreAuthAmount'      => '0',
-                                            'AuthAmount'         => '101',
-                                            'PreAuthDate'        => '',
-                                            'AuthDate'           => '',
-                                            'VoidDate'           => '',
-                                            'RetrefNum'          => '230508300913',
-                                            'AuthCode'           => '',
-                                            'ReturnCode'         => '92',
-                                            'BatchNum'           => '4951',
-                                            'RemainingBNSAmount' => '0',
-                                            'UsedFBBAmount'      => '0',
-                                            'UsedChequeType'     => '',
-                                            'UsedChequeCount'    => '0',
-                                            'UsedChequeAmount'   => '0',
-                                            'CurrencyCode'       => '0',
-                                            'Settlement'         => 'N',
-                                        ],
-                                        2 => [
-                                            'Type'               => 'refund',
-                                            'Status'             => '01',
-                                            'PreAuthAmount'      => '0',
-                                            'AuthAmount'         => '101',
-                                            'PreAuthDate'        => '',
-                                            'AuthDate'           => '',
-                                            'VoidDate'           => '',
-                                            'RetrefNum'          => '230508300918',
-                                            'AuthCode'           => '',
-                                            'ReturnCode'         => '92',
-                                            'BatchNum'           => '4951',
-                                            'RemainingBNSAmount' => '0',
-                                            'UsedFBBAmount'      => '0',
-                                            'UsedChequeType'     => '',
-                                            'UsedChequeCount'    => '0',
-                                            'UsedChequeAmount'   => '0',
-                                            'CurrencyCode'       => '0',
-                                            'Settlement'         => 'N',
-                                        ],
+                        'RetrefNum'        => '',
+                        'AuthCode'         => '',
+                        'BatchNum'         => '',
+                        'SequenceNum'      => '',
+                        'ProvDate'         => '20240107 01:10:11',
+                        'CardNumberMasked' => '',
+                        'CardHolderName'   => '',
+                        'CardType'         => '',
+                        'HashData'         => 'F9F6806D2C3CEA2CB25F894F6BA1FD04274B9A47A15A4A7BE5150BB5802835ADE7ADD27F80B275F837B143644B853EE3AD212EB7D7C5FD5708183C93B0852DC0',
+                        'HostMsgList'      => '',
+                        'RewardInqResult'  => [
+                            'RewardList' => '',
+                            'ChequeList' => '',
+                        ],
+                    ],
+                ],
+                'expectedData' => [
+                    'order_id'         => '2024010662F8',
+                    'proc_return_code' => '00',
+                    'error_code'       => null,
+                    'error_message'    => null,
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'trans_count'      => 1,
+                    'transactions'     => [
+                        [
+                            'order_id'         => null,
+                            'auth_code'        => '826886',
+                            'proc_return_code' => '00',
+                            'trans_id'         => null,
+                            'trans_time'       => null,
+                            'capture_time'     => null,
+                            'error_message'    => null,
+                            'ref_ret_num'      => '400709699645',
+                            'order_status'     => null,
+                            'transaction_type' => 'pay',
+                            'first_amount'     => 1.01,
+                            'capture_amount'   => 1.01,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => true,
+                            'currency'         => 'TRY',
+                            'masked_number'    => null,
+                        ],
+                    ],
+                ],
+            ],
+            'success_multi_tx'      => [
+                'responseData' => [
+                    'Mode'        => '',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress' => '172.26.0.1',
+                    ],
+                    'Order'       => [
+                        'OrderID'            => '20221101EB13',
+                        'GroupID'            => '',
+                        'OrderHistInqResult' => [
+                            'OrderTxnList' => [
+                                'OrderTxn' => [
+                                    [
+                                        'Type'               => 'sales',
+                                        'Status'             => '00',
+                                        'PreAuthAmount'      => '0',
+                                        'AuthAmount'         => '101',
+                                        'PreAuthDate'        => '',
+                                        'AuthDate'           => '20221101',
+                                        'VoidDate'           => '',
+                                        'RetrefNum'          => '230508300896',
+                                        'AuthCode'           => '304919',
+                                        'ReturnCode'         => '00',
+                                        'BatchNum'           => '4951',
+                                        'RemainingBNSAmount' => '0',
+                                        'UsedFBBAmount'      => '0',
+                                        'UsedChequeType'     => '',
+                                        'UsedChequeCount'    => '0',
+                                        'UsedChequeAmount'   => '0',
+                                        'CurrencyCode'       => '949',
+                                        'Settlement'         => 'N',
+                                    ],
+                                    [
+                                        'Type'               => 'refund',
+                                        'Status'             => '01',
+                                        'PreAuthAmount'      => '0',
+                                        'AuthAmount'         => '101',
+                                        'PreAuthDate'        => '',
+                                        'AuthDate'           => '',
+                                        'VoidDate'           => '',
+                                        'RetrefNum'          => '230508300913',
+                                        'AuthCode'           => '',
+                                        'ReturnCode'         => '92',
+                                        'BatchNum'           => '4951',
+                                        'RemainingBNSAmount' => '0',
+                                        'UsedFBBAmount'      => '0',
+                                        'UsedChequeType'     => '',
+                                        'UsedChequeCount'    => '0',
+                                        'UsedChequeAmount'   => '0',
+                                        'CurrencyCode'       => '0',
+                                        'Settlement'         => 'N',
                                     ],
                                 ],
                             ],
                         ],
-                        'Transaction' => [
-                            'Response'         => [
-                                'Source'     => 'GVPS',
-                                'Code'       => '00',
-                                'ReasonCode' => '',
-                                'Message'    => 'Approved',
-                                'ErrorMsg'   => '',
-                                'SysErrMsg'  => '',
-                            ],
-                            'RetrefNum'        => '',
-                            'AuthCode'         => '',
-                            'BatchNum'         => '',
-                            'SequenceNum'      => '',
-                            'ProvDate'         => '20221101 16:11:30',
-                            'CardNumberMasked' => '',
-                            'CardHolderName'   => '',
-                            'CardType'         => '',
-                            'HashData'         => 'F7FB1830A48C729CD18DFDB47F2B6E2CB8258F21',
-                            'HostMsgList'      => '',
-                            'RewardInqResult'  => [
-                                'RewardList' => '',
-                                'ChequeList' => '',
-                            ],
+                    ],
+                    'Transaction' => [
+                        'Response'         => [
+                            'Source'     => 'GVPS',
+                            'Code'       => '00',
+                            'ReasonCode' => '',
+                            'Message'    => 'Approved',
+                            'ErrorMsg'   => '',
+                            'SysErrMsg'  => '',
+                        ],
+                        'RetrefNum'        => '',
+                        'AuthCode'         => '',
+                        'BatchNum'         => '',
+                        'SequenceNum'      => '',
+                        'ProvDate'         => '20221101 16:11:30',
+                        'CardNumberMasked' => '',
+                        'CardHolderName'   => '',
+                        'CardType'         => '',
+                        'HashData'         => 'F7FB1830A48C729CD18DFDB47F2B6E2CB8258F21',
+                        'HostMsgList'      => '',
+                        'RewardInqResult'  => [
+                            'RewardList' => '',
+                            'ChequeList' => '',
                         ],
                     ],
-                    'expectedData' => [
-                        'order_id'         => '20221101EB13',
-                        'group_id'         => null,
-                        'trans_id'         => null,
-                        'auth_code'        => null,
-                        'ref_ret_num'      => null,
-                        'proc_return_code' => '00',
-                        'status'           => 'approved',
-                        'status_detail'    => 'approved',
-                        'error_code'       => '00',
-                        'error_message'    => '',
-                        'order_txn'        => null,
+                ],
+                'expectedData' => [
+                    'order_id'         => '20221101EB13',
+                    'proc_return_code' => '00',
+                    'error_code'       => null,
+                    'error_message'    => null,
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'trans_count'      => 2,
+                    'transactions'     => [
+                        [
+                            'order_id'         => null,
+                            'auth_code'        => '304919',
+                            'proc_return_code' => '00',
+                            'trans_id'         => null,
+                            'trans_time'       => null,
+                            'capture_time'     => null,
+                            'error_message'    => null,
+                            'ref_ret_num'      => '230508300896',
+                            'order_status'     => null,
+                            'transaction_type' => 'pay',
+                            'first_amount'     => 1.01,
+                            'capture_amount'   => 1.01,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => true,
+                            'currency'         => 'TRY',
+                            'masked_number'    => null,
+                        ],
+                        [
+                            'order_id'         => null,
+                            'auth_code'        => null,
+                            'proc_return_code' => '01',
+                            'trans_id'         => null,
+                            'trans_time'       => null,
+                            'capture_time'     => null,
+                            'error_message'    => null,
+                            'ref_ret_num'      => '230508300913',
+                            'order_status'     => null,
+                            'transaction_type' => 'refund',
+                            'first_amount'     => null,
+                            'capture_amount'   => null,
+                            'status'           => 'declined',
+                            'error_code'       => '01',
+                            'status_detail'    => 'bank_call',
+                            'capture'          => null,
+                            'currency'         => null,
+                            'masked_number'    => null,
+                        ],
                     ],
                 ],
-            ];
+            ],
+            'fail_order_not_found'  => [
+                'responseData' => [
+                    'Mode'        => '',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress'    => '127.0.0.1',
+                        'EmailAddress' => '',
+                    ],
+                    'Order'       => [
+                        'OrderID'            => '202401010C20',
+                        'GroupID'            => '',
+                        'OrderHistInqResult' => [
+                            'OrderTxnList' => '',
+                        ],
+                    ],
+                    'Transaction' => [
+                        'Response'         => [
+                            'Source'     => 'GVPS',
+                            'Code'       => '92',
+                            'ReasonCode' => '0108',
+                            'Message'    => 'Declined',
+                            'ErrorMsg'   => 'Gönderilen sipariş numarasına ait kayıt bulunmamaktadır',
+                            'SysErrMsg'  => 'ErrorId: 0108',
+                        ],
+                        'RetrefNum'        => '',
+                        'AuthCode'         => '',
+                        'BatchNum'         => '',
+                        'SequenceNum'      => '',
+                        'ProvDate'         => '20240107 00:13:34',
+                        'CardNumberMasked' => '',
+                        'CardHolderName'   => '',
+                        'CardType'         => '',
+                        'HashData'         => 'AC81A642617438C814095A8D07EB6F89118AB5937D2E784AD058CD099E7B50518F894EAD0B4BE6C6793F83B2C0274166A94E99D5545828D2A01BF583BF99D350',
+                        'HostMsgList'      => '',
+                        'RewardInqResult'  => [
+                            'RewardList' => '',
+                            'ChequeList' => '',
+                        ],
+                    ],
+                ],
+                'expectedData' => [
+                    'order_id'         => '202401010C20',
+                    'proc_return_code' => '92',
+                    'error_code'       => '92',
+                    'error_message'    => 'Gönderilen sipariş numarasına ait kayıt bulunmamaktadır',
+                    'status'           => 'declined',
+                    'status_detail'    => 'invalid_transaction',
+                    'trans_count'      => 0,
+                    'transactions'     => [],
+                ],
+            ],
+        ];
     }
 }
