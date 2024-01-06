@@ -66,6 +66,7 @@ try {
 //        }
 //    });
 
+    $card = null;
     if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
         // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
         $savedCard = $session->get('card');
