@@ -90,6 +90,15 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper implements Pay
             $status = self::TX_APPROVED;
         }
 
+        if (!isset($raw3DAuthResponseData['oosResolveMerchantDataResponse'])) {
+            $defaultResponse                     = $this->getDefaultPaymentResponse();
+            $defaultResponse['proc_return_code'] = $procReturnCode;
+            $defaultResponse['error_code']       = $raw3DAuthResponseData['respCode'];
+            $defaultResponse['error_message']    = $raw3DAuthResponseData['respText'];
+
+            return $defaultResponse;
+        }
+
         /** @var array<string, string|null> $oosResolveMerchantDataResponse */
         $oosResolveMerchantDataResponse = $raw3DAuthResponseData['oosResolveMerchantDataResponse'];
 
