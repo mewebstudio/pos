@@ -203,7 +203,7 @@ class PosNetResponseDataMapperTest extends TestCase
     public function threeDPaymentDataProvider(): array
     {
         return [
-            'success1'       => [
+            'success1'                               => [
                 'order'              => [
                     'id' => '80603153823',
                 ],
@@ -264,7 +264,7 @@ class PosNetResponseDataMapperTest extends TestCase
                     'payment_model'        => '3d',
                 ],
             ],
-            'auth_fail1'     => [
+            'auth_fail1'                             => [
                 'order'              => [
                     'id' => '80603153823',
                 ],
@@ -305,7 +305,7 @@ class PosNetResponseDataMapperTest extends TestCase
                     'installment'          => null,
                 ],
             ],
-            'fail2-md-empty' => [
+            'fail2-md-empty'                         => [
                 'order'              => [
                     'id' => '80603153823',
                 ],
@@ -347,13 +347,22 @@ class PosNetResponseDataMapperTest extends TestCase
                 ],
             ],
             'fail_no_oosResolveMerchantDataResponse' => [
+                'order'              => [
+                    'id' => '80603153823',
+                ],
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
                     'approved' => '0',
                     'respCode' => 'E216',
                     'respText' => 'Mac Do\u011frulama hatal\u0131',
                 ],
                 'paymentData'        => [],
-                'expectedData' => [
+                'expectedData'       => [
+                    'amount'           => null,
+                    'currency'         => null,
+                    'installment'      => null,
+                    'payment_model'    => '3d',
+                    'transaction_type' => 'pay',
                     'order_id'         => null,
                     'trans_id'         => null,
                     'auth_code'        => null,

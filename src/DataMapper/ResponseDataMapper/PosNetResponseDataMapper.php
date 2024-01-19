@@ -94,13 +94,13 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         ]);
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $status                = self::TX_DECLINED;
-        $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData); //test
+        $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $this->getStatusDetail($procReturnCode) === self::TX_APPROVED) {
             $status = self::TX_APPROVED;
         }
+        $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE);
 
         if (!isset($raw3DAuthResponseData['oosResolveMerchantDataResponse'])) {
-            $defaultResponse                     = $this->getDefaultPaymentResponse();
             $defaultResponse['proc_return_code'] = $procReturnCode;
             $defaultResponse['error_code']       = $raw3DAuthResponseData['respCode'];
             $defaultResponse['error_message']    = $raw3DAuthResponseData['respText'];
@@ -133,7 +133,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
             '3d_all'               => $raw3DAuthResponseData,
         ];
         if (null === $rawPaymentResponseData) {
-            $paymentResponseData = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE);
+            $paymentResponseData = $defaultResponse;
         } else {
             $paymentResponseData = $this->map3dPaymentResponseCommon(
                 $rawPaymentResponseData,
