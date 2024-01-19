@@ -16,14 +16,15 @@ trait PaymentTestTrait
 {
     private function createPaymentOrder(
         string $currency = PosInterface::CURRENCY_TRY,
-        int $installment = 0,
-        bool $tekrarlanan = false
+        float  $amount = 1.01,
+        int    $installment = 0,
+        bool   $tekrarlanan = false
     ): array {
         $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
 
         $order = [
             'id'          => $orderId,
-            'amount'      => 1.01,
+            'amount'      => $amount,
             'currency'    => $currency,
             'installment' => $installment,
             'ip'          => '127.0.0.1',
@@ -55,10 +56,10 @@ trait PaymentTestTrait
     private function createPostPayOrder(string $gatewayClass, array $lastResponse): array
     {
         $postAuth = [
-            'id'          => $lastResponse['order_id'],
-            'amount'      => $lastResponse['amount'],
-            'currency'    => $lastResponse['currency'],
-            'ip'          => '127.0.0.1',
+            'id'       => $lastResponse['order_id'],
+            'amount'   => $lastResponse['amount'],
+            'currency' => $lastResponse['currency'],
+            'ip'       => '127.0.0.1',
         ];
 
         if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
@@ -196,7 +197,7 @@ trait PaymentTestTrait
             if (isset($extraData['reqDate'])) {
                 $order = [
                     // odeme tarihi
-                    'reqDate'  => $extraData['reqDate'],
+                    'reqDate' => $extraData['reqDate'],
                 ];
             } else {
                 $order = [

@@ -146,7 +146,7 @@ class GarantiPosTest extends TestCase
 
     public function testNonSecurePrePaymentSuccess(): array
     {
-        $order = $this->createPaymentOrder(PosInterface::CURRENCY_TRY, 3);
+        $order = $this->createPaymentOrder(PosInterface::CURRENCY_TRY, 1.91, 3);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
