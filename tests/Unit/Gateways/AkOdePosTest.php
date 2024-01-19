@@ -431,9 +431,9 @@ class AkOdePosTest extends TestCase
             'order'               => AkOdePosRequestDataMapperTest::statusRequestDataProvider()[0]['order'],
             'requestData'         => AkOdePosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'],
             'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
-            'responseData'        => \json_encode(AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success1']['responseData'], JSON_THROW_ON_ERROR),
-            'decodedResponseData' => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success1']['responseData'],
-            'mappedResponse'      => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success1']['expectedData'],
+            'responseData'        => \json_encode(AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'], JSON_THROW_ON_ERROR),
+            'decodedResponseData' => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'],
+            'mappedResponse'      => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['expectedData'],
             'isSuccess'           => true,
         ];
     }
@@ -445,8 +445,8 @@ class AkOdePosTest extends TestCase
             'requestData'         => AkOdePosRequestDataMapperTest::cancelRequestDataProvider()[0]['expected'],
             'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::cancelRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
             'responseData'        => \json_encode(AkOdePosResponseDataMapperTest::cancelDataProvider()['success1']['responseData'], JSON_THROW_ON_ERROR),
-            'decodedResponseData' => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success1']['responseData'],
-            'mappedResponse'      => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success1']['expectedData'],
+            'decodedResponseData' => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'],
+            'mappedResponse'      => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['expectedData'],
             'isSuccess'           => true,
         ];
     }

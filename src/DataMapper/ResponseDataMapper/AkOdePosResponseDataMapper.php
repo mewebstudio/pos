@@ -225,35 +225,44 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $result = [
-            'order_id'         => $rawResponseData['OrderId'],
-            'auth_code'        => $rawResponseData['AuthCode'],
-            'proc_return_code' => $procReturnCode,
-            'trans_id'         => null,
-            'trans_time'       => null,
-            'error_message'    => $rawResponseData['BankResponseMessage'],
-            'ref_ret_num'      => null,
-            'masked_number'    => $rawResponseData['CardNo'],
-            'order_status'     => $this->orderStatusMappings[$rawResponseData['RequestStatus']] ?? $rawResponseData['RequestStatus'],
-            'transaction_type' => $this->mapTxType($rawResponseData['TransactionType']),
-            'capture_amount'   => null,
-            'status'           => $status,
-            'error_code'       => null,
-            'status_detail'    => $this->getStatusDetail($errorCode),
-            'capture'          => false,
-            'all'              => $rawResponseData,
-        ];
+        $defaultResponse = $this->getDefaultStatusResponse();
+
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $defaultResponse['order_id']         = $rawResponseData['OrderId'];
+        $defaultResponse['auth_code']        = $rawResponseData['AuthCode'];
+        $defaultResponse['trans_id']         = $rawResponseData['TransactionId'] > 0 ? $rawResponseData['TransactionId'] : null;
+        $defaultResponse['masked_number']    = $rawResponseData['CardNo'];
+        $defaultResponse['order_status']     = $this->orderStatusMappings[$rawResponseData['RequestStatus']] ?? $rawResponseData['RequestStatus'];
+        $defaultResponse['transaction_type'] = $this->mapTxType($rawResponseData['TransactionType']);
+        $defaultResponse['status']           = $status;
+        $defaultResponse['status_detail']    = $this->getStatusDetail($errorCode);
+        $defaultResponse['all']              = $rawResponseData;
+
+        $isPaymentTransaction = \in_array(
+            $defaultResponse['transaction_type'],
+            [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_POST_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH],
+            true,
+        );
+
         if (self::TX_APPROVED === $status) {
-            $result['trans_id']       = $rawResponseData['TransactionId'] > 0 ? $rawResponseData['TransactionId'] : null;
-            // ex: 20231209154531
-            $result['trans_time']     = isset($rawResponseData['CreateDate']) > 0 ? new \DateTime($rawResponseData['CreateDate']) : null;
-            $result['currency']       = $this->mapCurrency($rawResponseData['Currency']);
-            $result['first_amount']   = $this->formatAmount($rawResponseData['Amount']);
-            $result['capture_amount'] = $this->formatAmount($rawResponseData['NetAmount']);
-            $result['capture']        = $result['first_amount'] === $result['capture_amount'];
+            if ($rawResponseData['Currency'] > 0) {
+                $defaultResponse['currency'] = $this->mapCurrency($rawResponseData['Currency']);
+                // ex: 20231209154531
+                $defaultResponse['trans_time']   = new \DateTime($rawResponseData['CreateDate']);
+                $defaultResponse['first_amount'] = $this->formatAmount($rawResponseData['Amount']);
+            }
+
+            if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $isPaymentTransaction) {
+                $captureAmount = (float) $rawResponseData['MerchantCommissionAmount'] + (float) $rawResponseData['NetAmount'];
+                $defaultResponse['capture_amount'] = $this->formatAmount((string) $captureAmount);
+                $defaultResponse['capture']        = $defaultResponse['first_amount'] <= $defaultResponse['capture_amount'];
+                $defaultResponse['capture_time']   = $defaultResponse['trans_time'];
+            }
+        } else {
+            $defaultResponse['error_message'] = $rawResponseData['BankResponseMessage'];
         }
 
-        return $result;
+        return $defaultResponse;
     }
 
     /**
