@@ -21,7 +21,7 @@ class PayForPosTest extends TestCase
     use PaymentTestTrait;
 
     private CreditCardInterface $card;
-    
+
     private EventDispatcher $eventDispatcher;
 
     /** @var PayForPos */
@@ -90,7 +90,7 @@ class PayForPosTest extends TestCase
     }
 
     /**
-     * @depends testNonSecurePaymentSuccess
+     * @depends testNonSecurePostPaymentSuccess
      */
     public function testStatusSuccess(array $lastResponse): array
     {
@@ -117,10 +117,10 @@ class PayForPosTest extends TestCase
     }
 
     /**
-     * @depends testNonSecurePaymentSuccess
+     * @depends testNonSecurePostPaymentSuccess
      * @depends testStatusSuccess
      */
-    public function testCancelSuccess(array $lastResponse): void
+    public function testCancelSuccess(array $lastResponse): array
     {
         $statusOrder = $this->createCancelOrder(\get_class($this->pos), $lastResponse);
 
@@ -140,8 +140,34 @@ class PayForPosTest extends TestCase
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
+
+        return $lastResponse;
     }
 
+
+    /**
+     * @depends testCancelSuccess
+     */
+    public function testHistorySuccess(array $lastResponse): void
+    {
+        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), $lastResponse, []);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_HISTORY, $event->getTxType());
+                $this->assertCount(8, $event->getRequestData());
+            });
+
+        $this->pos->history($historyOrder);
+
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+    }
 
     public function testNonSecurePrePaymentSuccess(): array
     {
@@ -176,10 +202,10 @@ class PayForPosTest extends TestCase
     /**
      * @depends testNonSecurePrePaymentSuccess
      */
-    public function testNonSecurePostPaymentSuccess(array $lastResponse): void
+    public function testNonSecurePostPaymentSuccess(array $lastResponse): array
     {
         $order = $this->createPostPayOrder(\get_class($this->pos), $lastResponse);
-
+        $order['amount'] += .02;
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
@@ -200,6 +226,8 @@ class PayForPosTest extends TestCase
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
+
+        return $response;
     }
 
     public function testGet3DFormData(): void

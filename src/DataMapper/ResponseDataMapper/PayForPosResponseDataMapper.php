@@ -154,12 +154,12 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
         $txType = $commonThreeDResponseData['transaction_type'];
         /** @var PosInterface::MODEL_3D_* $paymentModel */
-        $paymentModel = $commonThreeDResponseData['payment_model'];
+        $paymentModel           = $commonThreeDResponseData['payment_model'];
         $defaultPaymentResponse = $this->getDefaultPaymentResponse(
             $txType,
             $paymentModel
         );
-        $result = $this->mergeArraysPreferNonNullValues(
+        $result                 = $this->mergeArraysPreferNonNullValues(
             $defaultPaymentResponse,
             $threeDResponse
         );
@@ -225,30 +225,49 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        //status of the requested order
-        $orderStatus = null;
-        if (self::TX_APPROVED === $status && empty($rawResponseData['AuthCode'])) {
-            $orderStatus = self::TX_DECLINED;
-        } elseif (self::TX_APPROVED === $status && !empty($rawResponseData['AuthCode'])) {
-            $orderStatus = self::TX_APPROVED;
+        $defaultResponse = $this->getDefaultStatusResponse();
+
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $defaultResponse['order_id']         = $rawResponseData['OrderId'];
+        $defaultResponse['org_order_id']     = $rawResponseData['OrgOrderId'];
+        $defaultResponse['transaction_type'] = $this->mapTxType($rawResponseData['TxnType']);
+        $defaultResponse['currency']         = $this->mapCurrency($rawResponseData['Currency']);
+        $defaultResponse['status']           = $status;
+        $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
+        $defaultResponse['all']              = $rawResponseData;
+
+        if (self::TX_APPROVED === $status) {
+            $orderStatus                    = null;
+            $defaultResponse['auth_code']   = $rawResponseData['AuthCode'];
+            $defaultResponse['ref_ret_num'] = $rawResponseData['HostRefNum'];
+
+            $defaultResponse['masked_number'] = $rawResponseData['CardMask'];
+            $defaultResponse['first_amount']  = $this->formatAmount($rawResponseData['PurchAmount']);
+            $defaultResponse['trans_time']    = new \DateTime($rawResponseData['InsertDatetime']);
+            $defaultResponse['capture']       = false;
+            if (\in_array(
+                $defaultResponse['transaction_type'],
+                [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_POST_AUTH],
+                true
+            )) {
+                $defaultResponse['capture']        = true;
+                $defaultResponse['capture_amount'] = $this->formatAmount($rawResponseData['PurchAmount']);
+                $defaultResponse['capture_time']   = $defaultResponse['trans_time'];
+                $orderStatus                       = PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED;
+            }
+
+            if ('true' === $rawResponseData['IsVoided']) {
+                $orderStatus = PosInterface::PAYMENT_STATUS_CANCELED;
+            }
+            if ('true' === $rawResponseData['IsRefunded']) {
+                $orderStatus = PosInterface::PAYMENT_STATUS_FULLY_REFUNDED;
+            }
+            $defaultResponse['order_status'] = $orderStatus;
+        } else {
+            $defaultResponse['error_message'] = $rawResponseData['ErrMsg'];
         }
 
-        return [
-            'auth_code'        => $rawResponseData['AuthCode'] ?? null,
-            'order_id'         => $rawResponseData['OrderId'] ?? null,
-            'org_order_id'     => $rawResponseData['OrgOrderId'] ?? null,
-            'proc_return_code' => $procReturnCode,
-            'error_message'    => (self::TX_DECLINED === $status) ? $rawResponseData['ErrMsg'] : null,
-            'ref_ret_num'      => $rawResponseData['HostRefNum'] ?? null,
-            'order_status'     => $orderStatus,
-            'transaction_type' => null === $rawResponseData['TxnType'] ? null : $this->mapTxType($rawResponseData['TxnType']),
-            'masked_number'    => $rawResponseData['CardMask'] ?? null,
-            'amount'           => null !== $rawResponseData['PurchAmount'] ? $this->formatAmount($rawResponseData['PurchAmount']) : null,
-            'currency'         => $this->mapCurrency($rawResponseData['Currency']),
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'all'              => $rawResponseData,
-        ];
+        return $defaultResponse;
     }
 
     /**
