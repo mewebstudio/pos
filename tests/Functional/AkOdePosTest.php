@@ -187,4 +187,42 @@ class AkOdePosTest extends TestCase
         $this->assertCount(5, $formData['inputs']);
         $this->assertTrue($eventIsThrown);
     }
+
+    public function testPartialRefundSuccess(): array
+    {
+        $order = $this->createPaymentOrder();
+
+        $this->pos->payment(
+            PosInterface::MODEL_NON_SECURE,
+            $order,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $this->card
+        );
+
+        $this->assertTrue($this->pos->isSuccess());
+
+        $lastResponse = $this->pos->getResponse();
+
+        $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+        $refundOrder['amount'] = 0.59;
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_REFUND, $event->getTxType());
+                $this->assertCount(7, $event->getRequestData());
+            });
+
+        $this->pos->refund($refundOrder);
+
+        $this->assertTrue($this->pos->isSuccess());
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+
+        return $lastResponse;
+    }
 }
