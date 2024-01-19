@@ -268,6 +268,25 @@ class PosNetResponseDataMapperTest extends TestCase
                     'status_detail'        => null,
                 ],
             ],
+            'fail_no_oosResolveMerchantDataResponse' => [
+                'threeDResponseData' => [
+                    'approved' => '0',
+                    'respCode' => 'E216',
+                    'respText' => 'Mac Do\u011frulama hatal\u0131',
+                ],
+                'paymentData'        => [],
+                'expectedData' => [
+                    'order_id'         => null,
+                    'trans_id'         => null,
+                    'auth_code'        => null,
+                    'ref_ret_num'      => null,
+                    'proc_return_code' => '0',
+                    'status'           => 'declined',
+                    'status_detail'    => null,
+                    'error_code'       => 'E216',
+                    'error_message'    => 'Mac Do\u011frulama hatal\u0131',
+                ],
+            ],
         ];
     }
 
