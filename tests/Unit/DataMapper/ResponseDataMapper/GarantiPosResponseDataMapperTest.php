@@ -1005,7 +1005,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'capture_time'     => null,
                     'error_message'    => null,
                     'ref_ret_num'      => '400609699313',
-                    'order_status'     => 'WAITINGPOSTAUTH',
+                    'order_status'     => 'PRE_AUTH_COMPLETED',
                     'transaction_type' => null,
                     'first_amount'     => 1.01,
                     'capture_amount'   => 0.0,

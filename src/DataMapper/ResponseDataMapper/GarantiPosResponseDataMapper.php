@@ -247,12 +247,16 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         $orderInqResult  = $rawResponseData['Order']['OrderInqResult'];
         $defaultResponse = $this->getDefaultStatusResponse();
 
+        $orderStatus = $orderInqResult['Status'];
+        if ('WAITINGPOSTAUTH' === $orderInqResult['Status']) {
+            $orderStatus = PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED;
+        }
         $result = [
             'order_id'         => $rawResponseData['Order']['OrderID'] ?? null,
             'auth_code'        => $orderInqResult['AuthCode'] ?? null,
             'ref_ret_num'      => $orderInqResult['RetrefNum'] ?? null,
             'proc_return_code' => $procReturnCode,
-            'order_status'     => $orderInqResult['Status'],
+            'order_status'     => $orderStatus,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
             'error_code'       => self::TX_APPROVED === $status ? null : $transaction['Response']['Code'],
