@@ -274,7 +274,47 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapHistoryResponse(array $rawResponseData): array
     {
-        return $this->emptyStringsToNull($rawResponseData);
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+
+        $mappedTransactions = [];
+        $procReturnCode     = null;
+        $status             = null;
+        $orderId            = null;
+        $paymentRequest     = [];
+        if (isset($rawResponseData['PaymentRequestExtended']['PaymentRequest'])) {
+            $paymentRequest = $rawResponseData['PaymentRequestExtended']['PaymentRequest'];
+            $procReturnCode = $this->getProcReturnCode($paymentRequest);
+            $status         = self::TX_DECLINED;
+            if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+                $status               = self::TX_APPROVED;
+                $mappedTransactions[] = $this->mapSingleHistoryTransaction($paymentRequest);
+            }
+            $orderId = $paymentRequest['OrderId'];
+        } else {
+            foreach ($rawResponseData['PaymentRequestExtended'] as $tx) {
+                $orderId              = $tx['PaymentRequest']['OrderId'];
+                $mappedTransactions[] = $this->mapSingleHistoryTransaction($tx['PaymentRequest']);
+            }
+        }
+
+        $result = [
+            'order_id'         => $orderId,
+            'proc_return_code' => $procReturnCode,
+            'error_code'       => null,
+            'error_message'    => null,
+            'status'           => $status,
+            'status_detail'    => null !== $procReturnCode ? $this->getStatusDetail($procReturnCode) : null,
+            'trans_count'      => \count($mappedTransactions),
+            'transactions'     => $mappedTransactions,
+            'all'              => $rawResponseData,
+        ];
+
+        if (null !== $procReturnCode && self::PROCEDURE_SUCCESS_CODE !== $procReturnCode) {
+            $result['error_code']    = $procReturnCode;
+            $result['error_message'] = $paymentRequest['ErrMsg'];
+        }
+
+        return $result;
     }
 
     /**
@@ -395,5 +435,55 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         return $result;
+    }
+
+    /**
+     * @param array<string, string|null> $rawTx
+     *
+     * @return array<string, int|string|null|float|bool|\DateTime>
+     *
+     * @throws \Exception
+     */
+    private function mapSingleHistoryTransaction(array $rawTx): array
+    {
+        $procReturnCode = $this->getProcReturnCode($rawTx);
+        $status         = self::TX_DECLINED;
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        $defaultResponse = $this->getDefaultOrderHistoryTxResponse();
+
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $defaultResponse['status']           = $status;
+        $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
+        $defaultResponse['error_code']       = self::TX_APPROVED === $status ? null : $procReturnCode;
+        $defaultResponse['transaction_type'] = $this->mapTxType((string) $rawTx['TxnType']);
+        $defaultResponse['currency']         = null !== $rawTx['Currency'] ? $this->mapCurrency($rawTx['Currency']) : null;
+
+        if (self::TX_APPROVED === $status) {
+            $orderStatus                      = null;
+            $defaultResponse['auth_code']     = $rawTx['AuthCode'] ?? null;
+            $defaultResponse['ref_ret_num']   = $rawTx['HostRefNum'] ?? null;
+            $defaultResponse['masked_number'] = $rawTx['CardMask'];
+            $defaultResponse['first_amount']  = null !== $rawTx['PurchAmount'] ? $this->formatAmount($rawTx['PurchAmount']) : null;
+            $defaultResponse['trans_time']    = null !== $rawTx['InsertDatetime'] ? new \DateTime($rawTx['InsertDatetime']) : null;
+            if (\in_array(
+                $defaultResponse['transaction_type'],
+                [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_POST_AUTH],
+                true
+            )) {
+                $defaultResponse['capture']        = true;
+                $defaultResponse['capture_amount'] = $defaultResponse['first_amount'];
+                $defaultResponse['capture_time']   = $defaultResponse['trans_time'];
+                $orderStatus                       = PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED;
+            } elseif (PosInterface::TX_TYPE_PAY_PRE_AUTH === $defaultResponse['transaction_type']) {
+                $defaultResponse['capture'] = false;
+                $orderStatus                = PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED;
+            }
+            $defaultResponse['order_status'] = $orderStatus;
+        }
+
+        return $defaultResponse;
     }
 }

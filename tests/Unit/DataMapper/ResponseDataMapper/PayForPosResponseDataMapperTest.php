@@ -103,6 +103,38 @@ class PayForPosResponseDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider historyTestDataProvider
+     */
+    public function testMapHistoryResponse(array $responseData, array $expectedData)
+    {
+        $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+
+        if (count($actualData['transactions']) > 1
+            && null !== $actualData['transactions'][0]['trans_time']
+            && null !== $actualData['transactions'][1]['trans_time']
+        ) {
+            $this->assertGreaterThan(
+                $actualData['transactions'][0]['trans_time'],
+                $actualData['transactions'][1]['trans_time'],
+            );
+        }
+
+        $this->assertCount($actualData['trans_count'], $actualData['transactions']);
+
+        foreach ($actualData['transactions'] as $key => $tx) {
+            $this->assertEquals($expectedData['transactions'][$key]['trans_time'], $actualData['transactions'][$key]['trans_time'], "tx: $key");
+            $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time'], "tx: $key");
+            unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
+            unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
+            \ksort($actualData['transactions'][$key]);
+            \ksort($expectedData['transactions'][$key]);
+        }
+
+        unset($actualData['all']);
+        $this->assertSame($expectedData, $actualData);
+    }
+
+    /**
      * @dataProvider refundTestDataProvider
      */
     public function testMapRefundResponse(array $responseData, array $expectedData)
@@ -2109,5 +2141,213 @@ class PayForPosResponseDataMapperTest extends TestCase
                     ],
                 ],
             ];
+    }
+
+    public static function historyTestDataProvider(): array
+    {
+        return [
+            'success_pre_pay_post_pay_then_cancel' => [
+                'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/payfor/history/success_pre_pay_post_pay_then_cancel_response.json'), true),
+                'expectedData' => [
+                    'order_id'         => '2024012107B7',
+                    'proc_return_code' => null,
+                    'error_code'       => null,
+                    'error_message'    => null,
+                    'status'           => null,
+                    'status_detail'    => null,
+                    'trans_count'      => 3,
+                    'transactions'     => [
+                        [
+                            'auth_code'        => 'S65465',
+                            'proc_return_code' => '00',
+                            'trans_id'         => null,
+                            'trans_time'       => new \DateTime('2024-01-21T17:39:02'),
+                            'capture_time'     => null,
+                            'error_message'    => null,
+                            'ref_ret_num'      => null,
+                            'order_status'     => 'PRE_AUTH_COMPLETED',
+                            'transaction_type' => 'pre',
+                            'first_amount'     => 2.01,
+                            'capture_amount'   => null,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          =>  false,
+                            'currency'         => 'TRY',
+                            'masked_number'    => '415565******6111',
+                        ],
+                        [
+                            'auth_code'        => 'S75952',
+                            'proc_return_code' => '00',
+                            'trans_id'         => null,
+                            'trans_time'       => new \DateTime('2024-01-21T17:39:06'),
+                            'capture_time'     => new \DateTime('2024-01-21T17:39:06'),
+                            'error_message'    => null,
+                            'ref_ret_num'      => null,
+                            'order_status'     => 'PAYMENT_COMPLETED',
+                            'transaction_type' => 'post',
+                            'first_amount'     => 2.03,
+                            'capture_amount'   => 2.03,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => true,
+                            'currency'         => 'TRY',
+                            'masked_number'    => '415565******6111',
+                        ],
+                        [
+                            'auth_code'        => 'S10420',
+                            'proc_return_code' => '00',
+                            'trans_id'         => null,
+                            'trans_time'       => new \DateTime('2024-01-21T17:39:16'),
+                            'capture_time'     => null,
+                            'error_message'    => null,
+                            'ref_ret_num'      => null,
+                            'order_status'     => null,
+                            'transaction_type' => 'cancel',
+                            'first_amount'     => 2.03,
+                            'capture_amount'   => null,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => null,
+                            'currency'         => 'TRY',
+                            'masked_number'    => '415565******6111',
+                        ],
+                    ],
+                ],
+            ],
+            'success_pay' => [
+                'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/payfor/history/success_pay_response.json'), true),
+                'expectedData' => [
+                    'order_id'         => '202401212A22',
+                    'proc_return_code' => '00',
+                    'error_code'       => null,
+                    'error_message'    => null,
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'trans_count'      => 1,
+                    'transactions'     => [
+                        [
+                            'auth_code'        => 'S90726',
+                            'proc_return_code' => '00',
+                            'trans_id'         => null,
+                            'trans_time'       => new \DateTime('2024-01-21T21:40:47'),
+                            'capture_time'     => new \DateTime('2024-01-21T21:40:47'),
+                            'error_message'    => null,
+                            'ref_ret_num'      => null,
+                            'order_status'     => 'PAYMENT_COMPLETED',
+                            'transaction_type' => 'pay',
+                            'first_amount'     => 1.01,
+                            'capture_amount'   => 1.01,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => true,
+                            'currency'         => 'TRY',
+                            'masked_number'    => '415565******6111',
+                        ],
+                    ],
+                ],
+            ],
+            'success_pre_pay' => [
+                'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/payfor/history/success_pre_pay_response.json'), true),
+                'expectedData' => [
+                    'order_id'         => '2024012186F9',
+                    'proc_return_code' => '00',
+                    'error_code'       => null,
+                    'error_message'    => null,
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'trans_count'      => 1,
+                    'transactions'     => [
+                        [
+                            'auth_code'        => 'S95711',
+                            'proc_return_code' => '00',
+                            'trans_id'         => null,
+                            'trans_time'       => new \DateTime('2024-01-21T21:59:31'),
+                            'capture_time'     => null,
+                            'error_message'    => null,
+                            'ref_ret_num'      => null,
+                            'order_status'     => 'PRE_AUTH_COMPLETED',
+                            'transaction_type' => 'pre',
+                            'first_amount'     => 2.01,
+                            'capture_amount'   => null,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => false,
+                            'currency'         => 'TRY',
+                            'masked_number'    => '415565******6111',
+                        ],
+                    ],
+                ],
+            ],
+            'success_pay_refund_fail' => [
+                'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/payfor/history/success_pay_refund_fail_response.json'), true),
+                'expectedData' => [
+                    'order_id'         => '202401211C79',
+                    'proc_return_code' => null,
+                    'error_code'       => null,
+                    'error_message'    => null,
+                    'status'           => null,
+                    'status_detail'    => null,
+                    'trans_count'      => 2,
+                    'transactions'     => [
+                        [
+                            'auth_code'        => 'S83066',
+                            'proc_return_code' => '00',
+                            'trans_id'         => null,
+                            'trans_time'       => new \DateTime('2024-01-21T22:14:23'),
+                            'capture_time'     => new \DateTime('2024-01-21T22:14:23'),
+                            'error_message'    => null,
+                            'ref_ret_num'      => null,
+                            'order_status'     => 'PAYMENT_COMPLETED',
+                            'transaction_type' => 'pay',
+                            'first_amount'     => 1.01,
+                            'capture_amount'   => 1.01,
+                            'status'           => 'approved',
+                            'error_code'       => null,
+                            'status_detail'    => 'approved',
+                            'capture'          => true,
+                            'currency'         => 'TRY',
+                            'masked_number'    => '415565******6111',
+                        ],
+                        [
+                            'auth_code'        => null,
+                            'proc_return_code' => 'V014',
+                            'trans_id'         => null,
+                            'trans_time'       => null,
+                            'capture_time'     => null,
+                            'error_message'    => null,
+                            'ref_ret_num'      => null,
+                            'order_status'     => null,
+                            'transaction_type' => 'refund',
+                            'first_amount'     => null,
+                            'capture_amount'   => null,
+                            'status'           => 'declined',
+                            'error_code'       => 'V014',
+                            'status_detail'    => 'request_rejected',
+                            'capture'          => null,
+                            'currency'         => 'TRY',
+                            'masked_number'    => null,
+                        ],
+                    ],
+                ],
+            ],
+            'fail_order_not_found' => [
+                'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/payfor/history/fail_order_not_found_response.json'), true),
+                'expectedData' => [
+                    'order_id'         => '202401010C2022',
+                    'proc_return_code' => 'V013',
+                    'error_code'       => 'V013',
+                    'error_message'    => 'Seçili İşlem Bulunamadı!',
+                    'status'           => 'declined',
+                    'status_detail'    => 'reject',
+                    'trans_count'      => 0,
+                    'transactions'     => [],
+                ],
+            ],
+        ];
     }
 }
