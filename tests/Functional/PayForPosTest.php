@@ -117,7 +117,7 @@ class PayForPosTest extends TestCase
     }
 
     /**
-     * @depends testNonSecurePostPaymentSuccess
+     * @depends testNonSecurePaymentSuccess
      * @depends testStatusSuccess
      */
     public function testCancelSuccess(array $lastResponse): array
@@ -255,5 +255,33 @@ class PayForPosTest extends TestCase
         $this->assertCount(19, $formData['inputs']);
         $this->assertArrayHasKey('test_input', $formData['inputs']);
         $this->assertTrue($eventIsThrown);
+    }
+
+    /**
+     * @depends testNonSecurePostPaymentSuccess
+     */
+    public function testRefundFail(array $lastResponse): array
+    {
+        $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_REFUND, $event->getTxType());
+                $this->assertCount(10, $event->getRequestData());
+            });
+
+        $this->pos->refund($refundOrder);
+
+        $this->assertFalse($this->pos->isSuccess());
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertSame('V014', $response['proc_return_code']);
+        $this->assertTrue($eventIsThrown);
+
+        return $lastResponse;
     }
 }
