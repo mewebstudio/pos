@@ -273,6 +273,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * todo refactor
      * {@inheritDoc}
      */
     public function mapHistoryResponse(array $rawResponseData): array

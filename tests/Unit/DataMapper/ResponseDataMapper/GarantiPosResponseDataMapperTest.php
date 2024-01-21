@@ -97,7 +97,18 @@ class GarantiPosResponseDataMapperTest extends TestCase
     public function testMapHistoryResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+        if (count($actualData['transactions']) > 1
+            && null !== $actualData['transactions'][0]['trans_time']
+            && null !== $actualData['transactions'][1]['trans_time']
+        ) {
+            $this->assertGreaterThan(
+                $actualData['transactions'][0]['trans_time'],
+                $actualData['transactions'][1]['trans_time'],
+            );
+        }
         foreach ($actualData['transactions'] as $key => $tx) {
+            $this->assertEquals($expectedData['transactions'][$key]['trans_time'], $actualData['transactions'][$key]['trans_time']);
+            $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time']);
             unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
             unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
             \ksort($actualData['transactions'][$key]);
@@ -1314,12 +1325,11 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'trans_count'      => 1,
                     'transactions'     => [
                         [
-                            'order_id'         => null,
                             'auth_code'        => '826886',
                             'proc_return_code' => '00',
                             'trans_id'         => null,
-                            'trans_time'       => null,
-                            'capture_time'     => null,
+                            'trans_time'       => new \DateTime('20240107T000000'),
+                            'capture_time'     => new \DateTime('20240107T000000'),
                             'error_message'    => null,
                             'ref_ret_num'      => '400709699645',
                             'order_status'     => null,
@@ -1433,12 +1443,11 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'trans_count'      => 2,
                     'transactions'     => [
                         [
-                            'order_id'         => null,
                             'auth_code'        => '304919',
                             'proc_return_code' => '00',
                             'trans_id'         => null,
-                            'trans_time'       => null,
-                            'capture_time'     => null,
+                            'trans_time'       => new \DateTime('20221101T000000'),
+                            'capture_time'     => new \DateTime('20221101T000000'),
                             'error_message'    => null,
                             'ref_ret_num'      => '230508300896',
                             'order_status'     => null,
@@ -1453,7 +1462,6 @@ class GarantiPosResponseDataMapperTest extends TestCase
                             'masked_number'    => null,
                         ],
                         [
-                            'order_id'         => null,
                             'auth_code'        => null,
                             'proc_return_code' => '01',
                             'trans_id'         => null,

@@ -185,6 +185,32 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     }
 
     /**
+     * @return array<string, mixed>
+     */
+    protected function getDefaultOrderHistoryTxResponse(): array
+    {
+        return [
+            'auth_code'        => null,
+            'proc_return_code' => null,
+            'trans_id'         => null,
+            'trans_time'       => null,
+            'capture_time'     => null,
+            'error_message'    => null,
+            'ref_ret_num'      => null,
+            'order_status'     => null,
+            'transaction_type' => null,
+            'first_amount'     => null,
+            'capture_amount'   => null,
+            'status'           => self::TX_DECLINED,
+            'error_code'       => null,
+            'status_detail'    => null,
+            'capture'          => null,
+            'currency'         => null,
+            'masked_number'    => null,
+        ];
+    }
+
+    /**
      * bankadan gelen response'da bos string degerler var.
      * bu metod ile bos string'leri null deger olarak degistiriyoruz
      *

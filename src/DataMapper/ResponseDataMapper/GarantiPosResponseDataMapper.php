@@ -429,7 +429,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $defaultResponse                     = $this->getDefaultStatusResponse();
+        $defaultResponse                     = $this->getDefaultOrderHistoryTxResponse();
         $defaultResponse['auth_code']        = $rawTx['AuthCode'] ?? null;
         $defaultResponse['ref_ret_num']      = $rawTx['RetrefNum'] ?? null;
         $defaultResponse['proc_return_code'] = $procReturnCode;
@@ -439,9 +439,9 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['transaction_type'] = $rawTx['Type'] === null ? null : $this->mapTxType($rawTx['Type']);
 
         if (self::TX_APPROVED === $status) {
-            $transTime                         = $rawTx['ProvDate'] ?? $rawTx['PreAuthDate'];
-            $defaultResponse['trans_time']     = new \DateTime($transTime.'000000');
-            $defaultResponse['capture_time']   = null !== $rawTx['AuthDate'] ? new \DateTime($rawTx['AuthDate'].'000000') : null;
+            $transTime                         = $rawTx['ProvDate'] ?? $rawTx['PreAuthDate'] ?? $rawTx['AuthDate'];
+            $defaultResponse['trans_time']     = new \DateTime($transTime.'T000000');
+            $defaultResponse['capture_time']   = null !== $rawTx['AuthDate'] ? new \DateTime($rawTx['AuthDate'].'T000000') : null;
             $amount                            = $rawTx['AuthAmount'];
             $defaultResponse['capture_amount'] = null !== $amount ? $this->formatAmount($amount) : null;
             $firstAmount                       = $amount > 0 ? $amount : $rawTx['PreAuthAmount'];

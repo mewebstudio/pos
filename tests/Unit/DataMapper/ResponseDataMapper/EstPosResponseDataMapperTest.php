@@ -149,8 +149,18 @@ class EstPosResponseDataMapperTest extends TestCase
     {
         $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
         if (count($responseData['Extra']) > 0) {
+            if (count($actualData['transactions']) > 1
+                && null !== $actualData['transactions'][0]['trans_time']
+                && null !== $actualData['transactions'][1]['trans_time']
+            ) {
+                $this->assertGreaterThan(
+                    $actualData['transactions'][0]['trans_time'],
+                    $actualData['transactions'][1]['trans_time'],
+                );
+            }
             foreach ($actualData['transactions'] as $key => $tx) {
-                $this->assertInstanceOf(\DateTimeInterface::class, $tx['trans_time']);
+                $this->assertEquals($expectedData['transactions'][$key]['trans_time'], $actualData['transactions'][$key]['trans_time']);
+                $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time']);
                 unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
                 \ksort($actualData['transactions'][$key]);
                 \ksort($expectedData['transactions'][$key]);
@@ -1528,27 +1538,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'trans_count'      => 2,
                     'transactions'     => [
                         [
-                            'order_id'         => null,
-                            'auth_code'        => null,
-                            'proc_return_code' => '99',
-                            'trans_id'         => '24002V3CG19993',
-                            'error_message'    => null,
-                            'ref_ret_num'      => null,
-                            'order_status'     => 'ERROR',
-                            'transaction_type' => 'refund',
-                            'first_amount'     => 1.0,
-                            'capture_amount'   => 1.0,
-                            'status'           => 'declined',
-                            'error_code'       => null,
-                            'trans_time'       => null,
-                            'capture_time'     => null,
-                            'masked_number'    => null,
-                            'status_detail'    => 'general_error',
-                            'capture'          => false,
-                            'currency'         => null,
-                        ],
-                        [
-                            'order_id'         => null,
                             'auth_code'        => 'P78955',
                             'proc_return_code' => '00',
                             'trans_id'         => '24002V29G19979',
@@ -1563,9 +1552,28 @@ class EstPosResponseDataMapperTest extends TestCase
                             'status_detail'    => 'approved',
                             'capture'          => true,
                             'currency'         => null,
-                            'trans_time'       => null,
+                            'trans_time'       => new \DateTime('2024-01-02 21:52:59.261'),
                             'capture_time'     => null,
                             'masked_number'    => null,
+                        ],
+                        [
+                            'auth_code'        => null,
+                            'proc_return_code' => '99',
+                            'trans_id'         => '24002V3CG19993',
+                            'error_message'    => null,
+                            'ref_ret_num'      => null,
+                            'order_status'     => 'ERROR',
+                            'transaction_type' => 'refund',
+                            'first_amount'     => 1.0,
+                            'capture_amount'   => 1.0,
+                            'status'           => 'declined',
+                            'error_code'       => null,
+                            'trans_time'       => new \DateTime('2024-01-02 21:53:02.486'),
+                            'capture_time'     => null,
+                            'masked_number'    => null,
+                            'status_detail'    => 'general_error',
+                            'capture'          => false,
+                            'currency'         => null,
                         ],
                     ],
                     'status'           => 'approved',
@@ -1596,7 +1604,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'trans_count'      => 1,
                     'transactions'     => [
                         [
-                            'order_id'         => null,
                             'auth_code'        => 'P77381',
                             'proc_return_code' => '00',
                             'trans_id'         => '24002VvdA19109',
@@ -1611,7 +1618,7 @@ class EstPosResponseDataMapperTest extends TestCase
                             'status_detail'    => 'approved',
                             'capture'          => true,
                             'currency'         => null,
-                            'trans_time'       => null,
+                            'trans_time'       => new \DateTime('2024-01-02 21:47:28.785'),
                             'capture_time'     => null,
                             'masked_number'    => null,
                         ],
@@ -1642,7 +1649,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'trans_count'      => 1,
                     'transactions'     => [
                         [
-                            'order_id'         => null,
                             'auth_code'        => 'P14578',
                             'proc_return_code' => '00',
                             'trans_id'         => '24001WPbH16694',
@@ -1657,7 +1663,7 @@ class EstPosResponseDataMapperTest extends TestCase
                             'status_detail'    => 'approved',
                             'capture'          => true,
                             'currency'         => null,
-                            'trans_time'       => null,
+                            'trans_time'       => new \DateTime('2024-01-01 22:15:27.511'),
                             'capture_time'     => null,
                             'masked_number'    => null,
                         ],
@@ -1688,7 +1694,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'trans_count'      => 1,
                     'transactions'     => [
                         [
-                            'order_id'         => null,
                             'auth_code'        => 'T56045',
                             'proc_return_code' => '00',
                             'trans_id'         => '24001WceJ18839',
@@ -1703,7 +1708,7 @@ class EstPosResponseDataMapperTest extends TestCase
                             'status_detail'    => 'approved',
                             'capture'          => false,
                             'currency'         => null,
-                            'trans_time'       => null,
+                            'trans_time'       => new \DateTime('2024-01-01 22:28:30.716'),
                             'capture_time'     => null,
                             'masked_number'    => null,
                         ],
@@ -1734,7 +1739,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'trans_count'      => 1,
                     'transactions'     => [
                         [
-                            'order_id'         => null,
                             'auth_code'        => 'T14446',
                             'proc_return_code' => '00',
                             'trans_id'         => '24001Wl3G10348',
@@ -1749,7 +1753,7 @@ class EstPosResponseDataMapperTest extends TestCase
                             'status_detail'    => 'approved',
                             'capture'          => true,
                             'currency'         => null,
-                            'trans_time'       => null,
+                            'trans_time'       => new \DateTime('2024-01-01 22:37:53.396'),
                             'capture_time'     => null,
                             'masked_number'    => null,
                         ],

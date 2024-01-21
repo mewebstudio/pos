@@ -419,7 +419,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'error_message'    => $rawResponseData['ErrMsg'],
             'num_code'         => $rawResponseData['Extra']['NUMCODE'],
             'trans_count'      => (int) $rawResponseData['Extra']['TRXCOUNT'],
-            'transactions'     => $transactions,
+            'transactions'     => \array_reverse($transactions),
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
             'all'              => $rawResponseData,
@@ -488,7 +488,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
     private function mapSingleHistoryTransaction(array $rawTx): array
     {
         $rawTx                           = $this->emptyStringsToNull($rawTx);
-        $transaction                     = $this->getDefaultStatusResponse();
+        $transaction                     = $this->getDefaultOrderHistoryTxResponse();
         $transaction['auth_code']        = $rawTx[8];
         $transaction['proc_return_code'] = $rawTx[9];
         if (self::PROCEDURE_SUCCESS_CODE === $transaction['proc_return_code']) {
@@ -548,6 +548,6 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
 
         $recurringOrder['capture'] = $recurringOrder['first_amount'] === $recurringOrder['capture_amount'];
 
-        return $this->mergeArraysPreferNonNullValues($this->getDefaultStatusResponse(), $recurringOrder);
+        return $this->mergeArraysPreferNonNullValues($this->getDefaultOrderHistoryTxResponse(), $recurringOrder);
     }
 }
