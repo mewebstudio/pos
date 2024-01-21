@@ -329,7 +329,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (isset($extra['RECURRINGID'])) {
             return $this->mapRecurringStatusResponse($rawResponseData);
         }
-        $defaultResponse = $this->getDefaultStatusResponse();
+        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
 
         $defaultResponse['order_id']         = $rawResponseData['OrderId'];
         $defaultResponse['proc_return_code'] = $procReturnCode;
@@ -337,7 +337,6 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['error_message']    = self::TX_APPROVED === $status ? null : $rawResponseData['ErrMsg'];
         $defaultResponse['status']           = $status;
         $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
-        $defaultResponse['all']              = $rawResponseData;
 
         $result = $defaultResponse;
         if (self::TX_APPROVED === $status) {
@@ -383,7 +382,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'all'                       => $rawResponseData,
         ];
 
-        for ($i = 1; isset($extra[sprintf('ORD_ID_%d', $i)]); ++$i) {
+        for ($i = 1; isset($extra[\sprintf('ORD_ID_%d', $i)]); ++$i) {
             $recurringOrderResponse['recurringOrders'][] = $this->mapSingleRecurringOrderStatus($extra, $i);
         }
 

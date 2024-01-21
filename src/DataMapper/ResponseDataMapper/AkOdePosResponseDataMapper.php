@@ -225,7 +225,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $defaultResponse = $this->getDefaultStatusResponse();
+        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
 
         $defaultResponse['proc_return_code'] = $procReturnCode;
         $defaultResponse['order_id']         = $rawResponseData['OrderId'];
@@ -236,7 +236,6 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['transaction_type'] = $this->mapTxType($rawResponseData['TransactionType']);
         $defaultResponse['status']           = $status;
         $defaultResponse['status_detail']    = $this->getStatusDetail($errorCode);
-        $defaultResponse['all']              = $rawResponseData;
 
         $isPaymentTransaction = \in_array(
             $defaultResponse['transaction_type'],

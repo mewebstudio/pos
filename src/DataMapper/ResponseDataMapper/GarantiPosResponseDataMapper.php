@@ -245,7 +245,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         $transaction     = $rawResponseData['Transaction'];
         /** @var array<string, string|null> $orderInqResult */
         $orderInqResult  = $rawResponseData['Order']['OrderInqResult'];
-        $defaultResponse = $this->getDefaultStatusResponse();
+        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
 
         $orderStatus = $orderInqResult['Status'];
         if ('WAITINGPOSTAUTH' === $orderInqResult['Status']) {
@@ -261,7 +261,6 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'status_detail'    => $this->getStatusDetail($procReturnCode),
             'error_code'       => self::TX_APPROVED === $status ? null : $transaction['Response']['Code'],
             'error_message'    => self::TX_APPROVED === $status ? null : $transaction['Response']['ErrorMsg'],
-            'all'              => $rawResponseData,
         ];
         if (self::TX_APPROVED === $status) {
             $transTime                = $orderInqResult['ProvDate'] ?? $orderInqResult['PreAuthDate'];

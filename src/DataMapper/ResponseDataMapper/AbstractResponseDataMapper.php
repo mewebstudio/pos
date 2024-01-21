@@ -158,9 +158,11 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     }
 
     /**
-     * @return array<string, string|null>
+     * @param array<string, mixed> $rawData
+     *
+     * @return array<string, mixed>
      */
-    protected function getDefaultStatusResponse(): array
+    protected function getDefaultStatusResponse(array $rawData): array
     {
         return [
             'order_id'         => null,
@@ -181,6 +183,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             'capture'          => null,
             'currency'         => null,
             'masked_number'    => null,
+            'all'              => $rawData,
         ];
     }
 

@@ -225,7 +225,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $defaultResponse = $this->getDefaultStatusResponse();
+        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
 
         $defaultResponse['proc_return_code'] = $procReturnCode;
         $defaultResponse['order_id']         = $rawResponseData['OrderId'];
@@ -234,7 +234,6 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['currency']         = $this->mapCurrency($rawResponseData['Currency']);
         $defaultResponse['status']           = $status;
         $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
-        $defaultResponse['all']              = $rawResponseData;
 
         if (self::TX_APPROVED === $status) {
             $orderStatus                    = null;
