@@ -153,6 +153,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+
         $defaultResponse['status']           = $status;
         $defaultResponse['proc_return_code'] = $procReturnCode;
 

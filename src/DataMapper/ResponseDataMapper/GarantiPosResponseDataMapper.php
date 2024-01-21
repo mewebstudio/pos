@@ -251,6 +251,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         if ('WAITINGPOSTAUTH' === $orderInqResult['Status']) {
             $orderStatus = PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED;
         }
+
         $result = [
             'order_id'         => $rawResponseData['Order']['OrderID'] ?? null,
             'auth_code'        => $orderInqResult['AuthCode'] ?? null,

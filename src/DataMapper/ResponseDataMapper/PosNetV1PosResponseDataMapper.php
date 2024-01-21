@@ -235,6 +235,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
                     break;
                 }
             }
+
             if (null === $rawTx) {
                 return $defaultResponse;
             }

@@ -130,6 +130,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     $actualData['transactions'][1]['trans_time'],
                 );
             }
+
             foreach ($responseData['Transactions'] as $key => $tx) {
                 if (isset($tx['CreateDate'])) {
                     $this->assertSame($actualData['transactions'][$key]['trans_time']->format('YmdHis'), $tx['CreateDate']);
@@ -137,6 +138,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
                     unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
                 }
+
                 \ksort($actualData['transactions'][$key]);
                 \ksort($expectedData['transactions'][$key]);
             }

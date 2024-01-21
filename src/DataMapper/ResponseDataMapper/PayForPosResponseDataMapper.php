@@ -258,9 +258,11 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             if ('true' === $rawResponseData['IsVoided']) {
                 $orderStatus = PosInterface::PAYMENT_STATUS_CANCELED;
             }
+
             if ('true' === $rawResponseData['IsRefunded']) {
                 $orderStatus = PosInterface::PAYMENT_STATUS_FULLY_REFUNDED;
             }
+
             $defaultResponse['order_status'] = $orderStatus;
         } else {
             $defaultResponse['error_message'] = $rawResponseData['ErrMsg'];
@@ -289,6 +291,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
                 $status               = self::TX_APPROVED;
                 $mappedTransactions[] = $this->mapSingleHistoryTransaction($paymentRequest);
             }
+
             $orderId = $paymentRequest['OrderId'];
         } else {
             foreach ($rawResponseData['PaymentRequestExtended'] as $tx) {
@@ -481,6 +484,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
                 $defaultResponse['capture'] = false;
                 $orderStatus                = PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED;
             }
+
             $defaultResponse['order_status'] = $orderStatus;
         }
 

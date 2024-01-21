@@ -106,7 +106,8 @@ class GarantiPosResponseDataMapperTest extends TestCase
                 $actualData['transactions'][1]['trans_time'],
             );
         }
-        foreach ($actualData['transactions'] as $key => $tx) {
+
+        foreach (array_keys($actualData['transactions']) as $key) {
             $this->assertEquals($expectedData['transactions'][$key]['trans_time'], $actualData['transactions'][$key]['trans_time']);
             $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time']);
             unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
@@ -114,6 +115,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
             \ksort($actualData['transactions'][$key]);
             \ksort($expectedData['transactions'][$key]);
         }
+
         $this->assertCount($actualData['trans_count'], $actualData['transactions']);
 
         unset($actualData['all']);

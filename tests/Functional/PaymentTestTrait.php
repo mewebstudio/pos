@@ -193,6 +193,7 @@ trait PaymentTestTrait
                 'pageSize'        => 10, // optional, default: 10
             ];
         }
+
         if (PayForPos::class === $gatewayClass) {
             if (isset($extraData['reqDate'])) {
                 $order = [

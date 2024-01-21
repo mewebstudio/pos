@@ -121,9 +121,9 @@ class PayForPosResponseDataMapperTest extends TestCase
 
         $this->assertCount($actualData['trans_count'], $actualData['transactions']);
 
-        foreach ($actualData['transactions'] as $key => $tx) {
-            $this->assertEquals($expectedData['transactions'][$key]['trans_time'], $actualData['transactions'][$key]['trans_time'], "tx: $key");
-            $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time'], "tx: $key");
+        foreach (array_keys($actualData['transactions']) as $key) {
+            $this->assertEquals($expectedData['transactions'][$key]['trans_time'], $actualData['transactions'][$key]['trans_time'], 'tx: '.$key);
+            $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time'], 'tx: '.$key);
             unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
             unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
             \ksort($actualData['transactions'][$key]);
@@ -2172,7 +2172,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                             'status'           => 'approved',
                             'error_code'       => null,
                             'status_detail'    => 'approved',
-                            'capture'          =>  false,
+                            'capture'          => false,
                             'currency'         => 'TRY',
                             'masked_number'    => '415565******6111',
                         ],
@@ -2217,7 +2217,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     ],
                 ],
             ],
-            'success_pay' => [
+            'success_pay'                          => [
                 'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/payfor/history/success_pay_response.json'), true),
                 'expectedData' => [
                     'order_id'         => '202401212A22',
@@ -2250,7 +2250,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     ],
                 ],
             ],
-            'success_pre_pay' => [
+            'success_pre_pay'                      => [
                 'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/payfor/history/success_pre_pay_response.json'), true),
                 'expectedData' => [
                     'order_id'         => '2024012186F9',
@@ -2283,7 +2283,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     ],
                 ],
             ],
-            'success_pay_refund_fail' => [
+            'success_pay_refund_fail'              => [
                 'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/payfor/history/success_pay_refund_fail_response.json'), true),
                 'expectedData' => [
                     'order_id'         => '202401211C79',
@@ -2335,7 +2335,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     ],
                 ],
             ],
-            'fail_order_not_found' => [
+            'fail_order_not_found'                 => [
                 'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/payfor/history/fail_order_not_found_response.json'), true),
                 'expectedData' => [
                     'order_id'         => '202401010C2022',

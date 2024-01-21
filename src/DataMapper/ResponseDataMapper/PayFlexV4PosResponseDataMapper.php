@@ -154,6 +154,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+
         $defaultResponse['status'] = $status;
         $defaultResponse['status_detail'] = $this->getStatusDetail($procReturnCode);
         if (self::TX_DECLINED === $status) {

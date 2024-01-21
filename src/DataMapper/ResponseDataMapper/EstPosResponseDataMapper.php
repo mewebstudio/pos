@@ -329,6 +329,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (isset($extra['RECURRINGID'])) {
             return $this->mapRecurringStatusResponse($rawResponseData);
         }
+
         $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
 
         $defaultResponse['order_id']         = $rawResponseData['OrderId'];
@@ -405,10 +406,10 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
 
         $transactions = [];
         $i            = 1;
-        while (isset($rawResponseData['Extra']["TRX$i"])) {
-            $rawTx          = \explode("\t", $rawResponseData['Extra']["TRX$i"]);
+        while (isset($rawResponseData['Extra']['TRX'.$i])) {
+            $rawTx          = \explode("\t", $rawResponseData['Extra']['TRX'.$i]);
             $transactions[] = $this->mapSingleHistoryTransaction($rawTx);
-            $i++;
+            ++$i;
         }
 
         return [
@@ -493,6 +494,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $transaction['proc_return_code']) {
             $transaction['status'] = self::TX_APPROVED;
         }
+
         $transaction['status_detail'] = $this->getStatusDetail($transaction['proc_return_code']);
         $transaction['trans_id']      = $rawTx[10];
         /**
@@ -525,6 +527,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         } elseif (null === $procReturnCode) {
             $status = null;
         }
+
         $recurringOrder = [
             'order_id'         => $extra[\sprintf('ORD_ID_%d', $i)],
             'masked_number'    => $extra[\sprintf('PAN_%d', $i)],

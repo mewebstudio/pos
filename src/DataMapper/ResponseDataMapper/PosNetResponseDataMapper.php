@@ -98,6 +98,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $this->getStatusDetail($procReturnCode) === self::TX_APPROVED) {
             $status = self::TX_APPROVED;
         }
+
         $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_3D_SECURE);
 
         if (!isset($raw3DAuthResponseData['oosResolveMerchantDataResponse'])) {
@@ -231,6 +232,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && isset($rawResponseData['transactions']) && !$errorCode) {
             $status = self::TX_APPROVED;
         }
+
         $txResults = [];
 
         $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
