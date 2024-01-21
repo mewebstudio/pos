@@ -68,7 +68,14 @@ class PosNetResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
+        $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
+        $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+        unset($actualData['trans_time'], $expectedData['trans_time']);
+        unset($actualData['capture_time'], $expectedData['capture_time']);
+
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -402,14 +409,21 @@ class PosNetResponseDataMapperTest extends TestCase
                     'auth_code'        => '504289',
                     'trans_id'         => null,
                     'ref_ret_num'      => '021450428990000191',
-                    'group_id'         => null,
-                    'date'             => '2019-10-10 11:21:14.281',
+                    'trans_time'       => new \DateTime('2019-10-10 11:21:14.281'),
                     'transaction_type' => 'pay',
                     'proc_return_code' => '1',
                     'status'           => 'approved',
                     'status_detail'    => 'approved',
                     'error_code'       => null,
                     'error_message'    => null,
+                    'capture'          => null,
+                    'capture_amount'   => null,
+                    'first_amount'     => 1.16,
+                    'masked_number'    => null,
+                    'order_id'         => 'TDS_YKB_0000191010111730',
+                    'order_status'     => null,
+                    'capture_time'     => null,
+                    'currency'         => 'TRY',
                 ],
             ],
             'fail1'    => [
@@ -422,9 +436,16 @@ class PosNetResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'trans_id'         => null,
                     'ref_ret_num'      => null,
-                    'group_id'         => null,
-                    'date'             => null,
                     'transaction_type' => null,
+                    'capture'          => null,
+                    'capture_amount'   => null,
+                    'capture_time'     => null,
+                    'currency'         => null,
+                    'trans_time'       => null,
+                    'first_amount'     => null,
+                    'masked_number'    => null,
+                    'order_id'         => null,
+                    'order_status'     => null,
                     'proc_return_code' => '0',
                     'status'           => 'declined',
                     'status_detail'    => 'declined',

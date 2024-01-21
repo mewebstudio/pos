@@ -92,6 +92,8 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -115,16 +117,21 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'transaction_type' => null,
                 'ref_ret_num'      => null,
                 'order_status'     => null,
+                'first_amount'     => null,
                 'capture_amount'   => null,
                 'currency'         => null,
-                'status'           => 'Error',
+                'status'           => 'declined',
                 'status_detail'    => 'invalid_credentials',
                 'error_code'       => '9065',
                 'error_message'    => 'Üye isyeri bulunamadi',
+                'masked_number'    => null,
+                'capture'          => null,
+                'capture_time'     => null,
+                'trans_time'       => null,
             ],
         ];
 
-        yield 'success1' => [
+        yield 'success_pay' => [
             'responseData' => [
                 'ResponseInfo'                => [
                     'Status'           => 'Success',
@@ -176,12 +183,17 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'ref_ret_num'      => '201101240006',
                 'order_status'     => 'PAYMENT_COMPLETED',
                 'transaction_type' => 'pay',
-                'capture_amount'   => '90.50',
+                'first_amount'     => 90.50,
+                'capture_amount'   => null,
                 'currency'         => PosInterface::CURRENCY_TRY,
                 'status'           => 'approved',
                 'status_detail'    => 'approved',
                 'error_code'       => null,
                 'error_message'    => null,
+                'masked_number'    => null,
+                'capture'          => null,
+                'capture_time'     => null,
+                'trans_time'       => null,
             ],
         ];
     }

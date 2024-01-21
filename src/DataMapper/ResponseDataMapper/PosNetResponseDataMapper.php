@@ -231,45 +231,32 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && isset($rawResponseData['transactions']) && !$errorCode) {
             $status = self::TX_APPROVED;
         }
-
-        $state     = null;
         $txResults = [];
+
+        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
 
         if (isset($rawResponseData['transactions']['transaction'])) {
             $transactionDetails = $rawResponseData['transactions']['transaction'];
 
-            $state    = $transactionDetails['state'] ?? null;
-            $authCode = $transactionDetails['authCode'] ?? null;
-
             $txResults = [
-                'auth_code'   => $authCode,
-                'trans_id'    => null,
-                'ref_ret_num' => $transactionDetails['hostlogkey'] ?? null,
-                'date'        => $transactionDetails['tranDate'] ?? null,
+                'currency'         => $this->mapCurrency($transactionDetails['currencyCode']),
+                'first_amount'     => $this->formatStatusAmount($transactionDetails['amount']),
+                'transaction_type' => null === $transactionDetails['state'] ? null : $this->mapTxType($transactionDetails['state']),
+                'order_id'         => $transactionDetails['orderID'],
+                'auth_code'        => $transactionDetails['authCode'] ?? null,
+                'ref_ret_num'      => $transactionDetails['hostlogkey'] ?? null,
+                // tranDate ex: 2019-10-10 11:21:14.281
+                'trans_time'       => isset($transactionDetails['tranDate']) ? new \DateTime($transactionDetails['tranDate']) : null,
             ];
         }
 
-        $transactionType = null;
-        if (null !== $state) {
-            $transactionType = $this->mapTxType($state);
-        }
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $defaultResponse['status']           = $status;
+        $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
+        $defaultResponse['error_code']       = self::TX_APPROVED !== $status ? $errorCode : null;
+        $defaultResponse['error_message']    = self::TX_APPROVED !== $status ? ($rawResponseData['respText'] ?? null) : null;
 
-        $results = [
-            'auth_code'        => null,
-            'trans_id'         => null,
-            'ref_ret_num'      => null,
-            'group_id'         => null,
-            'date'             => null,
-            'transaction_type' => $transactionType,
-            'proc_return_code' => $procReturnCode,
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => $errorCode,
-            'error_message'    => $rawResponseData['respText'] ?? null,
-            'all'              => $rawResponseData,
-        ];
-
-        return array_merge($results, $txResults);
+        return $this->mergeArraysPreferNonNullValues($defaultResponse, $txResults);
     }
 
     /**
@@ -402,12 +389,23 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * "1,16" => 1.16
+     * @param string $amount
+     *
+     * @return float
+     */
+    protected function formatStatusAmount(string $amount): float
+    {
+        return (float) \str_replace(',', '.', \str_replace('.', '', $amount));
+    }
+
+    /**
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
-     * @param array<string, mixed> $rawPaymentResponseData
-     * @param string               $txType
-     * @param string               $paymentModel
+     * @param array<string, mixed>                                                      $rawPaymentResponseData
+     * @param string                                                                    $txType
+     * @param string                                                                    $paymentModel
      *
      * @return array<string, mixed>
      */

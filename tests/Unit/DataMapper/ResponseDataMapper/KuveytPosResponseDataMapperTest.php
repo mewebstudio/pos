@@ -85,7 +85,14 @@ class KuveytPosResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
+        $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
+        $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+        unset($actualData['trans_time'], $expectedData['trans_time']);
+        unset($actualData['capture_time'], $expectedData['capture_time']);
+
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -528,7 +535,10 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'status'           => 'declined',
                 'error_code'       => null,
                 'status_detail'    => null,
-                'capture'          => false,
+                'capture'          => null,
+                'capture_time'     => null,
+                'trans_time'       => null,
+                'currency'         => null,
             ],
         ];
         yield 'success1' => [
@@ -601,20 +611,21 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'auth_code'        => '241839',
                 'proc_return_code' => '00',
                 'trans_id'         => '298433',
-                'error_message'    => null,
                 'ref_ret_num'      => '318923298433',
-                'order_status'     => 1,
+                'order_status'     => 'PAYMENT_COMPLETED',
                 'transaction_type' => null,
                 'masked_number'    => '518896******2544',
                 'first_amount'     => 1.01,
                 'capture_amount'   => 1.01,
                 'status'           => 'approved',
                 'error_code'       => null,
+                'error_message'    => null,
                 'status_detail'    => null,
-                'capture'          => false,
+                'capture'          => true,
                 'remote_order_id'  => '114293600',
                 'currency'         => PosInterface::CURRENCY_TRY,
-                'date'             => '2023-07-08T23:45:15.797',
+                'capture_time'     => null,
+                'trans_time'       => new \DateTime('2023-07-08T23:45:15.797'),
             ],
         ];
     }

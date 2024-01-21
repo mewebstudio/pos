@@ -95,29 +95,27 @@ class EstPosResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
-        unset($actualData['all']);
-        \ksort($expectedData);
-        \ksort($actualData);
+
         if (isset($actualData['recurringOrders'])) {
             foreach ($actualData['recurringOrders'] as $key => $actualRecurringOrder) {
                 $expectedRecurringOrder = $expectedData['recurringOrders'][$key];
-                \ksort($expectedRecurringOrder);
-                \ksort($actualRecurringOrder);
-                $this->assertEquals($expectedRecurringOrder['trans_time'],
-                    $actualRecurringOrder['trans_time']);
-                $this->assertEquals($expectedRecurringOrder['capture_time'],
-                    $actualRecurringOrder['capture_time']);
-                unset($actualRecurringOrder['trans_time'], $expectedRecurringOrder['trans_time']);
-                unset($actualRecurringOrder['capture_time'], $expectedRecurringOrder['capture_time']);
-                $this->assertSame($expectedRecurringOrder, $actualRecurringOrder);
+                \ksort($expectedData['recurringOrders'][$key]);
+                \ksort($actualData['recurringOrders'][$key]);
+                $this->assertEquals($expectedRecurringOrder['trans_time'], $actualRecurringOrder['trans_time']);
+                $this->assertEquals($expectedRecurringOrder['capture_time'], $actualRecurringOrder['capture_time']);
+                unset($actualData['recurringOrders'][$key]['trans_time'], $expectedData['recurringOrders'][$key]['trans_time']);
+                unset($actualData['recurringOrders'][$key]['capture_time'], $expectedData['recurringOrders'][$key]['capture_time']);
             }
-            unset($actualData['recurringOrders'], $expectedData['recurringOrders']);
         } else {
             $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
             $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
             unset($actualData['trans_time'], $expectedData['trans_time']);
             unset($actualData['capture_time'], $expectedData['capture_time']);
         }
+
+        unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
 
         $this->assertSame($expectedData, $actualData);
     }

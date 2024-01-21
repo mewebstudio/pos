@@ -147,24 +147,20 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
          */
         $responseInfo   = $rawResponseData['ResponseInfo'];
         $procReturnCode = $responseInfo['ResponseCode'];
-        if (self::PROCEDURE_SUCCESS_CODE !== $procReturnCode) {
-            // istek basarisiz durum
-            return [
-                'order_id'         => null,
-                'auth_code'        => null,
-                'proc_return_code' => $procReturnCode,
-                'trans_id'         => null,
-                'transaction_type' => null,
-                'ref_ret_num'      => null,
-                'order_status'     => null,
-                'capture_amount'   => null,
-                'currency'         => null,
-                'status'           => $responseInfo['Status'],
-                'status_detail'    => $this->getStatusDetail($procReturnCode),
-                'error_code'       => $procReturnCode,
-                'error_message'    => $responseInfo['ResponseMessage'],
-                'all'              => $rawResponseData,
-            ];
+
+        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $status = self::TX_DECLINED;
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+        $defaultResponse['status'] = $status;
+        $defaultResponse['status_detail'] = $this->getStatusDetail($procReturnCode);
+        if (self::TX_DECLINED === $status) {
+            $defaultResponse['error_code'] = $procReturnCode;
+            $defaultResponse['error_message'] = $responseInfo['ResponseMessage'];
+
+            return $defaultResponse;
         }
 
         $txResultInfo  = $rawResponseData['TransactionSearchResultInfo']['TransactionSearchResultInfo'];
@@ -179,22 +175,20 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             $orderStatus = PosInterface::PAYMENT_STATUS_FULLY_REFUNDED;
         }
 
-        return [
-            'order_id'         => $txResultInfo['OrderId'],
-            'auth_code'        => $txResultInfo['AuthCode'],
-            'proc_return_code' => $orderProcCode,
-            'trans_id'         => $txResultInfo['TransactionId'],
-            'ref_ret_num'      => $txResultInfo['Rrn'],
-            'order_status'     => $orderStatus,
-            'transaction_type' => $this->mapTxType($txResultInfo['TransactionType']),
-            'capture_amount'   => $txResultInfo['CurrencyAmount'],
-            'currency'         => $this->mapCurrency($txResultInfo['AmountCode']),
-            'status'           => self::PROCEDURE_SUCCESS_CODE === $orderProcCode ? self::TX_APPROVED : self::TX_DECLINED,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['HostResultCode'] : null,
-            'error_message'    => self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['ResponseMessage'] : null,
-            'all'              => $rawResponseData,
-        ];
+        $defaultResponse['order_id']         = $txResultInfo['OrderId'];
+        $defaultResponse['auth_code']        = $txResultInfo['AuthCode'];
+        $defaultResponse['trans_id']         = $txResultInfo['TransactionId'];
+        $defaultResponse['ref_ret_num']      = $txResultInfo['Rrn'];
+        $defaultResponse['order_status']     = $orderStatus;
+        $defaultResponse['transaction_type'] = $this->mapTxType($txResultInfo['TransactionType']);
+        $defaultResponse['currency']         = $this->mapCurrency($txResultInfo['AmountCode']);
+        $defaultResponse['first_amount']     = $this->formatAmount($txResultInfo['CurrencyAmount']);
+        $defaultResponse['capture_amount']   = null;
+        $defaultResponse['status']           = self::PROCEDURE_SUCCESS_CODE === $orderProcCode ? self::TX_APPROVED : self::TX_DECLINED;
+        $defaultResponse['error_code']       = self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['HostResultCode'] : null;
+        $defaultResponse['error_message']    = self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['ResponseMessage'] : null;
+
+        return $defaultResponse;
     }
 
     /**

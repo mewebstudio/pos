@@ -22,6 +22,17 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
+     * Order Status Codes
+     *
+     * @var array<int, string>
+     */
+    protected array $orderStatusMappings = [
+        1 => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
+        5 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
+        6 => PosInterface::PAYMENT_STATUS_CANCELED,
+    ];
+
+    /**
      * {@inheritDoc}
      */
     public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
@@ -130,60 +141,38 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         $status          = self::TX_DECLINED;
         $data            = $rawResponseData['GetMerchantOrderDetailResult']['Value'];
 
-        $result = [
-            'order_id'         => null,
-            'auth_code'        => null,
-            'proc_return_code' => null,
-            'trans_id'         => null,
-            'error_message'    => null,
-            'ref_ret_num'      => null,
-            'order_status'     => null,
-            'transaction_type' => null,
-            'masked_number'    => null,
-            'first_amount'     => null,
-            'capture_amount'   => null,
-            'status'           => $status,
-            'error_code'       => null,
-            'status_detail'    => null,
-            'capture'          => false,
-            'all'              => $rawResponseData,
-        ];
+        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
 
         if (!isset($data['OrderContract'])) {
-            return $result;
+            return $defaultResponse;
         }
 
         $orderContract  = $rawResponseData['GetMerchantOrderDetailResult']['Value']['OrderContract'];
         $procReturnCode = $this->getProcReturnCode($orderContract);
 
-
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+        $defaultResponse['status']           = $status;
+        $defaultResponse['proc_return_code'] = $procReturnCode;
 
         if (self::TX_APPROVED === $status) {
-            $result['proc_return_code'] = $procReturnCode;
-            /**
-             * ordeme yapildiginda OrderStatus === LastOrderStatus === 1 oluyor
-             * LastOrderStatus = 5 => odeme iade edildi
-             * LastOrderStatus = 6 => odeme iptal edild
-             */
-            $result['order_status']    = $orderContract['LastOrderStatus'];
-            $result['order_id']        = $orderContract['MerchantOrderId'];
-            $result['remote_order_id'] = (string) $orderContract['OrderId'];
-            $result['status']          = $status;
+            $defaultResponse['order_status']    = $this->orderStatusMappings[$orderContract['LastOrderStatus']] ?? null;
+            $defaultResponse['order_id']        = $orderContract['MerchantOrderId'];
+            $defaultResponse['remote_order_id'] = (string) $orderContract['OrderId'];
 
-            $result['auth_code']      = $orderContract['ProvNumber'];
-            $result['ref_ret_num']    = $orderContract['RRN'];
-            $result['trans_id']       = $orderContract['Stan'];
-            $result['currency']       = $this->mapCurrency($orderContract['FEC']);
-            $result['first_amount']   = (float) $orderContract['FirstAmount'];
-            $result['capture_amount'] = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
-            $result['masked_number']  = $orderContract['CardNumber'];
-            $result['date']           = $orderContract['OrderDate'];
+            $defaultResponse['auth_code']      = $orderContract['ProvNumber'];
+            $defaultResponse['ref_ret_num']    = $orderContract['RRN'];
+            $defaultResponse['trans_id']       = $orderContract['Stan'];
+            $defaultResponse['currency']       = $this->mapCurrency($orderContract['FEC']);
+            $defaultResponse['first_amount']   = (float) $orderContract['FirstAmount'];
+            $defaultResponse['capture_amount'] = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
+            $defaultResponse['capture']        = $defaultResponse['first_amount'] > 0 && $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
+            $defaultResponse['masked_number']  = $orderContract['CardNumber'];
+            $defaultResponse['trans_time']     = new \DateTime($orderContract['OrderDate']);
         }
 
-        return $result;
+        return $defaultResponse;
     }
 
     public function mapRefundResponse(array $rawResponseData): array

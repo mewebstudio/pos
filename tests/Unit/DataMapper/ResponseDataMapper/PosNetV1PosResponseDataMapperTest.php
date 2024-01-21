@@ -71,7 +71,15 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
+
+        $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
+        $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+        unset($actualData['trans_time'], $expectedData['trans_time']);
+        unset($actualData['capture_time'], $expectedData['capture_time']);
+
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -534,16 +542,24 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 ],
             ],
             'expected' => [
+                'order_id'         => 'ALB_TST_19091900_20a1234',
                 'auth_code'        => null,
                 'trans_id'         => null,
                 'ref_ret_num'      => null,
-                'group_id'         => null,
-                'date'             => null,
                 'proc_return_code' => '0000',
                 'status'           => 'approved',
+                'order_status'     => 'FULLY_REFUNDED',
                 'status_detail'    => null,
                 'error_code'       => null,
                 'error_message'    => null,
+                'trans_time'       => new \DateTime('2019-11-0813:58:37.909'),
+                'capture_time'     => null,
+                'capture'          => null,
+                'capture_amount'   => null,
+                'transaction_type' => 'refund',
+                'currency'         => 'TRY',
+                'first_amount'     => 1.75,
+                'masked_number'    => '540061******4581',
             ],
         ];
         yield 'fail1' => [
@@ -560,13 +576,21 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'auth_code'        => null,
                 'trans_id'         => null,
                 'ref_ret_num'      => null,
-                'group_id'         => null,
-                'date'             => null,
                 'proc_return_code' => 'E219',
                 'status'           => 'declined',
                 'status_detail'    => null,
                 'error_code'       => 'E219',
                 'error_message'    => 'Kayıt Bulunamadı',
+                'trans_time'       => null,
+                'capture_time'     => null,
+                'capture'          => null,
+                'capture_amount'   => null,
+                'currency'         => null,
+                'first_amount'     => null,
+                'masked_number'    => null,
+                'order_id'         => null,
+                'order_status'     => null,
+                'transaction_type' => null,
             ],
         ];
 

@@ -94,7 +94,15 @@ class InterPosResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
+        $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
+        $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+        unset($actualData['trans_time'], $expectedData['trans_time']);
+        unset($actualData['capture_time'], $expectedData['capture_time']);
+
         unset($actualData['all']);
+
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -459,16 +467,24 @@ class InterPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'order_id'         => 'SYSOID121327781',
+                    'auth_code'        => null,
                     'proc_return_code' => '81',
                     'trans_id'         => null,
+                    'error_code'       => '81',
                     'error_message'    => 'TR:Terminal Aktif Degil',
                     'ref_ret_num'      => null,
                     'order_status'     => null,
-                    'refund_amount'    => 0.0,
+                    'transaction_type' => null,
+                    'currency'         => null,
+                    'masked_number'    => null,
+                    'refund_amount'    => null,
                     'capture_amount'   => null,
+                    'first_amount'     => null,
                     'status'           => 'declined',
                     'status_detail'    => 'invalid_credentials',
                     'capture'          => null,
+                    'trans_time'       => null,
+                    'capture_time'     => null,
                 ],
             ],
         ];

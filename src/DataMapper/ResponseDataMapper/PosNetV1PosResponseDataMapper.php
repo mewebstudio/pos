@@ -63,6 +63,17 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * Order Status Codes
+     *
+     * @var array<string, string>
+     */
+    protected array $orderStatusMappings = [
+        PosInterface::TX_TYPE_PAY_AUTH => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
+        PosInterface::TX_TYPE_CANCEL   => PosInterface::PAYMENT_STATUS_CANCELED,
+        PosInterface::TX_TYPE_REFUND   => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
+    ];
+
+    /**
      * {@inheritDoc}
      */
     public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
@@ -119,7 +130,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
         $threeDAuthApproved  = \in_array($mdStatus, ['1', '2', '3', '4'], true);
         $transactionSecurity = $this->mapResponseTransactionSecurity($mdStatus);
         /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
-        $txType              = $this->mapTxType($raw3DAuthResponseData['TranType']) ?? $txType;
+        $txType = $this->mapTxType($raw3DAuthResponseData['TranType']) ?? $txType;
 
         $threeDResponse = [
             'order_id'             => $order['id'],
@@ -204,19 +215,40 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        return [
-            'auth_code'        => null,
-            'trans_id'         => null,
-            'ref_ret_num'      => null,
-            'group_id'         => null,
-            'date'             => null,
-            'proc_return_code' => $procReturnCode,
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => self::TX_APPROVED === $status ? null : $procReturnCode,
-            'error_message'    => self::TX_APPROVED === $status ? null : $rawResponseData['ServiceResponseData']['ResponseDescription'],
-            'all'              => $rawResponseData,
-        ];
+        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
+
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $defaultResponse['status']           = $status;
+        $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
+        $defaultResponse['error_code']       = self::TX_APPROVED === $status ? null : $procReturnCode;
+        $defaultResponse['error_message']    = self::TX_APPROVED === $status ? null : $rawResponseData['ServiceResponseData']['ResponseDescription'];
+
+        if (self::TX_APPROVED === $status && isset($rawResponseData['TransactionData'])) {
+            $rawTx = null;
+            foreach ($rawResponseData['TransactionData'] as $item) {
+                /**
+                 * İptal Edilen ve Finansallaştırma işlemleri “1” dönmektedir.
+                 * Diğer tüm işlemler “0” dönmektedir.
+                 */
+                if ('1' === $item['TransactionStatus']) {
+                    $rawTx = $item;
+                    break;
+                }
+            }
+            if (null === $rawTx) {
+                return $defaultResponse;
+            }
+
+            $defaultResponse['first_amount']     = $this->formatStatusAmount($rawTx['Amount']);
+            $defaultResponse['trans_time']       = new \DateTime($rawTx['TransactionDate']);
+            $defaultResponse['currency']         = $this->mapCurrency($rawTx['CurrencyCode']);
+            $defaultResponse['masked_number']    = $rawTx['CardNo'];
+            $defaultResponse['order_id']         = $rawTx['OrderId'];
+            $defaultResponse['transaction_type'] = $this->mapTxType($rawTx['TransactionType']);
+            $defaultResponse['order_status']     = $this->orderStatusMappings[$defaultResponse['transaction_type']] ?? null;
+        }
+
+        return $defaultResponse;
     }
 
     /**
@@ -286,12 +318,23 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * "1,16" => 1.16
+     * @param string $amount
+     *
+     * @return float
+     */
+    protected function formatStatusAmount(string $amount): float
+    {
+        return (float) \str_replace(',', '.', \str_replace('.', '', $amount));
+    }
+
+    /**
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
-     * @param array<string, mixed> $rawPaymentResponseData
-     * @param string               $txType
-     * @param string               $paymentModel
+     * @param array<string, mixed>                                                      $rawPaymentResponseData
+     * @param string                                                                    $txType
+     * @param string                                                                    $paymentModel
      *
      * @return array<string, mixed>
      */

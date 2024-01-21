@@ -190,20 +190,24 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        return [
-            'order_id'         => $rawResponseData['OrderId'],
-            'proc_return_code' => $procReturnCode,
-            'trans_id'         => $rawResponseData['TransId'],
-            'error_message'    => $rawResponseData['ErrorMessage'],
-            'ref_ret_num'      => null,
-            'order_status'     => null, //todo success cevap alindiginda eklenecek
-            'refund_amount'    => $this->formatAmount($rawResponseData['RefundedAmount']),
-            'capture_amount'   => null, //todo success cevap alindiginda eklenecek
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'capture'          => null, //todo success cevap alindiginda eklenecek
-            'all'              => $rawResponseData,
-        ];
+        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
+
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $defaultResponse['status']           = $status;
+        $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
+        $defaultResponse['order_id']         = $rawResponseData['OrderId'];
+        $defaultResponse['trans_id']         = $rawResponseData['TransId'];
+        $defaultResponse['error_code']       = self::TX_APPROVED !== $status ? $procReturnCode : null;
+        $defaultResponse['error_message']    = self::TX_APPROVED !== $status ? $rawResponseData['ErrorMessage'] : null;
+        $defaultResponse['refund_amount']    = $rawResponseData['RefundedAmount'] > 0 ? $this->formatAmount($rawResponseData['RefundedAmount']) : null;
+
+        // todo success cevap ornegi bulundugunda guncellenecek:
+        $defaultResponse['ref_ret_num']    = null;
+        $defaultResponse['order_status']   = null;
+        $defaultResponse['capture_amount'] = null;
+        $defaultResponse['capture']        = null;
+
+        return $defaultResponse;
     }
 
     /**
@@ -264,7 +268,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
      */
     protected function formatAmount(string $amount): float
     {
-        return (float) \str_replace(',', '.', str_replace('.', '', $amount));
+        return (float) \str_replace(',', '.', \str_replace('.', '', $amount));
     }
 
     /**
