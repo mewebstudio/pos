@@ -53,8 +53,8 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
         $paymentResponse['md_error_message'] = null;
         $paymentResponse['transaction_security'] = null;
 
-        $paymentResponse['trans_id']      = $raw3DAuthResponseData['TransactionId'];
-        $paymentResponse['masked_number'] = $raw3DAuthResponseData['MaskedPan'];
+        $paymentResponse['transaction_id'] = $raw3DAuthResponseData['TransactionId'];
+        $paymentResponse['masked_number']  = $raw3DAuthResponseData['MaskedPan'];
 
         if (self::TX_APPROVED === $paymentResponse['status']) {
             $paymentResponse['auth_code']        = $raw3DAuthResponseData['AuthCode'];
@@ -105,10 +105,10 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
         $response = $this->getCommonNonSecureResponse($rawResponseData);
 
         if (self::TX_APPROVED === $response['status']) {
-            $response['order_id']    = $rawResponseData['TransactionId'];
-            $response['ref_ret_num'] = $rawResponseData['Rrn'];
-            $response['auth_code']   = $rawResponseData['AuthCode'];
-            $response['trans_id']    = $rawResponseData['TransactionId'];
+            $response['order_id']       = $rawResponseData['TransactionId'];
+            $response['ref_ret_num']    = $rawResponseData['Rrn'];
+            $response['auth_code']      = $rawResponseData['AuthCode'];
+            $response['transaction_id'] = $rawResponseData['TransactionId'];
         }
 
         return $response;
@@ -134,7 +134,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED === $commonResponse['status']) {
             $commonResponse['currency']         = $order['currency'];
             $commonResponse['amount']           = $order['amount'];
-            $commonResponse['trans_id']         = $rawPaymentResponseData['TransactionId'];
+            $commonResponse['transaction_id']   = $rawPaymentResponseData['TransactionId'];
             $commonResponse['auth_code']        = $rawPaymentResponseData['AuthCode'];
             $commonResponse['ref_ret_num']      = $rawPaymentResponseData['Rrn'];
             $commonResponse['order_id']         = $rawPaymentResponseData['OrderId'];
@@ -180,7 +180,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * @param array<string, string> $responseData
      *
-     * @return array{order_id: string|null, trans_id: string|null, auth_code: string|null,
+     * @return array{order_id: string|null, transaction_id: string|null, auth_code: string|null,
      *     ref_ret_num: string|null, proc_return_code: string|null,
      *     status: string, status_detail: string|null, error_code: string|null,
      *     error_message: string|null, all: array<string, string|null>}
@@ -221,7 +221,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
      * @param string                $txType
      * @param string                $paymentModel
      *
-     * @return array{order_id: string|null, trans_id: string|null, auth_code: string|null,
+     * @return array{order_id: string|null, transaction_id: string|null, auth_code: string|null,
      *     ref_ret_num: string|null, proc_return_code: string|null,
      *     status: string, status_detail: string|null, error_code: string|null,
      *     error_message: string|null, all: array<string, string|null>}

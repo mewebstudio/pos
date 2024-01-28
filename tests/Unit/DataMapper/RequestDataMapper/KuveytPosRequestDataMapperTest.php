@@ -66,7 +66,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         ];
 
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos = PosFactory::createPosGateway($this->account, $config, $dispatcher);
+        $pos        = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
         $this->card = CreditCardFactory::create(
             $pos,
@@ -135,7 +135,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $account = $this->account;
         $card    = $this->card;
 
-        $inputs = [
+        $inputs                        = [
             'APIVersion'          => KuveytPosRequestDataMapper::API_VERSION,
             'MerchantId'          => $account->getClientId(),
             'UserName'            => $account->getUsername(),
@@ -208,7 +208,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'remote_order_id' => '114293600',
                 'ref_ret_num'     => '318923298433',
                 'auth_code'       => '241839',
-                'trans_id'        => '298433',
+                'transaction_id'  => '298433',
                 'amount'          => 1.01,
                 'currency'        => PosInterface::CURRENCY_TRY,
             ],
@@ -263,7 +263,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'remote_order_id' => '114293600',
                 'ref_ret_num'     => '318923298433',
                 'auth_code'       => '241839',
-                'trans_id'        => '298433',
+                'transaction_id'  => '298433',
                 'amount'          => 1.01,
                 'currency'        => PosInterface::CURRENCY_TRY,
             ],
@@ -313,13 +313,13 @@ class KuveytPosRequestDataMapperTest extends TestCase
     public static function createStatusRequestDataProvider(): iterable
     {
         $startDate = new \DateTime('2022-07-08T22:44:31');
-        $endDate = new \DateTime('2023-07-08T22:44:31');
+        $endDate   = new \DateTime('2023-07-08T22:44:31');
         yield [
             'order'    => [
-                'id'       => '2023070849CD',
-                'currency' => PosInterface::CURRENCY_TRY,
+                'id'         => '2023070849CD',
+                'currency'   => PosInterface::CURRENCY_TRY,
                 'start_date' => $startDate,
-                'end_date' => $endDate,
+                'end_date'   => $endDate,
             ],
             'expected' => [
                 'IsFromExternalNetwork' => true,

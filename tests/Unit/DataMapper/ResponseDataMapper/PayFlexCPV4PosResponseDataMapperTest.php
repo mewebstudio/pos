@@ -64,7 +64,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
             ],
             'expected'      => [
                 'order_id'             => null,
-                'trans_id'             => '0cb6a57715144178a014afbe0185b9ed',
+                'transaction_id'       => '0cb6a57715144178a014afbe0185b9ed',
                 'auth_code'            => null,
                 'ref_ret_num'          => null,
                 'proc_return_code'     => '2053',
@@ -98,7 +98,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
             ],
             'expected'      => [
                 'order_id'             => null,
-                'trans_id'             => '868382724da7480c949dafbd016c7636',
+                'transaction_id'       => '868382724da7480c949dafbd016c7636',
                 'auth_code'            => null,
                 'ref_ret_num'          => null,
                 'proc_return_code'     => '0057',
@@ -157,7 +157,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
             ],
             'expected'      => [
                 'order_id'             => '2023030913ED',
-                'trans_id'             => '3ee068d5b5a747ada65dafc0016d5887',
+                'transaction_id'       => '3ee068d5b5a747ada65dafc0016d5887',
                 'auth_code'            => '735879',
                 'ref_ret_num'          => '3ee068d5b5a747ada65dafc0016d5887',
                 'proc_return_code'     => '0000',

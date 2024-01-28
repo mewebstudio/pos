@@ -133,14 +133,14 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
      * @param string      $txType
      * @param string|null $paymentModel
      *
-     * @return array{order_id: null, trans_id: null, auth_code: null, ref_ret_num: null, proc_return_code: null,
+     * @return array{order_id: null, transaction_id: null, auth_code: null, ref_ret_num: null, proc_return_code: null,
      *     status: string, status_detail: null, error_code: null, error_message: null, all: null}
      */
     protected function getDefaultPaymentResponse(string $txType, ?string $paymentModel): array
     {
         return [
             'order_id'         => null,
-            'trans_id'         => null,
+            'transaction_id'   => null,
             'transaction_type' => $txType,
             'installment'      => null,
             'currency'         => null,
@@ -168,7 +168,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             'order_id'         => null,
             'auth_code'        => null,
             'proc_return_code' => null,
-            'trans_id'         => null,
+            'transaction_id'   => null,
             'trans_time'       => null,
             'capture_time'     => null,
             'error_message'    => null,
@@ -195,7 +195,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
         return [
             'auth_code'        => null,
             'proc_return_code' => null,
-            'trans_id'         => null,
+            'transaction_id'   => null,
             'trans_time'       => null,
             'capture_time'     => null,
             'error_message'    => null,

@@ -75,11 +75,11 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         // RRN:  Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['ref_ret_num'] = $rawPaymentResponseData['RRN'];
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
-        $result['trans_id']      = $rawPaymentResponseData['Stan'];
-        $result['amount']        = $this->formatAmount($vPosMessage['Amount']);
-        $result['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
-        $result['installment']   = $this->mapInstallment($vPosMessage['InstallmentCount']);
-        $result['masked_number'] = $vPosMessage['CardNumber'];
+        $result['transaction_id'] = $rawPaymentResponseData['Stan'];
+        $result['amount']         = $this->formatAmount($vPosMessage['Amount']);
+        $result['currency']       = $this->mapCurrency($vPosMessage['CurrencyCode']);
+        $result['installment']    = $this->mapInstallment($vPosMessage['InstallmentCount']);
+        $result['masked_number']  = $vPosMessage['CardNumber'];
 
         $this->logger->debug('mapped payment response', $result);
 
@@ -164,7 +164,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
 
             $defaultResponse['auth_code']      = $orderContract['ProvNumber'];
             $defaultResponse['ref_ret_num']    = $orderContract['RRN'];
-            $defaultResponse['trans_id']       = $orderContract['Stan'];
+            $defaultResponse['transaction_id'] = $orderContract['Stan'];
             $defaultResponse['currency']       = $this->mapCurrency($orderContract['FEC']);
             $defaultResponse['first_amount']   = (float) $orderContract['FirstAmount'];
             $defaultResponse['capture_amount'] = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
@@ -185,7 +185,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             'order_id'         => null,
             'auth_code'        => null,
             'proc_return_code' => null,
-            'trans_id'         => null,
+            'transaction_id'   => null,
             'currency'         => null,
             'error_message'    => null,
             'ref_ret_num'      => null,
@@ -217,7 +217,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $result['ref_ret_num']      = $value['RRN'];
-        $result['trans_id']         = $value['Stan'];
+        $result['transaction_id']   = $value['Stan'];
         $result['proc_return_code'] = $procReturnCode;
         $result['order_id']         = $value['MerchantOrderId'];
         $result['remote_order_id']  = (string) $value['OrderId'];
@@ -243,7 +243,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             'order_id'         => null,
             'auth_code'        => null,
             'proc_return_code' => null,
-            'trans_id'         => null,
+            'transaction_id'   => null,
             'currency'         => null,
             'error_message'    => null,
             'ref_ret_num'      => null,
@@ -274,7 +274,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $result['ref_ret_num']      = $value['RRN'];
-        $result['trans_id']         = $value['Stan'];
+        $result['transaction_id']   = $value['Stan'];
         $result['proc_return_code'] = $procReturnCode;
         $result['order_id']         = $value['MerchantOrderId'];
         $result['remote_order_id']  = (string) $value['OrderId'];

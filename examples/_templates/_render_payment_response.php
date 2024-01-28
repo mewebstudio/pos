@@ -34,7 +34,7 @@
     <hr>
     <dl class="row">
         <dt class="col-sm-3">Transaction ID:</dt>
-        <dd class="col-sm-9"><?= $response['trans_id'] ?: '-'; ?></dd>
+        <dd class="col-sm-9"><?= $response['transaction_id'] ?: '-'; ?></dd>
     </dl>
     <hr>
     <dl class="row">

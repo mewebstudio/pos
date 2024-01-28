@@ -191,7 +191,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
 
         $results = [
             'auth_code'        => null,
-            'trans_id'         => null,
+            'transaction_id'   => null,
             'ref_ret_num'      => null,
             'group_id'         => null,
             'date'             => null,
@@ -210,7 +210,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         if (null !== $transactionDetails) {
             $txResults = [
                 'auth_code'   => $transactionDetails['authCode'] ?? null,
-                'trans_id'    => null,
+                'transaction_id'    => null,
                 'ref_ret_num' => $transactionDetails['hostlogkey'] ?? null,
                 'date'        => $transactionDetails['tranDate'] ?? null,
             ];
@@ -308,7 +308,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
 
             $txResults = [
                 'auth_code'   => $authCode,
-                'trans_id'    => null,
+                'transaction_id'    => null,
                 'ref_ret_num' => $transactionDetails['hostlogkey'] ?? null,
                 'date'        => $transactionDetails['tranDate'] ?? null,
             ];
@@ -321,7 +321,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
 
         $results = [
             'auth_code'        => null,
-            'trans_id'         => null,
+            'transaction_id'         => null,
             'ref_ret_num'      => null,
             'group_id'         => null,
             'date'             => null,

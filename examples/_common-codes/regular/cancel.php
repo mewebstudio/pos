@@ -23,11 +23,11 @@ function createCancelOrder(string $gatewayClass, array $lastResponse, string $ip
     } elseif (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
         $cancelOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
         $cancelOrder['auth_code']       = $lastResponse['auth_code'];
-        $cancelOrder['trans_id']        = $lastResponse['trans_id'];
+        $cancelOrder['transaction_id']  = $lastResponse['transaction_id'];
         $cancelOrder['amount']          = $lastResponse['amount'];
     } elseif (\Mews\Pos\Gateways\PayFlexV4Pos::class === $gatewayClass || \Mews\Pos\Gateways\PayFlexCPV4Pos::class === $gatewayClass) {
         // çalışmazsa $lastResponse['all']['ReferenceTransactionId']; ile denenmesi gerekiyor.
-        $cancelOrder['trans_id'] = $lastResponse['trans_id'];
+        $cancelOrder['transaction_id'] = $lastResponse['transaction_id'];
     } elseif (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
         /**
          * payment_model:

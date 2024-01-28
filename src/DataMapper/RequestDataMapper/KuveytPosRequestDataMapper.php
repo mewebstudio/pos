@@ -246,7 +246,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'            => $account->getClientId(),
             'OrderId'               => $order['remote_order_id'],
             'RRN'                   => $order['ref_ret_num'],
-            'Stan'                  => $order['trans_id'],
+            'Stan'                  => $order['transaction_id'],
             'ProvisionNumber'       => $order['auth_code'],
             'TransactionType'       => 0,
             'VPosMessage'           => $this->getRequestAccountData($account) + [
@@ -297,7 +297,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'            => $account->getClientId(),
             'OrderId'               => $order['remote_order_id'],
             'RRN'                   => $order['ref_ret_num'],
-            'Stan'                  => $order['trans_id'],
+            'Stan'                  => $order['transaction_id'],
             'ProvisionNumber'       => $order['auth_code'],
             'TransactionType'       => 0,
             'VPosMessage'           => $this->getRequestAccountData($account) + [
@@ -405,12 +405,12 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      */
     protected function prepareCancelOrder(array $order): array
     {
-        return array_merge($order, [
+        return \array_merge($order, [
             'id'              => $order['id'],
             'remote_order_id' => $order['remote_order_id'],
             'ref_ret_num'     => $order['ref_ret_num'],
             'auth_code'       => $order['auth_code'],
-            'trans_id'        => $order['trans_id'],
+            'transaction_id'  => $order['transaction_id'],
             'amount'          => $order['amount'],
             'currency'        => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ]);
@@ -421,12 +421,12 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      */
     protected function prepareRefundOrder(array $order): array
     {
-        return array_merge($order, [
+        return \array_merge($order, [
             'id'              => $order['id'],
             'remote_order_id' => $order['remote_order_id'],
             'ref_ret_num'     => $order['ref_ret_num'],
             'auth_code'       => $order['auth_code'],
-            'trans_id'        => $order['trans_id'],
+            'transaction_id'  => $order['transaction_id'],
             'amount'          => $order['amount'],
             'currency'        => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ]);

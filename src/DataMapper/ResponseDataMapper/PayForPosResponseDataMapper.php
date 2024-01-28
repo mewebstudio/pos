@@ -58,7 +58,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 
         $mappedResponse = [
             'order_id'         => $rawPaymentResponseData['TransId'],
-            'trans_id'         => $rawPaymentResponseData['TransId'],
+            'transaction_id'   => $rawPaymentResponseData['TransId'],
             'auth_code'        => $rawPaymentResponseData['AuthCode'],
             'currency'         => $order['currency'],
             'amount'           => $order['amount'],
@@ -102,7 +102,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $threeDResponse = [
-            'trans_id'         => null,
+            'transaction_id'   => null,
             'auth_code'        => $raw3DAuthResponseData['AuthCode'],
             'ref_ret_num'      => $raw3DAuthResponseData['HostRefNum'],
             'order_id'         => $raw3DAuthResponseData['OrderId'],
@@ -138,8 +138,8 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
         $status                = self::PROCEDURE_SUCCESS_CODE === $procReturnCode ? self::TX_APPROVED : self::TX_DECLINED;
-        $threeDResponse        = [
-            'trans_id'         => null,
+        $threeDResponse = [
+            'transaction_id'   => null,
             'auth_code'        => $raw3DAuthResponseData['AuthCode'],
             'ref_ret_num'      => $raw3DAuthResponseData['HostRefNum'],
             'order_id'         => $raw3DAuthResponseData['OrderId'],
@@ -203,7 +203,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'auth_code'        => (self::TX_DECLINED !== $status) ? $rawResponseData['AuthCode'] : null,
             'ref_ret_num'      => $rawResponseData['HostRefNum'] ?? null,
             'proc_return_code' => $procReturnCode ?? null,
-            'trans_id'         => $rawResponseData['TransId'] ?? null,
+            'transaction_id'   => $rawResponseData['TransId'] ?? null,
             'error_code'       => (self::TX_DECLINED === $status) ? $procReturnCode : null,
             'error_message'    => (self::TX_DECLINED === $status) ? $rawResponseData['ErrMsg'] : null,
             'status'           => $status,
@@ -389,7 +389,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 
         $mappedResponse = [
             'order_id'         => $rawPaymentResponseData['TransId'],
-            'trans_id'         => $rawPaymentResponseData['TransId'],
+            'transaction_id'   => $rawPaymentResponseData['TransId'],
             'auth_code'        => $rawPaymentResponseData['AuthCode'],
             'ref_ret_num'      => $rawPaymentResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,

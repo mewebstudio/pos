@@ -200,7 +200,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
                  * TransactionId dikkate alınmaktadır.
                  * OrderID ile sorgulamada bu OrderId ile başarılı işlem varsa başarılı işlem, yoksa son gönderilen işlem raporda görüntülenecektir
                  */
-                'TransactionId' => (string) ($order['trans_id'] ?? ''),
+                'TransactionId' => (string) ($order['transaction_id'] ?? ''),
                 'OrderId'       => (string) $order['id'],
                 'AuthCode'      => '',
             ],
@@ -220,7 +220,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
             'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
-            'ReferenceTransactionId' => (string) $order['trans_id'],
+            'ReferenceTransactionId' => (string) $order['transaction_id'],
             'ClientIp'               => (string) $order['ip'],
         ];
     }
@@ -238,7 +238,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'             => $account->getClientId(),
             'Password'               => $account->getPassword(),
             'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
-            'ReferenceTransactionId' => (string) $order['trans_id'],
+            'ReferenceTransactionId' => (string) $order['transaction_id'],
             'ClientIp'               => (string) $order['ip'],
             'CurrencyAmount'         => $this->formatAmount($order['amount']),
         ];
@@ -339,9 +339,9 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     protected function prepareRefundOrder(array $order): array
     {
         return [
-            'trans_id' => $order['trans_id'],
-            'ip'       => $order['ip'],
-            'amount'   => $order['amount'],
+            'transaction_id' => $order['transaction_id'],
+            'ip'             => $order['ip'],
+            'amount'         => $order['amount'],
         ];
     }
 
@@ -351,8 +351,8 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     protected function prepareCancelOrder(array $order): array
     {
         return [
-            'trans_id' => $order['trans_id'],
-            'ip'       => $order['ip'],
+            'transaction_id' => $order['transaction_id'],
+            'ip'             => $order['ip'],
         ];
     }
 

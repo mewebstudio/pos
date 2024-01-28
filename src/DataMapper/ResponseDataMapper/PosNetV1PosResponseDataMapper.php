@@ -98,7 +98,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             'order_id'         => $order['id'],
             'currency'         => $order['currency'],
             'amount'           => $order['amount'],
-            'trans_id'         => null,
+            'transaction_id'   => null,
             'auth_code'        => $rawPaymentResponseData['AuthCode'] ?? null,
             'ref_ret_num'      => $rawPaymentResponseData['ReferenceCode'] ?? null,
             'proc_return_code' => $procReturnCode,
@@ -189,7 +189,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
 
         return [
             'auth_code'        => null,
-            'trans_id'         => null,
+            'transaction_id'         => null,
             'ref_ret_num'      => null,
             'group_id'         => null,
             'transaction_type' => null,
@@ -358,7 +358,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $mappedResponse = [
-            'trans_id'         => null,
+            'transaction_id'         => null,
             'auth_code'        => $rawPaymentResponseData['AuthCode'] ?? null,
             'ref_ret_num'      => $rawPaymentResponseData['ReferenceCode'] ?? null,
             'proc_return_code' => $procReturnCode,

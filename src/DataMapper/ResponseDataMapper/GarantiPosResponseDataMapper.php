@@ -94,13 +94,13 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         // todo refactor
         if (\in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'], true)) {
             //these data only available on success
-            $commonResult['auth_code']     = $raw3DAuthResponseData['authcode'];
-            $commonResult['trans_id']      = $raw3DAuthResponseData['transid'];
-            $commonResult['ref_ret_num']   = $raw3DAuthResponseData['hostrefnum'];
-            $commonResult['masked_number'] = $raw3DAuthResponseData['MaskedPan'];
-            $commonResult['tx_status']     = $raw3DAuthResponseData['txnstatus'];
-            $commonResult['eci']           = $raw3DAuthResponseData['eci'];
-            $commonResult['cavv']          = $raw3DAuthResponseData['cavv'];
+            $commonResult['auth_code']      = $raw3DAuthResponseData['authcode'];
+            $commonResult['transaction_id'] = $raw3DAuthResponseData['transid'];
+            $commonResult['ref_ret_num']    = $raw3DAuthResponseData['hostrefnum'];
+            $commonResult['masked_number']  = $raw3DAuthResponseData['MaskedPan'];
+            $commonResult['tx_status']      = $raw3DAuthResponseData['txnstatus'];
+            $commonResult['eci']            = $raw3DAuthResponseData['eci'];
+            $commonResult['cavv']           = $raw3DAuthResponseData['cavv'];
         }
 
         $paymentStatus          = self::TX_DECLINED;
@@ -162,13 +162,13 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultPaymentResponse['status'] = $paymentStatus;
 
         if (self::TX_APPROVED === $threeDAuthStatus) {
-            $threeDAuthResult['auth_code']     = $raw3DAuthResponseData['authcode'];
-            $threeDAuthResult['trans_id']      = $raw3DAuthResponseData['transid'];
-            $threeDAuthResult['ref_ret_num']   = $raw3DAuthResponseData['hostrefnum'];
-            $threeDAuthResult['masked_number'] = $raw3DAuthResponseData['MaskedPan'];
-            $threeDAuthResult['tx_status']     = $raw3DAuthResponseData['txnstatus'];
-            $threeDAuthResult['eci']           = $raw3DAuthResponseData['eci'];
-            $threeDAuthResult['cavv']          = $raw3DAuthResponseData['cavv'];
+            $threeDAuthResult['auth_code']      = $raw3DAuthResponseData['authcode'];
+            $threeDAuthResult['transaction_id'] = $raw3DAuthResponseData['transid'];
+            $threeDAuthResult['ref_ret_num']    = $raw3DAuthResponseData['hostrefnum'];
+            $threeDAuthResult['masked_number']  = $raw3DAuthResponseData['MaskedPan'];
+            $threeDAuthResult['tx_status']      = $raw3DAuthResponseData['txnstatus'];
+            $threeDAuthResult['eci']            = $raw3DAuthResponseData['eci'];
+            $threeDAuthResult['cavv']           = $raw3DAuthResponseData['cavv'];
         }
 
         if (self::TX_APPROVED !== $paymentStatus) {
@@ -215,7 +215,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         return [
             'order_id'         => $rawResponseData['Order']['OrderID'] ?? null,
             'group_id'         => $rawResponseData['Order']['GroupID'] ?? null,
-            'trans_id'         => null,
+            'transaction_id'   => null,
             'auth_code'        => $transaction['AuthCode'] ?? null,
             'ref_ret_num'      => $transaction['RetrefNum'] ?? null,
             'proc_return_code' => $procReturnCode,
@@ -347,7 +347,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
 
         return [
             'order_id'             => $raw3DAuthResponseData['oid'],
-            'trans_id'             => null,
+            'transaction_id'       => null,
             'auth_code'            => null,
             'ref_ret_num'          => null,
             'transaction_security' => $this->mapResponseTransactionSecurity($mdStatus),

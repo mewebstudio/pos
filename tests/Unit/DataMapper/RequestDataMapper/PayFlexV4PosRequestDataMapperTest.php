@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
@@ -29,7 +30,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
 
     private PayFlexV4PosRequestDataMapper $requestDataMapper;
 
-    /** @var CryptInterface & MockObject  */
+    /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
     private array $order;
@@ -60,11 +61,11 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         ];
 
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos = PosFactory::createPosGateway($this->account, $config, $dispatcher);
+        $pos        = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
         $this->crypt             = $this->createMock(CryptInterface::class);
         $this->requestDataMapper = new PayFlexV4PosRequestDataMapper($dispatcher, $this->crypt);
-        $this->card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**
@@ -158,12 +159,12 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData()
     {
-        $order = $this->order;
-        $txType = PosInterface::TX_TYPE_PAY_AUTH;
+        $order           = $this->order;
+        $txType          = PosInterface::TX_TYPE_PAY_AUTH;
         $order['amount'] = 1000;
 
         $expectedValue = $this->getSampleNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
-        $actualData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
+        $actualData    = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
 
         $this->assertEquals($expectedValue, $actualData);
     }
@@ -173,19 +174,19 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData()
     {
-        $order = $this->order;
+        $order           = $this->order;
         $order['amount'] = 1000;
 
         $expectedValue = $this->getSampleNonSecurePaymentPostRequestData($this->account, $order);
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
+        $actual        = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
         $this->assertEquals($expectedValue, $actual);
     }
 
     public function testCreateCancelRequestData(): void
     {
-        $order             = $this->order;
-        $order['trans_id'] = '7022b92e-3aa1-44fb-86d4-33658c700c80';
+        $order                   = $this->order;
+        $order['transaction_id'] = '7022b92e-3aa1-44fb-86d4-33658c700c80';
 
         $expectedValue = $this->getSampleCancelRequestData();
         $actualData    = $this->requestDataMapper->createCancelRequestData($this->account, $order);
@@ -195,9 +196,9 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
 
     public function testCreateRefundRequestData(): void
     {
-        $order             = $this->order;
-        $order['trans_id'] = '7022b92e-3aa1-44fb-86d4-33658c700c80';
-        $order['amount']   = 1000;
+        $order                   = $this->order;
+        $order['transaction_id'] = '7022b92e-3aa1-44fb-86d4-33658c700c80';
+        $order['amount']         = 1000;
 
         $expectedValue = $this->getSampleRefundRequestData();
         $actualData    = $this->requestDataMapper->createRefundRequestData($this->account, $order);
@@ -211,7 +212,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     public function testCreate3DFormData()
     {
         $expectedValue = $this->getSample3DFormDataFromEnrollmentResponse();
-        $actualData = $this->requestDataMapper->create3DFormData(
+        $actualData    = $this->requestDataMapper->create3DFormData(
             null,
             null,
             null,
@@ -231,14 +232,14 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     {
         return [
             'MessageErrorCode' => 'code',
-            'ErrorMessage' => 'some error',
-            'Message' => [
+            'ErrorMessage'     => 'some error',
+            'Message'          => [
                 'VERes' => [
-                    'Status' => 'Y',
-                    'PaReq' => 'PaReq2',
+                    'Status'  => 'Y',
+                    'PaReq'   => 'PaReq2',
                     'TermUrl' => 'TermUrl2',
-                    'MD' => 'MD3',
-                    'ACSUrl' => 'http',
+                    'MD'      => 'MD3',
+                    'ACSUrl'  => 'http',
                 ],
             ],
         ];
@@ -298,59 +299,59 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $card = new CreditCard('5555444433332222', new \DateTimeImmutable('2021-12-01'), '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
 
         yield 'no_installment' => [
-            'account' => $account,
-            'order' => $order,
-            'txType' => PosInterface::TX_TYPE_PAY_AUTH,
+            'account'      => $account,
+            'order'        => $order,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => $responseData,
-            'card' => $card,
-            'expected' => [
-                'MerchantId' => '000000000111111',
-                'Password' => '3XTgER89as',
-                'TerminalNo' => 'VP999999',
-                'TransactionType' => 'Sale',
-                'TransactionId' => 'order222',
-                'CurrencyAmount' => '100.00',
-                'CurrencyCode' => '949',
-                'ECI' => '05',
-                'CAVV' => 'AAABCYaRIwAAAVQ1gpEjAAAAAAA=',
-                'MpiTransactionId' => 'ce06048a3e9c0cd1d437803fb38b5ad0',
-                'OrderId' => 'order222',
-                'ClientIp' => '127.0.0.1',
+            'card'         => $card,
+            'expected'     => [
+                'MerchantId'              => '000000000111111',
+                'Password'                => '3XTgER89as',
+                'TerminalNo'              => 'VP999999',
+                'TransactionType'         => 'Sale',
+                'TransactionId'           => 'order222',
+                'CurrencyAmount'          => '100.00',
+                'CurrencyCode'            => '949',
+                'ECI'                     => '05',
+                'CAVV'                    => 'AAABCYaRIwAAAVQ1gpEjAAAAAAA=',
+                'MpiTransactionId'        => 'ce06048a3e9c0cd1d437803fb38b5ad0',
+                'OrderId'                 => 'order222',
+                'ClientIp'                => '127.0.0.1',
                 'TransactionDeviceSource' => '0',
-                'CardHoldersName' => 'ahmet',
-                'Cvv' => '122',
-                'Pan' => '5555444433332222',
-                'Expiry' => '202112',
+                'CardHoldersName'         => 'ahmet',
+                'Cvv'                     => '122',
+                'Pan'                     => '5555444433332222',
+                'Expiry'                  => '202112',
             ],
         ];
 
         $order['installment'] = 3;
 
         yield 'with_installment' => [
-            'account' => $account,
-            'order' => $order,
-            'txType' => PosInterface::TX_TYPE_PAY_AUTH,
+            'account'      => $account,
+            'order'        => $order,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => $responseData,
-            'card' => $card,
-            'expected' => [
-                'MerchantId' => '000000000111111',
-                'Password' => '3XTgER89as',
-                'TerminalNo' => 'VP999999',
-                'TransactionType' => 'Sale',
-                'TransactionId' => 'order222',
-                'CurrencyAmount' => '100.00',
-                'CurrencyCode' => '949',
-                'ECI' => '05',
-                'CAVV' => 'AAABCYaRIwAAAVQ1gpEjAAAAAAA=',
-                'MpiTransactionId' => 'ce06048a3e9c0cd1d437803fb38b5ad0',
-                'OrderId' => 'order222',
-                'ClientIp' => '127.0.0.1',
+            'card'         => $card,
+            'expected'     => [
+                'MerchantId'              => '000000000111111',
+                'Password'                => '3XTgER89as',
+                'TerminalNo'              => 'VP999999',
+                'TransactionType'         => 'Sale',
+                'TransactionId'           => 'order222',
+                'CurrencyAmount'          => '100.00',
+                'CurrencyCode'            => '949',
+                'ECI'                     => '05',
+                'CAVV'                    => 'AAABCYaRIwAAAVQ1gpEjAAAAAAA=',
+                'MpiTransactionId'        => 'ce06048a3e9c0cd1d437803fb38b5ad0',
+                'OrderId'                 => 'order222',
+                'ClientIp'                => '127.0.0.1',
                 'TransactionDeviceSource' => '0',
-                'CardHoldersName' => 'ahmet',
-                'Cvv' => '122',
-                'Pan' => '5555444433332222',
-                'Expiry' => '202112',
-                'NumberOfInstallments' => '3',
+                'CardHoldersName'         => 'ahmet',
+                'Cvv'                     => '122',
+                'Pan'                     => '5555444433332222',
+                'Expiry'                  => '202112',
+                'NumberOfInstallments'    => '3',
             ],
         ];
     }
@@ -468,8 +469,8 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param PayFlexAccount   $account
-     * @param array            $order
+     * @param PayFlexAccount $account
+     * @param array          $order
      *
      * @return array
      */

@@ -80,7 +80,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             'order_id'         => $rawPaymentResponseData['OrderId'],
             'currency'         => $order['currency'],
             'amount'           => $order['amount'],
-            'trans_id'         => $rawPaymentResponseData['TransactionId'],
+            'transaction_id'   => $rawPaymentResponseData['TransactionId'],
             'transaction_type' => null,
             'ref_ret_num'      => $rawPaymentResponseData['HostReferenceNumber'],
             'proc_return_code' => $procReturnCode,
@@ -176,7 +176,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             'auth_code'        => $rawResponseData['AuthCode'],
             'ref_ret_num'      => $rawResponseData['HostReferenceNumber'],
             'proc_return_code' => $procReturnCode,
-            'trans_id'         => $rawResponseData['TransactionId'],
+            'transaction_id'   => $rawResponseData['TransactionId'],
             'error_code'       => self::TX_DECLINED === $status ? $errorCode : null,
             'error_message'    => self::TX_DECLINED === $status ? $rawResponseData['Message'] : null,
             'status'           => $status,
@@ -203,7 +203,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             'auth_code'        => $rawResponseData['AuthCode'],
             'ref_ret_num'      => $rawResponseData['HostReferenceNumber'],
             'proc_return_code' => $procReturnCode,
-            'trans_id'         => $rawResponseData['TransactionId'],
+            'transaction_id'   => $rawResponseData['TransactionId'],
             'error_code'       => self::TX_DECLINED === $status ? $errorCode : null,
             'error_message'    => self::TX_DECLINED === $status ? $rawResponseData['Message'] : null,
             'status'           => $status,
@@ -230,7 +230,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['proc_return_code'] = $procReturnCode;
         $defaultResponse['order_id']         = $rawResponseData['OrderId'];
         $defaultResponse['auth_code']        = $rawResponseData['AuthCode'];
-        $defaultResponse['trans_id']         = $rawResponseData['TransactionId'] > 0 ? $rawResponseData['TransactionId'] : null;
+        $defaultResponse['transaction_id']   = $rawResponseData['TransactionId'] > 0 ? $rawResponseData['TransactionId'] : null;
         $defaultResponse['masked_number']    = $rawResponseData['CardNo'];
         $defaultResponse['order_status']     = $this->orderStatusMappings[$rawResponseData['RequestStatus']] ?? $rawResponseData['RequestStatus'];
         $defaultResponse['transaction_type'] = $this->mapTxType($rawResponseData['TransactionType']);

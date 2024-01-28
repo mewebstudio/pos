@@ -125,7 +125,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             'auth_code'        => (self::TX_DECLINED !== $status) ? $rawResponseData['AuthCode'] : null,
             'ref_ret_num'      => $rawResponseData['Rrn'] ?? null,
             'proc_return_code' => $resultCode,
-            'trans_id'         => $rawResponseData['TransactionId'] ?? null,
+            'transaction_id'   => $rawResponseData['TransactionId'] ?? null,
             'error_code'       => (self::TX_DECLINED === $status) ? $resultCode : null,
             'error_message'    => (self::TX_DECLINED === $status) ? $rawResponseData['ResultDetail'] : null,
             'status'           => $status,
@@ -178,7 +178,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
 
         $defaultResponse['order_id']         = $txResultInfo['OrderId'];
         $defaultResponse['auth_code']        = $txResultInfo['AuthCode'];
-        $defaultResponse['trans_id']         = $txResultInfo['TransactionId'];
+        $defaultResponse['transaction_id']   = $txResultInfo['TransactionId'];
         $defaultResponse['ref_ret_num']      = $txResultInfo['Rrn'];
         $defaultResponse['order_status']     = $orderStatus;
         $defaultResponse['transaction_type'] = $this->mapTxType($txResultInfo['TransactionType']);
@@ -206,9 +206,9 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         $commonResponse['transaction_type'] = isset($rawPaymentResponseData['TransactionType']) ? $this->mapTxType($rawPaymentResponseData['TransactionType']) : null;
 
         if (self::TX_APPROVED === $commonResponse['status']) {
-            $commonResponse['trans_id']         = $rawPaymentResponseData['TransactionId'];
-            $commonResponse['auth_code']        = $rawPaymentResponseData['AuthCode'];
-            $commonResponse['ref_ret_num']      = $rawPaymentResponseData['TransactionId'];
+            $commonResponse['transaction_id'] = $rawPaymentResponseData['TransactionId'];
+            $commonResponse['auth_code']      = $rawPaymentResponseData['AuthCode'];
+            $commonResponse['ref_ret_num']    = $rawPaymentResponseData['TransactionId'];
         }
 
         $this->logger->debug('mapped payment response', $commonResponse);

@@ -193,7 +193,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     ],
                 ],
                 'expectedData' => [
-                    'trans_id'         => null,
+                    'transaction_id'   => null,
                     'transaction_type' => 'pay',
                     'payment_model'    => 'regular',
                     'group_id'         => null,
@@ -258,7 +258,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     ],
                 ],
                 'expectedData' => [
-                    'trans_id'         => null,
+                    'transaction_id'   => null,
                     'transaction_type' => 'pay',
                     'payment_model'    => 'regular',
                     'group_id'         => null,
@@ -373,7 +373,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData'       => [
                     'order_id'             => '20221101295D',
-                    'trans_id'             => '20221101295D',
+                    'transaction_id'       => '20221101295D',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'transaction_security' => 'Full 3D Secure',
@@ -490,7 +490,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData'       => [
                     'order_id'             => '20231223D98E',
-                    'trans_id'             => '20231223D98E',
+                    'transaction_id'       => '20231223D98E',
                     'auth_code'            => null,
                     'ref_ret_num'          => '335709663083',
                     'transaction_security' => 'Full 3D Secure',
@@ -607,7 +607,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData'       => [
                     'order_id'             => '202312238064',
-                    'trans_id'             => '202312238064',
+                    'transaction_id'       => '202312238064',
                     'auth_code'            => '103550',
                     'ref_ret_num'          => '335709663080',
                     'transaction_security' => 'Full 3D Secure',
@@ -689,7 +689,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'order_id'             => '20221101657A',
-                    'trans_id'             => '20221101657A',
+                    'transaction_id'       => '20221101657A',
                     'auth_code'            => '304919',
                     'ref_ret_num'          => '230508300426',
                     'transaction_security' => 'Full 3D Secure',
@@ -741,7 +741,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'order_id'             => '2022110159A0',
-                    'trans_id'             => null,
+                    'transaction_id'       => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'transaction_security' => 'MPI fallback',
@@ -814,7 +814,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'order_id'             => '20221101A0F9',
-                    'trans_id'             => '20221101A0F9',
+                    'transaction_id'       => '20221101A0F9',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'transaction_security' => 'Full 3D Secure',
@@ -920,7 +920,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'order_id'         => '20221101EB13',
                     'auth_code'        => '304919',
                     'proc_return_code' => '00',
-                    'trans_id'         => null,
+                    'transaction_id'   => null,
                     'trans_time'       => new \DateTime('2023-01-07 21:27:59.253'),
                     'capture_time'     => new \DateTime('2023-01-07 21:27:59.271'),
                     'error_message'    => null,
@@ -1013,7 +1013,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'order_id'         => '2024010649DF',
                     'auth_code'        => '257762',
                     'proc_return_code' => '00',
-                    'trans_id'         => null,
+                    'transaction_id'   => null,
                     'trans_time'       => new \DateTime('2024-01-06 23:10:06.029'),
                     'capture_time'     => null,
                     'error_message'    => null,
@@ -1105,7 +1105,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'order_id'         => '20221101295D',
                     'auth_code'        => null,
                     'proc_return_code' => '92',
-                    'trans_id'         => null,
+                    'transaction_id'   => null,
                     'trans_time'       => null,
                     'capture_time'     => null,
                     'error_message'    => 'İşlem bulunamadı',
@@ -1173,7 +1173,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'expectedData' => [
                         'order_id'         => '20221101C9B8',
                         'group_id'         => null,
-                        'trans_id'         => null,
+                        'transaction_id'   => null,
                         'auth_code'        => '304919',
                         'ref_ret_num'      => '230508300968',
                         'proc_return_code' => '05',
@@ -1234,7 +1234,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'expectedData' => [
                         'order_id'         => '20221101EB13',
                         'group_id'         => null,
-                        'trans_id'         => null,
+                        'transaction_id'   => null,
                         'auth_code'        => null,
                         'ref_ret_num'      => '230508300918',
                         'proc_return_code' => '92',
@@ -1329,7 +1329,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         [
                             'auth_code'        => '826886',
                             'proc_return_code' => '00',
-                            'trans_id'         => null,
+                            'transaction_id'   => null,
                             'trans_time'       => new \DateTime('20240107T000000'),
                             'capture_time'     => new \DateTime('20240107T000000'),
                             'error_message'    => null,
@@ -1447,7 +1447,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         [
                             'auth_code'        => '304919',
                             'proc_return_code' => '00',
-                            'trans_id'         => null,
+                            'transaction_id'   => null,
                             'trans_time'       => new \DateTime('20221101T000000'),
                             'capture_time'     => new \DateTime('20221101T000000'),
                             'error_message'    => null,
@@ -1466,7 +1466,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         [
                             'auth_code'        => null,
                             'proc_return_code' => '01',
-                            'trans_id'         => null,
+                            'transaction_id'   => null,
                             'trans_time'       => null,
                             'capture_time'     => null,
                             'error_message'    => null,

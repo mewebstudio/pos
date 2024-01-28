@@ -83,7 +83,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'currency'         => $order['currency'],
             'amount'           => $order['amount'],
             'group_id'         => $rawPaymentResponseData['GroupId'],
-            'trans_id'         => $rawPaymentResponseData['TransId'],
+            'transaction_id'   => $rawPaymentResponseData['TransId'],
             'auth_code'        => $rawPaymentResponseData['AuthCode'],
             'ref_ret_num'      => $rawPaymentResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,
@@ -180,14 +180,14 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         ];
 
         if (self::TX_APPROVED === $status) {
-            $response['auth_code']     = $raw3DAuthResponseData['AuthCode'];
-            $response['eci']           = $raw3DAuthResponseData['eci'];
-            $response['cavv']          = $raw3DAuthResponseData['cavv'];
-            $response['trans_id']      = $raw3DAuthResponseData['TransId'];
-            $response['ref_ret_num']   = $raw3DAuthResponseData['HostRefNum'];
-            $response['status_detail'] = $this->getStatusDetail($procReturnCode);
-            $response['error_message'] = $raw3DAuthResponseData['ErrMsg'];
-            $response['error_code']    = isset($raw3DAuthResponseData['ErrMsg']) ? $procReturnCode : null;
+            $response['auth_code']      = $raw3DAuthResponseData['AuthCode'];
+            $response['eci']            = $raw3DAuthResponseData['eci'];
+            $response['cavv']           = $raw3DAuthResponseData['cavv'];
+            $response['transaction_id'] = $raw3DAuthResponseData['TransId'];
+            $response['ref_ret_num']    = $raw3DAuthResponseData['HostRefNum'];
+            $response['status_detail']  = $this->getStatusDetail($procReturnCode);
+            $response['error_message']  = $raw3DAuthResponseData['ErrMsg'];
+            $response['error_code']     = isset($raw3DAuthResponseData['ErrMsg']) ? $procReturnCode : null;
         }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $response);
@@ -258,7 +258,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'auth_code'        => $rawResponseData['AuthCode'],
             'ref_ret_num'      => $rawResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,
-            'trans_id'         => $rawResponseData['TransId'],
+            'transaction_id'   => $rawResponseData['TransId'],
             'num_code'         => $rawResponseData['Extra']['NUMCODE'],
             'error_code'       => $rawResponseData['Extra']['ERRORCODE'],
             'error_message'    => $rawResponseData['ErrMsg'],
@@ -301,7 +301,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'auth_code'        => $rawResponseData['AuthCode'],
             'ref_ret_num'      => $rawResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,
-            'trans_id'         => $rawResponseData['TransId'],
+            'transaction_id'   => $rawResponseData['TransId'],
             'error_code'       => $rawResponseData['Extra']['ERRORCODE'],
             'num_code'         => $rawResponseData['Extra']['NUMCODE'],
             'error_message'    => $rawResponseData['ErrMsg'],
@@ -334,7 +334,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
 
         $defaultResponse['order_id']         = $rawResponseData['OrderId'];
         $defaultResponse['proc_return_code'] = $procReturnCode;
-        $defaultResponse['trans_id']         = $rawResponseData['TransId'];
+        $defaultResponse['transaction_id']   = $rawResponseData['TransId'];
         $defaultResponse['error_message']    = self::TX_APPROVED === $status ? null : $rawResponseData['ErrMsg'];
         $defaultResponse['status']           = $status;
         $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
@@ -495,8 +495,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $transaction['status'] = self::TX_APPROVED;
         }
 
-        $transaction['status_detail'] = $this->getStatusDetail($transaction['proc_return_code']);
-        $transaction['trans_id']      = $rawTx[10];
+        $transaction['status_detail']  = $this->getStatusDetail($transaction['proc_return_code']);
+        $transaction['transaction_id'] = $rawTx[10];
         /**
          * S: Auth/PreAuth/PostAuth
          * C: Refund
@@ -541,7 +541,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'status_detail'    => $this->getStatusDetail($procReturnCode),
             'trans_time'       => isset($extra[\sprintf('AUTH_DTTM_%d', $i)]) ? new \DateTime($extra[\sprintf('AUTH_DTTM_%d', $i)]) : null,
             'capture_time'     => isset($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) ? new \DateTime($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) : null,
-            'trans_id'         => $extra[\sprintf('TRANS_ID_%d', $i)] ?? null,
+            'transaction_id'   => $extra[\sprintf('TRANS_ID_%d', $i)] ?? null,
             'ref_ret_num'      => $extra[\sprintf('HOST_REF_NUM_%d', $i)] ?? null,
             'first_amount'     => isset($extra[\sprintf('ORIG_TRANS_AMT_%d', $i)]) ? $this->formatAmount($extra[\sprintf('ORIG_TRANS_AMT_%d', $i)]) : null,
             'capture_amount'   => isset($extra[\sprintf('CAPTURE_AMT_%d', $i)]) ? $this->formatAmount($extra[\sprintf('CAPTURE_AMT_%d', $i)]) : null,
