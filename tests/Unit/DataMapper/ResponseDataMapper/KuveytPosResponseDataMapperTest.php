@@ -85,9 +85,9 @@ class KuveytPosResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
-        $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
-        unset($actualData['trans_time'], $expectedData['trans_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['capture_time'], $expectedData['capture_time']);
 
         unset($actualData['all']);
@@ -537,7 +537,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'status_detail'    => null,
                 'capture'          => null,
                 'capture_time'     => null,
-                'trans_time'       => null,
+                'transaction_time' => null,
                 'currency'         => null,
             ],
         ];
@@ -625,7 +625,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'remote_order_id'  => '114293600',
                 'currency'         => PosInterface::CURRENCY_TRY,
                 'capture_time'     => null,
-                'trans_time'       => new \DateTime('2023-07-08T23:45:15.797'),
+                'transaction_time' => new \DateTime('2023-07-08T23:45:15.797'),
             ],
         ];
     }

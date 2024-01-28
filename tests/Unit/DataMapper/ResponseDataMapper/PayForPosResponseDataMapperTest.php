@@ -92,9 +92,9 @@ class PayForPosResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
-        $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
-        unset($actualData['trans_time'], $expectedData['trans_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['capture_time'], $expectedData['capture_time']);
         unset($actualData['all']);
         \ksort($expectedData);
@@ -110,21 +110,21 @@ class PayForPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
 
         if (count($actualData['transactions']) > 1
-            && null !== $actualData['transactions'][0]['trans_time']
-            && null !== $actualData['transactions'][1]['trans_time']
+            && null !== $actualData['transactions'][0]['transaction_time']
+            && null !== $actualData['transactions'][1]['transaction_time']
         ) {
             $this->assertGreaterThan(
-                $actualData['transactions'][0]['trans_time'],
-                $actualData['transactions'][1]['trans_time'],
+                $actualData['transactions'][0]['transaction_time'],
+                $actualData['transactions'][1]['transaction_time'],
             );
         }
 
         $this->assertCount($actualData['trans_count'], $actualData['transactions']);
 
         foreach (array_keys($actualData['transactions']) as $key) {
-            $this->assertEquals($expectedData['transactions'][$key]['trans_time'], $actualData['transactions'][$key]['trans_time'], 'tx: '.$key);
+            $this->assertEquals($expectedData['transactions'][$key]['transaction_time'], $actualData['transactions'][$key]['transaction_time'], 'tx: '.$key);
             $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time'], 'tx: '.$key);
-            unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
+            unset($actualData['transactions'][$key]['transaction_time'], $expectedData['transactions'][$key]['transaction_time']);
             unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
             \ksort($actualData['transactions'][$key]);
             \ksort($expectedData['transactions'][$key]);
@@ -1324,7 +1324,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'capture_amount'   => 1.01,
                     'first_amount'     => 1.01,
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('31.10.2022 23:13:21'),
+                    'transaction_time' => new \DateTime('31.10.2022 23:13:21'),
                 ],
             ],
             'success_pre_pay'              => [
@@ -1472,7 +1472,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'capture_amount'   => null,
                     'first_amount'     => 2.01,
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('19.01.2024 22:07:49'),
+                    'transaction_time' => new \DateTime('19.01.2024 22:07:49'),
                 ],
             ],
             'success_pre_pay_and_post_pay' => [
@@ -1621,7 +1621,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'capture_amount'   => 2.03,
                     'first_amount'     => 2.03,
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('19.01.2024 22:13:39'),
+                    'transaction_time' => new \DateTime('19.01.2024 22:13:39'),
                 ],
             ],
             'success_pay_then_cancel'      => [
@@ -1769,7 +1769,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'capture_amount'   => 1.01,
                     'first_amount'     => 1.01,
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('19.01.2024 21:34:05'),
+                    'transaction_time' => new \DateTime('19.01.2024 21:34:05'),
                 ],
             ],
             'success_pre_pay_then_cancel'  => [
@@ -1917,7 +1917,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'capture_amount'   => null,
                     'first_amount'     => 1.01,
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('19.01.2024 21:47:43'),
+                    'transaction_time' => new \DateTime('19.01.2024 21:47:43'),
                 ],
             ],
             'fail_order_not_found'         => [
@@ -2054,7 +2054,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'currency'         => PosInterface::CURRENCY_TRY,
                     'status'           => 'declined',
                     'status_detail'    => 'reject',
-                    'trans_time'       => null,
+                    'transaction_time' => null,
                     'transaction_id'   => null,
                     'capture_time'     => null,
                     'capture'          => null,
@@ -2161,7 +2161,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                             'auth_code'        => 'S65465',
                             'proc_return_code' => '00',
                             'transaction_id'   => null,
-                            'trans_time'       => new \DateTime('2024-01-21T17:39:02'),
+                            'transaction_time' => new \DateTime('2024-01-21T17:39:02'),
                             'capture_time'     => null,
                             'error_message'    => null,
                             'ref_ret_num'      => null,
@@ -2180,7 +2180,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                             'auth_code'        => 'S75952',
                             'proc_return_code' => '00',
                             'transaction_id'   => null,
-                            'trans_time'       => new \DateTime('2024-01-21T17:39:06'),
+                            'transaction_time' => new \DateTime('2024-01-21T17:39:06'),
                             'capture_time'     => new \DateTime('2024-01-21T17:39:06'),
                             'error_message'    => null,
                             'ref_ret_num'      => null,
@@ -2199,7 +2199,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                             'auth_code'        => 'S10420',
                             'proc_return_code' => '00',
                             'transaction_id'   => null,
-                            'trans_time'       => new \DateTime('2024-01-21T17:39:16'),
+                            'transaction_time' => new \DateTime('2024-01-21T17:39:16'),
                             'capture_time'     => null,
                             'error_message'    => null,
                             'ref_ret_num'      => null,
@@ -2232,7 +2232,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                             'auth_code'        => 'S90726',
                             'proc_return_code' => '00',
                             'transaction_id'   => null,
-                            'trans_time'       => new \DateTime('2024-01-21T21:40:47'),
+                            'transaction_time' => new \DateTime('2024-01-21T21:40:47'),
                             'capture_time'     => new \DateTime('2024-01-21T21:40:47'),
                             'error_message'    => null,
                             'ref_ret_num'      => null,
@@ -2265,7 +2265,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                             'auth_code'        => 'S95711',
                             'proc_return_code' => '00',
                             'transaction_id'   => null,
-                            'trans_time'       => new \DateTime('2024-01-21T21:59:31'),
+                            'transaction_time' => new \DateTime('2024-01-21T21:59:31'),
                             'capture_time'     => null,
                             'error_message'    => null,
                             'ref_ret_num'      => null,
@@ -2298,7 +2298,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                             'auth_code'        => 'S83066',
                             'proc_return_code' => '00',
                             'transaction_id'   => null,
-                            'trans_time'       => new \DateTime('2024-01-21T22:14:23'),
+                            'transaction_time' => new \DateTime('2024-01-21T22:14:23'),
                             'capture_time'     => new \DateTime('2024-01-21T22:14:23'),
                             'error_message'    => null,
                             'ref_ret_num'      => null,
@@ -2317,7 +2317,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                             'auth_code'        => null,
                             'proc_return_code' => 'V014',
                             'transaction_id'   => null,
-                            'trans_time'       => null,
+                            'transaction_time' => null,
                             'capture_time'     => null,
                             'error_message'    => null,
                             'ref_ret_num'      => null,

@@ -82,9 +82,9 @@ class GarantiPosResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
-        $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
-        unset($actualData['trans_time'], $expectedData['trans_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['capture_time'], $expectedData['capture_time']);
 
         unset($actualData['all']);
@@ -98,19 +98,19 @@ class GarantiPosResponseDataMapperTest extends TestCase
     {
         $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
         if (count($actualData['transactions']) > 1
-            && null !== $actualData['transactions'][0]['trans_time']
-            && null !== $actualData['transactions'][1]['trans_time']
+            && null !== $actualData['transactions'][0]['transaction_time']
+            && null !== $actualData['transactions'][1]['transaction_time']
         ) {
             $this->assertGreaterThan(
-                $actualData['transactions'][0]['trans_time'],
-                $actualData['transactions'][1]['trans_time'],
+                $actualData['transactions'][0]['transaction_time'],
+                $actualData['transactions'][1]['transaction_time'],
             );
         }
 
         foreach (array_keys($actualData['transactions']) as $key) {
-            $this->assertEquals($expectedData['transactions'][$key]['trans_time'], $actualData['transactions'][$key]['trans_time']);
+            $this->assertEquals($expectedData['transactions'][$key]['transaction_time'], $actualData['transactions'][$key]['transaction_time']);
             $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time']);
-            unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
+            unset($actualData['transactions'][$key]['transaction_time'], $expectedData['transactions'][$key]['transaction_time']);
             unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
             \ksort($actualData['transactions'][$key]);
             \ksort($expectedData['transactions'][$key]);
@@ -921,7 +921,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'auth_code'        => '304919',
                     'proc_return_code' => '00',
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('2023-01-07 21:27:59.253'),
+                    'transaction_time' => new \DateTime('2023-01-07 21:27:59.253'),
                     'capture_time'     => new \DateTime('2023-01-07 21:27:59.271'),
                     'error_message'    => null,
                     'ref_ret_num'      => '300708704369',
@@ -1014,7 +1014,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'auth_code'        => '257762',
                     'proc_return_code' => '00',
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('2024-01-06 23:10:06.029'),
+                    'transaction_time' => new \DateTime('2024-01-06 23:10:06.029'),
                     'capture_time'     => null,
                     'error_message'    => null,
                     'ref_ret_num'      => '400609699313',
@@ -1106,7 +1106,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => '92',
                     'transaction_id'   => null,
-                    'trans_time'       => null,
+                    'transaction_time' => null,
                     'capture_time'     => null,
                     'error_message'    => 'İşlem bulunamadı',
                     'ref_ret_num'      => null,
@@ -1330,7 +1330,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                             'auth_code'        => '826886',
                             'proc_return_code' => '00',
                             'transaction_id'   => null,
-                            'trans_time'       => new \DateTime('20240107T000000'),
+                            'transaction_time' => new \DateTime('20240107T000000'),
                             'capture_time'     => new \DateTime('20240107T000000'),
                             'error_message'    => null,
                             'ref_ret_num'      => '400709699645',
@@ -1448,7 +1448,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                             'auth_code'        => '304919',
                             'proc_return_code' => '00',
                             'transaction_id'   => null,
-                            'trans_time'       => new \DateTime('20221101T000000'),
+                            'transaction_time' => new \DateTime('20221101T000000'),
                             'capture_time'     => new \DateTime('20221101T000000'),
                             'error_message'    => null,
                             'ref_ret_num'      => '230508300896',
@@ -1467,7 +1467,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                             'auth_code'        => null,
                             'proc_return_code' => '01',
                             'transaction_id'   => null,
-                            'trans_time'       => null,
+                            'transaction_time' => null,
                             'capture_time'     => null,
                             'error_message'    => null,
                             'ref_ret_num'      => '230508300913',

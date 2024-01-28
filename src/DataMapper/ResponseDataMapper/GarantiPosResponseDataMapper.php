@@ -264,15 +264,15 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'error_message'    => self::TX_APPROVED === $status ? null : $transaction['Response']['ErrorMsg'],
         ];
         if (self::TX_APPROVED === $status) {
-            $transTime                = $orderInqResult['ProvDate'] ?? $orderInqResult['PreAuthDate'];
-            $result['trans_time']     = $transTime === null ? null : new \DateTime($transTime);
-            $result['capture_time']   = null !== $orderInqResult['AuthDate'] ? new \DateTime($orderInqResult['AuthDate']) : null;
-            $result['masked_number']  = $orderInqResult['CardNumberMasked'];
-            $amount                   = $orderInqResult['AuthAmount'];
-            $result['capture_amount'] = null !== $amount ? $this->formatAmount($amount) : null;
-            $firstAmount              = $amount > 0 ? $amount : $orderInqResult['PreAuthAmount'];
-            $result['first_amount']   = null !== $firstAmount ? $this->formatAmount($firstAmount) : null;
-            $result['capture']        = $result['first_amount'] > 0 ? $result['capture_amount'] === $result['first_amount'] : null;
+            $transTime                  = $orderInqResult['ProvDate'] ?? $orderInqResult['PreAuthDate'];
+            $result['transaction_time'] = $transTime === null ? null : new \DateTime($transTime);
+            $result['capture_time']     = null !== $orderInqResult['AuthDate'] ? new \DateTime($orderInqResult['AuthDate']) : null;
+            $result['masked_number']    = $orderInqResult['CardNumberMasked'];
+            $amount                     = $orderInqResult['AuthAmount'];
+            $result['capture_amount']   = null !== $amount ? $this->formatAmount($amount) : null;
+            $firstAmount                = $amount > 0 ? $amount : $orderInqResult['PreAuthAmount'];
+            $result['first_amount']     = null !== $firstAmount ? $this->formatAmount($firstAmount) : null;
+            $result['capture']          = $result['first_amount'] > 0 ? $result['capture_amount'] === $result['first_amount'] : null;
         }
 
         return \array_merge($defaultResponse, $result);
@@ -439,15 +439,15 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['transaction_type'] = $rawTx['Type'] === null ? null : $this->mapTxType($rawTx['Type']);
 
         if (self::TX_APPROVED === $status) {
-            $transTime                         = $rawTx['ProvDate'] ?? $rawTx['PreAuthDate'] ?? $rawTx['AuthDate'];
-            $defaultResponse['trans_time']     = new \DateTime($transTime.'T000000');
-            $defaultResponse['capture_time']   = null !== $rawTx['AuthDate'] ? new \DateTime($rawTx['AuthDate'].'T000000') : null;
-            $amount                            = $rawTx['AuthAmount'];
-            $defaultResponse['capture_amount'] = null !== $amount ? $this->formatAmount($amount) : null;
-            $firstAmount                       = $amount > 0 ? $amount : $rawTx['PreAuthAmount'];
-            $defaultResponse['first_amount']   = null !== $firstAmount ? $this->formatAmount($firstAmount) : null;
-            $defaultResponse['capture']        = $defaultResponse['first_amount'] > 0 ? $defaultResponse['capture_amount'] === $defaultResponse['first_amount'] : null;
-            $defaultResponse['currency']       = '0' !== $rawTx['CurrencyCode'] && null !== $rawTx['CurrencyCode'] ? $this->mapCurrency($rawTx['CurrencyCode']) : null;
+            $transTime                           = $rawTx['ProvDate'] ?? $rawTx['PreAuthDate'] ?? $rawTx['AuthDate'];
+            $defaultResponse['transaction_time'] = new \DateTime($transTime.'T000000');
+            $defaultResponse['capture_time']     = null !== $rawTx['AuthDate'] ? new \DateTime($rawTx['AuthDate'].'T000000') : null;
+            $amount                              = $rawTx['AuthAmount'];
+            $defaultResponse['capture_amount']   = null !== $amount ? $this->formatAmount($amount) : null;
+            $firstAmount                         = $amount > 0 ? $amount : $rawTx['PreAuthAmount'];
+            $defaultResponse['first_amount']     = null !== $firstAmount ? $this->formatAmount($firstAmount) : null;
+            $defaultResponse['capture']          = $defaultResponse['first_amount'] > 0 ? $defaultResponse['capture_amount'] === $defaultResponse['first_amount'] : null;
+            $defaultResponse['currency']         = '0' !== $rawTx['CurrencyCode'] && null !== $rawTx['CurrencyCode'] ? $this->mapCurrency($rawTx['CurrencyCode']) : null;
         }
 
         return $defaultResponse;

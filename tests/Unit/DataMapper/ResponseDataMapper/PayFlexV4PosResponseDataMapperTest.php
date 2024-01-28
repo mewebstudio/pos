@@ -127,7 +127,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'masked_number'    => null,
                 'capture'          => null,
                 'capture_time'     => null,
-                'trans_time'       => null,
+                'transaction_time' => null,
             ],
         ];
 
@@ -193,7 +193,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'masked_number'    => null,
                 'capture'          => null,
                 'capture_time'     => null,
-                'trans_time'       => null,
+                'transaction_time' => null,
             ],
         ];
     }

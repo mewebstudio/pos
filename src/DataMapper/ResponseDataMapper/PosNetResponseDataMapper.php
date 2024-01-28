@@ -248,7 +248,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
                 'auth_code'        => $transactionDetails['authCode'] ?? null,
                 'ref_ret_num'      => $transactionDetails['hostlogkey'] ?? null,
                 // tranDate ex: 2019-10-10 11:21:14.281
-                'trans_time'       => isset($transactionDetails['tranDate']) ? new \DateTime($transactionDetails['tranDate']) : null,
+                'transaction_time' => isset($transactionDetails['tranDate']) ? new \DateTime($transactionDetails['tranDate']) : null,
             ];
         }
 

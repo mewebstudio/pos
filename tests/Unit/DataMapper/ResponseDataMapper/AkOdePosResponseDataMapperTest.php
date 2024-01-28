@@ -80,10 +80,10 @@ class AkOdePosResponseDataMapperTest extends TestCase
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
         if (isset($responseData['CreateDate'])) {
-            $this->assertSame($actualData['trans_time']->format('YmdHis'), $responseData['CreateDate']);
+            $this->assertSame($actualData['transaction_time']->format('YmdHis'), $responseData['CreateDate']);
             $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
-            $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
-            unset($actualData['trans_time'], $expectedData['trans_time']);
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+            unset($actualData['transaction_time'], $expectedData['transaction_time']);
             unset($actualData['capture_time'], $expectedData['capture_time']);
         }
 
@@ -122,20 +122,20 @@ class AkOdePosResponseDataMapperTest extends TestCase
         if (isset($responseData['Transactions'])) {
             $this->assertCount($actualData['trans_count'], $actualData['transactions']);
             if (count($actualData['transactions']) > 1
-                && null !== $actualData['transactions'][0]['trans_time']
-                && null !== $actualData['transactions'][1]['trans_time']
+                && null !== $actualData['transactions'][0]['transaction_time']
+                && null !== $actualData['transactions'][1]['transaction_time']
             ) {
                 $this->assertGreaterThan(
-                    $actualData['transactions'][0]['trans_time'],
-                    $actualData['transactions'][1]['trans_time'],
+                    $actualData['transactions'][0]['transaction_time'],
+                    $actualData['transactions'][1]['transaction_time'],
                 );
             }
 
             foreach ($responseData['Transactions'] as $key => $tx) {
                 if (isset($tx['CreateDate'])) {
-                    $this->assertSame($actualData['transactions'][$key]['trans_time']->format('YmdHis'), $tx['CreateDate']);
+                    $this->assertSame($actualData['transactions'][$key]['transaction_time']->format('YmdHis'), $tx['CreateDate']);
                     $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time']);
-                    unset($actualData['transactions'][$key]['trans_time'], $expectedData['transactions'][$key]['trans_time']);
+                    unset($actualData['transactions'][$key]['transaction_time'], $expectedData['transactions'][$key]['transaction_time']);
                     unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
                 }
 
@@ -716,7 +716,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => '00',
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('20240120005007'),
+                    'transaction_time' => new \DateTime('20240120005007'),
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => '41595600****7732',
@@ -768,7 +768,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => '00',
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('20231205224003'),
+                    'transaction_time' => new \DateTime('20231205224003'),
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => '41595600****7732',
@@ -820,7 +820,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => null,
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('20231204002334'),
+                    'transaction_time' => new \DateTime('20231204002334'),
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => null,
@@ -872,7 +872,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => '00',
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('20240119230959'),
+                    'transaction_time' => new \DateTime('20240119230959'),
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => '41595600****7732',
@@ -924,7 +924,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => '00',
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('20231210132528'),
+                    'transaction_time' => new \DateTime('20231210132528'),
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => '41595600****7732',
@@ -976,7 +976,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => '00',
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('20240120005901'),
+                    'transaction_time' => new \DateTime('20240120005901'),
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => '41595600****7732',
@@ -1028,7 +1028,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => null,
                     'transaction_id'   => null,
-                    'trans_time'       => null,
+                    'transaction_time' => null,
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => null,
@@ -1080,7 +1080,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'auth_code'        => null,
                     'proc_return_code' => 'MD:0',
                     'transaction_id'   => null,
-                    'trans_time'       => new \DateTime('20240119231357'),
+                    'transaction_time' => new \DateTime('20240119231357'),
                     'error_message'    => null,
                     'ref_ret_num'      => null,
                     'masked_number'    => '41595600****7732',
@@ -1337,7 +1337,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                             'auth_code'        => null,
                             'proc_return_code' => '00',
                             'transaction_id'   => '2000000000032596',
-                            'trans_time'       => new \DateTime('20231209154531'),
+                            'transaction_time' => new \DateTime('20231209154531'),
                             'capture_time'     => new \DateTime('20231209154531'),
                             'error_message'    => null,
                             'ref_ret_num'      => null,
@@ -1437,7 +1437,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                             'auth_code'        => null,
                             'proc_return_code' => '00',
                             'transaction_id'   => '2000000000032596',
-                            'trans_time'       => new \DateTime('20231209154531'),
+                            'transaction_time' => new \DateTime('20231209154531'),
                             'capture_time'     => new \DateTime('20231209154531'),
                             'error_message'    => null,
                             'ref_ret_num'      => null,
@@ -1457,7 +1457,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
                             'auth_code'        => null,
                             'proc_return_code' => '00',
                             'transaction_id'   => 2000000000032597,
-                            'trans_time'       => new \DateTime('20231209154644'),
+                            'transaction_time' => new \DateTime('20231209154644'),
                             'capture_time'     => null,
                             'error_message'    => null,
                             'ref_ret_num'      => null,

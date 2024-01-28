@@ -247,15 +247,15 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             if ($rawResponseData['Currency'] > 0) {
                 $defaultResponse['currency'] = $this->mapCurrency($rawResponseData['Currency']);
                 // ex: 20231209154531
-                $defaultResponse['trans_time']   = new \DateTime($rawResponseData['CreateDate']);
-                $defaultResponse['first_amount'] = $this->formatAmount($rawResponseData['Amount']);
+                $defaultResponse['transaction_time'] = new \DateTime($rawResponseData['CreateDate']);
+                $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['Amount']);
             }
 
             if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $isPaymentTransaction) {
-                $captureAmount = (float) $rawResponseData['MerchantCommissionAmount'] + (float) $rawResponseData['NetAmount'];
+                $captureAmount                     = (float) $rawResponseData['MerchantCommissionAmount'] + (float) $rawResponseData['NetAmount'];
                 $defaultResponse['capture_amount'] = $this->formatAmount((string) $captureAmount);
                 $defaultResponse['capture']        = $defaultResponse['first_amount'] <= $defaultResponse['capture_amount'];
-                $defaultResponse['capture_time']   = $defaultResponse['trans_time'];
+                $defaultResponse['capture_time']   = $defaultResponse['transaction_time'];
             }
         } else {
             $defaultResponse['error_message'] = $rawResponseData['BankResponseMessage'];

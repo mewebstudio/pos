@@ -138,7 +138,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
         $status                = self::PROCEDURE_SUCCESS_CODE === $procReturnCode ? self::TX_APPROVED : self::TX_DECLINED;
-        $threeDResponse = [
+        $threeDResponse        = [
             'transaction_id'   => null,
             'auth_code'        => $raw3DAuthResponseData['AuthCode'],
             'ref_ret_num'      => $raw3DAuthResponseData['HostRefNum'],
@@ -240,10 +240,10 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['auth_code']   = $rawResponseData['AuthCode'];
             $defaultResponse['ref_ret_num'] = $rawResponseData['HostRefNum'];
 
-            $defaultResponse['masked_number'] = $rawResponseData['CardMask'];
-            $defaultResponse['first_amount']  = $this->formatAmount($rawResponseData['PurchAmount']);
-            $defaultResponse['trans_time']    = new \DateTime($rawResponseData['InsertDatetime']);
-            $defaultResponse['capture']       = false;
+            $defaultResponse['masked_number']    = $rawResponseData['CardMask'];
+            $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['PurchAmount']);
+            $defaultResponse['transaction_time'] = new \DateTime($rawResponseData['InsertDatetime']);
+            $defaultResponse['capture']          = false;
             if (\in_array(
                 $defaultResponse['transaction_type'],
                 [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_POST_AUTH],
@@ -251,7 +251,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             )) {
                 $defaultResponse['capture']        = true;
                 $defaultResponse['capture_amount'] = $this->formatAmount($rawResponseData['PurchAmount']);
-                $defaultResponse['capture_time']   = $defaultResponse['trans_time'];
+                $defaultResponse['capture_time']   = $defaultResponse['transaction_time'];
                 $orderStatus                       = PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED;
             }
 
@@ -465,12 +465,12 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['currency']         = null !== $rawTx['Currency'] ? $this->mapCurrency($rawTx['Currency']) : null;
 
         if (self::TX_APPROVED === $status) {
-            $orderStatus                      = null;
-            $defaultResponse['auth_code']     = $rawTx['AuthCode'] ?? null;
-            $defaultResponse['ref_ret_num']   = $rawTx['HostRefNum'] ?? null;
-            $defaultResponse['masked_number'] = $rawTx['CardMask'];
-            $defaultResponse['first_amount']  = null !== $rawTx['PurchAmount'] ? $this->formatAmount($rawTx['PurchAmount']) : null;
-            $defaultResponse['trans_time']    = null !== $rawTx['InsertDatetime'] ? new \DateTime($rawTx['InsertDatetime']) : null;
+            $orderStatus                         = null;
+            $defaultResponse['auth_code']        = $rawTx['AuthCode'] ?? null;
+            $defaultResponse['ref_ret_num']      = $rawTx['HostRefNum'] ?? null;
+            $defaultResponse['masked_number']    = $rawTx['CardMask'];
+            $defaultResponse['first_amount']     = null !== $rawTx['PurchAmount'] ? $this->formatAmount($rawTx['PurchAmount']) : null;
+            $defaultResponse['transaction_time'] = null !== $rawTx['InsertDatetime'] ? new \DateTime($rawTx['InsertDatetime']) : null;
             if (\in_array(
                 $defaultResponse['transaction_type'],
                 [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_POST_AUTH],
@@ -478,7 +478,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             )) {
                 $defaultResponse['capture']        = true;
                 $defaultResponse['capture_amount'] = $defaultResponse['first_amount'];
-                $defaultResponse['capture_time']   = $defaultResponse['trans_time'];
+                $defaultResponse['capture_time']   = $defaultResponse['transaction_time'];
                 $orderStatus                       = PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED;
             } elseif (PosInterface::TX_TYPE_PAY_PRE_AUTH === $defaultResponse['transaction_type']) {
                 $defaultResponse['capture'] = false;

@@ -72,9 +72,9 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
 
-        $this->assertEquals($expectedData['trans_time'], $actualData['trans_time']);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
-        unset($actualData['trans_time'], $expectedData['trans_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['capture_time'], $expectedData['capture_time']);
 
         unset($actualData['all']);
@@ -222,7 +222,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'transaction_type' => 'pay',
                 'payment_model'    => 'regular',
                 'order_id'         => '202312171800ABC',
-                'transaction_id'         => null,
+                'transaction_id'   => null,
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
                 'auth_code'        => '449324',
@@ -268,7 +268,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'md_status'            => '0',
                 'md_error_message'     => 'Not authenticated',
                 'amount'               => 1.01,
-                'transaction_id'             => null,
+                'transaction_id'       => null,
                 'auth_code'            => null,
                 'installment'          => null,
                 'ref_ret_num'          => null,
@@ -385,7 +385,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'md_status'            => '1',
                 'md_error_message'     => null,
                 'amount'               => 1.75,
-                'transaction_id'             => null,
+                'transaction_id'       => null,
                 'auth_code'            => '449324',
                 'ref_ret_num'          => '159044932490000231',
                 'status_detail'        => 'approved',
@@ -434,7 +434,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'md_status'            => '0',
                 'md_error_message'     => 'Error',
                 'amount'               => 1.75,
-                'transaction_id'             => null,
+                'transaction_id'       => null,
                 'auth_code'            => null,
                 'ref_ret_num'          => null,
                 'status_detail'        => null,
@@ -489,7 +489,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'md_status'            => '1',
                 'md_error_message'     => null,
                 'amount'               => 1.01,
-                'transaction_id'             => null,
+                'transaction_id'       => null,
                 'auth_code'            => null,
                 'ref_ret_num'          => null,
                 'status_detail'        => null,
@@ -544,7 +544,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             'expected' => [
                 'order_id'         => 'ALB_TST_19091900_20a1234',
                 'auth_code'        => null,
-                'transaction_id'         => null,
+                'transaction_id'   => null,
                 'ref_ret_num'      => null,
                 'proc_return_code' => '0000',
                 'status'           => 'approved',
@@ -552,7 +552,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'status_detail'    => null,
                 'error_code'       => null,
                 'error_message'    => null,
-                'trans_time'       => new \DateTime('2019-11-0813:58:37.909'),
+                'transaction_time' => new \DateTime('2019-11-0813:58:37.909'),
                 'capture_time'     => null,
                 'capture'          => null,
                 'capture_amount'   => null,
@@ -574,14 +574,14 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             ],
             'expected' => [
                 'auth_code'        => null,
-                'transaction_id'         => null,
+                'transaction_id'   => null,
                 'ref_ret_num'      => null,
                 'proc_return_code' => 'E219',
                 'status'           => 'declined',
                 'status_detail'    => null,
                 'error_code'       => 'E219',
                 'error_message'    => 'Kayıt Bulunamadı',
-                'trans_time'       => null,
+                'transaction_time' => null,
                 'capture_time'     => null,
                 'capture'          => null,
                 'capture_amount'   => null,
@@ -609,7 +609,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             ],
             'expected' => [
                 'auth_code'        => null,
-                'transaction_id'         => null,
+                'transaction_id'   => null,
                 'ref_ret_num'      => null,
                 'group_id'         => null,
                 'transaction_type' => null,
@@ -630,7 +630,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             ],
             'expected' => [
                 'auth_code'        => null,
-                'transaction_id'         => null,
+                'transaction_id'   => null,
                 'ref_ret_num'      => null,
                 'group_id'         => null,
                 'transaction_type' => null,
@@ -656,7 +656,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             ],
             'expected' => [
                 'auth_code'        => null,
-                'transaction_id'         => null,
+                'transaction_id'   => null,
                 'ref_ret_num'      => null,
                 'group_id'         => null,
                 'transaction_type' => null,
@@ -682,7 +682,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             ],
             'expected' => [
                 'auth_code'        => null,
-                'transaction_id'         => null,
+                'transaction_id'   => null,
                 'ref_ret_num'      => null,
                 'group_id'         => null,
                 'transaction_type' => null,

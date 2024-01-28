@@ -241,7 +241,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             }
 
             $defaultResponse['first_amount']     = $this->formatStatusAmount($rawTx['Amount']);
-            $defaultResponse['trans_time']       = new \DateTime($rawTx['TransactionDate']);
+            $defaultResponse['transaction_time'] = new \DateTime($rawTx['TransactionDate']);
             $defaultResponse['currency']         = $this->mapCurrency($rawTx['CurrencyCode']);
             $defaultResponse['masked_number']    = $rawTx['CardNo'];
             $defaultResponse['order_id']         = $rawTx['OrderId'];
