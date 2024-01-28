@@ -109,8 +109,12 @@ class EstPosResponseDataMapperTest extends TestCase
         } else {
             $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
             $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+            $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
+            $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
             unset($actualData['transaction_time'], $expectedData['transaction_time']);
             unset($actualData['capture_time'], $expectedData['capture_time']);
+            unset($actualData['cancel_time'], $expectedData['cancel_time']);
+            unset($actualData['refund_time'], $expectedData['refund_time']);
         }
 
         unset($actualData['all']);
@@ -1107,6 +1111,9 @@ class EstPosResponseDataMapperTest extends TestCase
                     'capture'          => false,
                     'transaction_time' => new \DateTime('2022-10-30 12:29:53.773'),
                     'capture_time'     => null,
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'fail1'                  => [
@@ -1140,6 +1147,9 @@ class EstPosResponseDataMapperTest extends TestCase
                     'transaction_time' => null,
                     'capture_time'     => null,
                     'currency'         => null,
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'pay_order_status'       => [
@@ -1192,6 +1202,9 @@ class EstPosResponseDataMapperTest extends TestCase
                     'capture_time'     => new \DateTime('2024-01-03 21:37:57.259'),
                     'transaction_id'   => '24003Vl7F13152',
                     'transaction_type' => 'pay',
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'pre_pay_order_status'   => [
@@ -1244,6 +1257,9 @@ class EstPosResponseDataMapperTest extends TestCase
                     'capture_time'     => null,
                     'transaction_id'   => '24003VqkA14152',
                     'transaction_type' => 'pay',
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'canceled_order_status'  => [
@@ -1297,6 +1313,64 @@ class EstPosResponseDataMapperTest extends TestCase
                     'capture_time'     => new \DateTime('2024-01-03 21:49:42.929'),
                     'transaction_id'   => '24003VxrB15662',
                     'transaction_type' => 'pay',
+                    'cancel_time'      => new \DateTime('2024-01-03 21:49:44.301'),
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
+                ],
+            ],
+            'refund_order_status'    => [
+                'responseData' => [
+                    'ErrMsg'         => 'Record(s) found for 20240128C0B7',
+                    'ProcReturnCode' => '00',
+                    'Response'       => 'Approved',
+                    'OrderId'        => '20240128C0B7',
+                    'TransId'        => '24028T8xG11980',
+                    'Extra'          => [
+                        'AUTH_CODE'      => 'P93736',
+                        'AUTH_DTTM'      => '2024-01-28 19:58:49.382',
+                        'CAPTURE_AMT'    => '201',
+                        'CAPTURE_DTTM'   => '2024-01-28 19:58:49.382',
+                        'CAVV_3D'        => '',
+                        'CHARGE_TYPE_CD' => 'C',
+                        'ECI_3D'         => '',
+                        'HOSTDATE'       => '0128-195850',
+                        'HOST_REF_NUM'   => '402800747548',
+                        'MDSTATUS'       => '',
+                        'NUMCODE'        => '0',
+                        'ORDERSTATUS'    => 'ORD_ID:20240128C0B7	CHARGE_TYPE_CD:C	ORIG_TRANS_AMT:201	CAPTURE_AMT:201	TRANS_STAT:C	AUTH_DTTM:2024-01-28 19:58:49.382	CAPTURE_DTTM:2024-01-28 19:58:49.382	AUTH_CODE:P93736	TRANS_ID:24028T8xG11980',
+                        'ORD_ID'         => '20240128C0B7',
+                        'ORIG_TRANS_AMT' => '201',
+                        'PAN'            => '4546 71** **** 7894',
+                        'PROC_RET_CD'    => '00',
+                        'SETTLEID'       => '',
+                        'TRANS_ID'       => '24028T8xG11980',
+                        'TRANS_STAT'     => 'C',
+                        'XID_3D'         => '',
+                    ],
+                ],
+                'expectedData' => [
+                    'auth_code'        => 'P93736',
+                    'capture'          => true,
+                    'currency'         => null,
+                    'error_code'       => null,
+                    'error_message'    => null,
+                    'first_amount'     => 2.01,
+                    'capture_amount'   => 2.01,
+                    'masked_number'    => '4546 71** **** 7894',
+                    'num_code'         => '0',
+                    'order_id'         => '20240128C0B7',
+                    'order_status'     => 'PAYMENT_COMPLETED',
+                    'proc_return_code' => '00',
+                    'ref_ret_num'      => '402800747548',
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                    'transaction_time' => new \DateTime('2024-01-28 19:58:49.382'),
+                    'capture_time'     => new \DateTime('2024-01-28 19:58:49.382'),
+                    'transaction_id'   => '24028T8xG11980',
+                    'transaction_type' => 'refund',
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'recurring_order_status' => [

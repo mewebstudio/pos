@@ -83,8 +83,12 @@ class AkOdePosResponseDataMapperTest extends TestCase
             $this->assertSame($actualData['transaction_time']->format('YmdHis'), $responseData['CreateDate']);
             $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
             $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+            $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
+            $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
             unset($actualData['transaction_time'], $expectedData['transaction_time']);
             unset($actualData['capture_time'], $expectedData['capture_time']);
+            unset($actualData['refund_time'], $expectedData['refund_time']);
+            unset($actualData['cancel_time'], $expectedData['cancel_time']);
         }
 
         unset($actualData['all']);
@@ -730,6 +734,9 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'currency'         => 'TRY',
                     'first_amount'     => 1.01,
                     'capture_time'     => new \DateTime('20240120005007'),
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'success_pre_pay_then_cancel'     => [
@@ -782,6 +789,9 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'currency'         => 'TRY',
                     'first_amount'     => 1.01,
                     'capture_time'     => new \DateTime('20231205224003'),
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'success_waiting_for_3d_auth'     => [
@@ -834,6 +844,9 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'currency'         => 'TRY',
                     'first_amount'     => 1.01,
                     'capture_time'     => null,
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'success_pre_auth'                => [
@@ -886,6 +899,9 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'currency'         => 'TRY',
                     'first_amount'     => 1.01,
                     'capture_time'     => new \DateTime('20240119230959'),
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'success_pre_auth_then_post_auth' => [
@@ -938,6 +954,9 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'currency'         => 'TRY',
                     'first_amount'     => 1.01,
                     'capture_time'     => new \DateTime('20231210132528'),
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'success_pay_and_partial_refund'  => [
@@ -990,6 +1009,9 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'currency'         => 'TRY',
                     'first_amount'     => 1.01,
                     'capture_time'     => new \DateTime('20240120005901'),
+                    'cancel_time'      => null,
+                    'refund_amount'    => 0.59,
+                    'refund_time'      => null,
                 ],
             ],
             'fail_order_not_found'            => [
@@ -1042,6 +1064,9 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'capture'          => null,
                     'currency'         => null,
                     'first_amount'     => null,
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'fail_unsuccessful_payment'       => [
@@ -1094,6 +1119,9 @@ class AkOdePosResponseDataMapperTest extends TestCase
                     'currency'         => 'TRY',
                     'first_amount'     => 2.0,
                     'capture_time'     => null,
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
         ];

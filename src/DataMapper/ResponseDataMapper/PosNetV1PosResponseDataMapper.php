@@ -247,6 +247,12 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['order_id']         = $rawTx['OrderId'];
             $defaultResponse['transaction_type'] = $this->mapTxType($rawTx['TransactionType']);
             $defaultResponse['order_status']     = $this->orderStatusMappings[$defaultResponse['transaction_type']] ?? null;
+
+            if (PosInterface::TX_TYPE_REFUND === $defaultResponse['transaction_type']) {
+                $defaultResponse['refund_time'] = new \DateTime($rawTx['TransactionDate']);
+            } elseif (PosInterface::TX_TYPE_CANCEL === $defaultResponse['transaction_type']) {
+                $defaultResponse['cancel_time'] = new \DateTime($rawTx['TransactionDate']);
+            }
         }
 
         return $defaultResponse;

@@ -353,6 +353,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $result['order_status']     = $this->orderStatusMappings[$extra['TRANS_STAT']] ?? null;
             $result['transaction_time'] = isset($extra['AUTH_DTTM']) ? new \DateTime($extra['AUTH_DTTM']) : null;
             $result['capture_time']     = isset($extra['CAPTURE_DTTM']) ? new \DateTime($extra['CAPTURE_DTTM']) : null;
+            $result['cancel_time']      = isset($extra['VOID_DTTM']) ? new \DateTime($extra['VOID_DTTM']) : null;
         }
 
         return $result;

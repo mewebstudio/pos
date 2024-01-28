@@ -70,8 +70,12 @@ class PosNetResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+        $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
+        $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['capture_time'], $expectedData['capture_time']);
+        unset($actualData['refund_time'], $expectedData['refund_time']);
+        unset($actualData['cancel_time'], $expectedData['cancel_time']);
 
         unset($actualData['all']);
         \ksort($expectedData);
@@ -424,6 +428,9 @@ class PosNetResponseDataMapperTest extends TestCase
                     'order_status'     => null,
                     'capture_time'     => null,
                     'currency'         => 'TRY',
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'fail1'    => [
@@ -451,6 +458,9 @@ class PosNetResponseDataMapperTest extends TestCase
                     'status_detail'    => 'declined',
                     'error_code'       => '0148',
                     'error_message'    => 'INVALID MID TID IP. Hatal\u0131 IP:89.244.149.137',
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
         ];

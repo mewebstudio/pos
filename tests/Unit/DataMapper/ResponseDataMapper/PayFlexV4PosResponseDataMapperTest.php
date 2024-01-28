@@ -91,6 +91,10 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
+        $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
+        $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
+        unset($actualData['refund_time'], $expectedData['refund_time']);
+        unset($actualData['cancel_time'], $expectedData['cancel_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -128,6 +132,9 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'capture'          => null,
                 'capture_time'     => null,
                 'transaction_time' => null,
+                'cancel_time'      => null,
+                'refund_amount'    => null,
+                'refund_time'      => null,
             ],
         ];
 
@@ -194,6 +201,9 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'capture'          => null,
                 'capture_time'     => null,
                 'transaction_time' => null,
+                'cancel_time'      => null,
+                'refund_amount'    => null,
+                'refund_time'      => null,
             ],
         ];
     }

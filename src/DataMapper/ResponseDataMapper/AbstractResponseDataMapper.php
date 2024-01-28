@@ -183,6 +183,9 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             'capture'          => null,
             'currency'         => null,
             'masked_number'    => null,
+            'refund_amount'    => null,
+            'refund_time'      => null,
+            'cancel_time'      => null,
             'all'              => $rawData,
         ];
     }

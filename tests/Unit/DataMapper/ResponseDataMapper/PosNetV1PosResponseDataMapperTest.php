@@ -74,8 +74,12 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
 
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+        $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
+        $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['capture_time'], $expectedData['capture_time']);
+        unset($actualData['refund_time'], $expectedData['refund_time']);
+        unset($actualData['cancel_time'], $expectedData['cancel_time']);
 
         unset($actualData['all']);
         \ksort($expectedData);
@@ -510,7 +514,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
 
     public static function mapStatusResponseDataProvider(): iterable
     {
-        yield 'success1' => [
+        yield 'success_refunded' => [
             'response' => [
                 'ServiceResponseData' => [
                     'ResponseCode'        => '0000',
@@ -560,6 +564,9 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'currency'         => 'TRY',
                 'first_amount'     => 1.75,
                 'masked_number'    => '540061******4581',
+                'cancel_time'      => null,
+                'refund_amount'    => null,
+                'refund_time'      => new \DateTime('2019-11-0813:58:37.909'),
             ],
         ];
         yield 'fail1' => [
@@ -591,9 +598,11 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'order_id'         => null,
                 'order_status'     => null,
                 'transaction_type' => null,
+                'cancel_time'      => null,
+                'refund_amount'    => null,
+                'refund_time'      => null,
             ],
         ];
-
     }
 
     public static function mapCancelResponseDataProvider(): iterable

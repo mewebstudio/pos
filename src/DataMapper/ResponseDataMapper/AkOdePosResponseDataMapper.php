@@ -250,6 +250,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
                 $defaultResponse['transaction_time'] = new \DateTime($rawResponseData['CreateDate']);
                 $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['Amount']);
             }
+            $defaultResponse['refund_amount'] = $rawResponseData['RefundedAmount'] > 0 ? $this->formatAmount($rawResponseData['RefundedAmount']) : null;
 
             if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $isPaymentTransaction) {
                 $captureAmount                     = (float) $rawResponseData['MerchantCommissionAmount'] + (float) $rawResponseData['NetAmount'];
@@ -280,8 +281,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
         $orderId            = null;
         if (self::TX_APPROVED === $status) {
             foreach ($rawResponseData['Transactions'] as $transaction) {
-                $mappedTransaction = $this->mapStatusResponse($transaction);
-                unset($mappedTransaction['all']);
+                $mappedTransaction    = $this->mapSingleHistoryResponse($transaction);
                 $mappedTransactions[] = $mappedTransaction;
                 $orderId              = $mappedTransaction['order_id'];
             }
@@ -350,5 +350,60 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
     protected function formatAmount(string $amount): float
     {
         return ((float) $amount) / 100;
+    }
+
+    /**
+     * @param array<string, mixed> $rawResponseData
+     *
+     * @return array<string, mixed>
+     *
+     * @throws \Exception
+     */
+    public function mapSingleHistoryResponse(array $rawResponseData): array
+    {
+        $procReturnCode  = $this->getProcReturnCode($rawResponseData);
+        $errorCode       = $rawResponseData['Code'];
+        $status          = self::TX_DECLINED;
+        if (0 === $errorCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        $defaultResponse = $this->getDefaultOrderHistoryTxResponse();
+
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $defaultResponse['order_id']         = $rawResponseData['OrderId'];
+        $defaultResponse['auth_code']        = $rawResponseData['AuthCode'];
+        $defaultResponse['transaction_id']   = $rawResponseData['TransactionId'] > 0 ? $rawResponseData['TransactionId'] : null;
+        $defaultResponse['masked_number']    = $rawResponseData['CardNo'];
+        $defaultResponse['order_status']     = $this->orderStatusMappings[$rawResponseData['RequestStatus']] ?? $rawResponseData['RequestStatus'];
+        $defaultResponse['transaction_type'] = $this->mapTxType($rawResponseData['TransactionType']);
+        $defaultResponse['status']           = $status;
+        $defaultResponse['status_detail']    = $this->getStatusDetail($errorCode);
+
+        $isPaymentTransaction = \in_array(
+            $defaultResponse['transaction_type'],
+            [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_POST_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH],
+            true,
+        );
+
+        if (self::TX_APPROVED === $status) {
+            if ($rawResponseData['Currency'] > 0) {
+                $defaultResponse['currency'] = $this->mapCurrency($rawResponseData['Currency']);
+                // ex: 20231209154531
+                $defaultResponse['transaction_time'] = new \DateTime($rawResponseData['CreateDate']);
+                $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['Amount']);
+            }
+
+            if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $isPaymentTransaction) {
+                $captureAmount                     = (float) $rawResponseData['MerchantCommissionAmount'] + (float) $rawResponseData['NetAmount'];
+                $defaultResponse['capture_amount'] = $this->formatAmount((string) $captureAmount);
+                $defaultResponse['capture']        = $defaultResponse['first_amount'] <= $defaultResponse['capture_amount'];
+                $defaultResponse['capture_time']   = $defaultResponse['transaction_time'];
+            }
+        } else {
+            $defaultResponse['error_message'] = $rawResponseData['BankResponseMessage'];
+        }
+
+        return $defaultResponse;
     }
 }

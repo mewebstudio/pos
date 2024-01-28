@@ -94,8 +94,13 @@ class PayForPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+        $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
+        $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['capture_time'], $expectedData['capture_time']);
+        unset($actualData['refund_time'], $expectedData['refund_time']);
+        unset($actualData['cancel_time'], $expectedData['cancel_time']);
+
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -1325,6 +1330,9 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'first_amount'     => 1.01,
                     'transaction_id'   => null,
                     'transaction_time' => new \DateTime('31.10.2022 23:13:21'),
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'success_pre_pay'              => [
@@ -1473,6 +1481,9 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'first_amount'     => 2.01,
                     'transaction_id'   => null,
                     'transaction_time' => new \DateTime('19.01.2024 22:07:49'),
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'success_pre_pay_and_post_pay' => [
@@ -1622,6 +1633,9 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'first_amount'     => 2.03,
                     'transaction_id'   => null,
                     'transaction_time' => new \DateTime('19.01.2024 22:13:39'),
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'success_pay_then_cancel'      => [
@@ -1770,6 +1784,9 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'first_amount'     => 1.01,
                     'transaction_id'   => null,
                     'transaction_time' => new \DateTime('19.01.2024 21:34:05'),
+                    'cancel_time'      => new \DateTime('20240119T213405'),
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'success_pre_pay_then_cancel'  => [
@@ -1918,6 +1935,9 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'first_amount'     => 1.01,
                     'transaction_id'   => null,
                     'transaction_time' => new \DateTime('19.01.2024 21:47:43'),
+                    'cancel_time'      => new \DateTime('20240119T214744'),
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'fail_order_not_found'         => [
@@ -2061,6 +2081,9 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'capture_amount'   => null,
                     'error_code'       => null,
                     'first_amount'     => null,
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
         ];

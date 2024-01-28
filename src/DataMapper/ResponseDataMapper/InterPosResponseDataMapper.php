@@ -207,6 +207,10 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['capture_amount'] = null;
         $defaultResponse['capture']        = null;
 
+        if ('' !== $rawResponseData['VoidDate'] && '1.1.0001 00:00:00' !== $rawResponseData['VoidDate']) {
+            $defaultResponse['cancel_time'] = new \DateTime($rawResponseData['VoidDate']);
+        }
+
         return $defaultResponse;
     }
 

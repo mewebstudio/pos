@@ -84,10 +84,16 @@ class GarantiPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+        $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
+        $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['capture_time'], $expectedData['capture_time']);
+        unset($actualData['refund_time'], $expectedData['refund_time']);
+        unset($actualData['cancel_time'], $expectedData['cancel_time']);
 
         unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -935,6 +941,9 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'capture'          => true,
                     'currency'         => null,
                     'masked_number'    => '428220******8015',
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'success_pre_pay' => [
@@ -1028,6 +1037,9 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'capture'          => false,
                     'currency'         => null,
                     'masked_number'    => '37562400****036',
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
             'fail1'           => [
@@ -1120,6 +1132,9 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'capture'          => null,
                     'currency'         => null,
                     'masked_number'    => null,
+                    'cancel_time'      => null,
+                    'refund_amount'    => null,
+                    'refund_time'      => null,
                 ],
             ],
         ];

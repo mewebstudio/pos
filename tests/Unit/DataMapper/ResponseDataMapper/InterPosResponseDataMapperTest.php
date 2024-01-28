@@ -96,8 +96,12 @@ class InterPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
+        $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
+        $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['capture_time'], $expectedData['capture_time']);
+        unset($actualData['refund_time'], $expectedData['refund_time']);
+        unset($actualData['cancel_time'], $expectedData['cancel_time']);
 
         unset($actualData['all']);
 
@@ -485,6 +489,8 @@ class InterPosResponseDataMapperTest extends TestCase
                     'capture'          => null,
                     'transaction_time' => null,
                     'capture_time'     => null,
+                    'cancel_time'      => null,
+                    'refund_time'      => null,
                 ],
             ],
         ];
