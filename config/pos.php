@@ -81,14 +81,14 @@ return [
             'class' => Mews\Pos\Gateways\EstPos::class,
             'urls'  => [
                 'production'    => 'https://sanalpos.isbank.com.tr/fim/api',
-                'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+                'test'          => 'https://istest.asseco-see.com.tr/fim/api',
                 'gateway'       => [
                     'production'    => 'https://sanalpos.isbank.com.tr/fim/est3Dgate',
-                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                    'test'          => 'https://istest.asseco-see.com.tr/fim/est3Dgate',
                 ],
                 'gateway_3d_host'       => [
                     'production'    => 'https://sanalpos.isbank.com.tr/fim/est3Dgate',
-                    'test'          => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                    'test'          => 'https://istest.asseco-see.com.tr/fim/est3Dgate',
                 ],
             ],
         ],

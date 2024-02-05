@@ -187,7 +187,7 @@ try {
     //değere göre API URL'leri test veya production değerler kullanılır.
     $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
-    dd($e));
+    dd($e);
 }
 ```
 
