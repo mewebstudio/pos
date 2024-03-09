@@ -212,7 +212,7 @@ class EstV3PosTest extends TestCase
     }
 
     /**
-     * @depends testNonSecurePostPaymentSuccess
+     * @depends testNonSecurePostPaymentSuccessWithMoreAmount
      */
     public function testRefundSuccess(array $lastResponse): array
     {
@@ -241,7 +241,7 @@ class EstV3PosTest extends TestCase
 
     /**
      * @depends testRefundSuccess
-     * @depends testNonSecurePostPaymentSuccess
+     * @depends testNonSecurePostPaymentSuccessWithMoreAmount
      */
     public function testHistorySuccess(array $lastResponse): void
     {
