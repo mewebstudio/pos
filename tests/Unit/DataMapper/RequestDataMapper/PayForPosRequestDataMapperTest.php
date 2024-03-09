@@ -376,7 +376,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         return [
             [
                 'order'    => [
-                    'orderId' => '2020110828BC',
+                    'id'      => '2020110828BC',
                     'reqDate' => new \DateTime('2022-05-18'),
                 ],
                 'expected' => [
@@ -387,7 +387,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'SecureType' => 'Report',
                     'TxnType'    => 'TxnHistory',
                     'Lang'       => 'tr',
-                    'ReqDate'    => '20220518',
+                    'OrderId'    => '2020110828BC',
                 ],
             ],
         ];
