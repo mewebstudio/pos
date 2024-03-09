@@ -227,19 +227,6 @@ class EstPosResponseDataMapperTest extends TestCase
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
                 'installment'      => null,
-                'extra'            => [
-                    'SETTLEID'           => '2286',
-                    'TRXDATE'            => '20221029 21:58:43',
-                    'ERRORCODE'          => null,
-                    'TERMINALID'         => '00655020',
-                    'MERCHANTID'         => '655000200',
-                    'CARDBRAND'          => 'VISA',
-                    'CARDISSUER'         => 'AKBANK T.A.S.',
-                    'AVSAPPROVE'         => 'Y',
-                    'HOSTDATE'           => '1029-215844',
-                    'AVSERRORCODEDETAIL' => 'avshatali-avshatali-avshatali-avshatali-',
-                    'NUMCODE'            => '00',
-                ],
             ],
         ];
         yield 'success2WithoutERRORCODE' => [
@@ -287,18 +274,6 @@ class EstPosResponseDataMapperTest extends TestCase
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
                 'installment'      => null,
-                'extra'            => [
-                    'SETTLEID'           => '2286',
-                    'TRXDATE'            => '20221029 21:58:43',
-                    'TERMINALID'         => '00655020',
-                    'MERCHANTID'         => '655000200',
-                    'CARDBRAND'          => 'VISA',
-                    'CARDISSUER'         => 'AKBANK T.A.S.',
-                    'AVSAPPROVE'         => 'Y',
-                    'HOSTDATE'           => '1029-215844',
-                    'AVSERRORCODEDETAIL' => 'avshatali-avshatali-avshatali-avshatali-',
-                    'NUMCODE'            => '00',
-                ],
             ],
         ];
         yield 'fail1' => [
@@ -340,12 +315,6 @@ class EstPosResponseDataMapperTest extends TestCase
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
                 'installment'      => null,
-                'extra'            => [
-                    'SETTLEID'  => null,
-                    'TRXDATE'   => '20221029 22:28:01',
-                    'ERRORCODE' => 'CORE-2012',
-                    'NUMCODE'   => '992012',
-                ],
             ],
         ];
 
@@ -395,19 +364,6 @@ class EstPosResponseDataMapperTest extends TestCase
                 'currency'         => 'TRY',
                 'amount'           => 1.01,
                 'installment'      => null,
-                'extra'            => [
-                    'SETTLEID'           => '2287',
-                    'TRXDATE'            => '20221030 12:29:53',
-                    'ERRORCODE'          => null,
-                    'TERMINALID'         => '00655020',
-                    'MERCHANTID'         => '655000200',
-                    'CARDBRAND'          => 'VISA',
-                    'CARDISSUER'         => 'AKBANK T.A.S.',
-                    'AVSAPPROVE'         => 'Y',
-                    'HOSTDATE'           => '1030-122954',
-                    'AVSERRORCODEDETAIL' => 'avshatali-avshatali-avshatali-avshatali-',
-                    'NUMCODE'            => '00',
-                ],
             ],
         ];
     }
@@ -576,12 +532,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'error_message'        => 'Taksit tablosu icin gecersiz deger',
                     'recurring_id'         => null,
                     'installment'          => null,
-                    'extra'                => [
-                        'SETTLEID'  => null,
-                        'TRXDATE'   => '20221030 11:45:02',
-                        'ERRORCODE' => 'CORE-2603',
-                        'NUMCODE'   => '992603',
-                    ],
                     'order_id'             => '20221030FE4C',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
@@ -677,15 +627,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'error_message'        => null,
                     'recurring_id'         => null,
                     'installment'          => null,
-                    'extra'                => [
-                        'SETTLEID'      => '2400',
-                        'TRXDATE'       => '20221030 11:51:41',
-                        'ERRORCODE'     => null,
-                        'CARDBRAND'     => 'VISA',
-                        'CARDISSUER'    => 'AKBANK T.A.S.',
-                        'KAZANILANPUAN' => '000000010.00',
-                        'NUMCODE'       => '00',
-                    ],
                     'order_id'             => '202210304547',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',

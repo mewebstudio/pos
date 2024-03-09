@@ -92,7 +92,6 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'error_code'       => self::TX_APPROVED === $status ? null : $rawPaymentResponseData['Extra']['ERRORCODE'],
             'error_message'    => self::TX_APPROVED === $status ? null : $rawPaymentResponseData['ErrMsg'],
             'recurring_id'     => $rawPaymentResponseData['Extra']['RECURRINGID'] ?? null, // set when recurring payment is made
-            'extra'            => $rawPaymentResponseData['Extra'],
             'all'              => $rawPaymentResponseData,
         ];
 
