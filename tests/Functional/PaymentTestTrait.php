@@ -67,7 +67,7 @@ trait PaymentTestTrait
         }
 
         if (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
-            $postAuth['installment'] = $lastResponse['installment'];
+            $postAuth['installment'] = $lastResponse['installment_count'];
             $postAuth['ref_ret_num'] = $lastResponse['ref_ret_num'];
         }
 

@@ -75,11 +75,11 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         // RRN:  Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['ref_ret_num'] = $rawPaymentResponseData['RRN'];
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
-        $result['transaction_id'] = $rawPaymentResponseData['Stan'];
-        $result['amount']         = $this->formatAmount($vPosMessage['Amount']);
-        $result['currency']       = $this->mapCurrency($vPosMessage['CurrencyCode']);
-        $result['installment']    = $this->mapInstallment($vPosMessage['InstallmentCount']);
-        $result['masked_number']  = $vPosMessage['CardNumber'];
+        $result['transaction_id']    = $rawPaymentResponseData['Stan'];
+        $result['amount']            = $this->formatAmount($vPosMessage['Amount']);
+        $result['currency']          = $this->mapCurrency($vPosMessage['CurrencyCode']);
+        $result['installment_count'] = $this->mapInstallment($vPosMessage['InstallmentCount']);
+        $result['masked_number']     = $vPosMessage['CardNumber'];
 
         $this->logger->debug('mapped payment response', $result);
 

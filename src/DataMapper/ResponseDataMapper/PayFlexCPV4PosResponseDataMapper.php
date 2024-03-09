@@ -57,13 +57,13 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
         $paymentResponse['masked_number']  = $raw3DAuthResponseData['MaskedPan'];
 
         if (self::TX_APPROVED === $paymentResponse['status']) {
-            $paymentResponse['auth_code']        = $raw3DAuthResponseData['AuthCode'];
-            $paymentResponse['ref_ret_num']      = $raw3DAuthResponseData['TransactionId'];
-            $paymentResponse['order_id']         = $raw3DAuthResponseData['OrderID'];
-            $paymentResponse['currency']         = $this->mapCurrency($raw3DAuthResponseData['AmountCode']);
-            $paymentResponse['amount']           = $this->formatAmount($raw3DAuthResponseData['Amount']);
-            $paymentResponse['transaction_type'] = $this->mapTxType($raw3DAuthResponseData['TransactionType']);
-            $paymentResponse['installment']      = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount'] ?? '0');
+            $paymentResponse['auth_code']         = $raw3DAuthResponseData['AuthCode'];
+            $paymentResponse['ref_ret_num']       = $raw3DAuthResponseData['TransactionId'];
+            $paymentResponse['order_id']          = $raw3DAuthResponseData['OrderID'];
+            $paymentResponse['currency']          = $this->mapCurrency($raw3DAuthResponseData['AmountCode']);
+            $paymentResponse['amount']            = $this->formatAmount($raw3DAuthResponseData['Amount']);
+            $paymentResponse['transaction_type']  = $this->mapTxType($raw3DAuthResponseData['TransactionType']);
+            $paymentResponse['installment_count'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount'] ?? '0');
         }
 
         return $paymentResponse;

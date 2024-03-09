@@ -445,7 +445,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         ];
 
         if (self::TX_APPROVED === $threeDAuthStatus) {
-            $result['installment'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount']);
+            $result['installment_count'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount']);
         }
 
         return $result;

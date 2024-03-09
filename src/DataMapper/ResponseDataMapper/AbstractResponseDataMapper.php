@@ -139,21 +139,21 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     protected function getDefaultPaymentResponse(string $txType, ?string $paymentModel): array
     {
         return [
-            'order_id'         => null,
-            'transaction_id'   => null,
-            'transaction_type' => $txType,
-            'installment'      => null,
-            'currency'         => null,
-            'amount'           => null,
-            'payment_model'    => $paymentModel,
-            'auth_code'        => null,
-            'ref_ret_num'      => null,
-            'proc_return_code' => null,
-            'status'           => self::TX_DECLINED,
-            'status_detail'    => null,
-            'error_code'       => null,
-            'error_message'    => null,
-            'all'              => null,
+            'order_id'          => null,
+            'transaction_id'    => null,
+            'transaction_type'  => $txType,
+            'installment_count' => null,
+            'currency'          => null,
+            'amount'            => null,
+            'payment_model'     => $paymentModel,
+            'auth_code'         => null,
+            'ref_ret_num'       => null,
+            'proc_return_code'  => null,
+            'status'            => self::TX_DECLINED,
+            'status_detail'     => null,
+            'error_code'        => null,
+            'error_message'     => null,
+            'all'               => null,
         ];
     }
 

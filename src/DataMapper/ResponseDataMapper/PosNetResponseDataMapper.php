@@ -77,7 +77,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['all']              = $rawPaymentResponseData;
 
         if (self::TX_APPROVED === $status) {
-            $defaultResponse['installment'] = $this->mapInstallment($rawPaymentResponseData['instInfo']['inst1']);
+            $defaultResponse['installment_count'] = $this->mapInstallment($rawPaymentResponseData['instInfo']['inst1']);
         }
 
         return $defaultResponse;
@@ -440,7 +440,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['error_message']    = $rawPaymentResponseData['respText'] ?? null;
         $defaultResponse['all']              = $rawPaymentResponseData;
         if (self::TX_APPROVED === $status) {
-            $defaultResponse['installment'] = $this->mapInstallment($rawPaymentResponseData['instInfo']['inst1']);
+            $defaultResponse['installment_count'] = $this->mapInstallment($rawPaymentResponseData['instInfo']['inst1']);
         }
 
         return $defaultResponse;

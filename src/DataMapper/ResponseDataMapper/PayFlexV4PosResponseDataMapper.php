@@ -70,7 +70,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             'status'               => $threeDAuthStatus,
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['PurchCurrency']),
             'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
-            'installment'          => $this->mapInstallment($raw3DAuthResponseData['InstallmentCount'] ?? 0),
+            'installment_count'    => $this->mapInstallment($raw3DAuthResponseData['InstallmentCount'] ?? 0),
             'status_detail'        => null,
             'error_code'           => self::TX_DECLINED === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorCode'] : null,
             'error_message'        => self::TX_DECLINED === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorMessage'] : null,
@@ -148,17 +148,17 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         $responseInfo   = $rawResponseData['ResponseInfo'];
         $procReturnCode = $responseInfo['ResponseCode'];
 
-        $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
+        $defaultResponse                     = $this->getDefaultStatusResponse($rawResponseData);
         $defaultResponse['proc_return_code'] = $procReturnCode;
-        $status = self::TX_DECLINED;
+        $status                              = self::TX_DECLINED;
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
 
-        $defaultResponse['status'] = $status;
+        $defaultResponse['status']        = $status;
         $defaultResponse['status_detail'] = $this->getStatusDetail($procReturnCode);
         if (self::TX_DECLINED === $status) {
-            $defaultResponse['error_code'] = $procReturnCode;
+            $defaultResponse['error_code']    = $procReturnCode;
             $defaultResponse['error_message'] = $responseInfo['ResponseMessage'];
 
             return $defaultResponse;

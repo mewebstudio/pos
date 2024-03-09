@@ -80,7 +80,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'currency'             => null,
                 'amount'               => null,
                 'payment_model'        => '3d_pay',
-                'installment'          => null,
+                'installment_count'    => null,
             ],
         ];
 
@@ -114,7 +114,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'currency'             => null,
                 'amount'               => null,
                 'payment_model'        => '3d_pay',
-                'installment'          => null,
+                'installment_count'    => null,
             ],
         ];
 
@@ -173,7 +173,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'currency'             => 'TRY',
                 'amount'               => 1.0,
                 'payment_model'        => '3d_pay',
-                'installment'          => 0,
+                'installment_count'    => 0,
             ],
         ];
     }
