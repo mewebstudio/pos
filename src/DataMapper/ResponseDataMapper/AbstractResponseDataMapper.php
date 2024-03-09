@@ -96,11 +96,11 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     }
 
     /**
-     * @param string $installment
+     * @param string|null $installment
      *
      * @return int
      */
-    protected function mapInstallment(string $installment): int
+    protected function mapInstallment(?string $installment): int
     {
         return (int) $installment;
     }
@@ -165,28 +165,29 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     protected function getDefaultStatusResponse(array $rawData): array
     {
         return [
-            'order_id'         => null,
-            'auth_code'        => null,
-            'proc_return_code' => null,
-            'transaction_id'   => null,
-            'transaction_time' => null,
-            'capture_time'     => null,
-            'error_message'    => null,
-            'ref_ret_num'      => null,
-            'order_status'     => null,
-            'transaction_type' => null,
-            'first_amount'     => null,
-            'capture_amount'   => null,
-            'status'           => self::TX_DECLINED,
-            'error_code'       => null,
-            'status_detail'    => null,
-            'capture'          => null,
-            'currency'         => null,
-            'masked_number'    => null,
-            'refund_amount'    => null,
-            'refund_time'      => null,
-            'cancel_time'      => null,
-            'all'              => $rawData,
+            'order_id'          => null,
+            'auth_code'         => null,
+            'proc_return_code'  => null,
+            'transaction_id'    => null,
+            'transaction_time'  => null,
+            'capture_time'      => null,
+            'error_message'     => null,
+            'ref_ret_num'       => null,
+            'order_status'      => null,
+            'transaction_type'  => null,
+            'first_amount'      => null,
+            'capture_amount'    => null,
+            'status'            => self::TX_DECLINED,
+            'error_code'        => null,
+            'status_detail'     => null,
+            'capture'           => null,
+            'currency'          => null,
+            'masked_number'     => null,
+            'refund_amount'     => null,
+            'installment_count' => null,
+            'refund_time'       => null,
+            'cancel_time'       => null,
+            'all'               => $rawData,
         ];
     }
 

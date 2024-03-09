@@ -253,15 +253,16 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $result = [
-            'order_id'         => $rawResponseData['Order']['OrderID'] ?? null,
-            'auth_code'        => $orderInqResult['AuthCode'] ?? null,
-            'ref_ret_num'      => $orderInqResult['RetrefNum'] ?? null,
-            'proc_return_code' => $procReturnCode,
-            'order_status'     => $orderStatus,
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => self::TX_APPROVED === $status ? null : $transaction['Response']['Code'],
-            'error_message'    => self::TX_APPROVED === $status ? null : $transaction['Response']['ErrorMsg'],
+            'order_id'          => $rawResponseData['Order']['OrderID'] ?? null,
+            'auth_code'         => $orderInqResult['AuthCode'] ?? null,
+            'ref_ret_num'       => $orderInqResult['RetrefNum'] ?? null,
+            'installment_count' => $this->mapInstallment($orderInqResult['InstallmentCnt']),
+            'proc_return_code'  => $procReturnCode,
+            'order_status'      => $orderStatus,
+            'status'            => $status,
+            'status_detail'     => $this->getStatusDetail($procReturnCode),
+            'error_code'        => self::TX_APPROVED === $status ? null : $transaction['Response']['Code'],
+            'error_message'     => self::TX_APPROVED === $status ? null : $transaction['Response']['ErrorMsg'],
         ];
         if (self::TX_APPROVED === $status) {
             $transTime                  = $orderInqResult['ProvDate'] ?? $orderInqResult['PreAuthDate'];

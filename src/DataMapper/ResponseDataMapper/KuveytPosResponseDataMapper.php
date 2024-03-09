@@ -162,15 +162,16 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['order_id']        = $orderContract['MerchantOrderId'];
             $defaultResponse['remote_order_id'] = (string) $orderContract['OrderId'];
 
-            $defaultResponse['auth_code']        = $orderContract['ProvNumber'];
-            $defaultResponse['ref_ret_num']      = $orderContract['RRN'];
-            $defaultResponse['transaction_id']   = $orderContract['Stan'];
-            $defaultResponse['currency']         = $this->mapCurrency($orderContract['FEC']);
-            $defaultResponse['first_amount']     = (float) $orderContract['FirstAmount'];
-            $defaultResponse['capture_amount']   = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
-            $defaultResponse['capture']          = $defaultResponse['first_amount'] > 0 && $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
-            $defaultResponse['masked_number']    = $orderContract['CardNumber'];
-            $defaultResponse['transaction_time'] = new \DateTime($orderContract['OrderDate']);
+            $defaultResponse['auth_code']         = $orderContract['ProvNumber'];
+            $defaultResponse['ref_ret_num']       = $orderContract['RRN'];
+            $defaultResponse['transaction_id']    = $orderContract['Stan'];
+            $defaultResponse['currency']          = $this->mapCurrency($orderContract['FEC']);
+            $defaultResponse['first_amount']      = (float) $orderContract['FirstAmount'];
+            $defaultResponse['capture_amount']    = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
+            $defaultResponse['capture']           = $defaultResponse['first_amount'] > 0 && $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
+            $defaultResponse['masked_number']     = $orderContract['CardNumber'];
+            $defaultResponse['transaction_time']  = new \DateTime($orderContract['OrderDate']);
+            $defaultResponse['installment_count'] = $this->mapInstallment($orderContract['InstallmentCount']);
         }
 
         return $defaultResponse;

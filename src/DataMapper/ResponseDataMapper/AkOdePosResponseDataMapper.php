@@ -244,6 +244,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
         );
 
         if (self::TX_APPROVED === $status) {
+            $defaultResponse['installment_count'] = $rawResponseData['InstallmentCount'];
             if ($rawResponseData['Currency'] > 0) {
                 $defaultResponse['currency'] = $this->mapCurrency($rawResponseData['Currency']);
                 // ex: 20231209154531
