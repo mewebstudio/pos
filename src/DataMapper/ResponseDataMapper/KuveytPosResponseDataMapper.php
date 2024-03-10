@@ -170,7 +170,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['capture_amount']    = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
             $defaultResponse['capture']           = $defaultResponse['first_amount'] > 0 && $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
             $defaultResponse['masked_number']     = $orderContract['CardNumber'];
-            $defaultResponse['transaction_time']  = new \DateTime($orderContract['OrderDate']);
+            $defaultResponse['transaction_time']  = new \DateTimeImmutable($orderContract['OrderDate']);
             $defaultResponse['installment_count'] = $this->mapInstallment($orderContract['InstallmentCount']);
         }
 

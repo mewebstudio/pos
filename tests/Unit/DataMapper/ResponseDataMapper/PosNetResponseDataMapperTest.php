@@ -413,7 +413,7 @@ class PosNetResponseDataMapperTest extends TestCase
                     'auth_code'         => '504289',
                     'transaction_id'    => null,
                     'ref_ret_num'       => '021450428990000191',
-                    'transaction_time'  => new \DateTime('2019-10-10 11:21:14.281'),
+                    'transaction_time'  => new \DateTimeImmutable('2019-10-10 11:21:14.281'),
                     'transaction_type'  => 'pay',
                     'proc_return_code'  => '1',
                     'status'            => 'approved',

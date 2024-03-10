@@ -248,7 +248,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             if ($rawResponseData['Currency'] > 0) {
                 $defaultResponse['currency'] = $this->mapCurrency($rawResponseData['Currency']);
                 // ex: 20231209154531
-                $defaultResponse['transaction_time'] = new \DateTime($rawResponseData['CreateDate']);
+                $defaultResponse['transaction_time'] = new \DateTimeImmutable($rawResponseData['CreateDate']);
                 $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['Amount']);
             }
             $defaultResponse['refund_amount'] = $rawResponseData['RefundedAmount'] > 0 ? $this->formatAmount($rawResponseData['RefundedAmount']) : null;
@@ -391,7 +391,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             if ($rawResponseData['Currency'] > 0) {
                 $defaultResponse['currency'] = $this->mapCurrency($rawResponseData['Currency']);
                 // ex: 20231209154531
-                $defaultResponse['transaction_time'] = new \DateTime($rawResponseData['CreateDate']);
+                $defaultResponse['transaction_time'] = new \DateTimeImmutable($rawResponseData['CreateDate']);
                 $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['Amount']);
             }
 

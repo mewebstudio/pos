@@ -266,8 +266,8 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         ];
         if (self::TX_APPROVED === $status) {
             $transTime                  = $orderInqResult['ProvDate'] ?? $orderInqResult['PreAuthDate'];
-            $result['transaction_time'] = $transTime === null ? null : new \DateTime($transTime);
-            $result['capture_time']     = null !== $orderInqResult['AuthDate'] ? new \DateTime($orderInqResult['AuthDate']) : null;
+            $result['transaction_time'] = $transTime === null ? null : new \DateTimeImmutable($transTime);
+            $result['capture_time']     = null !== $orderInqResult['AuthDate'] ? new \DateTimeImmutable($orderInqResult['AuthDate']) : null;
             $result['masked_number']    = $orderInqResult['CardNumberMasked'];
             $amount                     = $orderInqResult['AuthAmount'];
             $result['capture_amount']   = null !== $amount ? $this->formatAmount($amount) : null;
@@ -442,8 +442,8 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
 
         if (self::TX_APPROVED === $status) {
             $transTime                           = $rawTx['ProvDate'] ?? $rawTx['PreAuthDate'] ?? $rawTx['AuthDate'];
-            $defaultResponse['transaction_time'] = new \DateTime($transTime.'T000000');
-            $defaultResponse['capture_time']     = null !== $rawTx['AuthDate'] ? new \DateTime($rawTx['AuthDate'].'T000000') : null;
+            $defaultResponse['transaction_time'] = new \DateTimeImmutable($transTime.'T000000');
+            $defaultResponse['capture_time']     = null !== $rawTx['AuthDate'] ? new \DateTimeImmutable($rawTx['AuthDate'].'T000000') : null;
             $amount                              = $rawTx['AuthAmount'];
             $defaultResponse['capture_amount']   = null !== $amount ? $this->formatAmount($amount) : null;
             $firstAmount                         = $amount > 0 ? $amount : $rawTx['PreAuthAmount'];

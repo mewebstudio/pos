@@ -633,7 +633,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'remote_order_id'   => '114293600',
                 'currency'          => PosInterface::CURRENCY_TRY,
                 'capture_time'      => null,
-                'transaction_time'  => new \DateTime('2023-07-08T23:45:15.797'),
+                'transaction_time'  => new \DateTimeImmutable('2023-07-08T23:45:15.797'),
                 'cancel_time'       => null,
                 'refund_amount'     => null,
                 'refund_time'       => null,

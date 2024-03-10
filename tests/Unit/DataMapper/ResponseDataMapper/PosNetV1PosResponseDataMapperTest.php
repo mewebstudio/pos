@@ -556,7 +556,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'status_detail'     => null,
                 'error_code'        => null,
                 'error_message'     => null,
-                'transaction_time'  => new \DateTime('2019-11-0813:58:37.909'),
+                'transaction_time'  => new \DateTimeImmutable('2019-11-0813:58:37.909'),
                 'capture_time'      => null,
                 'capture'           => null,
                 'capture_amount'    => null,
@@ -566,7 +566,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'masked_number'     => '540061******4581',
                 'cancel_time'       => null,
                 'refund_amount'     => null,
-                'refund_time'       => new \DateTime('2019-11-0813:58:37.909'),
+                'refund_time'       => new \DateTimeImmutable('2019-11-0813:58:37.909'),
                 'installment_count' => null,
             ],
         ];

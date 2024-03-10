@@ -241,7 +241,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             }
 
             $defaultResponse['first_amount']     = $this->formatStatusAmount($rawTx['Amount']);
-            $defaultResponse['transaction_time'] = new \DateTime($rawTx['TransactionDate']);
+            $defaultResponse['transaction_time'] = new \DateTimeImmutable($rawTx['TransactionDate']);
             $defaultResponse['currency']         = $this->mapCurrency($rawTx['CurrencyCode']);
             $defaultResponse['masked_number']    = $rawTx['CardNo'];
             $defaultResponse['order_id']         = $rawTx['OrderId'];
@@ -249,9 +249,9 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['order_status']     = $this->orderStatusMappings[$defaultResponse['transaction_type']] ?? null;
 
             if (PosInterface::TX_TYPE_REFUND === $defaultResponse['transaction_type']) {
-                $defaultResponse['refund_time'] = new \DateTime($rawTx['TransactionDate']);
+                $defaultResponse['refund_time'] = new \DateTimeImmutable($rawTx['TransactionDate']);
             } elseif (PosInterface::TX_TYPE_CANCEL === $defaultResponse['transaction_type']) {
-                $defaultResponse['cancel_time'] = new \DateTime($rawTx['TransactionDate']);
+                $defaultResponse['cancel_time'] = new \DateTimeImmutable($rawTx['TransactionDate']);
             }
         }
 

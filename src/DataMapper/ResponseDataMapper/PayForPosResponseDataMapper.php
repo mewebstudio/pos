@@ -243,7 +243,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 
             $defaultResponse['masked_number']    = $rawResponseData['CardMask'];
             $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['PurchAmount']);
-            $defaultResponse['transaction_time'] = new \DateTime($rawResponseData['InsertDatetime']);
+            $defaultResponse['transaction_time'] = new \DateTimeImmutable($rawResponseData['InsertDatetime']);
             $defaultResponse['capture']          = false;
             if (\in_array(
                 $defaultResponse['transaction_type'],
@@ -260,7 +260,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
                 // ex:
                 // VoidDate: 20240119
                 // VoidTime: 213405
-                $defaultResponse['cancel_time'] = new \DateTime($rawResponseData['VoidDate'].'T'.$rawResponseData['VoidTime']);
+                $defaultResponse['cancel_time'] = new \DateTimeImmutable($rawResponseData['VoidDate'].'T'.$rawResponseData['VoidTime']);
             }
             if ($rawResponseData['RefundedAmount'] > 0) {
                 $defaultResponse['refund_amount'] = $this->formatAmount($rawResponseData['RefundedAmount']);
@@ -481,7 +481,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['ref_ret_num']      = $rawTx['HostRefNum'] ?? null;
             $defaultResponse['masked_number']    = $rawTx['CardMask'];
             $defaultResponse['first_amount']     = null !== $rawTx['PurchAmount'] ? $this->formatAmount($rawTx['PurchAmount']) : null;
-            $defaultResponse['transaction_time'] = null !== $rawTx['InsertDatetime'] ? new \DateTime($rawTx['InsertDatetime']) : null;
+            $defaultResponse['transaction_time'] = null !== $rawTx['InsertDatetime'] ? new \DateTimeImmutable($rawTx['InsertDatetime']) : null;
             if (\in_array(
                 $defaultResponse['transaction_type'],
                 [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_POST_AUTH],

@@ -353,9 +353,9 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $txType                     = 'S' === $extra['CHARGE_TYPE_CD'] ? PosInterface::TX_TYPE_PAY_AUTH : PosInterface::TX_TYPE_REFUND;
             $result['transaction_type'] = $txType;
             $result['order_status']     = $this->orderStatusMappings[$extra['TRANS_STAT']] ?? null;
-            $result['transaction_time'] = isset($extra['AUTH_DTTM']) ? new \DateTime($extra['AUTH_DTTM']) : null;
-            $result['capture_time']     = isset($extra['CAPTURE_DTTM']) ? new \DateTime($extra['CAPTURE_DTTM']) : null;
-            $result['cancel_time']      = isset($extra['VOID_DTTM']) ? new \DateTime($extra['VOID_DTTM']) : null;
+            $result['transaction_time'] = isset($extra['AUTH_DTTM']) ? new \DateTimeImmutable($extra['AUTH_DTTM']) : null;
+            $result['capture_time']     = isset($extra['CAPTURE_DTTM']) ? new \DateTimeImmutable($extra['CAPTURE_DTTM']) : null;
+            $result['cancel_time']      = isset($extra['VOID_DTTM']) ? new \DateTimeImmutable($extra['VOID_DTTM']) : null;
         }
 
         return $result;
@@ -506,7 +506,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
          */
         $transaction['transaction_type'] = 'S' === $rawTx[0] ? PosInterface::TX_TYPE_PAY_AUTH : PosInterface::TX_TYPE_REFUND;
         $transaction['order_status']     = $this->orderStatusMappings[$rawTx[1]] ?? null;
-        $transaction['transaction_time'] = new \DateTime($rawTx[4]);
+        $transaction['transaction_time'] = new \DateTimeImmutable($rawTx[4]);
         $transaction['first_amount']     = null === $rawTx[2] ? null : $this->formatAmount($rawTx[2]);
         $transaction['capture_amount']   = null === $rawTx[3] ? null : $this->formatAmount($rawTx[3]);
         $transaction['capture']          = self::TX_APPROVED === $transaction['status'] && $transaction['first_amount'] === $transaction['capture_amount'];
@@ -542,8 +542,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'transaction_type' => 'S' === $extra[\sprintf('CHARGE_TYPE_CD_%d', $i)] ? PosInterface::TX_TYPE_PAY_AUTH : PosInterface::TX_TYPE_REFUND,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'transaction_time' => isset($extra[\sprintf('AUTH_DTTM_%d', $i)]) ? new \DateTime($extra[\sprintf('AUTH_DTTM_%d', $i)]) : null,
-            'capture_time'     => isset($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) ? new \DateTime($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) : null,
+            'transaction_time' => isset($extra[\sprintf('AUTH_DTTM_%d', $i)]) ? new \DateTimeImmutable($extra[\sprintf('AUTH_DTTM_%d', $i)]) : null,
+            'capture_time'     => isset($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) ? new \DateTimeImmutable($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) : null,
             'transaction_id'   => $extra[\sprintf('TRANS_ID_%d', $i)] ?? null,
             'ref_ret_num'      => $extra[\sprintf('HOST_REF_NUM_%d', $i)] ?? null,
             'first_amount'     => isset($extra[\sprintf('ORIG_TRANS_AMT_%d', $i)]) ? $this->formatAmount($extra[\sprintf('ORIG_TRANS_AMT_%d', $i)]) : null,
