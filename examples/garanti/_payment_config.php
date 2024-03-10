@@ -8,14 +8,14 @@ $bankTestsUrl = $hostUrl.'/garanti';
 $posClass = \Mews\Pos\Gateways\GarantiPos::class;
 
 $testCards = [
-/*    'visa1' => [
+    'visa1' => [
         'number' => '4282209004348015',
         'year' => '30',
         'month' => '08',
         'cvv' => '123',
         'name' => 'John Doe',
         'type' => CreditCardInterface::CARD_TYPE_VISA,
-    ],*/
+    ],
     'visa2' => [
         // pin 147852
         'number' => '5549604173790011',
@@ -26,13 +26,13 @@ $testCards = [
         'type' => CreditCardInterface::CARD_TYPE_MASTERCARD,
     ],
     // test kartlar https://dev.garantibbva.com.tr/test-kartlari
-    'visa1' => [
-        // pin 147852
-        'number' => '5549608789641500',
-        'year' => '27',
-        'month' => '04',
-        'cvv' => '464',
-        'name' => 'John Doe',
-        'type' => CreditCardInterface::CARD_TYPE_MASTERCARD,
-    ],
+//    'visa1' => [
+//        // pin 147852
+//        'number' => '5549608789641500',
+//        'year' => '27',
+//        'month' => '04',
+//        'cvv' => '464',
+//        'name' => 'John Doe',
+//        'type' => CreditCardInterface::CARD_TYPE_MASTERCARD,
+//    ],
 ];

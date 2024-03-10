@@ -54,12 +54,12 @@ class GarantiPosTest extends TestCase
 
         $this->card = CreditCardFactory::create(
             $this->pos,
-            '5549608789641500',
-            '27',
-            '04',
-            '464',
+            '4282209004348015',
+            '30',
+            '08',
+            '123',
             'John Doe',
-            CreditCardInterface::CARD_TYPE_MASTERCARD
+            CreditCardInterface::CARD_TYPE_VISA
         );
     }
 
@@ -88,6 +88,7 @@ class GarantiPosTest extends TestCase
         $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
 
         return $this->pos->getResponse();
     }
@@ -114,6 +115,7 @@ class GarantiPosTest extends TestCase
         $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
 
         return $lastResponse;
     }
