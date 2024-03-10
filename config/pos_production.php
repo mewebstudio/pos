@@ -23,12 +23,12 @@ return [
             ],
         ],
         'akode'               => [
-            'name'  => 'AKBANK T.A.S.',
+            'name'  => 'AkÖde A.Ş.',
             'class' => Mews\Pos\Gateways\AkOdePos::class,
             'gateway_endpoints'  => [
-                'payment_api'     => 'https://api.akodepos.com/api/Payment',
-                'gateway_3d'      => 'https://api.akodepos.com/api/Payment/ProcessCardForm',
-                'gateway_3d_host' => 'https://api.akodepos.com/api/Payment/threeDSecure',
+                'payment_api'     => 'https://entegrasyon.tosla.com/api/Payment',
+                'gateway_3d'      => 'https://entegrasyon.tosla.com/api/Payment/ProcessCardForm',
+                'gateway_3d_host' => 'https://entegrasyon.tosla.com/api/Payment/threeDSecure',
             ],
         ],
         'finansbank'           => [

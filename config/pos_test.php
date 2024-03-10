@@ -19,12 +19,12 @@ return [
             ],
         ],
         'akode'               => [
-            'name'  => 'AKBANK T.A.S.',
+            'name'  => 'AkÖde A.Ş.',
             'class' => Mews\Pos\Gateways\AkOdePos::class,
             'gateway_endpoints'  => [
-                'payment_api'     => 'https://ent.akodepos.com/api/Payment',
-                'gateway_3d'      => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
-                'gateway_3d_host' => 'https://ent.akodepos.com/api/Payment/threeDSecure',
+                'payment_api'     => 'https://prepentegrasyon.tosla.com/api/Payment',
+                'gateway_3d'      => 'https://prepentegrasyon.tosla.com/api/Payment/ProcessCardForm',
+                'gateway_3d_host' => 'https://prepentegrasyon.tosla.com/api/Payment/threeDSecure',
             ],
         ],
         'yapikredi'            => [

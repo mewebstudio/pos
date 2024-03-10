@@ -20,7 +20,7 @@ use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Documentation: https://akodepos.com/developer
+ * Documentation: https://tosla.com/isim-icin/gelistirici-merkezi
  */
 class AkOdePos extends AbstractGateway
 {
