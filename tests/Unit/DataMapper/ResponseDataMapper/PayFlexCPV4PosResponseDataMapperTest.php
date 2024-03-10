@@ -39,15 +39,16 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threesDPayResponseDataProvider
      */
-    public function testMap3DPayResponseData(array $order, string $txType, array $bankResponse, array $expected): void
+    public function testMap3DPayResponseData(array $order, string $txType, array $bankResponse, array $expectedData): void
     {
-        $actual = $this->responseDataMapper->map3DPayResponseData($bankResponse, $txType, $order);
-
-        $this->assertNotEmpty($actual['all']);
-        unset($actual['all']);
-        \ksort($expected);
-        \ksort($actual);
-        $this->assertSame($expected, $actual);
+        $actualData = $this->responseDataMapper->map3DPayResponseData($bankResponse, $txType, $order);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $this->assertNotEmpty($actualData['all']);
+        unset($actualData['all']);
+        \ksort($expectedData);
+        \ksort($actualData);
+        $this->assertSame($expectedData, $actualData);
     }
 
     public static function threesDPayResponseDataProvider(): Generator
@@ -65,6 +66,9 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
             'expected'      => [
                 'order_id'             => null,
                 'transaction_id'       => '0cb6a57715144178a014afbe0185b9ed',
+                'transaction_type'     => 'pay',
+                'transaction_time'     => null,
+                'transaction_security' => null,
                 'auth_code'            => null,
                 'ref_ret_num'          => null,
                 'proc_return_code'     => '2053',
@@ -74,9 +78,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'error_message'        => 'VeRes status is E Message : Directory server communication error',
                 'md_status'            => null,
                 'md_error_message'     => null,
-                'transaction_security' => null,
                 'masked_number'        => '49384601****4205',
-                'transaction_type'     => 'pay',
                 'currency'             => null,
                 'amount'               => null,
                 'payment_model'        => '3d_pay',
@@ -99,6 +101,9 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
             'expected'      => [
                 'order_id'             => null,
                 'transaction_id'       => '868382724da7480c949dafbd016c7636',
+                'transaction_type'     => 'pay',
+                'transaction_time'     => null,
+                'transaction_security' => null,
                 'auth_code'            => null,
                 'ref_ret_num'          => null,
                 'proc_return_code'     => '0057',
@@ -108,9 +113,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'error_message'        => 'RED-KARTIN İŞLEM İZNİ YOK',
                 'md_status'            => null,
                 'md_error_message'     => null,
-                'transaction_security' => null,
                 'masked_number'        => '49384601****4205',
-                'transaction_type'     => 'pay',
                 'currency'             => null,
                 'amount'               => null,
                 'payment_model'        => '3d_pay',
@@ -158,6 +161,9 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
             'expected'      => [
                 'order_id'             => '2023030913ED',
                 'transaction_id'       => '3ee068d5b5a747ada65dafc0016d5887',
+                'transaction_type'     => 'pay',
+                'transaction_time'     => new \DateTimeImmutable('2023-03-09 22:10:37'),
+                'transaction_security' => null,
                 'auth_code'            => '735879',
                 'ref_ret_num'          => '3ee068d5b5a747ada65dafc0016d5887',
                 'proc_return_code'     => '0000',
@@ -167,9 +173,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'error_message'        => null,
                 'md_status'            => null,
                 'md_error_message'     => null,
-                'transaction_security' => null,
                 'masked_number'        => '49384601****4205',
-                'transaction_type'     => 'pay',
                 'currency'             => 'TRY',
                 'amount'               => 1.0,
                 'payment_model'        => '3d_pay',

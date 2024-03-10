@@ -53,6 +53,10 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $result['currency']         = $order['currency'];
         $result['amount']           = $order['amount'];
 
+        if (self::TX_APPROVED === $status) {
+            $result['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['TRXDATE'] ?? null);
+        }
+
         $this->logger->debug('mapped payment response', $result);
 
         return $result;
@@ -87,6 +91,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'year'                 => null,
             'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
+            'transaction_time'     => isset($raw3DAuthResponseData['TRXDATE']) ? new \DateTimeImmutable($raw3DAuthResponseData['TRXDATE']) : null,
             'eci'                  => $raw3DAuthResponseData['Eci'],
             'tx_status'            => $raw3DAuthResponseData['TxnStat'],
             'cavv'                 => null,
@@ -97,7 +102,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
-        return array_merge($paymentResponseData, $threeDResponse);
+        return $this->mergeArraysPreferNonNullValues($paymentResponseData, $threeDResponse);
     }
 
     /**

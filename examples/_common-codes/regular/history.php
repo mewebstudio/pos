@@ -24,7 +24,7 @@ function createHistoryOrder(string $gatewayClass, array $lastResponse, array $ex
     if (AkOdePos::class === $gatewayClass) {
         $order = [
             'id'              => $lastResponse['order_id'],
-            'transactionDate' => new \DateTime(), // odeme tarihi
+            'transactionDate' => $lastResponse['transaction_time'], // odeme tarihi
             'page'            => 1, // optional, default: 1
             'pageSize'        => 10, // optional, default: 10
         ];

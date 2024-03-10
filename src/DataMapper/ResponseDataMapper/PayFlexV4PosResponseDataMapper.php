@@ -206,9 +206,10 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         $commonResponse['transaction_type'] = isset($rawPaymentResponseData['TransactionType']) ? $this->mapTxType($rawPaymentResponseData['TransactionType']) : null;
 
         if (self::TX_APPROVED === $commonResponse['status']) {
-            $commonResponse['transaction_id'] = $rawPaymentResponseData['TransactionId'];
-            $commonResponse['auth_code']      = $rawPaymentResponseData['AuthCode'];
-            $commonResponse['ref_ret_num']    = $rawPaymentResponseData['TransactionId'];
+            $commonResponse['transaction_id']   = $rawPaymentResponseData['TransactionId'];
+            $commonResponse['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['HostDate']);
+            $commonResponse['auth_code']        = $rawPaymentResponseData['AuthCode'];
+            $commonResponse['ref_ret_num']      = $rawPaymentResponseData['TransactionId'];
         }
 
         $this->logger->debug('mapped payment response', $commonResponse);

@@ -47,6 +47,8 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
             $txType,
             $order
         );
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -59,6 +61,8 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     public function testMapPaymentResponse(string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, []);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -353,6 +357,8 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
             ],
             'expectedData' => [
                 'transaction_id'    => '9972767117b3400eb2acafc0018643df',
+                'transaction_type'  => 'pay',
+                'transaction_time'  => new \DateTimeImmutable('2023-03-09 23:40:54'),
                 'auth_code'         => '961451',
                 'ref_ret_num'       => '9972767117b3400eb2acafc0018643df',
                 'order_id'          => '202303095646',
@@ -361,7 +367,6 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'status_detail'     => 'approved',
                 'error_code'        => null,
                 'error_message'     => null,
-                'transaction_type'  => 'pay',
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'payment_model'     => 'regular',
@@ -393,6 +398,8 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
             ],
             'expectedData' => [
                 'transaction_id'    => null,
+                'transaction_type'  => 'pay',
+                'transaction_time'  => null,
                 'auth_code'         => null,
                 'ref_ret_num'       => null,
                 'order_id'          => '20230309EF68',
@@ -401,7 +408,6 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'status_detail'     => 'reject',
                 'error_code'        => '0312',
                 'error_message'     => 'RED-GEÇERSİZ KART',
-                'transaction_type'  => 'pay',
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'payment_model'     => 'regular',
@@ -417,6 +423,8 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
             ],
             'expectedData' => [
                 'transaction_id'    => null,
+                'transaction_type'  => null,
+                'transaction_time'  => null,
                 'auth_code'         => null,
                 'ref_ret_num'       => null,
                 'order_id'          => null,
@@ -425,7 +433,6 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'status_detail'     => 'invalid_credentials',
                 'error_code'        => '9039',
                 'error_message'     => 'Üye işyeri bulunamadı.',
-                'transaction_type'  => null,
                 'currency'          => null,
                 'amount'            => null,
                 'payment_model'     => null,
@@ -466,8 +473,10 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'cavv'                 => 'AAABBBBBBBBBBBBBBBIIIIII=',
                     'md_status'            => 'E',
                     'md_error_message'     => 'Üye isyeri IP si sistemde tanimli degil',
-                    'transaction_security' => null,
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
+                    'transaction_security' => null,
                     'ref_ret_num'          => null,
                     'proc_return_code'     => null,
                     'auth_code'            => null,
@@ -479,7 +488,6 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'amount'               => 100.0,
                     'currency'             => 'TRY',
                     'payment_model'        => null,
-                    'transaction_type'     => 'pay',
                     'installment_count'    => 0,
                 ],
             ],
@@ -531,8 +539,10 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'cavv'                 => 'ABIBCBgAAAEnAAABAQAAAAAAAAA=',
                     'md_status'            => 'Y',
                     'md_error_message'     => null,
-                    'transaction_security' => null,
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
+                    'transaction_security' => null,
                     'ref_ret_num'          => null,
                     'proc_return_code'     => '0312',
                     'eci'                  => '05',
@@ -545,7 +555,6 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'amount'               => 1.01,
                     'currency'             => 'TRY',
                     'payment_model'        => '3d',
-                    'transaction_type'     => 'pay',
                     'installment_count'    => 0,
                 ],
             ],
@@ -598,11 +607,12 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'cavv'                 => 'AAABBBBBBBBBBBBBBBIIIIII=',
                     'md_status'            => 'Y',
                     'md_error_message'     => null,
-                    'transaction_security' => null,
                     'transaction_id'       => '20230309B838',
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable('2022-04-04 12:34:56'),
+                    'transaction_security' => null,
                     'ref_ret_num'          => '20230309B838',
                     'proc_return_code'     => '0000',
-                    'transaction_type'     => 'pay',
                     'eci'                  => '02',
                     'auth_code'            => '822641',
                     'order_id'             => 'order-id-123',

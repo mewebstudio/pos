@@ -77,6 +77,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+        $extra = $rawPaymentResponseData['Extra'];
 
         $mappedResponse = [
             'order_id'         => $rawPaymentResponseData['OrderId'],
@@ -84,14 +85,15 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'amount'           => $order['amount'],
             'group_id'         => $rawPaymentResponseData['GroupId'],
             'transaction_id'   => $rawPaymentResponseData['TransId'],
+            'transaction_time' => self::TX_APPROVED === $status ? new \DateTimeImmutable($extra['TRXDATE']) : null,
             'auth_code'        => $rawPaymentResponseData['AuthCode'],
             'ref_ret_num'      => $rawPaymentResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => self::TX_APPROVED === $status ? null : $rawPaymentResponseData['Extra']['ERRORCODE'],
+            'error_code'       => self::TX_APPROVED === $status ? null : $extra['ERRORCODE'],
             'error_message'    => self::TX_APPROVED === $status ? null : $rawPaymentResponseData['ErrMsg'],
-            'recurring_id'     => $rawPaymentResponseData['Extra']['RECURRINGID'] ?? null, // set when recurring payment is made
+            'recurring_id'     => $extra['RECURRINGID'] ?? null, // set when recurring payment is made
             'all'              => $rawPaymentResponseData,
         ];
 
@@ -181,14 +183,15 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         ];
 
         if (self::TX_APPROVED === $status) {
-            $response['auth_code']      = $raw3DAuthResponseData['AuthCode'];
-            $response['eci']            = $raw3DAuthResponseData['eci'];
-            $response['cavv']           = $raw3DAuthResponseData['cavv'];
-            $response['transaction_id'] = $raw3DAuthResponseData['TransId'];
-            $response['ref_ret_num']    = $raw3DAuthResponseData['HostRefNum'];
-            $response['status_detail']  = $this->getStatusDetail($procReturnCode);
-            $response['error_message']  = $raw3DAuthResponseData['ErrMsg'];
-            $response['error_code']     = isset($raw3DAuthResponseData['ErrMsg']) ? $procReturnCode : null;
+            $response['auth_code']        = $raw3DAuthResponseData['AuthCode'];
+            $response['eci']              = $raw3DAuthResponseData['eci'];
+            $response['cavv']             = $raw3DAuthResponseData['cavv'];
+            $response['transaction_id']   = $raw3DAuthResponseData['TransId'];
+            $response['transaction_time'] = new \DateTimeImmutable($raw3DAuthResponseData['EXTRA_TRXDATE']);
+            $response['ref_ret_num']      = $raw3DAuthResponseData['HostRefNum'];
+            $response['status_detail']    = $this->getStatusDetail($procReturnCode);
+            $response['error_message']    = $raw3DAuthResponseData['ErrMsg'];
+            $response['error_code']       = isset($raw3DAuthResponseData['ErrMsg']) ? $procReturnCode : null;
         }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $response);
@@ -232,8 +235,9 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $response['month']         = $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'];
             $response['year']          = $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'];
             if (self::TX_APPROVED === $status) {
-                $response['eci']  = $raw3DAuthResponseData['eci'];
-                $response['cavv'] = $raw3DAuthResponseData['cavv'];
+                $response['eci']              = $raw3DAuthResponseData['eci'];
+                $response['cavv']             = $raw3DAuthResponseData['cavv'];
+                $response['transaction_time'] = new \DateTimeImmutable();
             }
         }
 

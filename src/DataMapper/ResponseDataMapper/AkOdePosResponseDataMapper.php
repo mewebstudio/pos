@@ -81,6 +81,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             'currency'         => $order['currency'],
             'amount'           => $order['amount'],
             'transaction_id'   => $rawPaymentResponseData['TransactionId'],
+            'transaction_time' => self::TX_APPROVED === $status ? new \DateTimeImmutable() : null,
             'transaction_type' => null,
             'ref_ret_num'      => $rawPaymentResponseData['HostReferenceNumber'],
             'proc_return_code' => $procReturnCode,
@@ -141,6 +142,8 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED !== $status) {
             $response['error_message'] = $raw3DAuthResponseData['BankResponseMessage'];
             $response['error_code']    = $procReturnCode;
+        } else {
+            $response['transaction_time'] = new \DateTimeImmutable();
         }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $response);

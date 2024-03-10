@@ -39,6 +39,13 @@ class PayForPosResponseDataMapperTest extends TestCase
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
+
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -56,6 +63,8 @@ class PayForPosResponseDataMapperTest extends TestCase
             $txType,
             $order
         );
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -68,6 +77,8 @@ class PayForPosResponseDataMapperTest extends TestCase
     public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -80,6 +91,8 @@ class PayForPosResponseDataMapperTest extends TestCase
     public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -177,10 +190,11 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'CardHolderName' => 'John Doe',
                 ],
                 'expectedData' => [
+                    'transaction_id'    => '202210313C0D',
                     'transaction_type'  => 'pay',
+                    'transaction_time'  => new \DateTimeImmutable(),
                     'payment_model'     => 'regular',
                     'order_id'          => '202210313C0D',
-                    'transaction_id'    => '202210313C0D',
                     'currency'          => 'TRY',
                     'amount'            => 1.01,
                     'auth_code'         => 'S77788',
@@ -208,10 +222,11 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'CardHolderName' => 'John Doe',
                 ],
                 'expectedData' => [
+                    'transaction_id'    => '2022103155EF',
                     'transaction_type'  => 'pay',
+                    'transaction_time'  => null,
                     'payment_model'     => 'regular',
                     'order_id'          => '2022103155EF',
-                    'transaction_id'    => '2022103155EF',
                     'currency'          => 'TRY',
                     'amount'            => 1.01,
                     'auth_code'         => null,
@@ -239,10 +254,11 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'CardHolderName' => '',
                 ],
                 'expectedData' => [
+                    'transaction_id'    => '20221031F9FA2',
                     'transaction_type'  => 'post',
+                    'transaction_time'  => null,
                     'payment_model'     => 'regular',
                     'order_id'          => '20221031F9FA2',
-                    'transaction_id'    => '20221031F9FA2',
                     'currency'          => 'TRY',
                     'amount'            => 1.01,
                     'auth_code'         => null,
@@ -390,6 +406,9 @@ class PayForPosResponseDataMapperTest extends TestCase
                 'expectedData'       => [
                     'order_id'             => '202210317565',
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
+                    'transaction_security' => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'proc_return_code'     => 'V034',
@@ -397,8 +416,6 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'try_again',
                     'error_code'           => 'V034',
                     'error_message'        => '3D Kullanıcı Doğrulama Adımı Başarısız',
-                    'transaction_type'     => 'pay',
-                    'transaction_security' => null,
                     'masked_number'        => '415565******6111',
                     'amount'               => 1.01,
                     'currency'             => PosInterface::CURRENCY_TRY,
@@ -545,7 +562,9 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'CardHolderName' => 'John Doe',
                 ],
                 'expectedData'       => [
+                    'transaction_id'       => '20221031CFD0',
                     'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable('2022-10-31 22:34:18'),
                     'transaction_security' => null,
                     'masked_number'        => '415565******6111',
                     'amount'               => 1.01,
@@ -556,7 +575,6 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => null,
                     'md_status_detail'     => null,
                     'eci'                  => '05',
-                    'transaction_id'       => '20221031CFD0',
                     'auth_code'            => 'S37397',
                     'ref_ret_num'          => '230422098249',
                     'order_id'             => '20221031CFD0',
@@ -702,16 +720,17 @@ class PayForPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable('2022-10-31 22:56:43'),
+                    'transaction_security' => null,
                     'auth_code'            => 'S86797',
                     'ref_ret_num'          => '230422100150',
                     'order_id'             => '2022103114B3',
-                    'transaction_type'     => 'pay',
                     'proc_return_code'     => '00',
                     'status'               => 'approved',
                     'status_detail'        => 'approved',
                     'error_code'           => null,
                     'error_message'        => null,
-                    'transaction_security' => null,
                     'masked_number'        => '415565******6111',
                     'amount'               => 1.01,
                     'currency'             => PosInterface::CURRENCY_TRY,
@@ -851,16 +870,17 @@ class PayForPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
+                    'transaction_security' => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'order_id'             => '202210317223',
-                    'transaction_type'     => 'pay',
                     'proc_return_code'     => 'MR15',
                     'status'               => 'declined',
                     'status_detail'        => 'try_again',
                     'error_code'           => 'MR15',
                     'error_message'        => '3D Secure Authorize Error',
-                    'transaction_security' => null,
                     'masked_number'        => '415565******6111',
                     'amount'               => 1.01,
                     'currency'             => PosInterface::CURRENCY_TRY,
@@ -1007,16 +1027,17 @@ class PayForPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable('2022-10-31 23:06:37'),
+                    'transaction_security' => null,
                     'auth_code'            => 'S28031',
                     'ref_ret_num'          => '230423100695',
                     'order_id'             => '2022103121CA',
-                    'transaction_type'     => 'pay',
                     'proc_return_code'     => '00',
                     'status'               => 'approved',
                     'status_detail'        => 'approved',
                     'error_code'           => null,
                     'error_message'        => null,
-                    'transaction_security' => null,
                     'masked_number'        => '415565******6111',
                     'amount'               => 1.01,
                     'currency'             => PosInterface::CURRENCY_TRY,
@@ -1156,16 +1177,17 @@ class PayForPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
+                    'transaction_security' => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'order_id'             => '202210316DBA',
-                    'transaction_type'     => 'pay',
                     'proc_return_code'     => 'MR15',
                     'status'               => 'declined',
                     'status_detail'        => 'try_again',
                     'error_code'           => 'MR15',
                     'error_message'        => '3D Secure Authorize Error',
-                    'transaction_security' => null,
                     'masked_number'        => '415565******6111',
                     'amount'               => 1.01,
                     'currency'             => PosInterface::CURRENCY_TRY,

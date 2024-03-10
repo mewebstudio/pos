@@ -42,6 +42,8 @@ class EstPosResponseDataMapperTest extends TestCase
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -59,6 +61,8 @@ class EstPosResponseDataMapperTest extends TestCase
             $txType,
             $order,
         );
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -71,6 +75,8 @@ class EstPosResponseDataMapperTest extends TestCase
     public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -83,6 +89,13 @@ class EstPosResponseDataMapperTest extends TestCase
     public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -211,11 +224,12 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
             ],
             'expectedData' => [
+                'transaction_id'    => '22302V8rE11732',
                 'transaction_type'  => 'pay',
+                'transaction_time'  => new \DateTimeImmutable('2022-10-29 21:58:43'),
                 'payment_model'     => 'regular',
                 'order_id'          => '202210293885',
                 'group_id'          => '202210293885',
-                'transaction_id'    => '22302V8rE11732',
                 'auth_code'         => 'P48911',
                 'ref_ret_num'       => '230200671758',
                 'proc_return_code'  => '00',
@@ -258,11 +272,12 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
             ],
             'expectedData' => [
+                'transaction_id'    => '22302V8rE11732',
                 'transaction_type'  => 'pay',
+                'transaction_time'  => new \DateTimeImmutable('2022-10-29 21:58:43'),
                 'payment_model'     => 'regular',
                 'order_id'          => '202210293885',
                 'group_id'          => '202210293885',
-                'transaction_id'    => '22302V8rE11732',
                 'auth_code'         => 'P48911',
                 'ref_ret_num'       => '230200671758',
                 'proc_return_code'  => '00',
@@ -299,11 +314,12 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
             ],
             'expectedData' => [
+                'transaction_id'    => '22302WcCC13836',
                 'transaction_type'  => 'pay',
+                'transaction_time'  => null,
                 'payment_model'     => 'regular',
                 'order_id'          => '20221029B541',
                 'group_id'          => '20221029B541',
-                'transaction_id'    => '22302WcCC13836',
                 'auth_code'         => null,
                 'ref_ret_num'       => null,
                 'proc_return_code'  => '99',
@@ -318,7 +334,7 @@ class EstPosResponseDataMapperTest extends TestCase
             ],
         ];
 
-        yield 'postFail2' => [
+        yield 'success_2' => [
             'order'        => [
                 'currency' => PosInterface::CURRENCY_TRY,
                 'amount'   => 1.01,
@@ -348,11 +364,12 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
             ],
             'expectedData' => [
+                'transaction_id'    => '22303Md4C19254',
                 'transaction_type'  => 'pay',
+                'transaction_time'  => new \DateTimeImmutable('2022-10-30 12:29:53'),
                 'payment_model'     => 'regular',
                 'order_id'          => '20221030FAC5',
                 'group_id'          => '20221030FAC5',
-                'transaction_id'    => '22303Md4C19254',
                 'auth_code'         => 'P90325',
                 'ref_ret_num'       => '230300671782',
                 'proc_return_code'  => '00',
@@ -420,6 +437,9 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
                 'paymentData'        => [],
                 'expectedData'       => [
+                    'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
                     'transaction_security' => 'MPI fallback',
                     'md_status'            => '0',
                     'masked_number'        => '4355 08** **** 4358',
@@ -431,7 +451,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'tx_status'            => null,
                     'cavv'                 => null,
                     'md_error_message'     => 'N-status/Challenge authentication via ACS: https://3ds-acs.test.modirum.com/mdpayacs/creq?token=214704671.1667119085._nUCBN9o1Wh',
-                    'transaction_id'       => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'proc_return_code'     => null,
@@ -440,7 +459,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'error_code'           => null,
                     'error_message'        => null,
                     'order_id'             => '2022103076E7',
-                    'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
                     'installment_count'    => 0,
                 ],
@@ -510,6 +528,9 @@ class EstPosResponseDataMapperTest extends TestCase
                     ],
                 ],
                 'expectedData'       => [
+                    'transaction_id'       => '22303LtCH15933',
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
                     'transaction_security' => 'Full 3D Secure',
                     'md_status'            => '1',
                     'masked_number'        => '4355 08** **** 4358',
@@ -522,7 +543,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'cavv'                 => 'ABABA##################AEJI=',
                     'md_error_message'     => null,
                     'group_id'             => '20221030FE4C',
-                    'transaction_id'       => '22303LtCH15933',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'proc_return_code'     => '99',
@@ -533,7 +553,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'recurring_id'         => null,
                     'installment_count'    => 12,
                     'order_id'             => '20221030FE4C',
-                    'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
                 ],
             ],
@@ -605,6 +624,9 @@ class EstPosResponseDataMapperTest extends TestCase
                     ],
                 ],
                 'expectedData'       => [
+                    'transaction_id'       => '22303LzpJ16296',
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable('2022-10-30 11:51:41'),
                     'transaction_security' => 'Full 3D Secure',
                     'md_status'            => '1',
                     'masked_number'        => '4355 08** **** 4358',
@@ -617,7 +639,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'cavv'                 => 'ABABCSQDGQAAAABllJMDdUQAEJI=',
                     'md_error_message'     => null,
                     'group_id'             => '202210304547',
-                    'transaction_id'       => '22303LzpJ16296',
                     'auth_code'            => '563339',
                     'ref_ret_num'          => '230311184777',
                     'proc_return_code'     => '00',
@@ -628,7 +649,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'recurring_id'         => null,
                     'installment_count'    => 0,
                     'order_id'             => '202210304547',
-                    'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
                 ],
             ],
@@ -707,6 +727,9 @@ class EstPosResponseDataMapperTest extends TestCase
                     'NATIONALIDNO'                    => '',
                 ],
                 'expectedData' => [
+                    'transaction_id'       => '22303LWsA14386',
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable('2022-10-30 11:22:43'),
                     'transaction_security' => 'Full 3D Secure',
                     'md_status'            => '1',
                     'masked_number'        => '4355 08** **** 4358',
@@ -719,7 +742,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'cavv'                 => 'ABABByBkEgAAAABllJMDdVWUGZE=',
                     'md_error_message'     => 'Y-status/Challenge authentication via ACS: https://3ds-acs.test.modirum.com/mdpayacs/creq?token=214704511.1667118159.BUW_iXHm4_6',
                     'order_id'             => '2022103030CB',
-                    'transaction_id'       => '22303LWsA14386',
                     'auth_code'            => 'P37891',
                     'ref_ret_num'          => '230300671764',
                     'proc_return_code'     => '00',
@@ -727,7 +749,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'approved',
                     'error_code'           => null,
                     'error_message'        => null,
-                    'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
                     'installment_count'    => 0,
                 ],
@@ -780,12 +801,14 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
+                    'transaction_security' => 'MPI fallback',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'status_detail'        => null,
                     'error_code'           => null,
                     'error_message'        => null,
-                    'transaction_security' => 'MPI fallback',
                     'md_status'            => '0',
                     'masked_number'        => '4355 08** **** 4358',
                     'month'                => '12',
@@ -799,7 +822,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'order_id'             => '2022103008A3',
                     'proc_return_code'     => null,
                     'status'               => 'declined',
-                    'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
                     'installment_count'    => 0,
                 ],
@@ -880,13 +902,15 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable(),
+                    'transaction_security' => 'Full 3D Secure',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'proc_return_code'     => null,
                     'status_detail'        => null,
                     'error_code'           => null,
                     'error_message'        => null,
-                    'transaction_security' => 'Full 3D Secure',
                     'md_status'            => '1',
                     'amount'               => 1.01,
                     'currency'             => PosInterface::CURRENCY_TRY,
@@ -899,7 +923,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => null,
                     'order_id'             => '202210305DCF',
                     'status'               => 'approved',
-                    'transaction_type'     => 'pay',
                     'payment_model'        => '3d_host',
                     'installment_count'    => 0,
                 ],
@@ -971,13 +994,15 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'transaction_id'       => null,
+                    'transaction_time'     => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_security' => 'MPI fallback',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'proc_return_code'     => null,
                     'status_detail'        => null,
                     'error_code'           => null,
                     'error_message'        => null,
-                    'transaction_security' => 'MPI fallback',
                     'md_status'            => '0',
                     'amount'               => 1.01,
                     'currency'             => PosInterface::CURRENCY_TRY,
@@ -990,7 +1015,6 @@ class EstPosResponseDataMapperTest extends TestCase
                     'md_error_message'     => 'N-status/Challenge authentication via ACS: https://3ds-acs.test.modirum.com/mdpayacs/creq?token=214705021.1667121056.gc2NvdPjGQ6',
                     'order_id'             => '20221030F11F',
                     'status'               => 'declined',
-                    'transaction_type'     => 'pay',
                     'payment_model'        => '3d_host',
                     'installment_count'    => 0,
                 ],

@@ -165,6 +165,7 @@ class PosNetTest extends TestCase
 
         $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
         $resp = $posMock->getResponse();
+        unset($resp['transaction_time'], $bankResponses['expectedData']['transaction_time']);
         unset($resp['all'], $resp['3d_all']);
         \ksort($bankResponses['expectedData']);
         \ksort($resp);

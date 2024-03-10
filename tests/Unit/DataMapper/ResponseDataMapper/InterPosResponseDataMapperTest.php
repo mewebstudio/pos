@@ -41,6 +41,8 @@ class InterPosResponseDataMapperTest extends TestCase
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -209,6 +211,7 @@ class InterPosResponseDataMapperTest extends TestCase
                         'error_code'        => 'B810002',
                         'error_message'     => 'Terminal Aktif Degil',
                         'installment_count' => null,
+                        'transaction_time'  => null,
                     ],
                 ],
             ];
@@ -287,6 +290,7 @@ class InterPosResponseDataMapperTest extends TestCase
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
                     'installment_count'    => null,
+                    'transaction_time'     => null,
                 ],
             ],
         ];
@@ -362,6 +366,7 @@ class InterPosResponseDataMapperTest extends TestCase
                     'cavv'                 => null,
                     'md_error_message'     => 'Terminal Aktif Degil',
                     'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
                     'payment_model'        => '3d_pay',
                     'installment_count'    => null,
                 ],
@@ -441,6 +446,7 @@ class InterPosResponseDataMapperTest extends TestCase
                     'cavv'                 => null,
                     'md_error_message'     => 'Terminal Aktif Degil',
                     'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
                     'payment_model'        => '3d_host',
                     'installment_count'    => null,
                 ],

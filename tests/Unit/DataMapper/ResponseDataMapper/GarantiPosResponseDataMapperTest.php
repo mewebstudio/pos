@@ -41,6 +41,8 @@ class GarantiPosResponseDataMapperTest extends TestCase
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -58,6 +60,8 @@ class GarantiPosResponseDataMapperTest extends TestCase
             $txType,
             $order
         );
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -70,6 +74,13 @@ class GarantiPosResponseDataMapperTest extends TestCase
     public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -214,6 +225,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'error_code'        => null,
                     'error_message'     => null,
                     'installment_count' => null,
+                    'transaction_time'  => new \DateTimeImmutable('2022-11-01 13:14:19'),
                 ],
             ],
             'fail_1'   => [
@@ -279,6 +291,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'error_code'        => '0002',
                     'error_message'     => 'Giriş yaptığınız işlem tipi için zorunlu alanları kontrol ediniz',
                     'installment_count' => null,
+                    'transaction_time'  => null,
                 ],
             ],
         ];
@@ -401,6 +414,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
                     'installment_count'    => 0,
+                    'transaction_time'     => null,
                 ],
             ],
             'paymentFail_wrong_cvc_code' => [
@@ -518,6 +532,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
                     'installment_count'    => 0,
+                    'transaction_time'     => null,
                 ],
             ],
             'success1'                   => [
@@ -635,6 +650,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
                     'installment_count'    => 0,
+                    'transaction_time'     => new \DateTimeImmutable('2023-12-23 19:24:30'),
                 ],
             ],
             'success_with_installment'   => [
@@ -752,6 +768,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'transaction_security' => 'Full 3D Secure',
                     'transaction_type'     => 'pay',
                     'tx_status'            => 'Y',
+                    'transaction_time'     => new \DateTimeImmutable('2024-03-10 14:05:08'),
                 ],
             ],
         ];
@@ -832,6 +849,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
                     'installment_count'    => 2,
+                    'transaction_time'     => new \DateTimeImmutable(),
                 ],
             ],
             'authFail'     => [
@@ -884,6 +902,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
                     'installment_count'    => 0,
+                    'transaction_time'     => null,
                 ],
             ],
             'paymentFail1' => [
@@ -957,6 +976,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
                     'installment_count'    => 0,
+                    'transaction_time'     => null,
                 ],
             ],
         ];

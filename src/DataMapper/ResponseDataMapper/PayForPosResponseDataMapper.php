@@ -59,6 +59,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $mappedResponse = [
             'order_id'         => $rawPaymentResponseData['TransId'],
             'transaction_id'   => $rawPaymentResponseData['TransId'],
+            'transaction_time' => (self::TX_APPROVED === $status) ? new \DateTimeImmutable() : null,
             'auth_code'        => $rawPaymentResponseData['AuthCode'],
             'currency'         => $order['currency'],
             'amount'           => $order['amount'],
@@ -446,6 +447,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 
         if (self::TX_APPROVED === $threeDAuthStatus) {
             $result['installment_count'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount']);
+            $result['transaction_time'] = new \DateTimeImmutable($raw3DAuthResponseData['TransactionDate']);
         }
 
         return $result;

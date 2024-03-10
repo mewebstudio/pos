@@ -53,6 +53,12 @@ class KuveytPosResponseDataMapperTest extends TestCase
     public function testMapPaymentResponse(string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, []);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -111,6 +117,12 @@ class KuveytPosResponseDataMapperTest extends TestCase
             $txType,
             $order
         );
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         $this->assertEquals($expectedData, $actualData);
     }
@@ -134,6 +146,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'order_id'          => null,
                 'transaction_id'    => null,
                 'transaction_type'  => 'pay',
+                'transaction_time'  => null,
                 'currency'          => null,
                 'amount'            => null,
                 'payment_model'     => 'regular',
@@ -187,6 +200,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'order_id'          => '660723214',
                 'transaction_id'    => '005554',
                 'transaction_type'  => 'pay',
+                'transaction_time'  => new \DateTimeImmutable(),
                 'currency'          => 'TRY',
                 'amount'            => 1.0,
                 'payment_model'     => 'regular',
@@ -281,6 +295,9 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'BusinessKey'     => '0',
                 ],
                 'expectedData'       => [
+                    'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
                     'transaction_security' => 'MPI fallback',
                     'md_status'            => null,
                     'amount'               => 0.1,
@@ -288,7 +305,6 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'tx_status'            => null,
                     'md_error_message'     => null,
                     'masked_number'        => '5124********1609',
-                    'transaction_id'       => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'error_message'        => 'Ödeme detayı bulunamadı.',
@@ -298,7 +314,6 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'MetaDataNotFound',
                     'error_code'           => 'MetaDataNotFound',
                     'payment_model'        => '3d',
-                    'transaction_type'     => 'pay',
                     'installment_count'    => null,
                 ],
             ],
@@ -354,6 +369,9 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'BusinessKey'     => '0',
                 ],
                 'expectedData'       => [
+                    'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
                     'transaction_security' => 'MPI fallback',
                     'md_status'            => null,
                     'amount'               => 1.0,
@@ -361,7 +379,6 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'tx_status'            => null,
                     'md_error_message'     => null,
                     'masked_number'        => '5124********1609',
-                    'transaction_id'       => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'error_message'        => 'Geçerli bir MD değeri giriniz.',
@@ -371,7 +388,6 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'invalid_transaction',
                     'error_code'           => 'EmptyMDException',
                     'payment_model'        => '3d',
-                    'transaction_type'     => 'pay',
                     'installment_count'    => null,
                 ],
             ],
@@ -395,6 +411,9 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'expectedData'       => [
                     'order_id'             => '2020110828BC',
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
+                    'transaction_security' => 'MPI fallback',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'proc_return_code'     => 'HashDataError',
@@ -402,14 +421,12 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'status_detail'        => 'invalid_transaction',
                     'error_code'           => 'HashDataError',
                     'error_message'        => null,
-                    'transaction_security' => 'MPI fallback',
                     'md_status'            => null,
                     'amount'               => null,
                     'currency'             => null,
                     'tx_status'            => null,
                     'md_error_message'     => 'Şifrelenen veriler (Hashdata) uyuşmamaktadır.',
                     'payment_model'        => null,
-                    'transaction_type'     => 'pay',
                     'installment_count'    => null,
                 ],
             ],
@@ -494,6 +511,8 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'tx_status'            => null,
                     'md_error_message'     => null,
                     'transaction_id'       => '005554',
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable(),
                     'auth_code'            => '896626',
                     'ref_ret_num'          => '904115005554',
                     'error_message'        => null,
@@ -507,7 +526,6 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'error_code'           => null,
                     'masked_number'        => '5124********1609',
                     'payment_model'        => '3d',
-                    'transaction_type'     => 'pay',
                     'installment_count'    => 0,
                 ],
             ],

@@ -187,10 +187,10 @@ trait PaymentTestTrait
 
         if (AkOdePos::class === $gatewayClass) {
             $order = [
-                'id'              => $lastResponse['order_id'],
-                'transactionDate' => new \DateTime(), // odeme tarihi
-                'page'            => 1, // optional, default: 1
-                'pageSize'        => 10, // optional, default: 10
+                'id'               => $lastResponse['order_id'],
+                'transactionDate'  => $lastResponse['transaction_time'], // odeme tarihi
+                'page'             => 1, // optional, default: 1
+                'pageSize'         => 10, // optional, default: 10
             ];
         }
 

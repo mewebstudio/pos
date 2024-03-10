@@ -55,11 +55,15 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse = $this->getDefaultPaymentResponse($txType, PosInterface::MODEL_NON_SECURE);
         $transaction     = $rawPaymentResponseData['Transaction'];
 
+        /** @var string $provDate */
+        $provDate = $transaction['ProvDate'] ?? 'now';
+
         $mappedResponse = [
             'order_id'         => $rawPaymentResponseData['Order']['OrderID'],
             'group_id'         => $rawPaymentResponseData['Order']['GroupID'],
             'auth_code'        => self::TX_APPROVED === $status ? $transaction['AuthCode'] : null,
             'ref_ret_num'      => self::TX_APPROVED === $status ? $transaction['RetrefNum'] : null,
+            'transaction_time' => self::TX_APPROVED === $status ? new \DateTimeImmutable($provDate) : null,
             'proc_return_code' => $procReturnCode,
             'status'           => $status,
             'currency'         => $order['currency'],
@@ -113,12 +117,15 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
                 $paymentStatus = self::TX_APPROVED;
             }
+            /** @var string $provDate */
+            $provDate = $transaction['ProvDate'] ?? 'now';
 
             $mappedPaymentResponse = [
                 'group_id'         => $transaction['SequenceNum'] ?? null,
                 'auth_code'        => $transaction['AuthCode'] ?? null,
                 'ref_ret_num'      => $transaction['RetrefNum'] ?? null,
                 'batch_num'        => $transaction['BatchNum'] ?? null,
+                'transaction_time' => self::TX_APPROVED === $paymentStatus ? new \DateTimeImmutable($provDate) : null,
                 'error_code'       => self::TX_APPROVED === $paymentStatus ? null : $transaction['Response']['ReasonCode'],
                 'error_message'    => self::TX_APPROVED === $paymentStatus ? null : $transaction['Response']['ErrorMsg'],
                 'all'              => $rawPaymentResponseData,
@@ -174,6 +181,8 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED !== $paymentStatus) {
             $defaultPaymentResponse['error_message'] = $raw3DAuthResponseData['errmsg'];
             $defaultPaymentResponse['error_code']    = $procReturnCode;
+        } else {
+            $defaultPaymentResponse['transaction_time'] = new \DateTimeImmutable();
         }
 
         return $this->mergeArraysPreferNonNullValues($threeDAuthResult, $defaultPaymentResponse);

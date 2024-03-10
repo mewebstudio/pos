@@ -141,6 +141,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
         return [
             'order_id'          => null,
             'transaction_id'    => null,
+            'transaction_time'  => null,
             'transaction_type'  => $txType,
             'installment_count' => null,
             'currency'          => null,

@@ -42,6 +42,13 @@ class AkOdePosResponseDataMapperTest extends TestCase
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -55,6 +62,13 @@ class AkOdePosResponseDataMapperTest extends TestCase
     public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -67,6 +81,13 @@ class AkOdePosResponseDataMapperTest extends TestCase
     public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -175,10 +196,11 @@ class AkOdePosResponseDataMapperTest extends TestCase
             ],
             'expectedData' => [
                 'payment_model'     => 'regular',
+                'transaction_id'    => '2000000000032562',
                 'transaction_type'  => 'pay',
+                'transaction_time'  => new \DateTimeImmutable(),
                 'auth_code'         => null,
                 'order_id'          => '202312053421',
-                'transaction_id'    => '2000000000032562',
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'ref_ret_num'       => null,
@@ -208,10 +230,11 @@ class AkOdePosResponseDataMapperTest extends TestCase
             ],
             'expectedData' => [
                 'payment_model'     => 'regular',
+                'transaction_id'    => '2000000000032560',
                 'transaction_type'  => 'pay',
+                'transaction_time'  => new \DateTimeImmutable(),
                 'auth_code'         => null,
                 'order_id'          => '202312053F93',
-                'transaction_id'    => '2000000000032560',
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'ref_ret_num'       => null,
@@ -241,10 +264,11 @@ class AkOdePosResponseDataMapperTest extends TestCase
             ],
             'expectedData' => [
                 'payment_model'     => 'regular',
+                'transaction_id'    => null,
                 'transaction_type'  => 'pay',
+                'transaction_time'  => null,
                 'auth_code'         => null,
                 'order_id'          => '202312053F93',
-                'transaction_id'    => null,
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'ref_ret_num'       => null,
@@ -275,10 +299,11 @@ class AkOdePosResponseDataMapperTest extends TestCase
             ],
             'expectedData' => [
                 'payment_model'     => 'regular',
+                'transaction_id'    => null,
                 'transaction_type'  => 'pay',
+                'transaction_time'  => null,
                 'auth_code'         => null,
                 'order_id'          => null,
-                'transaction_id'    => null,
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'ref_ret_num'       => null,
@@ -575,13 +600,14 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'transaction_id'       => null,
+                    'transaction_time'     => new \DateTimeImmutable(),
+                    'transaction_type'     => 'pay',
+                    'transaction_security' => 'Full 3D Secure',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'status_detail'        => null,
                     'error_code'           => null,
                     'error_message'        => null,
-                    'transaction_type'     => 'pay',
-                    'transaction_security' => 'Full 3D Secure',
                     'md_status'            => '1',
                     'tx_status'            => 'PAYMENT_COMPLETED',
                     'md_error_message'     => null,
@@ -613,11 +639,12 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
+                    'transaction_security' => 'MPI fallback',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'status_detail'        => null,
-                    'transaction_type'     => 'pay',
-                    'transaction_security' => 'MPI fallback',
                     'md_status'            => '0',
                     'tx_status'            => 'ERROR',
                     'md_error_message'     => null,
@@ -658,13 +685,14 @@ class AkOdePosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable(),
+                    'transaction_security' => 'Full 3D Secure',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'status_detail'        => null,
                     'error_code'           => null,
                     'error_message'        => null,
-                    'transaction_type'     => 'pay',
-                    'transaction_security' => 'Full 3D Secure',
                     'md_status'            => '1',
                     'tx_status'            => 'PAYMENT_COMPLETED',
                     'md_error_message'     => null,

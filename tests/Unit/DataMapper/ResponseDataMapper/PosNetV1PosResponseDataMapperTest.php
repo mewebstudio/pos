@@ -42,6 +42,13 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -59,6 +66,13 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             $txType,
             $order
         );
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -129,10 +143,11 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'MessageData'         => null,
             ],
             'expectedData' => [
+                'transaction_id'    => null,
                 'transaction_type'  => 'pay',
+                'transaction_time'  => null,
                 'payment_model'     => 'regular',
                 'order_id'          => '202312171800ABC',
-                'transaction_id'    => null,
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'auth_code'         => null,
@@ -223,10 +238,11 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 ],
             ],
             'expectedData' => [
+                'transaction_id'    => null,
+                'transaction_time'  => new \DateTimeImmutable(),
                 'transaction_type'  => 'pay',
                 'payment_model'     => 'regular',
                 'order_id'          => '202312171800ABC',
-                'transaction_id'    => null,
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'auth_code'         => '449324',
@@ -267,12 +283,14 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             ],
             'paymentData'        => [],
             'expectedData'       => [
+                'transaction_id'       => null,
+                'transaction_type'     => 'pay',
+                'transaction_time'     => null,
                 'transaction_security' => 'MPI fallback',
                 'masked_number'        => '450634',
                 'md_status'            => '0',
                 'md_error_message'     => 'Not authenticated',
                 'amount'               => 1.01,
-                'transaction_id'       => null,
                 'auth_code'            => null,
                 'installment_count'    => null,
                 'ref_ret_num'          => null,
@@ -284,7 +302,6 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'proc_return_code'     => null,
                 'status'               => 'declined',
                 'currency'             => null,
-                'transaction_type'     => 'pay',
                 'payment_model'        => '3d',
             ],
         ];
@@ -384,12 +401,14 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 ],
             ],
             'expectedData'       => [
+                'transaction_id'       => null,
+                'transaction_type'     => 'pay',
+                'transaction_time'     => new \DateTimeImmutable(),
                 'transaction_security' => 'Full 3D Secure',
                 'masked_number'        => '540061',
                 'md_status'            => '1',
                 'md_error_message'     => null,
                 'amount'               => 1.75,
-                'transaction_id'       => null,
                 'auth_code'            => '449324',
                 'ref_ret_num'          => '159044932490000231',
                 'status_detail'        => 'approved',
@@ -400,7 +419,6 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'proc_return_code'     => '00',
                 'status'               => 'approved',
                 'currency'             => 'TRY',
-                'transaction_type'     => 'pay',
                 'payment_model'        => '3d',
                 'installment_count'    => 0,
             ],
@@ -433,12 +451,14 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             ],
             'paymentData'        => [],
             'expectedData'       => [
+                'transaction_id'       => null,
+                'transaction_type'     => 'pay',
+                'transaction_time'     => null,
                 'transaction_security' => 'MPI fallback',
                 'masked_number'        => '540061',
                 'md_status'            => '0',
                 'md_error_message'     => 'Error',
                 'amount'               => 1.75,
-                'transaction_id'       => null,
                 'auth_code'            => null,
                 'ref_ret_num'          => null,
                 'status_detail'        => null,
@@ -449,7 +469,6 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'proc_return_code'     => null,
                 'status'               => 'declined',
                 'currency'             => 'TRY',
-                'transaction_type'     => 'pay',
                 'payment_model'        => '3d',
                 'installment_count'    => null,
             ],
@@ -488,12 +507,14 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'MessageData'         => null,
             ],
             'expectedData'       => [
+                'transaction_id'       => null,
+                'transaction_time'     => null,
+                'transaction_type'     => 'pay',
                 'transaction_security' => 'Full 3D Secure',
                 'masked_number'        => '450634',
                 'md_status'            => '1',
                 'md_error_message'     => null,
                 'amount'               => 1.01,
-                'transaction_id'       => null,
                 'auth_code'            => null,
                 'ref_ret_num'          => null,
                 'status_detail'        => null,
@@ -504,7 +525,6 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 'proc_return_code'     => '0148',
                 'status'               => 'declined',
                 'currency'             => null,
-                'transaction_type'     => 'pay',
                 'payment_model'        => '3d',
                 'installment_count'    => null,
             ],

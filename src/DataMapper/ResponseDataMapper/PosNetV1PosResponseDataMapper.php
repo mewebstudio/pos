@@ -110,6 +110,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
         ];
         if (self::TX_APPROVED === $status) {
             $mappedResponse['installment_count'] = $this->mapInstallment($rawPaymentResponseData['InstallmentData']['InstallmentCount']);
+            $mappedResponse['transaction_time']  = new \DateTimeImmutable();
         }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $mappedResponse);
@@ -377,6 +378,7 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
 
         if (self::TX_APPROVED === $status) {
             $mappedResponse['installment_count'] = $this->mapInstallment($rawPaymentResponseData['InstallmentData']['InstallmentCount']);
+            $mappedResponse['transaction_time']  = new \DateTimeImmutable();
         }
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $mappedResponse);

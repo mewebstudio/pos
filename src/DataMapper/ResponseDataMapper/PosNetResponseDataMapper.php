@@ -78,6 +78,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
 
         if (self::TX_APPROVED === $status) {
             $defaultResponse['installment_count'] = $this->mapInstallment($rawPaymentResponseData['instInfo']['inst1']);
+            $defaultResponse['transaction_time']  = new \DateTimeImmutable();
         }
 
         return $defaultResponse;
@@ -248,7 +249,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
                 'auth_code'        => $transactionDetails['authCode'] ?? null,
                 'ref_ret_num'      => $transactionDetails['hostlogkey'] ?? null,
                 // tranDate ex: 2019-10-10 11:21:14.281
-                'transaction_time' => isset($transactionDetails['tranDate']) ? new \DateTime($transactionDetails['tranDate']) : null,
+                'transaction_time' => isset($transactionDetails['tranDate']) ? new \DateTimeImmutable($transactionDetails['tranDate']) : null,
             ];
         }
 
@@ -405,9 +406,9 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
-     * @param array<string, mixed>                                                      $rawPaymentResponseData
-     * @param string                                                                    $txType
-     * @param string                                                                    $paymentModel
+     * @param array<string, mixed> $rawPaymentResponseData
+     * @param string               $txType
+     * @param string               $paymentModel
      *
      * @return array<string, mixed>
      */
@@ -441,6 +442,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['all']              = $rawPaymentResponseData;
         if (self::TX_APPROVED === $status) {
             $defaultResponse['installment_count'] = $this->mapInstallment($rawPaymentResponseData['instInfo']['inst1']);
+            $defaultResponse['transaction_time']  = new \DateTimeImmutable();
         }
 
         return $defaultResponse;

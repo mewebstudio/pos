@@ -41,6 +41,13 @@ class PosNetResponseDataMapperTest extends TestCase
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         $this->assertSame($expectedData, $actualData);
     }
@@ -56,6 +63,13 @@ class PosNetResponseDataMapperTest extends TestCase
             $txType,
             $order
         );
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -127,6 +141,7 @@ class PosNetResponseDataMapperTest extends TestCase
                         'order_id'          => '202312171800ABC',
                         'transaction_id'    => null,
                         'transaction_type'  => 'pay',
+                        'transaction_time'  => new \DateTimeImmutable(),
                         'installment_count' => 0,
                         'currency'          => 'TRY',
                         'amount'            => 1.01,
@@ -156,6 +171,7 @@ class PosNetResponseDataMapperTest extends TestCase
                         'order_id'          => '202312171800ABC',
                         'transaction_id'    => null,
                         'transaction_type'  => 'pay',
+                        'transaction_time'  => null,
                         'installment_count' => null,
                         'currency'          => 'TRY',
                         'amount'            => 1.01,
@@ -194,6 +210,7 @@ class PosNetResponseDataMapperTest extends TestCase
                         'order_id'          => '202312171800ABC',
                         'transaction_id'    => null,
                         'transaction_type'  => 'pay',
+                        'transaction_time'  => null,
                         'installment_count' => null,
                         'currency'          => 'TRY',
                         'amount'            => 1.01,
@@ -255,10 +272,12 @@ class PosNetResponseDataMapperTest extends TestCase
                     ],
                 ],
                 'expectedData'       => [
+                    'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable(),
                     'transaction_security' => 'Full 3D Secure',
                     'md_status'            => '1',
                     'md_error_message'     => null,
-                    'transaction_id'       => null,
                     'installment_count'    => 0,
                     'auth_code'            => '901477',
                     'ref_ret_num'          => '0000000002P0806031',
@@ -271,7 +290,6 @@ class PosNetResponseDataMapperTest extends TestCase
                     'status_detail'        => 'approved',
                     'amount'               => 56.96,
                     'currency'             => 'TRY',
-                    'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
                 ],
             ],
@@ -296,10 +314,12 @@ class PosNetResponseDataMapperTest extends TestCase
                 ],
                 'paymentData'        => [],
                 'expectedData'       => [
+                    'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
                     'transaction_security' => 'MPI fallback',
                     'md_status'            => '9',
                     'md_error_message'     => 'None 3D - Secure Transaction',
-                    'transaction_id'       => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'error_code'           => null,
@@ -311,7 +331,6 @@ class PosNetResponseDataMapperTest extends TestCase
                     'status_detail'        => null,
                     'amount'               => 56.96,
                     'currency'             => 'TRY',
-                    'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
                     'installment_count'    => null,
                 ],
@@ -337,10 +356,12 @@ class PosNetResponseDataMapperTest extends TestCase
                 ],
                 'paymentData'        => [],
                 'expectedData'       => [
+                    'transaction_id'       => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
                     'transaction_security' => null,
                     'md_status'            => null,
                     'md_error_message'     => 'None 3D - Secure Transaction',
-                    'transaction_id'       => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
                     'error_code'           => null,
@@ -352,7 +373,6 @@ class PosNetResponseDataMapperTest extends TestCase
                     'status_detail'        => null,
                     'amount'               => 56.96,
                     'currency'             => 'TRY',
-                    'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
                     'installment_count'    => null,
                 ],
@@ -369,13 +389,14 @@ class PosNetResponseDataMapperTest extends TestCase
                 ],
                 'paymentData'        => [],
                 'expectedData'       => [
+                    'transaction_id'    => null,
+                    'transaction_type'  => 'pay',
+                    'transaction_time'  => null,
                     'amount'            => null,
                     'currency'          => null,
                     'installment_count' => null,
                     'payment_model'     => '3d',
-                    'transaction_type'  => 'pay',
                     'order_id'          => null,
-                    'transaction_id'    => null,
                     'auth_code'         => null,
                     'ref_ret_num'       => null,
                     'proc_return_code'  => '0',

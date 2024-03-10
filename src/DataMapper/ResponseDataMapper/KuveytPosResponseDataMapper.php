@@ -80,6 +80,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         $result['currency']          = $this->mapCurrency($vPosMessage['CurrencyCode']);
         $result['installment_count'] = $this->mapInstallment($vPosMessage['InstallmentCount']);
         $result['masked_number']     = $vPosMessage['CardNumber'];
+        $result['transaction_time']  = new \DateTimeImmutable();
 
         $this->logger->debug('mapped payment response', $result);
 
