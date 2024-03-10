@@ -37,7 +37,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
     }
 
     /**
-     * @dataProvider threesDPayResponseSamplesProvider
+     * @dataProvider threesDPayResponseDataProvider
      */
     public function testMap3DPayResponseData(array $order, string $txType, array $bankResponse, array $expected): void
     {
@@ -50,7 +50,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
-    public static function threesDPayResponseSamplesProvider(): Generator
+    public static function threesDPayResponseDataProvider(): Generator
     {
         yield 'fail_response_from_gateway_1' => [
             'order'         => [],

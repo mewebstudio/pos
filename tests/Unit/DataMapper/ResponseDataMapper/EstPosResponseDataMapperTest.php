@@ -442,7 +442,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'order_id'             => '2022103076E7',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
-                    'installment_count'    => null,
+                    'installment_count'    => 0,
                 ],
             ],
             '3d_auth_success_payment_fail' => [
@@ -531,7 +531,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'error_code'           => 'CORE-2603',
                     'error_message'        => 'Taksit tablosu icin gecersiz deger',
                     'recurring_id'         => null,
-                    'installment_count'    => null,
+                    'installment_count'    => 12,
                     'order_id'             => '20221030FE4C',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
@@ -626,7 +626,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'error_code'           => null,
                     'error_message'        => null,
                     'recurring_id'         => null,
-                    'installment_count'    => null,
+                    'installment_count'    => 0,
                     'order_id'             => '202210304547',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d',
@@ -729,7 +729,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'error_message'        => null,
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
-                    'installment_count'    => null,
+                    'installment_count'    => 0,
                 ],
             ],
             'authFail1' => [
@@ -801,7 +801,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'status'               => 'declined',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_pay',
-                    'installment_count'    => null,
+                    'installment_count'    => 0,
                 ],
             ],
         ];
@@ -901,7 +901,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'status'               => 'approved',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_host',
-                    'installment_count'    => null,
+                    'installment_count'    => 0,
                 ],
             ],
             '3d_auth_fail1' => [
@@ -992,7 +992,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'status'               => 'declined',
                     'transaction_type'     => 'pay',
                     'payment_model'        => '3d_host',
-                    'installment_count'    => null,
+                    'installment_count'    => 0,
                 ],
             ],
         ];

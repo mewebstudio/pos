@@ -148,7 +148,7 @@ class PayFlexCPV4PosTest extends TestCase
     public function testMake3dPayPaymentFail(): void
     {
         $testData = iterator_to_array(
-                        PayFlexCPV4PosResponseDataMapperTest::threesDPayResponseSamplesProvider()
+                        PayFlexCPV4PosResponseDataMapperTest::threesDPayResponseDataProvider()
                     )['fail_response_from_gateway_1'];
         $request  = Request::create('', 'GET', $testData['bank_response']);
 
@@ -176,7 +176,7 @@ class PayFlexCPV4PosTest extends TestCase
 
     public function testMake3dPayPaymentSuccess(): void
     {
-        $bankResponses     = \iterator_to_array(PayFlexCPV4PosResponseDataMapperTest::threesDPayResponseSamplesProvider());
+        $bankResponses     = \iterator_to_array(PayFlexCPV4PosResponseDataMapperTest::threesDPayResponseDataProvider());
         $bankQueryResponse = [
             'Rc'            => '0000',
             'AuthCode'      => '368513',

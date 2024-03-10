@@ -63,7 +63,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
             $paymentResponse['currency']          = $this->mapCurrency($raw3DAuthResponseData['AmountCode']);
             $paymentResponse['amount']            = $this->formatAmount($raw3DAuthResponseData['Amount']);
             $paymentResponse['transaction_type']  = $this->mapTxType($raw3DAuthResponseData['TransactionType']);
-            $paymentResponse['installment_count'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount'] ?? '0');
+            $paymentResponse['installment_count'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount']);
         }
 
         return $paymentResponse;

@@ -360,6 +360,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'masked_number'        => null,
             'amount'               => $this->formatAmount($raw3DAuthResponseData['txnamount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['txncurrencycode']),
+            'installment_count'    => $this->mapInstallment($raw3DAuthResponseData['txninstallmentcount']),
             'tx_status'            => null,
             'eci'                  => null,
             'cavv'                 => null,
