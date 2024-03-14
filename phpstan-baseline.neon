@@ -31,6 +31,11 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
 
 		-
+			message: "#^Default value of the parameter \\#2 \\$data \\(array\\{\\}\\) of method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\PayForPosRequestDataMapper\\:\\:createHistoryRequestData\\(\\) is incompatible with type array\\{reqDate\\: DateTimeInterface\\}\\.$#"
+			count: 1
+			path: src/DataMapper/RequestDataMapper/PayForPosRequestDataMapper.php
+
+		-
 			message: "#^Cannot assign offset 'authCode' to array\\<string, string\\>\\|string\\.$#"
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PosNetRequestDataMapper.php

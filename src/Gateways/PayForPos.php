@@ -48,6 +48,7 @@ class PayForPos extends AbstractGateway
         PosInterface::TX_TYPE_CANCEL        => true,
         PosInterface::TX_TYPE_REFUND        => true,
         PosInterface::TX_TYPE_HISTORY       => true,
+        PosInterface::TX_TYPE_ORDER_HISTORY => true,
     ];
 
     /** @return PayForAccount */
@@ -129,19 +130,23 @@ class PayForPos extends AbstractGateway
     }
 
     /**
-     * Fetches All Transaction/Action/Order history, both failed and successful, for the given date ReqDate
-     * or transactions related to the queried order if orderId is given
+     * Fetches Transaction history (both failed and successful) for the given date ReqDate
      * Note: history request to gateway returns JSON response
-     * If both reqDate and orderId provided then finansbank will take into account only orderId
-     *
-     * returns list array or items for the given date,
-     * if orderId specified in request then return array of transactions (refund|pre|post|cancel)
-     * both successful and failed, for the related orderId
      * @inheritDoc
      */
-    public function history(array $meta): PosInterface
+    public function history(array $data): PosInterface
     {
-        return parent::history($meta);
+        return parent::history($data);
+    }
+
+    /**
+     * Fetches transaction history (both failed and successful, refund|pre|post|cancel) related to the queried order
+     * Note: history request to gateway returns JSON response
+     * @inheritDoc
+     */
+    public function orderHistory(array $order): PosInterface
+    {
+        return parent::orderHistory($order);
     }
 
 

@@ -253,7 +253,15 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
+    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
     {
         throw new NotImplementedException();
     }
@@ -352,16 +360,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'transaction_id' => $order['transaction_id'],
             'ip'             => $order['ip'],
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareHistoryOrder(array $order): array
-    {
-        return [
-            'id' => $order['id'] ?? null,
         ];
     }
 

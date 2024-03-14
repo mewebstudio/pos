@@ -286,7 +286,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritDoc}
      */
-    public function mapHistoryResponse(array $rawResponseData): array
+    public function mapOrderHistoryResponse(array $rawResponseData): array
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
 
@@ -301,14 +301,14 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             $status         = self::TX_DECLINED;
             if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
                 $status               = self::TX_APPROVED;
-                $mappedTransactions[] = $this->mapSingleHistoryTransaction($paymentRequest);
+                $mappedTransactions[] = $this->mapSingleOrderHistoryTransaction($paymentRequest);
             }
 
             $orderId = $paymentRequest['OrderId'];
         } else {
             foreach ($rawResponseData['PaymentRequestExtended'] as $tx) {
                 $orderId              = $tx['PaymentRequest']['OrderId'];
-                $mappedTransactions[] = $this->mapSingleHistoryTransaction($tx['PaymentRequest']);
+                $mappedTransactions[] = $this->mapSingleOrderHistoryTransaction($tx['PaymentRequest']);
             }
         }
 
@@ -330,6 +330,14 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         return $result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function mapHistoryResponse(array $rawResponseData): array
+    {
+        return $this->mapOrderHistoryResponse($rawResponseData);
     }
 
     /**
@@ -460,7 +468,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @throws \Exception
      */
-    private function mapSingleHistoryTransaction(array $rawTx): array
+    private function mapSingleOrderHistoryTransaction(array $rawTx): array
     {
         $procReturnCode = $this->getProcReturnCode($rawTx);
         $status         = self::TX_DECLINED;

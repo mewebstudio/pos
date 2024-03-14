@@ -40,6 +40,9 @@ interface PosInterface
     public const TX_TYPE_STATUS = 'status';
 
     /** @var string */
+    public const TX_TYPE_ORDER_HISTORY = 'order_history';
+
+    /** @var string */
     public const TX_TYPE_HISTORY = 'history';
 
     /** @var string */
@@ -218,11 +221,18 @@ interface PosInterface
     /**
      * Order History
      *
-     * @param array<string, mixed> $meta
+     * @param array<string, mixed> $order
      *
      * @return PosInterface
      */
-    public function history(array $meta): PosInterface;
+    public function orderHistory(array $order): PosInterface;
+
+    /**
+     * @param array<string, mixed> $data
+     *
+     * @return PosInterface
+     */
+    public function history(array $data): PosInterface;
 
     /**
      * Is success

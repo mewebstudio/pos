@@ -153,7 +153,15 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapHistoryResponse(array $rawResponseData): array
     {
-        return $this->emptyStringsToNull($rawResponseData);
+        throw new NotImplementedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function mapOrderHistoryResponse(array $rawResponseData): array
+    {
+        throw new NotImplementedException();
     }
 
     /**

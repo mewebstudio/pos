@@ -322,7 +322,15 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
+    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
     {
         throw new NotImplementedException();
     }
@@ -507,14 +515,6 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'id'            => $order['id'],
             'payment_model' => $order['payment_model'] ?? PosInterface::MODEL_3D_SECURE,
         ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareHistoryOrder(array $order): array
-    {
-        return $this->prepareStatusOrder($order);
     }
 
     /**

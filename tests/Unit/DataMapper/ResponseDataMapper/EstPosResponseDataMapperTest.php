@@ -158,11 +158,11 @@ class EstPosResponseDataMapperTest extends TestCase
     }
 
     /**
-     * @dataProvider historyTestDataProvider
+     * @dataProvider orderHistoryTestDataProvider
      */
     public function testMapHistoryResponse(array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+        $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
         if (count($responseData['Extra']) > 0) {
             if (count($actualData['transactions']) > 1
                 && null !== $actualData['transactions'][0]['transaction_time']
@@ -1558,7 +1558,7 @@ class EstPosResponseDataMapperTest extends TestCase
             ];
     }
 
-    public static function historyTestDataProvider(): array
+    public static function orderHistoryTestDataProvider(): array
     {
         return [
             'success_cancel_success_refund_fail' => [

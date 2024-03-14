@@ -49,6 +49,9 @@ class KuveytPosSerializerTest extends TestCase
     {
         $this->expectException(DomainException::class);
         $this->serializer->encode(['abc' => 1], PosInterface::TX_TYPE_HISTORY);
+
+        $this->expectException(DomainException::class);
+        $this->serializer->encode(['abc' => 1], PosInterface::TX_TYPE_ORDER_HISTORY);
     }
 
     /**

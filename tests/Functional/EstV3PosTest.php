@@ -11,7 +11,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\PayForPos;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use Monolog\Test\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -24,7 +24,7 @@ class EstV3PosTest extends TestCase
 
     private EventDispatcher $eventDispatcher;
 
-    /** @var PayForPos */
+    /** @var EstV3Pos */
     private PosInterface $pos;
 
     private array $lastResponse;
@@ -243,20 +243,20 @@ class EstV3PosTest extends TestCase
      * @depends testRefundSuccess
      * @depends testNonSecurePostPaymentSuccessWithMoreAmount
      */
-    public function testHistorySuccess(array $lastResponse): void
+    public function testOrderHistorySuccess(array $lastResponse): void
     {
-        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), $lastResponse, []);
+        $historyOrder = $this->createOrderHistoryOrder(\get_class($this->pos), $lastResponse);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
             function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
                 $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_HISTORY, $event->getTxType());
+                $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $event->getTxType());
                 $this->assertCount(5, $event->getRequestData());
             });
 
-        $this->pos->history($historyOrder);
+        $this->pos->orderHistory($historyOrder);
 
         $this->assertTrue($this->pos->isSuccess());
         $response = $this->pos->getResponse();

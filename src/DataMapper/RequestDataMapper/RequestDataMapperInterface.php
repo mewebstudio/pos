@@ -121,9 +121,16 @@ interface RequestDataMapperInterface
     /**
      * @param AbstractPosAccount                   $account
      * @param array<string, string|int|float|null> $order
-     * @param array<string, string|int|float|null> $extraData bankaya gore degisen ozel degerler
      *
      * @return array<string, mixed>
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array;
+    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array;
+
+    /**
+     * @param AbstractPosAccount   $account
+     * @param array<string, mixed> $data bankaya gore degisen ozel degerler
+     *
+     * @return array<string, mixed>
+     */
+    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array;
 }

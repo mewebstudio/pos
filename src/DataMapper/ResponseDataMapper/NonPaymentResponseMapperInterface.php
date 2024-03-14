@@ -34,4 +34,11 @@ interface NonPaymentResponseMapperInterface
      * @return array<string, array<string, string|null>>
      */
     public function mapHistoryResponse(array $rawResponseData): array;
+
+    /**
+     * @param array<string, array<string, string>|string> $rawResponseData
+     *
+     * @return array<string, array<string, string|null>>
+     */
+    public function mapOrderHistoryResponse(array $rawResponseData): array;
 }

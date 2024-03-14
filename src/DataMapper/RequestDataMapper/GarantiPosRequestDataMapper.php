@@ -11,6 +11,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
 /**
@@ -287,9 +288,9 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
+    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
     {
-        $order = $this->prepareHistoryOrder($order);
+        $order = $this->prepareOrderHistoryOrder($order);
 
         $result = [
             'Mode'        => $this->getMode(),
@@ -314,6 +315,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
 
         return $result;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    {
+        throw new NotImplementedException();
     }
 
 
@@ -431,7 +440,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
-    protected function prepareHistoryOrder(array $order): array
+    protected function prepareOrderHistoryOrder(array $order): array
     {
         return $this->prepareStatusOrder($order);
     }

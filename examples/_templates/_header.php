@@ -73,6 +73,9 @@
                 <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_REFUND, \Mews\Pos\PosInterface::MODEL_NON_SECURE)): ?>
                     <li> <a href="<?= $bankTestsUrl ?>/regular/refund.php">İade</a></li>
                 <?php endif; ?>
+                <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_ORDER_HISTORY, \Mews\Pos\PosInterface::MODEL_NON_SECURE)): ?>
+                    <li> <a href="<?= $bankTestsUrl ?>/regular/order_history.php">Order History</a></li>
+                <?php endif; ?>
                 <?php if($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_HISTORY, \Mews\Pos\PosInterface::MODEL_NON_SECURE)): ?>
                     <li> <a href="<?= $bankTestsUrl ?>/regular/history.php">History</a></li>
                 <?php endif; ?>

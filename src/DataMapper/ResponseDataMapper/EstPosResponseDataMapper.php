@@ -5,6 +5,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
 /**
@@ -402,7 +403,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * {@inheritDoc}
      */
-    public function mapHistoryResponse(array $rawResponseData): array
+    public function mapOrderHistoryResponse(array $rawResponseData): array
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
@@ -415,7 +416,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         $i            = 1;
         while (isset($rawResponseData['Extra']['TRX'.$i])) {
             $rawTx          = \explode("\t", $rawResponseData['Extra']['TRX'.$i]);
-            $transactions[] = $this->mapSingleHistoryTransaction($rawTx);
+            $transactions[] = $this->mapSingleOrderHistoryTransaction($rawTx);
             ++$i;
         }
 
@@ -431,6 +432,14 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'status_detail'    => $this->getStatusDetail($procReturnCode),
             'all'              => $rawResponseData,
         ];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function mapHistoryResponse(array $rawResponseData): array
+    {
+        throw new NotImplementedException();
     }
 
     /**
@@ -492,7 +501,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @return array<string, string|int|float|null>
      */
-    private function mapSingleHistoryTransaction(array $rawTx): array
+    private function mapSingleOrderHistoryTransaction(array $rawTx): array
     {
         $rawTx                           = $this->emptyStringsToNull($rawTx);
         $transaction                     = $this->getDefaultOrderHistoryTxResponse();

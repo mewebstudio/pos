@@ -170,30 +170,41 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param array{id ?: string, reqDate ?: \DateTimeInterface} $extraData
-     *
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
+    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
     {
-        $order = $this->prepareHistoryOrder($order);
+        $order = $this->prepareOrderHistoryOrder($order);
 
         $requestData = [
             'MbrId'      => self::MBR_ID,
             'SecureType' => 'Report',
+            'OrderId'    => $order['id'],
             'TxnType'    => $this->mapTxType(PosInterface::TX_TYPE_HISTORY),
             'Lang'       => $this->getLang($account, $order),
         ];
 
-        if (isset($extraData['id'])) {
-            $requestData['OrderId'] = $extraData['id'];
-        } elseif (isset($extraData['reqDate'])) {
-            $requestData['ReqDate'] = $extraData['reqDate']->format('Ymd');
-        }
-
         return $this->getRequestAccountData($account) + $requestData;
     }
 
+    /**
+     * @param array{reqDate: \DateTimeInterface} $data
+     * {@inheritDoc}
+     */
+    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    {
+        $order = $this->prepareHistoryOrder($data);
+
+        $requestData = [
+            'MbrId'      => self::MBR_ID,
+            'SecureType' => 'Report',
+            'ReqDate'    => $data['reqDate']->format('Ymd'),
+            'TxnType'    => $this->mapTxType(PosInterface::TX_TYPE_HISTORY),
+            'Lang'       => $this->getLang($account, $order),
+        ];
+
+        return $this->getRequestAccountData($account) + $requestData;
+    }
 
     /**
      * {@inheritDoc}
@@ -275,12 +286,20 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
-    protected function prepareHistoryOrder(array $order): array
+    protected function prepareHistoryOrder(array $data): array
     {
         return [
-            //reqDate or order id
-            'reqDate' => $order['reqDate'] ?? null,
-            'id'      => $order['id'] ?? null,
+            'reqDate' => $data['reqDate'],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareOrderHistoryOrder(array $order): array
+    {
+        return [
+            'id' => $order['id'],
         ];
     }
 

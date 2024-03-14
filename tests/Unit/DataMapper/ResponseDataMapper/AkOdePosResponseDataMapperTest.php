@@ -139,11 +139,11 @@ class AkOdePosResponseDataMapperTest extends TestCase
     }
 
     /**
-     * @dataProvider historyDataProvider
+     * @dataProvider orderHistoryDataProvider
      */
     public function testMapHistoryResponse(array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+        $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
         if (isset($responseData['Transactions'])) {
             $this->assertCount($actualData['trans_count'], $actualData['transactions']);
             if (count($actualData['transactions']) > 1
@@ -1291,7 +1291,7 @@ class AkOdePosResponseDataMapperTest extends TestCase
         ];
     }
 
-    public static function historyDataProvider(): array
+    public static function orderHistoryDataProvider(): array
     {
         return [
             'fail_validation'                  => [

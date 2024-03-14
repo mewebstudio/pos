@@ -5,6 +5,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
 class PosNetResponseDataMapper extends AbstractResponseDataMapper
@@ -266,7 +267,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
      * todo refactor
      * {@inheritDoc}
      */
-    public function mapHistoryResponse(array $rawResponseData): array
+    public function mapOrderHistoryResponse(array $rawResponseData): array
     {
         $status          = self::TX_DECLINED;
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
@@ -336,7 +337,15 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
             'all'              => $rawResponseData,
         ];
 
-        return array_merge($results, $txResults);
+        return \array_merge($results, $txResults);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function mapHistoryResponse(array $rawResponseData): array
+    {
+        throw new NotImplementedException();
     }
 
     /**

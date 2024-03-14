@@ -349,9 +349,9 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function history(array $meta): PosInterface
+    public function history(array $data): PosInterface
     {
-        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $meta, $meta);
+        $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $data);
 
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_HISTORY);
         $this->eventDispatcher->dispatch($event);
@@ -365,9 +365,35 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, PosInterface::TX_TYPE_HISTORY);
-        $bankResponse   = $this->send($data, PosInterface::TX_TYPE_HISTORY, PosInterface::MODEL_NON_SECURE);
-        $this->response = $this->responseDataMapper->mapHistoryResponse($bankResponse);
+        $encodedRequestData = $this->serializer->encode($requestData, PosInterface::TX_TYPE_HISTORY);
+        $bankResponse       = $this->send($encodedRequestData, PosInterface::TX_TYPE_HISTORY, PosInterface::MODEL_NON_SECURE);
+        $this->response     = $this->responseDataMapper->mapHistoryResponse($bankResponse);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function orderHistory(array $order): PosInterface
+    {
+        $requestData = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_ORDER_HISTORY);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $data           = $this->serializer->encode($requestData, PosInterface::TX_TYPE_ORDER_HISTORY);
+        $bankResponse   = $this->send($data, PosInterface::TX_TYPE_ORDER_HISTORY, PosInterface::MODEL_NON_SECURE);
+        $this->response = $this->responseDataMapper->mapOrderHistoryResponse($bankResponse);
 
         return $this;
     }

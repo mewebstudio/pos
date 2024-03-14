@@ -165,9 +165,9 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
+    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
     {
-        $order       = $this->prepareHistoryOrder($order);
+        $order       = $this->prepareOrderHistoryOrder($order);
         $requestData = [
             'orderId'         => (string) $order['id'],
             'transactionDate' => $order['transactionDate']->format('Ymd'),
@@ -182,6 +182,13 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + $requestData;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    {
+        throw new NotImplementedException();
+    }
 
     /**
      * {@inheritDoc}
@@ -299,7 +306,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
-    protected function prepareHistoryOrder(array $order): array
+    protected function prepareOrderHistoryOrder(array $order): array
     {
         return [
             'id'              => $order['id'],

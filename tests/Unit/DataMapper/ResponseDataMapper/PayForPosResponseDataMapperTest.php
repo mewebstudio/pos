@@ -121,11 +121,11 @@ class PayForPosResponseDataMapperTest extends TestCase
     }
 
     /**
-     * @dataProvider historyTestDataProvider
+     * @dataProvider orderHistoryTestDataProvider
      */
-    public function testMapHistoryResponse(array $responseData, array $expectedData)
+    public function testMapOrderHistoryResponse(array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+        $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
 
         if (count($actualData['transactions']) > 1
             && null !== $actualData['transactions'][0]['transaction_time']
@@ -2194,7 +2194,7 @@ class PayForPosResponseDataMapperTest extends TestCase
             ];
     }
 
-    public static function historyTestDataProvider(): array
+    public static function orderHistoryTestDataProvider(): array
     {
         return [
             'success_pre_pay_post_pay_then_cancel' => [

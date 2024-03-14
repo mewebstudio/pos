@@ -163,11 +163,11 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @dataProvider historyRequestDataProvider
+     * @dataProvider orderHistoryRequestDataProvider
      */
-    public function testCreateHistoryRequestData(array $order, array $expected)
+    public function testCreateOrderHistoryRequestData(array $order, array $expected)
     {
-        $actual = $this->requestDataMapper->createHistoryRequestData($this->account, [], $order);
+        $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
     }
 
@@ -479,7 +479,7 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    public static function historyRequestDataProvider(): array
+    public static function orderHistoryRequestDataProvider(): array
     {
         return [
             [

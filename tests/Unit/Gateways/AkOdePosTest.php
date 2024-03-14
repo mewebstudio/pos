@@ -383,9 +383,9 @@ class AkOdePosTest extends TestCase
 
 
     /**
-     * @dataProvider historyDataProvider
+     * @dataProvider orderHistoryDataProvider
      */
-    public function testHistory(
+    public function testOrderHistory(
         array  $order,
         array  $requestData,
         string $encodedRequest,
@@ -396,7 +396,7 @@ class AkOdePosTest extends TestCase
     ): void
     {
         $this->requestMapperMock->expects(self::once())
-            ->method('createHistoryRequestData')
+            ->method('createOrderHistoryRequestData')
             ->with($this->pos->getAccount(), $order)
             ->willReturn($requestData);
 
@@ -405,12 +405,12 @@ class AkOdePosTest extends TestCase
             ->with($this->logicalAnd($this->isInstanceOf(RequestDataPreparedEvent::class)));
 
         $this->responseMapperMock->expects(self::once())
-            ->method('mapHistoryResponse')
+            ->method('mapOrderHistoryResponse')
             ->with($decodedResponse)
             ->willReturn($mappedResponse);
 
         $this->configureClientResponse(
-            PosInterface::TX_TYPE_HISTORY,
+            PosInterface::TX_TYPE_ORDER_HISTORY,
             'https://ent.akodepos.com/api/Payment/history',
             $requestData,
             $encodedRequest,
@@ -418,7 +418,7 @@ class AkOdePosTest extends TestCase
             $decodedResponse
         );
 
-        $this->pos->history($order);
+        $this->pos->orderHistory($order);
 
         $this->assertSame($isSuccess, $this->pos->isSuccess());
         $result = $this->pos->getResponse();
@@ -464,15 +464,15 @@ class AkOdePosTest extends TestCase
         ];
     }
 
-    public static function historyDataProvider(): iterable
+    public static function orderHistoryDataProvider(): iterable
     {
         yield [
-            'order'               => AkOdePosRequestDataMapperTest::historyRequestDataProvider()[0]['order'],
-            'requestData'         => AkOdePosRequestDataMapperTest::historyRequestDataProvider()[0]['expected'],
-            'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::historyRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
-            'responseData'        => \json_encode(AkOdePosResponseDataMapperTest::historyDataProvider()['success_only_payment_transaction']['responseData'], JSON_THROW_ON_ERROR),
-            'decodedResponseData' => AkOdePosResponseDataMapperTest::historyDataProvider()['success_only_payment_transaction']['responseData'],
-            'mappedResponse'      => AkOdePosResponseDataMapperTest::historyDataProvider()['success_only_payment_transaction']['expectedData'],
+            'order'               => AkOdePosRequestDataMapperTest::orderHistoryRequestDataProvider()[0]['order'],
+            'requestData'         => AkOdePosRequestDataMapperTest::orderHistoryRequestDataProvider()[0]['expected'],
+            'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::orderHistoryRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
+            'responseData'        => \json_encode(AkOdePosResponseDataMapperTest::orderHistoryDataProvider()['success_only_payment_transaction']['responseData'], JSON_THROW_ON_ERROR),
+            'decodedResponseData' => AkOdePosResponseDataMapperTest::orderHistoryDataProvider()['success_only_payment_transaction']['responseData'],
+            'mappedResponse'      => AkOdePosResponseDataMapperTest::orderHistoryDataProvider()['success_only_payment_transaction']['expectedData'],
             'isSuccess'           => true,
         ];
     }
@@ -599,7 +599,7 @@ class AkOdePosTest extends TestCase
                 'expected'     => 'https://ent.akodepos.com/api/Payment/refund',
             ],
             [
-                'txType'       => PosInterface::TX_TYPE_HISTORY,
+                'txType'       => PosInterface::TX_TYPE_ORDER_HISTORY,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/history',
             ],

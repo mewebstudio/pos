@@ -144,20 +144,20 @@ class AkOdePosTest extends TestCase
     /**
      * @depends testCancelSuccess
      */
-    public function testHistorySuccess(array $lastResponse): void
+    public function testOrderHistorySuccess(array $lastResponse): void
     {
-        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), $lastResponse, []);
+        $historyOrder = $this->createOrderHistoryOrder(\get_class($this->pos), $lastResponse);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
             function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
                 $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_HISTORY, $event->getTxType());
+                $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $event->getTxType());
                 $this->assertCount(9, $event->getRequestData());
             });
 
-        $this->pos->history($historyOrder);
+        $this->pos->orderHistory($historyOrder);
 
         $this->assertTrue($this->pos->isSuccess());
         $response = $this->pos->getResponse();

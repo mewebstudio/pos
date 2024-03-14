@@ -10,6 +10,7 @@ use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -42,7 +43,8 @@ class EstPos extends AbstractGateway
         PosInterface::TX_TYPE_STATUS        => true,
         PosInterface::TX_TYPE_CANCEL        => true,
         PosInterface::TX_TYPE_REFUND        => true,
-        PosInterface::TX_TYPE_HISTORY       => true,
+        PosInterface::TX_TYPE_ORDER_HISTORY => true,
+        PosInterface::TX_TYPE_HISTORY       => false,
     ];
 
 
@@ -140,6 +142,14 @@ class EstPos extends AbstractGateway
         $this->logger->debug('preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), $card);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function history(array $data): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
     }
 
     /**

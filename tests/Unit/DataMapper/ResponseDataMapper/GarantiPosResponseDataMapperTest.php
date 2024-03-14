@@ -109,11 +109,11 @@ class GarantiPosResponseDataMapperTest extends TestCase
     }
 
     /**
-     * @dataProvider historyTestDataProvider
+     * @dataProvider orderHistoryTestDataProvider
      */
-    public function testMapHistoryResponse(array $responseData, array $expectedData)
+    public function testOrderMapHistoryResponse(array $responseData, array $expectedData)
     {
-        $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+        $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
         if (count($actualData['transactions']) > 1
             && null !== $actualData['transactions'][0]['transaction_time']
             && null !== $actualData['transactions'][1]['transaction_time']
@@ -1402,7 +1402,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
             ];
     }
 
-    public function historyTestDataProvider(): array
+    public function orderHistoryTestDataProvider(): array
     {
         return [
             'success_single_pay_tx' => [

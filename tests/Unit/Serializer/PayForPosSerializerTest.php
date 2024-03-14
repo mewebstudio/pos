@@ -740,7 +740,7 @@ class PayForPosSerializerTest extends TestCase
     </ExtraParameters>
   </PaymentRequestExtended>
 </TxnHistoryReport>',
-            'txType'   => PosInterface::TX_TYPE_HISTORY,
+            'txType'   => PosInterface::TX_TYPE_ORDER_HISTORY,
             'expected' => [
                 '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                 '@xsi:noNamespaceSchemaLocation' => 'TxnHistoryReport.xsd',

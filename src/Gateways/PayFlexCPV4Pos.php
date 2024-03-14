@@ -15,6 +15,7 @@ use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -49,6 +50,7 @@ class PayFlexCPV4Pos extends AbstractGateway
         PosInterface::TX_TYPE_CANCEL        => true,
         PosInterface::TX_TYPE_REFUND        => true,
         PosInterface::TX_TYPE_HISTORY       => false,
+        PosInterface::TX_TYPE_ORDER_HISTORY => false,
     ];
 
     /** @return PayFlexAccount */
@@ -128,12 +130,19 @@ class PayFlexCPV4Pos extends AbstractGateway
     }
 
     /**
-     * TODO implement
      * @inheritDoc
      */
-    public function history(array $meta): PosInterface
+    public function history(array $data): PosInterface
     {
         throw new UnsupportedPaymentModelException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function orderHistory(array $order): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
     }
 
     /**

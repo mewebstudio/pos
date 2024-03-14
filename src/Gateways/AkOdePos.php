@@ -48,7 +48,8 @@ class AkOdePos extends AbstractGateway
             PosInterface::MODEL_3D_HOST,
         ],
 
-        PosInterface::TX_TYPE_HISTORY       => true,
+        PosInterface::TX_TYPE_HISTORY       => false,
+        PosInterface::TX_TYPE_ORDER_HISTORY => true,
         PosInterface::TX_TYPE_PAY_POST_AUTH => true,
         PosInterface::TX_TYPE_CANCEL        => true,
         PosInterface::TX_TYPE_REFUND        => true,
@@ -148,6 +149,14 @@ class AkOdePos extends AbstractGateway
     }
 
     /**
+     * @inheritDoc
+     */
+    public function history(array $data): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
+    }
+
+    /**
      * Ödeme İşlem Başlatma
      *
      * Ödeme formu ve Ortak Ödeme Sayfası ile ödeme işlemi başlatmak için ThreeDSessionId değeri üretilmelidir.
@@ -220,8 +229,8 @@ class AkOdePos extends AbstractGateway
     }
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_*    $txType
-     * @phpstan-param PosInterface::MODEL_* $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::MODEL_*   $paymentModel
      *
      * @return string
      *
@@ -243,7 +252,7 @@ class AkOdePos extends AbstractGateway
             PosInterface::TX_TYPE_CANCEL        => 'void',
             PosInterface::TX_TYPE_REFUND        => 'refund',
             PosInterface::TX_TYPE_STATUS        => 'inquiry',
-            PosInterface::TX_TYPE_HISTORY       => 'history',
+            PosInterface::TX_TYPE_ORDER_HISTORY => 'history',
         ];
 
         if (!isset($arr[$txType])) {

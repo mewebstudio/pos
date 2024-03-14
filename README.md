@@ -10,19 +10,19 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 ### Deskteklenen Payment Gateway'ler / Bankalar:
 
-| Gateway                              | Desktekleyen<br/>bankalar| Desteklenen<br/>Diğer<br/>İşlemler                        | Desteklenen Sorgular|
-|--------------------------------------|-------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------|
-| AKÖde                                | Akbank| NonSecure<br/>3DPay<br/>3DHost                            | İptal<br/>İade<br/>Durum sorgulama<br/>Tarihçe sorgulama |
-| EST POS<br/>(Asseco/Payten)<br/>_deprecated_ | Akbank<br/>TEB<br/>İşbank<br/>Şekerbank<br/>Halkbank<br/>Finansbank | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost<br/>3DPayHost | İptal<br/>İade<br/>Durum sorgulama<br/>Tarihçe sorgulama |
-| EST V3 POS<br/><br/>EstPos altyapının<br/>daha güvenli<br/>(sha512) hash<br/>algoritmasıyla<br/>uygulaması.| -----"----- | -----"-----                                               | -----"-----                                         |
-|   PayFlex MPI VPOS V4 | Ziraat<br/>Vakıfbank<br/>İşbank| NonSecure<br/>3DSecure<br/>                               | İptal<br/>İade<br/>Durum sorgulama|
-|PayFlex<br/>Common Payment V4<br/>(Ortak Ödeme)| Ziraat<br/>Vakıfbank<br/>İşbank| NonSecure<br/>3DPay<br/>3DHost                            | İptal<br/>İade|
-|Garanti Virtual POS|Garanti| NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost               | İptal<br/>İade<br/>Durum sorgulama<br/>Tarihçe sorgulama |
-|PosNet|YapıKredi| NonSecure<br/>3DSecure<br/>                               | İptal<br/>İade<br/>Durum sorgulama                  |
-|PosNetV1<br/>(JSON API)|Albaraka Türk| NonSecure<br/>3DSecure                                    | İptal<br/>İade<br/>Durum sorgulama                  |
-|PayFor|Finansbank<br/>Enpara| NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost               | İptal<br/>İade<br/>Durum sorgulama<br/>Tarihçe sorgulama |
-|InterPOS|Deniz bank| NonSecure<br/> 3DSecure<br/>3DPay<br/>3DHost              | İptal<br/>İade<br/>Durum sorgulama                  |
-|Kuveyt POS|Kuveyt Türk| 3DSecure                                                  | İptal<br/>İade<br/>Durum sorgulama<br/>(SOAP API)   |
+| Gateway                              | Desktekleyen<br/>bankalar| Desteklenen<br/>Diğer<br/>İşlemler                        | Desteklenen Sorgular                                                                                |
+|--------------------------------------|-------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| AKÖde                                | Akbank| NonSecure<br/>3DPay<br/>3DHost                            | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama                                |
+| EST POS<br/>(Asseco/Payten)<br/>_deprecated_ | Akbank<br/>TEB<br/>İşbank<br/>Şekerbank<br/>Halkbank<br/>Finansbank | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost<br/>3DPayHost | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama                                |
+| EST V3 POS<br/><br/>EstPos altyapının<br/>daha güvenli<br/>(sha512) hash<br/>algoritmasıyla<br/>uygulaması.| -----"----- | -----"-----                                               | -----"-----                                                                                         |
+|   PayFlex MPI VPOS V4 | Ziraat<br/>Vakıfbank<br/>İşbank| NonSecure<br/>3DSecure<br/>                               | İptal<br/>İade<br/>Durum sorgulama                                                                  |
+|PayFlex<br/>Common Payment V4<br/>(Ortak Ödeme)| Ziraat<br/>Vakıfbank<br/>İşbank| NonSecure<br/>3DPay<br/>3DHost                            | İptal<br/>İade                                                                                      |
+|Garanti Virtual POS|Garanti| NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost               | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama                                |
+|PosNet|YapıKredi| NonSecure<br/>3DSecure<br/>                               | İptal<br/>İade<br/>Durum sorgulama                                                                  |
+|PosNetV1<br/>(JSON API)|Albaraka Türk| NonSecure<br/>3DSecure                                    | İptal<br/>İade<br/>Durum sorgulama                                                                  |
+|PayFor|Finansbank<br/>Enpara| NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost               | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama<br/>Geçmiş İşlemleri sorgulama |
+|InterPOS|Deniz bank| NonSecure<br/> 3DSecure<br/>3DPay<br/>3DHost              | İptal<br/>İade<br/>Durum sorgulama                                                                  |
+|Kuveyt POS|Kuveyt Türk| 3DSecure                                                  | İptal<br/>İade<br/>Durum sorgulama<br/>(SOAP API)                                                   |
 
 
 ### Ana başlıklar
@@ -51,7 +51,8 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
   - 3D Pay modeliyle ödeme (`PosInterface::MODEL_3D_PAY`)
   - 3D Host modeliyle ödeme (`PosInterface::MODEL_3D_HOST`)
   - Sipariş/Ödeme durum sorgulama (`PosInterface::TX_TYPE_STATUS`)
-  - Sipariş/Ödeme geçmişi sorgulama (`PosInterface::TX_TYPE_HISTORY`)
+  - Sipariş Tarihçesini sorgulama sorgulama (`PosInterface::TX_TYPE_ORDER_HISTORY`)
+  - Geçmiş işlemleri sorgulama (`PosInterface::TX_TYPE_HISTORY`)
   - Sipariş/Para iadesi yapma (`PosInterface::TX_TYPE_REFUND`)
   - Sipariş iptal etme (`PosInterface::TX_TYPE_CANCEL`)
   - API istek verilerinin gateway API'na gönderilmeden önce değiştirebilme

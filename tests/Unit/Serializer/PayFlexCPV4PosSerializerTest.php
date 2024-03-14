@@ -72,6 +72,9 @@ class PayFlexCPV4PosSerializerTest extends TestCase
         $this->serializer->encode($data, PosInterface::TX_TYPE_HISTORY);
 
         $this->expectException(DomainException::class);
+        $this->serializer->encode($data, PosInterface::TX_TYPE_ORDER_HISTORY);
+
+        $this->expectException(DomainException::class);
         $this->serializer->encode($data, PosInterface::TX_TYPE_STATUS);
     }
 

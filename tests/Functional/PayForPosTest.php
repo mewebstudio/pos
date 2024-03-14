@@ -148,9 +148,30 @@ class PayForPosTest extends TestCase
     /**
      * @depends testCancelSuccess
      */
-    public function testHistorySuccess(array $lastResponse): void
+    public function testOrderHistorySuccess(array $lastResponse): void
     {
-        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), $lastResponse, []);
+        $historyOrder = $this->createOrderHistoryOrder(\get_class($this->pos), $lastResponse);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $event->getTxType());
+                $this->assertCount(8, $event->getRequestData());
+            });
+
+        $this->pos->orderHistory($historyOrder);
+
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+    }
+
+    public function testHistorySuccess(): void
+    {
+        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), []);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -165,8 +186,8 @@ class PayForPosTest extends TestCase
 
         $response = $this->pos->getResponse();
         $this->assertIsArray($response);
-        $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
+        $this->assertNotEmpty($response['transactions']);
     }
 
     public function testNonSecurePrePaymentSuccess(): array

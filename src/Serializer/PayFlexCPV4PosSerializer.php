@@ -43,7 +43,7 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
      */
     public function encode(array $data, string $txType)
     {
-        if (PosInterface::TX_TYPE_HISTORY === $txType || PosInterface::TX_TYPE_STATUS === $txType) {
+        if (PosInterface::TX_TYPE_HISTORY === $txType || PosInterface::TX_TYPE_ORDER_HISTORY === $txType || PosInterface::TX_TYPE_STATUS === $txType) {
             throw new DomainException(\sprintf('Serialization of the transaction %s is not supported', $txType));
         }
 

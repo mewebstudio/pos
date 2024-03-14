@@ -291,7 +291,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritDoc}
      */
-    public function mapHistoryResponse(array $rawResponseData): array
+    public function mapOrderHistoryResponse(array $rawResponseData): array
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
@@ -305,11 +305,11 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             $rawTransactions = $rawResponseData['Order']['OrderHistInqResult']['OrderTxnList']['OrderTxn'];
             if (\count($rawTransactions) !== \count($rawTransactions, COUNT_RECURSIVE)) {
                 foreach ($rawTransactions as $transaction) {
-                    $mappedTransaction    = $this->mapSingleHistoryTransaction($transaction);
+                    $mappedTransaction    = $this->mapSingleOrderHistoryTransaction($transaction);
                     $mappedTransactions[] = $mappedTransaction;
                 }
             } else {
-                $mappedTransactions[] = $this->mapSingleHistoryTransaction($rawTransactions);
+                $mappedTransactions[] = $this->mapSingleOrderHistoryTransaction($rawTransactions);
             }
         }
 
@@ -324,6 +324,14 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'transactions'     => $mappedTransactions,
             'all'              => $rawResponseData,
         ];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function mapHistoryResponse(array $rawResponseData): array
+    {
+        throw new NotImplementedException();
     }
 
     /**
@@ -432,7 +440,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @throws \Exception
      */
-    private function mapSingleHistoryTransaction(array $rawTx): array
+    private function mapSingleOrderHistoryTransaction(array $rawTx): array
     {
         $procReturnCode = $rawTx['Status'];
         $status         = self::TX_DECLINED;

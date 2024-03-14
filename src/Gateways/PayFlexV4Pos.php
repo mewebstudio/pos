@@ -49,6 +49,7 @@ class PayFlexV4Pos extends AbstractGateway
         PosInterface::TX_TYPE_CANCEL        => true,
         PosInterface::TX_TYPE_REFUND        => true,
         PosInterface::TX_TYPE_HISTORY       => false,
+        PosInterface::TX_TYPE_ORDER_HISTORY => false,
     ];
 
     /** @return PayFlexAccount */
@@ -124,7 +125,15 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function history(array $meta): PosInterface
+    public function history(array $data): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function orderHistory(array $order): PosInterface
     {
         throw new UnsupportedTransactionTypeException();
     }

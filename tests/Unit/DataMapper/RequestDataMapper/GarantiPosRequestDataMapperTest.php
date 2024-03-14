@@ -64,7 +64,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
 
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
+        $pos        = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
 
         $crypt                   = CryptFactory::createGatewayCrypt(GarantiPos::class, new NullLogger());
         $this->requestDataMapper = new GarantiPosRequestDataMapper($dispatcher, $crypt);
@@ -162,15 +162,12 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider orderHistoryRequestDataProvider
      */
-    public function testCreateHistoryRequestData()
+    public function testCreateOrderHistoryRequestData(array $order, array $expectedData)
     {
-        $this->order['amount'] = 1;
+        $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
 
-        $actual = $this->requestDataMapper->createHistoryRequestData($this->account, $this->order);
-
-        $expectedData = $this->getSampleHistoryRequestData($this->account, $this->order);
         $this->assertEquals($expectedData, $actual);
     }
 
@@ -279,7 +276,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -316,7 +313,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Card'        => [
                 'Number'     => $card->getNumber(),
@@ -324,7 +321,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'CVV2'       => $card->getCvv(),
             ],
             'Order'       => [
-                'OrderID'     => $order['id'],
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => 'sales',
@@ -356,7 +353,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -389,7 +386,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'MerchantID' => $account->getClientId(),
             ],
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -407,7 +404,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
     public static function refundOrderDataProvider(): \Generator
     {
-        $order = [
+        $order   = [
             'id'          => '2020110828BC',
             'ip'          => '127.15.15.1',
             'currency'    => PosInterface::CURRENCY_TRY,
@@ -458,37 +455,40 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param GarantiPosAccount $account
-     * @param array             $order
-     *
-     * @return array
-     */
-    private function getSampleHistoryRequestData(AbstractPosAccount $account, array $order): array
+    public static function orderHistoryRequestDataProvider(): array
     {
         return [
-            'Mode'        => 'TEST',
-            'Version'     => '512',
-            'Terminal'    => [
-                'ProvUserID' => $account->getUsername(),
-                'UserID'     => $account->getUsername(),
-                'HashData'   => '817BA6A5013BD1E75E1C2FE82AA0F2EFEF89033C31563575701BD05F3C20ADC5DD2AF65D9EF8CF81784E9DA787603E0C1321C6909BE920504BEB3A85992440F5',
-                'ID'         => $account->getTerminalId(),
-                'MerchantID' => $account->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress'    => $order['ip'],
-            ],
-            'Order'       => [
-                'OrderID' => $order['id'],
-            ],
-            'Transaction' => [
-                'Type'                  => 'orderhistoryinq',
-                'InstallmentCnt'        => '',
-                'Amount'                => 100,
-                'CurrencyCode'          => '949',
-                'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
+            [
+                'order'    => [
+                    'id' => 'order222',
+                    'ip' => '156.155.154.153',
+                    'installment' => 0,
+                ],
+                'expected' => [
+                    'Mode'        => 'TEST',
+                    'Version'     => '512',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'HashData'   => '817BA6A5013BD1E75E1C2FE82AA0F2EFEF89033C31563575701BD05F3C20ADC5DD2AF65D9EF8CF81784E9DA787603E0C1321C6909BE920504BEB3A85992440F5',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress' => '156.155.154.153',
+                    ],
+                    'Order'       => [
+                        'OrderID' => 'order222',
+                    ],
+                    'Transaction' => [
+                        'Type'                  => 'orderhistoryinq',
+                        'InstallmentCnt'        => '',
+                        'Amount'                => 100,
+                        'CurrencyCode'          => '949',
+                        'CardholderPresentCode' => '0',
+                        'MotoInd'               => 'N',
+                    ],
+                ],
             ],
         ];
     }
@@ -519,15 +519,15 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
 
         $responseData = [
-            'orderid'              => '2020110828BC',
-            'md'                   => '1',
-            'xid'                  => '100000005xid',
-            'eci'                  => '100000005eci',
-            'cavv'                 => 'cavv',
-            'txncurrencycode'      => '949',
-            'txnamount'            => '100.25',
-            'txntype'              => 'sales',
-            'customeripaddress'    => '127.0.0.1',
+            'orderid'           => '2020110828BC',
+            'md'                => '1',
+            'xid'               => '100000005xid',
+            'eci'               => '100000005eci',
+            'cavv'              => 'cavv',
+            'txncurrencycode'   => '949',
+            'txnamount'         => '100.25',
+            'txntype'           => 'sales',
+            'customeripaddress' => '127.0.0.1',
         ];
 
         yield [
@@ -545,7 +545,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
                     'MerchantID' => $account->getClientId(),
                 ],
                 'Customer'    => [
-                    'IPAddress'    => '127.0.0.1',
+                    'IPAddress' => '127.0.0.1',
                 ],
                 'Order'       => [
                     'OrderID' => '2020110828BC',
@@ -590,7 +590,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
                     'MerchantID' => $account->getClientId(),
                 ],
                 'Customer'    => [
-                    'IPAddress'    => '127.0.0.1',
+                    'IPAddress' => '127.0.0.1',
                 ],
                 'Order'       => [
                     'OrderID' => '2020110828BC',

@@ -272,7 +272,7 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * {@inheritDoc}
      */
-    public function mapHistoryResponse(array $rawResponseData): array
+    public function mapOrderHistoryResponse(array $rawResponseData): array
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $errorCode       = $rawResponseData['Code'];
@@ -302,6 +302,14 @@ class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
             'transactions'     => $mappedTransactions,
             'all'              => $rawResponseData,
         ];
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function mapHistoryResponse(array $rawResponseData): array
+    {
+        throw new NotImplementedException();
     }
 
     /**

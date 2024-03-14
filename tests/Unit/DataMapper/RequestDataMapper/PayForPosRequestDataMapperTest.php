@@ -147,13 +147,28 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider orderHistoryRequestDataProvider
+     */
+    public function testOrderCreateHistoryRequestData(array $order, array $expectedData)
+    {
+        $actualData = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
+
+        \ksort($expectedData);
+        \ksort($actualData);
+        $this->assertSame($expectedData, $actualData);
+    }
+
+    /**
      * @dataProvider historyRequestDataProvider
      */
-    public function testCreateHistoryRequestData(array $order, array $expectedData)
+    public function testCreateHistoryRequestData(array $data, array $expectedData)
     {
-        $actual = $this->requestDataMapper->createHistoryRequestData($this->account, [], $order);
+        $actualData = $this->requestDataMapper->createHistoryRequestData($this->account, $data);
 
-        $this->assertEquals($expectedData, $actual);
+        \ksort($expectedData);
+        \ksort($actualData);
+
+        $this->assertSame($expectedData, $actualData);
     }
 
     /**
@@ -371,13 +386,12 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    public static function historyRequestDataProvider(): array
+    public static function orderHistoryRequestDataProvider(): array
     {
         return [
             [
                 'order'    => [
                     'id'      => '2020110828BC',
-                    'reqDate' => new \DateTime('2022-05-18'),
                 ],
                 'expected' => [
                     'MerchantId' => '085300000009704',
@@ -388,6 +402,27 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'TxnType'    => 'TxnHistory',
                     'Lang'       => 'tr',
                     'OrderId'    => '2020110828BC',
+                ],
+            ],
+        ];
+    }
+
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            [
+                'data'    => [
+                    'reqDate' => new \DateTime('2022-05-18'),
+                ],
+                'expected' => [
+                    'MerchantId' => '085300000009704',
+                    'UserCode'   => 'QNB_API_KULLANICI_3DPAY',
+                    'UserPass'   => 'UcBN0',
+                    'MbrId'      => '5',
+                    'SecureType' => 'Report',
+                    'TxnType'    => 'TxnHistory',
+                    'Lang'       => 'tr',
+                    'ReqDate'    => '20220518',
                 ],
             ],
         ];

@@ -44,12 +44,16 @@ class PayFlexV4PosSerializerTest extends TestCase
         $this->assertSame($expected, $result);
     }
 
-    public function testEncodeException()
+    /**
+     * @testWith ["history"]
+     * @testWith ["order_history"]
+     */
+    public function testEncodeException(string $txType)
     {
         $data = ['abc' => 1];
 
         $this->expectException(DomainException::class);
-        $this->serializer->encode($data, PosInterface::TX_TYPE_HISTORY);
+        $this->serializer->encode($data, $txType);
     }
 
     /**

@@ -176,42 +176,44 @@ trait PaymentTestTrait
         return $cancelOrder;
     }
 
-    private function createHistoryOrder(string $gatewayClass, array $lastResponse, array $extraData): array
+    private function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): array
     {
         $order = [];
         if (EstPos::class === $gatewayClass || EstV3Pos::class === $gatewayClass) {
             $order = [
                 'id' => $lastResponse['order_id'],
             ];
-        }
-
-        if (AkOdePos::class === $gatewayClass) {
+        } elseif (AkOdePos::class === $gatewayClass) {
             $order = [
-                'id'               => $lastResponse['order_id'],
-                'transactionDate'  => $lastResponse['transaction_time'], // odeme tarihi
-                'page'             => 1, // optional, default: 1
-                'pageSize'         => 10, // optional, default: 10
+                'id'              => $lastResponse['order_id'],
+                'transactionDate' => $lastResponse['transaction_time'], // odeme tarihi
+                'page'            => 1, // optional, default: 1
+                'pageSize'        => 10, // optional, default: 10
             ];
-        }
-
-        if (PayForPos::class === $gatewayClass) {
-            if (isset($extraData['reqDate'])) {
-                $order = [
-                    // odeme tarihi
-                    'reqDate' => $extraData['reqDate'],
-                ];
-            } else {
-                $order = [
-                    'id' => $lastResponse['order_id'],
-                ];
-            }
-        }
-
-        if (GarantiPos::class === $gatewayClass) {
+        } elseif (PayForPos::class === $gatewayClass) {
+            $order = [
+                'id' => $lastResponse['order_id'],
+            ];
+        } elseif (GarantiPos::class === $gatewayClass) {
             $order = [
                 'id'       => $lastResponse['order_id'],
                 'currency' => $lastResponse['currency'],
                 'ip'       => '127.0.0.1',
+            ];
+        }
+
+        return $order;
+    }
+
+
+    private function createHistoryOrder(string $gatewayClass, array $extraData): array
+    {
+        $order = [];
+
+        if (PayForPos::class === $gatewayClass) {
+            $order = [
+                // odeme tarihi
+                'reqDate'  => $extraData['reqDate'] ?? new \DateTimeImmutable(),
             ];
         }
 

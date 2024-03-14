@@ -8,6 +8,7 @@ namespace Mews\Pos\DataMapper\RequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
 /**
@@ -218,10 +219,12 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{OrderId: string, Extra: array<string, string>&array, Name: string, Password: string, ClientId: string}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $order, array $extraData = []): array
+    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
     {
+        $order = $this->prepareOrderHistoryOrder($order);
+
         $requestData = [
-            'OrderId' => (string) $extraData['id'],
+            'OrderId' => (string) $order['id'],
             'Extra'   => [
                 $this->mapTxType(PosInterface::TX_TYPE_HISTORY) => 'QUERY',
             ],
@@ -230,6 +233,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + $requestData;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    {
+        throw new NotImplementedException();
+    }
 
     /**
      * {@inheritDoc}
@@ -333,6 +343,16 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
             'id'       => $order['id'],
             'currency' => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'amount'   => $order['amount'],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function prepareOrderHistoryOrder(array $order): array
+    {
+        return [
+            'id' => $order['id'],
         ];
     }
 

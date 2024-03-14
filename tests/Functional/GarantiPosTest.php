@@ -231,4 +231,28 @@ class GarantiPosTest extends TestCase
         $this->assertArrayHasKey('test_input', $formData['inputs']);
         $this->assertTrue($eventIsThrown);
     }
+
+    /**
+     * @depends testNonSecurePaymentSuccess
+     */
+    public function testOrderHistorySuccess(array $lastResponse): void
+    {
+        $historyOrder = $this->createOrderHistoryOrder(\get_class($this->pos), $lastResponse);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $event->getTxType());
+                $this->assertCount(6, $event->getRequestData());
+            });
+
+        $this->pos->orderHistory($historyOrder);
+
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+    }
 }

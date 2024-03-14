@@ -233,14 +233,14 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testHistorySuccess()
+    public function testOrderHistorySuccess()
     {
         $requestMapper = $this->createMock(RequestDataMapperInterface::class);
-        $requestMapper->expects($this->once())->method('createHistoryRequestData')->willReturn([]);
+        $requestMapper->expects($this->once())->method('createOrderHistoryRequestData')->willReturn([]);
 
         $responseMapper = $this->createMock(EstPosResponseDataMapper::class);
-        $responseMapper->expects($this->once())->method('mapHistoryResponse')
-            ->willReturn(EstPosResponseDataMapperTest::historyTestDataProvider()['success_one_payment_tx']['expectedData']);
+        $responseMapper->expects($this->once())->method('mapOrderHistoryResponse')
+            ->willReturn(EstPosResponseDataMapperTest::orderHistoryTestDataProvider()['success_one_payment_tx']['expectedData']);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -257,10 +257,10 @@ class EstPosTest extends TestCase
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
-            EstPosResponseDataMapperTest::historyTestDataProvider()['success_one_payment_tx']['responseData']
+            EstPosResponseDataMapperTest::orderHistoryTestDataProvider()['success_one_payment_tx']['responseData']
         );
 
-        $posMock->history($this->order);
+        $posMock->orderHistory($this->order);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);
@@ -270,14 +270,14 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testHistoryFail()
+    public function testOrderHistoryFail()
     {
         $requestMapper = $this->createMock(RequestDataMapperInterface::class);
-        $requestMapper->expects($this->once())->method('createHistoryRequestData')->willReturn([]);
+        $requestMapper->expects($this->once())->method('createOrderHistoryRequestData')->willReturn([]);
 
         $responseMapper = $this->createMock(EstPosResponseDataMapper::class);
-        $responseMapper->expects($this->once())->method('mapHistoryResponse')
-            ->willReturn(EstPosResponseDataMapperTest::historyTestDataProvider()['fail1']['expectedData']);
+        $responseMapper->expects($this->once())->method('mapOrderHistoryResponse')
+            ->willReturn(EstPosResponseDataMapperTest::orderHistoryTestDataProvider()['fail1']['expectedData']);
 
         $posMock = $this->getMockBuilder(EstPos::class)
             ->setConstructorArgs([
@@ -294,10 +294,10 @@ class EstPosTest extends TestCase
             ->getMock();
 
         $posMock->expects($this->once())->method('send')->willReturn(
-            EstPosResponseDataMapperTest::historyTestDataProvider()['fail1']['responseData']
+            EstPosResponseDataMapperTest::orderHistoryTestDataProvider()['fail1']['responseData']
         );
 
-        $posMock->history($this->order);
+        $posMock->orderHistory($this->order);
 
         $result = $posMock->getResponse();
         $this->assertIsArray($result);

@@ -5,6 +5,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
 class InterPosResponseDataMapper extends AbstractResponseDataMapper
@@ -224,7 +225,15 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapHistoryResponse(array $rawResponseData): array
     {
-        return $this->emptyStringsToNull($rawResponseData);
+        throw new NotImplementedException();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function mapOrderHistoryResponse(array $rawResponseData): array
+    {
+        throw new NotImplementedException();
     }
 
     /**

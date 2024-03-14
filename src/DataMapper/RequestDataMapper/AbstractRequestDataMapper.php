@@ -290,13 +290,25 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * prepares order for history request
+     * prepares history request
+     *
+     * @param array<string, mixed> $data
+     *
+     * @return array<string, mixed>
+     */
+    protected function prepareHistoryOrder(array $data): array
+    {
+        return $data;
+    }
+
+    /**
+     * prepares order for order history request
      *
      * @param array<string, mixed> $order
      *
      * @return array<string, mixed>
      */
-    protected function prepareHistoryOrder(array $order): array
+    protected function prepareOrderHistoryOrder(array $order): array
     {
         return $order;
     }

@@ -149,9 +149,9 @@ class AkOdePosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @dataProvider historyRequestDataProvider
+     * @dataProvider orderHistoryRequestDataProvider
      */
-    public function testCreateHistoryRequestData(array $order, array $expected)
+    public function testCreateOrderHistoryRequestData(array $order, array $expected)
     {
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
@@ -160,7 +160,7 @@ class AkOdePosRequestDataMapperTest extends TestCase
             ->method('createHash')
             ->willReturn($expected['hash']);
 
-        $actual = $this->requestDataMapper->createHistoryRequestData($this->account, $order);
+        $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
 
         $this->assertEquals($expected, $actual);
     }
@@ -375,13 +375,13 @@ class AkOdePosRequestDataMapperTest extends TestCase
         ];
     }
 
-    public static function historyRequestDataProvider(): array
+    public static function orderHistoryRequestDataProvider(): array
     {
         return [
             [
-                'order'    => [
-                    'id'              => '2020110828BC',
-                    'timeSpan'        => '20231209215355',
+                'order' => [
+                    'id'               => '2020110828BC',
+                    'timeSpan'         => '20231209215355',
                     'transactionDate' => new \DateTime('2023-12-09 00:00:00'),
                 ],
                 'expected' => [
@@ -397,11 +397,11 @@ class AkOdePosRequestDataMapperTest extends TestCase
                 ],
             ],
             [
-                'order'    => [
-                    'id'              => '2020110828BC',
-                    'timeSpan'        => '20231209215355',
-                    'page'            => 2,
-                    'pageSize'        => 5,
+                'order' => [
+                    'id'               => '2020110828BC',
+                    'timeSpan'         => '20231209215355',
+                    'page'             => 2,
+                    'pageSize'         => 5,
                     'transactionDate' => new \DateTime('2023-12-09 00:00:00'),
                 ],
                 'expected' => [
