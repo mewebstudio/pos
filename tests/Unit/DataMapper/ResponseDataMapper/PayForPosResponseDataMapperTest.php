@@ -153,6 +153,38 @@ class PayForPosResponseDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider historyTestDataProvider
+     */
+    public function testMapHistoryResponse(array $responseData, array $expectedData)
+    {
+        $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+
+        if (count($actualData['transactions']) > 1
+            && null !== $actualData['transactions'][0]['transaction_time']
+            && null !== $actualData['transactions'][1]['transaction_time']
+        ) {
+            $this->assertGreaterThan(
+                $actualData['transactions'][0]['transaction_time'],
+                $actualData['transactions'][1]['transaction_time'],
+            );
+        }
+
+        $this->assertCount($actualData['trans_count'], $actualData['transactions']);
+
+        foreach (array_keys($actualData['transactions']) as $key) {
+            $this->assertEquals($expectedData['transactions'][$key]['transaction_time'], $actualData['transactions'][$key]['transaction_time'], 'tx: '.$key);
+            $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time'], 'tx: '.$key);
+            unset($actualData['transactions'][$key]['transaction_time'], $expectedData['transactions'][$key]['transaction_time']);
+            unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
+            \ksort($actualData['transactions'][$key]);
+            \ksort($expectedData['transactions'][$key]);
+        }
+
+        unset($actualData['all']);
+        $this->assertSame($expectedData, $actualData);
+    }
+
+    /**
      * @dataProvider refundTestDataProvider
      */
     public function testMapRefundResponse(array $responseData, array $expectedData)
@@ -2397,6 +2429,85 @@ class PayForPosResponseDataMapperTest extends TestCase
                     'status_detail'    => 'reject',
                     'trans_count'      => 0,
                     'transactions'     => [],
+                ],
+            ],
+        ];
+    }
+
+    public static function historyTestDataProvider(): array
+    {
+        return [
+            'daily_history_1' => [
+                'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/payfor/history/daily_history.json'), true),
+                'expectedData' => [
+                    'proc_return_code' => null,
+                    'error_code' => null,
+                    'error_message' => null,
+                    'status' => null,
+                    'status_detail' => null,
+                    'trans_count' => 3,
+                    'transactions' => [
+                        [
+                            'auth_code' => null,
+                            'proc_return_code' => 'V000',
+                            'transaction_id' => null,
+                            'transaction_time' => null,
+                            'capture_time' => null,
+                            'error_message' => null,
+                            'ref_ret_num' => null,
+                            'order_status' => null,
+                            'transaction_type' => 'pay',
+                            'first_amount' => null,
+                            'capture_amount' => null,
+                            'status' => 'declined',
+                            'error_code' => 'V000',
+                            'status_detail' => null,
+                            'capture' => null,
+                            'currency' => 'TRY',
+                            'masked_number' => null,
+                            'order_id' => '3450201880',
+                        ],
+                        [
+                            'auth_code' => null,
+                            'proc_return_code' => 'V000',
+                            'transaction_id' => null,
+                            'transaction_time' => null,
+                            'capture_time' => null,
+                            'error_message' => null,
+                            'ref_ret_num' => null,
+                            'order_status' => null,
+                            'transaction_type' => 'pay',
+                            'first_amount' => null,
+                            'capture_amount' => null,
+                            'status' => 'declined',
+                            'error_code' => 'V000',
+                            'status_detail' => null,
+                            'capture' => null,
+                            'currency' => 'TRY',
+                            'masked_number' => null,
+                            'order_id' => '1171158618',
+                        ],
+                        [
+                            'auth_code' => 'S70708',
+                            'proc_return_code' => '00',
+                            'transaction_id' => null,
+                            'transaction_time' => new \DateTimeImmutable('2024-03-14T21:40:18'),
+                            'capture_time' => new \DateTimeImmutable('2024-03-14T21:40:18'),
+                            'error_message' => null,
+                            'ref_ret_num' => null,
+                            'order_status' => 'PAYMENT_COMPLETED',
+                            'transaction_type' => 'pay',
+                            'first_amount' => 100.0,
+                            'capture_amount' => 100.0,
+                            'status' => 'approved',
+                            'error_code' => null,
+                            'status_detail' => 'approved',
+                            'capture' => true,
+                            'currency' => 'TRY',
+                            'masked_number' => '415956******7732',
+                            'order_id' => '1427731461',
+                        ],
+                    ],
                 ],
             ],
         ];
