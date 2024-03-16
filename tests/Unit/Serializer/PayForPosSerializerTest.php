@@ -742,10 +742,9 @@ class PayForPosSerializerTest extends TestCase
 </TxnHistoryReport>',
             'txType'   => PosInterface::TX_TYPE_ORDER_HISTORY,
             'expected' => [
-                '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
                 '@xsi:noNamespaceSchemaLocation' => 'TxnHistoryReport.xsd',
                 'PaymentRequestExtended' => [
-                    0 => [
+                    [
                         'PaymentRequest' => [
                             'UseExistingDataWhenInserting' => 'false',
                             'RequestGuid' => '1000000093565640',
@@ -1426,7 +1425,7 @@ class PayForPosSerializerTest extends TestCase
                     ],
 
                 ],
-
+                '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
             ],
         ];
     }
