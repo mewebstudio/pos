@@ -41,14 +41,14 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $requestData = [
-                'callbackUrl'      => (string) $order['success_url'],
-                'orderId'          => (string) $order['id'],
-                'amount'           => $this->formatAmount($order['amount']),
-                'currency'         => (int) $this->mapCurrency($order['currency']),
-                'installmentCount' => (int) $this->mapInstallment($order['installment']),
-                'rnd'              => $this->crypt->generateRandomString(),
-                'timeSpan'         => $order['timeSpan'],
-            ];
+            'callbackUrl'      => (string) $order['success_url'],
+            'orderId'          => (string) $order['id'],
+            'amount'           => $this->formatAmount($order['amount']),
+            'currency'         => (int) $this->mapCurrency($order['currency']),
+            'installmentCount' => (int) $this->mapInstallment($order['installment']),
+            'rnd'              => $this->crypt->generateRandomString(),
+            'timeSpan'         => $order['time_span'],
+        ];
 
         $requestData['hash'] = $this->crypt->create3DHash($account, $requestData);
 
@@ -71,17 +71,17 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $requestData = [
-                'orderId'          => (string) $order['id'],
-                'amount'           => $this->formatAmount($order['amount']),
-                'currency'         => (int) $this->mapCurrency($order['currency']),
-                'installmentCount' => (int) $this->mapInstallment($order['installment']),
-                'rnd'              => $this->crypt->generateRandomString(),
-                'timeSpan'         => $order['timeSpan'],
-                'cardHolderName'   => $card->getHolderName(),
-                'cardNo'           => $card->getNumber(),
-                'expireDate'       => $card->getExpirationDate('my'),
-                'cvv'              => $card->getCvv(),
-            ];
+            'orderId'          => (string) $order['id'],
+            'amount'           => $this->formatAmount($order['amount']),
+            'currency'         => (int) $this->mapCurrency($order['currency']),
+            'installmentCount' => (int) $this->mapInstallment($order['installment']),
+            'rnd'              => $this->crypt->generateRandomString(),
+            'timeSpan'         => $order['time_span'],
+            'cardHolderName'   => $card->getHolderName(),
+            'cardNo'           => $card->getNumber(),
+            'expireDate'       => $card->getExpirationDate('my'),
+            'cvv'              => $card->getCvv(),
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($account, $requestData);
 
@@ -96,11 +96,11 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         $requestData = [
-                'orderId'  => (string) $order['id'],
-                'amount'   => $this->formatAmount($order['amount']),
-                'rnd'      => $this->crypt->generateRandomString(),
-                'timeSpan' => $order['timeSpan'],
-            ];
+            'orderId'  => (string) $order['id'],
+            'amount'   => $this->formatAmount($order['amount']),
+            'rnd'      => $this->crypt->generateRandomString(),
+            'timeSpan' => $order['time_span'],
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($account, $requestData);
 
@@ -115,10 +115,10 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareStatusOrder($order);
 
         $requestData = [
-                'orderId'  => (string) $order['id'],
-                'rnd'      => $this->crypt->generateRandomString(),
-                'timeSpan' => $order['timeSpan'],
-            ];
+            'orderId'  => (string) $order['id'],
+            'rnd'      => $this->crypt->generateRandomString(),
+            'timeSpan' => $order['time_span'],
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($account, $requestData);
 
@@ -133,10 +133,10 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareCancelOrder($order);
 
         $requestData = [
-                'orderId'  => (string) $order['id'],
-                'rnd'      => $this->crypt->generateRandomString(),
-                'timeSpan' => $order['timeSpan'],
-            ];
+            'orderId'  => (string) $order['id'],
+            'rnd'      => $this->crypt->generateRandomString(),
+            'timeSpan' => $order['time_span'],
+        ];
 
         $requestData['hash'] = $this->crypt->createHash($account, $requestData);
 
@@ -154,7 +154,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
             'orderId'  => (string) $order['id'],
             'rnd'      => $this->crypt->generateRandomString(),
             'amount'   => $this->formatAmount($order['amount']),
-            'timeSpan' => $order['timeSpan'],
+            'timeSpan' => $order['time_span'],
         ];
 
         $requestData['hash'] = $this->crypt->createHash($account, $requestData);
@@ -170,11 +170,11 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         $order       = $this->prepareOrderHistoryOrder($order);
         $requestData = [
             'orderId'         => (string) $order['id'],
-            'transactionDate' => $order['transactionDate']->format('Ymd'),
+            'transactionDate' => $order['transaction_date']->format('Ymd'),
             'page'            => $order['page'],
-            'pageSize'        => $order['pageSize'],
+            'pageSize'        => $order['page_size'],
             'rnd'             => $this->crypt->generateRandomString(),
-            'timeSpan'        => $order['timeSpan'],
+            'timeSpan'        => $order['time_span'],
         ];
 
         $requestData['hash'] = $this->crypt->createHash($account, $requestData);
@@ -253,7 +253,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
         return \array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
-            'timeSpan'    => $order['timeSpan'] ?? $this->newTimeSpan(),
+            'time_span'   => $order['time_span'] ?? $this->newTimeSpan(),
         ]);
     }
 
@@ -263,9 +263,9 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     protected function preparePostPaymentOrder(array $order): array
     {
         return [
-            'id'       => $order['id'],
-            'amount'   => $order['amount'],
-            'timeSpan' => $order['timeSpan'] ?? $this->newTimeSpan(),
+            'id'        => $order['id'],
+            'amount'    => $order['amount'],
+            'time_span' => $order['time_span'] ?? $this->newTimeSpan(),
         ];
     }
 
@@ -275,8 +275,8 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     protected function prepareStatusOrder(array $order): array
     {
         return \array_merge($order, [
-            'id'       => $order['id'],
-            'timeSpan' => $order['timeSpan'] ?? $this->newTimeSpan(),
+            'id'        => $order['id'],
+            'time_span' => $order['time_span'] ?? $this->newTimeSpan(),
         ]);
     }
 
@@ -286,8 +286,8 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     protected function prepareCancelOrder(array $order): array
     {
         return \array_merge($order, [
-            'id'       => $order['id'],
-            'timeSpan' => $order['timeSpan'] ?? $this->newTimeSpan(),
+            'id'        => $order['id'],
+            'time_span' => $order['time_span'] ?? $this->newTimeSpan(),
         ]);
     }
 
@@ -297,9 +297,9 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     protected function prepareRefundOrder(array $order): array
     {
         return [
-            'id'       => $order['id'],
-            'amount'   => $order['amount'],
-            'timeSpan' => $order['timeSpan'] ?? $this->newTimeSpan(),
+            'id'        => $order['id'],
+            'amount'    => $order['amount'],
+            'time_span' => $order['time_span'] ?? $this->newTimeSpan(),
         ];
     }
 
@@ -309,11 +309,11 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     protected function prepareOrderHistoryOrder(array $order): array
     {
         return [
-            'id'              => $order['id'],
-            'transactionDate' => $order['transactionDate'],
-            'page'            => $order['page'] ?? 1,
-            'pageSize'        => $order['pageSize'] ?? 10,
-            'timeSpan'        => $order['timeSpan'] ?? $this->newTimeSpan(),
+            'id'               => $order['id'],
+            'transaction_date' => $order['transaction_date'],
+            'page'             => $order['page'] ?? 1,
+            'page_size'        => $order['page_size'] ?? 10,
+            'time_span'        => $order['time_span'] ?? $this->newTimeSpan(),
         ];
     }
 

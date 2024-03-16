@@ -25,9 +25,9 @@ function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): arr
     } elseif (AkOdePos::class === $gatewayClass) {
         $order = [
             'id'              => $lastResponse['order_id'],
-            'transactionDate' => $lastResponse['transaction_time'], // odeme tarihi
+            'transaction_date' => $lastResponse['transaction_time'], // odeme tarihi
             'page'            => 1, // optional, default: 1
-            'pageSize'        => 10, // optional, default: 10
+            'page_size'        => 10, // optional, default: 10
         ];
     } elseif (PayForPos::class === $gatewayClass) {
         $order = [

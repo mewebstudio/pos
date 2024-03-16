@@ -185,10 +185,10 @@ trait PaymentTestTrait
             ];
         } elseif (AkOdePos::class === $gatewayClass) {
             $order = [
-                'id'              => $lastResponse['order_id'],
-                'transactionDate' => $lastResponse['transaction_time'], // odeme tarihi
-                'page'            => 1, // optional, default: 1
-                'pageSize'        => 10, // optional, default: 10
+                'id'               => $lastResponse['order_id'],
+                'transaction_date' => $lastResponse['transaction_time'], // odeme tarihi
+                'page'             => 1, // optional, default: 1
+                'page_size'        => 10, // optional, default: 10
             ];
         } elseif (PayForPos::class === $gatewayClass) {
             $order = [
@@ -213,7 +213,7 @@ trait PaymentTestTrait
         if (PayForPos::class === $gatewayClass) {
             $order = [
                 // odeme tarihi
-                'reqDate'  => $extraData['reqDate'] ?? new \DateTimeImmutable(),
+                'reqDate' => $extraData['reqDate'] ?? new \DateTimeImmutable(),
             ];
         }
 

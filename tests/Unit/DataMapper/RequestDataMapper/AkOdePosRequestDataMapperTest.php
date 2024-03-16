@@ -230,8 +230,8 @@ class AkOdePosRequestDataMapperTest extends TestCase
         return [
             [
                 'order'    => [
-                    'id'       => 'id-12',
-                    'timeSpan' => '20231209215355',
+                    'id'        => 'id-12',
+                    'time_span' => '20231209215355',
                 ],
                 'expected' => [
                     'clientId' => '1000000494',
@@ -250,8 +250,8 @@ class AkOdePosRequestDataMapperTest extends TestCase
         return [
             [
                 'order'    => [
-                    'id'       => 'id-12',
-                    'timeSpan' => '20231209215355',
+                    'id'        => 'id-12',
+                    'time_span' => '20231209215355',
                 ],
                 'expected' => [
                     'clientId' => '1000000494',
@@ -270,9 +270,9 @@ class AkOdePosRequestDataMapperTest extends TestCase
         return [
             [
                 'order'    => [
-                    'id'       => 'id-12',
-                    'amount'   => 1.02,
-                    'timeSpan' => '20231209215355',
+                    'id'        => 'id-12',
+                    'amount'    => 1.02,
+                    'time_span' => '20231209215355',
                 ],
                 'expected' => [
                     'clientId' => '1000000494',
@@ -295,7 +295,7 @@ class AkOdePosRequestDataMapperTest extends TestCase
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
-            'timeSpan'    => '20231209214708',
+            'time_span'   => '20231209214708',
         ];
 
         return [
@@ -327,7 +327,7 @@ class AkOdePosRequestDataMapperTest extends TestCase
             'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
             'success_url' => 'https://domain.com/success',
-            'timeSpan'    => '20231209214708',
+            'time_span'   => '20231209214708',
         ];
 
         return [
@@ -358,9 +358,9 @@ class AkOdePosRequestDataMapperTest extends TestCase
         return [
             [
                 'order'    => [
-                    'id'       => '2020110828BC',
-                    'amount'   => 1.10,
-                    'timeSpan' => '20231209213944',
+                    'id'        => '2020110828BC',
+                    'amount'    => 1.10,
+                    'time_span' => '20231209213944',
                 ],
                 'expected' => [
                     'clientId' => '1000000494',
@@ -379,10 +379,10 @@ class AkOdePosRequestDataMapperTest extends TestCase
     {
         return [
             [
-                'order' => [
+                'order'    => [
                     'id'               => '2020110828BC',
-                    'timeSpan'         => '20231209215355',
-                    'transactionDate' => new \DateTime('2023-12-09 00:00:00'),
+                    'time_span'        => '20231209215355',
+                    'transaction_date' => new \DateTime('2023-12-09 00:00:00'),
                 ],
                 'expected' => [
                     'clientId'        => '1000000494',
@@ -397,12 +397,12 @@ class AkOdePosRequestDataMapperTest extends TestCase
                 ],
             ],
             [
-                'order' => [
+                'order'    => [
                     'id'               => '2020110828BC',
-                    'timeSpan'         => '20231209215355',
+                    'time_span'        => '20231209215355',
                     'page'             => 2,
-                    'pageSize'         => 5,
-                    'transactionDate' => new \DateTime('2023-12-09 00:00:00'),
+                    'page_size'        => 5,
+                    'transaction_date' => new \DateTime('2023-12-09 00:00:00'),
                 ],
                 'expected' => [
                     'clientId'        => '1000000494',
