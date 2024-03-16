@@ -1,7 +1,5 @@
 <?php
 
-use Mews\Pos\Entity\Card\CreditCardInterface;
-
 require __DIR__.'/../_main_config.php';
 
 $bankTestsUrl = $hostUrl.'/garanti';
@@ -14,7 +12,6 @@ $testCards = [
         'month' => '08',
         'cvv' => '123',
         'name' => 'John Doe',
-        'type' => CreditCardInterface::CARD_TYPE_VISA,
     ],
     'visa2' => [
         // pin 147852
@@ -23,7 +20,6 @@ $testCards = [
         'month' => '02',
         'cvv' => '423',
         'name' => 'John Doe',
-        'type' => CreditCardInterface::CARD_TYPE_MASTERCARD,
     ],
     // test kartlar https://dev.garantibbva.com.tr/test-kartlari
 //    'visa1' => [
@@ -33,6 +29,5 @@ $testCards = [
 //        'month' => '04',
 //        'cvv' => '464',
 //        'name' => 'John Doe',
-//        'type' => CreditCardInterface::CARD_TYPE_MASTERCARD,
 //    ],
 ];
