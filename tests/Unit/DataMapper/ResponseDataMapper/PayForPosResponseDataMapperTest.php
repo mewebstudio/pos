@@ -45,6 +45,7 @@ class PayForPosResponseDataMapperTest extends TestCase
         } else {
             $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         }
+
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all']);
         \ksort($expectedData);

@@ -263,6 +263,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
                 // VoidTime: 213405
                 $defaultResponse['cancel_time'] = new \DateTimeImmutable($rawResponseData['VoidDate'].'T'.$rawResponseData['VoidTime']);
             }
+
             if ($rawResponseData['RefundedAmount'] > 0) {
                 $defaultResponse['refund_amount'] = $this->formatAmount($rawResponseData['RefundedAmount']);
             }
@@ -271,6 +272,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             if ('true' === $rawResponseData['IsVoided']) {
                 $orderStatus = PosInterface::PAYMENT_STATUS_CANCELED;
             }
+
             if ('true' === $rawResponseData['IsRefunded']) {
                 $orderStatus = PosInterface::PAYMENT_STATUS_FULLY_REFUNDED;
             }

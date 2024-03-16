@@ -254,6 +254,7 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
                 $defaultResponse['transaction_time'] = new \DateTimeImmutable($rawResponseData['CreateDate']);
                 $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['Amount']);
             }
+
             $defaultResponse['refund_amount'] = $rawResponseData['RefundedAmount'] > 0 ? $this->formatAmount($rawResponseData['RefundedAmount']) : null;
 
             if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $isPaymentTransaction) {

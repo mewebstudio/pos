@@ -117,6 +117,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
                 $paymentStatus = self::TX_APPROVED;
             }
+
             /** @var string $provDate */
             $provDate = $transaction['ProvDate'] ?? 'now';
 

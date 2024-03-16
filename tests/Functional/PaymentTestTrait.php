@@ -208,16 +208,14 @@ trait PaymentTestTrait
 
     private function createHistoryOrder(string $gatewayClass, array $extraData): array
     {
-        $order = [];
-
         if (PayForPos::class === $gatewayClass) {
-            $order = [
+            return [
                 // odeme tarihi
                 'transaction_date' => $extraData['transaction_date'] ?? new \DateTimeImmutable(),
             ];
         }
 
-        return $order;
+        return [];
     }
 
     private function createRefundOrder(string $gatewayClass, array $lastResponse): array

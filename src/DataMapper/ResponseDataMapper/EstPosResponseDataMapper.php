@@ -78,6 +78,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
+
         $extra = $rawPaymentResponseData['Extra'];
 
         $mappedResponse = [
