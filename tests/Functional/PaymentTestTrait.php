@@ -213,7 +213,7 @@ trait PaymentTestTrait
         if (PayForPos::class === $gatewayClass) {
             $order = [
                 // odeme tarihi
-                'reqDate' => $extraData['reqDate'] ?? new \DateTimeImmutable(),
+                'transaction_date' => $extraData['transaction_date'] ?? new \DateTimeImmutable(),
             ];
         }
 

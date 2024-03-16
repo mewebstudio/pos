@@ -412,7 +412,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         return [
             [
                 'data'    => [
-                    'reqDate' => new \DateTime('2022-05-18'),
+                    'transaction_date' => new \DateTime('2022-05-18'),
                 ],
                 'expected' => [
                     'MerchantId' => '085300000009704',

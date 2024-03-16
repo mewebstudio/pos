@@ -188,7 +188,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param array{reqDate: \DateTimeInterface} $data
+     * @param array{transaction_date: \DateTimeInterface} $data
      * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
@@ -198,7 +198,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'MbrId'      => self::MBR_ID,
             'SecureType' => 'Report',
-            'ReqDate'    => $data['reqDate']->format('Ymd'),
+            'ReqDate'    => $data['transaction_date']->format('Ymd'),
             'TxnType'    => $this->mapTxType(PosInterface::TX_TYPE_HISTORY),
             'Lang'       => $this->getLang($account, $order),
         ];
@@ -289,7 +289,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     protected function prepareHistoryOrder(array $data): array
     {
         return [
-            'reqDate' => $data['reqDate'],
+            'transaction_date' => $data['transaction_date'],
         ];
     }
 
