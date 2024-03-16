@@ -6,15 +6,15 @@
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Account\AkOdePosAccount;
+use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
 /**
- * Creates request data for AkOde Gateway requests
+ * Creates request data for Tosla Gateway requests
  */
-class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
+class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /** @var string */
     public const CREDIT_CARD_EXP_DATE_FORMAT = 'm/y';
@@ -31,7 +31,7 @@ class AkOdePosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @param AkOdePosAccount                      $account
+     * @param ToslaPosAccount                      $account
      * @param array<string, int|string|float|null> $order
      *
      * @return array<string, string|int>

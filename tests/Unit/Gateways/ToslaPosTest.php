@@ -7,20 +7,20 @@ namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
-use Mews\Pos\DataMapper\RequestDataMapper\AkOdePosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
-use Mews\Pos\Entity\Account\AkOdePosAccount;
+use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Gateways\AkOdePos;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
-use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\AkOdePosRequestDataMapperTest;
-use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\AkOdePosResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\Serializer\AkOdePosSerializerTest;
+use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\ToslaPosRequestDataMapperTest;
+use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapperTest;
+use Mews\Pos\Tests\Unit\Serializer\ToslaPosSerializerTest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -30,20 +30,20 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * @covers \Mews\Pos\Gateways\AkOdePos
+ * @covers \Mews\Pos\Gateways\ToslaPos
  */
-class AkOdePosTest extends TestCase
+class ToslaPosTest extends TestCase
 {
     public array $config;
 
     public CreditCardInterface $card;
 
-    private AkOdePosAccount $account;
+    private ToslaPosAccount $account;
 
-    /** @var AkOdePos */
+    /** @var ToslaPos */
     private PosInterface $pos;
 
-    /** @var AkOdePosRequestDataMapper & MockObject */
+    /** @var ToslaPosRequestDataMapper & MockObject */
     private MockObject $requestMapperMock;
 
     /** @var ResponseDataMapperInterface & MockObject */
@@ -70,7 +70,7 @@ class AkOdePosTest extends TestCase
 
         $this->config = [
             'name'              => 'AKBANK T.A.S.',
-            'class'             => AkOdePos::class,
+            'class'             => ToslaPos::class,
             'gateway_endpoints' => [
                 'payment_api'     => 'https://ent.akodepos.com/api/Payment',
                 'gateway_3d'      => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
@@ -78,14 +78,14 @@ class AkOdePosTest extends TestCase
             ],
         ];
 
-        $this->account = AccountFactory::createAkOdePosAccount(
-            'akode',
+        $this->account = AccountFactory::createToslaPosAccount(
+            'tosla',
             '1000000494',
             'POS_ENT_Test_001',
             'POS_ENT_Test_001!*!*',
         );
 
-        $this->requestMapperMock   = $this->createMock(AkOdePosRequestDataMapper::class);
+        $this->requestMapperMock   = $this->createMock(ToslaPosRequestDataMapper::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
@@ -93,7 +93,7 @@ class AkOdePosTest extends TestCase
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
 
-        $this->pos = new AkOdePos(
+        $this->pos = new ToslaPos(
             $this->config,
             $this->account,
             $this->requestMapperMock,
@@ -428,12 +428,12 @@ class AkOdePosTest extends TestCase
     public static function statusDataProvider(): iterable
     {
         yield [
-            'order'               => AkOdePosRequestDataMapperTest::statusRequestDataProvider()[0]['order'],
-            'requestData'         => AkOdePosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'],
-            'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
-            'responseData'        => \json_encode(AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'], JSON_THROW_ON_ERROR),
-            'decodedResponseData' => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'],
-            'mappedResponse'      => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['expectedData'],
+            'order'               => ToslaPosRequestDataMapperTest::statusRequestDataProvider()[0]['order'],
+            'requestData'         => ToslaPosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'],
+            'encodedRequestData'  => \json_encode(ToslaPosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
+            'responseData'        => \json_encode(ToslaPosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'], JSON_THROW_ON_ERROR),
+            'decodedResponseData' => ToslaPosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'],
+            'mappedResponse'      => ToslaPosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['expectedData'],
             'isSuccess'           => true,
         ];
     }
@@ -441,12 +441,12 @@ class AkOdePosTest extends TestCase
     public static function cancelDataProvider(): iterable
     {
         yield [
-            'order'               => AkOdePosRequestDataMapperTest::cancelRequestDataProvider()[0]['order'],
-            'requestData'         => AkOdePosRequestDataMapperTest::cancelRequestDataProvider()[0]['expected'],
-            'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::cancelRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
-            'responseData'        => \json_encode(AkOdePosResponseDataMapperTest::cancelDataProvider()['success1']['responseData'], JSON_THROW_ON_ERROR),
-            'decodedResponseData' => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'],
-            'mappedResponse'      => AkOdePosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['expectedData'],
+            'order'               => ToslaPosRequestDataMapperTest::cancelRequestDataProvider()[0]['order'],
+            'requestData'         => ToslaPosRequestDataMapperTest::cancelRequestDataProvider()[0]['expected'],
+            'encodedRequestData'  => \json_encode(ToslaPosRequestDataMapperTest::cancelRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
+            'responseData'        => \json_encode(ToslaPosResponseDataMapperTest::cancelDataProvider()['success1']['responseData'], JSON_THROW_ON_ERROR),
+            'decodedResponseData' => ToslaPosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'],
+            'mappedResponse'      => ToslaPosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['expectedData'],
             'isSuccess'           => true,
         ];
     }
@@ -454,12 +454,12 @@ class AkOdePosTest extends TestCase
     public static function refundDataProvider(): iterable
     {
         yield [
-            'order'               => AkOdePosRequestDataMapperTest::refundRequestDataProvider()[0]['order'],
-            'requestData'         => AkOdePosRequestDataMapperTest::refundRequestDataProvider()[0]['expected'],
-            'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::refundRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
-            'responseData'        => \json_encode(AkOdePosResponseDataMapperTest::refundDataProvider()['success1']['responseData'], JSON_THROW_ON_ERROR),
-            'decodedResponseData' => AkOdePosResponseDataMapperTest::refundDataProvider()['success1']['responseData'],
-            'mappedResponse'      => AkOdePosResponseDataMapperTest::refundDataProvider()['success1']['expectedData'],
+            'order'               => ToslaPosRequestDataMapperTest::refundRequestDataProvider()[0]['order'],
+            'requestData'         => ToslaPosRequestDataMapperTest::refundRequestDataProvider()[0]['expected'],
+            'encodedRequestData'  => \json_encode(ToslaPosRequestDataMapperTest::refundRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
+            'responseData'        => \json_encode(ToslaPosResponseDataMapperTest::refundDataProvider()['success1']['responseData'], JSON_THROW_ON_ERROR),
+            'decodedResponseData' => ToslaPosResponseDataMapperTest::refundDataProvider()['success1']['responseData'],
+            'mappedResponse'      => ToslaPosResponseDataMapperTest::refundDataProvider()['success1']['expectedData'],
             'isSuccess'           => true,
         ];
     }
@@ -467,12 +467,12 @@ class AkOdePosTest extends TestCase
     public static function orderHistoryDataProvider(): iterable
     {
         yield [
-            'order'               => AkOdePosRequestDataMapperTest::orderHistoryRequestDataProvider()[0]['order'],
-            'requestData'         => AkOdePosRequestDataMapperTest::orderHistoryRequestDataProvider()[0]['expected'],
-            'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::orderHistoryRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
-            'responseData'        => \json_encode(AkOdePosResponseDataMapperTest::orderHistoryDataProvider()['success_only_payment_transaction']['responseData'], JSON_THROW_ON_ERROR),
-            'decodedResponseData' => AkOdePosResponseDataMapperTest::orderHistoryDataProvider()['success_only_payment_transaction']['responseData'],
-            'mappedResponse'      => AkOdePosResponseDataMapperTest::orderHistoryDataProvider()['success_only_payment_transaction']['expectedData'],
+            'order'               => ToslaPosRequestDataMapperTest::orderHistoryRequestDataProvider()[0]['order'],
+            'requestData'         => ToslaPosRequestDataMapperTest::orderHistoryRequestDataProvider()[0]['expected'],
+            'encodedRequestData'  => \json_encode(ToslaPosRequestDataMapperTest::orderHistoryRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
+            'responseData'        => \json_encode(ToslaPosResponseDataMapperTest::orderHistoryDataProvider()['success_only_payment_transaction']['responseData'], JSON_THROW_ON_ERROR),
+            'decodedResponseData' => ToslaPosResponseDataMapperTest::orderHistoryDataProvider()['success_only_payment_transaction']['responseData'],
+            'mappedResponse'      => ToslaPosResponseDataMapperTest::orderHistoryDataProvider()['success_only_payment_transaction']['expectedData'],
             'isSuccess'           => true,
         ];
     }
@@ -480,15 +480,15 @@ class AkOdePosTest extends TestCase
     public static function threeDFormDataProvider(): iterable
     {
         yield [
-            'order'               => AkOdePosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['order'],
+            'order'               => ToslaPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['order'],
             'paymentModel'        => PosInterface::MODEL_3D_PAY,
             'txType'              => PosInterface::TX_TYPE_PAY_AUTH,
             'isWithCard'          => true,
-            'requestData'         => AkOdePosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
-            'encodedRequestData'  => \json_encode(AkOdePosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
-            'responseData'        => AkOdePosSerializerTest::decodeDataProvider()['payment_register']['input'],
-            'decodedResponseData' => AkOdePosSerializerTest::decodeDataProvider()['payment_register']['decoded'],
-            'formData'            => AkOdePosRequestDataMapperTest::threeDFormDataProvider()['3d_pay_form_data']['expected'],
+            'requestData'         => ToslaPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
+            'encodedRequestData'  => \json_encode(ToslaPosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
+            'responseData'        => ToslaPosSerializerTest::decodeDataProvider()['payment_register']['input'],
+            'decodedResponseData' => ToslaPosSerializerTest::decodeDataProvider()['payment_register']['decoded'],
+            'formData'            => ToslaPosRequestDataMapperTest::threeDFormDataProvider()['3d_pay_form_data']['expected'],
         ];
     }
 
@@ -497,17 +497,17 @@ class AkOdePosTest extends TestCase
     {
         return [
             'auth_fail' => [
-                'order'     => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['order'],
-                'txType'    => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['txType'],
-                'request'   => Request::create('', 'POST', AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData']),
-                'expected'  => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['expectedData'],
+                'order'     => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['order'],
+                'txType'    => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['txType'],
+                'request'   => Request::create('', 'POST', ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData']),
+                'expected'  => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['expectedData'],
                 'isSuccess' => false,
             ],
             'success'   => [
-                'order'     => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['order'],
-                'txType'    => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['txType'],
-                'request'   => Request::create('', 'POST', AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']),
-                'expected'  => AkOdePosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['expectedData'],
+                'order'     => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['order'],
+                'txType'    => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['txType'],
+                'request'   => Request::create('', 'POST', ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']),
+                'expected'  => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['expectedData'],
                 'isSuccess' => true,
             ],
         ];

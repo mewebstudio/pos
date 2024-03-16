@@ -5,30 +5,30 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestDataMapper\AkOdePosRequestDataMapper;
-use Mews\Pos\DataMapper\ResponseDataMapper\AkOdePosResponseDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapper;
 use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Gateways\AkOdePos;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
 
 /**
- * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AkOdePosResponseDataMapper
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapper
  */
-class AkOdePosResponseDataMapperTest extends TestCase
+class ToslaPosResponseDataMapperTest extends TestCase
 {
-    private AkOdePosResponseDataMapper $responseDataMapper;
+    private ToslaPosResponseDataMapper $responseDataMapper;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $crypt             = CryptFactory::createGatewayCrypt(AkOdePos::class, new NullLogger());
-        $requestDataMapper = new AkOdePosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
+        $crypt             = CryptFactory::createGatewayCrypt(ToslaPos::class, new NullLogger());
+        $requestDataMapper = new ToslaPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
 
-        $this->responseDataMapper = new AkOdePosResponseDataMapper(
+        $this->responseDataMapper = new ToslaPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
             $requestDataMapper->getSecureTypeMappings(),

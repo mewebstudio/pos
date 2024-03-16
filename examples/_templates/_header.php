@@ -28,7 +28,7 @@
         </div>
         <nav class="collapse navbar-collapse" id="bs-navbar">
             <ul class="nav navbar-nav">
-                <li> <a href="<?= $hostUrl ?>/akode/index.php">Ak Ode</a></li>
+                <li> <a href="<?= $hostUrl ?>/tosla/index.php">Tosla (Ak Öde)</a></li>
                 <li> <a href="<?= $hostUrl ?>/estpos/index.php">EST POS V3</a></li>
                 <li> <a href="<?= $hostUrl ?>/finansbank-payfor/index.php">PayFor (Finansbank)</a></li>
                 <li> <a href="<?= $hostUrl ?>/garanti/index.php">Garanti POS</a></li>

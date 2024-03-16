@@ -5,7 +5,6 @@
 
 namespace Mews\Pos\Factory;
 
-use Mews\Pos\Crypt\AkOdePosCrypt;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Crypt\EstPosCrypt;
 use Mews\Pos\Crypt\EstV3PosCrypt;
@@ -17,7 +16,7 @@ use Mews\Pos\Crypt\PayFlexCPV4Crypt;
 use Mews\Pos\Crypt\PayForPosCrypt;
 use Mews\Pos\Crypt\PosNetCrypt;
 use Mews\Pos\Crypt\PosNetV1PosCrypt;
-use Mews\Pos\Gateways\AkOdePos;
+use Mews\Pos\Crypt\ToslaPosCrypt;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
@@ -27,6 +26,7 @@ use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\Gateways\PosNetV1Pos;
+use Mews\Pos\Gateways\ToslaPos;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -43,7 +43,7 @@ class CryptFactory
     public static function createGatewayCrypt(string $gatewayClass, LoggerInterface $logger): CryptInterface
     {
         $classMappings = [
-            AkOdePos::class       => AkOdePosCrypt::class,
+            ToslaPos::class       => ToslaPosCrypt::class,
             EstV3Pos::class       => EstV3PosCrypt::class,
             EstPos::class         => EstPosCrypt::class,
             GarantiPos::class     => GarantiPosCrypt::class,

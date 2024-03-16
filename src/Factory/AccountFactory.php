@@ -5,7 +5,6 @@
 
 namespace Mews\Pos\Factory;
 
-use Mews\Pos\Entity\Account\AkOdePosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
@@ -13,6 +12,7 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
+use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Exceptions\MissingAccountInfoException;
 use Mews\Pos\PosInterface;
 
@@ -49,11 +49,11 @@ class AccountFactory
      * @param string $apiUser
      * @param string $apiPass
      *
-     * @return AkOdePosAccount
+     * @return ToslaPosAccount
      */
-    public static function createAkOdePosAccount(string $bank, string $clientId, string $apiUser, string $apiPass): AkOdePosAccount
+    public static function createToslaPosAccount(string $bank, string $clientId, string $apiUser, string $apiPass): ToslaPosAccount
     {
-        return new AkOdePosAccount($bank, $clientId, $apiUser, '', PosInterface::LANG_TR, $apiPass);
+        return new ToslaPosAccount($bank, $clientId, $apiUser, '', PosInterface::LANG_TR, $apiPass);
     }
 
     /**

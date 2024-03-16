@@ -5,33 +5,33 @@
 
 namespace Mews\Pos\Tests\Unit\Crypt;
 
-use Mews\Pos\Crypt\AkOdePosCrypt;
-use Mews\Pos\Entity\Account\AkOdePosAccount;
+use Mews\Pos\Crypt\ToslaPosCrypt;
+use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Factory\AccountFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
 
 /**
- * @covers \Mews\Pos\Crypt\AkOdePosCrypt
+ * @covers \Mews\Pos\Crypt\ToslaPosCrypt
  */
-class AkOdePosCryptTest extends TestCase
+class ToslaPosCryptTest extends TestCase
 {
-    private AkOdePosAccount $account;
+    private ToslaPosAccount $account;
 
-    private AkOdePosCrypt $crypt;
+    private ToslaPosCrypt $crypt;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->account = AccountFactory::createAkOdePosAccount(
-            'akode',
+        $this->account = AccountFactory::createToslaPosAccount(
+            'tosla',
             '1000000494',
             'POS_ENT_Test_001',
             'POS_ENT_Test_001!*!*',
         );
 
-        $this->crypt = new AkOdePosCrypt(new NullLogger());
+        $this->crypt = new ToslaPosCrypt(new NullLogger());
     }
 
     public function testCreate3DHash(): void

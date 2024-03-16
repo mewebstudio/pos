@@ -6,8 +6,8 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
-use Mews\Pos\DataMapper\RequestDataMapper\AkOdePosRequestDataMapper;
-use Mews\Pos\Entity\Account\AkOdePosAccount;
+use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
+use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -18,18 +18,18 @@ use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
- * @covers \Mews\Pos\DataMapper\RequestDataMapper\AkOdePosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper
  */
-class AkOdePosRequestDataMapperTest extends TestCase
+class ToslaPosRequestDataMapperTest extends TestCase
 {
-    private AkOdePosAccount $account;
+    private ToslaPosAccount $account;
 
     private CreditCardInterface $card;
 
     /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
-    private AkOdePosRequestDataMapper $requestDataMapper;
+    private ToslaPosRequestDataMapper $requestDataMapper;
 
     protected function setUp(): void
     {
@@ -37,8 +37,8 @@ class AkOdePosRequestDataMapperTest extends TestCase
 
         $config = require __DIR__.'/../../../../config/pos_test.php';
 
-        $this->account = AccountFactory::createAkOdePosAccount(
-            'akode',
+        $this->account = AccountFactory::createToslaPosAccount(
+            'tosla',
             '1000000494',
             'POS_ENT_Test_001',
             'POS_ENT_Test_001!*!*',
@@ -48,7 +48,7 @@ class AkOdePosRequestDataMapperTest extends TestCase
         $pos        = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
         $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new AkOdePosRequestDataMapper($dispatcher, $this->crypt);
+        $this->requestDataMapper = new ToslaPosRequestDataMapper($dispatcher, $this->crypt);
         $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 

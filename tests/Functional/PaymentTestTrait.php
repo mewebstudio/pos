@@ -5,11 +5,11 @@
 
 namespace Mews\Pos\Tests\Functional;
 
-use Mews\Pos\Gateways\AkOdePos;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\PayForPos;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 
 trait PaymentTestTrait
@@ -183,7 +183,7 @@ trait PaymentTestTrait
             $order = [
                 'id' => $lastResponse['order_id'],
             ];
-        } elseif (AkOdePos::class === $gatewayClass) {
+        } elseif (ToslaPos::class === $gatewayClass) {
             $order = [
                 'id'               => $lastResponse['order_id'],
                 'transaction_date' => $lastResponse['transaction_time'], // odeme tarihi

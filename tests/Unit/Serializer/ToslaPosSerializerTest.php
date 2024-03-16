@@ -5,30 +5,30 @@
 
 namespace Mews\Pos\Tests\Unit\Serializer;
 
-use Mews\Pos\Gateways\AkOdePos;
 use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\AkOdePosSerializer;
-use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\AkOdePosRequestDataMapperTest;
+use Mews\Pos\Serializer\ToslaPosSerializer;
+use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\ToslaPosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
 
 /**
- * @covers \Mews\Pos\Serializer\AkOdePosSerializer
+ * @covers \Mews\Pos\Serializer\ToslaPosSerializer
  */
-class AkOdePosSerializerTest extends TestCase
+class ToslaPosSerializerTest extends TestCase
 {
-    private AkOdePosSerializer $serializer;
+    private ToslaPosSerializer $serializer;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->serializer = new AkOdePosSerializer();
+        $this->serializer = new ToslaPosSerializer();
     }
 
     public function testSupports(): void
     {
-        $supports = $this->serializer::supports(AkOdePos::class);
+        $supports = $this->serializer::supports(ToslaPos::class);
 
         $this->assertTrue($supports);
 
@@ -63,7 +63,7 @@ class AkOdePosSerializerTest extends TestCase
     {
         return [
             [
-                'input'    => AkOdePosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
+                'input'    => ToslaPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
                 'expected' => '{"clientId":"1000000494","apiUser":"POS_ENT_Test_001","callbackUrl":"https:\/\/domain.com\/success","orderId":"order222","amount":10025,"currency":949,"installmentCount":0,"rnd":"rand","timeSpan":"20231209214708","hash":"+XGO1qv+6W7nXZwSsYMaRrWXhi+99jffLvExGsFDodYyNadOG7OQKsygzly5ESDoNIS19oD2U+hSkVeT6UTAFA=="}',
             ],
         ];

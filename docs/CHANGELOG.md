@@ -9,7 +9,7 @@ Kullanım örnekleri için `/examples` ve `/docs` klasörüne bakabilirsiniz.
 Eklenen Eventler:
   - `\Mews\Pos\Event\Before3DFormHashCalculatedEvent`
   - `\Mews\Pos\Event\RequestDataPreparedEvent`
-- **AkÖdePos** entegrasonu
+- **ToslaPos** (Ak Öde) entegrasonu
 - Param birimleri için yeni constantlar eklendi (örn. `PosInterface::CURRENCY_TRY`)
 - Yeni `\Mews\Pos\PosInterface::isSupportedTransaction()` methodu eklendi.
 Bu method ile kütüphanenin ilgili gateway için hangi işlemleri destekledigini kontrol edebilirsiniz.

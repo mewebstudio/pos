@@ -7,7 +7,7 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 
-class AkOdePosCrypt extends AbstractCrypt
+class ToslaPosCrypt extends AbstractCrypt
 {
     /** @var string */
     protected const HASH_ALGORITHM = 'sha512';

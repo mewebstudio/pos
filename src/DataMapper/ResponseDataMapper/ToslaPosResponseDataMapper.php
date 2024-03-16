@@ -9,9 +9,9 @@ use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 
 /**
- * maps the response of AkOde API requests
+ * maps the response of Tosla API requests
  */
-class AkOdePosResponseDataMapper extends AbstractResponseDataMapper
+class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
 {
     public const PROCEDURE_SUCCESS_CODE = '00';
 

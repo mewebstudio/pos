@@ -5,11 +5,11 @@
 
 namespace Mews\Pos\Serializer;
 
-use Mews\Pos\Gateways\AkOdePos;
+use Mews\Pos\Gateways\ToslaPos;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Serializer;
 
-class AkOdePosSerializer implements SerializerInterface
+class ToslaPosSerializer implements SerializerInterface
 {
     private Serializer $serializer;
 
@@ -23,7 +23,7 @@ class AkOdePosSerializer implements SerializerInterface
      */
     public static function supports(string $gatewayClass): bool
     {
-        return AkOdePos::class === $gatewayClass;
+        return ToslaPos::class === $gatewayClass;
     }
 
     /**

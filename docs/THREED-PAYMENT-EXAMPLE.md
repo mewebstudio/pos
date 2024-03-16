@@ -113,7 +113,7 @@ try {
     $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
         /**
          * Bazı Gatewayler 3D Form verisini oluşturabilmek için bankaya API istek gönderir.
-         * 3D form verisini oluşturmak için API isteği Gönderen Gateway'ler: AkOde, PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos
+         * 3D form verisini oluşturmak için API isteği Gönderen Gateway'ler: ToslaPos, PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos
          * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
          * Ornek:
          * if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {

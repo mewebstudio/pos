@@ -10,12 +10,12 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\AkOdePos;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 use Monolog\Test\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-class AkOdePosTest extends TestCase
+class ToslaPosTest extends TestCase
 {
     use PaymentTestTrait;
 
@@ -23,7 +23,7 @@ class AkOdePosTest extends TestCase
 
     private EventDispatcher $eventDispatcher;
 
-    /** @var AkOdePos */
+    /** @var ToslaPos */
     private PosInterface $pos;
 
     private array $lastResponse;
@@ -34,8 +34,8 @@ class AkOdePosTest extends TestCase
 
         $config = require __DIR__.'/../../config/pos_test.php';
 
-        $account = AccountFactory::createAkOdePosAccount(
-            'akode',
+        $account = AccountFactory::createToslaPosAccount(
+            'tosla',
             '1000000494',
             'POS_ENT_Test_001',
             'POS_ENT_Test_001!*!*',

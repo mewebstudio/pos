@@ -5,7 +5,7 @@
 
 namespace Mews\Pos\Entity\Account;
 
-class AkOdePosAccount extends AbstractPosAccount
+class ToslaPosAccount extends AbstractPosAccount
 {
 
 }

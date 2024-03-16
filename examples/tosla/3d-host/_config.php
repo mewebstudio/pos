@@ -6,8 +6,8 @@ require '../_payment_config.php';
 
 $baseUrl = $bankTestsUrl.'/3d-host/';
 //account bilgileri kendi account bilgilerinizle degistiriniz
-$account = \Mews\Pos\Factory\AccountFactory::createAkOdePosAccount(
-    'akode',
+$account = \Mews\Pos\Factory\AccountFactory::createToslaPosAccount(
+    'tosla',
     '1000000494',
     'POS_ENT_Test_001',
     'POS_ENT_Test_001!*!*',

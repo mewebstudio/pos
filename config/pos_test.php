@@ -18,9 +18,9 @@ return [
                 'gateway_3d'      => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
             ],
         ],
-        'akode'               => [
+        'tosla'               => [
             'name'  => 'AkÖde A.Ş.',
-            'class' => Mews\Pos\Gateways\AkOdePos::class,
+            'class' => Mews\Pos\Gateways\ToslaPos::class,
             'gateway_endpoints'  => [
                 'payment_api'     => 'https://prepentegrasyon.tosla.com/api/Payment',
                 'gateway_3d'      => 'https://prepentegrasyon.tosla.com/api/Payment/ProcessCardForm',

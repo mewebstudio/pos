@@ -52,7 +52,7 @@ try {
              *     $event->setRequestData($data);
              * }
              *
-             * Bu asamada bu Event sadece PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos, AkOde gatewayler'de trigger edilir.
+             * Bu asamada bu Event sadece PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos, ToslaPos gatewayler'de trigger edilir.
              */
         });
 

@@ -5,12 +5,12 @@
 
 namespace Mews\Pos\Gateways;
 
-use Mews\Pos\DataMapper\RequestDataMapper\AkOdePosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
-use Mews\Pos\DataMapper\ResponseDataMapper\AkOdePosResponseDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Account\AkOdePosAccount;
+use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
@@ -22,18 +22,18 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Documentation: https://tosla.com/isim-icin/gelistirici-merkezi
  */
-class AkOdePos extends AbstractGateway
+class ToslaPos extends AbstractGateway
 {
     /** @var string */
-    public const NAME = 'AkOdePos';
+    public const NAME = 'ToslaPos';
 
-    /** @var AkOdePosAccount */
+    /** @var ToslaPosAccount */
     protected AbstractPosAccount $account;
 
-    /** @var AkOdePosRequestDataMapper */
+    /** @var ToslaPosRequestDataMapper */
     protected RequestDataMapperInterface $requestDataMapper;
 
-    /** @var AkOdePosResponseDataMapper */
+    /** @var ToslaPosResponseDataMapper */
     protected ResponseDataMapperInterface $responseDataMapper;
 
     /** @inheritdoc */
@@ -57,7 +57,7 @@ class AkOdePos extends AbstractGateway
     ];
 
 
-    /** @return AkOdePosAccount */
+    /** @return ToslaPosAccount */
     public function getAccount(): AbstractPosAccount
     {
         return $this->account;
