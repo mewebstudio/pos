@@ -39,7 +39,7 @@ try {
 }
 ```
 
-**status.php (kullanıcıdan kredi kart bilgileri alındıktan sonra çalışacak kod)**
+**status.php**
 ```php
 <?php
 
