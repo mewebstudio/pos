@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 abstract class AbstractGateway implements PosInterface
 {
-    /** @var array{gateway_endpoints: array{payment_api: string, gateway_3d: string, gateway_3d_host?: string, query_api?: string}} */
+    /** @var array{gateway_endpoints: array{payment_api: non-empty-string, gateway_3d: non-empty-string, gateway_3d_host?: non-empty-string, query_api?: non-empty-string}} */
     protected array $config;
 
     protected AbstractPosAccount $account;
@@ -60,7 +60,7 @@ abstract class AbstractGateway implements PosInterface
     private bool $testMode = false;
 
     /**
-     * @param array{gateway_endpoints: array{payment_api: string, gateway_3d: string, gateway_3d_host?: string, query_api?: string}} $config
+     * @param array{gateway_endpoints: array{payment_api: non-empty-string, gateway_3d: non-empty-string, gateway_3d_host?: non-empty-string, query_api?: non-empty-string}} $config
      */
     public function __construct(
         array                          $config,
@@ -125,7 +125,7 @@ abstract class AbstractGateway implements PosInterface
      * @param string|null $txType
      * @param string|null $paymentModel
      *
-     * @return string
+     * @return non-empty-string
      */
     public function getApiURL(string $txType = null, string $paymentModel = null): string
     {
@@ -133,7 +133,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return string
+     * @return non-empty-string
      */
     public function get3DGatewayURL(): string
     {
@@ -141,7 +141,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return string
+     * @return non-empty-string
      */
     public function get3DHostGatewayURL(): string
     {
@@ -149,7 +149,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return string
+     * @return non-empty-string
      */
     public function getQueryAPIUrl(): string
     {
@@ -437,7 +437,7 @@ abstract class AbstractGateway implements PosInterface
      * @param array<string, mixed>|string $contents data to send
      * @param string                      $txType
      * @param string                      $paymentModel
-     * @param string|null                 $url      URL address of the API
+     * @param non-empty-string|null       $url      URL address of the API
      *
      * @return array<string, mixed>
      */

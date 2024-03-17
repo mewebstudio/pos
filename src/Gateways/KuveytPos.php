@@ -201,9 +201,9 @@ class KuveytPos extends AbstractGateway
     /**
      * @phpstan-param PosInterface::TX_TYPE_STATUS|PosInterface::TX_TYPE_REFUND|PosInterface::TX_TYPE_CANCEL $txType
      *
-     * @param array<string, mixed> $contents
-     * @param string               $txType
-     * @param string|null          $url
+     * @param array<string, mixed>  $contents
+     * @param string                $txType
+     * @param non-empty-string|null $url
      *
      * @return array<string, mixed>
      *
@@ -264,7 +264,7 @@ class KuveytPos extends AbstractGateway
      * @param array<string, int|string|float|null> $order
      * @param string                               $paymentModel
      * @param string                               $txType
-     * @param string                               $gatewayURL
+     * @param non-empty-string                     $gatewayURL
      * @param CreditCardInterface|null             $card
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
