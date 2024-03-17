@@ -93,11 +93,11 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return non-empty-array<string, string>
+     * @inheritDoc
      */
     public function getCurrencies(): array
     {
-        return $this->requestDataMapper->getCurrencyMappings();
+        return \array_keys($this->requestDataMapper->getCurrencyMappings());
     }
 
     /**

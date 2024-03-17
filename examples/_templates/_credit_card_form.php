@@ -52,10 +52,10 @@
                 <?php endforeach; ?>
                 </select>
             </div>
-            <?php if ($pos->getCurrencies()): ?>
+            <?php if ([] !== $pos->getCurrencies()): ?>
                 <div class="form-group col-md-4">
                     <select name="currency" id="currency" class="form-control input-lg">
-                        <?php foreach ($pos->getCurrencies() as $currency => $code) : ?>
+                        <?php foreach ($pos->getCurrencies() as $currency) : ?>
                             <option value="<?= $currency; ?>" <?= $currency === \Mews\Pos\PosInterface::CURRENCY_TRY ? 'selected': null ?>><?= $currency; ?></option>
                         <?php endforeach; ?>
                     </select>

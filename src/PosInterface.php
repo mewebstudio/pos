@@ -270,6 +270,13 @@ interface PosInterface
     public function getCardTypeMapping(): array;
 
     /**
+     * returns the list of supported currencies
+     *
+     * @return non-empty-array<int, PosInterface::CURRENCY_*>
+     */
+    public function getCurrencies(): array;
+
+    /**
      * @return AbstractPosAccount
      */
     public function getAccount(): AbstractPosAccount;
