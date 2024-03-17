@@ -66,7 +66,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         $pos         = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
 
         $this->requestDataMapper = new PayForPosRequestDataMapper($dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
+        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
     /**

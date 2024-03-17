@@ -48,7 +48,7 @@ class PayForPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
         $this->pos->setTestMode(true);
 
-        $this->card = CreditCardFactory::create(
+        $this->card = CreditCardFactory::createForGateway(
             $this->pos,
             '4155650100416111',
             '25',

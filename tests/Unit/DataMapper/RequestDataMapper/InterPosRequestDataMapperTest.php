@@ -69,7 +69,7 @@ class InterPosRequestDataMapperTest extends TestCase
         $this->crypt             = $this->createMock(CryptInterface::class);
         $this->requestDataMapper = new InterPosRequestDataMapper($dispatcher, $this->crypt);
 
-        $this->card = CreditCardFactory::create($pos, '5555444433332222', '21', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card = CreditCardFactory::createForGateway($pos, '5555444433332222', '21', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**

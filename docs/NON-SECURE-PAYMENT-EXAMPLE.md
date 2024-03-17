@@ -41,6 +41,7 @@ try {
 ```
 
 **index.php (kullanıcıdan kredi kart bilgileri alındıktan sonra çalışacak kod)**
+
 ```php
 <?php
 
@@ -59,7 +60,7 @@ $order = [
 
 // Kredi kartı bilgileri
 try {
-$card = \Mews\Pos\Factory\CreditCardFactory::create(
+$card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
         $pos,
         $_REQUEST['card_number'],
         $_REQUEST['card_year'],

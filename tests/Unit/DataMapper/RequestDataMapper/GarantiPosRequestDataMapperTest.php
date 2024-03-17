@@ -70,7 +70,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper = new GarantiPosRequestDataMapper($dispatcher, $crypt);
         $this->requestDataMapper->setTestMode(true);
 
-        $this->card = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
+        $this->card = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
     /**

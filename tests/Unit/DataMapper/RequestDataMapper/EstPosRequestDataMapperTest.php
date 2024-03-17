@@ -64,7 +64,7 @@ class EstPosRequestDataMapperTest extends TestCase
         $pos         = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
         $this->requestDataMapper = new EstPosRequestDataMapper($dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**

@@ -52,7 +52,7 @@ class GarantiPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
         $this->pos->setTestMode(true);
 
-        $this->card = CreditCardFactory::create(
+        $this->card = CreditCardFactory::createForGateway(
             $this->pos,
             '4282209004348015',
             '30',

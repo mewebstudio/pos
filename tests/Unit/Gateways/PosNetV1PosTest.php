@@ -57,7 +57,7 @@ class PosNetV1PosTest extends TestCase
 
         $this->pos->setTestMode(true);
 
-        $this->card = CreditCardFactory::create($this->pos, '5555444433332222', '21', '12', '122', 'ahmet');
+        $this->card = CreditCardFactory::createForGateway($this->pos, '5555444433332222', '21', '12', '122', 'ahmet');
     }
 
     /**

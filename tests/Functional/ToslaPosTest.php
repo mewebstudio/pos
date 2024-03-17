@@ -46,7 +46,7 @@ class ToslaPosTest extends TestCase
         $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
         $this->pos->setTestMode(true);
 
-        $this->card = CreditCardFactory::create(
+        $this->card = CreditCardFactory::createForGateway(
             $this->pos,
             '4159560047417732',
             '24',

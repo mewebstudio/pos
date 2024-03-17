@@ -65,7 +65,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
 
         $this->crypt             = $this->createMock(CryptInterface::class);
         $this->requestDataMapper = new PayFlexV4PosRequestDataMapper($dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**

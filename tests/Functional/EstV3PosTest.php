@@ -49,7 +49,7 @@ class EstV3PosTest extends TestCase
 
         $this->pos->setTestMode(true);
 
-        $this->card = CreditCardFactory::create(
+        $this->card = CreditCardFactory::createForGateway(
             $this->pos,
             '4546711234567894',
             '26',

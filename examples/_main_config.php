@@ -85,7 +85,7 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\E
 function createCard(PosInterface $pos, array $card): \Mews\Pos\Entity\Card\CreditCardInterface
 {
     try {
-        return \Mews\Pos\Factory\CreditCardFactory::create(
+        return \Mews\Pos\Factory\CreditCardFactory::createForGateway(
             $pos,
             $card['number'],
             $card['year'],

@@ -68,7 +68,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
         $pos        = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
-        $this->card = CreditCardFactory::create(
+        $this->card = CreditCardFactory::createForGateway(
             $pos,
             '4155650100416111',
             25,

@@ -158,7 +158,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         $pos = PosFactory::createPosGateway($account, $config, new EventDispatcher());
         $pos->setTestMode(true);
 
-        $card = CreditCardFactory::create($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $card = CreditCardFactory::createForGateway($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
 
         yield 'with_card_1' => [
             'account'  => $account,

@@ -79,7 +79,7 @@ class KuveytPosTest extends TestCase
 
         $this->pos->setTestMode(true);
 
-        $this->card = CreditCardFactory::create(
+        $this->card = CreditCardFactory::createForGateway(
             $this->pos,
             '4155650100416111',
             25,

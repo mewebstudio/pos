@@ -52,6 +52,7 @@ try {
 
 
 **form.php (kullanıcıdan kredi kart bilgileri alındıktan sonra çalışacak kod)**
+
 ```php
 <?php
 
@@ -78,7 +79,7 @@ $session->set('order', $order);
 
 // Kredi kartı bilgileri
 try {
-$card = \Mews\Pos\Factory\CreditCardFactory::create(
+$card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
         $pos,
         $_REQUEST['card_number'],
         $_REQUEST['card_year'],
@@ -127,6 +128,7 @@ try {
 </form>
 ```
 **response.php (gateway'den döndükten sonra çalışacak kod)**
+
 ```php
 <?php
 
@@ -137,7 +139,7 @@ $card  = null;
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
     $cardData = $session->get('card');
-    $card = \Mews\Pos\Factory\CreditCardFactory::create(
+    $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
         $pos,
         $cardData['card_number'],
         $cardData['card_year'],
