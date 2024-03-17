@@ -200,7 +200,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    private static function checkParameters(string $model, ?string $storeKey)
+    private static function checkParameters(string $model, ?string $storeKey): void
     {
         if (PosInterface::MODEL_NON_SECURE === $model) {
             return;
@@ -221,7 +221,7 @@ class AccountFactory
      *
      * @throws MissingAccountInfoException
      */
-    private static function checkPayFlexBankMerchantType(int $merchantType, ?string $subMerchantId)
+    private static function checkPayFlexBankMerchantType(int $merchantType, ?string $subMerchantId): void
     {
         if (PayFlexAccount::MERCHANT_TYPE_SUB_DEALER === $merchantType && (null === $subMerchantId || '' === $subMerchantId)) {
             throw new MissingAccountInfoException('SubMerchantId is required for sub branches!');

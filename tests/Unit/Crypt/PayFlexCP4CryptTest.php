@@ -43,7 +43,7 @@ class PayFlexCP4CryptTest extends TestCase
     /**
      * @dataProvider threeDHashCreateDataProvider
      */
-    public function testCreate3DHash(array $requestData, string $expected)
+    public function testCreate3DHash(array $requestData, string $expected): void
     {
         $actual = $this->crypt->create3DHash($this->account, $requestData);
 

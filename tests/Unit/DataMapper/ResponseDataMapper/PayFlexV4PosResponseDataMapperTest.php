@@ -82,7 +82,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider refundDataProvider
      */
-    public function testMapRefundResponse(array $paymentResponse, array $expectedData)
+    public function testMapRefundResponse(array $paymentResponse, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($paymentResponse);
         unset($actualData['all']);

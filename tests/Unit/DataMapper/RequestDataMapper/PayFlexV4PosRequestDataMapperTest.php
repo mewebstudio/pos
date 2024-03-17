@@ -71,7 +71,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testFormatAmount()
+    public function testFormatAmount(): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('formatAmount');
@@ -94,7 +94,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testMapCurrency()
+    public function testMapCurrency(): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapCurrency');
@@ -114,7 +114,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
      *
      * @return void
      */
-    public function testMapInstallment($installment, $expected)
+    public function testMapInstallment($installment, $expected): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapInstallment');
@@ -125,7 +125,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $gatewayResponse, CreditCardInterface $card, array $expected)
+    public function testCreate3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $gatewayResponse, CreditCardInterface $card, array $expected): void
     {
         $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $gatewayResponse, $card);
         $this->assertEquals($expected, $actual);
@@ -134,7 +134,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestDataWithoutCard(AbstractPosAccount $account, array $order, string $txType, array $gatewayResponse)
+    public function testCreate3DPaymentRequestDataWithoutCard(AbstractPosAccount $account, array $order, string $txType, array $gatewayResponse): void
     {
         $this->expectException(\LogicException::class);
         $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $gatewayResponse);
@@ -143,7 +143,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider three3DEnrollmentRequestDataDataProvider
      */
-    public function testCreate3DEnrollmentCheckData(array $order, ?CreditCardInterface $card, array $expected)
+    public function testCreate3DEnrollmentCheckData(array $order, ?CreditCardInterface $card, array $expected): void
     {
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
@@ -157,7 +157,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateNonSecurePaymentRequestData()
+    public function testCreateNonSecurePaymentRequestData(): void
     {
         $order           = $this->order;
         $txType          = PosInterface::TX_TYPE_PAY_AUTH;
@@ -172,7 +172,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData()
+    public function testCreateNonSecurePostAuthPaymentRequestData(): void
     {
         $order           = $this->order;
         $order['amount'] = 1000;
@@ -209,7 +209,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DFormData()
+    public function testCreate3DFormData(): void
     {
         $expectedValue = $this->getSample3DFormDataFromEnrollmentResponse();
         $actualData    = $this->requestDataMapper->create3DFormData(

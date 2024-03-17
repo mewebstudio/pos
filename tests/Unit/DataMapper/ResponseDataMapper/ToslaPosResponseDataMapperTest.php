@@ -39,7 +39,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider paymentDataProvider
      */
-    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
+    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
@@ -59,7 +59,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPayPaymentDataProvider
      */
-    public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData)
+    public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
         if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
@@ -78,7 +78,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threeDHostPaymentDataProvider
      */
-    public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData)
+    public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
         if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
@@ -97,7 +97,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider statusResponseDataProvider
      */
-    public function testMapStatusResponse(array $responseData, array $expectedData)
+    public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
         if (isset($responseData['CreateDate'])) {
@@ -131,7 +131,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider cancelDataProvider
      */
-    public function testMapCancelResponse(array $responseData, array $expectedData)
+    public function testMapCancelResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
         unset($actualData['all']);
@@ -141,7 +141,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider orderHistoryDataProvider
      */
-    public function testMapHistoryResponse(array $responseData, array $expectedData)
+    public function testMapHistoryResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
         if (isset($responseData['Transactions'])) {

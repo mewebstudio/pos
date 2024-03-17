@@ -39,7 +39,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider paymentTestDataProvider
      */
-    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
+    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
@@ -58,7 +58,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentDataProvider
      */
-    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData)
+    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->map3DPaymentData(
             $threeDResponseData,
@@ -82,7 +82,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider mapStatusResponseDataProvider
      */
-    public function testMapStatusResponse(array $responseData, array $expectedData)
+    public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
 
@@ -104,7 +104,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider mapCancelResponseDataProvider
      */
-    public function testMapCancelResponse(array $responseData, array $expectedData)
+    public function testMapCancelResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
         unset($actualData['all']);
@@ -114,7 +114,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider mapRefundResponseDataProvider
      */
-    public function testMapRefundResponse(array $responseData, array $expectedData)
+    public function testMapRefundResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
         unset($actualData['all']);

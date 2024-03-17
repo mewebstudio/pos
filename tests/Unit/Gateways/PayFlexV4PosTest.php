@@ -75,7 +75,7 @@ class PayFlexV4PosTest extends TestCase
     /**
      * @return void
      */
-    public function testInit()
+    public function testInit(): void
     {
         $this->assertEquals($this->config['banks'][$this->account->getBank()], $this->pos->getConfig());
         $this->assertEquals($this->account, $this->pos->getAccount());

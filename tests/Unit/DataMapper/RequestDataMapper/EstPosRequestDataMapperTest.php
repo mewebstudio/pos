@@ -82,7 +82,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testMapCurrency()
+    public function testMapCurrency(): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapCurrency');
@@ -102,7 +102,7 @@ class EstPosRequestDataMapperTest extends TestCase
      *
      * @return void
      */
-    public function testMapInstallment($installment, $expected)
+    public function testMapInstallment($installment, $expected): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapInstallment');
@@ -113,7 +113,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider postAuthRequestDataProvider
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expected)
+    public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expected): void
     {
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
@@ -123,7 +123,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateNonSecurePaymentRequestData()
+    public function testCreateNonSecurePaymentRequestData(): void
     {
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
 
@@ -134,7 +134,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateCancelRequestData()
+    public function testCreateCancelRequestData(): void
     {
         $order = [
             'id' => '2020110828BC',
@@ -149,7 +149,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateCancelRecurringOrderRequestData()
+    public function testCreateCancelRecurringOrderRequestData(): void
     {
         $order = [
             'id'                              => '2020110828BC',
@@ -165,7 +165,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider orderHistoryRequestDataProvider
      */
-    public function testCreateOrderHistoryRequestData(array $order, array $expected)
+    public function testCreateOrderHistoryRequestData(array $order, array $expected): void
     {
         $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
@@ -174,7 +174,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, array $expected)
+    public function testCreate3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, array $expected): void
     {
         $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $responseData);
         $this->assertEquals($expected, $actual);
@@ -215,7 +215,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateStatusRequestData()
+    public function testCreateStatusRequestData(): void
     {
         $order = [
             'id' => '2020110828BC',
@@ -230,7 +230,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateRecurringStatusRequestData()
+    public function testCreateRecurringStatusRequestData(): void
     {
         $order = [
             'recurringId' => '2020110828BC',
@@ -245,7 +245,7 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateRefundRequestData()
+    public function testCreateRefundRequestData(): void
     {
         $order = [
             'id'       => '2020110828BC',

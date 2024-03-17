@@ -79,7 +79,7 @@ class PosNetTest extends TestCase
     /**
      * @return void
      */
-    public function testInit()
+    public function testInit(): void
     {
         $this->assertEquals($this->config['banks'][$this->account->getBank()], $this->pos->getConfig());
         $this->assertEquals($this->account, $this->pos->getAccount());
@@ -91,7 +91,7 @@ class PosNetTest extends TestCase
      *
      * @throws Exception
      */
-    public function testGet3DFormDataOosTransactionFail()
+    public function testGet3DFormDataOosTransactionFail(): void
     {
         $this->expectException(Exception::class);
         $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(
@@ -126,7 +126,7 @@ class PosNetTest extends TestCase
      *
      * @throws Exception
      */
-    public function testMake3DPaymentSuccess()
+    public function testMake3DPaymentSuccess(): void
     {
         $responseMapperTest = new PosNetResponseDataMapperTest();
         $request            = Request::create('', 'POST', [

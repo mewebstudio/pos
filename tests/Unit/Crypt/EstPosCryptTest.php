@@ -57,7 +57,7 @@ class EstPosCryptTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DHashFor3DPay()
+    public function testCreate3DHashFor3DPay(): void
     {
         $requestData = [
             'oid'       => 'order222',
@@ -77,7 +77,7 @@ class EstPosCryptTest extends TestCase
     /**
      * @dataProvider threeDHashCheckDataProvider
      */
-    public function testCheck3DHash(bool $expected, array $responseData)
+    public function testCheck3DHash(bool $expected, array $responseData): void
     {
         $this->assertSame($expected, $this->crypt->check3DHash($this->account, $responseData));
 

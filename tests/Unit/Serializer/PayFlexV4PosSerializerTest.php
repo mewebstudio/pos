@@ -36,7 +36,7 @@ class PayFlexV4PosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $txType, string $expected)
+    public function testEncode(array $data, string $txType, string $expected): void
     {
         $result   = $this->serializer->encode($data, $txType);
         $expected = str_replace(["\r"], '', $expected);
@@ -48,7 +48,7 @@ class PayFlexV4PosSerializerTest extends TestCase
      * @testWith ["history"]
      * @testWith ["order_history"]
      */
-    public function testEncodeException(string $txType)
+    public function testEncodeException(string $txType): void
     {
         $data = ['abc' => 1];
 
@@ -59,7 +59,7 @@ class PayFlexV4PosSerializerTest extends TestCase
     /**
      * @dataProvider decodeDataProvider
      */
-    public function testDecode(string $input, array $expected)
+    public function testDecode(string $input, array $expected): void
     {
         $actual = $this->serializer->decode($input);
 

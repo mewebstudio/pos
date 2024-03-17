@@ -76,7 +76,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testFormatAmount()
+    public function testFormatAmount(): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('formatAmount');
@@ -89,7 +89,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testMapCurrency()
+    public function testMapCurrency(): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapCurrency');
@@ -109,7 +109,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
      *
      * @return void
      */
-    public function testMapInstallment($installment, $expected)
+    public function testMapInstallment($installment, $expected): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapInstallment');
@@ -120,7 +120,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData()
+    public function testCreateNonSecurePostAuthPaymentRequestData(): void
     {
         $this->order['ref_ret_num'] = '831803579226';
 
@@ -133,7 +133,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateNonSecurePaymentRequestData()
+    public function testCreateNonSecurePaymentRequestData(): void
     {
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
 
@@ -144,7 +144,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateCancelRequestData()
+    public function testCreateCancelRequestData(): void
     {
         $order = [
             'id'          => '2020110828BC',
@@ -164,7 +164,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider orderHistoryRequestDataProvider
      */
-    public function testCreateOrderHistoryRequestData(array $order, array $expectedData)
+    public function testCreateOrderHistoryRequestData(array $order, array $expectedData): void
     {
         $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
 
@@ -174,7 +174,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider create3DPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(GarantiPosAccount $account, array $order, array $responseData, array $expected)
+    public function testCreate3DPaymentRequestData(GarantiPosAccount $account, array $order, array $responseData, array $expected): void
     {
         $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, '', $responseData);
 
@@ -184,7 +184,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testGet3DFormData()
+    public function testGet3DFormData(): void
     {
         $account    = $this->account;
         $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
@@ -231,7 +231,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateStatusRequestData()
+    public function testCreateStatusRequestData(): void
     {
         $order = [
             'id'          => '2020110828BC',
@@ -250,7 +250,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider refundOrderDataProvider
      */
-    public function testCreateRefundRequestData(GarantiPosAccount $account, array $order, array $expectedData)
+    public function testCreateRefundRequestData(GarantiPosAccount $account, array $order, array $expectedData): void
     {
         $actual = $this->requestDataMapper->createRefundRequestData($account, $order);
 

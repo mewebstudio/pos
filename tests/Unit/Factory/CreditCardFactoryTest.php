@@ -20,7 +20,7 @@ class CreditCardFactoryTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateSuccess()
+    public function testCreateSuccess(): void
     {
         $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()
             //just any method
@@ -48,7 +48,7 @@ class CreditCardFactoryTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateWithEmptyTypeMapping()
+    public function testCreateWithEmptyTypeMapping(): void
     {
         $pos = $this->getMockBuilder(GarantiPos::class)->disableOriginalConstructor()
             //just any method
@@ -70,7 +70,7 @@ class CreditCardFactoryTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateUnSupportedCardTypeException()
+    public function testCreateUnSupportedCardTypeException(): void
     {
         $this->expectException(CardTypeNotSupportedException::class);
         $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()->getMock();
@@ -90,7 +90,7 @@ class CreditCardFactoryTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateCardTypeRequiredException()
+    public function testCreateCardTypeRequiredException(): void
     {
         $this->expectException(CardTypeRequiredException::class);
         $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()->getMock();
@@ -110,7 +110,7 @@ class CreditCardFactoryTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateCardTypeIsNotRequired()
+    public function testCreateCardTypeIsNotRequired(): void
     {
         $pos = $this->getMockBuilder(GarantiPos::class)->disableOriginalConstructor()
             //just any method

@@ -66,7 +66,7 @@ class PayForPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $event->getTxType());
                 $this->assertCount(16, $event->getRequestData());
@@ -99,7 +99,7 @@ class PayForPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_STATUS, $event->getTxType());
                 $this->assertCount(8, $event->getRequestData());
@@ -127,7 +127,7 @@ class PayForPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $event->getTxType());
                 $this->assertCount(9, $event->getRequestData());
@@ -155,7 +155,7 @@ class PayForPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $event->getTxType());
                 $this->assertCount(8, $event->getRequestData());
@@ -176,7 +176,7 @@ class PayForPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_HISTORY, $event->getTxType());
                 $this->assertCount(8, $event->getRequestData());
@@ -197,7 +197,7 @@ class PayForPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_PRE_AUTH, $event->getTxType());
                 $this->assertCount(16, $event->getRequestData());
@@ -230,7 +230,7 @@ class PayForPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_POST_AUTH, $event->getTxType());
                 $this->assertCount(10, $event->getRequestData());
@@ -258,7 +258,7 @@ class PayForPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             Before3DFormHashCalculatedEvent::class,
-            function (Before3DFormHashCalculatedEvent $event) use (&$eventIsThrown) {
+            function (Before3DFormHashCalculatedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertCount(17, $event->getFormInputs());
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $event->getTxType());
@@ -288,7 +288,7 @@ class PayForPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_REFUND, $event->getTxType());
                 $this->assertCount(10, $event->getRequestData());

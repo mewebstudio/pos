@@ -37,7 +37,7 @@ class EstV3PosCryptTest extends TestCase
     /**
      * @dataProvider threeDHashCheckDataProvider
      */
-    public function testCheck3DHash(array $responseData)
+    public function testCheck3DHash(array $responseData): void
     {
         $this->assertTrue($this->crypt->check3DHash($this->account, $responseData));
 
@@ -45,7 +45,7 @@ class EstV3PosCryptTest extends TestCase
         $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
-    public function testCreate3DHashFor3DPay()
+    public function testCreate3DHashFor3DPay(): void
     {
         $expected = '/uPxhEKWCEGi3NsDOOQ4u8Hu5g71v5GWspOid70WehTWEz97PqxG3IN1Jv5jsbOXOw3Z3Rr/0UtywzEgbqFfdA==';
 
@@ -70,7 +70,7 @@ class EstV3PosCryptTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    public function testCreate3DHashFor3DSecure()
+    public function testCreate3DHashFor3DSecure(): void
     {
         $account = $this->account;
         $inputs  = [

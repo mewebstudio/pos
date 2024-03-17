@@ -43,7 +43,7 @@ class GarantiPosCryptTest extends TestCase
     /**
      * @dataProvider threeDHashCheckDataProvider
      */
-    public function testCheck3DHash(bool $expected, array $responseData)
+    public function testCheck3DHash(bool $expected, array $responseData): void
     {
         $this->assertSame($expected, $this->crypt->check3DHash($this->account, $responseData));
 
@@ -54,7 +54,7 @@ class GarantiPosCryptTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DHash()
+    public function testCreate3DHash(): void
     {
         $requestData = [
               'orderid' => 'order222',
@@ -75,7 +75,7 @@ class GarantiPosCryptTest extends TestCase
     /**
      * @dataProvider hashCreateDataProvider
      */
-    public function testCreateHash(array $requestData, string $expected)
+    public function testCreateHash(array $requestData, string $expected): void
     {
         $actual = $this->crypt->createHash($this->account, $requestData);
         $this->assertEquals($expected, $actual);

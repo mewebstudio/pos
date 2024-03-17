@@ -134,7 +134,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider cancelRequestDataProvider
      */
-    public function testCreateCancelRequestData(array $order, array $expected)
+    public function testCreateCancelRequestData(array $order, array $expected): void
     {
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
@@ -151,7 +151,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider orderHistoryRequestDataProvider
      */
-    public function testCreateOrderHistoryRequestData(array $order, array $expected)
+    public function testCreateOrderHistoryRequestData(array $order, array $expected): void
     {
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
@@ -169,7 +169,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider threeDFormDataProvider
      */
-    public function testGet3DFormData(array $order, string $txType, string $paymentModel, bool $withCard, string $gatewayURL, array $expected)
+    public function testGet3DFormData(array $order, string $txType, string $paymentModel, bool $withCard, string $gatewayURL, array $expected): void
     {
         $card = $withCard ? $this->card : null;
 

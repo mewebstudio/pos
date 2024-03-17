@@ -38,7 +38,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider paymentTestDataProvider
      */
-    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData)
+    public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
@@ -52,7 +52,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentDataProvider
      */
-    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData)
+    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->map3DPaymentData(
             $threeDResponseData,
@@ -71,7 +71,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPayPaymentDataProvider
      */
-    public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData)
+    public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
         if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
@@ -90,7 +90,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider statusTestDataProvider
      */
-    public function testMapStatusResponse(array $responseData, array $expectedData)
+    public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
@@ -111,7 +111,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider orderHistoryTestDataProvider
      */
-    public function testOrderMapHistoryResponse(array $responseData, array $expectedData)
+    public function testOrderMapHistoryResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
         if (count($actualData['transactions']) > 1
@@ -142,7 +142,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider refundTestDataProvider
      */
-    public function testMapRefundResponse(array $responseData, array $expectedData)
+    public function testMapRefundResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
         unset($actualData['all']);
@@ -152,7 +152,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider cancelTestDataProvider
      */
-    public function testMapCancelResponse(array $responseData, array $expectedData)
+    public function testMapCancelResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
         unset($actualData['all']);

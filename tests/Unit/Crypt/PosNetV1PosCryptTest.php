@@ -39,7 +39,7 @@ class PosNetV1PosCryptTest extends TestCase
     /**
      * @dataProvider hashFromParamsDataProvider
      */
-    public function testHashFromParams(string $storeKey, array $data, string $expected)
+    public function testHashFromParams(string $storeKey, array $data, string $expected): void
     {
         $this->assertSame($expected, $this->crypt->hashFromParams($storeKey, $data, 'MACParams', ':'));
     }
@@ -47,7 +47,7 @@ class PosNetV1PosCryptTest extends TestCase
     /**
      * @dataProvider hashCreateDataProvider
      */
-    public function testCreateHash(array $requestData, string $expected)
+    public function testCreateHash(array $requestData, string $expected): void
     {
         $actual = $this->crypt->createHash($this->account, $requestData);
         $this->assertEquals($expected, $actual);
@@ -57,7 +57,7 @@ class PosNetV1PosCryptTest extends TestCase
     /**
      * @dataProvider threeDHashCreateDataProvider
      */
-    public function testCreate3DHash(array $requestData, string $expected)
+    public function testCreate3DHash(array $requestData, string $expected): void
     {
         $actual = $this->crypt->create3DHash($this->account, $requestData);
 
@@ -67,7 +67,7 @@ class PosNetV1PosCryptTest extends TestCase
     /**
      * @dataProvider threeDHashCheckDataProvider
      */
-    public function testCheck3DHash(bool $expected, array $responseData)
+    public function testCheck3DHash(bool $expected, array $responseData): void
     {
         $this->assertSame($expected, $this->crypt->check3DHash($this->account, $responseData));
     }

@@ -63,7 +63,7 @@ class PosNetV1PosTest extends TestCase
     /**
      * @return void
      */
-    public function testInit()
+    public function testInit(): void
     {
         $this->assertEquals($this->config['banks'][$this->account->getBank()], $this->pos->getConfig());
         $this->assertEquals($this->account, $this->pos->getAccount());
@@ -73,7 +73,7 @@ class PosNetV1PosTest extends TestCase
     /**
      * @dataProvider getApiURLDataProvider
      */
-    public function testGetApiURL(string $txType, string $expected)
+    public function testGetApiURL(string $txType, string $expected): void
     {
         $this->assertSame($expected, $this->pos->getApiURL($txType));
     }
@@ -83,7 +83,7 @@ class PosNetV1PosTest extends TestCase
      *
      * @throws Exception
      */
-    public function testMake3DPayment(array $order, array $threeDResponseData, array $paymentResponseData, array $expectedData)
+    public function testMake3DPayment(array $order, array $threeDResponseData, array $paymentResponseData, array $expectedData): void
     {
         $request        = Request::create('', 'POST', $threeDResponseData);
         $crypt          = CryptFactory::createGatewayCrypt(PosNetV1Pos::class, new NullLogger());

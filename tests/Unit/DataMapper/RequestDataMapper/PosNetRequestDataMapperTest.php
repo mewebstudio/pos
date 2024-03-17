@@ -68,7 +68,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testMapCurrency()
+    public function testMapCurrency(): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapCurrency');
@@ -80,7 +80,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testFormatAmount()
+    public function testFormatAmount(): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('formatAmount');
@@ -101,7 +101,7 @@ class PosNetRequestDataMapperTest extends TestCase
      *
      * @return void
      */
-    public function testMapInstallment($installment, $expected)
+    public function testMapInstallment($installment, $expected): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapInstallment');
@@ -112,7 +112,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testMapOrderIdToPrefixedOrderId()
+    public function testMapOrderIdToPrefixedOrderId(): void
     {
         $this->assertSame('TDSC00000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, PosInterface::MODEL_3D_SECURE));
         $this->assertSame('000000000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, PosInterface::MODEL_3D_PAY));
@@ -122,7 +122,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testFormatOrderId()
+    public function testFormatOrderId(): void
     {
         $this->assertSame('0010', PosNetRequestDataMapper::formatOrderId(10, 4));
         $this->assertSame('12345', PosNetRequestDataMapper::formatOrderId(12345, 5));
@@ -132,7 +132,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testFormatOrderIdFail()
+    public function testFormatOrderIdFail(): void
     {
         $this->expectException(InvalidArgumentException::class);
         PosNetRequestDataMapper::formatOrderId('123456789012345566fml');
@@ -141,7 +141,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData()
+    public function testCreateNonSecurePostAuthPaymentRequestData(): void
     {
         $order = [
             'id'           => '2020110828BC',
@@ -160,7 +160,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateNonSecurePaymentRequestData()
+    public function testCreateNonSecurePaymentRequestData(): void
     {
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
 
@@ -171,7 +171,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateCancelRequestData()
+    public function testCreateCancelRequestData(): void
     {
         $order = [
             'id' => '2020110828BC',
@@ -196,7 +196,7 @@ class PosNetRequestDataMapperTest extends TestCase
      *
      * @return void
      */
-    public function testCreate3DPaymentRequestData(PosNetAccount $account, array $order, string $txType, array $responseData, array $expected)
+    public function testCreate3DPaymentRequestData(PosNetAccount $account, array $order, string $txType, array $responseData, array $expected): void
     {
         $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $responseData);
 
@@ -206,7 +206,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DEnrollmentCheckRequestData()
+    public function testCreate3DEnrollmentCheckRequestData(): void
     {
         $expected = $this->getSample3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
         $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
@@ -217,7 +217,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DEnrollmentCheckRequestDataFailTooLongOrderId()
+    public function testCreate3DEnrollmentCheckRequestDataFailTooLongOrderId(): void
     {
         $this->expectException(InvalidArgumentException::class);
         $this->order['id'] = 'd32458293945098y439244343';
@@ -227,7 +227,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DResolveMerchantRequestData()
+    public function testCreate3DResolveMerchantRequestData(): void
     {
         $order        = [
             'id'          => '2020110828BC',
@@ -251,7 +251,7 @@ class PosNetRequestDataMapperTest extends TestCase
      *
      * @throws Exception
      */
-    public function testCreate3DFormData()
+    public function testCreate3DFormData(): void
     {
         $gatewayURL      = 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService';
         $ooTxSuccessData = $this->getSample3DEnrollmentCheckResponseData();
@@ -273,7 +273,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateStatusRequestData()
+    public function testCreateStatusRequestData(): void
     {
         $order = [
             'id'            => '2020110828BC',
@@ -289,7 +289,7 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateRefundRequestData()
+    public function testCreateRefundRequestData(): void
     {
         $order = [
             'id'            => '2020110828BC',

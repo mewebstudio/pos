@@ -47,7 +47,7 @@ class PayForTest extends TestCase
     /**
      * @return void
      */
-    public function testInit()
+    public function testInit(): void
     {
         $this->assertEquals($this->config['banks'][$this->account->getBank()], $this->pos->getConfig());
         $this->assertEquals($this->account, $this->pos->getAccount());
@@ -60,7 +60,7 @@ class PayForTest extends TestCase
     /**
      * @return void
      */
-    public function testSetTestMode()
+    public function testSetTestMode(): void
     {
         $this->pos->setTestMode(false);
         $this->assertFalse($this->pos->isTestMode());

@@ -78,7 +78,7 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testInit()
+    public function testInit(): void
     {
         $this->assertEquals($this->config['banks'][$this->account->getBank()], $this->pos->getConfig());
         $this->assertEquals($this->account, $this->pos->getAccount());
@@ -88,7 +88,7 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testMake3DPaymentAuthFail()
+    public function testMake3DPaymentAuthFail(): void
     {
         $testData = EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['authFail1'];
         $request  = Request::create('', 'POST', $testData['paymentData']);
@@ -126,7 +126,7 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testMake3DHostPaymentSuccess()
+    public function testMake3DHostPaymentSuccess(): void
     {
         $testData = EstPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1'];
         $request  = Request::create('', 'POST', $testData['paymentData']);
@@ -145,7 +145,7 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testMake3DPayPaymentSuccess()
+    public function testMake3DPayPaymentSuccess(): void
     {
         $testData = EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1'];
         $request  = Request::create('', 'POST', $testData['paymentData']);
@@ -164,7 +164,7 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testMake3DPayPayment3DAuthFail()
+    public function testMake3DPayPayment3DAuthFail(): void
     {
         $request = Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['authFail1']['paymentData']);
 
@@ -233,7 +233,7 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testOrderHistorySuccess()
+    public function testOrderHistorySuccess(): void
     {
         $requestMapper = $this->createMock(RequestDataMapperInterface::class);
         $requestMapper->expects($this->once())->method('createOrderHistoryRequestData')->willReturn([]);
@@ -270,7 +270,7 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testOrderHistoryFail()
+    public function testOrderHistoryFail(): void
     {
         $requestMapper = $this->createMock(RequestDataMapperInterface::class);
         $requestMapper->expects($this->once())->method('createOrderHistoryRequestData')->willReturn([]);
@@ -307,7 +307,7 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testCancelSuccess()
+    public function testCancelSuccess(): void
     {
         $crypt          = CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
@@ -342,7 +342,7 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testCancelFail()
+    public function testCancelFail(): void
     {
         $crypt          = CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
@@ -377,7 +377,7 @@ class EstPosTest extends TestCase
     /**
      * @return void
      */
-    public function testRefundFail()
+    public function testRefundFail(): void
     {
         $crypt          = CryptFactory::createGatewayCrypt(EstPos::class, new NullLogger());
         $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(EstPos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);

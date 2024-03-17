@@ -85,7 +85,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testFormatAmount()
+    public function testFormatAmount(): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('formatAmount');
@@ -99,7 +99,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testMapCurrency()
+    public function testMapCurrency(): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapCurrency');
@@ -119,7 +119,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
      *
      * @return void
      */
-    public function testMapInstallment($installment, $expected)
+    public function testMapInstallment($installment, $expected): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapInstallment');
@@ -130,7 +130,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCompose3DFormData()
+    public function testCompose3DFormData(): void
     {
         $account = $this->account;
         $card    = $this->card;
@@ -165,7 +165,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createCancelRequestDataProvider
      */
-    public function testCreateCancelRequestData(array $order, array $expected)
+    public function testCreateCancelRequestData(array $order, array $expected): void
     {
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
@@ -174,7 +174,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createRefundRequestDataProvider
      */
-    public function testCreateRefundRequestData(array $order, array $expected)
+    public function testCreateRefundRequestData(array $order, array $expected): void
     {
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
@@ -183,7 +183,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createStatusRequestDataProvider
      */
-    public function testCreateStatusRequestData(array $order, array $expected)
+    public function testCreateStatusRequestData(array $order, array $expected): void
     {
         $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);

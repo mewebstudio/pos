@@ -70,7 +70,7 @@ class GarantiPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $event->getTxType());
                 $this->assertCount(7, $event->getRequestData());
@@ -103,7 +103,7 @@ class GarantiPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_STATUS, $event->getTxType());
                 $this->assertCount(6, $event->getRequestData());
@@ -131,7 +131,7 @@ class GarantiPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $event->getTxType());
                 $this->assertCount(6, $event->getRequestData());
@@ -153,7 +153,7 @@ class GarantiPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_PRE_AUTH, $event->getTxType());
                 $this->assertCount(7, $event->getRequestData());
@@ -186,7 +186,7 @@ class GarantiPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_POST_AUTH, $event->getTxType());
                 $this->assertCount(6, $event->getRequestData());
@@ -212,7 +212,7 @@ class GarantiPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             Before3DFormHashCalculatedEvent::class,
-            function (Before3DFormHashCalculatedEvent $event) use (&$eventIsThrown) {
+            function (Before3DFormHashCalculatedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertCount(19, $event->getFormInputs());
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $event->getTxType());
@@ -242,7 +242,7 @@ class GarantiPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown) {
+            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $event->getTxType());
                 $this->assertCount(6, $event->getRequestData());

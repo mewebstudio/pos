@@ -38,7 +38,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testFormatAmount()
+    public function testFormatAmount(): void
     {
         $class  = new \ReflectionObject($this->responseDataMapper);
         $method = $class->getMethod('formatAmount');
@@ -50,7 +50,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider paymentTestDataProvider
      */
-    public function testMapPaymentResponse(string $txType, array $responseData, array $expectedData)
+    public function testMapPaymentResponse(string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, []);
         if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
@@ -69,7 +69,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider refundTestDataProvider
      */
-    public function testMapRefundResponse(array $responseData, array $expectedData)
+    public function testMapRefundResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
         unset($actualData['all']);
@@ -79,7 +79,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider cancelTestDataProvider
      */
-    public function testMapCancelResponse(array $responseData, array $expectedData)
+    public function testMapCancelResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
         unset($actualData['all']);
@@ -89,7 +89,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider statusTestDataProvider
      */
-    public function testMapStatusResponse(array $responseData, array $expectedData)
+    public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
@@ -110,7 +110,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentDataProvider
      */
-    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData)
+    public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->map3DPaymentData(
             $threeDResponseData,

@@ -72,7 +72,7 @@ class InterPosTest extends TestCase
     /**
      * @return void
      */
-    public function testInit()
+    public function testInit(): void
     {
         $this->assertEquals($this->config['banks'][$this->account->getBank()], $this->pos->getConfig());
         $this->assertEquals($this->account, $this->pos->getAccount());
@@ -82,7 +82,7 @@ class InterPosTest extends TestCase
     /**
      * @return void
      */
-    public function testMake3DPaymentAuthFail()
+    public function testMake3DPaymentAuthFail(): void
     {
         $interPosResponseDataMapperTest = new InterPosResponseDataMapperTest();
         $gatewayResponse = $interPosResponseDataMapperTest->threeDPaymentDataProvider()['authFail1']['threeDResponseData'];
@@ -101,7 +101,7 @@ class InterPosTest extends TestCase
     /**
      * @return void
      */
-    public function testMake3DPayPaymentFail()
+    public function testMake3DPayPaymentFail(): void
     {
         $interPosResponseDataMapperTest = new InterPosResponseDataMapperTest();
         $gatewayResponse = $interPosResponseDataMapperTest->threeDPayPaymentDataProvider()['authFail1']['paymentData'];

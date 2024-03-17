@@ -75,7 +75,7 @@ class InterPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testMapCurrency()
+    public function testMapCurrency(): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapCurrency');
@@ -95,7 +95,7 @@ class InterPosRequestDataMapperTest extends TestCase
      *
      * @return void
      */
-    public function testMapInstallment($installment, $expected)
+    public function testMapInstallment($installment, $expected): void
     {
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapInstallment');
@@ -106,7 +106,7 @@ class InterPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData()
+    public function testCreateNonSecurePostAuthPaymentRequestData(): void
     {
         $order = [
             'id'       => '2020110828BC',
@@ -123,7 +123,7 @@ class InterPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateNonSecurePaymentRequestData()
+    public function testCreateNonSecurePaymentRequestData(): void
     {
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
 
@@ -134,7 +134,7 @@ class InterPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateCancelRequestData()
+    public function testCreateCancelRequestData(): void
     {
         $order = [
             'id'   => '2020110828BC',
@@ -150,7 +150,7 @@ class InterPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreate3DPaymentRequestData()
+    public function testCreate3DPaymentRequestData(): void
     {
         $order        = [
             'id'          => '2020110828BC',
@@ -211,7 +211,7 @@ class InterPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateStatusRequestData()
+    public function testCreateStatusRequestData(): void
     {
         $order = [
             'id'   => '2020110828BC',
@@ -227,7 +227,7 @@ class InterPosRequestDataMapperTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateRefundRequestData()
+    public function testCreateRefundRequestData(): void
     {
         $order = [
             'id'     => '2020110828BC',

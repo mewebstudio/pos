@@ -45,7 +45,7 @@ class InterPosCryptTest extends TestCase
     /**
      * @dataProvider threeDHashCheckDataProvider
      */
-    public function testCheck3DHash(array $responseData)
+    public function testCheck3DHash(array $responseData): void
     {
         $this->assertTrue($this->crypt->check3DHash($this->account, $responseData));
     }
@@ -53,7 +53,7 @@ class InterPosCryptTest extends TestCase
     /**
      * @dataProvider threeDHashCreateDataProvider
      */
-    public function testCreate3DHash(array $requestData, string $expected)
+    public function testCreate3DHash(array $requestData, string $expected): void
     {
         $actual = $this->crypt->create3DHash($this->account, $requestData);
 
