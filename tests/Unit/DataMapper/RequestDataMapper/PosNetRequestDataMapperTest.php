@@ -2,12 +2,11 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
-use Exception;
 use InvalidArgumentException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
@@ -58,9 +57,9 @@ class PosNetRequestDataMapperTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos = PosFactory::createPosGateway($this->account, $config, $dispatcher);
-        $crypt = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
+        $dispatcher              = $this->createMock(EventDispatcherInterface::class);
+        $pos                     = PosFactory::createPosGateway($this->account, $config, $dispatcher);
+        $crypt                   = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
         $this->requestDataMapper = new PosNetRequestDataMapper($dispatcher, $crypt);
         $this->card              = CreditCardFactory::create($pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
@@ -139,78 +138,52 @@ class PosNetRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider nonSecurePaymentPostRequestDataProvider
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData(): void
+    public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expectedData): void
     {
-        $order = [
-            'id'           => '2020110828BC',
-            'ref_ret_num' => '019676067890000191',
-            'amount'       => 10.02,
-            'currency'     => PosInterface::CURRENCY_TRY,
-            'installment'  => '2',
-        ];
-
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider nonSecurePaymentRequestDataProvider
      */
-    public function testCreateNonSecurePaymentRequestData(): void
+    public function testCreateNonSecurePaymentRequestData(array $order, string $txType, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
 
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
         $this->assertEquals($expectedData, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider cancelDataProvider
      */
-    public function testCreateCancelRequestData(): void
+    public function testCreateCancelRequestData(array $order, array $expectedData): void
     {
-        $order = [
-            'id' => '2020110828BC',
-            'payment_model' => PosInterface::MODEL_3D_SECURE,
-        ];
+        $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $actual       = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-        $expectedData = $this->getSampleCancelXMLData($this->account, $order);
-        $this->assertEquals($expectedData, $actual);
-
-        $order = [
-            'ref_ret_num' => '2020110828BCNUM',
-        ];
-
-        $actual       = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-        $expectedData = $this->getSampleCancelXMLData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
     /**
      * @dataProvider create3DPaymentRequestDataDataProvider
-     *
-     * @return void
      */
-    public function testCreate3DPaymentRequestData(PosNetAccount $account, array $order, string $txType, array $responseData, array $expected): void
+    public function testCreate3DPaymentRequestData(array $order, string $txType, array $responseData, array $expected): void
     {
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
 
         $this->assertEquals($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider threeDEnrollmentCheckRequestDataProvider
      */
-    public function testCreate3DEnrollmentCheckRequestData(): void
+    public function testCreate3DEnrollmentCheckRequestData(array $order, string $txType, array $expectedData): void
     {
-        $expected = $this->getSample3DEnrollmentCheckRequestData($this->account, $this->order, $this->card);
-        $actual   = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
-        $this->assertEquals($expected, $actual);
+        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $this->card);
+        $this->assertEquals($expectedData, $actual);
     }
 
 
@@ -225,40 +198,23 @@ class PosNetRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider resolveMerchantDataXMLDataProvider
      */
-    public function testCreate3DResolveMerchantRequestData(): void
+    public function testCreate3DResolveMerchantRequestData(array $order, array $responseData, array $expectedData): void
     {
-        $order        = [
-            'id'          => '2020110828BC',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'currency'    => PosInterface::CURRENCY_TRY,
-        ];
-        $responseData = [
-            'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
-            'MerchantPacket' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
-            'Sign'           => '9998F61E1D0C0FB6EC5203A748124F30',
-        ];
+        $actualData = $this->requestDataMapper->create3DResolveMerchantRequestData($this->account, $order, $responseData);
 
-        $actualData   = $this->requestDataMapper->create3DResolveMerchantRequestData($this->account, $order, $responseData);
-        $expectedData = $this->getSampleResolveMerchantDataXMLData($this->account, $responseData);
         $this->assertEquals($expectedData, $actualData);
     }
 
     /**
-     * @return void
-     *
-     * @throws Exception
+     * @dataProvider threeDFormDataDataProvider
      */
-    public function testCreate3DFormData(): void
+    public function testCreate3DFormData(array $ooTxSuccessData, array $order, string $gatewayURL, array $expected): void
     {
-        $gatewayURL      = 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService';
-        $ooTxSuccessData = $this->getSample3DEnrollmentCheckResponseData();
-
-        $expected = $this->requestDataMapper->create3DFormData(
+        $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
-            $this->order,
+            $order,
             PosInterface::MODEL_3D_SECURE,
             '',
             $gatewayURL,
@@ -266,117 +222,86 @@ class PosNetRequestDataMapperTest extends TestCase
             $ooTxSuccessData['oosRequestDataResponse']
         );
 
-        $actual   = $this->getSample3DFormData($this->account, $this->order, $ooTxSuccessData['oosRequestDataResponse'], $gatewayURL);
         $this->assertEquals($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider statusRequestDataProvider
      */
-    public function testCreateStatusRequestData(): void
+    public function testCreateStatusRequestData(array $order, array $expectedData): void
     {
-        $order = [
-            'id'            => '2020110828BC',
-            'payment_model' => PosInterface::MODEL_3D_SECURE,
-        ];
-
         $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleStatusRequestData($this->account);
         $this->assertEquals($expectedData, $actualData);
     }
 
     /**
-     * @return void
+     * @dataProvider refundDataProvider
      */
-    public function testCreateRefundRequestData(): void
+    public function testCreateRefundRequestData(array $order, array $expectedData): void
     {
-        $order = [
-            'id'            => '2020110828BC',
-            'payment_model' => PosInterface::MODEL_3D_SECURE,
-            'amount'        => 50,
-            'currency'      => PosInterface::CURRENCY_TRY,
-        ];
-
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleRefundXMLData($this->account, $order);
         $this->assertEquals($expectedData, $actual);
     }
 
-    /**
-     * @param PosNetAccount $account
-     * @param array         $order
-     * @param               $oosTxResponseData
-     * @param string        $gatewayURL
-     *
-     * @return array
-     */
-    private function getSample3DFormData(AbstractPosAccount $account, array $order, $oosTxResponseData, string $gatewayURL): array
-    {
-        $inputs = [
-            'posnetData'        => $oosTxResponseData['data1'],
-            'posnetData2'       => $oosTxResponseData['data2'],
-            'mid'               => $account->getClientId(),
-            'posnetID'          => $account->getPosNetId(),
-            'digest'            => $oosTxResponseData['sign'],
-            'merchantReturnURL' => $order['success_url'],
-            'url'               => '',
-            'lang'              => 'tr',
-        ];
-
-        return [
-            'gateway' => $gatewayURL,
-            'method'  => 'POST',
-            'inputs'  => $inputs,
-        ];
-    }
-
-    /**
-     * @return array
-     */
-    private function getSample3DEnrollmentCheckResponseData(): array
+    public static function threeDFormDataDataProvider(): array
     {
         return [
-            'approved'               => '1', //1:Başarılı
-            'respCode'               => '',
-            'respText'               => '',
-            'oosRequestDataResponse' => [
-                'data1' => 'AEFE78BFC852867FF57078B723E284D1BD52EED8264C6CBD110A1A9EA5EAA7533D1A82EFD614032D686C507738FDCDD2EDD00B22DEFEFE0795DC4674C16C02EBBFEC9DF0F495D5E23BE487A798BF8293C7C1D517D9600C96CBFD8816C9D8F8257442906CB9B10D8F1AABFBBD24AA6FB0E5533CDE67B0D9EA5ED621B91BF6991D5362182302B781241B56E47BAE1E86BC3D5AE7606212126A4E97AFC2',
-                'data2' => '69D04861340091B7014B15158CA3C83413031B406F08B3792A0114C9958E6F0F216966C5EE32EAEEC7158BFF59DFCB77E20CD625',
-                'sign'  => '9998F61E1D0C0FB6EC5203A748124F30',
+            [
+                'enrollment_check_response' => [
+                    'approved'               => '1', //1:Başarılı
+                    'respCode'               => '',
+                    'respText'               => '',
+                    'oosRequestDataResponse' => [
+                        'data1' => 'AEFE78BFC852867FF57078B723E284D1BD52EED8264C6CBD110A1A9EA5EAA7533D1A82EFD614032D686C507738FDCDD2EDD00B22DEFEFE0795DC4674C16C02EBBFEC9DF0F495D5E23BE487A798BF8293C7C1D517D9600C96CBFD8816C9D8F8257442906CB9B10D8F1AABFBBD24AA6FB0E5533CDE67B0D9EA5ED621B91BF6991D5362182302B781241B56E47BAE1E86BC3D5AE7606212126A4E97AFC2',
+                        'data2' => '69D04861340091B7014B15158CA3C83413031B406F08B3792A0114C9958E6F0F216966C5EE32EAEEC7158BFF59DFCB77E20CD625',
+                        'sign'  => '9998F61E1D0C0FB6EC5203A748124F30',
+                    ],
+                ],
+                'order'                     => [
+                    'id'          => 'TST_190620093100_024',
+                    'amount'      => '1.75',
+                    'success_url' => 'https://domain.com/success',
+                ],
+                'gateway_url'               => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
+                'expected'                  => [
+                    'gateway' => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'posnetData'        => 'AEFE78BFC852867FF57078B723E284D1BD52EED8264C6CBD110A1A9EA5EAA7533D1A82EFD614032D686C507738FDCDD2EDD00B22DEFEFE0795DC4674C16C02EBBFEC9DF0F495D5E23BE487A798BF8293C7C1D517D9600C96CBFD8816C9D8F8257442906CB9B10D8F1AABFBBD24AA6FB0E5533CDE67B0D9EA5ED621B91BF6991D5362182302B781241B56E47BAE1E86BC3D5AE7606212126A4E97AFC2',
+                        'posnetData2'       => '69D04861340091B7014B15158CA3C83413031B406F08B3792A0114C9958E6F0F216966C5EE32EAEEC7158BFF59DFCB77E20CD625',
+                        'mid'               => '6706598320',
+                        'posnetID'          => '27426',
+                        'digest'            => '9998F61E1D0C0FB6EC5203A748124F30',
+                        'merchantReturnURL' => 'https://domain.com/success',
+                        'url'               => '',
+                        'lang'              => 'tr',
+                    ],
+                ],
             ],
         ];
     }
 
-    public static function create3DPaymentRequestDataDataProvider()
+    public static function create3DPaymentRequestDataDataProvider(): array
     {
-        $account = AccountFactory::createPosNetAccount(
-            'yapikredi',
-            '6706598320',
-            '67005551',
-            '27426',
-            PosInterface::MODEL_3D_SECURE,
-            '10,10,10,10,10,10,10,10'
-        );
         return [
             'test1' => [
-                'account' => $account,
-                'order' => [
+                'order'        => [
                     'id'          => '2020110828BC',
                     'amount'      => 100.01,
                     'installment' => '0',
                     'currency'    => PosInterface::CURRENCY_TRY,
                 ],
-                'txType' => PosInterface::TX_TYPE_PAY_AUTH,
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'responseData' => [
                     'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
                     'MerchantPacket' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
                     'Sign'           => '9998F61E1D0C0FB6EC5203A748124F30',
                 ],
-                'expected' => [
-                    'mid'         => $account->getClientId(),
-                    'tid'         => $account->getTerminalId(),
+                'expected'     => [
+                    'mid'         => '6706598320',
+                    'tid'         => '67005551',
                     'oosTranData' => [
                         'bankData'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
                         'merchantData' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
@@ -384,170 +309,222 @@ class PosNetRequestDataMapperTest extends TestCase
                         'wpAmount'     => 0,
                         'mac'          => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
                     ],
-                ]
+                ],
             ],
         ];
     }
 
-    /**
-     * @param PosNetAccount $account
-     * @param array         $order
-     *
-     * @return array
-     */
-    private function getSampleCancelXMLData(AbstractPosAccount $account, array $order): array
-    {
-        $requestData = [
-            'mid'              => $account->getClientId(),
-            'tid'              => $account->getTerminalId(),
-            'tranDateRequired' => '1',
-            'reverse'          => [
-                'transaction' => 'sale',
-            ],
-        ];
-
-        //either will work
-        if (isset($order['ref_ret_num'])) {
-            $requestData['reverse']['hostLogKey'] = $order['ref_ret_num'];
-        } else {
-            $requestData['reverse']['orderID'] = 'TDSC000000002020110828BC';
-        }
-
-        return $requestData;
-    }
-
-    /**
-     * @param PosNetAccount       $account
-     * @param array               $order
-     * @param CreditCardInterface $card
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, CreditCardInterface $card): array
+    public static function cancelDataProvider(): array
     {
         return [
-            'mid'              => $account->getClientId(),
-            'tid'              => $account->getTerminalId(),
-            'tranDateRequired' => '1',
-            'sale'             => [
-                'orderID'      => $order['id'],
-                'installment'  => $order['installment'],
-                'amount'       => 175,
-                'currencyCode' => 'TL',
-                'ccno'         => $card->getNumber(),
-                'expDate'      => '2201',
-                'cvc'          => $card->getCvv(),
+            'with_order_id'    => [
+                'order'    => [
+                    'id'            => '2020110828BC',
+                    'payment_model' => PosInterface::MODEL_3D_SECURE,
+                    'amount'        => 50,
+                    'currency'      => PosInterface::CURRENCY_TRY,
+                ],
+                'expected' => [
+                    'mid'              => '6706598320',
+                    'tid'              => '67005551',
+                    'tranDateRequired' => '1',
+                    'reverse'          => [
+                        'transaction' => 'sale',
+                        'orderID'     => 'TDSC000000002020110828BC',
+                    ],
+                ],
+            ],
+            'with_ref_ret_num' => [
+                'order'    => [
+                    'ref_ret_num'   => '019676067890000191',
+                    'payment_model' => PosInterface::MODEL_3D_SECURE,
+                    'amount'        => 50,
+                    'currency'      => PosInterface::CURRENCY_TRY,
+                ],
+                'expected' => [
+                    'mid'              => '6706598320',
+                    'tid'              => '67005551',
+                    'tranDateRequired' => '1',
+                    'reverse'          => [
+                        'transaction' => 'sale',
+                        'hostLogKey'  => '019676067890000191',
+                    ],
+                ],
             ],
         ];
     }
 
-    /**
-     * @param PosNetAccount $account
-     * @param array         $order
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, array $order): array
+    public static function nonSecurePaymentRequestDataProvider(): array
     {
         return [
-            'mid'              => $account->getClientId(),
-            'tid'              => $account->getTerminalId(),
-            'tranDateRequired' => '1',
-            'capt'             => [
-                'hostLogKey'   => $order['ref_ret_num'],
-                'amount'       => 1002,
-                'currencyCode' => 'TL',
-                'installment'  => '02',
+            [
+                'order'    => [
+                    'id'          => 'TST_190620093100_024',
+                    'amount'      => '1.75',
+                    'installment' => 0,
+                ],
+                'tx_type'  => PosInterface::TX_TYPE_PAY_AUTH,
+                'expected' => [
+                    'mid'              => '6706598320',
+                    'tid'              => '67005551',
+                    'tranDateRequired' => '1',
+                    'sale'             => [
+                        'orderID'      => 'TST_190620093100_024',
+                        'installment'  => 0,
+                        'amount'       => 175,
+                        'currencyCode' => 'TL',
+                        'ccno'         => '5555444433332222',
+                        'expDate'      => '2201',
+                        'cvc'          => '123',
+                    ],
+                ],
             ],
         ];
     }
 
-    /**
-     * @param PosNetAccount $account
-     *
-     * @return array
-     */
-    private function getSampleStatusRequestData(AbstractPosAccount $account): array
+    public static function nonSecurePaymentPostRequestDataProvider(): array
     {
         return [
-            'mid'       => $account->getClientId(),
-            'tid'       => $account->getTerminalId(),
-            'agreement' => [
-                'orderID' => 'TDSC000000002020110828BC',
+            [
+                'order'    => [
+                    'id'          => '2020110828BC',
+                    'ref_ret_num' => '019676067890000191',
+                    'amount'      => 10.02,
+                    'currency'    => PosInterface::CURRENCY_TRY,
+                    'installment' => 2,
+                ],
+                'expected' => [
+                    'mid'              => '6706598320',
+                    'tid'              => '67005551',
+                    'tranDateRequired' => '1',
+                    'capt'             => [
+                        'hostLogKey'   => '019676067890000191',
+                        'amount'       => 1002,
+                        'currencyCode' => 'TL',
+                        'installment'  => '02',
+                    ],
+                ],
             ],
         ];
     }
 
-    /**
-     * @param PosNetAccount $account
-     * @param               $order
-     *
-     * @return array
-     */
-    private function getSampleRefundXMLData(AbstractPosAccount $account, array $order): array
-    {
-        $requestData = [
-            'mid'              => $account->getClientId(),
-            'tid'              => $account->getTerminalId(),
-            'tranDateRequired' => '1',
-            'return'           => [
-                'amount'       => 5000,
-                'currencyCode' => 'TL',
-            ],
-        ];
-
-        if (isset($order['ref_ret_num'])) {
-            $requestData['return']['hostLogKey'] = $order['ref_ret_num'];
-        } else {
-            $requestData['return']['orderID'] = 'TDSC000000002020110828BC';
-        }
-
-        return $requestData;
-    }
-
-    /**
-     * @param PosNetAccount       $account
-     * @param                     $order
-     * @param CreditCardInterface $card
-     *
-     * @return array
-     */
-    private function getSample3DEnrollmentCheckRequestData(PosNetAccount $account, array $order, CreditCardInterface $card): array
+    public static function statusRequestDataProvider(): array
     {
         return [
-            'mid'            => $account->getClientId(),
-            'tid'            => $account->getTerminalId(),
-            'oosRequestData' => [
-                'posnetid'       => $account->getPosNetId(),
-                'ccno'           => $card->getNumber(),
-                'expDate'        => '2201',
-                'cvc'            => $this->card->getCvv(),
-                'amount'         => 175,
-                'currencyCode'   => 'TL',
-                'installment'    => $order['installment'],
-                'XID'            => $this->requestDataMapper::formatOrderId($order['id']),
-                'cardHolderName' => $card->getHolderName(),
-                'tranType'       => 'Sale',
+            [
+                'order'    => [
+                    'id'            => '2020110828BC',
+                    'payment_model' => PosInterface::MODEL_3D_SECURE,
+                ],
+                'expected' => [
+                    'mid'       => '6706598320',
+                    'tid'       => '67005551',
+                    'agreement' => [
+                        'orderID' => 'TDSC000000002020110828BC',
+                    ],
+                ],
             ],
         ];
     }
 
-    /**
-     * @param PosNetAccount $account
-     * @param array         $responseData
-     *
-     * @return array
-     */
-    private function getSampleResolveMerchantDataXMLData(AbstractPosAccount $account, array $responseData): array
+    public static function refundDataProvider(): array
     {
         return [
-            'mid'                    => $account->getClientId(),
-            'tid'                    => $account->getTerminalId(),
-            'oosResolveMerchantData' => [
-                'bankData'     => $responseData['BankPacket'],
-                'merchantData' => $responseData['MerchantPacket'],
-                'sign'         => $responseData['Sign'],
-                'mac'          => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
+            'with_order_id'    => [
+                'order'    => [
+                    'id'            => '2020110828BC',
+                    'payment_model' => PosInterface::MODEL_3D_SECURE,
+                    'amount'        => 50,
+                    'currency'      => PosInterface::CURRENCY_TRY,
+                ],
+                'expected' => [
+                    'mid'              => '6706598320',
+                    'tid'              => '67005551',
+                    'tranDateRequired' => '1',
+                    'return'           => [
+                        'amount'       => 5000,
+                        'currencyCode' => 'TL',
+                        'orderID'      => 'TDSC000000002020110828BC',
+                    ],
+                ],
+            ],
+            'with_ref_ret_num' => [
+                'order'    => [
+                    'ref_ret_num'   => '019676067890000191',
+                    'payment_model' => PosInterface::MODEL_3D_SECURE,
+                    'amount'        => 50,
+                    'currency'      => PosInterface::CURRENCY_TRY,
+                ],
+                'expected' => [
+                    'mid'              => '6706598320',
+                    'tid'              => '67005551',
+                    'tranDateRequired' => '1',
+                    'return'           => [
+                        'amount'       => 5000,
+                        'currencyCode' => 'TL',
+                        'hostLogKey'   => '019676067890000191',
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    public static function threeDEnrollmentCheckRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'    => [
+                    'id'          => 'TST_190620093100_024',
+                    'amount'      => 1.75,
+                    'installment' => 0,
+                    'currency'    => PosInterface::CURRENCY_TRY,
+                ],
+                'tx_type'  => PosInterface::TX_TYPE_PAY_AUTH,
+                'expected' => [
+                    'mid'            => '6706598320',
+                    'tid'            => '67005551',
+                    'oosRequestData' => [
+                        'posnetid'       => '27426',
+                        'ccno'           => '5555444433332222',
+                        'expDate'        => '2201',
+                        'cvc'            => '123',
+                        'amount'         => 175,
+                        'currencyCode'   => 'TL',
+                        'installment'    => '00',
+                        'XID'            => 'TST_190620093100_024',
+                        'cardHolderName' => 'ahmet',
+                        'tranType'       => 'Sale',
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    public static function resolveMerchantDataXMLDataProvider(): array
+    {
+        return [
+            [
+                'order'         => [
+                    'id'          => '2020110828BC',
+                    'amount'      => 100.01,
+                    'installment' => '0',
+                    'currency'    => PosInterface::CURRENCY_TRY,
+                ],
+                'response_data' => [
+                    'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
+                    'MerchantPacket' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
+                    'Sign'           => '9998F61E1D0C0FB6EC5203A748124F30',
+                ],
+                'expected'      => [
+                    'mid'                    => '6706598320',
+                    'tid'                    => '67005551',
+                    'oosResolveMerchantData' => [
+                        'bankData'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
+                        'merchantData' => 'E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',
+                        'sign'         => '9998F61E1D0C0FB6EC5203A748124F30',
+                        'mac'          => 'oE7zwV87uOc2DFpGPlr4jQRQ0z9LsxGw56c7vaiZkTo=',
+                    ],
+                ],
             ],
         ];
     }
