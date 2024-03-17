@@ -18,18 +18,18 @@ class PosNetCrypt extends AbstractCrypt
     protected const HASH_SEPARATOR = ';';
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData, ?string $txType = null): string
     {
         $secondHashData = [
             $requestData['id'],
             $requestData['amount'],
             $requestData['currency'],
-            $account->getClientId(),
-            $this->createSecurityData($account),
+            $posAccount->getClientId(),
+            $this->createSecurityData($posAccount),
         ];
         $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
 
@@ -37,19 +37,19 @@ class PosNetCrypt extends AbstractCrypt
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
         $secondHashData = [
             $data['mdStatus'],
             $data['xid'],
             $data['amount'],
             $data['currency'],
-            $account->getClientId(),
-            $this->createSecurityData($account),
+            $posAccount->getClientId(),
+            $this->createSecurityData($posAccount),
         ];
         $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
 
@@ -71,7 +71,7 @@ class PosNetCrypt extends AbstractCrypt
     /**
      * @inheritdoc
      */
-    public function createHash(AbstractPosAccount $account, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         throw new NotImplementedException();
     }
@@ -79,15 +79,15 @@ class PosNetCrypt extends AbstractCrypt
     /**
      * Make Security Data
      *
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * @return string
      */
-    public function createSecurityData(AbstractPosAccount $account): string
+    public function createSecurityData(AbstractPosAccount $posAccount): string
     {
         $hashData = [
-            $account->getStoreKey(),
-            $account->getTerminalId(),
+            $posAccount->getStoreKey(),
+            $posAccount->getTerminalId(),
         ];
         $hashStr  = implode(static::HASH_SEPARATOR, $hashData);
 

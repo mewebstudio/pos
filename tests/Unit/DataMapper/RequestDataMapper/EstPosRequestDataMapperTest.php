@@ -174,9 +174,9 @@ class EstPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, array $expected): void
+    public function testCreate3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData, array $expected): void
     {
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($posAccount, $order, $txType, $responseData);
         $this->assertEquals($expected, $actual);
     }
 
@@ -500,34 +500,34 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      * @param array              $order
      *
      * @return array
      */
-    private function getSampleCancelXMLData(AbstractPosAccount $account, array $order): array
+    private function getSampleCancelXMLData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
+            'Name'     => $posAccount->getUsername(),
+            'Password' => $posAccount->getPassword(),
+            'ClientId' => $posAccount->getClientId(),
             'OrderId'  => $order['id'],
             'Type'     => 'Void',
         ];
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      * @param array              $order
      *
      * @return array
      */
-    private function getSampleRecurringOrderCancelXMLData(AbstractPosAccount $account, array $order): array
+    private function getSampleRecurringOrderCancelXMLData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
+            'Name'     => $posAccount->getUsername(),
+            'Password' => $posAccount->getPassword(),
+            'ClientId' => $posAccount->getClientId(),
             'Extra'    => [
                 'RECORDTYPE'         => 'Order',
                 'RECURRINGOPERATION' => 'Cancel',
@@ -537,43 +537,43 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param AbstractPosAccount  $account
+     * @param AbstractPosAccount  $posAccount
      * @param array               $order
-     * @param CreditCardInterface $card
+     * @param CreditCardInterface $creditCard
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, CreditCardInterface $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, CreditCardInterface $creditCard): array
     {
         return [
-            'Name'      => $account->getUsername(),
-            'Password'  => $account->getPassword(),
-            'ClientId'  => $account->getClientId(),
+            'Name'      => $posAccount->getUsername(),
+            'Password'  => $posAccount->getPassword(),
+            'ClientId'  => $posAccount->getClientId(),
             'Type'      => 'Auth',
             'IPAddress' => $order['ip'],
             'OrderId'   => $order['id'],
             'Total'     => '100.25',
             'Currency'  => '949',
             'Taksit'    => '',
-            'Number'    => $card->getNumber(),
+            'Number'    => $creditCard->getNumber(),
             'Expires'   => '01/22',
-            'Cvv2Val'   => $card->getCvv(),
+            'Cvv2Val'   => $creditCard->getCvv(),
             'Mode'      => 'P',
         ];
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      * @param array              $order
      *
      * @return array
      */
-    private function getSampleStatusRequestData(AbstractPosAccount $account, array $order): array
+    private function getSampleStatusRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
+            'Name'     => $posAccount->getUsername(),
+            'Password' => $posAccount->getPassword(),
+            'ClientId' => $posAccount->getClientId(),
             'OrderId'  => $order['id'],
             'Extra'    => [
                 'ORDERSTATUS' => 'QUERY',
@@ -582,17 +582,17 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      * @param array              $order
      *
      * @return array
      */
-    private function getSampleRecurringStatusRequestData(AbstractPosAccount $account, array $order): array
+    private function getSampleRecurringStatusRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
+            'Name'     => $posAccount->getUsername(),
+            'Password' => $posAccount->getPassword(),
+            'ClientId' => $posAccount->getClientId(),
             'Extra'    => [
                 'ORDERSTATUS' => 'QUERY',
                 'RECURRINGID' => $order['recurringId'],
@@ -601,17 +601,17 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      * @param array              $order
      *
      * @return array
      */
-    private function getSampleRefundXMLData(AbstractPosAccount $account, array $order): array
+    private function getSampleRefundXMLData(AbstractPosAccount $posAccount, array $order): array
     {
         $data = [
-            'Name'     => $account->getUsername(),
-            'Password' => $account->getPassword(),
-            'ClientId' => $account->getClientId(),
+            'Name'     => $posAccount->getUsername(),
+            'Password' => $posAccount->getPassword(),
+            'ClientId' => $posAccount->getClientId(),
             'OrderId'  => $order['id'],
             'Currency' => 949,
             'Type'     => 'Credit',

@@ -72,16 +72,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     protected CryptInterface $crypt;
 
     /**
-     * @param KuveytPosAccount $account
+     * @param KuveytPosAccount $posAccount
      *
      * {@inheritDoc}
      * @return array{APIVersion: string, HashData: string, CustomerIPAddress: mixed, KuveytTurkVPosAdditionalData: array{AdditionalData: array{Key: string, Data: mixed}}, TransactionType: string, InstallmentCount: mixed, Amount: mixed, DisplayAmount: int, CurrencyCode: mixed, MerchantOrderId: mixed, TransactionSecurity: mixed, MerchantId: string, CustomerId: string, UserName: string}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array
+    public function create3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData): array
     {
         $order = $this->preparePaymentOrder($order);
 
-        $result = $this->getRequestAccountData($account) + [
+        $result = $this->getRequestAccountData($posAccount) + [
                 'APIVersion'                   => self::API_VERSION,
                 'HashData'                     => '',
                 'CustomerIPAddress'            => $order['ip'],
@@ -100,7 +100,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],
             ];
 
-        $result['HashData'] = $this->crypt->createHash($account, $result);
+        $result['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
     }
@@ -109,19 +109,19 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
-     * @param KuveytPosAccount                     $account
+     * @param KuveytPosAccount                     $kuveytPosAccount
      * @param array<string, int|string|float|null> $order
      * @param string                               $paymentModel
      * @param string                               $txType
-     * @param CreditCardInterface|null             $card
+     * @param CreditCardInterface|null             $creditCard
      *
      * @return array<string, string>
      */
-    public function create3DEnrollmentCheckRequestData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, ?CreditCardInterface $card = null): array
+    public function create3DEnrollmentCheckRequestData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
-        $inputs = $this->getRequestAccountData($account) + [
+        $inputs = $this->getRequestAccountData($kuveytPosAccount) + [
                 'APIVersion'          => self::API_VERSION,
                 'TransactionType'     => $this->mapTxType($txType),
                 'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
@@ -135,16 +135,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 'FailUrl'             => $order['fail_url'],
             ];
 
-        if ($card instanceof CreditCardInterface) {
-            $inputs['CardHolderName']      = $card->getHolderName();
-            $inputs['CardType']            = $this->cardTypeMapping[$card->getType()];
-            $inputs['CardNumber']          = $card->getNumber();
-            $inputs['CardExpireDateYear']  = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $inputs['CardExpireDateMonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['CardCVV2']            = $card->getCvv();
+        if ($creditCard instanceof CreditCardInterface) {
+            $inputs['CardHolderName']      = $creditCard->getHolderName();
+            $inputs['CardType']            = $this->cardTypeMapping[$creditCard->getType()];
+            $inputs['CardNumber']          = $creditCard->getNumber();
+            $inputs['CardExpireDateYear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
+            $inputs['CardExpireDateMonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
+            $inputs['CardCVV2']            = $creditCard->getCvv();
         }
 
-        $inputs['HashData'] = $this->crypt->create3DHash($account, $inputs);
+        $inputs['HashData'] = $this->crypt->create3DHash($kuveytPosAccount, $inputs);
 
         return $inputs;
     }
@@ -152,7 +152,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         throw new NotImplementedException();
     }
@@ -160,16 +160,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
     {
         throw new NotImplementedException();
     }
 
     /**
-     * @param KuveytPosAccount $account
+     * @param KuveytPosAccount $posAccount
      * {@inheritDoc}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
+    public function createStatusRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareStatusOrder($order);
 
@@ -182,7 +182,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'CustomerId'            => null,
             'MailOrTelephoneOrder'  => true,
             'Amount'                => 0,
-            'MerchantId'            => $account->getClientId(),
+            'MerchantId'            => $posAccount->getClientId(),
             'MerchantOrderId'       => $order['id'],
             /**
              * Eğer döndüğümüz orderid ile aratılırsa yalnızca aranan işlem gelir.
@@ -198,7 +198,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'StartDate'             => $order['start_date']->format('Y-m-d\TH:i:s'),
             'EndDate'               => $order['end_date']->format('Y-m-d\TH:i:s'),
             'TransactionType'       => 0,
-            'VPosMessage'           => $this->getRequestAccountData($account) + [
+            'VPosMessage'           => $this->getRequestAccountData($posAccount) + [
                     'APIVersion'                       => self::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
                     'HashData'                         => '',
@@ -221,16 +221,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 ],
         ];
 
-        $result['VPosMessage']['HashData'] = $this->crypt->createHash($account, $result['VPosMessage']);
+        $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
         return $result;
     }
 
     /**
-     * @param KuveytPosAccount $account
+     * @param KuveytPosAccount $posAccount
      * {@inheritDoc}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
+    public function createCancelRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareCancelOrder($order);
 
@@ -240,16 +240,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'ResourceId'            => 0,
             'ActionId'              => 0,
             'LanguageId'            => 0,
-            'CustomerId'            => $account->getCustomerId(),
+            'CustomerId'            => $posAccount->getCustomerId(),
             'MailOrTelephoneOrder'  => true,
             'Amount'                => $this->formatAmount($order['amount']),
-            'MerchantId'            => $account->getClientId(),
+            'MerchantId'            => $posAccount->getClientId(),
             'OrderId'               => $order['remote_order_id'],
             'RRN'                   => $order['ref_ret_num'],
             'Stan'                  => $order['transaction_id'],
             'ProvisionNumber'       => $order['auth_code'],
             'TransactionType'       => 0,
-            'VPosMessage'           => $this->getRequestAccountData($account) + [
+            'VPosMessage'           => $this->getRequestAccountData($posAccount) + [
                     'APIVersion'                       => self::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
                     'HashData'                         => '',
@@ -272,16 +272,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 ],
         ];
 
-        $result['VPosMessage']['HashData'] = $this->crypt->createHash($account, $result['VPosMessage']);
+        $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
         return $result;
     }
 
     /**
-     * @param KuveytPosAccount $account
+     * @param KuveytPosAccount $posAccount
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareRefundOrder($order);
 
@@ -291,16 +291,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'ResourceId'            => 0,
             'ActionId'              => 0,
             'LanguageId'            => 0,
-            'CustomerId'            => $account->getCustomerId(),
+            'CustomerId'            => $posAccount->getCustomerId(),
             'MailOrTelephoneOrder'  => true,
             'Amount'                => $this->formatAmount($order['amount']),
-            'MerchantId'            => $account->getClientId(),
+            'MerchantId'            => $posAccount->getClientId(),
             'OrderId'               => $order['remote_order_id'],
             'RRN'                   => $order['ref_ret_num'],
             'Stan'                  => $order['transaction_id'],
             'ProvisionNumber'       => $order['auth_code'],
             'TransactionType'       => 0,
-            'VPosMessage'           => $this->getRequestAccountData($account) + [
+            'VPosMessage'           => $this->getRequestAccountData($posAccount) + [
                     'APIVersion'                       => self::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
                     'HashData'                         => '',
@@ -323,7 +323,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 ],
         ];
 
-        $result['VPosMessage']['HashData'] = $this->crypt->createHash($account, $result['VPosMessage']);
+        $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
         return $result;
     }
@@ -335,7 +335,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
+    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {
         return [
             'gateway' => $gatewayURL,
@@ -347,7 +347,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array
     {
         throw new NotImplementedException();
     }
@@ -355,7 +355,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
+    public function createOrderHistoryRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         throw new NotImplementedException();
     }
@@ -441,16 +441,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param KuveytPosAccount $account
+     * @param KuveytPosAccount $posAccount
      *
      * @return array{MerchantId: string, CustomerId: string, UserName: string}
      */
-    private function getRequestAccountData(AbstractPosAccount $account): array
+    private function getRequestAccountData(AbstractPosAccount $posAccount): array
     {
         return [
-            'MerchantId' => $account->getClientId(),
-            'CustomerId' => $account->getCustomerId(),
-            'UserName'   => $account->getUsername(),
+            'MerchantId' => $posAccount->getClientId(),
+            'CustomerId' => $posAccount->getCustomerId(),
+            'UserName'   => $posAccount->getUsername(),
         ];
     }
 }

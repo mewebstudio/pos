@@ -63,7 +63,7 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $bankResponse = null;
         $request      = $request->request;
@@ -145,7 +145,7 @@ class InterPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
         $gatewayUrl = $this->get3DHostGatewayURL();
 
@@ -155,7 +155,7 @@ class InterPos extends AbstractGateway
 
         $this->logger->debug('preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $gatewayUrl, $card);
+        return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $gatewayUrl, $creditCard);
     }
 
     /**

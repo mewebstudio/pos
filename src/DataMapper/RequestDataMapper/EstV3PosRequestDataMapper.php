@@ -16,22 +16,22 @@ class EstV3PosRequestDataMapper extends EstPosRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
+    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
-        $data = $this->create3DFormDataCommon($account, $order, $paymentModel, $txType, $gatewayURL, $card);
+        $data = $this->create3DFormDataCommon($posAccount, $order, $paymentModel, $txType, $gatewayURL, $creditCard);
 
         $data['inputs']['TranType'] = $this->mapTxType($txType);
         unset($data['inputs']['islemtipi']);
 
         $data['inputs']['hashAlgorithm'] = 'ver3';
 
-        $event = new Before3DFormHashCalculatedEvent($data['inputs'], $account->getBank(), $txType, $paymentModel);
+        $event = new Before3DFormHashCalculatedEvent($data['inputs'], $posAccount->getBank(), $txType, $paymentModel);
         $this->eventDispatcher->dispatch($event);
         $data['inputs'] = $event->getFormInputs();
 
-        $data['inputs']['hash'] = $this->crypt->create3DHash($account, $data['inputs']);
+        $data['inputs']['hash'] = $this->crypt->create3DHash($posAccount, $data['inputs']);
 
         return $data;
     }

@@ -61,7 +61,7 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
         $status = $request->get('Status');
@@ -83,7 +83,7 @@ class PayFlexV4Pos extends AbstractGateway
         /** @var array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $requestData */
         $requestData = $request->all();
         // NOT: diger gatewaylerden farkli olarak payflex kredit bilgilerini bu asamada da istiyor.
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $requestData, $card);
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $requestData, $creditCard);
 
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);
@@ -141,13 +141,13 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * {@inheritDoc}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
-        if (!$card instanceof CreditCardInterface) {
+        if (!$creditCard instanceof CreditCardInterface) {
             throw new LogicException('Kredi kartı bilgileri eksik!');
         }
 
-        $data = $this->sendEnrollmentRequest($order, $card, $txType);
+        $data = $this->sendEnrollmentRequest($order, $creditCard, $txType);
 
         $status = $data['Message']['VERes']['Status'];
         /**
@@ -185,16 +185,16 @@ class PayFlexV4Pos extends AbstractGateway
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, int|string|float|null> $order
-     * @param CreditCardInterface                  $card
+     * @param CreditCardInterface                  $creditCard
      * @param string                               $txType
      *
      * @return array<string, mixed>
      *
      * @throws Exception
      */
-    public function sendEnrollmentRequest(array $order, CreditCardInterface $card, string $txType): array
+    public function sendEnrollmentRequest(array $order, CreditCardInterface $creditCard, string $txType): array
     {
-        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $card);
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $creditCard);
 
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);

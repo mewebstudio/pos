@@ -192,9 +192,9 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider create3DPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(KuveytPosAccount $account, array $order, string $txType, array $responseData, array $expectedData): void
+    public function testCreate3DPaymentRequestData(KuveytPosAccount $kuveytPosAccount, array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($kuveytPosAccount, $order, $txType, $responseData);
 
         $this->assertEquals($expectedData, $actual);
     }

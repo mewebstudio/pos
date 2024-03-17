@@ -16,13 +16,13 @@ class PayFlexCPV4Crypt extends AbstractCrypt
      *
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         $hashData = [
-            $account->getClientId(),
+            $posAccount->getClientId(),
             $requestData['AmountCode'],
             $requestData['Amount'],
-            $account->getPassword(),
+            $posAccount->getPassword(),
             '',
             'VBank3DPay2014', // todo
         ];
@@ -36,7 +36,7 @@ class PayFlexCPV4Crypt extends AbstractCrypt
      * todo implement
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
          return true;
     }
@@ -44,7 +44,7 @@ class PayFlexCPV4Crypt extends AbstractCrypt
     /**
      * @inheritdoc
      */
-    public function createHash(AbstractPosAccount $account, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         throw new NotImplementedException();
     }

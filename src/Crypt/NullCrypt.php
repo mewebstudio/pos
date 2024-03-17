@@ -15,7 +15,7 @@ class NullCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         return '';
     }
@@ -23,7 +23,7 @@ class NullCrypt extends AbstractCrypt
     /**
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
         return true;
     }
@@ -31,7 +31,7 @@ class NullCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function createHash(AbstractPosAccount $account, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         return '';
     }

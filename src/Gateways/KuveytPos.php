@@ -101,18 +101,18 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
         $gatewayUrl = $this->get3DGatewayURL();
         $this->logger->debug('preparing 3D form data');
 
-        return $this->getCommon3DFormData($this->account, $order, $paymentModel, $txType, $gatewayUrl, $card);
+        return $this->getCommon3DFormData($this->account, $order, $paymentModel, $txType, $gatewayUrl, $creditCard);
     }
 
     /**
      * @inheritDoc
      */
-    public function makeRegularPayment(array $order, CreditCardInterface $card, string $txType): PosInterface
+    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface
     {
         throw new NotImplementedException();
     }
@@ -120,7 +120,7 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $gatewayResponse = $request->request->get('AuthenticationResponse');
         if (!\is_string($gatewayResponse)) {
@@ -258,20 +258,20 @@ class KuveytPos extends AbstractGateway
      * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
-     * @param KuveytPosAccount                     $account
+     * @param KuveytPosAccount                     $kuveytPosAccount
      * @param array<string, int|string|float|null> $order
      * @param string                               $paymentModel
      * @param string                               $txType
      * @param non-empty-string                     $gatewayURL
-     * @param CreditCardInterface|null             $card
+     * @param CreditCardInterface|null             $creditCard
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      *
      * @throws Exception
      */
-    private function getCommon3DFormData(KuveytPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
+    private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {
-        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $paymentModel, $txType, $card);
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($kuveytPosAccount, $order, $paymentModel, $txType, $creditCard);
 
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);
@@ -292,6 +292,6 @@ class KuveytPos extends AbstractGateway
          */
         $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
 
-        return $this->requestDataMapper->create3DFormData($this->account, $decodedResponse['form_inputs'], $paymentModel, $txType, $decodedResponse['gateway'], $card);
+        return $this->requestDataMapper->create3DFormData($this->account, $decodedResponse['form_inputs'], $paymentModel, $txType, $decodedResponse['gateway'], $creditCard);
     }
 }

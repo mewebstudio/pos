@@ -61,7 +61,7 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
         $bankResponse = null;
@@ -114,11 +114,11 @@ class GarantiPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
         $this->logger->debug('preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), $card);
+        return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), $creditCard);
     }
 
     /**

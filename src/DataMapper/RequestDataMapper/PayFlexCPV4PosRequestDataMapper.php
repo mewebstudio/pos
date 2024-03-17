@@ -63,25 +63,25 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      * todo implement
      * {@inheritDoc}
      *
-     * @param PayFlexAccount $account
+     * @param PayFlexAccount $posAccount
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData, ?CreditCardInterface $card = null): array
+    public function create3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData, ?CreditCardInterface $creditCard = null): array
     {
         throw new NotImplementedException();
     }
 
 
     /**
-     * @param PayFlexAccount                                     $account
+     * @param PayFlexAccount                                     $posAccount
      * @param array{TransactionId: string, PaymentToken: string} $responseData
      *
      * @return array{HostMerchantId: string, Password: string, TransactionId: string, PaymentToken: string}
      */
-    public function create3DPaymentStatusRequestData(AbstractPosAccount $account, array $responseData): array
+    public function create3DPaymentStatusRequestData(AbstractPosAccount $posAccount, array $responseData): array
     {
-        return $this->getRequestAccountData($account) + [
-                'HostMerchantId' => $account->getClientId(),
-                'Password'       => $account->getPassword(),
+        return $this->getRequestAccountData($posAccount) + [
+                'HostMerchantId' => $posAccount->getClientId(),
+                'Password'       => $posAccount->getPassword(),
                 'TransactionId'  => $responseData['TransactionId'],
                 'PaymentToken'   => $responseData['PaymentToken'],
             ];
@@ -91,22 +91,22 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
-     * @param PayFlexAccount                       $account
+     * @param PayFlexAccount                       $posAccount
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
      * @param string                               $paymentModel
-     * @param CreditCardInterface|null             $card
+     * @param CreditCardInterface|null             $creditCard
      *
      * @return array<string, string>
      */
-    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $txType, string $paymentModel, ?CreditCardInterface $card = null): array
+    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $posAccount, array $order, string $txType, string $paymentModel, ?CreditCardInterface $creditCard = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
         $requestData = [
-            'HostMerchantId'       => $account->getClientId(),
-            'MerchantPassword'     => $account->getPassword(),
-            'HostTerminalId'       => $account->getTerminalId(),
+            'HostMerchantId'       => $posAccount->getClientId(),
+            'MerchantPassword'     => $posAccount->getPassword(),
+            'HostTerminalId'       => $posAccount->getTerminalId(),
             'TransactionType'      => $this->mapTxType($txType),
             'AmountCode'           => $this->mapCurrency($order['currency']),
             'Amount'               => $this->formatAmount($order['amount']),
@@ -122,7 +122,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
             'AllowNotEnrolledCard' => 'false',
             'SuccessUrl'           => (string) $order['success_url'],
             'FailUrl'              => (string) $order['fail_url'],
-            'RequestLanguage'      => $this->getLang($account, $order),
+            'RequestLanguage'      => $this->getLang($posAccount, $order),
             /**
              * Bu alanda gönderilecek değer kart hamili
              * ektresinde işlem açıklamasında çıkacaktır.
@@ -137,14 +137,14 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
             'CustomItems'          => '',
         ];
 
-        if ($card instanceof CreditCardInterface) {
+        if ($creditCard instanceof CreditCardInterface) {
             $requestData += [
-                'BrandNumber'     => $this->cardTypeMapping[$card->getType()],
-                'CVV'             => $card->getCvv(),
-                'PAN'             => $card->getNumber(),
-                'ExpireMonth'     => $card->getExpireMonth(),
-                'ExpireYear'      => $card->getExpireYear(),
-                'CardHoldersName' => (string) $card->getHolderName(),
+                'BrandNumber'     => $this->cardTypeMapping[$creditCard->getType()],
+                'CVV'             => $creditCard->getCvv(),
+                'PAN'             => $creditCard->getNumber(),
+                'ExpireMonth'     => $creditCard->getExpireMonth(),
+                'ExpireYear'      => $creditCard->getExpireYear(),
+                'CardHoldersName' => (string) $creditCard->getHolderName(),
             ];
         }
 
@@ -152,7 +152,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
         }
 
-        $requestData['HashedData'] = $this->crypt->create3DHash($account, $requestData);
+        $requestData['HashedData'] = $this->crypt->create3DHash($posAccount, $requestData);
 
         return $requestData;
     }
@@ -161,40 +161,40 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      * TODO implement
      * {@inheritDoc}
      *
-     * @param PayFlexAccount $account
+     * @param PayFlexAccount $posAccount
      *
      * @return array<string, string>
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
     {
         $order = $this->preparePaymentOrder($order);
 
-        return $this->getRequestAccountData($account) + [
+        return $this->getRequestAccountData($posAccount) + [
                 'TransactionType'         => $this->mapTxType($txType),
                 'OrderId'                 => (string) $order['id'],
                 'CurrencyAmount'          => $this->formatAmount($order['amount']),
                 'CurrencyCode'            => $this->mapCurrency($order['currency']),
                 'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0',
-                'Pan'                     => $card->getNumber(),
-                'Expiry'                  => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
-                'Cvv'                     => $card->getCvv(),
+                'Pan'                     => $creditCard->getNumber(),
+                'Expiry'                  => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
+                'Cvv'                     => $creditCard->getCvv(),
             ];
     }
 
     /**
-     * @param PayFlexAccount                       $account
+     * @param PayFlexAccount                       $posAccount
      * @param array<string, int|string|float|null> $order
      *
      * @return array{TransactionType: string, ReferenceTransactionId: string,
      *     CurrencyAmount: string, CurrencyCode: string, ClientIp: string,
      *     MerchantId: string, Password: string}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 
-        return $this->getRequestAccountData($account) + [
+        return $this->getRequestAccountData($posAccount) + [
                 'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'ReferenceTransactionId' => (string) $order['id'],
                 'CurrencyAmount'         => $this->formatAmount($order['amount']),
@@ -206,7 +206,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
+    public function createStatusRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         throw new NotImplementedException();
     }
@@ -214,16 +214,16 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      *
-     * @param PayFlexAccount $account
+     * @param PayFlexAccount $posAccount
      *
      * @return array{MerchantId: string, Password: string, TransactionType: string, ReferenceTransactionId: string,
      *     ClientIp: string}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
+    public function createCancelRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareCancelOrder($order);
 
-        return $this->getRequestAccountData($account) + [
+        return $this->getRequestAccountData($posAccount) + [
                 'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
                 'ReferenceTransactionId' => (string) $order['transaction_id'],
                 'ClientIp'               => (string) $order['ip'],
@@ -233,16 +233,16 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      *
-     * @param PayFlexAccount $account
+     * @param PayFlexAccount $posAccount
      *
      * @return array{MerchantId: string, Password: string, TransactionType: string, ReferenceTransactionId: string,
      *     ClientIp: string, CurrencyAmount: string}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareRefundOrder($order);
 
-        return $this->getRequestAccountData($account) + [
+        return $this->getRequestAccountData($posAccount) + [
                 'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
                 'ReferenceTransactionId' => (string) $order['transaction_id'],
                 'ClientIp'               => (string) $order['ip'],
@@ -253,7 +253,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array
     {
         throw new NotImplementedException();
     }
@@ -261,7 +261,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
+    public function createOrderHistoryRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         throw new NotImplementedException();
     }
@@ -275,12 +275,12 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      * @return array{gateway: string, method: 'GET', inputs: array{Ptkn: string}}
      */
     public function create3DFormData(
-        ?AbstractPosAccount  $account,
+        ?AbstractPosAccount  $posAccount,
         ?array               $order,
         ?string              $paymentModel,
         ?string              $txType,
         ?string              $gatewayURL,
-        ?CreditCardInterface $card = null,
+        ?CreditCardInterface $creditCard = null,
         array                $extraData = []): array
     {
         return [
@@ -364,15 +364,15 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param PayFlexAccount $account
+     * @param PayFlexAccount $posAccount
      *
      * @return array{MerchantId: string, Password: string}
      */
-    private function getRequestAccountData(AbstractPosAccount $account): array
+    private function getRequestAccountData(AbstractPosAccount $posAccount): array
     {
         return [
-            'MerchantId' => $account->getClientId(),
-            'Password'   => $account->getPassword(),
+            'MerchantId' => $posAccount->getClientId(),
+            'Password'   => $posAccount->getPassword(),
         ];
     }
 }

@@ -108,23 +108,23 @@ interface PosInterface
      * @param array<string, mixed>     $order
      * @param string                   $paymentModel
      * @param string                   $txType
-     * @param CreditCardInterface|null $card
+     * @param CreditCardInterface|null $creditCard
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $card = null): array;
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null): array;
 
     /**
      * Regular Payment
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, mixed> $order
-     * @param CreditCardInterface  $card
+     * @param CreditCardInterface  $creditCard
      * @param string               $txType
      *
      * @return PosInterface
      */
-    public function makeRegularPayment(array $order, CreditCardInterface $card, string $txType): PosInterface;
+    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface;
 
     /**
      * Ön Provizyon kapama işlemi
@@ -142,11 +142,11 @@ interface PosInterface
      * @param Request                  $request
      * @param array<string, mixed>     $order
      * @param string                   $txType
-     * @param CreditCardInterface|null $card simdilik sadece PayFlexV4Pos icin card isteniyor.
+     * @param CreditCardInterface|null $creditCard simdilik sadece PayFlexV4Pos icin card isteniyor.
      *
      * @return PosInterface
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface;
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface;
 
     /**
      * Just returns formatted data of 3d_pay payment response
@@ -183,13 +183,13 @@ interface PosInterface
      * @param string                   $paymentModel
      * @param array<string, mixed>     $order
      * @param string                   $txType
-     * @param CreditCardInterface|null $card
+     * @param CreditCardInterface|null $creditCard
      *
      * @return PosInterface
      *
      * @throws UnsupportedPaymentModelException
      */
-    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $card = null): PosInterface;
+    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface;
 
     /**
      * Refund Order

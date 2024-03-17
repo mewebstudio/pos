@@ -17,20 +17,20 @@ class PosNetV1PosCrypt extends AbstractCrypt
     protected const HASH_SEPARATOR = '';
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData, ?string $txType = null): string
     {
         $hashData = [
-            $account->getClientId(),
-            $account->getTerminalId(),
+            $posAccount->getClientId(),
+            $posAccount->getTerminalId(),
             $requestData['CardNo'],
             $requestData['Cvv'],
             $requestData['ExpiredDate'],
             $requestData['Amount'],
-            $account->getStoreKey(),
+            $posAccount->getStoreKey(),
         ];
         $hashStr  = implode(static::HASH_SEPARATOR, $hashData);
 
@@ -38,17 +38,17 @@ class PosNetV1PosCrypt extends AbstractCrypt
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
-        if (null === $account->getStoreKey()) {
+        if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
-        
-        $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'MacParams', ':');
+
+        $actualHash = $this->hashFromParams($posAccount->getStoreKey(), $data, 'MacParams', ':');
 
         if ($actualHash !== $data['Mac']) {
             $this->logger->error('hash check failed', [
@@ -66,23 +66,23 @@ class PosNetV1PosCrypt extends AbstractCrypt
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount                               $posAccount
      * @param array<string, string|array<string, string>> $requestData
      *
      * @inheritDoc
      */
-    public function createHash(AbstractPosAccount $account, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         /** @var array<string, string> $threeDSecureData */
         $threeDSecureData = $requestData['ThreeDSecureData'];
         $hashData = [
-            $account->getClientId(),
-            $account->getTerminalId(),
+            $posAccount->getClientId(),
+            $posAccount->getTerminalId(),
             $threeDSecureData['SecureTransactionId'],
             $threeDSecureData['CavvData'],
             $threeDSecureData['Eci'],
             $threeDSecureData['MdStatus'],
-            $account->getStoreKey(),
+            $posAccount->getStoreKey(),
         ];
 
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);

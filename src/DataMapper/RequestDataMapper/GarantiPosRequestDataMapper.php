@@ -65,18 +65,18 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     protected CryptInterface $crypt;
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array
+    public function create3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData): array
     {
         $order = $this->preparePaymentOrder($order);
 
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account),
+            'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
                 'IPAddress'    => $responseData['customeripaddress'],
             ],
@@ -103,28 +103,28 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             $result['Recurring'] = $this->createRecurringData($order['recurring']);
         }
 
-        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+        $result['Terminal']['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
     }
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
     {
         $order = $this->preparePaymentOrder($order);
 
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account),
+            'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
             ],
-            'Card'        => $this->getCardData($card),
+            'Card'        => $this->getCardData($creditCard),
             'Order'       => [
                 'OrderID'     => $order['id'],
             ],
@@ -142,24 +142,24 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             $result['Recurring'] = $this->createRecurringData($order['recurring']);
         }
 
-        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+        $result['Terminal']['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
     }
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account),
+            'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
             ],
@@ -174,24 +174,24 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
         ];
 
-        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+        $result['Terminal']['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
     }
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
+    public function createStatusRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareStatusOrder($order);
 
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account),
+            'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
             ],
@@ -208,24 +208,24 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
         ];
 
-        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+        $result['Terminal']['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
     }
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
+    public function createCancelRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareCancelOrder($order);
 
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, true),
+            'Terminal'    => $this->getTerminalData($posAccount, true),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
             ],
@@ -243,24 +243,24 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
         ];
 
-        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+        $result['Terminal']['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
     }
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareRefundOrder($order);
 
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account, true),
+            'Terminal'    => $this->getTerminalData($posAccount, true),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
             ],
@@ -278,24 +278,24 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
         ];
 
-        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+        $result['Terminal']['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
     }
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
+    public function createOrderHistoryRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareOrderHistoryOrder($order);
 
         $result = [
             'Mode'        => $this->getMode(),
             'Version'     => self::API_VERSION,
-            'Terminal'    => $this->getTerminalData($account),
+            'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
                 'IPAddress'    => $order['ip'],
             ],
@@ -312,7 +312,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
         ];
 
-        $result['Terminal']['HashData'] = $this->crypt->createHash($account, $result);
+        $result['Terminal']['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
     }
@@ -320,17 +320,17 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array
     {
         throw new NotImplementedException();
     }
 
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
+    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -338,10 +338,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'secure3dsecuritylevel' => $this->secureTypeMappings[$paymentModel],
             'mode'                  => $this->getMode(),
             'apiversion'            => self::API_VERSION,
-            'terminalprovuserid'    => $account->getUsername(),
-            'terminaluserid'        => $account->getUsername(),
-            'terminalmerchantid'    => $account->getClientId(),
-            'terminalid'            => $account->getTerminalId(),
+            'terminalprovuserid'    => $posAccount->getUsername(),
+            'terminaluserid'        => $posAccount->getUsername(),
+            'terminalmerchantid'    => $posAccount->getClientId(),
+            'terminalid'            => $posAccount->getTerminalId(),
             'txntype'               => $this->mapTxType($txType),
             'txnamount'             => (string) $this->formatAmount($order['amount']),
             'txncurrencycode'       => $this->mapCurrency($order['currency']),
@@ -352,18 +352,18 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'customeripaddress'     => (string) $order['ip'],
         ];
 
-        if ($card instanceof CreditCardInterface) {
-            $inputs['cardnumber']          = $card->getNumber();
-            $inputs['cardexpiredatemonth'] = $card->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['cardexpiredateyear']  = $card->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $inputs['cardcvv2']            = $card->getCvv();
+        if ($creditCard instanceof CreditCardInterface) {
+            $inputs['cardnumber']          = $creditCard->getNumber();
+            $inputs['cardexpiredatemonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
+            $inputs['cardexpiredateyear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
+            $inputs['cardcvv2']            = $creditCard->getCvv();
         }
 
-        $event = new Before3DFormHashCalculatedEvent($inputs, $account->getBank(), $txType, $paymentModel);
+        $event = new Before3DFormHashCalculatedEvent($inputs, $posAccount->getBank(), $txType, $paymentModel);
         $this->eventDispatcher->dispatch($event);
         $inputs = $event->getFormInputs();
 
-        $inputs['secure3dhash'] = $this->crypt->create3DHash($account, $inputs);
+        $inputs['secure3dhash'] = $this->crypt->create3DHash($posAccount, $inputs);
 
         return [
             'gateway' => $gatewayURL,
@@ -481,47 +481,47 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      * @param bool              $isRefund
      *
      * @return array{ProvUserID: string, UserID: string, HashData: string, ID: string, MerchantID: string}
      */
-    private function getTerminalData(AbstractPosAccount $account, bool $isRefund = false): array
+    private function getTerminalData(AbstractPosAccount $posAccount, bool $isRefund = false): array
     {
         if (!$isRefund) {
             return [
-                'ProvUserID' => $account->getUsername(),
-                'UserID'     => $account->getUsername(),
+                'ProvUserID' => $posAccount->getUsername(),
+                'UserID'     => $posAccount->getUsername(),
                 'HashData'   => '',
-                'ID'         => $account->getTerminalId(),
-                'MerchantID' => $account->getClientId(),
+                'ID'         => $posAccount->getTerminalId(),
+                'MerchantID' => $posAccount->getClientId(),
             ];
         }
 
-        if (null === $account->getRefundUsername()) {
+        if (null === $posAccount->getRefundUsername()) {
             throw new \LogicException('Bu işlem için refundUsername tanımlı olması gerekir!');
         }
 
         return [
-            'ProvUserID' => $account->getRefundUsername(),
-            'UserID'     => $account->getRefundUsername(),
+            'ProvUserID' => $posAccount->getRefundUsername(),
+            'UserID'     => $posAccount->getRefundUsername(),
             'HashData'   => '',
-            'ID'         => $account->getTerminalId(),
-            'MerchantID' => $account->getClientId(),
+            'ID'         => $posAccount->getTerminalId(),
+            'MerchantID' => $posAccount->getClientId(),
         ];
     }
 
     /**
-     * @param CreditCardInterface $card
+     * @param CreditCardInterface $creditCard
      *
      * @return array{Number: string, ExpireDate: string, CVV2: string}
      */
-    private function getCardData(CreditCardInterface $card): array
+    private function getCardData(CreditCardInterface $creditCard): array
     {
         return [
-            'Number'     => $card->getNumber(),
-            'ExpireDate' => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-            'CVV2'       => $card->getCvv(),
+            'Number'     => $creditCard->getNumber(),
+            'ExpireDate' => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+            'CVV2'       => $creditCard->getCvv(),
         ];
     }
 

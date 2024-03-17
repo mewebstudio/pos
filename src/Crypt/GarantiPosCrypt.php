@@ -14,13 +14,13 @@ class GarantiPosCrypt extends AbstractCrypt
     protected const HASH_ALGORITHM = 'sha512';
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         $map = [
-            $account->getTerminalId(),
+            $posAccount->getTerminalId(),
             $requestData['orderid'],
             $requestData['txnamount'],
             $requestData['txncurrencycode'],
@@ -28,8 +28,8 @@ class GarantiPosCrypt extends AbstractCrypt
             $requestData['errorurl'],
             $requestData['txntype'],
             $requestData['txninstallmentcount'],
-            $account->getStoreKey(),
-            $this->createSecurityData($account, $requestData['txntype']),
+            $posAccount->getStoreKey(),
+            $this->createSecurityData($posAccount, $requestData['txntype']),
         ];
 
         return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map), self::HASH_ALGORITHM);
@@ -38,13 +38,13 @@ class GarantiPosCrypt extends AbstractCrypt
     /**
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
-        if (null === $account->getStoreKey()) {
+        if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
 
-        $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'hashparams', ':');
+        $actualHash = $this->hashFromParams($posAccount->getStoreKey(), $data, 'hashparams', ':');
 
         if ($data['hash'] === $actualHash) {
             $this->logger->debug('hash check is successful');
@@ -64,18 +64,18 @@ class GarantiPosCrypt extends AbstractCrypt
     /**
      * Make Hash Data
      *
-     * @param GarantiPosAccount       $account
+     * @param GarantiPosAccount $posAccount
      * {@inheritDoc}
      */
-    public function createHash(AbstractPosAccount $account, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         $map = [
             $requestData['Order']['OrderID'],
-            $account->getTerminalId(),
+            $posAccount->getTerminalId(),
             $requestData['Card']['Number'] ?? null,
             $requestData['Transaction']['Amount'],
             $requestData['Transaction']['CurrencyCode'],
-            $this->createSecurityData($account, $requestData['Transaction']['Type']),
+            $this->createSecurityData($posAccount, $requestData['Transaction']['Type']),
         ];
 
         return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map), self::HASH_ALGORITHM);
@@ -94,18 +94,18 @@ class GarantiPosCrypt extends AbstractCrypt
     /**
      * Make Security Data
      *
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      * @param string|null       $txType
      *
      * @return string
      */
-    private function createSecurityData(AbstractPosAccount $account, ?string $txType = null): string
+    private function createSecurityData(AbstractPosAccount $posAccount, ?string $txType = null): string
     {
-        $password = 'void' === $txType || 'refund' === $txType ? $account->getRefundPassword() : $account->getPassword();
+        $password = 'void' === $txType || 'refund' === $txType ? $posAccount->getRefundPassword() : $posAccount->getPassword();
 
         $map = [
             $password,
-            str_pad($account->getTerminalId(), 9, '0', STR_PAD_LEFT),
+            \str_pad($posAccount->getTerminalId(), 9, '0', STR_PAD_LEFT),
         ];
 
         return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map), 'sha1');

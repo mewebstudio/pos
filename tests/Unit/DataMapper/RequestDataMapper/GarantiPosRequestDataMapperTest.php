@@ -174,7 +174,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider create3DPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(GarantiPosAccount $account, array $order, array $responseData, array $expected): void
+    public function testCreate3DPaymentRequestData(GarantiPosAccount $garantiPosAccount, array $order, array $responseData, array $expected): void
     {
         $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, '', $responseData);
 
@@ -250,30 +250,30 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider refundOrderDataProvider
      */
-    public function testCreateRefundRequestData(GarantiPosAccount $account, array $order, array $expectedData): void
+    public function testCreateRefundRequestData(GarantiPosAccount $garantiPosAccount, array $order, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->createRefundRequestData($account, $order);
+        $actual = $this->requestDataMapper->createRefundRequestData($garantiPosAccount, $order);
 
         $this->assertEquals($expectedData, $actual);
     }
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      * @param                   $order
      *
      * @return array
      */
-    private function getSampleCancelXMLData(AbstractPosAccount $account, array $order): array
+    private function getSampleCancelXMLData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
             'Mode'        => 'TEST',
             'Version'     => '512',
             'Terminal'    => [
-                'ProvUserID' => $account->getRefundUsername(),
-                'UserID'     => $account->getRefundUsername(),
+                'ProvUserID' => $posAccount->getRefundUsername(),
+                'UserID'     => $posAccount->getRefundUsername(),
                 'HashData'   => '35E8410A78E24949D78F5E025B5E05AF470B01385A2ECBFEE6C5B3CDACFF78011D387ECAFDCE4B8453D80D35C2F344F3DAA6F2EF9143079F64DE88401EC5E4F5',
-                'ID'         => $account->getTerminalId(),
-                'MerchantID' => $account->getClientId(),
+                'ID'         => $posAccount->getTerminalId(),
+                'MerchantID' => $posAccount->getClientId(),
             ],
             'Customer'    => [
                 'IPAddress' => $order['ip'],
@@ -294,31 +294,31 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param GarantiPosAccount   $account
+     * @param GarantiPosAccount   $posAccount
      * @param array               $order
-     * @param CreditCardInterface $card
+     * @param CreditCardInterface $creditCard
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, CreditCardInterface $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, CreditCardInterface $creditCard): array
     {
         return [
             'Mode'        => 'TEST',
             'Version'     => '512',
             'Terminal'    => [
-                'ProvUserID' => $account->getUsername(),
-                'UserID'     => $account->getUsername(),
+                'ProvUserID' => $posAccount->getUsername(),
+                'UserID'     => $posAccount->getUsername(),
                 'HashData'   => '2005F771B622399C0EC7B8BBBE9B5F7989B9587175239F0695C1E5D3BFAA0CF6D747A9CEE64D78B7081CB5193541AD9D129B929653E2B68BCAE6939E281D752E',
-                'ID'         => $account->getTerminalId(),
-                'MerchantID' => $account->getClientId(),
+                'ID'         => $posAccount->getTerminalId(),
+                'MerchantID' => $posAccount->getClientId(),
             ],
             'Customer'    => [
                 'IPAddress' => $order['ip'],
             ],
             'Card'        => [
-                'Number'     => $card->getNumber(),
+                'Number'     => $creditCard->getNumber(),
                 'ExpireDate' => '0122',
-                'CVV2'       => $card->getCvv(),
+                'CVV2'       => $creditCard->getCvv(),
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -335,22 +335,22 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      * @param array             $order
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, array $order): array
+    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
             'Mode'        => 'TEST',
             'Version'     => '512',
             'Terminal'    => [
-                'ProvUserID' => $account->getUsername(),
-                'UserID'     => $account->getUsername(),
+                'ProvUserID' => $posAccount->getUsername(),
+                'UserID'     => $posAccount->getUsername(),
                 'HashData'   => '0CFE09F107274C6A07292DA061A4EECAB0F5F0CF87F831F2D3626A3346A941126C52D1D95A3B77ADF5AC348B3D25C76BA5D8D98A29557D087D3367BFFACCD25C',
-                'ID'         => $account->getTerminalId(),
-                'MerchantID' => $account->getClientId(),
+                'ID'         => $posAccount->getTerminalId(),
+                'MerchantID' => $posAccount->getClientId(),
             ],
             'Customer'    => [
                 'IPAddress' => $order['ip'],
@@ -368,22 +368,22 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param GarantiPosAccount $account
+     * @param GarantiPosAccount $posAccount
      * @param array             $order
      *
      * @return array
      */
-    private function getSampleStatusRequestData(AbstractPosAccount $account, array $order): array
+    private function getSampleStatusRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
             'Mode'        => 'TEST',
             'Version'     => '512',
             'Terminal'    => [
-                'ProvUserID' => $account->getUsername(),
-                'UserID'     => $account->getUsername(),
+                'ProvUserID' => $posAccount->getUsername(),
+                'UserID'     => $posAccount->getUsername(),
                 'HashData'   => '35E8410A78E24949D78F5E025B5E05AF470B01385A2ECBFEE6C5B3CDACFF78011D387ECAFDCE4B8453D80D35C2F344F3DAA6F2EF9143079F64DE88401EC5E4F5',
-                'ID'         => $account->getTerminalId(),
-                'MerchantID' => $account->getClientId(),
+                'ID'         => $posAccount->getTerminalId(),
+                'MerchantID' => $posAccount->getClientId(),
             ],
             'Customer'    => [
                 'IPAddress' => $order['ip'],

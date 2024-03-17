@@ -67,12 +67,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @param PosNetAccount                                                     $account
+     * @param PosNetAccount                                                     $posAccount
      * @param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType kullanilmiyor
      *
      * {@inheritDoc}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array
+    public function create3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -81,11 +81,11 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         $mappedOrder['amount']   = $this->formatAmount($order['amount']);
         $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
-        $hash = $this->crypt->create3DHash($account, $mappedOrder);
+        $hash = $this->crypt->create3DHash($posAccount, $mappedOrder);
 
         return [
-            'mid'         => $account->getClientId(),
-            'tid'         => $account->getTerminalId(),
+            'mid'         => $posAccount->getClientId(),
+            'tid'         => $posAccount->getTerminalId(),
             'oosTranData' => [
                 'bankData'     => $responseData['BankPacket'],
                 'merchantData' => $responseData['MerchantPacket'],
@@ -97,42 +97,42 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
     {
         $order = $this->preparePaymentOrder($order);
 
         return [
-            'mid'                                 => $account->getClientId(),
-            'tid'                                 => $account->getTerminalId(),
+            'mid'                                 => $posAccount->getClientId(),
+            'tid'                                 => $posAccount->getTerminalId(),
             'tranDateRequired'                    => '1',
             strtolower($this->mapTxType($txType)) => [
                 'orderID'      => self::formatOrderId($order['id']),
                 'installment'  => $this->mapInstallment($order['installment']),
                 'amount'       => $this->formatAmount($order['amount']),
                 'currencyCode' => $this->mapCurrency($order['currency']),
-                'ccno'         => $card->getNumber(),
-                'expDate'      => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-                'cvc'          => $card->getCvv(),
+                'ccno'         => $creditCard->getNumber(),
+                'expDate'      => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'cvc'          => $creditCard->getCvv(),
             ],
         ];
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 
         return [
-            'mid'                                                   => $account->getClientId(),
-            'tid'                                                   => $account->getTerminalId(),
+            'mid'                                                   => $posAccount->getClientId(),
+            'tid'                                                   => $posAccount->getTerminalId(),
             'tranDateRequired'                                      => '1',
             \strtolower($this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH)) => [
                 'hostLogKey'   => $order['ref_ret_num'],
@@ -144,19 +144,19 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
+    public function createStatusRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareStatusOrder($order);
 
         $txType = $this->mapTxType(PosInterface::TX_TYPE_STATUS);
 
         return [
-            'mid'   => $account->getClientId(),
-            'tid'   => $account->getTerminalId(),
+            'mid'   => $posAccount->getClientId(),
+            'tid'   => $posAccount->getTerminalId(),
             $txType => [
                 'orderID' => self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']),
             ],
@@ -164,18 +164,18 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
+    public function createCancelRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareCancelOrder($order);
 
         $txType      = $this->mapTxType(PosInterface::TX_TYPE_CANCEL);
         $requestData = [
-            'mid'              => $account->getClientId(),
-            'tid'              => $account->getTerminalId(),
+            'mid'              => $posAccount->getClientId(),
+            'tid'              => $posAccount->getTerminalId(),
             'tranDateRequired' => '1',
             $txType            => [
                 'transaction' => 'sale',
@@ -197,18 +197,18 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareRefundOrder($order);
 
         $txType      = $this->mapTxType(PosInterface::TX_TYPE_REFUND);
         $requestData = [
-            'mid'              => $account->getClientId(),
-            'tid'              => $account->getTerminalId(),
+            'mid'              => $posAccount->getClientId(),
+            'tid'              => $posAccount->getTerminalId(),
             'tranDateRequired' => '1',
             $txType            => [
                 'amount'       => $this->formatAmount($order['amount']),
@@ -228,7 +228,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array
     {
         throw new NotImplementedException();
     }
@@ -236,21 +236,21 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
+    public function createOrderHistoryRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         throw new NotImplementedException();
     }
 
 
     /**
-     * @param PosNetAccount                                     $account
+     * @param PosNetAccount $posAccount
      * @param array{data1: string, data2: string, sign: string} $extraData
      *
      * {@inheritDoc}
      *
      * @throws Exception
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null, array $extraData = null): array
+    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null, array $extraData = null): array
     {
         if (null === $extraData) {
             throw new InvalidArgumentException('$extraData can not be null');
@@ -259,8 +259,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $inputs = [
-            'mid'               => $account->getClientId(),
-            'posnetID'          => $account->getPosNetId(),
+            'mid'               => $posAccount->getClientId(),
+            'posnetID'          => $posAccount->getPosNetId(),
             'posnetData'        => $extraData['data1'], //Ödeme bilgilerini içermektedir.
             'posnetData2'       => $extraData['data2'], //Kart bilgileri request içerisinde bulunuyorsa bu alan oluşturulmaktadır
             'digest'            => $extraData['sign'],  //Servis imzası.
@@ -271,7 +271,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
              * set edilir. Form içerisinde bulundurulması yeterlidir.
              */
             'url'               => '',
-            'lang'              => $this->getLang($account, $order),
+            'lang'              => $this->getLang($posAccount, $order),
         ];
 
         return [
@@ -284,44 +284,44 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
-     * @param PosNetAccount                        $account
+     * @param PosNetAccount                        $posAccount
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
      */
-    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
+    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
     {
         $order = $this->preparePaymentOrder($order);
 
-        if (null === $card->getHolderName() && isset($order['name'])) {
-            $card->setHolderName($order['name']);
+        if (null === $creditCard->getHolderName() && isset($order['name'])) {
+            $creditCard->setHolderName($order['name']);
         }
 
         return [
-            'mid'            => $account->getClientId(),
-            'tid'            => $account->getTerminalId(),
+            'mid'            => $posAccount->getClientId(),
+            'tid'            => $posAccount->getTerminalId(),
             'oosRequestData' => [
-                'posnetid'       => $account->getPosNetId(),
-                'ccno'           => $card->getNumber(),
-                'expDate'        => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-                'cvc'            => $card->getCvv(),
+                'posnetid'       => $posAccount->getPosNetId(),
+                'ccno'           => $creditCard->getNumber(),
+                'expDate'        => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'cvc'            => $creditCard->getCvv(),
                 'amount'         => $this->formatAmount($order['amount']),
                 'currencyCode'   => $this->mapCurrency($order['currency']),
                 'installment'    => $this->mapInstallment($order['installment']),
                 'XID'            => self::formatOrderId($order['id']),
-                'cardHolderName' => $card->getHolderName(),
+                'cardHolderName' => $creditCard->getHolderName(),
                 'tranType'       => $this->mapTxType($txType),
             ],
         ];
     }
 
     /**
-     * @param PosNetAccount                        $account
+     * @param PosNetAccount                        $posAccount
      * @param array<string, int|string|float|null> $order
      * @param array<string, mixed>                 $responseData
      *
      * @return array<string, string|array<string, string>>
      */
-    public function create3DResolveMerchantRequestData(AbstractPosAccount $account, array $order, array $responseData): array
+    public function create3DResolveMerchantRequestData(AbstractPosAccount $posAccount, array $order, array $responseData): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -330,11 +330,11 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         $mappedOrder['amount']   = $this->formatAmount($order['amount']);
         $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
-        $hash = $this->crypt->create3DHash($account, $mappedOrder);
+        $hash = $this->crypt->create3DHash($posAccount, $mappedOrder);
 
         return [
-            'mid'                    => $account->getClientId(),
-            'tid'                    => $account->getTerminalId(),
+            'mid'                    => $posAccount->getClientId(),
+            'tid'                    => $posAccount->getTerminalId(),
             'oosResolveMerchantData' => [
                 'bankData'     => $responseData['BankPacket'],
                 'merchantData' => $responseData['MerchantPacket'],

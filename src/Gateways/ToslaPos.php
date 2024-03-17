@@ -86,7 +86,7 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -123,9 +123,9 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
-        if (PosInterface::MODEL_3D_HOST !== $paymentModel && !$card instanceof CreditCardInterface) {
+        if (PosInterface::MODEL_3D_HOST !== $paymentModel && !$creditCard instanceof CreditCardInterface) {
             throw new \LogicException('Kredi kart bilgileri eksik!');
         }
 
@@ -145,7 +145,7 @@ class ToslaPos extends AbstractGateway
             $gatewayUrl = $this->get3DHostGatewayURL($data['ThreeDSessionId']);
         }
 
-        return $this->requestDataMapper->create3DFormData($this->account, $data, $paymentModel, $txType, $gatewayUrl, $card);
+        return $this->requestDataMapper->create3DFormData($this->account, $data, $paymentModel, $txType, $gatewayUrl, $creditCard);
     }
 
     /**

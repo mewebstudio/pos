@@ -63,7 +63,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      * todo implement
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -148,10 +148,10 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * {@inheritDoc}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $data */
-        $data = $this->registerPayment($order, $txType, $paymentModel, $card);
+        $data = $this->registerPayment($order, $txType, $paymentModel, $creditCard);
 
         if (null !== $data['ErrorCode']) {
             $this->logger->error('payment register fail response', $data);
@@ -181,7 +181,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
      * @param string                               $paymentModel
-     * @param CreditCardInterface|null             $card
+     * @param CreditCardInterface|null $creditCard
      *
      * Basarili durumda donen cevap formati: array{CommonPaymentUrl: string, PaymentToken: string, ErrorCode: null,
      * ResponseMessage: null} Basarisiz durumda donen cevap formati: array{CommonPaymentUrl: null, PaymentToken: null,
@@ -191,14 +191,14 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @throws Exception
      */
-    public function registerPayment(array $order, string $txType, string $paymentModel, CreditCardInterface $card = null): array
+    public function registerPayment(array $order, string $txType, string $paymentModel, CreditCardInterface $creditCard = null): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $this->account,
             $order,
             $txType,
             $paymentModel,
-            $card
+            $creditCard
         );
 
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);

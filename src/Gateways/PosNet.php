@@ -64,13 +64,13 @@ class PosNet extends AbstractGateway
      *
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
-     * @param CreditCardInterface                  $card
+     * @param CreditCardInterface                  $creditCard
      *
      * @return array{approved: string, respCode: string, respText: string, oosRequestDataResponse?: array{data1: string, data2: string, sign: string}}
      */
-    public function getOosTransactionData(array $order, string $txType, CreditCardInterface $card): array
+    public function getOosTransactionData(array $order, string $txType, CreditCardInterface $creditCard): array
     {
-        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $card);
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $creditCard);
 
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
         $this->eventDispatcher->dispatch($event);
@@ -93,7 +93,7 @@ class PosNet extends AbstractGateway
      * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
 
@@ -181,13 +181,13 @@ class PosNet extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $card = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
-        if (!$card instanceof CreditCardInterface) {
+        if (!$creditCard instanceof CreditCardInterface) {
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
-        $data = $this->getOosTransactionData($order, $txType, $card);
+        $data = $this->getOosTransactionData($order, $txType, $creditCard);
 
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $data['approved']) {
             $this->logger->error('enrollment fail response', $data);

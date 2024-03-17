@@ -71,19 +71,19 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array
+    public function create3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData): array
     {
         $order = $this->preparePaymentOrder($order);
 
         $requestData = [
             'ApiType'               => 'JSON',
             'ApiVersion'            => self::API_VERSION,
-            'MerchantNo'            => $account->getClientId(),
-            'TerminalNo'            => $account->getTerminalId(),
+            'MerchantNo'            => $posAccount->getClientId(),
+            'TerminalNo'            => $posAccount->getTerminalId(),
             'PaymentInstrumentType' => 'CARD',
             'IsEncrypted'           => 'N',
             'IsTDSecureMerchant'    => 'Y',
@@ -108,17 +108,17 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['InstallmentType'] = 'Y';
         }
 
-        $requestData['MAC'] = $this->crypt->createHash($account, $requestData);
+        $requestData['MAC'] = $this->crypt->createHash($posAccount, $requestData);
 
         return $requestData;
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -126,18 +126,18 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'ApiType'                => 'JSON',
             'ApiVersion'             => self::API_VERSION,
             'MACParams'              => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount',
-            'MerchantNo'             => $account->getClientId(),
-            'TerminalNo'             => $account->getTerminalId(),
+            'MerchantNo'             => $posAccount->getClientId(),
+            'TerminalNo'             => $posAccount->getTerminalId(),
             'CipheredData'           => null,
             'DealerData'             => null,
             'IsEncrypted'            => null,
             'PaymentFacilitatorData' => null,
             'AdditionalInfoData'     => null,
             'CardInformationData'    => [
-                'CardNo'         => $card->getNumber(),
-                'ExpireDate'     => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-                'Cvc2'           => $card->getCvv(),
-                'CardHolderName' => $card->getHolderName(),
+                'CardNo'         => $creditCard->getNumber(),
+                'ExpireDate'     => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'Cvc2'           => $creditCard->getCvv(),
+                'CardHolderName' => $creditCard->getHolderName(),
             ],
             'IsMailOrder'            => 'N',
             'IsRecurring'            => null,
@@ -158,21 +158,21 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['InstallmentType'] = 'Y';
         }
 
-        if (null === $account->getStoreKey()) {
+        if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
 
-        $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
+        $requestData['MAC'] = $this->crypt->hashFromParams($posAccount->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 
@@ -180,8 +180,8 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'ApiType'                => 'JSON',
             'ApiVersion'             => self::API_VERSION,
             'MACParams'              => 'MerchantNo:TerminalNo',
-            'MerchantNo'             => $account->getClientId(),
-            'TerminalNo'             => $account->getTerminalId(),
+            'MerchantNo'             => $posAccount->getClientId(),
+            'TerminalNo'             => $posAccount->getTerminalId(),
             'CipheredData'           => null,
             'DealerData'             => null,
             'IsEncrypted'            => null,
@@ -197,29 +197,29 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['InstallmentType'] = 'Y';
         }
 
-        if (null === $account->getStoreKey()) {
+        if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
 
-        $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
+        $requestData['MAC'] = $this->crypt->hashFromParams($posAccount->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
+    public function createStatusRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareStatusOrder($order);
 
         $requestData = [
             'ApiType'                => 'JSON',
             'ApiVersion'             => self::API_VERSION,
-            'MerchantNo'             => $account->getClientId(),
-            'TerminalNo'             => $account->getTerminalId(),
+            'MerchantNo'             => $posAccount->getClientId(),
+            'TerminalNo'             => $posAccount->getTerminalId(),
             'MACParams'              => 'MerchantNo:TerminalNo',
             'CipheredData'           => null,
             'DealerData'             => null,
@@ -227,29 +227,29 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'PaymentFacilitatorData' => null,
             'OrderId'                => self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']),
         ];
-        if (null === $account->getStoreKey()) {
+        if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
 
-        $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
+        $requestData['MAC'] = $this->crypt->hashFromParams($posAccount->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
+    public function createCancelRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareCancelOrder($order);
 
         $requestData = [
             'ApiType'                => 'JSON',
             'ApiVersion'             => self::API_VERSION,
-            'MerchantNo'             => $account->getClientId(),
-            'TerminalNo'             => $account->getTerminalId(),
+            'MerchantNo'             => $posAccount->getClientId(),
+            'TerminalNo'             => $posAccount->getTerminalId(),
             'MACParams'              => 'MerchantNo:TerminalNo:ReferenceCode:OrderId',
             'CipheredData'           => null,
             'DealerData'             => null,
@@ -266,29 +266,29 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']);
         }
 
-        if (null === $account->getStoreKey()) {
+        if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
 
-        $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
+        $requestData['MAC'] = $this->crypt->hashFromParams($posAccount->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareRefundOrder($order);
 
         $requestData = [
             'ApiType'                => 'JSON',
             'ApiVersion'             => self::API_VERSION,
-            'MerchantNo'             => $account->getClientId(),
-            'TerminalNo'             => $account->getTerminalId(),
+            'MerchantNo'             => $posAccount->getClientId(),
+            'TerminalNo'             => $posAccount->getTerminalId(),
             'MACParams'              => 'MerchantNo:TerminalNo:ReferenceCode:OrderId',
             'CipheredData'           => null,
             'DealerData'             => null,
@@ -310,11 +310,11 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['CurrencyCode'] = $this->mapCurrency($order['currency']);
         }
 
-        if (null === $account->getStoreKey()) {
+        if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
 
-        $requestData['MAC'] = $this->crypt->hashFromParams($account->getStoreKey(), $requestData, 'MACParams', ':');
+        $requestData['MAC'] = $this->crypt->hashFromParams($posAccount->getStoreKey(), $requestData, 'MACParams', ':');
 
         return $requestData;
     }
@@ -322,7 +322,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array
     {
         throw new NotImplementedException();
     }
@@ -330,46 +330,46 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
+    public function createOrderHistoryRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         throw new NotImplementedException();
     }
 
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      *
      * @throws Exception
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null, $extraData = null): array
+    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null, $extraData = null): array
     {
         $order = $this->preparePaymentOrder($order);
 
         $inputs = [
-            'MerchantNo'        => $account->getClientId(),
-            'TerminalNo'        => $account->getTerminalId(),
-            'PosnetID'          => $account->getPosNetId(),
+            'MerchantNo'        => $posAccount->getClientId(),
+            'TerminalNo'        => $posAccount->getTerminalId(),
+            'PosnetID'          => $posAccount->getPosNetId(),
             'TransactionType'   => $this->mapTxType($txType),
             'OrderId'           => self::formatOrderId($order['id']),
             'Amount'            => (string) $this->formatAmount($order['amount']),
             'CurrencyCode'      => $this->mapCurrency($order['currency']),
             'MerchantReturnURL' => (string) $order['success_url'],
             'InstallmentCount'  => $this->mapInstallment($order['installment']),
-            'Language'          => $this->getLang($account, $order),
+            'Language'          => $this->getLang($posAccount, $order),
             'TxnState'          => 'INITIAL',
             'OpenNewWindow'     => '0',
         ];
 
-        if ($card instanceof CreditCardInterface) {
+        if ($creditCard instanceof CreditCardInterface) {
             $cardData = [
-                'CardNo'         => $card->getNumber(),
+                'CardNo'         => $creditCard->getNumber(),
                 // Kod calisiyor ancak burda bir tutarsizlik var: ExpireDate vs ExpiredDate
                 // MacParams icinde ExpireDate olarak geciyor, gonderidigimizde ise ExpiredDate olarak istiyor.
-                'ExpiredDate'    => $card->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-                'Cvv'            => $card->getCvv(),
-                'CardHolderName' => (string) $card->getHolderName(),
+                'ExpiredDate'    => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'Cvv'            => $creditCard->getCvv(),
+                'CardHolderName' => (string) $creditCard->getHolderName(),
 
                 'MacParams' => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount',
                 'UseOOS'    => '0',
@@ -386,11 +386,11 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
 
         $inputs += $cardData;
 
-        $event = new Before3DFormHashCalculatedEvent($inputs, $account->getBank(), $txType, $paymentModel);
+        $event = new Before3DFormHashCalculatedEvent($inputs, $posAccount->getBank(), $txType, $paymentModel);
         $this->eventDispatcher->dispatch($event);
         $inputs = $event->getFormInputs();
 
-        $inputs['Mac'] = $this->crypt->create3DHash($account, $inputs);
+        $inputs['Mac'] = $this->crypt->create3DHash($posAccount, $inputs);
 
         return [
             'gateway' => $gatewayURL,

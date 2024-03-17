@@ -145,14 +145,14 @@ class KuveytPosSerializer implements SerializerInterface
     /**
      * html form'da gelen input degeleri array'e donusturur
      *
-     * @param DOMNodeList<DOMElement> $inputNodes
+     * @param DOMNodeList<DOMElement> $domNodeList
      *
      * @return array<string, string>
      */
-    private function builtInputsFromHTMLDoc(DOMNodeList $inputNodes): array
+    private function builtInputsFromHTMLDoc(DOMNodeList $domNodeList): array
     {
         $inputs = [];
-        foreach ($inputNodes as $el) {
+        foreach ($domNodeList as $el) {
             $key   = null;
             $value = null;
 

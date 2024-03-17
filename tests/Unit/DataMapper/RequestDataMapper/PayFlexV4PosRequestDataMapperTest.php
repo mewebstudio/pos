@@ -125,31 +125,31 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider threeDPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $gatewayResponse, CreditCardInterface $card, array $expected): void
+    public function testCreate3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $gatewayResponse, CreditCardInterface $creditCard, array $expected): void
     {
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $gatewayResponse, $card);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($posAccount, $order, $txType, $gatewayResponse, $creditCard);
         $this->assertEquals($expected, $actual);
     }
 
     /**
      * @dataProvider threeDPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestDataWithoutCard(AbstractPosAccount $account, array $order, string $txType, array $gatewayResponse): void
+    public function testCreate3DPaymentRequestDataWithoutCard(AbstractPosAccount $posAccount, array $order, string $txType, array $gatewayResponse): void
     {
         $this->expectException(\LogicException::class);
-        $this->requestDataMapper->create3DPaymentRequestData($account, $order, $txType, $gatewayResponse);
+        $this->requestDataMapper->create3DPaymentRequestData($posAccount, $order, $txType, $gatewayResponse);
     }
 
     /**
      * @dataProvider three3DEnrollmentRequestDataDataProvider
      */
-    public function testCreate3DEnrollmentCheckData(array $order, ?CreditCardInterface $card, array $expected): void
+    public function testCreate3DEnrollmentCheckData(array $order, ?CreditCardInterface $creditCard, array $expected): void
     {
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expected['VerifyEnrollmentRequestId']);
 
-        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $card);
+        $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $creditCard);
         $this->assertEquals($expected, $actual);
     }
 
@@ -443,43 +443,43 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param PayFlexAccount      $account
+     * @param PayFlexAccount      $posAccount
      * @param array               $order
      * @param string              $txType
-     * @param CreditCardInterface $card
+     * @param CreditCardInterface $creditCard
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
     {
         return [
-            'MerchantId'              => $account->getClientId(),
-            'Password'                => $account->getPassword(),
-            'TerminalNo'              => $account->getTerminalId(),
+            'MerchantId'              => $posAccount->getClientId(),
+            'Password'                => $posAccount->getPassword(),
+            'TerminalNo'              => $posAccount->getTerminalId(),
             'TransactionType'         => $this->requestDataMapper->mapTxType($txType),
             'OrderId'                 => $order['id'],
             'CurrencyAmount'          => '1000.00',
             'CurrencyCode'            => 949,
             'ClientIp'                => $order['ip'],
             'TransactionDeviceSource' => 0,
-            'Pan'                     => $card->getNumber(),
+            'Pan'                     => $creditCard->getNumber(),
             'Expiry'                  => '202112',
-            'Cvv'                     => $card->getCvv(),
+            'Cvv'                     => $creditCard->getCvv(),
         ];
     }
 
     /**
-     * @param PayFlexAccount $account
+     * @param PayFlexAccount $posAccount
      * @param array          $order
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, array $order): array
+    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
-            'MerchantId'             => $account->getClientId(),
-            'Password'               => $account->getPassword(),
-            'TerminalNo'             => $account->getTerminalId(),
+            'MerchantId'             => $posAccount->getClientId(),
+            'Password'               => $posAccount->getPassword(),
+            'TerminalNo'             => $posAccount->getTerminalId(),
             'TransactionType'        => 'Capture',
             'ReferenceTransactionId' => $order['id'],
             'CurrencyAmount'         => '1000.00',

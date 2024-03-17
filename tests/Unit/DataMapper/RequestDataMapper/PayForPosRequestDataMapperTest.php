@@ -255,36 +255,36 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      * @param array              $order
      * @param array              $responseData
      *
      * @return array
      */
-    private function getSample3DPaymentRequestData(AbstractPosAccount $account, array $order, array $responseData): array
+    private function getSample3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, array $responseData): array
     {
         return [
             'RequestGuid' => $responseData['RequestGuid'],
-            'UserCode'    => $account->getUsername(),
-            'UserPass'    => $account->getPassword(),
+            'UserCode'    => $posAccount->getUsername(),
+            'UserPass'    => $posAccount->getPassword(),
             'OrderId'     => $order['id'],
             'SecureType'  => '3DModelPayment',
         ];
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      * @param array              $order
      *
      * @return array
      */
-    private function getSampleCancelXMLData(AbstractPosAccount $account, array $order): array
+    private function getSampleCancelXMLData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
             'MbrId'      => '5',
-            'MerchantId' => $account->getClientId(),
-            'UserCode'   => $account->getUsername(),
-            'UserPass'   => $account->getPassword(),
+            'MerchantId' => $posAccount->getClientId(),
+            'UserCode'   => $posAccount->getUsername(),
+            'UserPass'   => $posAccount->getPassword(),
             'OrgOrderId' => $order['id'],
             'SecureType' => 'NonSecure',
             'Lang'       => 'tr',
@@ -294,19 +294,19 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param AbstractPosAccount  $account
+     * @param AbstractPosAccount  $posAccount
      * @param array               $order
-     * @param CreditCardInterface $card
+     * @param CreditCardInterface $creditCard
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, CreditCardInterface $card): array
+    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, CreditCardInterface $creditCard): array
     {
         return [
             'MbrId'            => '5',
-            'MerchantId'       => $account->getClientId(),
-            'UserCode'         => $account->getUsername(),
-            'UserPass'         => $account->getPassword(),
+            'MerchantId'       => $posAccount->getClientId(),
+            'UserCode'         => $posAccount->getUsername(),
+            'UserPass'         => $posAccount->getPassword(),
             'MOTO'             => '0',
             'OrderId'          => $order['id'],
             'SecureType'       => 'NonSecure',
@@ -315,26 +315,26 @@ class PayForPosRequestDataMapperTest extends TestCase
             'Currency'         => 949,
             'InstallmentCount' => 0,
             'Lang'             => 'tr',
-            'CardHolderName'   => $card->getHolderName(),
-            'Pan'              => $card->getNumber(),
+            'CardHolderName'   => $creditCard->getHolderName(),
+            'Pan'              => $creditCard->getNumber(),
             'Expiry'           => '0122',
-            'Cvv2'             => $card->getCvv(),
+            'Cvv2'             => $creditCard->getCvv(),
         ];
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      * @param array              $order
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $account, array $order): array
+    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
             'MbrId'       => '5',
-            'MerchantId'  => $account->getClientId(),
-            'UserCode'    => $account->getUsername(),
-            'UserPass'    => $account->getPassword(),
+            'MerchantId'  => $posAccount->getClientId(),
+            'UserCode'    => $posAccount->getUsername(),
+            'UserPass'    => $posAccount->getPassword(),
             'OrgOrderId'  => $order['id'],
             'SecureType'  => 'NonSecure',
             'TxnType'     => 'PostAuth',
@@ -345,18 +345,18 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      * @param array              $order
      *
      * @return array
      */
-    private function getSampleStatusRequestData(AbstractPosAccount $account, array $order): array
+    private function getSampleStatusRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
             'MbrId'      => '5',
-            'MerchantId' => $account->getClientId(),
-            'UserCode'   => $account->getUsername(),
-            'UserPass'   => $account->getPassword(),
+            'MerchantId' => $posAccount->getClientId(),
+            'UserCode'   => $posAccount->getUsername(),
+            'UserPass'   => $posAccount->getPassword(),
             'OrgOrderId' => $order['id'],
             'SecureType' => 'Inquiry',
             'Lang'       => 'tr',
@@ -365,18 +365,18 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      * @param array              $order
      *
      * @return array
      */
-    private function getSampleRefundXMLData(AbstractPosAccount $account, array $order): array
+    private function getSampleRefundXMLData(AbstractPosAccount $posAccount, array $order): array
     {
         return [
             'MbrId'       => '5',
-            'MerchantId'  => $account->getClientId(),
-            'UserCode'    => $account->getUsername(),
-            'UserPass'    => $account->getPassword(),
+            'MerchantId'  => $posAccount->getClientId(),
+            'UserCode'    => $posAccount->getUsername(),
+            'UserPass'    => $posAccount->getPassword(),
             'OrgOrderId'  => $order['id'],
             'SecureType'  => 'NonSecure',
             'Lang'        => 'tr',

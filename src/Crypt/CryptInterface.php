@@ -12,32 +12,32 @@ interface CryptInterface
     /**
      * check hash of 3D secure response
      *
-     * @param AbstractPosAccount    $account
+     * @param AbstractPosAccount    $posAccount
      * @param array<string, string> $data
      *
      * @return bool
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool;
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool;
 
     /**
      * creates hash for 3D secure payments
      *
-     * @param AbstractPosAccount    $account
+     * @param AbstractPosAccount    $posAccount
      * @param array<string, string> $requestData
      *
      * @return string
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData): string;
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string;
 
     /**
      * create hash for non-3D actions
      *
-     * @param AbstractPosAccount   $account
+     * @param AbstractPosAccount   $posAccount
      * @param array<string, mixed> $requestData
      *
      * @return string
      */
-    public function createHash(AbstractPosAccount $account, array $requestData): string;
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string;
 
     /**
      * @param string               $storeKey       hashing key

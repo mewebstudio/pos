@@ -19,7 +19,7 @@ class EstV3PosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         \ksort($requestData, SORT_NATURAL | SORT_FLAG_CASE);
         foreach (\array_keys($requestData) as $key) {
@@ -35,7 +35,7 @@ class EstV3PosCrypt extends AbstractCrypt
             }
         }
 
-        $requestData[] = $account->getStoreKey();
+        $requestData[] = $posAccount->getStoreKey();
         // escape | and \ characters
         $data = \str_replace("\\", "\\\\", \array_values($requestData));
         $data = \str_replace(self::HASH_SEPARATOR, "\\".self::HASH_SEPARATOR, $data);
@@ -48,9 +48,9 @@ class EstV3PosCrypt extends AbstractCrypt
     /**
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
-        $actualHash = $this->create3DHash($account, $data);
+        $actualHash = $this->create3DHash($posAccount, $data);
 
         if ($data['HASH'] === $actualHash) {
             $this->logger->debug('hash check is successful');
@@ -68,12 +68,12 @@ class EstV3PosCrypt extends AbstractCrypt
     }
 
     /**
-     * @param AbstractPosAccount   $account
+     * @param AbstractPosAccount   $posAccount
      * @param array<string, mixed> $requestData
      *
      * @return string
      */
-    public function createHash(AbstractPosAccount $account, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         throw new NotImplementedException();
     }

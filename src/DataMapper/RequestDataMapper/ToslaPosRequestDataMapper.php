@@ -31,12 +31,12 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * @param ToslaPosAccount                      $account
+     * @param ToslaPosAccount                      $posAccount
      * @param array<string, int|string|float|null> $order
      *
      * @return array<string, string|int>
      */
-    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $account, array $order): array
+    public function create3DEnrollmentCheckRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -50,15 +50,15 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'timeSpan'         => $order['time_span'],
         ];
 
-        $requestData['hash'] = $this->crypt->create3DHash($account, $requestData);
+        $requestData['hash'] = $this->crypt->create3DHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($account) + $requestData;
+        return $this->getRequestAccountData($posAccount) + $requestData;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function create3DPaymentRequestData(AbstractPosAccount $account, array $order, string $txType, array $responseData): array
+    public function create3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData): array
     {
         throw new NotImplementedException();
     }
@@ -66,7 +66,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createNonSecurePaymentRequestData(AbstractPosAccount $account, array $order, string $txType, CreditCardInterface $card): array
+    public function createNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
     {
         $order = $this->preparePaymentOrder($order);
 
@@ -77,21 +77,21 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'installmentCount' => (int) $this->mapInstallment($order['installment']),
             'rnd'              => $this->crypt->generateRandomString(),
             'timeSpan'         => $order['time_span'],
-            'cardHolderName'   => $card->getHolderName(),
-            'cardNo'           => $card->getNumber(),
-            'expireDate'       => $card->getExpirationDate('my'),
-            'cvv'              => $card->getCvv(),
+            'cardHolderName'   => $creditCard->getHolderName(),
+            'cardNo'           => $creditCard->getNumber(),
+            'expireDate'       => $creditCard->getExpirationDate('my'),
+            'cvv'              => $creditCard->getCvv(),
         ];
 
-        $requestData['hash'] = $this->crypt->createHash($account, $requestData);
+        $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($account) + $requestData;
+        return $this->getRequestAccountData($posAccount) + $requestData;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $account, array $order): array
+    public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 
@@ -102,15 +102,15 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'timeSpan' => $order['time_span'],
         ];
 
-        $requestData['hash'] = $this->crypt->createHash($account, $requestData);
+        $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($account) + $requestData;
+        return $this->getRequestAccountData($posAccount) + $requestData;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function createStatusRequestData(AbstractPosAccount $account, array $order): array
+    public function createStatusRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareStatusOrder($order);
 
@@ -120,15 +120,15 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'timeSpan' => $order['time_span'],
         ];
 
-        $requestData['hash'] = $this->crypt->createHash($account, $requestData);
+        $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($account) + $requestData;
+        return $this->getRequestAccountData($posAccount) + $requestData;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function createCancelRequestData(AbstractPosAccount $account, array $order): array
+    public function createCancelRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareCancelOrder($order);
 
@@ -138,15 +138,15 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'timeSpan' => $order['time_span'],
         ];
 
-        $requestData['hash'] = $this->crypt->createHash($account, $requestData);
+        $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($account) + $requestData;
+        return $this->getRequestAccountData($posAccount) + $requestData;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $account, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->prepareRefundOrder($order);
 
@@ -157,15 +157,15 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'timeSpan' => $order['time_span'],
         ];
 
-        $requestData['hash'] = $this->crypt->createHash($account, $requestData);
+        $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($account) + $requestData;
+        return $this->getRequestAccountData($posAccount) + $requestData;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function createOrderHistoryRequestData(AbstractPosAccount $account, array $order): array
+    public function createOrderHistoryRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order       = $this->prepareOrderHistoryOrder($order);
         $requestData = [
@@ -177,15 +177,15 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'timeSpan'        => $order['time_span'],
         ];
 
-        $requestData['hash'] = $this->crypt->createHash($account, $requestData);
+        $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($account) + $requestData;
+        return $this->getRequestAccountData($posAccount) + $requestData;
     }
 
     /**
      * {@inheritDoc}
      */
-    public function createHistoryRequestData(AbstractPosAccount $account, array $data = []): array
+    public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array
     {
         throw new NotImplementedException();
     }
@@ -193,7 +193,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $account, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $card = null): array
+    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {
         if (PosInterface::MODEL_3D_HOST === $paymentModel) {
             return [
@@ -207,11 +207,11 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'ThreeDSessionId' => (string) $order['ThreeDSessionId'],
         ];
 
-        if ($card instanceof CreditCardInterface) {
-            $inputs['CardHolderName'] = (string) $card->getHolderName();
-            $inputs['CardNo']         = $card->getNumber();
-            $inputs['ExpireDate']     = $card->getExpireMonth(self::CREDIT_CARD_EXP_DATE_FORMAT);
-            $inputs['Cvv']            = $card->getCvv();
+        if ($creditCard instanceof CreditCardInterface) {
+            $inputs['CardHolderName'] = (string) $creditCard->getHolderName();
+            $inputs['CardNo']         = $creditCard->getNumber();
+            $inputs['ExpireDate']     = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_DATE_FORMAT);
+            $inputs['Cvv']            = $creditCard->getCvv();
         }
 
         return [
@@ -318,15 +318,15 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param AbstractPosAccount $account
+     * @param AbstractPosAccount $posAccount
      *
      * @return array{clientId: string, apiUser: string}
      */
-    private function getRequestAccountData(AbstractPosAccount $account): array
+    private function getRequestAccountData(AbstractPosAccount $posAccount): array
     {
         return [
-            'clientId' => $account->getClientId(),
-            'apiUser'  => $account->getUsername(),
+            'clientId' => $posAccount->getClientId(),
+            'apiUser'  => $posAccount->getUsername(),
         ];
     }
 

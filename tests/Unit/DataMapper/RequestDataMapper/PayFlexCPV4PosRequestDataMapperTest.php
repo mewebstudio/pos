@@ -103,14 +103,14 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider registerDataProvider
      */
-    public function testCreate3DEnrollmentCheckData(AbstractPosAccount $account, array $order, string $txType, ?CreditCard $card, array $expectedData): void
+    public function testCreate3DEnrollmentCheckData(AbstractPosAccount $posAccount, array $order, string $txType, ?CreditCard $creditCard, array $expectedData): void
     {
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
-            $account,
+            $posAccount,
             $order,
             $txType,
             PosInterface::MODEL_3D_SECURE,
-            $card
+            $creditCard
         );
         $this->assertEquals($expectedData, $actual);
     }

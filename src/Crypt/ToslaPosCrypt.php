@@ -15,12 +15,12 @@ class ToslaPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         $hashData = [
-            $account->getStoreKey(),
-            $account->getClientId(),
-            $account->getUsername(),
+            $posAccount->getStoreKey(),
+            $posAccount->getClientId(),
+            $posAccount->getUsername(),
             $requestData['rnd'],
             $requestData['timeSpan'],
         ];
@@ -33,16 +33,16 @@ class ToslaPosCrypt extends AbstractCrypt
     /**
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
-        if (null === $account->getStoreKey()) {
+        if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
 
-        $data['ClientId'] = $account->getClientId();
-        $data['ApiUser'] = $account->getUsername();
+        $data['ClientId'] = $posAccount->getClientId();
+        $data['ApiUser']  = $posAccount->getUsername();
 
-        $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'HashParameters', ',');
+        $actualHash = $this->hashFromParams($posAccount->getStoreKey(), $data, 'HashParameters', ',');
 
         if ($data['Hash'] === $actualHash) {
             $this->logger->debug('hash check is successful');
@@ -60,14 +60,14 @@ class ToslaPosCrypt extends AbstractCrypt
     }
 
     /**
-     * @param AbstractPosAccount   $account
+     * @param AbstractPosAccount   $posAccount
      * @param array<string, mixed> $requestData
      *
      * @return string
      */
-    public function createHash(AbstractPosAccount $account, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        return $this->create3DHash($account, $requestData);
+        return $this->create3DHash($posAccount, $requestData);
     }
 
     /**

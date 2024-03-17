@@ -63,10 +63,10 @@ class ToslaPosTest extends TestCase
 
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $event->getTxType());
-                $this->assertCount(13, $event->getRequestData());
+                $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(13, $requestDataPreparedEvent->getRequestData());
             });
 
         $this->pos->payment(
@@ -96,10 +96,10 @@ class ToslaPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_STATUS, $event->getTxType());
-                $this->assertCount(6, $event->getRequestData());
+                $this->assertSame(PosInterface::TX_TYPE_STATUS, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
             });
 
         $this->pos->status($statusOrder);
@@ -124,10 +124,10 @@ class ToslaPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_CANCEL, $event->getTxType());
-                $this->assertCount(6, $event->getRequestData());
+                $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
             });
 
         $this->pos->cancel($statusOrder);
@@ -151,10 +151,10 @@ class ToslaPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $event->getTxType());
-                $this->assertCount(9, $event->getRequestData());
+                $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(9, $requestDataPreparedEvent->getRequestData());
             });
 
         $this->pos->orderHistory($historyOrder);
@@ -173,10 +173,10 @@ class ToslaPosTest extends TestCase
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
-                $this->assertCount(10, $event->getRequestData());
-                $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $event->getTxType());
+                $this->assertCount(10, $requestDataPreparedEvent->getRequestData());
+                $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
             });
         $formData = $this->pos->get3DFormData(
             $order,
@@ -203,16 +203,16 @@ class ToslaPosTest extends TestCase
 
         $lastResponse = $this->pos->getResponse();
 
-        $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+        $refundOrder           = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
         $refundOrder['amount'] = 0.59;
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $event) use (&$eventIsThrown): void {
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_REFUND, $event->getTxType());
-                $this->assertCount(7, $event->getRequestData());
+                $this->assertSame(PosInterface::TX_TYPE_REFUND, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
             });
 
         $this->pos->refund($refundOrder);

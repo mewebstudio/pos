@@ -242,17 +242,17 @@ class InterPosRequestDataMapperTest extends TestCase
 
     /**
      * @param array           $order
-     * @param InterPosAccount $account
+     * @param InterPosAccount $interPosAccount
      * @param array           $responseData
      *
      * @return array
      */
-    private function getSample3DPaymentRequestData(array $order, InterPosAccount $account, array $responseData): array
+    private function getSample3DPaymentRequestData(array $order, InterPosAccount $interPosAccount, array $responseData): array
     {
         return [
-            'UserCode'                => $account->getUsername(),
-            'UserPass'                => $account->getPassword(),
-            'ShopCode'                => $account->getClientId(),
+            'UserCode'                => $interPosAccount->getUsername(),
+            'UserPass'                => $interPosAccount->getPassword(),
+            'ShopCode'                => $interPosAccount->getClientId(),
             'TxnType'                 => 'Auth',
             'SecureType'              => 'NonSecure',
             'OrderId'                 => $order['id'],
@@ -270,16 +270,16 @@ class InterPosRequestDataMapperTest extends TestCase
 
     /**
      * @param array           $order
-     * @param InterPosAccount $account
+     * @param InterPosAccount $interPosAccount
      *
      * @return array
      */
-    private function getSampleCancelXMLData(array $order, InterPosAccount $account): array
+    private function getSampleCancelXMLData(array $order, InterPosAccount $interPosAccount): array
     {
         return [
-            'UserCode'   => $account->getUsername(),
-            'UserPass'   => $account->getPassword(),
-            'ShopCode'   => $account->getClientId(),
+            'UserCode'   => $interPosAccount->getUsername(),
+            'UserPass'   => $interPosAccount->getPassword(),
+            'ShopCode'   => $interPosAccount->getClientId(),
             'OrderId'    => null,
             'orgOrderId' => $order['id'],
             'TxnType'    => 'Void',
@@ -290,17 +290,17 @@ class InterPosRequestDataMapperTest extends TestCase
 
     /**
      * @param array               $order
-     * @param CreditCardInterface $card
-     * @param InterPosAccount     $account
+     * @param CreditCardInterface $creditCard
+     * @param InterPosAccount     $interPosAccount
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentRequestData(array $order, CreditCardInterface $card, InterPosAccount $account): array
+    private function getSampleNonSecurePaymentRequestData(array $order, CreditCardInterface $creditCard, InterPosAccount $interPosAccount): array
     {
         $requestData = [
-            'UserCode'         => $account->getUsername(),
-            'UserPass'         => $account->getPassword(),
-            'ShopCode'         => $account->getClientId(),
+            'UserCode'         => $interPosAccount->getUsername(),
+            'UserPass'         => $interPosAccount->getPassword(),
+            'ShopCode'         => $interPosAccount->getClientId(),
             'TxnType'          => 'Auth',
             'SecureType'       => 'NonSecure',
             'OrderId'          => $order['id'],
@@ -312,25 +312,25 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
 
         $requestData['CardType'] = '0';
-        $requestData['Pan']      = $card->getNumber();
+        $requestData['Pan']      = $creditCard->getNumber();
         $requestData['Expiry']   = '1221';
-        $requestData['Cvv2']     = $card->getCvv();
+        $requestData['Cvv2']     = $creditCard->getCvv();
 
         return $requestData;
     }
 
     /**
      * @param array           $order
-     * @param InterPosAccount $account
+     * @param InterPosAccount $interPosAccount
      *
      * @return array
      */
-    private function getSampleNonSecurePaymentPostRequestData(array $order, InterPosAccount $account): array
+    private function getSampleNonSecurePaymentPostRequestData(array $order, InterPosAccount $interPosAccount): array
     {
         return [
-            'UserCode'    => $account->getUsername(),
-            'UserPass'    => $account->getPassword(),
-            'ShopCode'    => $account->getClientId(),
+            'UserCode'    => $interPosAccount->getUsername(),
+            'UserPass'    => $interPosAccount->getPassword(),
+            'ShopCode'    => $interPosAccount->getClientId(),
             'TxnType'     => 'PostAuth',
             'SecureType'  => 'NonSecure',
             'OrderId'     => null,
@@ -343,16 +343,16 @@ class InterPosRequestDataMapperTest extends TestCase
 
     /**
      * @param array           $order
-     * @param InterPosAccount $account
+     * @param InterPosAccount $interPosAccount
      *
      * @return array
      */
-    private function getSampleStatusRequestData(array $order, InterPosAccount $account): array
+    private function getSampleStatusRequestData(array $order, InterPosAccount $interPosAccount): array
     {
         return [
-            'UserCode'   => $account->getUsername(),
-            'UserPass'   => $account->getPassword(),
-            'ShopCode'   => $account->getClientId(),
+            'UserCode'   => $interPosAccount->getUsername(),
+            'UserPass'   => $interPosAccount->getPassword(),
+            'ShopCode'   => $interPosAccount->getClientId(),
             'OrderId'    => null,
             'orgOrderId' => $order['id'],
             'TxnType'    => 'StatusHistory',
@@ -363,22 +363,22 @@ class InterPosRequestDataMapperTest extends TestCase
 
     /**
      * @param array           $order
-     * @param InterPosAccount $account
+     * @param InterPosAccount $interPosAccount
      *
      * @return array
      */
-    private function getSampleRefundXMLData(array $order, InterPosAccount $account): array
+    private function getSampleRefundXMLData(array $order, InterPosAccount $interPosAccount): array
     {
         return [
-            'UserCode'    => $account->getUsername(),
-            'UserPass'    => $account->getPassword(),
-            'ShopCode'    => $account->getClientId(),
+            'UserCode'    => $interPosAccount->getUsername(),
+            'UserPass'    => $interPosAccount->getPassword(),
+            'ShopCode'    => $interPosAccount->getClientId(),
             'OrderId'     => null,
             'orgOrderId'  => $order['id'],
             'PurchAmount' => $order['amount'],
             'TxnType'     => 'Refund',
             'SecureType'  => 'NonSecure',
-            'Lang'        => $account->getLang(),
+            'Lang'        => $interPosAccount->getLang(),
             'MOTO'        => '0',
         ];
     }

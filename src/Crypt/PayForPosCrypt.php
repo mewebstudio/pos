@@ -13,7 +13,7 @@ class PayForPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         $hashData = [
             $requestData['MbrId'],
@@ -24,7 +24,7 @@ class PayForPosCrypt extends AbstractCrypt
             $requestData['TxnType'],
             $requestData['InstallmentCount'],
             $requestData['Rnd'],
-            $account->getStoreKey(),
+            $posAccount->getStoreKey(),
         ];
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);
 
@@ -34,17 +34,17 @@ class PayForPosCrypt extends AbstractCrypt
     /**
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
         $hashData = [
-            $account->getClientId(),
-            $account->getStoreKey(),
+            $posAccount->getClientId(),
+            $posAccount->getStoreKey(),
             $data['OrderId'],
             $data['AuthCode'],
             $data['ProcReturnCode'],
             $data['3DStatus'],
             $data['ResponseRnd'],
-            $account->getUsername(),
+            $posAccount->getUsername(),
         ];
 
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);
@@ -69,7 +69,7 @@ class PayForPosCrypt extends AbstractCrypt
     /**
      * @inheritdoc
      */
-    public function createHash(AbstractPosAccount $account, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         throw new NotImplementedException();
     }

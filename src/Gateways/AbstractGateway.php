@@ -64,12 +64,12 @@ abstract class AbstractGateway implements PosInterface
      */
     public function __construct(
         array                          $config,
-        AbstractPosAccount             $account,
+        AbstractPosAccount             $posAccount,
         RequestDataMapperInterface     $requestDataMapper,
         ResponseDataMapperInterface    $responseDataMapper,
         SerializerInterface            $serializer,
         EventDispatcherInterface       $eventDispatcher,
-        HttpClient                     $client,
+        HttpClient                     $httpClient,
         LoggerInterface                $logger
     )
     {
@@ -79,8 +79,8 @@ abstract class AbstractGateway implements PosInterface
         $this->eventDispatcher    = $eventDispatcher;
 
         $this->config  = $config;
-        $this->account = $account;
-        $this->client  = $client;
+        $this->account = $posAccount;
+        $this->client  = $httpClient;
         $this->logger  = $logger;
     }
 
@@ -167,12 +167,12 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $card = null): PosInterface
+    public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         $request = Request::createFromGlobals();
 
         $this->logger->debug('payment called', [
-            'card_provided' => (bool) $card,
+            'card_provided' => (bool) $creditCard,
             'tx_type'       => $txType,
             'model'         => $paymentModel,
         ]);
@@ -183,13 +183,13 @@ abstract class AbstractGateway implements PosInterface
         }
 
         if (PosInterface::MODEL_NON_SECURE === $paymentModel) {
-            if (!$card instanceof CreditCardInterface) {
+            if (!$creditCard instanceof CreditCardInterface) {
                 throw new LogicException('Bu işlem için kredi kartı bilgileri zorunlu!');
             }
 
-            $this->makeRegularPayment($order, $card, $txType);
+            $this->makeRegularPayment($order, $creditCard, $txType);
         } elseif (PosInterface::MODEL_3D_SECURE === $paymentModel) {
-            $this->make3DPayment($request, $order, $txType, $card);
+            $this->make3DPayment($request, $order, $txType, $creditCard);
         } elseif (PosInterface::MODEL_3D_PAY === $paymentModel || PosInterface::MODEL_3D_PAY_HOSTING === $paymentModel) {
             $this->make3DPayPayment($request, $order, $txType);
         } elseif (PosInterface::MODEL_3D_HOST === $paymentModel) {
@@ -205,14 +205,14 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function makeRegularPayment(array $order, CreditCardInterface $card, string $txType): PosInterface
+    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface
     {
         $this->logger->debug('making payment', [
             'model'   => PosInterface::MODEL_NON_SECURE,
             'tx_type' => $txType,
         ]);
         if (in_array($txType, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)) {
-            $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $card);
+            $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $creditCard);
         } else {
             throw new LogicException(sprintf('Invalid transaction type "%s" provided', $txType));
         }

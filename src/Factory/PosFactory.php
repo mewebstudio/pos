@@ -25,7 +25,7 @@ class PosFactory
      * @param AbstractPosAccount       $posAccount
      * @param array                    $config
      * @param EventDispatcherInterface $eventDispatcher
-     * @param HttpClient|null          $client
+     * @param HttpClient|null          $httpClient
      * @param LoggerInterface|null     $logger
      *
      * @return PosInterface
@@ -37,7 +37,7 @@ class PosFactory
         AbstractPosAccount       $posAccount,
         array                    $config,
         EventDispatcherInterface $eventDispatcher,
-        ?HttpClient              $client = null,
+        ?HttpClient              $httpClient = null,
         ?LoggerInterface         $logger = null
     ): PosInterface
     {
@@ -45,8 +45,8 @@ class PosFactory
             $logger = new NullLogger();
         }
 
-        if (!$client instanceof \Mews\Pos\Client\HttpClient) {
-            $client = HttpClientFactory::createDefaultHttpClient();
+        if (!$httpClient instanceof \Mews\Pos\Client\HttpClient) {
+            $httpClient = HttpClientFactory::createDefaultHttpClient();
         }
 
         // Bank API Exist
@@ -81,7 +81,7 @@ class PosFactory
             $responseDataMapper,
             $serializer,
             $eventDispatcher,
-            $client,
+            $httpClient,
             $logger
         );
     }

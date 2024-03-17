@@ -12,21 +12,21 @@ class KuveytPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        if (null === $account->getStoreKey()) {
+        if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
-        
-        $hashedPassword = $this->hashString($account->getStoreKey());
+
+        $hashedPassword = $this->hashString($posAccount->getStoreKey());
 
         $hashData = [
-            $account->getClientId(),
+            $posAccount->getClientId(),
             $requestData['MerchantOrderId'],
             $requestData['Amount'],
             $requestData['OkUrl'],
             $requestData['FailUrl'],
-            $account->getUsername(),
+            $posAccount->getUsername(),
             $hashedPassword,
         ];
 
@@ -39,7 +39,7 @@ class KuveytPosCrypt extends AbstractCrypt
      * todo implement
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
         return true;
     }
@@ -47,19 +47,19 @@ class KuveytPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function createHash(AbstractPosAccount $account, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        if (null === $account->getStoreKey()) {
+        if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
         }
-        
-        $hashedPassword = $this->hashString($account->getStoreKey());
+
+        $hashedPassword = $this->hashString($posAccount->getStoreKey());
 
         $hashData = [
-            $account->getClientId(),
+            $posAccount->getClientId(),
             $requestData['MerchantOrderId'],
             $requestData['Amount'],
-            $account->getUsername(),
+            $posAccount->getUsername(),
             $hashedPassword,
         ];
 

@@ -215,18 +215,18 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
      * bank returns error messages for specified language value
      * usually accepted values are tr,en
      *
-     * @param AbstractPosAccount   $account
+     * @param AbstractPosAccount   $posAccount
      * @param array<string, mixed> $order
      *
      * @return string
      */
-    protected function getLang(AbstractPosAccount $account, array $order): string
+    protected function getLang(AbstractPosAccount $posAccount, array $order): string
     {
         if (isset($order['lang'])) {
             return $this->langMappings[$order['lang']];
         }
 
-        return $this->langMappings[$account->getLang()];
+        return $this->langMappings[$posAccount->getLang()];
     }
 
     /**
