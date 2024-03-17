@@ -4,28 +4,45 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\Set\ValueObject\LevelSetList;
-use Rector\Set\ValueObject\SetList;
 
-return static function (RectorConfig $rectorConfig): void {
-    $rectorConfig->paths([
+return RectorConfig::configure()
+    ->withPaths([
         __DIR__.'/config',
         __DIR__.'/src',
         __DIR__.'/tests',
-    ]);
-
-    $rectorConfig->sets([
-        SetList::CODE_QUALITY,
-        SetList::CODING_STYLE,
-        SetList::EARLY_RETURN,
-        SetList::DEAD_CODE,
+    ])
+    ->withSkip([
+        \Rector\Naming\Rector\ClassMethod\RenameParamToMatchTypeRector::class => [
+            __DIR__.'/src/Exceptions',
+        ],
+    ])
+    ->withSets([
         LevelSetList::UP_TO_PHP_74,
-    ]);
-
-    $rectorConfig->skip([
+    ])
+    ->withSkip([
+        \Rector\Php73\Rector\FuncCall\JsonThrowOnErrorRector::class,
         \Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector::class,
         \Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector::class,
-        \Rector\CodingStyle\Rector\Class_\AddArrayDefaultToArrayPropertyRector::class,
         \Rector\Php74\Rector\Property\RestoreDefaultNullToNullableTypePropertyRector::class,
         \Rector\Php74\Rector\LNumber\AddLiteralSeparatorToNumberRector::class,
-    ]);
-};
+
+        \Rector\Naming\Rector\Class_\RenamePropertyToMatchTypeRector::class,
+        \Rector\Naming\Rector\ClassMethod\RenameVariableToMatchNewTypeRector::class,
+        \Rector\Naming\Rector\Assign\RenameVariableToMatchMethodCallReturnTypeRector::class,
+        \Rector\Naming\Rector\Foreach_\RenameForeachValueVariableToMatchExprVariableRector::class,
+
+        \Rector\TypeDeclaration\Rector\ClassMethod\NumericReturnTypeFromStrictScalarReturnsRector::class,
+        \Rector\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictScalarReturnExprRector::class,
+        \Rector\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictParamRector::class,
+    ])
+    ->withPreparedSets(
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+    );
