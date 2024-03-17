@@ -26,8 +26,6 @@ use SoapClient;
 use SoapFault;
 use Symfony\Component\HttpFoundation\Request;
 use Throwable;
-use function is_string;
-use function urldecode;
 
 /**
  * Kuveyt banki desteleyen Gateway
@@ -125,11 +123,11 @@ class KuveytPos extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $card = null): PosInterface
     {
         $gatewayResponse = $request->request->get('AuthenticationResponse');
-        if (!is_string($gatewayResponse)) {
+        if (!\is_string($gatewayResponse)) {
             throw new LogicException('AuthenticationResponse is missing');
         }
 
-        $gatewayResponse = urldecode($gatewayResponse);
+        $gatewayResponse = \urldecode($gatewayResponse);
         $gatewayResponse = $this->serializer->decode($gatewayResponse, $txType);
 
         $bankResponse   = null;
@@ -184,7 +182,7 @@ class KuveytPos extends AbstractGateway
             return $this->data = $this->sendSoapRequest($contents, $txType);
         }
 
-        $url = $url ?: $this->getApiURL();
+        $url ??= $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
         $body     = [
             'body'    => $contents,
@@ -212,7 +210,7 @@ class KuveytPos extends AbstractGateway
      */
     protected function sendSoapRequest(array $contents, string $txType, string $url = null): array
     {
-        $url = $url ?: $this->getQueryAPIUrl();
+        $url ??= $this->getQueryAPIUrl();
 
         $sslConfig = [
             'allow_self_signed' => true,

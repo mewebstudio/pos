@@ -194,7 +194,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     /**
      * @param float $amount
      *
-     * @return mixed
+     * @return int|string|float
      */
     protected function formatAmount(float $amount)
     {

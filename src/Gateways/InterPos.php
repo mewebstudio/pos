@@ -18,9 +18,6 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
-use function gettype;
-use function is_array;
-use function sprintf;
 
 /**
  * Deniz bankin desteklidigi Gateway
@@ -168,10 +165,10 @@ class InterPos extends AbstractGateway
      */
     protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
     {
-        $url = $url ?: $this->getApiURL();
+        $url ??= $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
-        if (!is_array($contents)) {
-            throw new InvalidArgumentException(sprintf('Argument type must be array, %s provided.', gettype($contents)));
+        if (!\is_array($contents)) {
+            throw new InvalidArgumentException(\sprintf('Argument type must be array, %s provided.', \gettype($contents)));
         }
 
         $response = $this->client->post($url, ['form_params' => $contents]);

@@ -79,7 +79,7 @@ class HttpClient
     {
         $request = $this->requestFactory->createRequest($method, $url);
 
-        if ('POST' == $method) {
+        if ('POST' === $method) {
             $body = null;
             if (isset($payload['form_params'])) {
                 $request         = $request->withHeader('Content-Type', 'application/x-www-form-urlencoded');

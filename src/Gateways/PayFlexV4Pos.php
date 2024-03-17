@@ -218,7 +218,7 @@ class PayFlexV4Pos extends AbstractGateway
      */
     protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
     {
-        $url = $url ?: $this->getApiURL();
+        $url ??= $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
 
         $isXML = \is_string($contents);

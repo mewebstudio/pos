@@ -137,7 +137,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($account) + [
                 'Type'    => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'OrderId' => (string) $order['id'],
-                'Total'   => isset($order['amount']) ? $this->formatAmount($order['amount']) : null,
+                'Total'   => isset($order['amount']) ? (float) $this->formatAmount($order['amount']) : null,
             ];
     }
 
