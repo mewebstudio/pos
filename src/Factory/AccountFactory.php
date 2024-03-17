@@ -23,14 +23,15 @@ class AccountFactory
 {
     /**
      * @phpstan-param PosInterface::LANG_* $lang
+     * @phpstan-param PosInterface::MODEL_* $model
      *
-     * @param string      $bank
-     * @param string      $clientId Üye iş yeri numarası
-     * @param string      $kullaniciAdi
-     * @param string      $password
-     * @param string      $model
-     * @param string|null $storeKey
-     * @param string      $lang
+     * @param non-empty-string      $bank
+     * @param non-empty-string      $clientId Üye iş yeri numarası
+     * @param non-empty-string      $kullaniciAdi
+     * @param non-empty-string      $password
+     * @param non-empty-string      $model
+     * @param non-empty-string|null $storeKey
+     * @param non-empty-string      $lang
      *
      * @return EstPosAccount
      *
@@ -44,10 +45,10 @@ class AccountFactory
     }
 
     /**
-     * @param string $bank
-     * @param string $clientId
-     * @param string $apiUser
-     * @param string $apiPass
+     * @param non-empty-string $bank
+     * @param non-empty-string $clientId
+     * @param non-empty-string $apiUser
+     * @param non-empty-string $apiPass
      *
      * @return ToslaPosAccount
      */
@@ -58,14 +59,15 @@ class AccountFactory
 
     /**
      * @phpstan-param PosInterface::LANG_* $lang
+     * @phpstan-param PosInterface::MODEL_* $model
      *
-     * @param string      $bank
-     * @param string      $merchantId
-     * @param string      $userCode
-     * @param string      $userPassword
-     * @param string      $model
-     * @param string|null $merchantPass
-     * @param string      $lang
+     * @param non-empty-string      $bank
+     * @param non-empty-string      $merchantId
+     * @param non-empty-string      $userCode
+     * @param non-empty-string      $userPassword
+     * @param non-empty-string      $model
+     * @param non-empty-string|null $merchantPass
+     * @param non-empty-string      $lang
      *
      * @return PayForAccount
      *
@@ -80,17 +82,18 @@ class AccountFactory
 
     /**
      * @phpstan-param PosInterface::LANG_* $lang
+     * @phpstan-param PosInterface::MODEL_* $model
      *
-     * @param string      $bank
-     * @param string      $merchantId Üye işyeri Numarası
-     * @param string      $userId
-     * @param string      $password   Terminal UserID şifresi
-     * @param string      $terminalId
-     * @param string      $model
-     * @param string|null $storeKey
-     * @param string|null $refundUsername
-     * @param string|null $refundPassword
-     * @param string      $lang
+     * @param non-empty-string      $bank
+     * @param non-empty-string      $merchantId Üye işyeri Numarası
+     * @param non-empty-string      $userId
+     * @param non-empty-string      $password   Terminal UserID şifresi
+     * @param non-empty-string      $terminalId
+     * @param non-empty-string      $model
+     * @param non-empty-string|null $storeKey
+     * @param non-empty-string|null $refundUsername
+     * @param non-empty-string|null $refundPassword
+     * @param non-empty-string      $lang
      *
      * @return GarantiPosAccount
      *
@@ -106,16 +109,17 @@ class AccountFactory
 
     /**
      * @phpstan-param PosInterface::LANG_* $lang
+     * @phpstan-param PosInterface::MODEL_* $model
      *
-     * @param string      $bank
-     * @param string      $merchantId Mağaza Numarası
-     * @param string      $username   POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı
+     * @param non-empty-string      $bank
+     * @param non-empty-string      $merchantId Mağaza Numarası
+     * @param non-empty-string      $username   POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı
      *                                oluşturulmalıdır
-     * @param string      $customerId CustomerNumber, Müşteri No
-     * @param string      $storeKey   Oluşturulan APİ kullanıcısının şifre bilgisidir.
-     * @param string      $model
-     * @param string      $lang
-     * @param string|null $subMerchantId
+     * @param non-empty-string      $customerId CustomerNumber, Müşteri No
+     * @param non-empty-string      $storeKey   Oluşturulan APİ kullanıcısının şifre bilgisidir.
+     * @param non-empty-string      $model
+     * @param non-empty-string      $lang
+     * @param non-empty-string|null $subMerchantId
      *
      * @return KuveytPosAccount
      */
@@ -127,15 +131,16 @@ class AccountFactory
     }
 
     /**
-     * @phpstan-param PosInterface::LANG_* $lang
+     * @phpstan-param PosInterface::LANG_*  $lang
+     * @phpstan-param PosInterface::MODEL_* $model
      *
-     * @param string      $bank
-     * @param string      $merchantId
-     * @param string      $terminalId
-     * @param string      $posNetId
-     * @param string      $model
-     * @param string|null $storeKey
-     * @param string      $lang
+     * @param non-empty-string      $bank
+     * @param non-empty-string      $merchantId
+     * @param non-empty-string      $terminalId
+     * @param non-empty-string      $posNetId
+     * @param non-empty-string      $model
+     * @param non-empty-string|null $storeKey
+     * @param non-empty-string      $lang
      *
      * @return PosNetAccount
      *
@@ -150,20 +155,21 @@ class AccountFactory
 
     /**
      * @phpstan-param PayFlexAccount::MERCHANT_TYPE_* $merchantType
+     * @phpstan-param PosInterface::MODEL_*           $model
      *
-     * @param string $bank
-     * @param string $merchantId Üye işyeri numarası
-     * @param string $password   Üye işyeri şifres
-     * @param string $terminalNo İşlemin hangi terminal üzerinden gönderileceği bilgisi. dVB007000...
-     * @param string $model
-     * @param int    $merchantType
-     * @param null   $subMerchantId
+     * @param non-empty-string      $bank
+     * @param non-empty-string      $merchantId Üye işyeri numarası
+     * @param non-empty-string      $password   Üye işyeri şifres
+     * @param non-empty-string      $terminalNo İşlemin hangi terminal üzerinden gönderileceği bilgisi. dVB007000...
+     * @param non-empty-string      $model
+     * @param int                   $merchantType
+     * @param non-empty-string|null $subMerchantId
      *
      * @return PayFlexAccount
      *
      * @throws MissingAccountInfoException
      */
-    public static function createPayFlexAccount(string $bank, string $merchantId, string $password, string $terminalNo, string $model = PosInterface::MODEL_NON_SECURE, int $merchantType = PayFlexAccount::MERCHANT_TYPE_STANDARD, $subMerchantId = null): PayFlexAccount
+    public static function createPayFlexAccount(string $bank, string $merchantId, string $password, string $terminalNo, string $model = PosInterface::MODEL_NON_SECURE, int $merchantType = PayFlexAccount::MERCHANT_TYPE_STANDARD, ?string $subMerchantId = null): PayFlexAccount
     {
         self::checkPayFlexBankMerchantType($merchantType, $subMerchantId);
 
@@ -171,15 +177,16 @@ class AccountFactory
     }
 
     /**
-     * @phpstan-param PosInterface::LANG_* $lang
+     * @phpstan-param PosInterface::LANG_*  $lang
+     * @phpstan-param PosInterface::MODEL_* $model
      *
-     * @param string      $bank
-     * @param string      $shopCode
-     * @param string      $userCode
-     * @param string      $userPass
-     * @param string      $model
-     * @param string|null $merchantPass
-     * @param string      $lang
+     * @param non-empty-string      $bank
+     * @param non-empty-string      $shopCode
+     * @param non-empty-string      $userCode
+     * @param non-empty-string      $userPass
+     * @param non-empty-string      $model
+     * @param non-empty-string|null $merchantPass
+     * @param non-empty-string      $lang
      *
      * @return InterPosAccount
      *
@@ -193,8 +200,10 @@ class AccountFactory
     }
 
     /**
-     * @param string      $model
-     * @param string|null $storeKey
+     * @phpstan-param PosInterface::MODEL_* $model
+     *
+     * @param non-empty-string      $model
+     * @param non-empty-string|null $storeKey
      *
      * @return void
      *
@@ -210,12 +219,14 @@ class AccountFactory
             return;
         }
 
-        throw new MissingAccountInfoException(sprintf('payment model %s requires storeKey!', $model));
+        throw new MissingAccountInfoException(\sprintf('payment model %s requires storeKey!', $model));
     }
 
     /**
-     * @param int         $merchantType
-     * @param string|null $subMerchantId
+     * @phpstan-param PayFlexAccount::MERCHANT_TYPE_* $merchantType
+     *
+     * @param int                   $merchantType
+     * @param non-empty-string|null $subMerchantId
      *
      * @return void
      *
@@ -223,11 +234,11 @@ class AccountFactory
      */
     private static function checkPayFlexBankMerchantType(int $merchantType, ?string $subMerchantId): void
     {
-        if (PayFlexAccount::MERCHANT_TYPE_SUB_DEALER === $merchantType && (null === $subMerchantId || '' === $subMerchantId)) {
+        if (PayFlexAccount::MERCHANT_TYPE_SUB_DEALER === $merchantType && null === $subMerchantId) {
             throw new MissingAccountInfoException('SubMerchantId is required for sub branches!');
         }
 
-        if (!in_array($merchantType, PayFlexAccount::getMerchantTypes())) {
+        if (!\in_array($merchantType, PayFlexAccount::getMerchantTypes())) {
             throw new MissingAccountInfoException('Invalid MerchantType!');
         }
     }

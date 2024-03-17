@@ -13,7 +13,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createGarantiPosAccount(
     '123qweASD/',
     '30691298',
     PosInterface::MODEL_NON_SECURE,
-    '',
+    null,
     'PROVRFN',
     '123qweASD/'
 );
