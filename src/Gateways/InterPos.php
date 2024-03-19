@@ -70,16 +70,16 @@ class InterPos extends AbstractGateway
         /** @var array{MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $gatewayResponse */
         $gatewayResponse = $request->all();
 
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
-            throw new HashMismatchException();
-        }
-
         if ('1' !== $request->get('3DStatus')) {
             $this->logger->error('3d auth fail', ['md_status' => $request->get('3DStatus')]);
             /**
              * TODO hata durumu ele alinmasi gerekiyor
              */
         } else {
+            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
+                throw new HashMismatchException();
+            }
+
             $this->logger->debug('finishing payment');
 
             $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);

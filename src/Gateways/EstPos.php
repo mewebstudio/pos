@@ -61,9 +61,6 @@ class EstPos extends AbstractGateway
     {
         $request           = $request->request;
         $provisionResponse = null;
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
-            throw new HashMismatchException();
-        }
 
         if ($request->get('mdStatus') !== '1') {
             $this->logger->error('3d auth fail', ['md_status' => $request->get('mdStatus')]);
@@ -74,6 +71,10 @@ class EstPos extends AbstractGateway
              * "ErrMsg" => "Isyeri kullanim tipi desteklenmiyor.", "Response" => "Error", "ErrCode" => "3D-1007", ...]
              */
         } else {
+            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+                throw new HashMismatchException();
+            }
+
             $this->logger->debug('finishing payment', ['md_status' => $request->get('mdStatus')]);
 
             $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());

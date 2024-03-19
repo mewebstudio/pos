@@ -218,7 +218,7 @@ class InterPosResponseDataMapperTest extends TestCase
     }
 
 
-    public function threeDPaymentDataProvider(): array
+    public static function threeDPaymentDataProvider(): array
     {
         return [
             'authFail1' => [

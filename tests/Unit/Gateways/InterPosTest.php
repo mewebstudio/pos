@@ -4,16 +4,23 @@
  */
 namespace Mews\Pos\Tests\Unit\Gateways;
 
+use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Crypt\CryptInterface;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\InterPosResponseDataMapperTest;
+use Mews\Pos\Tests\Unit\HttpClientTestTrait;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -21,12 +28,35 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class InterPosTest extends TestCase
 {
+    use HttpClientTestTrait;
+
     private InterPosAccount $account;
 
     /** @var InterPos */
     private PosInterface $pos;
 
     private CreditCardInterface $card;
+
+    /** @var RequestDataMapperInterface & MockObject */
+    private MockObject $requestMapperMock;
+
+    /** @var ResponseDataMapperInterface & MockObject */
+    private MockObject $responseMapperMock;
+
+    /** @var CryptInterface & MockObject */
+    private MockObject $cryptMock;
+
+    /** @var HttpClient & MockObject */
+    private MockObject $httpClientMock;
+
+    /** @var LoggerInterface & MockObject */
+    private MockObject $loggerMock;
+
+    /** @var EventDispatcherInterface & MockObject */
+    private MockObject $eventDispatcherMock;
+
+    /** @var SerializerInterface & MockObject */
+    private MockObject $serializerMock;
 
     private array $config;
 
@@ -36,7 +66,15 @@ class InterPosTest extends TestCase
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../../config/pos_test.php';
+        $this->config = [
+            'name'  => 'DenizBank-InterPos',
+            'class' => InterPos::class,
+            'gateway_endpoints'  => [
+                'payment_api'     => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                'gateway_3d'      => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                'gateway_3d_host' => 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx',
+            ],
+        ];
 
         $userCode     = 'InterTestApi';
         $userPass     = '3';
@@ -62,7 +100,29 @@ class InterPosTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
+
+        $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
+        $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
+        $this->serializerMock      = $this->createMock(SerializerInterface::class);
+        $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->httpClientMock      = $this->createMock(HttpClient::class);
+        $this->loggerMock          = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+
+        $this->requestMapperMock->expects(self::any())
+            ->method('getCrypt')
+            ->willReturn($this->cryptMock);
+
+        $this->pos = new InterPos(
+            $this->config,
+            $this->account,
+            $this->requestMapperMock,
+            $this->responseMapperMock,
+            $this->serializerMock,
+            $this->eventDispatcherMock,
+            $this->httpClientMock,
+            $this->loggerMock,
+        );
 
         $this->pos->setTestMode(true);
 
@@ -74,46 +134,97 @@ class InterPosTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->assertEquals($this->config['banks'][$this->account->getBank()], $this->pos->getConfig());
-        $this->assertEquals($this->account, $this->pos->getAccount());
-        $this->assertNotEmpty($this->pos->getCurrencies());
+        $this->requestMapperMock->expects(self::once())
+            ->method('getCurrencyMappings')
+            ->willReturn([PosInterface::CURRENCY_TRY => '949']);
+        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
+        $this->assertSame($this->config, $this->pos->getConfig());
+        $this->assertSame($this->account, $this->pos->getAccount());
     }
 
     /**
-     * @return void
+     * @dataProvider make3DPaymentDataProvider
      */
-    public function testMake3DPaymentAuthFail(): void
-    {
-        $interPosResponseDataMapperTest = new InterPosResponseDataMapperTest();
-        $gatewayResponse = $interPosResponseDataMapperTest->threeDPaymentDataProvider()['authFail1']['threeDResponseData'];
-        $request = Request::create('', 'POST', $gatewayResponse);
+    public function testMake3DPayment(
+        array   $order,
+        string  $txType,
+        Request $request,
+        array   $paymentResponse,
+        array   $expectedResponse,
+        bool    $checkHash,
+        bool    $is3DSuccess,
+        bool    $isSuccess
+    ): void {
+        if ($checkHash) {
+            $this->cryptMock->expects(self::once())
+                ->method('check3DHash')
+                ->willReturn(true);
+        }
 
-        $this->pos->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
+        $create3DPaymentRequestData = [
+            'create3DPaymentRequestData',
+        ];
+
+        if ($is3DSuccess) {
+            $this->requestMapperMock->expects(self::once())
+                ->method('create3DPaymentRequestData')
+                ->with($this->account, $order, $txType, $request->request->all())
+                ->willReturn($create3DPaymentRequestData);
+            $this->prepareClient(
+                $this->httpClientMock,
+                'response-body',
+                $this->config['gateway_endpoints']['payment_api'],
+                [
+                    'body' => 'request-body',
+                ],
+            );
+
+            $this->serializerMock->expects(self::once())
+                ->method('encode')
+                ->with($create3DPaymentRequestData, $txType)
+                ->willReturn('request-body');
+            $this->serializerMock->expects(self::once())
+                ->method('decode')
+                ->with('response-body', $txType)
+                ->willReturn($paymentResponse);
+
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DPaymentData')
+                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->willReturn($expectedResponse);
+        } else {
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DPaymentData')
+                ->with($request->request->all(), null, $txType, $order)
+                ->willReturn($expectedResponse);
+            $this->requestMapperMock->expects(self::never())
+                ->method('create3DPaymentRequestData');
+            $this->serializerMock->expects(self::never())
+                ->method('encode');
+            $this->serializerMock->expects(self::never())
+                ->method('decode');
+        }
+
+        $this->pos->make3DPayment($request, $order, $txType);
+
         $result = $this->pos->getResponse();
-        $this->assertIsArray($result);
-
-        $this->assertSame('declined', $result['status']);
-        $this->assertSame('81', $result['proc_return_code']);
-        $this->assertNotEmpty($result['3d_all']);
-        $this->assertEmpty($result['all']);
+        $this->assertSame($expectedResponse, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
-    /**
-     * @return void
-     */
-    public function testMake3DPayPaymentFail(): void
+    public static function make3DPaymentDataProvider(): array
     {
-        $interPosResponseDataMapperTest = new InterPosResponseDataMapperTest();
-        $gatewayResponse = $interPosResponseDataMapperTest->threeDPayPaymentDataProvider()['authFail1']['paymentData'];
-        $request = Request::create('', 'POST', $gatewayResponse);
-
-        $this->pos->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
-        $result = $this->pos->getResponse();
-        $this->assertIsArray($result);
-
-        $this->assertSame('declined', $result['status']);
-        $this->assertSame('81', $result['proc_return_code']);
-        $this->assertNotEmpty($result['3d_all']);
-        $this->assertEmpty($result['all']);
+        return [
+            '3d_fail' => [
+                'order'           => InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['order'],
+                'txType'          => InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['txType'],
+                'request'         => Request::create('', 'POST', InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['threeDResponseData']),
+                'paymentResponse' => InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['paymentData'],
+                'expected'        => InterPosResponseDataMapperTest::threeDPaymentDataProvider()['authFail1']['expectedData'],
+                'check_hash'      => false,
+                'is3DSuccess'     => false,
+                'isSuccess'       => false,
+            ],
+        ];
     }
 }

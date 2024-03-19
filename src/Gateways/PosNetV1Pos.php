@@ -83,9 +83,6 @@ class PosNetV1Pos extends AbstractGateway
     {
         $request           = $request->request;
         $provisionResponse = null;
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
-            throw new HashMismatchException();
-        }
 
         $mdStatus = $request->get('MdStatus');
         /**
@@ -104,6 +101,10 @@ class PosNetV1Pos extends AbstractGateway
         if ('1' !== $mdStatus) {
             $this->logger->error('3d auth fail', ['md_status' => $mdStatus]);
         } else {
+            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+                throw new HashMismatchException();
+            }
+
             $this->logger->debug('finishing payment', ['md_status' => $mdStatus]);
             $requestData       = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
 

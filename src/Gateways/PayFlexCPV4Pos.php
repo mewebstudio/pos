@@ -60,7 +60,6 @@ class PayFlexCPV4Pos extends AbstractGateway
     }
 
     /**
-     * todo implement
      * @inheritDoc
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface

@@ -198,7 +198,7 @@ class PosNetRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @dataProvider resolveMerchantDataXMLDataProvider
+     * @dataProvider resolveMerchantDataDataProvider
      */
     public function testCreate3DResolveMerchantRequestData(array $order, array $responseData, array $expectedData): void
     {
@@ -500,7 +500,7 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
     }
 
-    public static function resolveMerchantDataXMLDataProvider(): array
+    public static function resolveMerchantDataDataProvider(): array
     {
         return [
             [

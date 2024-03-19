@@ -133,11 +133,12 @@ class KuveytPos extends AbstractGateway
         $bankResponse   = null;
         $procReturnCode = $gatewayResponse['ResponseCode'];
 
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
-            throw new HashMismatchException();
-        }
 
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
+                throw new HashMismatchException();
+            }
+
             $this->logger->debug('finishing payment');
 
             $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);

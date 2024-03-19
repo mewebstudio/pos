@@ -21,8 +21,6 @@ use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
-use function gettype;
-use function sprintf;
 
 /**
  * Class PosNet
@@ -120,16 +118,12 @@ class PosNet extends AbstractGateway
         $userVerifyResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
         $bankResponse       = null;
 
-        if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $userVerifyResponse['approved']) {
-            goto end;
-        }
-
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $userVerifyResponse['oosResolveMerchantDataResponse'])) {
-            throw new HashMismatchException();
-        }
-
         //if 3D Authentication is successful:
-        if (in_array($userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'], [1, 2, 3, 4])) {
+        if (\in_array($userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'], [1, 2, 3, 4])) {
+            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $userVerifyResponse['oosResolveMerchantDataResponse'])) {
+                throw new HashMismatchException();
+            }
+
             $this->logger->debug('finishing payment', [
                 'md_status' => $userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
             ]);
@@ -231,15 +225,20 @@ class PosNet extends AbstractGateway
         $url = $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
 
-        if (!is_string($contents)) {
-            throw new InvalidArgumentException(sprintf('Argument type must be XML string, %s provided.', gettype($contents)));
+        if (!\is_string($contents)) {
+            throw new InvalidArgumentException(
+                \sprintf(
+                    'Argument type must be XML string, %s provided.',
+                    \gettype($contents)
+                )
+            );
         }
 
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ],
-            'body'    => sprintf('xmldata=%s', $contents),
+            'body'    => \sprintf('xmldata=%s', $contents),
         ]);
 
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);

@@ -64,12 +64,13 @@ class PayForPos extends AbstractGateway
     {
         $request      = $request->request;
         $bankResponse = null;
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
-            throw new HashMismatchException();
-        }
 
         //if customer 3d verification passed finish payment
         if ('1' === $request->get('3DStatus')) {
+            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+                throw new HashMismatchException();
+            }
+
             // valid ProcReturnCode is V033 in case of success 3D Authentication
             $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
 
