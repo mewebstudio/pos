@@ -153,30 +153,42 @@ class PosNetTest extends TestCase
     public function testGet3DFormDataOosTransactionFail(): void
     {
         $this->expectException(Exception::class);
-        $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(
-            PosNet::class,
-            $this->createMock(EventDispatcherInterface::class),
-            $this->createMock(CryptInterface::class)
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DEnrollmentCheckRequestData')
+            ->with($this->pos->getAccount(), $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card)
+            ->willReturn(['request-data']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['request-data'], PosInterface::TX_TYPE_PAY_AUTH)
+            ->willReturn('encoded-request-data');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-content',
+            $this->config['gateway_endpoints']['payment_api'],
+            [
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+                'body'    => \sprintf('xmldata=%s', 'encoded-request-data'),
+            ],
         );
-        $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
 
-        $posMock = $this->getMockBuilder(PosNet::class)
-            ->setConstructorArgs([
-                [],
-                $this->account,
-                $requestMapper,
-                $responseMapper,
-                $this->createMock(SerializerInterface::class),
-                $this->createMock(EventDispatcherInterface::class),
-                HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger(),
-            ])
-            ->onlyMethods(['getOosTransactionData'])
-            ->getMock();
-        $posMock->setTestMode(true);
-        $posMock->expects($this->once())->method('getOosTransactionData')->willReturn($this->getSampleOoTransactionFailResponseData());
+        $responseData = [
+            'approved' => '0',
+            'respCode' => '0003',
+            'respText' => '148 MID,TID,IP HATALI:89.244.149.137',
+        ];
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-content', PosInterface::TX_TYPE_PAY_AUTH)
+            ->willReturn($responseData);
 
-        $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
+        $this->pos->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
     }
 
 
@@ -229,18 +241,6 @@ class PosNetTest extends TestCase
         \ksort($bankResponses['expectedData']);
         \ksort($resp);
         $this->assertSame($bankResponses['expectedData'], $resp);
-    }
-
-    /**
-     * @return string[]
-     */
-    private function getSampleOoTransactionFailResponseData(): array
-    {
-        return [
-            'approved' => '0',
-            'respCode' => '0003',
-            'respText' => '148 MID,TID,IP HATALI:89.244.149.137',
-        ];
     }
 
     /**
@@ -344,7 +344,6 @@ class PosNetTest extends TestCase
                 ->with($resolveResponse, $paymentResponse, $txType, $order)
                 ->willReturn($expectedResponse);
         } else {
-
             $this->serializerMock->expects(self::once())
                 ->method('encode')
                 ->with($resolveMerchantRequestData, $txType)

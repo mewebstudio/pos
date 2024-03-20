@@ -55,39 +55,6 @@ class PosNet extends AbstractGateway
     ];
 
     /**
-     * Get OOS transaction data
-     * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
-     *
-     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
-     *
-     * @param array<string, int|string|float|null> $order
-     * @param string                               $txType
-     * @param CreditCardInterface                  $creditCard
-     *
-     * @return array{approved: string, respCode: string, respText: string, oosRequestDataResponse?: array{data1: string, data2: string, sign: string}}
-     */
-    public function getOosTransactionData(array $order, string $txType, CreditCardInterface $creditCard): array
-    {
-        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $creditCard);
-
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
-        $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $xml         = $this->serializer->encode($requestData, $txType);
-
-        return $this->send($xml, $txType, PosInterface::MODEL_3D_SECURE);
-    }
-
-    /**
      * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
@@ -244,5 +211,38 @@ class PosNet extends AbstractGateway
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
+    }
+
+    /**
+     * Get OOS transaction data
+     * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
+     *
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     *
+     * @param array<string, int|string|float|null> $order
+     * @param string                               $txType
+     * @param CreditCardInterface                  $creditCard
+     *
+     * @return array{approved: string, respCode: string, respText: string, oosRequestDataResponse?: array{data1: string, data2: string, sign: string}}
+     */
+    private function getOosTransactionData(array $order, string $txType, CreditCardInterface $creditCard): array
+    {
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $creditCard);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $xml = $this->serializer->encode($requestData, $txType);
+
+        return $this->send($xml, $txType, PosInterface::MODEL_3D_SECURE);
     }
 }
