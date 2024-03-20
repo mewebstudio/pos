@@ -488,12 +488,15 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'md_error_message'     => (self::TX_DECLINED === $threeDAuthStatus) ? $raw3DAuthResponseData['ErrMsg'] : null,
             'md_status_detail'     => $this->getStatusDetail($procReturnCode),
             'eci'                  => $raw3DAuthResponseData['Eci'],
-            '3d_all'               => $raw3DAuthResponseData, //todo this should be empty for 3dpay and 3dhost payments
         ];
 
         if (self::TX_APPROVED === $threeDAuthStatus) {
             $result['installment_count'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount']);
             $result['transaction_time'] = new \DateTimeImmutable($raw3DAuthResponseData['TransactionDate']);
+        }
+
+        if (PosInterface::MODEL_3D_SECURE === $result['payment_model']) {
+            $result['3d_all'] = $raw3DAuthResponseData;
         }
 
         return $result;

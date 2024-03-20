@@ -93,7 +93,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'provision_response' => $rawPaymentResponseData,
         ]);
 
-        $commonResult = $this->map3DCommonResponseData($raw3DAuthResponseData);
+        $commonResult = $this->map3DCommonResponseData($raw3DAuthResponseData, PosInterface::MODEL_3D_SECURE);
 
         // todo refactor
         if (\in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'], true)) {
@@ -152,7 +152,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
 
-        $threeDAuthResult = $this->map3DCommonResponseData($raw3DAuthResponseData);
+        $threeDAuthResult = $this->map3DCommonResponseData($raw3DAuthResponseData, PosInterface::MODEL_3D_PAY);
         $threeDAuthStatus = $threeDAuthResult['status'];
         $paymentStatus    = self::TX_DECLINED;
         $procReturnCode   = $raw3DAuthResponseData['procreturncode'];
@@ -348,12 +348,14 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
 
     /**
      * returns mapped data of the common response data among all 3d models.
+     * @phpstan-param PosInterface::MODEL_3D_* $paymentModel
      *
      * @param array<string, string> $raw3DAuthResponseData
+     * @param string                $paymentModel
      *
      * @return array<string, mixed>
      */
-    protected function map3DCommonResponseData(array $raw3DAuthResponseData): array
+    protected function map3DCommonResponseData(array $raw3DAuthResponseData, string $paymentModel): array
     {
         $procReturnCode = $raw3DAuthResponseData['procreturncode'];
         $mdStatus       = $raw3DAuthResponseData['mdstatus'];
@@ -364,7 +366,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        return [
+        $result = [
             'order_id'             => $raw3DAuthResponseData['oid'],
             'transaction_id'       => null,
             'auth_code'            => null,
@@ -385,8 +387,13 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'error_code'           => 'Error' === $raw3DAuthResponseData['response'] ? $procReturnCode : null,
             'error_message'        => self::TX_APPROVED === $status ? null : $raw3DAuthResponseData['errmsg'],
             'md_error_message'     => self::TX_APPROVED === $status ? null : $raw3DAuthResponseData['mderrormessage'],
-            '3d_all'               => $raw3DAuthResponseData,
         ];
+
+        if (PosInterface::MODEL_3D_SECURE === $paymentModel) {
+            $result['3d_all'] = $raw3DAuthResponseData;
+        }
+
+        return $result;
     }
 
     /**

@@ -81,7 +81,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
         }
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
-        unset($actualData['all'], $actualData['3d_all']);
+        unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);

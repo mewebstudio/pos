@@ -80,7 +80,7 @@ class PayForPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
-        unset($actualData['all'], $actualData['3d_all']);
+        unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -94,7 +94,7 @@ class PayForPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
-        unset($actualData['all'], $actualData['3d_all']);
+        unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);

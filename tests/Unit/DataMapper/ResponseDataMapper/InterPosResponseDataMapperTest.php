@@ -72,7 +72,7 @@ class InterPosResponseDataMapperTest extends TestCase
     public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
-        unset($actualData['all'], $actualData['3d_all']);
+        unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -84,7 +84,7 @@ class InterPosResponseDataMapperTest extends TestCase
     public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
-        unset($actualData['all'], $actualData['3d_all']);
+        unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
