@@ -122,6 +122,14 @@ return [
                 'query_api'       => 'https://sanalpos.ziraatbank.com.tr/v4/UIWebService/Search.aspx',
             ],
         ],
+        'ziraat-estpos'          => [
+            'name'  => 'Ziraat Bankası Payten',
+            'class' => Mews\Pos\Gateways\EstV3Pos::class,
+            'gateway_endpoints'  => [
+                'payment_api'     => 'https://sanalpos2.ziraatbank.com.tr/fim/api',
+                'gateway_3d'      => 'https://sanalpos2.ziraatbank.com.tr/fim/est3Dgate',
+            ],
+        ],
         'vakifbank-cp'         => [
             'name'  => 'VakifBank-PayFlex-Common-Payment',
             'class' => Mews\Pos\Gateways\PayFlexCPV4Pos::class,
