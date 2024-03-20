@@ -6,7 +6,7 @@ use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 // ilgili gatewayin payment modele gore configini load ediyoruz
-// ornegin: estpos/3d/_config.php ya da estpos/3d-host/_config.php
+// ornegin: payten/3d/_config.php ya da payten/3d-host/_config.php
 require_once '_config.php';
 require '../../_templates/_header.php';
 

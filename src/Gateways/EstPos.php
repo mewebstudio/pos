@@ -15,6 +15,7 @@ use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
+ * Implementation of Payten Payment Gateway
  * todo cardType verisi dokumantasyona gore kontrol edilmesi gerekiyor.
  * cardType gondermeden de su an calisiyor.
  *
