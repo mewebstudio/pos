@@ -121,7 +121,6 @@ class GarantiPos extends AbstractGateway
     }
 
     /**
-     * TODO implement
      * @inheritDoc
      */
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface

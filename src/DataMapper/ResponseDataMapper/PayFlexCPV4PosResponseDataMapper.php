@@ -23,7 +23,6 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
-     * TODO implement
      * {@inheritdoc}
      */
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData, string $txType, array $order): array

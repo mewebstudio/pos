@@ -33,7 +33,6 @@ class PayFlexCPV4Crypt extends AbstractCrypt
     }
 
     /**
-     * todo implement
      * {@inheritdoc}
      */
     public function check3DHash(AbstractPosAccount $posAccount, array $data): bool

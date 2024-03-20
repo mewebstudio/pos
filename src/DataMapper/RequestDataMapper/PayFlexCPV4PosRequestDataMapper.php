@@ -60,7 +60,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * todo implement
      * {@inheritDoc}
      *
      * @param PayFlexAccount $posAccount
@@ -158,7 +157,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * TODO implement
      * {@inheritDoc}
      *
      * @param PayFlexAccount $posAccount
