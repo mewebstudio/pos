@@ -10,8 +10,6 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 <?php
 require './vendor/autoload.php';
 
-$paymentModel = \Mews\Pos\PosInterface::MODEL_NON_SECURE;
-
 // API kullanıcı bilgileri
 // AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
@@ -19,12 +17,12 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourClientID',
     'yourKullaniciAdi',
     'yourSifre',
-    $paymentModel
+    \Mews\Pos\PosInterface::MODEL_NON_SECURE,
     '', // bankaya göre zorunlu
-    PosInterface::LANG_TR
+    \Mews\Pos\PosInterface::LANG_TR
 );
 
-$eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
+$eventDispatcher = new \Symfony\Component\EventDispatcher\EventDispatcher();
 
 try {
     $config = require __DIR__.'/pos_test_ayarlar.php';

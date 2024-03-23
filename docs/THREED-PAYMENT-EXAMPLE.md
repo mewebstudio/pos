@@ -23,7 +23,7 @@ $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSe
     'cookie_samesite' => 'None',
     'cookie_secure' => true,
 ]);
-$session        = new Session($sessionHandler);
+$session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
 $session->start();
 
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
@@ -36,9 +36,9 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourClientID',
     'yourKullaniciAdi',
     'yourSifre',
-    $paymentModel
+    $paymentModel,
     'yourStoreKey',
-    PosInterface::LANG_TR
+    \Mews\Pos\PosInterface::LANG_TR
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
@@ -79,7 +79,7 @@ $order = [
     'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
 
-if ($tekrarlanan) { // recurring payments
+if ($tekrarlanan = false) { // recurring payments
     // Desteleyen Gatewayler: GarantiPos, EstPos, EstV3Pos, PayFlexV4
     $order['installment'] = 0; // Tekrarlayan ödemeler taksitli olamaz.
 
@@ -104,25 +104,25 @@ $card = null;
 if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
     $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
             $pos,
-            $_REQUEST['card_number'],
-            $_REQUEST['card_year'],
-            $_REQUEST['card_month'],
-            $_REQUEST['card_cvv'],
-            $_REQUEST['card_name'],
+            $_POST['card_number'],
+            $_POST['card_year'],
+            $_POST['card_month'],
+            $_POST['card_cvv'],
+            $_POST['card_name'],
 
             // kart tipi Gateway'e göre zorunlu, alabileceği örnek değer: "visa"
             // alabileceği alternatif değerler için \Mews\Pos\Entity\Card\CreditCardInterface'a bakınız.
-            $_REQUEST['card_type'] ?? null
+            $_POST['card_type'] ?? null
       );
-    } catch (CardTypeRequiredException $e) {
+    } catch (\Mews\Pos\Exceptions\CardTypeRequiredException $e) {
         // bu gateway için kart tipi zorunlu
-    } catch (CardTypeNotSupportedException $e) {
+    } catch (\Mews\Pos\Exceptions\CardTypeNotSupportedException $e) {
         // sağlanan kart tipi bu gateway tarafından desteklenmiyor
     }
 
     if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
         // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
-        $session->set('card', $_REQUEST);
+        $session->set('card', $_POST);
     }
 }
 
@@ -155,12 +155,20 @@ try {
                 \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY_HOSTING,
                 \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
                 ];
-                if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
+                if ($event->getTxType() === \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
                 $formInputs           = $event->getFormInputs();
                 $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
                 $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
                 $event->setFormInputs($formInputs);
             }*/
+
+        }
+        if (get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+//           Örnek 2: callbackUrl eklenmesi
+//           $formInputs                = $event->getFormInputs();
+//           $formInputs['callbackUrl'] = $formInputs['failUrl'];
+//           $formInputs['refreshTime'] = '10'; // birim: saniye; callbackUrl sisteminin doğru çalışması için eklenmesi gereken parametre
+//           $event->setFormInputs($formInputs);
         }
     });
 
@@ -224,7 +232,7 @@ if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
 
 //    //Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği
 //    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($paymentModel) {
-//        if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && PosInterface::MODEL_3D_SECURE === $paymentModel) {
+//        if ($event->getTxType() === \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH && \Mews\Pos\PosInterface::MODEL_3D_SECURE === $paymentModel) {
 //            $data                    = $event->getRequestData();
 //            $data['Extra']['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
 //            $data['Extra']['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı
@@ -252,7 +260,7 @@ try  {
     if ($pos->isSuccess()) {
         // NOT: Ödeme durum sorgulama, iptal ve iade işlemleri yapacaksanız $response değerini saklayınız.
     }
-} catch (Mews\Pos\Exceptions\HashMismatchException $e) {
+} catch (\Mews\Pos\Exceptions\HashMismatchException $e) {
    // Bankadan gelen verilerin bankaya ait olmadığında bu exception oluşur.
    // Banka API bilgileriniz hatalı ise de oluşur.
 }

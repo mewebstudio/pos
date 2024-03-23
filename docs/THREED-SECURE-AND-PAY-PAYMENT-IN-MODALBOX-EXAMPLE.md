@@ -2,7 +2,7 @@
 ### Örnek 3D Secure ve 3D Pay ödemenin Modal Box'ta iframe kullanarak örneği
 
 3D Secure ve 3D Pay ödemede kullanmanız gereken kodlar arasında tek fark `$paymentModel` değeridir.
-```
+```php
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
 // veya
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_PAY;
@@ -22,7 +22,7 @@ $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSe
     'cookie_samesite' => 'None',
     'cookie_secure' => true,
 ]);
-$session        = new Session($sessionHandler);
+$session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
 $session->start();
 
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
@@ -35,9 +35,9 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourClientID',
     'yourKullaniciAdi',
     'yourSifre',
-    $paymentModel
+    $paymentModel,
     'yourStoreKey',
-    PosInterface::LANG_TR
+    \Mews\Pos\PosInterface::LANG_TR
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
@@ -113,25 +113,25 @@ $session->set('order', $order);
 try {
 $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
         $pos,
-        $_REQUEST['card_number'],
-        $_REQUEST['card_year'],
-        $_REQUEST['card_month'],
-        $_REQUEST['card_cvv'],
-        $_REQUEST['card_name'],
+        $_POST['card_number'],
+        $_POST['card_year'],
+        $_POST['card_month'],
+        $_POST['card_cvv'],
+        $_POST['card_name'],
 
         // kart tipi Gateway'e göre zorunlu, alabileceği örnek değer: "visa"
         // alabileceği alternatif değerler için \Mews\Pos\Entity\Card\CreditCardInterface'a bakınız.
-        $_REQUEST['card_type'] ?? null
+        $_POST['card_type'] ?? null
   );
-} catch (CardTypeRequiredException $e) {
+} catch (\Mews\Pos\Exceptions\CardTypeRequiredException $e) {
     // bu gateway için kart tipi zorunlu
-} catch (CardTypeNotSupportedException $e) {
+} catch (\Mews\Pos\Exceptions\CardTypeNotSupportedException $e) {
     // sağlanan kart tipi bu gateway tarafından desteklenmiyor
 }
 
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
-    $session->set('card', $_REQUEST);
+    $session->set('card', $_POST);
 }
 
 try {

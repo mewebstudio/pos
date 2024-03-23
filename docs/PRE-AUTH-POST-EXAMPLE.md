@@ -14,7 +14,7 @@ $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSe
     'cookie_samesite' => 'None',
     'cookie_secure' => true,
 ]);
-$session        = new Session($sessionHandler);
+$session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
 $session->start();
 
 // Ön otorizasyon için kullanılması gereken ödeme modeli değişir.
@@ -28,9 +28,9 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourClientID',
     'yourKullaniciAdi',
     'yourSifre',
-    $paymentModel
+    $paymentModel,
     '', // bankaya göre zorunlu
-    PosInterface::LANG_TR
+    \Mews\Pos\PosInterface::LANG_TR
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
@@ -81,25 +81,25 @@ $session->set('order', $order);
 try {
 $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
         $pos,
-        $_REQUEST['card_number'],
-        $_REQUEST['card_year'],
-        $_REQUEST['card_month'],
-        $_REQUEST['card_cvv'],
-        $_REQUEST['card_name'],
+        $_POST['card_number'],
+        $_POST['card_year'],
+        $_POST['card_month'],
+        $_POST['card_cvv'],
+        $_POST['card_name'],
 
         // kart tipi Gateway'e göre zorunlu, alabileceği örnek değer: "visa"
         // alabileceği alternatif değerler için \Mews\Pos\Entity\Card\CreditCardInterface'a bakınız.
-        $_REQUEST['card_type'] ?? null
+        $_POST['card_type'] ?? null
   );
-} catch (CardTypeRequiredException $e) {
+} catch (\Mews\Pos\Exceptions\CardTypeRequiredException $e) {
     // bu gateway için kart tipi zorunlu
-} catch (CardTypeNotSupportedException $e) {
+} catch (\Mews\Pos\Exceptions\CardTypeNotSupportedException $e) {
     // sağlanan kart tipi bu gateway tarafından desteklenmiyor
 }
 
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
-    $session->set('card', $_REQUEST);
+    $session->set('card', $_POST);
 }
 
 try {
@@ -169,7 +169,7 @@ try  {
     if ($pos->isSuccess()) {
         $session->set('last_response', $response);
     }
-} catch (Mews\Pos\Exceptions\HashMismatchException $e) {
+} catch (\Mews\Pos\Exceptions\HashMismatchException $e) {
    // Bankadan gelen verilerin bankaya ait olmadığında bu exception oluşur.
    // Banka API bilgileriniz hatalı ise de oluşur.
 }
@@ -221,12 +221,12 @@ $order = createPostPayOrder(
     $postAuthAmount
 );
 
-// ($preAuthAmount < $postAuthAmount) durumda API isteğe ekstra değerler eklenmesi gerekiyor.
 /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
 $eventDispatcher->addListener(
     \Mews\Pos\Event\RequestDataPreparedEvent::class,
     function (\Mews\Pos\Event\RequestDataPreparedEvent $event) use ($gatewayClass, $preAuthAmount, $postAuthAmount) {
         if (\Mews\Pos\Gateways\EstPos::class === $gatewayClass || \Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass) {
+            // ($preAuthAmount < $postAuthAmount) durumda API isteğe ekstra değerler eklenmesi gerekiyor.
             if ($preAuthAmount < $postAuthAmount) {
                 $requestData                    = $event->getRequestData();
                 $requestData['Extra']['PREAMT'] = $preAuthAmount;
@@ -237,7 +237,7 @@ $eventDispatcher->addListener(
 try {
     $pos->payment($paymentModel, $order, $transaction);
     var_dump($response);
-catch (Exception $e) {
+catch (\Exception $e) {
     var_dump($e);
     exit;
 }

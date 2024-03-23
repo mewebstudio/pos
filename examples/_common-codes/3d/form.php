@@ -74,7 +74,8 @@ try {
                     $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
                     $event->setFormInputs($formInputs);
                 }*/
-
+            }
+            if (get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
 //                // Örnek 2: callbackUrl eklenmesi
 //                $formInputs                = $event->getFormInputs();
 //                $formInputs['callbackUrl'] = $formInputs['failUrl'];

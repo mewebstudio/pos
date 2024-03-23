@@ -20,9 +20,9 @@ $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'yourClientID',
     'yourKullaniciAdi',
     'yourSifre',
-    $paymentModel
+    $paymentModel,
     '', // bankaya göre zorunlu
-    PosInterface::LANG_TR
+    \Mews\Pos\PosInterface::LANG_TR
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
@@ -62,19 +62,19 @@ $order = [
 try {
 $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
         $pos,
-        $_REQUEST['card_number'],
-        $_REQUEST['card_year'],
-        $_REQUEST['card_month'],
-        $_REQUEST['card_cvv'],
-        $_REQUEST['card_name'],
+        $_POST['card_number'],
+        $_POST['card_year'],
+        $_POST['card_month'],
+        $_POST['card_cvv'],
+        $_POST['card_name'],
 
         // kart tipi Gateway'e göre zorunlu, alabileceği örnek değer: "visa"
         // alabileceği alternatif değerler için \Mews\Pos\Entity\Card\CreditCardInterface'a bakınız.
-        $_REQUEST['card_type'] ?? null
+        $_POST['card_type'] ?? null
   );
-} catch (CardTypeRequiredException $e) {
+} catch (\Mews\Pos\Exceptions\CardTypeRequiredException $e) {
     // bu gateway için kart tipi zorunlu
-} catch (CardTypeNotSupportedException $e) {
+} catch (\Mews\Pos\Exceptions\CardTypeNotSupportedException $e) {
     // sağlanan kart tipi bu gateway tarafından desteklenmiyor
 }
 
