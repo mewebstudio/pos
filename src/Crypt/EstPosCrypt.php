@@ -24,7 +24,6 @@ class EstPosCrypt extends AbstractCrypt
             $requestData['islemtipi'],
             $requestData['taksit'],
             $requestData['rnd'],
-            $requestData['failUrl'], // callbackUrl
             $posAccount->getStoreKey(),
         ];
 

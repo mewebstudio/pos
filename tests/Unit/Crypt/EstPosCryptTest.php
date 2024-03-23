@@ -48,7 +48,7 @@ class EstPosCryptTest extends TestCase
             'failUrl'   => 'https://domain.com/fail_url',
             'rnd'       => 'rand',
         ];
-        $expected = 'TN+2/D8lijFd+5zAUar6SH6EiRY=';
+        $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
 
         $actual = $this->crypt->create3DHash($this->account, $requestData);
         $this->assertEquals($expected, $actual);
@@ -68,7 +68,7 @@ class EstPosCryptTest extends TestCase
             'failUrl'   => 'https://domain.com/fail_url',
             'rnd'       => 'rand',
         ];
-        $expected = 'TN+2/D8lijFd+5zAUar6SH6EiRY=';
+        $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
 
         $actual = $this->crypt->create3DHash($this->account, $requestData);
         $this->assertEquals($expected, $actual);
