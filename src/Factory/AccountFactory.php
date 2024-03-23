@@ -26,7 +26,7 @@ class AccountFactory
      * @phpstan-param PosInterface::MODEL_* $model
      *
      * @param non-empty-string      $bank
-     * @param non-empty-string      $clientId Üye iş yeri numarası
+     * @param non-empty-string      $clientId Üye iş yeri (Mağaza) numarası
      * @param non-empty-string      $kullaniciAdi
      * @param non-empty-string      $password
      * @param non-empty-string      $model
