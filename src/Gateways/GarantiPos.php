@@ -64,35 +64,33 @@ class GarantiPos extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
-        $bankResponse = null;
 
-        if (\in_array($request->get('mdstatus'), ['1', '2', '3', '4'], true)) {
-            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
-                throw new HashMismatchException();
-            }
+        if (!$this->is3DAuthSuccess($request->all())) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
 
-            $this->logger->debug('finishing payment', ['md_status' => $request->get('mdstatus')]);
-
-            $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
-
-            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
-            $this->eventDispatcher->dispatch($event);
-            if ($requestData !== $event->getRequestData()) {
-                $this->logger->debug('Request data is changed via listeners', [
-                    'txType'      => $event->getTxType(),
-                    'bank'        => $event->getBank(),
-                    'initialData' => $requestData,
-                    'updatedData' => $event->getRequestData(),
-                ]);
-                $requestData = $event->getRequestData();
-            }
-
-            $contents     = $this->serializer->encode($requestData, $txType);
-            $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
-        } else {
-            $this->logger->error('3d auth fail', ['md_status' => $request->get('mdstatus')]);
+            return $this;
         }
 
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+            throw new HashMismatchException();
+        }
+
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $contents     = $this->serializer->encode($requestData, $txType);
+        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);

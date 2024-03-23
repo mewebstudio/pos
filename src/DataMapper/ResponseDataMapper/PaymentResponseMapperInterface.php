@@ -53,4 +53,20 @@ interface PaymentResponseMapperInterface
      * @return array<string, string|float|null>
      */
     public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array;
+
+    /**
+     * extracts MD/3D auth status from the 3D Auth responses
+     *
+     * @param array<string, mixed> $raw3DAuthResponseData
+     *
+     * @return string|null numeric string
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string;
+
+    /**
+     * @param string|null $mdStatus
+     *
+     * @return bool
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool;
 }

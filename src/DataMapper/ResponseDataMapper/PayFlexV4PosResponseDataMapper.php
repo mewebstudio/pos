@@ -55,7 +55,8 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             'provision_response' => $rawPaymentResponseData,
         ]);
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $threeDAuthStatus      = ('Y' === $raw3DAuthResponseData['Status']) ? self::TX_APPROVED : self::TX_DECLINED;
+        $mdStatus              = $this->extractMdStatus($raw3DAuthResponseData);
+        $threeDAuthStatus      = $this->is3dAuthSuccess($mdStatus) ? self::TX_APPROVED : self::TX_DECLINED;
 
         if (self::TX_APPROVED === $threeDAuthStatus && null !== $rawPaymentResponseData) {
             $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData, $txType, $order);
@@ -75,7 +76,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             'status_detail'        => null,
             'error_code'           => self::TX_DECLINED === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorCode'] : null,
             'error_message'        => self::TX_DECLINED === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorMessage'] : null,
-            'md_status'            => $raw3DAuthResponseData['Status'],
+            'md_status'            => $mdStatus,
             'md_error_message'     => self::TX_DECLINED === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorMessage'] : null,
             'transaction_security' => null,
             'all'                  => $rawPaymentResponseData,
@@ -232,6 +233,26 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
     public function mapOrderHistoryResponse(array $rawResponseData): array
     {
         throw new NotImplementedException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool
+    {
+        /**
+         * Y => 3D secure
+         * A => Half 3D secure
+         */
+        return 'Y' === $mdStatus;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string
+    {
+        return $raw3DAuthResponseData['Status'] ?? null;
     }
 
     /**

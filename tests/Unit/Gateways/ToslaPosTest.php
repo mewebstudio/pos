@@ -93,6 +93,10 @@ class ToslaPosTest extends TestCase
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
 
+        $this->requestMapperMock->expects(self::any())
+            ->method('getCrypt')
+            ->willReturn($this->cryptMock);
+
         $this->pos = new ToslaPos(
             $this->config,
             $this->account,
@@ -157,14 +161,21 @@ class ToslaPosTest extends TestCase
         bool $is3DSuccess,
         bool $isSuccess
     ): void {
-        if ($isSuccess) {
-            $this->requestMapperMock->expects(self::once())
-                ->method('getCrypt')
-                ->willReturn($this->cryptMock);
+        if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
                 ->willReturn(true);
         }
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('extractMdStatus')
+            ->with($request->request->all())
+            ->willReturn('3d-status');
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->with('3d-status')
+            ->willReturn($is3DSuccess);
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')
@@ -189,14 +200,22 @@ class ToslaPosTest extends TestCase
         bool $isSuccess
     ): void
     {
-        if ($isSuccess) {
-            $this->requestMapperMock->expects(self::once())
-                ->method('getCrypt')
-                ->willReturn($this->cryptMock);
+        if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
+                ->with($this->account, $request->request->all())
                 ->willReturn(true);
         }
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('extractMdStatus')
+            ->with($request->request->all())
+            ->willReturn('3d-status');
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->with('3d-status')
+            ->willReturn($is3DSuccess);
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')

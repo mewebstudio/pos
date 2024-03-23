@@ -117,13 +117,14 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $paymentModel          = $this->mapSecurityType($raw3DAuthResponseData['storetype']);
         $paymentResponseData   = $this->getDefaultPaymentResponse($txType, $paymentModel);
+        $mdStatus              = $this->extractMdStatus($raw3DAuthResponseData);
         if (null !== $rawPaymentResponseData) {
             $paymentResponseData = $this->mapPaymentResponse($rawPaymentResponseData, $txType, $order);
         }
 
         $threeDResponse = [
-            'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['mdStatus']),
-            'md_status'            => $raw3DAuthResponseData['mdStatus'],
+            'transaction_security' => null === $mdStatus ? null : $this->mapResponseTransactionSecurity($mdStatus),
+            'md_status'            => $mdStatus,
             'order_id'             => $raw3DAuthResponseData['oid'],
             'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
@@ -134,11 +135,11 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'eci'                  => null,
             'tx_status'            => null,
             'cavv'                 => null,
-            'md_error_message'     => '1' !== $raw3DAuthResponseData['mdStatus'] ? $raw3DAuthResponseData['mdErrorMsg'] : null,
+            'md_error_message'     => !$this->is3dAuthSuccess($mdStatus) ? $raw3DAuthResponseData['mdErrorMsg'] : null,
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
-        if ('1' === $raw3DAuthResponseData['mdStatus']) {
+        if ($this->is3dAuthSuccess($mdStatus)) {
             $threeDResponse['eci']  = $raw3DAuthResponseData['eci'];
             $threeDResponse['cavv'] = $raw3DAuthResponseData['cavv'];
         }
@@ -158,7 +159,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
 
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $procReturnCode        = $this->getProcReturnCode($raw3DAuthResponseData);
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && \in_array($raw3DAuthResponseData['mdStatus'], ['1', '2', '3', '4'])) {
+        $mdStatus              = $this->extractMdStatus($raw3DAuthResponseData);
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $this->is3dAuthSuccess($mdStatus)) {
             $status = self::TX_APPROVED;
         }
 
@@ -167,8 +169,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
 
         $response = [
             'order_id'             => $raw3DAuthResponseData['oid'],
-            'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['mdStatus']),
-            'md_status'            => $raw3DAuthResponseData['mdStatus'],
+            'transaction_security' => null === $mdStatus ? null : $this->mapResponseTransactionSecurity($mdStatus),
+            'md_status'            => $mdStatus,
             'status'               => $status,
             'proc_return_code'     => $procReturnCode,
             'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
@@ -206,8 +208,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
     {
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
         $status                = self::TX_DECLINED;
-
-        if (\in_array($raw3DAuthResponseData['mdStatus'], [1, 2, 3, 4])) {
+        $mdStatus              = $this->extractMdStatus($raw3DAuthResponseData);
+        if ($this->is3dAuthSuccess($mdStatus)) {
             $status = self::TX_APPROVED;
         }
 
@@ -216,8 +218,8 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
 
         $response = [
             'order_id'             => $raw3DAuthResponseData['oid'],
-            'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['mdStatus']),
-            'md_status'            => $raw3DAuthResponseData['mdStatus'],
+            'transaction_security' => null === $mdStatus ? null : $this->mapResponseTransactionSecurity($mdStatus),
+            'md_status'            => $mdStatus,
             'status'               => $status,
             'amount'               => $this->formatAmount($raw3DAuthResponseData['amount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['currency']),
@@ -444,6 +446,22 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @inheritDoc
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool
+    {
+        return \in_array($mdStatus, ['1'], true);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string
+    {
+        return $raw3DAuthResponseData['mdStatus'] ?? null;
+    }
+
+    /**
      * @param string $mdStatus
      *
      * @return string
@@ -453,7 +471,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         $transactionSecurity = 'MPI fallback';
         if ('1' === $mdStatus) {
             $transactionSecurity = 'Full 3D Secure';
-        } elseif (in_array($mdStatus, ['2', '3', '4'])) {
+        } elseif (\in_array($mdStatus, ['2', '3', '4'])) {
             $transactionSecurity = 'Half 3D Secure';
         }
 

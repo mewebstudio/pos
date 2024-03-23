@@ -98,10 +98,10 @@ class ToslaPos extends AbstractGateway
     {
         $request = $request->request;
 
-        if ($request->get('MdStatus') !== '1') {
-            $this->logger->error('3d auth fail', ['md_status' => $request->get('MdStatus')]);
-        } elseif (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
-            throw new HashMismatchException();
+        if ($this->is3DAuthSuccess($request->all())) {
+            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+                throw new HashMismatchException();
+            }
         }
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($request->all(), $txType, $order);

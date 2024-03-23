@@ -64,22 +64,13 @@ class PayFlexV4Pos extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
-        $status = $request->get('Status');
-        // 3D authorization failed
-        if ('Y' !== $status && 'A' !== $status) {
-            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), [], $txType, $order);
+
+        if (!$this->is3DAuthSuccess($request->all())) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
 
             return $this;
         }
 
-        if ('A' === $status) {
-            // TODO Half 3D Secure
-            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), [], $txType, $order);
-
-            return $this;
-        }
-
-        $this->logger->debug('finishing payment', ['md_status' => $status]);
         /** @var array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $requestData */
         $requestData = $request->all();
         // NOT: diger gatewaylerden farkli olarak payflex kredit bilgilerini bu asamada da istiyor.

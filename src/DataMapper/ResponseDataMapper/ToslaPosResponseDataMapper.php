@@ -115,10 +115,11 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
 
         $procReturnCode    = $raw3DAuthResponseData['BankResponseCode'];
+        $mdStatus          = $this->extractMdStatus($raw3DAuthResponseData);
         $transactionStatus = $this->orderStatusMappings[$raw3DAuthResponseData['RequestStatus']] ?? null;
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode
             && PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transactionStatus
-            && \in_array($raw3DAuthResponseData['MdStatus'], ['1', '2', '3', '4'])
+            && $this->is3dAuthSuccess($mdStatus)
         ) {
             $status = self::TX_APPROVED;
         }
@@ -128,10 +129,10 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
         $response = [
             'order_id'             => $raw3DAuthResponseData['OrderId'],
             'transaction_type'     => null,
-            'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['MdStatus']),
+            'transaction_security' => null === $mdStatus ? null : $this->mapResponseTransactionSecurity($mdStatus),
             'currency'             => $order['currency'],
             'amount'               => $order['amount'],
-            'md_status'            => $raw3DAuthResponseData['MdStatus'],
+            'md_status'            => $mdStatus,
             'status'               => $status,
             'proc_return_code'     => $procReturnCode,
             'tx_status'            => $transactionStatus,
@@ -314,6 +315,22 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @inheritDoc
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool
+    {
+        return \in_array($mdStatus, ['1'], true);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string
+    {
+        return $raw3DAuthResponseData['MdStatus'] ?? null;
+    }
+
+    /**
      * @param string $mdStatus
      *
      * @return string
@@ -323,7 +340,7 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
         $transactionSecurity = 'MPI fallback';
         if ('1' === $mdStatus) {
             $transactionSecurity = 'Full 3D Secure';
-        } elseif (in_array($mdStatus, ['2', '3', '4'])) {
+        } elseif (\in_array($mdStatus, ['2', '3', '4'])) {
             $transactionSecurity = 'Half 3D Secure';
         }
 

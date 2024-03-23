@@ -37,6 +37,32 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     }
 
     /**
+     * @testWith [null, false]
+     * ["", false]
+     * ["A", false]
+     * ["Y", true]
+     *
+     */
+    public function testIs3dAuthSuccess(?string $mdStatus, bool $expected): void
+    {
+        $actual = $this->responseDataMapper->is3dAuthSuccess($mdStatus);
+        $this->assertSame($expected, $actual);
+    }
+
+
+    /**
+     * @testWith [[], null]
+     * [{"Status": "Y"}, "Y"]
+     * [{"Status": "Y"}, "Y"]
+     *
+     */
+    public function testExtractMdStatus(array $responseData, ?string $expected): void
+    {
+        $actual = $this->responseDataMapper->extractMdStatus($responseData);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
      * @dataProvider threeDPaymentDataProvider
      */
     public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData): void

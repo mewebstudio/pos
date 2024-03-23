@@ -68,62 +68,40 @@ class PosNetV1Pos extends AbstractGateway
     }
 
     /**
-     * @inheritDoc
-     */
-    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
-    {
-        throw new UnsupportedPaymentModelException();
-    }
-
-    /**
      * Kullanıcı doğrulama sonucunun sorgulanması ve verilerin doğruluğunun teyit edilmesi için kullanılır.
      * @inheritDoc
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $request           = $request->request;
-        $provisionResponse = null;
+        $request = $request->request;
 
-        $mdStatus = $request->get('MdStatus');
-        /**
-         * MdStatus degerleri:
-         *   0: Kart doğrulama başarısız, işleme devam etmeyin
-         *   1: Doğrulama başarılı, işleme devam edebilirsiniz
-         *   2: Kart sahibi veya bankası sisteme kayıtlı değil
-         *   3: Kartın bankası sisteme kayıtlı değil
-         *   4: Doğrulama denemesi, kart sahibi sisteme daha sonra kayıt olmayı seçmiş
-         *   5: Doğrulama yapılamıyor
-         *   6: 3D Secure hatası
-         *   7: Sistem hatası
-         *   8: Bilinmeyen kart no
-         *   9: Üye İşyeri 3D-Secure sistemine kayıtlı değil (bankada işyeri ve terminal numarası 3d olarak tanımlı değil.)
-         */
-        if ('1' !== $mdStatus) {
-            $this->logger->error('3d auth fail', ['md_status' => $mdStatus]);
-        } else {
-            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
-                throw new HashMismatchException();
-            }
+        if (!$this->is3DAuthSuccess($request->all())) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
 
-            $this->logger->debug('finishing payment', ['md_status' => $mdStatus]);
-            $requestData       = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
-
-            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
-            $this->eventDispatcher->dispatch($event);
-            if ($requestData !== $event->getRequestData()) {
-                $this->logger->debug('Request data is changed via listeners', [
-                    'txType'      => $event->getTxType(),
-                    'bank'        => $event->getBank(),
-                    'initialData' => $requestData,
-                    'updatedData' => $event->getRequestData(),
-                ]);
-                $requestData = $event->getRequestData();
-            }
-
-            $contents          = $this->serializer->encode($requestData, $txType);
-            $provisionResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
-            $this->logger->debug('send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
+            return $this;
         }
+
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+            throw new HashMismatchException();
+        }
+
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $contents          = $this->serializer->encode($requestData, $txType);
+        $provisionResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+        $this->logger->debug('send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $provisionResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
@@ -135,6 +113,14 @@ class PosNetV1Pos extends AbstractGateway
      * @inheritDoc
      */
     public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
+    {
+        throw new UnsupportedPaymentModelException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }

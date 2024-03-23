@@ -143,17 +143,27 @@ class PayForTest extends TestCase
         Request $request,
         array   $paymentResponse,
         array   $expectedResponse,
-        bool    $checkHash,
         bool    $is3DSuccess,
         bool    $isSuccess
     ): void
     {
-        if ($checkHash) {
+        if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
                 ->with($this->account, $request->request->all())
                 ->willReturn(true);
         }
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('extractMdStatus')
+            ->with($request->request->all())
+            ->willReturn('3d-status');
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->with('3d-status')
+            ->willReturn($is3DSuccess);
+
 
         $create3DPaymentRequestData = [
             'create3DPaymentRequestData',
@@ -218,7 +228,6 @@ class PayForTest extends TestCase
                 'request'         => Request::create('', 'POST', PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['threeDResponseData']),
                 'paymentResponse' => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['paymentData'],
                 'expected'        => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['expectedData'],
-                'check_hash'      => false,
                 'is3DSuccess'     => false,
                 'isSuccess'       => false,
             ],
@@ -228,7 +237,6 @@ class PayForTest extends TestCase
                 'request'         => Request::create('', 'POST', PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['order_number_already_exist']['threeDResponseData']),
                 'paymentResponse' => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['order_number_already_exist']['paymentData'],
                 'expected'        => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['order_number_already_exist']['expectedData'],
-                'check_hash'      => false,
                 'is3DSuccess'     => false,
                 'isSuccess'       => false,
             ],
@@ -238,7 +246,6 @@ class PayForTest extends TestCase
                 'request'         => Request::create('', 'POST', PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']),
                 'paymentResponse' => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
                 'expected'        => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
-                'check_hash'      => true,
                 'is3DSuccess'     => true,
                 'isSuccess'       => true,
             ],

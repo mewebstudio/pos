@@ -311,6 +311,22 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @inheritDoc
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool
+    {
+        return self::PROCEDURE_SUCCESS_CODE === $mdStatus;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string
+    {
+        return $this->getProcReturnCode($raw3DAuthResponseData);
+    }
+
+    /**
      * "101" => 1.01
      * @param string $amount
      *

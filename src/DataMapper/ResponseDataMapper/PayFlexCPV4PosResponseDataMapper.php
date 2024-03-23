@@ -164,6 +164,22 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @inheritDoc
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string
+    {
+        return null;
+    }
+
+    /**
      * @param string $mdStatus
      *
      * @return string

@@ -60,42 +60,45 @@ class EstPos extends AbstractGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $request           = $request->request;
-        $provisionResponse = null;
+        $request = $request->request;
 
-        if ($request->get('mdStatus') !== '1') {
-            $this->logger->error('3d auth fail', ['md_status' => $request->get('mdStatus')]);
-            /**
-             * TODO hata durumu ele alinmasi gerekiyor
-             * ornegin soyle bir hata donebilir
-             * ["ProcReturnCode" => "99", "mdStatus" => "7", "mdErrorMsg" => "Isyeri kullanim tipi desteklenmiyor.",
-             * "ErrMsg" => "Isyeri kullanim tipi desteklenmiyor.", "Response" => "Error", "ErrCode" => "3D-1007", ...]
-             */
-        } else {
-            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
-                throw new HashMismatchException();
-            }
+        /**
+         * TODO hata durumu ele alinmasi gerekiyor
+         * ornegin soyle bir hata donebilir
+         * ["ProcReturnCode" => "99", "mdStatus" => "7", "mdErrorMsg" => "Isyeri kullanim tipi desteklenmiyor.",
+         * "ErrMsg" => "Isyeri kullanim tipi desteklenmiyor.", "Response" => "Error", "ErrCode" => "3D-1007", ...]
+         */
+        if (!$this->is3DAuthSuccess($request->all())) {
+            $this->response = $this->responseDataMapper->map3DPaymentData(
+                $request->all(),
+                null,
+                $txType,
+                $order
+            );
 
-            $this->logger->debug('finishing payment', ['md_status' => $request->get('mdStatus')]);
-
-            $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
-
-            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
-            $this->eventDispatcher->dispatch($event);
-            if ($requestData !== $event->getRequestData()) {
-                $this->logger->debug('Request data is changed via listeners', [
-                    'txType'      => $event->getTxType(),
-                    'bank'        => $event->getBank(),
-                    'initialData' => $requestData,
-                    'updatedData' => $event->getRequestData(),
-                ]);
-                $requestData = $event->getRequestData();
-            }
-
-            $contents    = $this->serializer->encode($requestData, $txType);
-
-            $provisionResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+            return $this;
         }
+
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+            throw new HashMismatchException();
+        }
+
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $contents          = $this->serializer->encode($requestData, $txType);
+        $provisionResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
             $request->all(),

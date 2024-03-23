@@ -458,4 +458,24 @@ abstract class AbstractGateway implements PosInterface
 
         return \in_array($paymentModel, static::$supportedTransactions[$txType], true);
     }
+
+    /**
+     * @param array<string, mixed> $responseData
+     *
+     * @return bool
+     */
+    protected function is3DAuthSuccess(array $responseData): bool
+    {
+        $mdStatus = $this->responseDataMapper->extractMdStatus($responseData);
+
+        if ($this->responseDataMapper->is3dAuthSuccess($mdStatus)) {
+            $this->logger->info('3d auth success', ['md_status' => $mdStatus]);
+
+            return true;
+        }
+
+        $this->logger->error('3d auth fail', ['md_status' => $mdStatus]);
+
+        return false;
+    }
 }

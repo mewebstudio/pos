@@ -130,17 +130,26 @@ class GarantiPosTest extends TestCase
         Request $request,
         array   $paymentResponse,
         array   $expectedResponse,
-        bool    $checkHash,
         bool    $is3DSuccess,
         bool    $isSuccess
     ): void
     {
-        if ($checkHash) {
+        if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
                 ->with($this->account, $request->request->all())
                 ->willReturn(true);
         }
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('extractMdStatus')
+            ->with($request->request->all())
+            ->willReturn('3d-status');
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->with('3d-status')
+            ->willReturn($is3DSuccess);
 
         $create3DPaymentRequestData = [
             'create3DPaymentRequestData',
@@ -202,7 +211,6 @@ class GarantiPosTest extends TestCase
                 'request'         => Request::create('', 'POST', GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData']),
                 'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['paymentData'],
                 'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['expectedData'],
-                'check_hash'      => true,
                 'is3DSuccess'     => true,
                 'isSuccess'       => false,
             ],
@@ -212,7 +220,6 @@ class GarantiPosTest extends TestCase
                 'request'         => Request::create('', 'POST', GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']),
                 'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
                 'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
-                'check_hash'      => true,
                 'is3DSuccess'     => true,
                 'isSuccess'       => true,
             ],

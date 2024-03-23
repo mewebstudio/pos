@@ -94,9 +94,9 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         ]);
 
         $commonResult = $this->map3DCommonResponseData($raw3DAuthResponseData, PosInterface::MODEL_3D_SECURE);
-
+        $mdStatus     = $this->extractMdStatus($raw3DAuthResponseData);
         // todo refactor
-        if (\in_array($raw3DAuthResponseData['mdstatus'], ['1', '2', '3', '4'], true)) {
+        if ($this->is3dAuthSuccess($mdStatus)) {
             //these data only available on success
             $commonResult['auth_code']      = $raw3DAuthResponseData['authcode'];
             $commonResult['transaction_id'] = $raw3DAuthResponseData['transid'];
@@ -336,6 +336,22 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @inheritDoc
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool
+    {
+        return \in_array($mdStatus, ['1', '2', '3', '4'], true);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string
+    {
+        return $raw3DAuthResponseData['mdstatus'] ?? null;
+    }
+
+    /**
      * 100001 => 1000.01
      * @param string $amount
      *
@@ -358,11 +374,11 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
     protected function map3DCommonResponseData(array $raw3DAuthResponseData, string $paymentModel): array
     {
         $procReturnCode = $raw3DAuthResponseData['procreturncode'];
-        $mdStatus       = $raw3DAuthResponseData['mdstatus'];
+        $mdStatus       = $this->extractMdStatus($raw3DAuthResponseData);
 
         $status = self::TX_DECLINED;
 
-        if (\in_array($mdStatus, ['1', '2', '3', '4']) && 'Error' !== $raw3DAuthResponseData['response']) {
+        if ($this->is3dAuthSuccess($mdStatus) && 'Error' !== $raw3DAuthResponseData['response']) {
             $status = self::TX_APPROVED;
         }
 
@@ -371,10 +387,10 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'transaction_id'       => null,
             'auth_code'            => null,
             'ref_ret_num'          => null,
-            'transaction_security' => $this->mapResponseTransactionSecurity($mdStatus),
+            'transaction_security' => null === $mdStatus ? null : $this->mapResponseTransactionSecurity($mdStatus),
             'transaction_type'     => $this->mapTxType($raw3DAuthResponseData['txntype']),
             'proc_return_code'     => $procReturnCode,
-            'md_status'            => $raw3DAuthResponseData['mdstatus'],
+            'md_status'            => $mdStatus,
             'status'               => $status,
             'status_detail'        => $this->getStatusDetail($procReturnCode),
             'masked_number'        => null,
@@ -403,7 +419,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
      */
     protected function mapResponseTransactionSecurity(string $mdStatus): string
     {
-        if (!in_array($mdStatus, ['1', '2', '3', '4'])) {
+        if (!$this->is3dAuthSuccess($mdStatus)) {
             return 'MPI fallback';
         }
 

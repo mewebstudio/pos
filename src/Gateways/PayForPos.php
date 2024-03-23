@@ -62,35 +62,35 @@ class PayForPos extends AbstractGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $request      = $request->request;
-        $bankResponse = null;
+        $request = $request->request;
 
-        //if customer 3d verification passed finish payment
-        if ('1' === $request->get('3DStatus')) {
-            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
-                throw new HashMismatchException();
-            }
+        if (!$this->is3DAuthSuccess($request->all())) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
 
-            // valid ProcReturnCode is V033 in case of success 3D Authentication
-            $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
-
-            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
-            $this->eventDispatcher->dispatch($event);
-            if ($requestData !== $event->getRequestData()) {
-                $this->logger->debug('Request data is changed via listeners', [
-                    'txType'      => $event->getTxType(),
-                    'bank'        => $event->getBank(),
-                    'initialData' => $requestData,
-                    'updatedData' => $event->getRequestData(),
-                ]);
-                $requestData = $event->getRequestData();
-            }
-
-            $contents     = $this->serializer->encode($requestData, $txType);
-            $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
-        } else {
-            $this->logger->error('3d auth fail', ['md_status' => $request->get('3DStatus')]);
+            return $this;
         }
+
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+            throw new HashMismatchException();
+        }
+
+        // valid ProcReturnCode is V033 in case of success 3D Authentication
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $contents     = $this->serializer->encode($requestData, $txType);
+        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);
 

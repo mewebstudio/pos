@@ -130,36 +130,34 @@ class KuveytPos extends AbstractGateway
         $gatewayResponse = \urldecode($gatewayResponse);
         $gatewayResponse = $this->serializer->decode($gatewayResponse, $txType);
 
-        $bankResponse   = null;
-        $procReturnCode = $gatewayResponse['ResponseCode'];
+        if (!$this->is3DAuthSuccess($gatewayResponse)) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, null, $txType, $order);
 
-
-        if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
-                throw new HashMismatchException();
-            }
-
-            $this->logger->debug('finishing payment');
-
-            $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);
-
-            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
-            $this->eventDispatcher->dispatch($event);
-            if ($requestData !== $event->getRequestData()) {
-                $this->logger->debug('Request data is changed via listeners', [
-                    'txType'      => $event->getTxType(),
-                    'bank'        => $event->getBank(),
-                    'initialData' => $requestData,
-                    'updatedData' => $event->getRequestData(),
-                ]);
-                $requestData = $event->getRequestData();
-            }
-
-            $contents     = $this->serializer->encode($requestData, $txType);
-            $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
-        } else {
-            $this->logger->error('3d auth fail', ['proc_return_code' => $procReturnCode]);
+            return $this;
         }
+
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
+            throw new HashMismatchException();
+        }
+
+        $this->logger->debug('finishing payment');
+
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $contents     = $this->serializer->encode($requestData, $txType);
+        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
 
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
@@ -175,8 +173,8 @@ class KuveytPos extends AbstractGateway
      */
     protected function send($contents, string $txType, string $paymentModel, string $url = null): array
     {
-        if (in_array($txType, [PosInterface::TX_TYPE_REFUND, PosInterface::TX_TYPE_STATUS, PosInterface::TX_TYPE_CANCEL], true)) {
-            if (!is_array($contents)) {
+        if (\in_array($txType, [PosInterface::TX_TYPE_REFUND, PosInterface::TX_TYPE_STATUS, PosInterface::TX_TYPE_CANCEL], true)) {
+            if (!\is_array($contents)) {
                 throw new InvalidArgumentException(sprintf('Invalid data type provided for %s transaction!', $txType));
             }
 

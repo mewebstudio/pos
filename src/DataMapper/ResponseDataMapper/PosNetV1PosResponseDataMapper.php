@@ -128,9 +128,9 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
         ]);
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
 
-        $mdStatus            = $raw3DAuthResponseData['MdStatus'];
-        $threeDAuthApproved  = \in_array($mdStatus, ['1', '2', '3', '4'], true);
-        $transactionSecurity = $this->mapResponseTransactionSecurity($mdStatus);
+        $mdStatus            = $this->extractMdStatus($raw3DAuthResponseData);
+        $threeDAuthApproved  = $this->is3dAuthSuccess($mdStatus);
+        $transactionSecurity = null === $mdStatus ? null : $this->mapResponseTransactionSecurity($mdStatus);
         /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
         $txType = $this->mapTxType($raw3DAuthResponseData['TranType']) ?? $txType;
 
@@ -274,6 +274,34 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
     public function mapOrderHistoryResponse(array $rawResponseData): array
     {
         throw new NotImplementedException();
+    }
+
+    /**
+     * @inheritDoc
+     *
+     * MdStatus degerleri:
+     *   0: Kart doğrulama başarısız, işleme devam etmeyin
+     *   1: Doğrulama başarılı, işleme devam edebilirsiniz
+     *   2: Kart sahibi veya bankası sisteme kayıtlı değil
+     *   3: Kartın bankası sisteme kayıtlı değil
+     *   4: Doğrulama denemesi, kart sahibi sisteme daha sonra kayıt olmayı seçmiş
+     *   5: Doğrulama yapılamıyor
+     *   6: 3D Secure hatası
+     *   7: Sistem hatası
+     *   8: Bilinmeyen kart no
+     *   9: Üye İşyeri 3D-Secure sistemine kayıtlı değil (bankada işyeri ve terminal numarası 3d olarak tanımlı değil.)
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool
+    {
+        return \in_array($mdStatus, ['1'], true);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string
+    {
+        return $raw3DAuthResponseData['MdStatus'] ?? null;
     }
 
     /**

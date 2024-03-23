@@ -116,7 +116,7 @@ parameters:
 			path: src/Factory/PosFactory.php
 
 		-
-			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\{Order\\: array\\<string, array\\<string, string\\|null\\>\\|string\\>, Response\\: array\\<string, string\\>, Transaction\\: array\\<string, array\\<string, string\\>\\|string\\>\\}\\|null, array\\<string, mixed\\>\\|null given\\.$#"
+			message: "#^Parameter \\#2 \\$rawPaymentResponseData of method Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\GarantiPosResponseDataMapper\\:\\:map3DPaymentData\\(\\) expects array\\{Order\\: array\\<string, array\\<string, string\\|null\\>\\|string\\>, Response\\: array\\<string, string\\>, Transaction\\: array\\<string, array\\<string, string\\>\\|string\\>\\}\\|null, array\\<string, mixed\\> given\\.$#"
 			count: 1
 			path: src/Gateways/GarantiPos.php
 

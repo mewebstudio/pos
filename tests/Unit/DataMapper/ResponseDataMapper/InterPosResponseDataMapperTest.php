@@ -36,6 +36,35 @@ class InterPosResponseDataMapperTest extends TestCase
     }
 
     /**
+     * @testWith [null, false]
+     * ["", false]
+     * ["2", true]
+     * ["3", true]
+     * ["4", true]
+     * ["7", false]
+     * ["1", true]
+     *
+     */
+    public function testIs3dAuthSuccess(?string $mdStatus, bool $expected): void
+    {
+        $actual = $this->responseDataMapper->is3dAuthSuccess($mdStatus);
+        $this->assertSame($expected, $actual);
+    }
+
+
+    /**
+     * @testWith [[], null]
+     * [{"3DStatus": "1"}, "1"]
+     *
+     */
+    public function testExtractMdStatus(array $responseData, ?string $expected): void
+    {
+        $actual = $this->responseDataMapper->extractMdStatus($responseData);
+        $this->assertSame($expected, $actual);
+    }
+
+
+    /**
      * @dataProvider paymentTestDataProvider
      */
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData): void

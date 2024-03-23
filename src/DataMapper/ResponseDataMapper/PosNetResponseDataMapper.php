@@ -114,7 +114,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         /** @var array<string, string|null> $oosResolveMerchantDataResponse */
         $oosResolveMerchantDataResponse = $raw3DAuthResponseData['oosResolveMerchantDataResponse'];
 
-        $mdStatus            = $oosResolveMerchantDataResponse['mdStatus'];
+        $mdStatus            = $this->extractMdStatus($raw3DAuthResponseData);
         $transactionSecurity = null;
         if (null === $mdStatus) {
             $this->logger->error('mdStatus boş döndü. Sağlanan banka API bilgileri eksik/yanlış olabilir.');
@@ -323,7 +323,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
 
         $results = [
             'auth_code'        => null,
-            'transaction_id'         => null,
+            'transaction_id'   => null,
             'ref_ret_num'      => null,
             'group_id'         => null,
             'date'             => null,
@@ -349,6 +349,22 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @inheritDoc
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool
+    {
+        return \in_array($mdStatus, ['1', '2', '3', '4'], true);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string
+    {
+        return $raw3DAuthResponseData['oosResolveMerchantDataResponse']['mdStatus'] ?? null;
+    }
+
+    /**
      * @param string $mdStatus
      *
      * @return string
@@ -358,7 +374,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
         $transactionSecurity = 'MPI fallback';
         if ('1' === $mdStatus) {
             $transactionSecurity = 'Full 3D Secure';
-        } elseif (in_array($mdStatus, ['2', '3', '4'])) {
+        } elseif (\in_array($mdStatus, ['2', '3', '4'])) {
             $transactionSecurity = 'Half 3D Secure';
         }
 

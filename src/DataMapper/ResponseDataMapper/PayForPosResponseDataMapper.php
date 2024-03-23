@@ -88,7 +88,8 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'provision_response' => $rawPaymentResponseData,
         ]);
         $procReturnCode      = $this->getProcReturnCode($raw3DAuthResponseData);
-        $threeDAuthStatus    = ('1' === $raw3DAuthResponseData['3DStatus']) ? self::TX_APPROVED : self::TX_DECLINED;
+        $mdStatus            = $this->extractMdStatus($raw3DAuthResponseData);
+        $threeDAuthStatus    = $this->is3dAuthSuccess($mdStatus) ? self::TX_APPROVED : self::TX_DECLINED;
         $paymentResponseData = [];
 
         $mapped3DResponseData = $this->map3DCommonResponseData($raw3DAuthResponseData);
@@ -379,6 +380,22 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @inheritDoc
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool
+    {
+        return \in_array($mdStatus, ['1'], true);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string
+    {
+        return $raw3DAuthResponseData['3DStatus'] ?? null;
+    }
+
+    /**
      * @param string $mdStatus
      *
      * @return string
@@ -388,7 +405,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $transactionSecurity = 'MPI fallback';
         if ('1' === $mdStatus) {
             $transactionSecurity = 'Full 3D Secure';
-        } elseif (in_array($mdStatus, ['2', '3', '4'])) {
+        } elseif (\in_array($mdStatus, ['2', '3', '4'])) {
             $transactionSecurity = 'Half 3D Secure';
         }
 
@@ -473,7 +490,8 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
     private function map3DCommonResponseData(array $raw3DAuthResponseData): array
     {
         $procReturnCode   = $this->getProcReturnCode($raw3DAuthResponseData);
-        $threeDAuthStatus = ('1' === $raw3DAuthResponseData['3DStatus']) ? self::TX_APPROVED : self::TX_DECLINED;
+        $mdStatus         = $this->extractMdStatus($raw3DAuthResponseData);
+        $threeDAuthStatus = $this->is3dAuthSuccess($mdStatus) ? self::TX_APPROVED : self::TX_DECLINED;
 
         $result = [
             'transaction_security' => null,
@@ -483,7 +501,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
             'tx_status'            => $raw3DAuthResponseData['TxnResult'],
-            'md_status'            => $raw3DAuthResponseData['3DStatus'],
+            'md_status'            => $mdStatus,
             'md_error_code'        => (self::TX_DECLINED === $threeDAuthStatus) ? $procReturnCode : null,
             'md_error_message'     => (self::TX_DECLINED === $threeDAuthStatus) ? $raw3DAuthResponseData['ErrMsg'] : null,
             'md_status_detail'     => $this->getStatusDetail($procReturnCode),

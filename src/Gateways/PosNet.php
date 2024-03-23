@@ -83,40 +83,35 @@ class PosNet extends AbstractGateway
 
         $contents           = $this->serializer->encode($requestData, $txType);
         $userVerifyResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
-        $bankResponse       = null;
 
-        //if 3D Authentication is successful:
-        if (\in_array($userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'], [1, 2, 3, 4])) {
-            if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $userVerifyResponse['oosResolveMerchantDataResponse'])) {
-                throw new HashMismatchException();
-            }
+        if (!$this->is3DAuthSuccess($userVerifyResponse)) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, null, $txType, $order);
+            $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
-            $this->logger->debug('finishing payment', [
-                'md_status' => $userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
-            ]);
-            $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
-
-            $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
-            $this->eventDispatcher->dispatch($event);
-            if ($requestData !== $event->getRequestData()) {
-                $this->logger->debug('Request data is changed via listeners', [
-                    'txType'      => $event->getTxType(),
-                    'bank'        => $event->getBank(),
-                    'initialData' => $requestData,
-                    'updatedData' => $event->getRequestData(),
-                ]);
-                $requestData = $event->getRequestData();
-            }
-
-            $contents     = $this->serializer->encode($requestData, $txType);
-            $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
-        } else {
-            $this->logger->error('3d auth fail', [
-                'md_status' => $userVerifyResponse['oosResolveMerchantDataResponse']['mdStatus'],
-            ]);
+            return $this;
         }
 
-        end:
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $userVerifyResponse['oosResolveMerchantDataResponse'])) {
+            throw new HashMismatchException();
+        }
+
+        $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $contents     = $this->serializer->encode($requestData, $txType);
+        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+
         $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 

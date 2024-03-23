@@ -209,6 +209,22 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @inheritDoc
+     */
+    public function is3dAuthSuccess(?string $mdStatus): bool
+    {
+        return \in_array($mdStatus, ['1', '2', '3', '4'], true);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function extractMdStatus(array $raw3DAuthResponseData): ?string
+    {
+        return $raw3DAuthResponseData['3DStatus'] ?? null;
+    }
+
+    /**
      * @param string $mdStatus
      *
      * @return string
@@ -218,7 +234,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $transactionSecurity = 'MPI fallback';
         if ('1' === $mdStatus) {
             $transactionSecurity = 'Full 3D Secure';
-        } elseif (in_array($mdStatus, ['2', '3', '4'])) {
+        } elseif (\in_array($mdStatus, ['2', '3', '4'])) {
             $transactionSecurity = 'Half 3D Secure';
         }
 
@@ -323,7 +339,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             '3d_auth_response'   => $raw3DAuthResponseData,
             'provision_response' => $rawPaymentResponseData,
         ]);
-        $status              = $raw3DAuthResponseData['mdStatus'];
+        $mdStatus            = $this->extractMdStatus($raw3DAuthResponseData);
         $procReturnCode      = $this->getProcReturnCode($raw3DAuthResponseData);
         $paymentResponseData = $this->getDefaultPaymentResponse($txType, $paymentModel);
         if (null !== $rawPaymentResponseData) {
@@ -334,9 +350,9 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'order_id'             => $paymentResponseData['order_id'] ?? $raw3DAuthResponseData['OrderId'],
             'proc_return_code'     => $paymentResponseData['proc_return_code'] ?? $procReturnCode,
             'ref_ret_num'          => $paymentResponseData['ref_ret_num'] ?? $raw3DAuthResponseData['HostRefNum'],
-            'transaction_security' => $this->mapResponseTransactionSecurity($raw3DAuthResponseData['mdStatus']),
+            'transaction_security' => null === $mdStatus ? null : $this->mapResponseTransactionSecurity($mdStatus),
             'payment_model'        => $paymentModel,
-            'md_status'            => $status,
+            'md_status'            => $mdStatus,
             'masked_number'        => $raw3DAuthResponseData['Pan'],
             'month'                => null,
             'year'                 => null,
