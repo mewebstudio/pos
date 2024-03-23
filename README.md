@@ -10,19 +10,19 @@ Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal
 
 ### Deskteklenen Payment Gateway'ler / Bankalar:
 
-| Gateway                                                                                                     | Desktekleyen<br/>bankalar                                                      | Desteklenen<br/>Diğer<br/>İşlemler                        | Desteklenen Sorgular                                                                                |
-|-------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|-----------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
-| Tosla (AKÖde)                                                                                               | ?                                                                              | NonSecure<br/>3DPay<br/>3DHost                            | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama                                |
-| EST POS<br/>(Asseco/Payten)<br/>_deprecated_                                                                | Akbank<br/>TEB<br/>İşbank<br/>Şekerbank<br/>Halkbank<br/>Finansbank<br/>Ziraat | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost<br/>3DPayHost | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama                                |
-| EST V3 POS<br/><br/>EstPos altyapının<br/>daha güvenli<br/>(sha512) hash<br/>algoritmasıyla<br/>uygulaması. | -----"-----                                                                    | -----"-----                                               | -----"-----                                                                                         |
-| PayFlex MPI VPOS V4                                                                                         | Ziraat<br/>Vakıfbank<br/>İşbank                                                | NonSecure<br/>3DSecure<br/>                               | İptal<br/>İade<br/>Durum sorgulama                                                                  |
-| PayFlex<br/>Common Payment V4<br/>(Ortak Ödeme)                                                             | Ziraat<br/>Vakıfbank<br/>İşbank                                                | NonSecure<br/>3DPay<br/>3DHost                            | İptal<br/>İade                                                                                      |
-| Garanti Virtual POS                                                                                         | Garanti                                                                        | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost               | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama                                |
-| PosNet                                                                                                      | YapıKredi                                                                      | NonSecure<br/>3DSecure<br/>                               | İptal<br/>İade<br/>Durum sorgulama                                                                  |
-| PosNetV1<br/>(JSON API)                                                                                     | Albaraka Türk                                                                  | NonSecure<br/>3DSecure                                    | İptal<br/>İade<br/>Durum sorgulama                                                                  |
-| PayFor                                                                                                      | Finansbank<br/>Enpara                                                          | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost               | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama<br/>Geçmiş İşlemleri sorgulama |
-| InterPOS                                                                                                    | Deniz bank                                                                     | NonSecure<br/> 3DSecure<br/>3DPay<br/>3DHost              | İptal<br/>İade<br/>Durum sorgulama                                                                  |
-| Kuveyt POS                                                                                                  | Kuveyt Türk                                                                    | 3DSecure                                                  | İptal<br/>İade<br/>Durum sorgulama<br/>(SOAP API)                                                   |
+| Gateway                                                                                                     | Desktekleyen<br/>bankalar                                                      | Desteklenen<br/>Ödeme Tipleri                                                   | Desteklenen Sorgular                                                                                |
+|-------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|---------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------|
+| Tosla (AKÖde)                                                                                               | ?                                                                              | NonSecure<br/>3DPay<br/>3DHost                                                  | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama                                |
+| EST POS<br/>(Asseco/Payten)<br/>_deprecated_                                                                | Akbank<br/>TEB<br/>İşbank<br/>Şekerbank<br/>Halkbank<br/>Finansbank<br/>Ziraat | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost<br/>3DPayHost<br/>Tekrarlanan Ödeme | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama                                |
+| EST V3 POS<br/><br/>EstPos altyapının<br/>daha güvenli<br/>(sha512) hash<br/>algoritmasıyla<br/>uygulaması. | -----"-----                                                                    | -----"-----                                                                     | -----"-----                                                                                         |
+| PayFlex MPI VPOS V4                                                                                         | Ziraat<br/>Vakıfbank<br/>İşbank                                                | NonSecure<br/>3DSecure<br/>Tekrarlanan Ödeme                                    | İptal<br/>İade<br/>Durum sorgulama                                                                  |
+| PayFlex<br/>Common Payment V4<br/>(Ortak Ödeme)                                                             | Ziraat<br/>Vakıfbank<br/>İşbank                                                | NonSecure<br/>3DPay<br/>3DHost                                                  | İptal<br/>İade                                                                                      |
+| Garanti Virtual POS                                                                                         | Garanti                                                                        | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost<br/>Tekrarlanan Ödeme               | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama                                |
+| PosNet                                                                                                      | YapıKredi                                                                      | NonSecure<br/>3DSecure<br/>                                                     | İptal<br/>İade<br/>Durum sorgulama                                                                  |
+| PosNetV1<br/>(JSON API)                                                                                     | Albaraka Türk                                                                  | NonSecure<br/>3DSecure                                                          | İptal<br/>İade<br/>Durum sorgulama                                                                  |
+| PayFor                                                                                                      | Finansbank<br/>Enpara                                                          | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost                                     | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama<br/>Geçmiş İşlemleri sorgulama |
+| InterPOS                                                                                                    | Deniz bank                                                                     | NonSecure<br/> 3DSecure<br/>3DPay<br/>3DHost                                    | İptal<br/>İade<br/>Durum sorgulama                                                                  |
+| Kuveyt POS                                                                                                  | Kuveyt Türk                                                                    | 3DSecure                                                                        | İptal<br/>İade<br/>Durum sorgulama<br/>(SOAP API)                                                   |
 
 
 ### Ana başlıklar
@@ -84,7 +84,7 @@ Son yapılan değişiklikler için [`CHANGELOG`](./docs/CHANGELOG.md).
 
 ### Kurulum
 ```sh
-$ composer require mews/pos
+$ composer require symfony/event-dispatcher mews/pos
 ```
 Kütüphane belli bir HTTP Client'ile zorunlu bağımlılığı yoktur.
 PSR-18 HTTP Client standarta uyan herhangi bir kütüphane kullanılabilinir.
@@ -140,11 +140,11 @@ Bundan sonra nesnemizi, yeni ayarlarımıza göre oluşturup kullanmamız gereki
 ```php
 //yeni ayar yolu ya da degeri
 $yeniAyarlar = require './pos_ayarlar.php';
-$pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeniAyarlar);
+$pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeniAyarlar, $eventDispatcher);
 ```
 
 ## Ornek Kodlar
-`/examples` dizini içerisinde.
+`/examples` ve `/docs` dizini içerisinde.
 
 3D ödeme örnek kodlar genel olarak kart bilgilerini website sunucusuna POST eder (`index.php` => `form.php`),
 ondan sonra da işlenip gateway'e yönlendiriliyor.

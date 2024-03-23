@@ -79,6 +79,23 @@ $order = [
     'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
 
+if ($tekrarlanan) { // recurring payments
+    // Desteleyen Gatewayler: GarantiPos, EstPos, EstV3Pos, PayFlexV4
+    $order['installment'] = 0; // Tekrarlayan ödemeler taksitli olamaz.
+
+    $recurringFrequency     = 3;
+    $recurringFrequencyType = 'MONTH'; // DAY|WEEK|MONTH|YEAR
+    $endPeriod              = $installment * $recurringFrequency;
+
+    $order['recurring'] = [
+        'frequency'     => $recurringFrequency,
+        'frequencyType' => $recurringFrequencyType,
+        'installment'   => $installment,
+        'startDate'     => new \DateTimeImmutable(), // GarantiPos optional
+        'endDate'       => (new \DateTime())->modify(\sprintf('+%d %s', $endPeriod, $recurringFrequencyType)), // Sadece PayFlexV4'te zorunlu
+    ];
+}
+
 $session->set('order', $order);
 
 // Kredi kartı bilgileri

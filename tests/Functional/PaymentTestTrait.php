@@ -33,7 +33,7 @@ trait PaymentTestTrait
         ];
 
         if ($tekrarlanan) {
-            // Desteleyen Gatewayler: GarantiPos, EstPos, PayFlexV4
+            // Desteleyen Gatewayler: GarantiPos, EstPos, EstV3Pos, PayFlexV4
 
             $order['installment'] = 0; // Tekrarlayan ödemeler taksitli olamaz.
 

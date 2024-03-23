@@ -1,52 +1,73 @@
 # Changelog
-## [1.0.0] - 2024-01-??
+## [1.0.0] - 2024-03-30
 ### New Features
 
+- `/docs` altında örnek kodlar eklendi (issue #148).
 - API istek verilerinin gateway API'na gönderilmeden önce değiştirebilme.
 Bu özellik [psr/event-dispatcher-implementation](https://packagist.org/providers/psr/event-dispatcher-implementation)
-uygulaması kullanılarak eklendi.
-Kullanım örnekleri için `/examples` ve `/docs` klasörüne bakabilirsiniz.
+uygulaması kullanılarak eklendi (issue #178).
+Kullanım örnekleri için `/examples` ve `/docs` klasörüne bakınız.
 Eklenen Eventler:
   - `\Mews\Pos\Event\Before3DFormHashCalculatedEvent`
   - `\Mews\Pos\Event\RequestDataPreparedEvent`
-- **ToslaPos** (Ak Öde) entegrasonu
-- Param birimleri için yeni constantlar eklendi (örn. `PosInterface::CURRENCY_TRY`)
+- **ToslaPos** (Ak Öde) entegrasonu (issue #160).
+- Para birimleri için yeni constantlar eklendi (örn. `PosInterface::CURRENCY_TRY`)
 - Yeni `\Mews\Pos\PosInterface::isSupportedTransaction()` methodu eklendi.
-Bu method ile kütüphanenin ilgili gateway için hangi işlemleri destekledigini kontrol edebilirsiniz.
+Bu method ile kütüphanenin ilgili gateway için hangi işlemleri desteklediğini kontrol edebilirsiniz.
 
 ### Changed
 - Kütüphane PHP sürümü **v7.4**'e yükseltildi.
+- Deprecated olan `VakifBankCPPos` ve `PayFlexAccount` gateway sınıflar kaldırıldı.
+Yerine `PayFlexCPV4Pos` ve `PayFlexV4Pos` kullanabilirsiniz.
+- `AccountFactory::createVakifBankAccount()` method silindi, yerine `AccountFactory::createPayFlexAccount()` kullanabilirsiniz.
 - Constant'lar `AbstractGateway` sınıfından `PosInterface`'e taşındı.
 - Constant'lar `AbstractCreditCard` sınıfından `CreditCardInterface`'e taşındı.
-- Config yapısı değiştirildi.
-**Test** ve **Prod** ortamları için artık farklı dosyalar kullanılması gerekiyor.
+- Config yapısı değişdi.
+**Test** ve **Prod** ortamları için artık farklı config dosyalar kullanılması gerekiyor.
 Bu değişim sonucunda `\Mews\Pos\PosInterface::setTestMode();` işleminin çok da önemi kalmadı.
-Yine de **GarantiPos** için gereklidir. Yeni formata için `/config` klasörüne bakınız.
-- Constant isimleri değiştirildi
+Yine de **GarantiPos** için `setTestMode()` kullanılmalıdır. Yeni format için `/config` klasörüne bakınız.
+- Bazı constant isimleri değişdi
   - `TX_PAY` => `TX_TYPE_PAY_AUTH`
   - `TX_PRE_PAY` => `TX_TYPE_PAY_PRE_AUTH`
   - `TX_POST_PAY` => `TX_TYPE_PAY_POST_AUTH`
 - `\Mews\Pos\PosInterface::prepare()` methodu kaldırıldı.
 - Pos sınıfları oluşturmak için kullanılan `\Mews\Pos\Factory\PosFactory::createPosGateway()`
-methodu artık konfigürasyon yolunu (örnek: `./config/pos_test.php`) kabul etmiyor.
+methodu artık konfigürasyon yolunu (örn. `./config/pos_test.php`) kabul etmiyor.
 Config verisi **array** olarak sağlanması gerekiyor.
 - `\Mews\Pos\Factory\PosFactory::createPosGateway()`'a **EventDispatcher** parametresi eklendi.
-- $order  verisinden bir zorunlu olmayan alanlar kaldırıldı:
+- `$order` verisinden bazı zorunlu olmayan alanlar kaldırıldı:
   - email
   - name
   - user_id
   - rand (artık kütüphane kendisi oluşturuyor)
 
 - _vftcode_ (PosNet), _koiCode_ (PosNet), _imece_ kart (EstPos), _extraData_ (EstPos),
-_callbackUrl_ (EstPos) gibi ekstra değerler kütüphanedeki kodundan kaldırıldı.
+_callbackUrl_ (EstPos) gibi ekstra değerler kütüphaneden kaldırıldı.
 Yerine yeni eklenen eventlarla API isteklere ekstra değerler ekleyebilirsiniz.
-Kullanım örneği için örnek kodlara bakabilirsiniz.
+Kullanım örneği için örnek kodlara bakınız.
 - **Tekrarlanan ödeme** yapısı biraz değiştirildi (örnek kodlara bakınız).
 - `$response = \Mews\Pos\PosInterface::getResponse();` veri yapısına birkaç ekstra veri eklendi.
-Artık, ödeme **iptal**, **iade**, **durum** sorgulama işlemleri için  `$response` içindeki veriler yeterli.
-- `PosInterface`'e ödeme durumu (order_status) için yeni constant'lar
-(örn: `PAYMENT_STATUS_ERROR`, `PAYMENT_STATUS_PAYMENT_COMPLETED`) eklendi
+Artık ödeme **iptal**, **iade**, **durum** sorgulama işlemleri yapabilmek için `$response` içindeki veriler yeterli.
+- `PosInterface`'e ödeme durumu response'unda yer alan `order_status` alanı için yeni constant'lar
+(örn: `PAYMENT_STATUS_ERROR`, `PAYMENT_STATUS_PAYMENT_COMPLETED`) tanıtıldı
 ve bu yeni constant'ları kullanacak şekilde güncellemeler yapıldı.
+- Yeni `PosInterface::orderHistory()` methodu eklendi.
+Siparişe ayıt geçmiş işlemleri sorgulamak için bu yeni methodu kullanmanız gerekiyor.
+- Eski `PosInterface::history()` methodu sipariş bilgisi olmadan tarih gibi kriterlerle yapılan işlemler sorgulanabilinir.
+- `history` (yeni `orderHistory`) ve `status` işlemlerin input yapısı normalize edildi.
+- `history` (yeni `orderHistory`) ve `status` işlemlerin response yapısı normalize edildi.
+- `PayForPos`'un **history** response'u normalize edildi.
+- `response` yapısında bazı parametre isimleri değişdi:
+  - trans_id    => transaction_id
+  - trans_time  => transaction_time
+- `EstPos` ve `EstV3Pos` response'undan `extra` verisi kaldırıldı.
+- `response` yapısına `installment_count` ve `transaction_time` değerleri eklendi.
+- `CreditCardFactory::create()` method ismi `CreditCardFactory::createForGateway()` olarak değiştirildi.
+
+### Fixed
+- `PayFor` history response'i işlerken oluşan exception düzeltildi.
+- Fix issue #176 - `EstPos` ve `EstV3Pos`'dan **callbackUrl** kaldırıldı.
+- Fix issue #187 - 3D_SECURE ödemede 3D hash kontrolü artık MD/3D status kontrolünden sonra yapılıyor.
 
 ## [0.16.0] - 2023-11-20
 ### New Features
