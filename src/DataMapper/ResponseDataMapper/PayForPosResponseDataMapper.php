@@ -384,7 +384,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function is3dAuthSuccess(?string $mdStatus): bool
     {
-        return \in_array($mdStatus, ['1'], true);
+        return $mdStatus === '1';
     }
 
     /**

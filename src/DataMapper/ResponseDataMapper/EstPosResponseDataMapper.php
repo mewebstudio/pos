@@ -135,7 +135,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'eci'                  => null,
             'tx_status'            => null,
             'cavv'                 => null,
-            'md_error_message'     => !$this->is3dAuthSuccess($mdStatus) ? $raw3DAuthResponseData['mdErrorMsg'] : null,
+            'md_error_message'     => $this->is3dAuthSuccess($mdStatus) ? null : $raw3DAuthResponseData['mdErrorMsg'],
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
@@ -450,7 +450,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function is3dAuthSuccess(?string $mdStatus): bool
     {
-        return \in_array($mdStatus, ['1'], true);
+        return $mdStatus === '1';
     }
 
     /**
