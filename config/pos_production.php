@@ -153,7 +153,7 @@ return [
             'class' => Mews\Pos\Gateways\KuveytPos::class,
             'gateway_endpoints'  => [
                 'payment_api' => 'https://boa.kuveytturk.com.tr/sanalposservice/Home/ThreeDModelProvisionGate',
-                'gateway_3d'  => 'https://boa.kuveytturk.com.tr/sanalposservice/Home/ThreeDModelPayGatex',
+                'gateway_3d'  => 'https://boa.kuveytturk.com.tr/sanalposservice/Home/ThreeDModelPayGate',
                 'query_api'   => 'https://boa.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
             ],
         ],
