@@ -18,9 +18,6 @@ use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Serializer;
 use Throwable;
-use function in_array;
-use function sprintf;
-use function strip_tags;
 
 class KuveytPosSerializer implements SerializerInterface
 {
@@ -57,10 +54,10 @@ class KuveytPosSerializer implements SerializerInterface
     public function encode(array $data, string $txType)
     {
         if (PosInterface::TX_TYPE_HISTORY === $txType || PosInterface::TX_TYPE_ORDER_HISTORY === $txType) {
-            throw new DomainException(sprintf('Serialization of the transaction %s is not supported', $txType));
+            throw new DomainException(\sprintf('Serialization of the transaction %s is not supported', $txType));
         }
 
-        if (in_array($txType, $this->nonPaymentTransactions, true)) {
+        if (\in_array($txType, $this->nonPaymentTransactions, true)) {
             return $data;
         }
 
@@ -72,7 +69,7 @@ class KuveytPosSerializer implements SerializerInterface
      */
     public function decode(string $data, string $txType): array
     {
-        if (in_array($txType, $this->nonPaymentTransactions, true)) {
+        if (\in_array($txType, $this->nonPaymentTransactions, true)) {
             return $this->serializer->decode($data, JsonEncoder::FORMAT);
         }
 
@@ -95,7 +92,7 @@ class KuveytPosSerializer implements SerializerInterface
      */
     private function isHTML(string $str): bool
     {
-        return $str !== strip_tags($str);
+        return $str !== \strip_tags($str);
     }
 
     /**

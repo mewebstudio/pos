@@ -30,7 +30,7 @@ class KuveytPosCrypt extends AbstractCrypt
             $hashedPassword,
         ];
 
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }
@@ -62,7 +62,7 @@ class KuveytPosCrypt extends AbstractCrypt
             $hashedPassword,
         ];
 
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }
