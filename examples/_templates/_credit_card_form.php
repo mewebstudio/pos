@@ -52,25 +52,25 @@
                 <?php endforeach; ?>
                 </select>
             </div>
-            <?php if ($pos->getCurrencies()): ?>
+            <?php if ([] !== $pos->getCurrencies()): ?>
                 <div class="form-group col-md-4">
                     <select name="currency" id="currency" class="form-control input-lg">
-                        <?php foreach ($pos->getCurrencies() as $currency => $code) : ?>
-                            <option value="<?= $currency; ?>" <?= $currency === 'TRY' ? 'selected': null ?>><?= $currency; ?></option>
+                        <?php foreach ($pos->getCurrencies() as $currency) : ?>
+                            <option value="<?= $currency; ?>" <?= $currency === \Mews\Pos\PosInterface::CURRENCY_TRY ? 'selected': null ?>><?= $currency; ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
             <?php endif; ?>
             <div class="form-group col-md-4">
                 <select name="tx" id="currency" class="form-control input-lg">
-                    <option value="<?= \Mews\Pos\Gateways\AbstractGateway::TX_PAY; ?>" selected>Ödeme</option>
-                    <option value="<?= \Mews\Pos\Gateways\AbstractGateway::TX_PRE_PAY; ?>">Ön Provizyon</option>
+                    <option value="<?= \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH; ?>" selected>Ödeme</option>
+                    <option value="<?= \Mews\Pos\PosInterface::TX_TYPE_PAY_PRE_AUTH; ?>">Ön Provizyon</option>
                 </select>
             </div>
             <div class="form-group col-md-4">
                 <select name="lang" id="lang" class="form-control input-lg">
                     <?php foreach ($pos->getLanguages() as $lang) : ?>
-                        <option value="<?= $lang; ?>" <?= $lang === \Mews\Pos\Gateways\AbstractGateway::LANG_TR ? 'selected': null ?>><?= strtoupper($lang); ?></option>
+                        <option value="<?= $lang; ?>" <?= $lang === \Mews\Pos\PosInterface::LANG_TR ? 'selected': null ?>><?= strtoupper($lang); ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -84,9 +84,11 @@
                 </div>
             </div>
             <div class="form-group col-xs-12">
+                <?php if ($paymentModel !== \Mews\Pos\PosInterface::MODEL_NON_SECURE): ?>
                 <label class="radio-inline"><input type="radio" name="payment_flow_type" value="by_redirection" checked>Redirektli ödeme</label>
                 <label class="radio-inline"><input type="radio" name="payment_flow_type" value="by_iframe">Modal box'da ödeme</label>
                 <label class="radio-inline"><input type="radio" name="payment_flow_type" value="by_popup_window">Popup Windowda ödeme</label>
+                <?php endif; ?>
             </div>
         </div>
         <hr>

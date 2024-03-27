@@ -1,39 +1,126 @@
 <?php
 
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
+use Mews\Pos\Event\RequestDataPreparedEvent;
+use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
+/**
+ * Bu kod MODEL_3D_SECURE, MODEL_3D_PAY, MODEL_3D_HOST odemeler icin gereken HTML form verisini olusturur.
+ * Odeme olmayan (iade, iptal, durum) veya MODEL_NON_SECURE islemlerde kullanilmaz.
+ */
+
+// ilgili bankanin _config.php dosyasi load ediyoruz.
+// ornegin /examples/finansbank-payfor/3d/_config.php
 require '_config.php';
+
 require '../../_templates/_header.php';
 
 if ($request->getMethod() !== 'POST') {
     echo new RedirectResponse($baseUrl.'index.php');
     exit();
 }
-$transaction = $request->get('tx', \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
+$transaction = $request->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
 $order       = getNewOrder(
     $baseUrl,
     $ip,
-    $request->get('currency', 'TRY'),
-    $session,
+    $request->get('currency', PosInterface::CURRENCY_TRY),
     $request->get('installment'),
     $request->get('is_recurring', 0) == 1,
-    $request->get('lang', \Mews\Pos\Gateways\AbstractGateway::LANG_TR)
+    $request->get('lang', PosInterface::LANG_TR)
 );
 $session->set('order', $order);
+$session->set('tx', $transaction);
 
 $card = createCard($pos, $request->request->all());
 
-/**
- * PayFlex'te provizyonu (odemeyi) tamamlamak icin tekrar kredi kart bilgileri isteniyor,
- * bu yuzden kart bilgileri kaydediyoruz
- */
-$session->set('card', $request->request->all());
-$session->set('tx', $transaction);
-
-$pos->prepare($order, $transaction, $card);
+if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
+    // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım olacak.
+    $session->set('card', $request->request->all());
+}
 
 try {
-    $formData = $pos->get3DFormData();
+
+    /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
+    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
+            /**
+             * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
+             * Ornek:
+             * if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
+             *     $data = $event->getRequestData();
+             *     $data['abcd'] = '1234';
+             *     $event->setRequestData($data);
+             * }
+             *
+             * Bu asamada bu Event sadece PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos, ToslaPos gatewayler'de trigger edilir.
+             */
+        });
+
+        /**
+         * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
+         */
+        $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event) use ($pos): void {
+            if (get_class($pos) === \Mews\Pos\Gateways\EstPos::class || get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+                /**
+                 * Örnek 1: İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
+                    $supportedPaymentModels = [
+                    \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY,
+                    \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY_HOSTING,
+                    \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
+                    ];
+                    if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
+                    $formInputs           = $event->getFormInputs();
+                    $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
+                    $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
+                    $event->setFormInputs($formInputs);
+                }*/
+            }
+            if (get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+//                // Örnek 2: callbackUrl eklenmesi
+//                $formInputs                = $event->getFormInputs();
+//                $formInputs['callbackUrl'] = $formInputs['failUrl'];
+//                $formInputs['refreshTime'] = '10'; // birim: saniye; callbackUrl sisteminin doğru çalışması için eklenmesi gereken parametre
+//                $event->setFormInputs($formInputs);
+            }
+        });
+
+
+
+    $formData = $pos->get3DFormData($order, $paymentModel, $transaction, $card);
+
+
+    /**
+     * PosNet vftCode - VFT Kampanya kodunu. Vade Farklı işlemler için kullanılacak olan kampanya kodunu belirler.
+     * Üye İşyeri için tanımlı olan kampanya kodu, İşyeri Yönetici Ekranlarına giriş
+     * yapıldıktan sonra, Üye İşyeri bilgileri sayfasından öğrenilebilinir.
+     */
+    if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
+        // YapiKredi
+        // $formData['inputs']['vftCode'] = 'xxx';
+    }
+    if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
+        // Albaraka
+        // $formData['inputs']['VftCode'] = 'xxx';
+    }
+
+    /**
+     * KOICode - Joker Vadaa Kampanya Kodu.
+     * Degerler - 1: Ek Taksit 2: Taksit Atlatma 3: Ekstra Puan 4: Kontur Kazanım 5: Ekstre Erteleme 6: Özel Vade Farkı
+     * İşyeri, UseJokerVadaa alanını 1 yaparak bankanın joker vadaa sorgu ve müşteri joker vadaa
+     * kampanya seçim ekranının açılmasını ve Joker Vadaa kampanya seçiminin müşteriye bırakılmasını
+     * sağlayabilir. İşyeri, müşterilere ortak ödeme sayfasında kampanya sunulmasını istemiyorsa
+     * UseJokerVadaa alanını 0 set etmesi gerekir.
+     */
+    if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
+        // Albaraka
+        // $formData['inputs']['UseJokerVadaa'] = '1';
+        // $formData['inputs']['KOICode']       = 'xxx';
+    }
+    if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
+        // YapiKredi
+        // $formData['inputs']['useJokerVadaa'] = '1';
+    }
+
     //dd($formData);
 } catch (\Throwable $e) {
     dd($e);
@@ -41,32 +128,60 @@ try {
 $flowType = $request->get('payment_flow_type');
 ?>
 
-<?php if ($flowType === 'by_redirection') { ?>
+
+    <!------------------------------------------------------------------------------------------------------------->
+    <!--
+        Alttaki kodlarda secilen islem akisina gore
+            - redirect ile odeme
+            - modal box'ta odeme
+            - pop up window'da odeme
+        gereken kodlari calistiryoruz.
+        Size gereken odeme akis yontemine gore alttaki kodlari kullaniniz.
+    -->
+    <!------------------------------------------------------------------------------------------------------------->
+
+<?php if ('by_redirection' === $flowType) : ?>
+<!--
+    Sık kullanılan yöntem, 3D form verisini bir HTML form içine basıp JS ile otomatik submit ediyoruz.
+    Submit sonucu kullanıcı banka sayfasıne yönlendirilir, işlem sonucundan ise duruma göre websitinizin
+    success veya fail URL'na geri yönlendilir.
+-->
     <?php require '../../_templates/_redirect_form.php'; ?>
     <script>
         $(function () {
-            var redirectForm = $('form.redirect-form')
+            let redirectForm = $('form.redirect-form')
             if (redirectForm.length) {
                 redirectForm.submit()
             }
         })
     </script>
-<?php } elseif ($flowType === 'by_iframe' || $flowType === 'by_popup_window') {
 
+
+
+
+<?php elseif ('by_iframe' === $flowType || 'by_popup_window' === $flowType) :
     ob_start();
     include('../../_templates/_redirect_iframe_or_popup_window_form.php');
-    $renderedForm = ob_get_contents();
-    ob_end_clean();
+    $renderedForm = ob_get_clean();
     ?>
+<!--
+    $renderedForm içinde 3D formun verileriyle oluşturulan HTML form bulunur.
+    alttaki kodlar ise bu $renderedForm verisini seçilen $flowType'a göre iframe modal box içine veya pop up window içine basar.
+-->
     <div class="alert alert-dismissible" role="alert" id="result-alert">
+        <!-- buraya odeme basarili olup olmadini alttaki JS kodlariyla basiyoruz. -->
     </div>
     <pre id="result-response">
-</pre>
+        <!-- buraya odeme sonuc verilerinin alttaki JS kodlariyla basiyoruz-->
+    </pre>
 
     <script>
         $('#result-alert').hide();
         let messageReceived = false;
 
+        /**
+         * Bankadan geri websitenize yönlendirme yapıldıktan sonra alınan sonuca göre başarılı/başarısız alert box'u gösterir.
+         */
         let displayResponse = function (event) {
             let alertBox = $('#result-alert');
             let data = JSON.parse(event.data);
@@ -81,8 +196,12 @@ $flowType = $request->get('payment_flow_type');
             alertBox.show();
         }
     </script>
-<?php } ?>
-<?php if ($flowType === 'by_iframe') { ?>
+<?php endif; ?>
+
+
+
+
+<?php if ('by_iframe' === $flowType) : ?>
     <div class="modal fade" tabindex="-1" role="dialog" id="iframe-modal" data-keyboard="false" data-backdrop="static">
         <div class="modal-dialog" role="document" id="iframe-modal-dialog" style="width: 426px;">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"
@@ -90,12 +209,22 @@ $flowType = $request->get('payment_flow_type');
         </div>
     </div>
     <script>
+        /**
+         * Bankadan geri websitenize yönlendirme yapıldıktan sonra ödeme sonuç verisi iframe/popup içinde olur.
+         * Modal box'ta açılan iframe'den ana pencereye JS'in windowlar arası Message API'ile ödeme sonucunu ana window'a gönderiyoruz.
+         * Alttaki kod ise bu message API event'ni dinler,
+         * message (yani bankadan dönen ödeme sonucu) aldığında sonucu kullanıcıya ana window'da gösterir
+         */
         window.addEventListener('message', function (event) {
             messageReceived = true;
             displayResponse(event);
             $('#iframe-modal').modal('hide');
         });
 
+        /**
+         * modal box'ta iframe ile ödeme yöntemi seçilmiş.
+         * modal box içinde yeni iframe oluşturuyoruz ve iframe içine $renderedForm verisini basıyoruz.
+         */
         let iframe = document.createElement('iframe');
         document.getElementById("iframe-modal-dialog").appendChild(iframe);
         $(iframe).height('500px');
@@ -114,11 +243,45 @@ $flowType = $request->get('payment_flow_type');
             }
         });
     </script>
-<?php } elseif ($flowType === 'by_popup_window') { ?>
+
+
+
+
+<?php elseif ('by_popup_window' === $flowType) : ?>
     <script>
+
         windowWidth = 400;
         let leftPosition = (screen.width / 2) - (windowWidth / 2);
         let popupWindow = window.open('about:blank', 'popup_window', 'toolbar=no,scrollbars=no,location=no,statusbar=no,menubar=no,resizable=no,width=' + windowWidth + ',height=500,left=' + leftPosition + ',top=234');
+        if (null === popupWindow) {
+            // pop up bloke edilmis.
+            alert("pop window'a izin veriniz.");
+        } else {
+            /**
+             * Popup ile ödeme yöntemi seçilmiş.
+             * Popup window içine $renderedForm verisini basıyoruz.
+             */
+            popupWindow.document.write(`<?= $renderedForm; ?>`);
+
+            // fokusu popup windowa odakla
+            window.target = 'popup_window';
+
+            /**
+             * Bankadan geri websitenize yönlendirme yapıldıktan sonra ödeme sonuç verisi iframe/popup içinde olur.
+             * Popup'tan ana pencereye JS'in windowlar arası Message API'ile ödeme sonucunu ana window'a gönderiyoruz.
+             * Alttaki kod ise bu message API event'ni dinler,
+             * message (yani bankadan dönen ödeme sonucu) aldığında sonucu kullanıcıya ana window'da gösterir
+             */
+            window.addEventListener('message', function (event) {
+                messageReceived = true;
+                displayResponse(event);
+                popupWindow.close();
+            });
+        }
+        /**
+         * kullanıcı ödeme işlemine devam etmeden popup window'u kapatabilir.
+         * Burda o durumu kontrol ediyoruz.
+         */
         let closeInterval = setInterval(function () {
             if (popupWindow.closed && !messageReceived) {
                 // windows is closed without completing payment
@@ -129,19 +292,7 @@ $flowType = $request->get('payment_flow_type');
                 alertBox.show();
             }
         }, 1000);
-        if (null === popupWindow) {
-            // pop up bloke edilmis.
-            alert("pop window'a izin veriniz.");
-        } else {
-            popupWindow.document.write(`<?= $renderedForm; ?>`);
-            window.target = 'popup_window';
-            window.addEventListener('message', function (event) {
-                messageReceived = true;
-                displayResponse(event);
-                popupWindow.close();
-            });
-        }
     </script>
-<?php } ?>
+<?php endif; ?>
 <?php
 require '../../_templates/_footer.php';

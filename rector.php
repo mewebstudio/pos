@@ -4,45 +4,45 @@ declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
 use Rector\Set\ValueObject\LevelSetList;
-use Rector\Set\ValueObject\SetList;
 
-return static function (RectorConfig $rectorConfig): void {
-    $rectorConfig->paths([
+return RectorConfig::configure()
+    ->withPaths([
         __DIR__.'/config',
         __DIR__.'/src',
         __DIR__.'/tests',
-    ]);
-
-    $rectorConfig->sets([
-        SetList::CODE_QUALITY,
-        SetList::CODING_STYLE,
-        SetList::EARLY_RETURN,
-        SetList::DEAD_CODE,
-        SetList::PSR_4,
-        LevelSetList::UP_TO_PHP_72,
-    ]);
-
-    $rectorConfig->rules([
-        \Rector\CodingStyle\Rector\MethodCall\PreferThisOrSelfMethodCallRector::class,
-        \Rector\CodingStyle\Rector\ClassMethod\DataProviderArrayItemsNewlinedRector::class,
-        \Rector\TypeDeclaration\Rector\ClassMethod\ArrayShapeFromConstantArrayReturnRector::class,
-    ]);
-
-    $rectorConfig->skip([
-        \Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector::class,
-        \Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector::class,
-        \Rector\TypeDeclaration\Rector\ClassMethod\ArrayShapeFromConstantArrayReturnRector::class => [
-            __DIR__ . '/src/DataMapper/ResponseDataMapper',
+    ])
+    ->withSkip([
+        \Rector\Naming\Rector\ClassMethod\RenameParamToMatchTypeRector::class => [
+            __DIR__.'/src/Exceptions',
         ],
-    ]);
+    ])
+    ->withSets([
+        LevelSetList::UP_TO_PHP_74,
+    ])
+    ->withSkip([
+        \Rector\Php73\Rector\FuncCall\JsonThrowOnErrorRector::class,
+        \Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector::class,
+        \Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector::class,
+        \Rector\Php74\Rector\Property\RestoreDefaultNullToNullableTypePropertyRector::class,
+        \Rector\Php74\Rector\LNumber\AddLiteralSeparatorToNumberRector::class,
 
-    $rectorConfig->ruleWithConfiguration(\Rector\CodingStyle\Rector\FuncCall\ConsistentPregDelimiterRector::class, [
-        \Rector\CodingStyle\Rector\FuncCall\ConsistentPregDelimiterRector::DELIMITER => '/',
-    ]);
+        \Rector\Naming\Rector\Class_\RenamePropertyToMatchTypeRector::class,
+        \Rector\Naming\Rector\ClassMethod\RenameVariableToMatchNewTypeRector::class,
+        \Rector\Naming\Rector\Assign\RenameVariableToMatchMethodCallReturnTypeRector::class,
+        \Rector\Naming\Rector\Foreach_\RenameForeachValueVariableToMatchExprVariableRector::class,
 
-    $rectorConfig->ruleWithConfiguration(\Rector\CodingStyle\Rector\Property\InlineSimplePropertyAnnotationRector::class, [
-        'var',
-        'phpstan-var',
-        'property',
-    ]);
-};
+        \Rector\TypeDeclaration\Rector\ClassMethod\NumericReturnTypeFromStrictScalarReturnsRector::class,
+        \Rector\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictScalarReturnExprRector::class,
+        \Rector\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictParamRector::class,
+    ])
+    ->withPreparedSets(
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+    );

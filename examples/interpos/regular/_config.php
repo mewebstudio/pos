@@ -11,6 +11,7 @@ $shopCode = '3123';
 //account bilgileri kendi account bilgilerinizle degistiriniz
 $account = \Mews\Pos\Factory\AccountFactory::createInterPosAccount('denizbank', $shopCode, $userCode, $userPass);
 
-$pos = getGateway($account);
+$pos = getGateway($account, $eventDispatcher);
 
 $templateTitle = 'Regular Payment';
+$paymentModel = \Mews\Pos\PosInterface::MODEL_NON_SECURE;

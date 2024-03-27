@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Exceptions;
 
@@ -10,8 +13,7 @@ use Throwable;
  */
 class CardTypeRequiredException extends DomainException
 {
-    /** @var string */
-    private $gatewayName;
+    private string $gatewayName;
 
     /**
      * BankNotFoundException constructor.

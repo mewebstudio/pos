@@ -1,39 +1,44 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 
 class KuveytPosCrypt extends AbstractCrypt
 {
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        $hashedPassword = $this->hashString($account->getStoreKey());
+        if (null === $posAccount->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
+
+        $hashedPassword = $this->hashString($posAccount->getStoreKey());
 
         $hashData = [
-            $account->getClientId(),
-            $requestData['id'],
-            $requestData['amount'],
-            $requestData['success_url'],
-            $requestData['fail_url'],
-            $account->getUsername(),
+            $posAccount->getClientId(),
+            $requestData['MerchantOrderId'],
+            $requestData['Amount'],
+            $requestData['OkUrl'],
+            $requestData['FailUrl'],
+            $posAccount->getUsername(),
             $hashedPassword,
         ];
 
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }
 
     /**
-     * todo implement
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
         return true;
     }
@@ -41,19 +46,23 @@ class KuveytPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        $hashedPassword = $this->hashString($account->getStoreKey());
+        if (null === $posAccount->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
+
+        $hashedPassword = $this->hashString($posAccount->getStoreKey());
 
         $hashData = [
-            $account->getClientId(),
-            $requestData['id'],
-            $requestData['amount'],
-            $account->getUsername(),
+            $posAccount->getClientId(),
+            $requestData['MerchantOrderId'],
+            $requestData['Amount'],
+            $posAccount->getUsername(),
             $hashedPassword,
         ];
 
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }

@@ -1,29 +1,30 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Psr\Log\LogLevel;
 
 class InterPosCrypt extends AbstractCrypt
 {
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         $hashData = [
-            $account->getClientId(),
-            $requestData['id'],
-            $requestData['amount'],
-            $requestData['success_url'],
-            $requestData['fail_url'],
-            $txType,
-            $requestData['installment'],
-            $requestData['rand'],
-            $account->getStoreKey(),
+            $posAccount->getClientId(),
+            $requestData['OrderId'],
+            $requestData['PurchAmount'],
+            $requestData['OkUrl'],
+            $requestData['FailUrl'],
+            $requestData['TxnType'],
+            $requestData['InstallmentCount'],
+            $requestData['Rnd'],
+            $posAccount->getStoreKey(),
         ];
 
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);
@@ -34,26 +35,33 @@ class InterPosCrypt extends AbstractCrypt
     /**
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
-        $actualHash = $this->hashFromParams($account->getStoreKey(), $data, 'HASHPARAMS', ':');
+        if (null === $posAccount->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
+
+        $actualHash = $this->hashFromParams($posAccount->getStoreKey(), $data, 'HASHPARAMS', ':');
 
         if ($data['HASH'] === $actualHash) {
-            $this->logger->log(LogLevel::DEBUG, 'hash check is successful');
+            $this->logger->debug('hash check is successful');
 
             return true;
         }
 
-        $this->logger->log(LogLevel::ERROR, 'hash check failed', [
+        $this->logger->error('hash check failed', [
             'data' => $data,
             'generated_hash' => $actualHash,
-            'expected_hash' => $data['HASH']
+            'expected_hash' => $data['HASH'],
         ]);
 
         return false;
     }
 
-    public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string
+    /**
+     * @inheritdoc
+     */
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         throw new NotImplementedException();
     }

@@ -2,20 +2,30 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Gateways;
 
-use DOMDocument;
-use DOMNodeList;
 use Exception;
+use InvalidArgumentException;
 use LogicException;
-use Mews\Pos\DataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
+use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Psr\Log\LogLevel;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\PosInterface;
+use RuntimeException;
+use SoapClient;
+use SoapFault;
 use Symfony\Component\HttpFoundation\Request;
+use Throwable;
 
 /**
  * Kuveyt banki desteleyen Gateway
@@ -26,26 +36,30 @@ class KuveytPos extends AbstractGateway
     public const NAME = 'KuveytPos';
 
     /** @var KuveytPosAccount */
-    protected $account;
+    protected AbstractPosAccount $account;
 
     /** @var KuveytPosRequestDataMapper */
-    protected $requestDataMapper;
+    protected RequestDataMapperInterface $requestDataMapper;
 
     /** @var KuveytPosResponseDataMapper */
-    protected $responseDataMapper;
+    protected ResponseDataMapperInterface $responseDataMapper;
 
-    /**
-     * @inheritDoc
-     */
-    public function createXML(array $nodes, string $encoding = 'ISO-8859-1', bool $ignorePiNode = false): string
-    {
-        return parent::createXML(['KuveytTurkVPosMessage' => $nodes], $encoding, $ignorePiNode);
-    }
+    /** @inheritdoc */
+    protected static array $supportedTransactions = [
+        PosInterface::TX_TYPE_PAY_AUTH      => [
+            PosInterface::MODEL_3D_SECURE,
+        ],
+        PosInterface::TX_TYPE_PAY_PRE_AUTH  => false,
+        PosInterface::TX_TYPE_PAY_POST_AUTH => false,
+        PosInterface::TX_TYPE_STATUS        => true,
+        PosInterface::TX_TYPE_CANCEL        => true,
+        PosInterface::TX_TYPE_REFUND        => true,
+        PosInterface::TX_TYPE_HISTORY       => false,
+        PosInterface::TX_TYPE_ORDER_HISTORY => false,
+    ];
 
-    /**
-     * @return KuveytPosAccount
-     */
-    public function getAccount(): KuveytPosAccount
+    /** @return KuveytPosAccount */
+    public function getAccount(): AbstractPosAccount
     {
         return $this->account;
     }
@@ -53,13 +67,122 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function send($contents, string $url = null)
+    public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
-        if (in_array($this->type, [self::TX_REFUND, self::TX_STATUS, self::TX_CANCEL])) {
-            return $this->sendSoapRequest($contents);
+        throw new UnsupportedPaymentModelException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
+    {
+        throw new UnsupportedPaymentModelException();
+    }
+
+    /**
+     * Kuveyt bank dokumantasyonunda history sorgusu ile alakali hic bir bilgi yok
+     * @inheritDoc
+     */
+    public function history(array $data): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
+    }
+
+    /**
+     * Kuveyt bank dokumantasyonunda history sorgusu ile alakali hic bir bilgi yok
+     * @inheritDoc
+     */
+    public function orderHistory(array $order): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
+    {
+        $gatewayUrl = $this->get3DGatewayURL();
+        $this->logger->debug('preparing 3D form data');
+
+        return $this->getCommon3DFormData($this->account, $order, $paymentModel, $txType, $gatewayUrl, $creditCard);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface
+    {
+        throw new NotImplementedException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
+    {
+        $gatewayResponse = $request->request->get('AuthenticationResponse');
+        if (!\is_string($gatewayResponse)) {
+            throw new LogicException('AuthenticationResponse is missing');
         }
-        $url = $url ?: $this->getApiURL();
-        $this->logger->log(LogLevel::DEBUG, 'sending request', ['url' => $url]);
+
+        $gatewayResponse = \urldecode($gatewayResponse);
+        $gatewayResponse = $this->serializer->decode($gatewayResponse, $txType);
+
+        if (!$this->is3DAuthSuccess($gatewayResponse)) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, null, $txType, $order);
+
+            return $this;
+        }
+
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
+            throw new HashMismatchException();
+        }
+
+        $this->logger->debug('finishing payment');
+
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $contents     = $this->serializer->encode($requestData, $txType);
+        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+
+        $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
+
+        return $this;
+    }
+
+
+    /**
+     * @inheritDoc
+     *
+     * @return array<string, mixed>
+     */
+    protected function send($contents, string $txType, string $paymentModel, string $url = null): array
+    {
+        if (\in_array($txType, [PosInterface::TX_TYPE_REFUND, PosInterface::TX_TYPE_STATUS, PosInterface::TX_TYPE_CANCEL], true)) {
+            if (!\is_array($contents)) {
+                throw new InvalidArgumentException(sprintf('Invalid data type provided for %s transaction!', $txType));
+            }
+
+            return $this->data = $this->sendSoapRequest($contents, $txType);
+        }
+
+        $url ??= $this->getApiURL();
+        $this->logger->debug('sending request', ['url' => $url]);
         $body     = [
             'body'    => $contents,
             'headers' => [
@@ -67,26 +190,26 @@ class KuveytPos extends AbstractGateway
             ],
         ];
         $response = $this->client->post($url, $body);
-        $this->logger->log(LogLevel::DEBUG, 'request completed', ['status_code' => $response->getStatusCode()]);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
-        $responseBody = $response->getBody()->getContents();
-        try {
-            $this->data = $this->XMLStringToArray($responseBody);
-        } catch (Exception $exception) {
-            if (!$this->isHTML($responseBody)) {
-                throw new Exception($responseBody, $exception->getCode(), $exception);
-            }
-
-            //icinde form olan HTML response dondu
-            $this->data = $responseBody;
-        }
-
-        return $this->data;
+        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 
-    protected function sendSoapRequest($contents, string $url = null): array
+    /**
+     * @phpstan-param PosInterface::TX_TYPE_STATUS|PosInterface::TX_TYPE_REFUND|PosInterface::TX_TYPE_CANCEL $txType
+     *
+     * @param array<string, mixed>  $contents
+     * @param string                $txType
+     * @param non-empty-string|null $url
+     *
+     * @return array<string, mixed>
+     *
+     * @throws SoapFault
+     * @throws Throwable
+     */
+    protected function sendSoapRequest(array $contents, string $txType, string $url = null): array
     {
-        $url = $url ?: $this->getQueryAPIUrl();
+        $url ??= $this->getQueryAPIUrl();
 
         $sslConfig = [
             'allow_self_signed' => true,
@@ -100,6 +223,7 @@ class KuveytPos extends AbstractGateway
                 'crypto_method'     => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
             ];
         }
+
         $options = [
             'trace'          => true,
             'encoding'       => 'UTF-8',
@@ -108,333 +232,65 @@ class KuveytPos extends AbstractGateway
         ];
 
 
-        $client = new \SoapClient($url, $options);
+        $client = new SoapClient($url, $options);
         try {
-            $result = $client->__soapCall($this->requestDataMapper->mapTxType($this->type), ['parameters' => ['request' => $contents]]);
-        } catch (\Throwable $e) {
-            $this->logger->log(LogLevel::ERROR, 'soap error response', [
-                'message' => $e->getMessage(),
+            $result = $client->__soapCall($this->requestDataMapper->mapTxType($txType), ['parameters' => ['request' => $contents]]);
+        } catch (Throwable $throwable) {
+            $this->logger->error('soap error response', [
+                'message' => $throwable->getMessage(),
             ]);
 
-            throw $e;
+            throw $throwable;
         }
+
         if (null === $result) {
-            $this->logger->log(LogLevel::ERROR, 'Bankaya istek başarısız!', [
+            $this->logger->error('Bankaya istek başarısız!', [
                 'response' => $result,
             ]);
-            throw new \RuntimeException('Bankaya istek başarısız!');
+            throw new RuntimeException('Bankaya istek başarısız!');
         }
 
-        return json_decode(json_encode($result), true);
+        return $this->serializer->decode($result, $txType);
     }
 
     /**
-     * @inheritDoc
-     */
-    public function make3DPayment(Request $request)
-    {
-        $gatewayResponse = $request->request->get('AuthenticationResponse');
-        if (!is_string($gatewayResponse)) {
-            throw new \LogicException('AuthenticationResponse is missing');
-        }
-
-        $gatewayResponse = urldecode($gatewayResponse);
-        $gatewayResponse = $this->XMLStringToArray($gatewayResponse);
-
-        $bankResponse   = null;
-        $procReturnCode = $gatewayResponse['ResponseCode'];
-
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
-            throw new HashMismatchException();
-        }
-
-        if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-            $this->logger->log(LogLevel::DEBUG, 'finishing payment');
-
-            $contents = $this->create3DPaymentXML($gatewayResponse);
-
-            $bankResponse = $this->send($contents);
-        } else {
-            $this->logger->log(LogLevel::ERROR, '3d auth fail', ['proc_return_code' => $procReturnCode]);
-        }
-
-        $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse);
-        $this->logger->log(LogLevel::DEBUG, 'finished 3D payment', ['mapped_response' => $this->response]);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function make3DPayPayment(Request $request)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function make3DHostPayment(Request $request)
-    {
-        return $this->make3DPayPayment($request);
-    }
-
-    /**
-     * Deniz bank dokumantasyonunda history sorgusu ile alakali hic bir bilgi yok
-     * @inheritDoc
-     */
-    public function history(array $meta)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function get3DFormData(): array
-    {
-        $gatewayUrl = $this->get3DGatewayURL();
-        $this->logger->log(LogLevel::DEBUG, 'preparing 3D form data');
-
-        return $this->getCommon3DFormData($this->account, $this->order, $this->type, $gatewayUrl, $this->card);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function create3DPaymentXML($responseData)
-    {
-        $data = $this->requestDataMapper->create3DPaymentRequestData($this->account, $this->order, $this->type, $responseData);
-
-        return $this->createXML($data);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRegularPaymentXML()
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRegularPostXML()
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createHistoryXML($customQueryData)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createStatusXML()
-    {
-        return $this->requestDataMapper->createStatusRequestData($this->account, $this->order);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createCancelXML()
-    {
-        return $this->requestDataMapper->createCancelRequestData($this->account, $this->order);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function createRefundXML()
-    {
-        return $this->requestDataMapper->createRefundRequestData($this->account, $this->order);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePaymentOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'installment' => $order['installment'] ?? 0,
-            'currency'    => $order['currency'] ?? 'TRY',
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function preparePostPaymentOrder(array $order)
-    {
-        throw new NotImplementedException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareStatusOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'id'         => $order['id'],
-            'currency'   => $order['currency'] ?? 'TRY',
-            'start_date' => $order['start_date'] ?? date_create('-360 day'),
-            'end_date'   => $order['end_date'] ?? date_create(),
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareHistoryOrder(array $order)
-    {
-        return (object) $order;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareCancelOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'id'              => $order['id'],
-            'remote_order_id' => $order['remote_order_id'],
-            'ref_ret_num'     => $order['ref_ret_num'],
-            'auth_code'       => $order['auth_code'],
-            'trans_id'        => $order['trans_id'],
-            'amount'          => $order['amount'],
-            'currency'        => $order['currency'] ?? 'TRY',
-        ]);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    protected function prepareRefundOrder(array $order)
-    {
-        return (object) array_merge($order, [
-            'id'              => $order['id'],
-            'remote_order_id' => $order['remote_order_id'],
-            'ref_ret_num'     => $order['ref_ret_num'],
-            'auth_code'       => $order['auth_code'],
-            'trans_id'        => $order['trans_id'],
-            'amount'          => $order['amount'],
-            'currency'        => $order['currency'] ?? 'TRY',
-        ]);
-    }
-
-    /**
-     * @param KuveytPosAccount        $account
-     * @param                         $order
-     * @param self::TX_*              $txType
-     * @param string                  $gatewayURL
-     * @param AbstractCreditCard|null $card
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     *
+     * @param KuveytPosAccount                     $kuveytPosAccount
+     * @param array<string, int|string|float|null> $order
+     * @param string                               $paymentModel
+     * @param string                               $txType
+     * @param non-empty-string                     $gatewayURL
+     * @param CreditCardInterface|null             $creditCard
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      *
      * @throws Exception
      */
-    private function getCommon3DFormData(KuveytPosAccount $account, $order, string $txType, string $gatewayURL, ?AbstractCreditCard $card = null): array
+    private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {
-        if (!$order) {
-            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($kuveytPosAccount, $order, $paymentModel, $txType, $creditCard);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
         }
 
-        $formData     = $this->requestDataMapper->create3DEnrollmentCheckRequestData($account, $order, $txType, $card);
-        $xml          = $this->createXML($formData);
-        $bankResponse = $this->send($xml, $gatewayURL);
+        $data = $this->serializer->encode($requestData, $txType);
 
-        return $this->transformReceived3DFormData($bankResponse);
-    }
-
-    /**
-     * Diger Gateway'lerden farkli olarak bu gateway HTML form olan bir response doner.
-     * Kutupahenin islem akisina uymasi icin bu HTML form verilerini array'e donusturup, kendimiz post ediyoruz.
-     *
-     * @param string $response
-     *
-     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
-     */
-    private function transformReceived3DFormData(string $response): array
-    {
-        $dom = new DOMDocument();
         /**
-         * Kuveyt Pos started sending HTML with custom HTML tags such as <APM_DO_NOT_TOUCH>.
-         * Without LIBXML_NOERROR flag loadHTML throws "Tag apm_do_not_touch invalid in Entity" exception
+         * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse
          */
-        $dom->loadHTML($response, LIBXML_NOERROR);
+        $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
 
-        $gatewayURL = '';
-        /** @var \DOMElement $formNode */
-        $formNode = $dom->getElementsByTagName('form')->item(0);
-        /** @var \DOMNamedNodeMap $attributes */
-        $attributes = $formNode->attributes;
-        for ($i = 0; $i < $attributes->length; ++$i) {
-            /** @var \DOMAttr $attribute */
-            $attribute = $attributes->item($i);
-            if ('action' === $attribute->name) {
-                /**
-                 * banka onayladiginda gatewayURL=bankanin gateway url
-                 * onaylanmadiginda (hatali istek oldugunda) ise gatewayURL = istekte yer alan failURL
-                 */
-                $gatewayURL = $attribute->value;
-                break;
-            }
-        }
-
-        $els    = $dom->getElementsByTagName('input');
-        $inputs = $this->builtInputsFromHTMLDoc($els);
-
-        return [
-            'gateway' => $gatewayURL,
-            'method'  => 'POST',
-            'inputs'  => $inputs,
-        ];
-    }
-
-    /**
-     * html form'da gelen input degeleri array'e donusturur
-     *
-     * @param DOMNodeList $inputNodes
-     *
-     * @return array<string, string>
-     */
-    private function builtInputsFromHTMLDoc(DOMNodeList $inputNodes): array
-    {
-        $inputs = [];
-        foreach ($inputNodes as $el) {
-            $key   = null;
-            $value = null;
-
-            /** @var \DOMNamedNodeMap $attributes */
-            $attributes = $el->attributes;
-            // for each input element select name and value attribute values
-            for ($i = 0; $i < $attributes->length; ++$i) {
-                /** @var \DOMAttr $attribute */
-                $attribute = $attributes->item($i);
-                if ('name' === $attribute->name) {
-                    /** @var string|null $key */
-                    $key = $attribute->value;
-                }
-
-                if ('value' === $attribute->name) {
-                    /** @var string|null $value */
-                    $value = $attribute->value;
-                }
-            }
-
-            if ($key && null !== $value && !in_array($key, ['submit', 'submitBtn'])) {
-                $inputs[$key] = $value;
-            }
-        }
-
-        return $inputs;
+        return $this->requestDataMapper->create3DFormData($this->account, $decodedResponse['form_inputs'], $paymentModel, $txType, $decodedResponse['gateway'], $creditCard);
     }
 }

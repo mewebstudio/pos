@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Entity\Account;
 
@@ -14,20 +17,19 @@ class PayFlexAccount extends AbstractPosAccount
     public const MERCHANT_TYPE_SUB_DEALER = 2;
 
     /** @var int[] */
-    private static $merchantTypes = [
+    private static array $merchantTypes = [
         self::MERCHANT_TYPE_STANDARD,
         self::MERCHANT_TYPE_MAIN_DEALER,
         self::MERCHANT_TYPE_SUB_DEALER,
     ];
 
-    /** @var string */
-    private $terminalId;
+    private string $terminalId;
 
     /**
      * Banka tarafından Üye işyerine iletilmektedir
      * @var self::MERCHANT_TYPE_*
      */
-    private $merchantType;
+    private int $merchantType;
 
     /**
      * Ör:00000000000471
@@ -37,13 +39,11 @@ class PayFlexAccount extends AbstractPosAccount
      * MerchantType: 0 ise, gönderilmemeli
      * MerchantType: 1 ise, Ana bayi kendi adına işlem geçiyor ise gönderilmemeli,
      * Altbayisi adına işlem geçiyor ise zorunludur.
-     * @var string|null
      */
-    private $subMerchantId;
+    private ?string $subMerchantId;
 
     /**
      * @param string                $bank
-     * @param string                $model
      * @param string                $merchantId Isyeri No
      * @param string                $password   Isyeri Sifre
      * @param string                $terminalId Terminal No
@@ -52,7 +52,6 @@ class PayFlexAccount extends AbstractPosAccount
      */
     public function __construct(
         string $bank,
-        string $model,
         string $merchantId,
         string $password,
         string $terminalId,
@@ -60,8 +59,7 @@ class PayFlexAccount extends AbstractPosAccount
         string $subMerchantId = null
     )
     {
-        parent::__construct($bank, $model, $merchantId, '', $password, 'tr');
-        $this->model         = $model;
+        parent::__construct($bank, $merchantId, '', $password, 'tr');
         $this->terminalId    = $terminalId;
         $this->merchantType  = $merchantType;
         $this->subMerchantId = $subMerchantId;

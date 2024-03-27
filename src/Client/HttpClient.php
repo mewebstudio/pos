@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Client;
 
@@ -15,14 +18,11 @@ use function http_build_query;
  */
 class HttpClient
 {
-    /** @var ClientInterface */
-    protected $client;
+    protected ClientInterface $client;
 
-    /** @var RequestFactoryInterface */
-    protected $requestFactory;
+    protected RequestFactoryInterface $requestFactory;
 
-    /** @var StreamFactoryInterface */
-    protected $streamFactory;
+    protected StreamFactoryInterface $streamFactory;
 
     /**
      * @param ClientInterface         $client
@@ -40,7 +40,12 @@ class HttpClient
     }
 
     /**
-     * @param PostPayload|null $payload
+     * @phpstan-param PostPayload|null $payload
+     *
+     * @param string     $path
+     * @param array|null $payload
+     *
+     * @return ResponseInterface
      */
     public function post(string $path, ?array $payload = []): ResponseInterface
     {
@@ -48,7 +53,13 @@ class HttpClient
     }
 
     /**
-     * @param PostPayload|null $payload
+     * @phpstan-param PostPayload|null $payload
+     *
+     * @param string     $method
+     * @param string     $path
+     * @param array|null $payload
+     *
+     * @return ResponseInterface
      */
     private function send(string $method, string $path, ?array $payload = []): ResponseInterface
     {
@@ -58,23 +69,27 @@ class HttpClient
     }
 
     /**
-     * @param PostPayload|null $payload
+     * @phpstan-param PostPayload|null $payload
+     *
+     * @param array|null $payload
+     *
+     * @return RequestInterface
      */
     private function createRequest(string $method, string $url, ?array $payload = []): RequestInterface
     {
         $request = $this->requestFactory->createRequest($method, $url);
 
-        if ('POST' == $method) {
+        if ('POST' === $method) {
             $body = null;
             if (isset($payload['form_params'])) {
                 $request         = $request->withHeader('Content-Type', 'application/x-www-form-urlencoded');
                 $payload['body'] = http_build_query($payload['form_params']);
             }
-            
+
             if (isset($payload['body'])) {
                 $body = $this->streamFactory->createStream($payload['body']);
             }
-            
+
             $request = $request->withBody($body);
         }
 

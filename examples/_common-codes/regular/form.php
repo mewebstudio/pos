@@ -1,19 +1,22 @@
 <?php
 
+use Mews\Pos\PosInterface;
+
+// ilgili bankanin _config.php dosyasi load ediyoruz.
+// ornegin /examples/finansbank-payfor/regular/_config.php
 require_once '_config.php';
+
+$transaction = $request->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
 
 $order = getNewOrder(
     $baseUrl,
     $ip,
-    $request->get('currency', 'TRY'),
-    $session,
+    $request->get('currency', PosInterface::CURRENCY_TRY),
     $request->get('installment'),
     $request->get('is_recurring', 0) == 1,
-    $request->get('lang', \Mews\Pos\Gateways\AbstractGateway::LANG_TR)
+    $request->get('lang', PosInterface::LANG_TR)
 );
-$session->set('order', $order);
-$transaction = $request->get('tx', \Mews\Pos\Gateways\AbstractGateway::TX_PAY);
 
 $card = createCard($pos, $request->request->all());
 
-require '../../_templates/_payment_response.php';
+require '../../_templates/_finish_non_secure_payment.php';
