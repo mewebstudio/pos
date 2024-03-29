@@ -249,7 +249,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
     public static function threeDPaymentDataProvider(): array
     {
         return [
-            'authSuccessPaymentFail1' => [
+            '3d_auth_success_payment_fail_1' => [
                 'order'              => [],
                 'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
@@ -344,7 +344,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'installment_count'    => null,
                 ],
             ],
-            'authSuccessPaymentFail2' => [
+            '3d_auth_success_payment_fail_2' => [
                 'order'              => [],
                 'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
@@ -418,7 +418,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'installment_count'    => null,
                 ],
             ],
-            'authFail1'               => [
+            '3d_auth_fail'               => [
                 'order'              => [],
                 'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
