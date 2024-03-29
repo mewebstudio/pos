@@ -170,39 +170,6 @@ class PayFlexV4Pos extends AbstractGateway
     }
 
     /**
-     * Müşteriden kredi kartı bilgilerini aldıktan sonra GET 7/24 MPI’a kart “Kredi Kartı Kayıt Durumu”nun
-     * (Enrollment Status) sorulması, yani kart 3-D Secure programına dâhil mi yoksa değil mi sorgusu
-     *
-     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
-     *
-     * @param array<string, int|string|float|null> $order
-     * @param CreditCardInterface                  $creditCard
-     * @param string                               $txType
-     *
-     * @return array<string, mixed>
-     *
-     * @throws Exception
-     */
-    public function sendEnrollmentRequest(array $order, CreditCardInterface $creditCard, string $txType): array
-    {
-        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $creditCard);
-
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
-        $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        return $this->send($requestData, $txType, PosInterface::MODEL_3D_SECURE, $this->get3DGatewayURL());
-    }
-
-    /**
      * @inheritDoc
      *
      * @return array<string, mixed>
@@ -219,5 +186,38 @@ class PayFlexV4Pos extends AbstractGateway
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
+    }
+
+    /**
+     * Müşteriden kredi kartı bilgilerini aldıktan sonra GET 7/24 MPI’a kart “Kredi Kartı Kayıt Durumu”nun
+     * (Enrollment Status) sorulması, yani kart 3-D Secure programına dâhil mi yoksa değil mi sorgusu
+     *
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     *
+     * @param array<string, int|string|float|null> $order
+     * @param CreditCardInterface                  $creditCard
+     * @param string                               $txType
+     *
+     * @return array<string, mixed>
+     *
+     * @throws Exception
+     */
+    private function sendEnrollmentRequest(array $order, CreditCardInterface $creditCard, string $txType): array
+    {
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $creditCard);
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        return $this->send($requestData, $txType, PosInterface::MODEL_3D_SECURE, $this->get3DGatewayURL());
     }
 }

@@ -265,20 +265,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         ];
     }
 
-    public static function getSampleEnrollmentFailResponseDataProvider(): array
-    {
-        return [
-            'Message'                   => [
-                'VERes' => [
-                    'Status' => 'E',
-                ],
-            ],
-            'VerifyEnrollmentRequestId' => '0aebb0757acccae6fba75b2e4d78cecf',
-            'MessageErrorCode'          => '2005',
-            'ErrorMessage'              => 'Merchant cannot be found for this bank',
-        ];
-    }
-
     private function getSampleCancelRequestData(): array
     {
         return [
