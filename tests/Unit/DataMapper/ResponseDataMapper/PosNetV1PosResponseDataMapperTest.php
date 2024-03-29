@@ -287,7 +287,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
 
     public static function threeDPaymentDataProvider(): \Generator
     {
-        yield 'threeDAuthFail1' => [
+        yield '3d_auth_fail_1' => [
             'order'              => [
                 'id' => '20230622A1C9',
             ],
@@ -501,7 +501,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
             ],
         ];
 
-        yield 'threeDAuthSuccessButPaymentFail' => [
+        yield '3d_auth_success_payment_fail' => [
             'order'              => [
                 'id' => '202306226A90',
             ],

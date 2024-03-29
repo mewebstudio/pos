@@ -177,11 +177,12 @@ class PosNetV1Pos extends AbstractGateway
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         try {
-            return $this->data = $this->serializer->decode($response->getBody(), $txType);
+            return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
         } catch (NotEncodableValueException $notEncodableValueException) {
+            $response->getBody()->rewind();
             $this->logger->error('parsing bank JSON response failed', [
                 'status_code' => $response->getStatusCode(),
-                'response'    => $response->getBody(),
+                'response'    => $response->getBody()->getContents(),
                 'message'     => $notEncodableValueException->getMessage(),
             ]);
 
