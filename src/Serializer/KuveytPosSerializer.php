@@ -16,8 +16,8 @@ use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
+use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\Serializer;
-use Throwable;
 
 class KuveytPosSerializer implements SerializerInterface
 {
@@ -75,13 +75,13 @@ class KuveytPosSerializer implements SerializerInterface
 
         try {
             return $this->serializer->decode($data, XmlEncoder::FORMAT);
-        } catch (Throwable $throwable) {
+        } catch (NotEncodableValueException $notEncodableValueException) {
             if ($this->isHTML($data)) {
                 // 3D form data icin enrollment istegi gonderiyoruz, o istegin cevabi icinde form olan HTML donuyor.
                 return $this->transformReceived3DFormData($data);
             }
 
-            throw new Exception($data, $throwable->getCode(), $throwable);
+            throw new Exception($data, $notEncodableValueException->getCode(), $notEncodableValueException);
         }
     }
 
