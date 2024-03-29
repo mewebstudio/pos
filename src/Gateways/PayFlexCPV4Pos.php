@@ -171,16 +171,37 @@ class PayFlexCPV4Pos extends AbstractGateway
     }
 
     /**
+     * @inheritDoc
+     *
+     * @return array<string, mixed>
+     */
+    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
+    {
+        $url ??= $this->getApiURL();
+        $this->logger->debug('sending request', ['url' => $url]);
+
+        $isXML = \is_string($contents);
+        $body  = $isXML ? ['body' => $contents] : ['form_params' => $contents];
+
+        $response = $this->client->post($url, $body);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
+
+        $responseContent = $response->getBody()->getContents();
+
+        return $this->data = $this->serializer->decode($responseContent, $txType);
+    }
+
+    /**
      *
      * ORTAK ÖDEME SİSTEMİNE İŞLEM KAYDETME
      *
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
-     * @phpstan-param PosInterface::MODEL_3D_*                      $paymentModel
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
      * @param string                               $paymentModel
-     * @param CreditCardInterface|null $creditCard
+     * @param CreditCardInterface|null             $creditCard
      *
      * Basarili durumda donen cevap formati: array{CommonPaymentUrl: string, PaymentToken: string, ErrorCode: null,
      * ResponseMessage: null} Basarisiz durumda donen cevap formati: array{CommonPaymentUrl: null, PaymentToken: null,
@@ -190,7 +211,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @throws Exception
      */
-    public function registerPayment(array $order, string $txType, string $paymentModel, CreditCardInterface $creditCard = null): array
+    private function registerPayment(array $order, string $txType, string $paymentModel, CreditCardInterface $creditCard = null): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $this->account,
@@ -216,26 +237,5 @@ class PayFlexCPV4Pos extends AbstractGateway
         $response = $this->send($requestData, $txType, $paymentModel);
 
         return $response;
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
-    {
-        $url ??= $this->getApiURL();
-        $this->logger->debug('sending request', ['url' => $url]);
-
-        $isXML = \is_string($contents);
-        $body  = $isXML ? ['body' => $contents] : ['form_params' => $contents];
-
-        $response = $this->client->post($url, $body);
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        $responseContent = $response->getBody()->getContents();
-
-        return $this->data = $this->serializer->decode($responseContent, $txType);
     }
 }

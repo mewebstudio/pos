@@ -6,27 +6,26 @@
 namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Exception;
+use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Factory\HttpClientFactory;
-use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Factory\RequestDataMapperFactory;
-use Mews\Pos\Factory\ResponseDataMapperFactory;
-use Mews\Pos\Factory\SerializerFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapperTest;
+use Mews\Pos\Tests\Unit\HttpClientTestTrait;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -34,6 +33,8 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PayFlexCPV4PosTest extends TestCase
 {
+    use HttpClientTestTrait;
+
     private PayFlexAccount $account;
 
     /** @var PayFlexCPV4Pos */
@@ -45,11 +46,40 @@ class PayFlexCPV4PosTest extends TestCase
 
     private array $order = [];
 
+    /** @var RequestDataMapperInterface & MockObject */
+    private MockObject $requestMapperMock;
+
+    /** @var ResponseDataMapperInterface & MockObject */
+    private MockObject $responseMapperMock;
+
+    /** @var CryptInterface & MockObject */
+    private MockObject $cryptMock;
+
+    /** @var HttpClient & MockObject */
+    private MockObject $httpClientMock;
+
+    /** @var LoggerInterface & MockObject */
+    private MockObject $loggerMock;
+
+    /** @var EventDispatcherInterface & MockObject */
+    private MockObject $eventDispatcherMock;
+
+    /** @var SerializerInterface & MockObject */
+    private MockObject $serializerMock;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->config = require __DIR__.'/../../../config/pos_test.php';
+        $this->config = [
+            'name'              => 'VakifBank-PayFlex-Common-Payment',
+            'class'             => PayFlexCPV4Pos::class,
+            'gateway_endpoints' => [
+                'payment_api' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
+                'gateway_3d'  => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
+                'query_api'   => 'https://cptest.vakifbank.com.tr/CommonPayment/SecurePayment',
+            ],
+        ];
 
         $this->account = AccountFactory::createPayFlexAccount(
             'vakifbank-cp',
@@ -70,7 +100,28 @@ class PayFlexCPV4PosTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $this->pos = PosFactory::createPosGateway($this->account, $this->config, new EventDispatcher());
+        $this->requestMapperMock   = $this->createMock(PayFlexCPV4PosRequestDataMapper::class);
+        $this->responseMapperMock  = $this->createMock(PayFlexCPV4PosResponseDataMapper::class);
+        $this->serializerMock      = $this->createMock(SerializerInterface::class);
+        $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->httpClientMock      = $this->createMock(HttpClient::class);
+        $this->loggerMock          = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+
+        $this->requestMapperMock->expects(self::any())
+            ->method('getCrypt')
+            ->willReturn($this->cryptMock);
+
+        $this->pos = new PayFlexCPV4Pos(
+            $this->config,
+            $this->account,
+            $this->requestMapperMock,
+            $this->responseMapperMock,
+            $this->serializerMock,
+            $this->eventDispatcherMock,
+            $this->httpClientMock,
+            $this->loggerMock,
+        );
 
         $this->pos->setTestMode(true);
 
@@ -82,59 +133,107 @@ class PayFlexCPV4PosTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->assertEquals($this->config['banks'][$this->account->getBank()], $this->pos->getConfig());
-        $this->assertEquals($this->account, $this->pos->getAccount());
-        $this->assertNotEmpty($this->pos->getQueryAPIUrl());
-        $this->assertNotEmpty($this->pos->getCurrencies());
+        $this->requestMapperMock->expects(self::once())
+            ->method('getCurrencyMappings')
+            ->willReturn([PosInterface::CURRENCY_TRY => '949']);
+        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
+        $this->assertSame($this->config, $this->pos->getConfig());
+        $this->assertSame($this->account, $this->pos->getAccount());
     }
 
+    /**
+     * @return void
+     *
+     * @throws Exception
+     */
     public function testGet3DFormDataSuccess(): void
     {
-        $crypt          = CryptFactory::createGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
-        $requestMapper  = RequestDataMapperFactory::createGatewayRequestMapper(PayFlexCPV4Pos::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
-        $responseMapper = ResponseDataMapperFactory::createGatewayResponseMapper(PayFlexCPV4Pos::class, $requestMapper, new NullLogger());
-        $serializer     = SerializerFactory::createGatewaySerializer(PayFlexCPV4Pos::class);
+        $enrollmentResponse = PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['queryParams'];
+        $txType             = PosInterface::TX_TYPE_PAY_AUTH;
+        $paymentModel       = PosInterface::MODEL_3D_SECURE;
+        $card               = $this->card;
+        $order              = $this->order;
 
-        $posMock = $this->getMockBuilder(PayFlexCPV4Pos::class)
-            ->setConstructorArgs([
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DEnrollmentCheckRequestData')
+            ->with(
+                $this->pos->getAccount(),
+                $order,
+                $txType,
+                $paymentModel,
+                $card
+            )
+            ->willReturn(['request-data']);
+
+        $this->serializerMock->expects(self::never())
+            ->method('encode');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-content',
+            $this->config['gateway_endpoints']['payment_api'],
+            ['form_params' => ['request-data']],
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-content', $txType)
+            ->willReturn($enrollmentResponse);
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DFormData')
+            ->with(
+                null,
                 [],
-                $this->account,
-                $requestMapper,
-                $responseMapper,
-                $serializer,
-                $this->createMock(EventDispatcherInterface::class),
-                HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger(),
-            ])
-            ->onlyMethods(['registerPayment'])
-            ->getMock();
-        $posMock->setTestMode(true);
-        $posMock->expects($this->once())->method('registerPayment')
-            ->willReturn(PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['queryParams']);
+                null,
+                null,
+                null,
+                null,
+                $enrollmentResponse
+            )
+            ->willReturn(['3d-form-data']);
 
-        $result = $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
+        $result = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
-        $this->assertSame(PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['expected'], $result);
+        $this->assertSame(['3d-form-data'], $result);
     }
 
-    public function testGet3DFormDataFail(): void
+    /**
+     * @return void
+     *
+     * @throws Exception
+     */
+    public function testGet3DFormDataEnrollmentFail(): void
     {
-        $this->expectException(Exception::class);
-        $posMock = $this->getMockBuilder(PayFlexCPV4Pos::class)
-            ->setConstructorArgs([
-                [],
-                $this->account,
-                $this->createMock(PayFlexCPV4PosRequestDataMapper::class),
-                $this->createMock(PayFlexCPV4PosResponseDataMapper::class),
-                $this->createMock(SerializerInterface::class),
-                $this->createMock(EventDispatcherInterface::class),
-                HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger(),
-            ])
-            ->onlyMethods(['registerPayment'])
-            ->getMock();
-        $posMock->setTestMode(true);
-        $posMock->expects($this->once())->method('registerPayment')
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $card         = $this->card;
+        $order        = $this->order;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DEnrollmentCheckRequestData')
+            ->with(
+                $this->pos->getAccount(),
+                $order,
+                $txType,
+                $paymentModel,
+                $card
+            )
+            ->willReturn(['request-data']);
+
+        $this->serializerMock->expects(self::never())
+            ->method('encode');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-content',
+            $this->config['gateway_endpoints']['payment_api'],
+            ['form_params' => ['request-data']],
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-content', $txType)
             ->willReturn([
                 'CommonPaymentUrl' => null,
                 'PaymentToken'     => null,
@@ -142,77 +241,120 @@ class PayFlexCPV4PosTest extends TestCase
                 'ResponseMessage'  => 'Güvenlik Numarası Hatalı',
             ]);
 
-        $posMock->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
+        $this->expectException(Exception::class);
+
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
     }
 
-    public function testMake3dPayPaymentFail(): void
+    /**
+     * @dataProvider make3DPayPaymentDataProvider
+     */
+    public function testMake3DPayPayment(
+        array   $order,
+        string  $txType,
+        Request $request,
+        array   $paymentResponse,
+        array   $expectedResponse,
+        bool    $is3DSuccess,
+        bool    $isSuccess
+    ): void
+    {
+        if ($is3DSuccess) {
+            $this->cryptMock->expects(self::never())
+                ->method('check3DHash');
+        }
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('extractMdStatus');
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('is3dAuthSuccess');
+
+        $create3DPaymentStatusRequestData = [
+            'create3DPaymentStatusRequestData',
+        ];
+        if ($is3DSuccess) {
+            $this->requestMapperMock->expects(self::once())
+                ->method('create3DPaymentStatusRequestData')
+                ->with($this->account, $request->query->all())
+                ->willReturn($create3DPaymentStatusRequestData);
+            $this->prepareClient(
+                $this->httpClientMock,
+                'response-body',
+                $this->config['gateway_endpoints']['query_api'],
+                [
+                    'form_params' => $create3DPaymentStatusRequestData,
+                ],
+            );
+
+            $this->serializerMock->expects(self::never())
+                ->method('encode');
+
+            $this->serializerMock->expects(self::once())
+                ->method('decode')
+                ->with('response-body', $txType)
+                ->willReturn($paymentResponse);
+
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DPayResponseData')
+                ->with($request->query->all(), $txType, $order)
+                ->willReturn($expectedResponse);
+        } else {
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DPayResponseData')
+                ->with($request->query->all(), $txType, $order)
+                ->willReturn($expectedResponse);
+            $this->requestMapperMock->expects(self::never())
+                ->method('create3DPaymentRequestData');
+            $this->serializerMock->expects(self::never())
+                ->method('encode');
+            $this->serializerMock->expects(self::never())
+                ->method('decode');
+        }
+
+        $this->pos->make3DPayPayment($request, $order, $txType);
+
+        $result = $this->pos->getResponse();
+        $this->assertSame($expectedResponse, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public static function make3DPayPaymentDataProvider(): array
     {
         $testData = iterator_to_array(
                         PayFlexCPV4PosResponseDataMapperTest::threesDPayResponseDataProvider()
-                    )['fail_response_from_gateway_1'];
-        $request  = Request::create('', 'GET', $testData['bank_response']);
+                    );
 
-        $requestMapper = $this->createMock(PayFlexCPV4PosRequestDataMapper::class);
-        $requestMapper->expects($this->never())
-            ->method('create3DPaymentStatusRequestData');
-
-
-        $responseMapper = $this->createMock(PayFlexCPV4PosResponseDataMapper::class);
-        $responseMapper->expects($this->once())
-            ->method('map3DPayResponseData')->with($testData['bank_response']);
-
-        $pos = new PayFlexCPV4Pos(
-            [],
-            $this->account,
-            $requestMapper,
-            $responseMapper,
-            $this->createMock(SerializerInterface::class),
-            $this->createMock(EventDispatcherInterface::class),
-            HttpClientFactory::createDefaultHttpClient(),
-            new NullLogger());
-
-        $pos->make3DPayPayment($request, $testData['order'], $testData['txType']);
-    }
-
-    public function testMake3dPayPaymentSuccess(): void
-    {
-        $bankResponses     = \iterator_to_array(PayFlexCPV4PosResponseDataMapperTest::threesDPayResponseDataProvider());
-        $bankQueryResponse = [
-            'Rc'            => '0000',
-            'AuthCode'      => '368513',
-            'Message'       => 'İŞLEM BAŞARILI',
-            'TransactionId' => '28d2b9c27af545f48d49afc300db246b',
-            'PaymentToken'  => 'c6b7cecc2a1846088a4eafc300db246b',
-            'MaskedPan'     => '49384601****4205',
+        return [
+            'auth_fail'                    => [
+                'order'           => $testData['fail_response_from_gateway_1']['order'],
+                'txType'          => $testData['fail_response_from_gateway_1']['txType'],
+                'request'         => Request::create(
+                    '',
+                    'GET',
+                    $testData['fail_response_from_gateway_1']['bank_response']
+                ),
+                'paymentResponse' => [],
+                'expected'        => $testData['fail_response_from_gateway_1']['expectedData'],
+                'is3DSuccess'     => false,
+                'isSuccess'       => false,
+            ],
+            'success'                      => [
+                'order'           => $testData['success_response_from_gateway_1']['order'],
+                'txType'          => $testData['success_response_from_gateway_1']['txType'],
+                'request'         => Request::create(
+                    '',
+                    'GET',
+                    $testData['success_response_from_gateway_1']['bank_response']
+                ),
+                'paymentResponse' => $testData['success_response_from_gateway_1']['bank_response'],
+                'expected'        => $testData['success_response_from_gateway_1']['expectedData'],
+                'is3DSuccess'     => true,
+                'isSuccess'       => true,
+            ],
         ];
-        $testData          = $bankResponses['success_response_from_gateway_1'];
-
-        $request = Request::create('', 'GET', $bankQueryResponse);
-
-        $requestMapper = $this->createMock(PayFlexCPV4PosRequestDataMapper::class);
-        $requestMapper->expects($this->once())
-            ->method('create3DPaymentStatusRequestData')->with($this->account, $bankQueryResponse);
-
-        $responseMapper = $this->createMock(PayFlexCPV4PosResponseDataMapper::class);
-        $responseMapper->expects($this->once())
-            ->method('map3DPayResponseData');
-
-        $posMock = $this->getMockBuilder(PayFlexCPV4Pos::class)
-            ->setConstructorArgs([
-                [],
-                $this->account,
-                $requestMapper,
-                $responseMapper,
-                $this->createMock(SerializerInterface::class),
-                $this->createMock(EventDispatcherInterface::class),
-                HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger(),
-            ])
-            ->onlyMethods(['send', 'getQueryAPIUrl'])
-            ->getMock();
-        $posMock->expects($this->once())->method('getQueryAPIUrl')->willReturn($this->pos->getQueryAPIUrl());
-        $posMock->expects($this->once())->method('send')->willReturn([$testData['bank_response']]);
-
-        $posMock->make3DPayPayment($request, $testData['order'], $testData['txType']);
     }
 }

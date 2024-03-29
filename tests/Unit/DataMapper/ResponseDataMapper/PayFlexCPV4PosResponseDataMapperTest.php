@@ -87,7 +87,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'TransactionId' => '0cb6a57715144178a014afbe0185b9ed',
                 'MaskedPan'     => '49384601****4205',
             ],
-            'expected'      => [
+            'expectedData'      => [
                 'order_id'             => null,
                 'transaction_id'       => '0cb6a57715144178a014afbe0185b9ed',
                 'transaction_type'     => 'pay',
@@ -122,7 +122,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'TransactionId' => '868382724da7480c949dafbd016c7636',
                 'MaskedPan'     => '49384601****4205',
             ],
-            'expected'      => [
+            'expectedData'      => [
                 'order_id'             => null,
                 'transaction_id'       => '868382724da7480c949dafbd016c7636',
                 'transaction_type'     => 'pay',
@@ -147,7 +147,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
 
         yield 'success_response_from_gateway_1' => [
             'order'         => [],
-            'txType'        => PosInterface::TX_TYPE_PAY_PRE_AUTH,
+            'txType'        => PosInterface::TX_TYPE_PAY_AUTH,
             'bank_response' => [
                 'Rc'                   => '0000',
                 'AuthCode'             => '735879',
@@ -182,7 +182,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'ErrorCode'            => null,
                 'ResponseMessage'      => null,
             ],
-            'expected'      => [
+            'expectedData'      => [
                 'order_id'             => '2023030913ED',
                 'transaction_id'       => '3ee068d5b5a747ada65dafc0016d5887',
                 'transaction_type'     => 'pay',
