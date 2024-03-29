@@ -10,6 +10,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
@@ -89,6 +90,25 @@ class EstPosRequestDataMapperTest extends TestCase
         $method->setAccessible(true);
         $this->assertSame('949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
         $this->assertSame('978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
+    }
+
+    /**
+     * @testWith ["pay", "Auth"]
+     * ["pre", "PreAuth"]
+     */
+    public function testMapTxType(string $txType, string $expected): void
+    {
+        $actual = $this->requestDataMapper->mapTxType($txType);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * @testWith ["Auth"]
+     */
+    public function testMapTxTypeException(string $txType): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->requestDataMapper->mapTxType($txType);
     }
 
     /**

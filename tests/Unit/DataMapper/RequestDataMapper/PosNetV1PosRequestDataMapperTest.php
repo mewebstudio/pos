@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -52,6 +53,25 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
 
         $crypt                   = CryptFactory::createGatewayCrypt(PosNetV1Pos::class, new NullLogger());
         $this->requestDataMapper = new PosNetV1PosRequestDataMapper($dispatcher, $crypt);
+    }
+
+    /**
+     * @testWith ["pay", "Sale"]
+     * ["pre", "Auth"]
+     */
+    public function testMapTxType(string $txType, string $expected): void
+    {
+        $actual = $this->requestDataMapper->mapTxType($txType);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * @testWith ["Auth"]
+     */
+    public function testMapTxTypeException(string $txType): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->requestDataMapper->mapTxType($txType);
     }
 
     /**

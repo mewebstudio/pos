@@ -9,6 +9,7 @@ use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
@@ -70,6 +71,25 @@ class InterPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper = new InterPosRequestDataMapper($dispatcher, $this->crypt);
 
         $this->card = CreditCardFactory::createForGateway($pos, '5555444433332222', '21', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+    }
+
+    /**
+     * @testWith ["pay", "Auth"]
+     * ["pre", "PreAuth"]
+     */
+    public function testMapTxType(string $txType, string $expected): void
+    {
+        $actual = $this->requestDataMapper->mapTxType($txType);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * @testWith ["PreAuth"]
+     */
+    public function testMapTxTypeException(string $txType): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->requestDataMapper->mapTxType($txType);
     }
 
     /**

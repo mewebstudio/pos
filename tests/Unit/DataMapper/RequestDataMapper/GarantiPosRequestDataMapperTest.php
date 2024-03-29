@@ -9,6 +9,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -71,6 +72,25 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->setTestMode(true);
 
         $this->card = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet');
+    }
+
+    /**
+     * @testWith ["pay", "sales"]
+     * ["pre", "preauth"]
+     */
+    public function testMapTxType(string $txType, string $expected): void
+    {
+        $actual = $this->requestDataMapper->mapTxType($txType);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * @testWith ["sales"]
+     */
+    public function testMapTxTypeException(string $txType): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->requestDataMapper->mapTxType($txType);
     }
 
     /**

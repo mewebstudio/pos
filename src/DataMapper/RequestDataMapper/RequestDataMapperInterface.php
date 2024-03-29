@@ -8,6 +8,7 @@ namespace Mews\Pos\DataMapper\RequestDataMapper;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 
 interface RequestDataMapperInterface
@@ -16,6 +17,17 @@ interface RequestDataMapperInterface
      * @return array<PosInterface::TX_TYPE_*, string>
      */
     public function getTxTypeMappings(): array;
+
+    /**
+     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     *
+     * @param string $txType
+     *
+     * @return string
+     *
+     * @throws UnsupportedTransactionTypeException
+     */
+    public function mapTxType(string $txType): string;
 
     /**
      * @return non-empty-array<PosInterface::CURRENCY_*, string>
