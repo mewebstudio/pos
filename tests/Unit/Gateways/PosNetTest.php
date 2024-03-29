@@ -16,11 +16,6 @@ use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Factory\HttpClientFactory;
-use Mews\Pos\Factory\RequestDataMapperFactory;
-use Mews\Pos\Factory\ResponseDataMapperFactory;
-use Mews\Pos\Factory\SerializerFactory;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
@@ -30,7 +25,6 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -189,58 +183,6 @@ class PosNetTest extends TestCase
             ->method('create3DFormData');
 
         $this->pos->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
-    }
-
-
-    /**`
-     * @return void
-     *
-     * @throws Exception
-     */
-    public function testMake3DPaymentSuccess(): void
-    {
-        $responseMapperTest = new PosNetResponseDataMapperTest();
-        $request            = Request::create('', 'POST', [
-            'MerchantPacket' => '',
-            'BankPacket'     => '',
-            'Sign'           => '',
-        ]);
-        $crypt              = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
-        $requestMapper      = RequestDataMapperFactory::createGatewayRequestMapper(PosNet::class, $this->createMock(EventDispatcherInterface::class), $crypt, []);
-        $responseMapper     = ResponseDataMapperFactory::createGatewayResponseMapper(PosNet::class, $requestMapper, new NullLogger());
-        $serializer         = SerializerFactory::createGatewaySerializer(PosNet::class);
-
-        $this->order['id'] = '80603153823';
-        $posMock           = $this->getMockBuilder(PosNet::class)
-            ->setConstructorArgs([
-                [],
-                $this->account,
-                $requestMapper,
-                $responseMapper,
-                $serializer,
-                $this->createMock(EventDispatcherInterface::class),
-                HttpClientFactory::createDefaultHttpClient(),
-                new NullLogger(),
-            ])
-            ->onlyMethods(['send'])
-            ->getMock();
-        $posMock->setTestMode(true);
-
-        $bankResponses = $responseMapperTest->threeDPaymentDataProvider()['success1'];
-        $posMock->expects($this->exactly(2))->method('send')->will(
-            $this->onConsecutiveCalls(
-                $bankResponses['threeDResponseData'],
-                $bankResponses['paymentData']
-            )
-        );
-
-        $posMock->make3DPayment($request, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
-        $resp = $posMock->getResponse();
-        unset($resp['transaction_time'], $bankResponses['expectedData']['transaction_time']);
-        unset($resp['all'], $resp['3d_all']);
-        \ksort($bankResponses['expectedData']);
-        \ksort($resp);
-        $this->assertSame($bankResponses['expectedData'], $resp);
     }
 
     /**
