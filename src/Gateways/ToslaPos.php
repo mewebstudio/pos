@@ -154,48 +154,6 @@ class ToslaPos extends AbstractGateway
     }
 
     /**
-     * Ödeme İşlem Başlatma
-     *
-     * Ödeme formu ve Ortak Ödeme Sayfası ile ödeme işlemi başlatmak için ThreeDSessionId değeri üretilmelidir.
-     * Bu servis 3D secure başlatılması için session açar ve sessionId bilgisini döner.
-     * Bu servisten dönen ThreeDSessionId değeri ödeme formunda veya ortak ödeme sayfa çağırma işleminde kullanılır.
-     *
-     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
-     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
-     *
-     * @param array<string, int|string|float|null> $order
-     * @param string                               $paymentModel
-     * @param string                               $txType
-     *
-     * @return array<string, mixed>
-     *
-     * @throws \Exception
-     */
-    public function registerPayment(array $order, string $paymentModel, string $txType): array
-    {
-        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
-            $this->account,
-            $order
-        );
-
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
-        $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $requestData = $this->serializer->encode($requestData, $txType);
-
-        return $this->send($requestData, $txType, $paymentModel);
-    }
-
-    /**
      * @inheritDoc
      *
      * @return array<string, mixed>
@@ -223,6 +181,48 @@ class ToslaPos extends AbstractGateway
         $responseContent = $response->getBody()->getContents();
 
         return $this->data = $this->serializer->decode($responseContent, $txType);
+    }
+
+    /**
+     * Ödeme İşlem Başlatma
+     *
+     * Ödeme formu ve Ortak Ödeme Sayfası ile ödeme işlemi başlatmak için ThreeDSessionId değeri üretilmelidir.
+     * Bu servis 3D secure başlatılması için session açar ve sessionId bilgisini döner.
+     * Bu servisten dönen ThreeDSessionId değeri ödeme formunda veya ortak ödeme sayfa çağırma işleminde kullanılır.
+     *
+     * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
+     *
+     * @param array<string, int|string|float|null> $order
+     * @param string                               $paymentModel
+     * @param string                               $txType
+     *
+     * @return array<string, mixed>
+     *
+     * @throws \Exception
+     */
+    private function registerPayment(array $order, string $paymentModel, string $txType): array
+    {
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
+            $this->account,
+            $order
+        );
+
+        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $requestData = $this->serializer->encode($requestData, $txType);
+
+        return $this->send($requestData, $txType, $paymentModel);
     }
 
     /**
