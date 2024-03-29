@@ -9,9 +9,9 @@ $baseUrl = $bankTestsUrl.'/3d/';
 $account = \Mews\Pos\Factory\AccountFactory::createKuveytPosAccount(
     'kuveytpos',
     '496',
-    'apiuser1',
+    'apitest',
     '400235',
-    'Api1232',
+    'api123',
     PosInterface::MODEL_3D_SECURE
 );
 

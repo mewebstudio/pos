@@ -466,6 +466,9 @@ class KuveytPosRequestDataMapperTest extends TestCase
                     'CardExpireDateYear'  => '25',
                     'CardExpireDateMonth' => '01',
                     'CardCVV2'            => '123',
+                    'DeviceData'          => [
+                        'ClientIP' => '127.0.0.1',
+                    ],
                 ],
             ],
         ];
