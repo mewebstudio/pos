@@ -8,8 +8,7 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\CardTypeNotSupportedException;
 use Mews\Pos\Exceptions\CardTypeRequiredException;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Gateways\EstPos;
-use Mews\Pos\Gateways\GarantiPos;
+use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -22,10 +21,10 @@ class CreditCardFactoryTest extends TestCase
      */
     public function testCreateForGatewaySuccess(): void
     {
-        $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()
-            //just any method
-            ->onlyMethods(['getCardTypeMapping'])
-            ->getMock();
+        $pos = $this->createMock(PosInterface::class);
+        $pos->expects(self::once())
+            ->method('getCardTypeMapping')
+            ->willReturn([CreditCardInterface::CARD_TYPE_VISA => 'visa']);
 
         $card = CreditCardFactory::createForGateway(
             $pos,
@@ -48,33 +47,13 @@ class CreditCardFactoryTest extends TestCase
     /**
      * @return void
      */
-    public function testCreateForGatewayWithEmptyTypeMapping(): void
-    {
-        $pos = $this->getMockBuilder(GarantiPos::class)->disableOriginalConstructor()
-            //just any method
-            ->onlyMethods(['getCardTypeMapping'])
-            ->getMock();
-
-        $card = CreditCardFactory::createForGateway(
-            $pos,
-            '4444 5555 6666 7777',
-            '22',
-            '12',
-            '123',
-            'john',
-            CreditCardInterface::CARD_TYPE_VISA
-        );
-        $this->assertNotEmpty($card);
-    }
-
-    /**
-     * @return void
-     */
     public function testCreateForGatewayUnSupportedCardTypeException(): void
     {
         $this->expectException(CardTypeNotSupportedException::class);
-        $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()->getMock();
-        $pos->expects($this->once())->method('getCardTypeMapping')->willReturn(['visa' => 'visa']);
+        $pos = $this->createMock(PosInterface::class);
+        $pos->expects(self::once())
+            ->method('getCardTypeMapping')
+            ->willReturn([CreditCardInterface::CARD_TYPE_VISA => 'visa']);
 
         CreditCardFactory::createForGateway(
             $pos,
@@ -93,9 +72,11 @@ class CreditCardFactoryTest extends TestCase
     public function testCreateForGatewayCardTypeRequiredException(): void
     {
         $this->expectException(CardTypeRequiredException::class);
-        $pos = $this->getMockBuilder(EstPos::class)->disableOriginalConstructor()->getMock();
 
-        $pos->expects($this->once())->method('getCardTypeMapping')->willReturn(['visa' => 'visa']);
+        $pos = $this->createMock(PosInterface::class);
+        $pos->expects(self::once())
+            ->method('getCardTypeMapping')
+            ->willReturn([CreditCardInterface::CARD_TYPE_VISA => 'visa']);
 
         CreditCardFactory::createForGateway(
             $pos,
@@ -112,10 +93,10 @@ class CreditCardFactoryTest extends TestCase
      */
     public function testCreateForGatewayCardTypeIsNotRequired(): void
     {
-        $pos = $this->getMockBuilder(GarantiPos::class)->disableOriginalConstructor()
-            //just any method
-            ->onlyMethods(['getCardTypeMapping'])
-            ->getMock();
+        $pos = $this->createMock(PosInterface::class);
+        $pos->expects(self::once())
+            ->method('getCardTypeMapping')
+            ->willReturn([]);
 
         $card = CreditCardFactory::createForGateway(
             $pos,
