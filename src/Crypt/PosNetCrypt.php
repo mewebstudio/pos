@@ -1,82 +1,77 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Gateways\AbstractGateway;
-use Psr\Log\LogLevel;
 
 class PosNetCrypt extends AbstractCrypt
 {
     /** @var string */
     protected const HASH_ALGORITHM = 'sha256';
-    
+
     /** @var string */
     protected const HASH_SEPARATOR = ';';
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData, ?string $txType = null): string
     {
-        if ($account->getModel() === AbstractGateway::MODEL_3D_SECURE || $account->getModel() === AbstractGateway::MODEL_3D_PAY) {
-            $secondHashData = [
-                $requestData['id'],
-                $requestData['amount'],
-                $requestData['currency'],
-                $account->getClientId(),
-                $this->createSecurityData($account),
-            ];
-            $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
+        $secondHashData = [
+            $requestData['id'],
+            $requestData['amount'],
+            $requestData['currency'],
+            $posAccount->getClientId(),
+            $this->createSecurityData($posAccount),
+        ];
+        $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
 
-            return $this->hashString($hashStr);
-        }
-
-        return '';
+        return $this->hashString($hashStr);
     }
 
     /**
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * {@inheritdoc}
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
-        $hashStr = '';
-
-        if ($account->getModel() === AbstractGateway::MODEL_3D_SECURE || $account->getModel() === AbstractGateway::MODEL_3D_PAY) {
-            $secondHashData = [
-                $data['mdStatus'],
-                $data['xid'],
-                $data['amount'],
-                $data['currency'],
-                $account->getClientId(),
-                $this->createSecurityData($account),
-            ];
-            $hashStr = implode(static::HASH_SEPARATOR, $secondHashData);
-        }
+        $secondHashData = [
+            $data['mdStatus'],
+            $data['xid'],
+            $data['amount'],
+            $data['currency'],
+            $posAccount->getClientId(),
+            $this->createSecurityData($posAccount),
+        ];
+        $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
 
         if ($this->hashString($hashStr) !== $data['mac']) {
-            $this->logger->log(LogLevel::ERROR, 'hash check failed', [
+            $this->logger->error('hash check failed', [
                 'order_id' => $data['xid'],
             ]);
 
             return false;
         }
 
-        $this->logger->log(LogLevel::DEBUG, 'hash check is successful', [
+        $this->logger->debug('hash check is successful', [
             'order_id' => $data['xid'],
         ]);
 
         return true;
     }
 
-    public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string
+    /**
+     * @inheritdoc
+     */
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         throw new NotImplementedException();
     }
@@ -84,15 +79,15 @@ class PosNetCrypt extends AbstractCrypt
     /**
      * Make Security Data
      *
-     * @param PosNetAccount $account
+     * @param PosNetAccount $posAccount
      *
      * @return string
      */
-    public function createSecurityData(AbstractPosAccount $account): string
+    public function createSecurityData(AbstractPosAccount $posAccount): string
     {
         $hashData = [
-            $account->getStoreKey(),
-            $account->getTerminalId(),
+            $posAccount->getStoreKey(),
+            $posAccount->getTerminalId(),
         ];
         $hashStr  = implode(static::HASH_SEPARATOR, $hashData);
 

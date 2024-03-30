@@ -1,44 +1,45 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\Gateways\AbstractGateway;
+use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
 
-abstract class AbstractResponseDataMapper
+abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
 {
-    /** @var string */
-    public const TX_APPROVED = 'approved';
-
-    /** @var string */
-    public const TX_DECLINED = 'declined';
-
     /** @var string */
     public const PROCEDURE_SUCCESS_CODE = '00';
 
-    /** @var LoggerInterface */
-    protected $logger;
+    protected LoggerInterface $logger;
 
-    /** @var array<string, string> */
-    private $currencyMappings;
+    /** @var array<string, PosInterface::CURRENCY_*> */
+    protected array $currencyMappings;
 
-    /** @var array<string, AbstractGateway::TX_*> */
-    protected $txTypeMappings;
+    /** @var array<string, PosInterface::TX_TYPE_*> */
+    protected array $txTypeMappings;
+
+    /** @var array<string, PosInterface::MODEL_*> */
+    protected array $secureTypeMappings;
 
     /**
-     * @param array<string, string>                $currencyMappings
-     * @param array<AbstractGateway::TX_*, string> $txTypeMappings
-     * @param LoggerInterface                      $logger
+     * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
+     * @param array<PosInterface::TX_TYPE_*, string>  $txTypeMappings
+     * @param array<PosInterface::MODEL_*, string>    $secureTypeMappings
+     * @param LoggerInterface                         $logger
      */
-    public function __construct(array $currencyMappings, array $txTypeMappings, LoggerInterface $logger)
+    public function __construct(array $currencyMappings, array $txTypeMappings, array $secureTypeMappings, LoggerInterface $logger)
     {
-        $this->logger           = $logger;
-        $this->currencyMappings = array_flip($currencyMappings);
-        $this->txTypeMappings   = array_flip($txTypeMappings);
+        $this->logger             = $logger;
+        $this->currencyMappings   = \array_flip($currencyMappings);
+        $this->txTypeMappings     = \array_flip($txTypeMappings);
+        $this->secureTypeMappings = \array_flip($secureTypeMappings);
     }
 
     /**
-     * @return array<string, AbstractGateway::TX_*>
+     * @return array<string, PosInterface::TX_TYPE_*>
      */
     public function getTxTypeMappings(): array
     {
@@ -46,14 +47,32 @@ abstract class AbstractResponseDataMapper
     }
 
     /**
-     * @param string $txType
+     * @param string|int $txType
+     *
+     * @return PosInterface::TX_*|null
+     */
+    public function mapTxType($txType): ?string
+    {
+        return $this->txTypeMappings[$txType] ?? null;
+    }
+
+    /**
+     * @param string|int $txType
+     *
+     * @return PosInterface::MODEL_*|null
+     */
+    public function mapSecurityType($txType): ?string
+    {
+        return $this->secureTypeMappings[$txType] ?? null;
+    }
+
+
+    /**
+     * @param string $mdStatus
      *
      * @return string
      */
-    public function mapTxType(string $txType): string
-    {
-        return $this->txTypeMappings[$txType] ?? $txType;
-    }
+    abstract protected function mapResponseTransactionSecurity(string $mdStatus): string;
 
     /**
      * "1000.01" => 1000.01
@@ -61,26 +80,29 @@ abstract class AbstractResponseDataMapper
      *
      * @return float
      */
-    public static function amountFormat(string $amount): float
+    protected function formatAmount(string $amount): float
     {
         return (float) $amount;
     }
 
     /**
-     * @param string $mdStatus
+     * @param string $currency currency code that is accepted by bank
      *
-     * @return string
-     */
-    protected abstract function mapResponseTransactionSecurity(string $mdStatus): string;
-
-    /**
-     * @param string $currency TRY, USD
-     *
-     * @return string currency code that is accepted by bank
+     * @return PosInterface::CURRENCY_*|string
      */
     protected function mapCurrency(string $currency): string
     {
         return $this->currencyMappings[$currency] ?? $currency;
+    }
+
+    /**
+     * @param string|null $installment
+     *
+     * @return int
+     */
+    protected function mapInstallment(?string $installment): int
+    {
+        return (int) $installment;
     }
 
     /**
@@ -94,10 +116,10 @@ abstract class AbstractResponseDataMapper
      */
     protected function mergeArraysPreferNonNullValues(array $arr1, array $arr2): array
     {
-        $resultArray     = array_diff_key($arr1, $arr2) + array_diff_key($arr2, $arr1);
-        $commonArrayKeys = array_keys(array_intersect_key($arr1, $arr2));
+        $resultArray     = \array_diff_key($arr1, $arr2) + \array_diff_key($arr2, $arr1);
+        $commonArrayKeys = \array_keys(\array_intersect_key($arr1, $arr2));
         foreach ($commonArrayKeys as $key) {
-            $resultArray[$key] = $arr2[$key] ?: $arr1[$key];
+            $resultArray[$key] = $arr2[$key] ?? $arr1[$key];
         }
 
         return $resultArray;
@@ -105,29 +127,101 @@ abstract class AbstractResponseDataMapper
 
     /**
      * Returns default payment response data
+     * @phpstan-param PosInterface::TX_TYPE_PAY_* $txType
+     * @phpstan-param PosInterface::MODEL_*|null  $paymentModel
      *
-     * @return array{order_id: null, trans_id: null, auth_code: null, ref_ret_num: null, proc_return_code: null,
+     * @param string      $txType
+     * @param string|null $paymentModel
+     *
+     * @return array{order_id: null, transaction_id: null, auth_code: null, ref_ret_num: null, proc_return_code: null,
      *     status: string, status_detail: null, error_code: null, error_message: null, all: null}
      */
-    protected function getDefaultPaymentResponse(): array
+    protected function getDefaultPaymentResponse(string $txType, ?string $paymentModel): array
     {
         return [
-            'order_id'         => null,
-            'trans_id'         => null,
+            'order_id'          => null,
+            'transaction_id'    => null,
+            'transaction_time'  => null,
+            'transaction_type'  => $txType,
+            'installment_count' => null,
+            'currency'          => null,
+            'amount'            => null,
+            'payment_model'     => $paymentModel,
+            'auth_code'         => null,
+            'ref_ret_num'       => null,
+            'proc_return_code'  => null,
+            'status'            => self::TX_DECLINED,
+            'status_detail'     => null,
+            'error_code'        => null,
+            'error_message'     => null,
+            'all'               => null,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $rawData
+     *
+     * @return array<string, mixed>
+     */
+    protected function getDefaultStatusResponse(array $rawData): array
+    {
+        return [
+            'order_id'          => null,
+            'auth_code'         => null,
+            'proc_return_code'  => null,
+            'transaction_id'    => null,
+            'transaction_time'  => null,
+            'capture_time'      => null,
+            'error_message'     => null,
+            'ref_ret_num'       => null,
+            'order_status'      => null,
+            'transaction_type'  => null,
+            'first_amount'      => null,
+            'capture_amount'    => null,
+            'status'            => self::TX_DECLINED,
+            'error_code'        => null,
+            'status_detail'     => null,
+            'capture'           => null,
+            'currency'          => null,
+            'masked_number'     => null,
+            'refund_amount'     => null,
+            'installment_count' => null,
+            'refund_time'       => null,
+            'cancel_time'       => null,
+            'all'               => $rawData,
+        ];
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    protected function getDefaultOrderHistoryTxResponse(): array
+    {
+        return [
             'auth_code'        => null,
-            'ref_ret_num'      => null,
             'proc_return_code' => null,
-            'status'           => self::TX_DECLINED,
-            'status_detail'    => null,
-            'error_code'       => null,
+            'transaction_id'   => null,
+            'transaction_time' => null,
+            'capture_time'     => null,
             'error_message'    => null,
-            'all'              => null,
+            'ref_ret_num'      => null,
+            'order_status'     => null,
+            'transaction_type' => null,
+            'first_amount'     => null,
+            'capture_amount'   => null,
+            'status'           => self::TX_DECLINED,
+            'error_code'       => null,
+            'status_detail'    => null,
+            'capture'          => null,
+            'currency'         => null,
+            'masked_number'    => null,
         ];
     }
 
     /**
      * bankadan gelen response'da bos string degerler var.
      * bu metod ile bos string'leri null deger olarak degistiriyoruz
+     *
      * @param mixed $data
      *
      * @return mixed
@@ -135,12 +229,12 @@ abstract class AbstractResponseDataMapper
     protected function emptyStringsToNull($data)
     {
         $result = null;
-        if (is_string($data)) {
-            $data   = trim($data);
+        if (\is_string($data)) {
+            $data   = \trim($data);
             $result = '' === $data ? null : $data;
-        } elseif (is_numeric($data)) {
+        } elseif (\is_numeric($data)) {
             $result = $data;
-        } elseif (is_array($data) || is_object($data)) {
+        } elseif (\is_array($data) || \is_object($data)) {
             $result = [];
             foreach ($data as $key => $value) {
                 $result[$key] = self::emptyStringsToNull($value);

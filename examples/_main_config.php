@@ -1,4 +1,8 @@
 <?php
+
+use Mews\Pos\PosInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -13,7 +17,7 @@ $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSe
     'cookie_samesite' => 'None',
     'cookie_secure' => true,
 ]);
-$session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
+$session        = new Session($sessionHandler);
 $session->start();
 
 $hostUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')."://$_SERVER[HTTP_HOST]";
@@ -22,7 +26,43 @@ $subMenu = [];
 $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
 $logger = new \Monolog\Logger('pos', [$handler]);
 
-function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mews\Pos\PosInterface
+$eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
+
+$installments = [
+    0  => 'Peşin',
+    2  => '2 Taksit',
+    3  => '3 Taksit',
+    6  => '6 Taksit',
+    12 => '12 Taksit',
+];
+
+function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\CreditCardInterface $card)
+{
+    if (!$pos::isSupportedTransaction($transaction, $paymentModel)) {
+        throw new \LogicException(
+            sprintf('"%s %s" işlemi %s tarafından desteklenmiyor', $transaction, $paymentModel, get_class($pos))
+        );
+    }
+    if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class
+        && in_array($transaction, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)
+        && PosInterface::MODEL_3D_SECURE === $paymentModel
+    ) {
+        /**
+         * diger banklaradan farkli olarak 3d islemler icin de PayFlex bu asamada kredi kart bilgileri istiyor
+         */
+        $pos->payment($paymentModel, $order, $transaction, $card);
+
+    } elseif ($paymentModel === PosInterface::MODEL_NON_SECURE
+        && in_array($transaction, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)
+    ) {
+        // bu asamada $card regular/non secure odemede lazim.
+        $pos->payment($paymentModel, $order, $transaction, $card);
+    } else {
+        $pos->payment($paymentModel, $order, $transaction);
+    }
+}
+
+function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\EventDispatcher\EventDispatcherInterface $eventDispatcher): ?PosInterface
 {
     try {
 /*        $client = new HttpClient(
@@ -30,10 +70,10 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mew
             new \Slim\Psr7\Factory\RequestFactory(),
             new \Slim\Psr7\Factory\StreamFactory()
         );*/
-
+        $config = require __DIR__.'/../config/pos_test.php';
         global $logger;
 
-        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, null, null, $logger);
+        $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher, null, $logger);
         $pos->setTestMode(true);
 
         return $pos;
@@ -42,10 +82,10 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account): ?\Mew
     }
 }
 
-function createCard(\Mews\Pos\PosInterface $pos, array $card): \Mews\Pos\Entity\Card\AbstractCreditCard
+function createCard(PosInterface $pos, array $card): \Mews\Pos\Entity\Card\CreditCardInterface
 {
     try {
-        return \Mews\Pos\Factory\CreditCardFactory::create(
+        return \Mews\Pos\Factory\CreditCardFactory::createForGateway(
             $pos,
             $card['number'],
             $card['year'],
@@ -54,16 +94,23 @@ function createCard(\Mews\Pos\PosInterface $pos, array $card): \Mews\Pos\Entity\
             $card['name'],
             $card['type'] ?? null
         );
-    } catch (Exception $e) {
+    } catch (\Mews\Pos\Exceptions\CardTypeRequiredException $e) {
+        // bu gateway için kart tipi zorunlu
+        dd($e);
+    } catch (\Mews\Pos\Exceptions\CardTypeNotSupportedException $e) {
+        // sağlanan kart tipi bu gateway tarafından desteklenmiyor
+        dd($e);
+    } catch (\Exception $e) {
         dd($e);
     }
 }
 
-function createNewPaymentOrderCommon(
+function getNewOrder(
     string $baseUrl,
     string $ip,
-    string $currency = 'TRY',
+    string $currency = PosInterface::CURRENCY_TRY,
     ?int $installment = 0,
+    bool $tekrarlanan = false,
     ?string $lang = null
 ): array {
 
@@ -77,23 +124,34 @@ function createNewPaymentOrderCommon(
         'amount'      => 1.01,
         'currency'    => $currency,
         'installment' => $installment,
+        'ip'          => filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ? $ip : '127.0.0.1',
 
-        //3d, 3d_pay, 3d_host odemeler icin zorunlu
-        'success_url' => $successUrl,
-        'fail_url'    => $failUrl,
-
-        //gateway'e gore zorunlu olan degerler
-        //'ip'          => $ip, //EstPos, Garanti, KuveytPos, VakifBank
-		'ip'          => filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ? $ip : '127.0.0.1',
-        'email'       => 'mail@customer.com', // EstPos, Garanti, KuveytPos, VakifBank
-        'name'        => 'John Doe', // EstPos, Garanti
-        'user_id'     => md5(uniqid(time())), // EstPos
-        'rand'        => md5(uniqid(time())), //EstPos, Garanti, PayFor, InterPos, VakifBank
+        // 3d, 3d_pay, 3d_host odemeler icin zorunlu
+        'success_url' => $successUrl, // https://example.com/payment
+        'fail_url'    => $failUrl, // https://example.com/payment
     ];
 
     if ($lang) {
         //lang degeri verilmezse account (EstPosAccount) dili kullanilacak
         $order['lang'] = $lang;
+    }
+
+    if ($tekrarlanan) {
+        // Desteleyen Gatewayler: GarantiPos, EstPos, PayFlexV4
+
+        $order['installment'] = 0; // Tekrarlayan ödemeler taksitli olamaz.
+
+        $recurringFrequency     = 3;
+        $recurringFrequencyType = 'MONTH'; // DAY|WEEK|MONTH|YEAR
+        $endPeriod              = $installment * $recurringFrequency;
+
+        $order['recurring'] = [
+            'frequency'     => $recurringFrequency,
+            'frequencyType' => $recurringFrequencyType,
+            'installment'   => $installment,
+            'startDate'     => new \DateTimeImmutable(), // GarantiPos optional
+            'endDate'       => (new DateTime())->modify("+$endPeriod $recurringFrequencyType"), // Sadece PayFlexV4'te zorunlu
+        ];
     }
 
     return $order;

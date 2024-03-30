@@ -1,55 +1,45 @@
 <?php
-
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Entity\Account;
 
+use Mews\Pos\PosInterface;
 
 abstract class AbstractPosAccount
 {
-    /** @var string */
-    protected $clientId;
-    
-    /**
-     * account models: regular, 3d, 3d_pay, 3d_host
-     * @var string
-     */
-    protected $model;
-    
-    /** @var string */
-    protected $username;
-    
-    /** @var string */
-    protected $password;
-    
+    protected string $clientId;
+
+    protected string $username;
+
+    protected string $password;
+
     /**
      * required for non regular account models
-     * @var string|null
      */
-    protected $storeKey;
-    
-    /** @var string */
-    protected $lang;
-    
+    protected ?string $storeKey;
+
+    /** @var PosInterface::LANG_* */
+    protected string $lang;
+
     /**
      * bank key name used in configuration file
-     *
-     * @var string
      */
-    protected $bank;
+    protected string $bank;
 
     /**
      * AbstractPosAccount constructor.
-     * @param string $bank
-     * @param string $model
-     * @param string $clientId
-     * @param string $username
-     * @param string $password
-     * @param string $lang
-     * @param string|null $storeKey
+     *
+     * @param string               $bank
+     * @param string               $clientId
+     * @param string               $username
+     * @param string               $password
+     * @param PosInterface::LANG_* $lang
+     * @param string|null          $storeKey
      */
-    public function __construct(string $bank, string $model, string $clientId, string $username, string $password, string $lang, ?string $storeKey = null)
+    public function __construct(string $bank, string $clientId, string $username, string $password, string $lang, ?string $storeKey = null)
     {
-        $this->model = $model;
         $this->clientId = $clientId;
         $this->username = $username;
         $this->password = $password;
@@ -64,14 +54,6 @@ abstract class AbstractPosAccount
     public function getClientId(): string
     {
         return $this->clientId;
-    }
-
-    /**
-     * @return string
-     */
-    public function getModel(): string
-    {
-        return $this->model;
     }
 
     /**

@@ -1,5 +1,7 @@
 <?php
-
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Exceptions;
 
@@ -14,7 +16,7 @@ class NotImplementedException extends BadMethodCallException
     /**
      * @inheritDoc
      */
-    public function __construct($message = 'Not implemented!', $code = 500, Throwable $previous = null)
+    public function __construct(string $message = 'Not implemented!', int $code = 500, Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }

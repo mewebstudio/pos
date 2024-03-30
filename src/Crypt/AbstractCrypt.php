@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
@@ -14,17 +17,26 @@ abstract class AbstractCrypt implements CryptInterface
     /** @var string */
     protected const HASH_SEPARATOR = '';
 
-    /** @var LoggerInterface */
-    protected $logger;
+    protected LoggerInterface $logger;
 
+    /**
+     * @param LoggerInterface $logger
+     */
     public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
     }
 
-    protected function hashString(string $str): string
+    /**
+     * generates random string for using as a nonce in requests
+     *
+     * @param int<1, max> $length
+     *
+     * @return string
+     */
+    public function generateRandomString(int $length = 24): string
     {
-        return base64_encode(hash(static::HASH_ALGORITHM, $str, true));
+        return \substr(\md5(\uniqid(\microtime())), 0, $length - 1);
     }
 
     /**
@@ -36,24 +48,46 @@ abstract class AbstractCrypt implements CryptInterface
         if ('' === $hashParams) {
             return '';
         }
+
         /**
          * @var non-empty-string $hashParams ex: "MerchantNo:TerminalNo:ReferenceCode:OrderId"
          */
-        $hashParamsArr = explode($paramSeparator, $hashParams);
+        $hashParamsArr = \explode($paramSeparator, $hashParams);
 
         $paramsVal = '';
         foreach ($hashParamsArr as $paramKey) {
             $paramsVal .= $this->recursiveFind($data, $paramKey);
         }
 
-        $hashVal = $paramsVal.$storeKey;
+        $hashVal = $this->concatenateHashKey($storeKey, $paramsVal);
 
         return $this->hashString($hashVal);
     }
 
     /**
+     * @param string $str
+     *
+     * @return string
+     */
+    protected function hashString(string $str): string
+    {
+        return \base64_encode(\hash(static::HASH_ALGORITHM, $str, true));
+    }
+
+    /**
+     * @param string $hashKey
+     * @param string $hashString
+     *
+     * @return string
+     */
+    protected function concatenateHashKey(string $hashKey, string $hashString): string
+    {
+        return $hashString.$hashKey;
+    }
+
+    /**
      * @param array<string, mixed> $haystack (multidimensional) array
-     * @param string $needle key name that will be searched in the (multidimensional) array
+     * @param string               $needle   key name that will be searched in the (multidimensional) array
      *
      * @return string the value of the $needle in the (multidimensional) array
      */

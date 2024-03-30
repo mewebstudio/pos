@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Exceptions;
 
@@ -7,18 +10,17 @@ use Throwable;
 
 /**
  * Class UnsupportedTransactionTypeException
- * @package Mews\Pos\Exceptions
  */
 class UnsupportedTransactionTypeException extends Exception
 {
     /**
      * UnsupportedTransactionTypeException constructor.
      *
-     * @param string $message
-     * @param int $code
+     * @param string         $message
+     * @param int            $code
      * @param Throwable|null $previous
      */
-    public function __construct($message = 'Unsupported transaction type!', $code = 332, Throwable $previous = null)
+    public function __construct(string $message = 'Unsupported transaction type!', int $code = 332, Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }

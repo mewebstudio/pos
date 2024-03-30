@@ -8,18 +8,15 @@
         convertNoticesToExceptions="true"
         convertWarningsToExceptions="true"
         processIsolation="false"
+        cacheResultFile="./var/.phpunit.result.cache"
         stopOnFailure="false">
 
-    <testsuite name="Integration">
-        <directory>tests</directory>
-    </testsuite>
-
-    <filter>
-        <whitelist>
-            <directory suffix=".php">src</directory>
-            <exclude>
-                <directory>vendor</directory>
-            </exclude>
-        </whitelist>
-    </filter>
+    <testsuites>
+        <testsuite name="unit">
+            <directory>tests/Unit</directory>
+        </testsuite>
+        <testsuite name="functional">
+            <directory>tests/Functional</directory>
+        </testsuite>
+    </testsuites>
 </phpunit>

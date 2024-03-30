@@ -1,0 +1,127 @@
+{
+  "@xmlns:xsi": "http:\/\/www.w3.org\/2001\/XMLSchema-instance",
+  "@xsi:noNamespaceSchemaLocation": "TxnHistoryReport.xsd",
+  "PaymentRequestExtended": {
+    "PaymentRequest": {
+      "UseExistingDataWhenInserting": "false",
+      "RequestGuid": "0",
+      "status": "0",
+      "InsertDatetime": "0001-01-01T00:00:00",
+      "lastUpdated": "0",
+      "MbrId": "5",
+      "MerchantID": "085300000009704",
+      "OrderId": "202401010C2022",
+      "PaymentSeq": "99894854",
+      "RequestIp": "88.152.8.2",
+      "RequestStat": "1,10",
+      "RequestStartDatetime": "20240121180050691",
+      "MpiStartDatetime": "0",
+      "MpiEndDatetime": "0",
+      "PaymentStartDatetime": "0",
+      "PaymentEndDatetime": "0",
+      "RequestEndDatetime": "0",
+      "Pan": "",
+      "Expiry": "",
+      "SecureType": "Report",
+      "TxnAmount": "0",
+      "Exponent": "2",
+      "Currency": "949",
+      "UserCode": "QNB_API_KULLANICI_3DPAY",
+      "TerminalID": "VS010481",
+      "TxnType": "TxnHistory",
+      "TerminalTxnType": "0",
+      "OrgOrderId": "202401010C2022",
+      "CardType": "",
+      "Lang": "TR",
+      "BonusAmount": "",
+      "InstallmentCount": "0",
+      "AlphaCode": "TL",
+      "Ecommerce": "1",
+      "Accept": "*\/*",
+      "Agent": "Symfony HttpClient\/Curl",
+      "MrcCountryCode": "792",
+      "MrcName": "3D PAY TEST ISYERI",
+      "MerchantHomeUrl": "https:\/\/vpostest.qnbfinansbank.com\/",
+      "IrcDet": "Se\u00e7ili \u0130\u015flem Bulunamad\u0131!",
+      "IrcCode": "99961",
+      "TxnStatus": "P",
+      "ErrMsg": "Se\u00e7ili \u0130\u015flem Bulunamad\u0131!",
+      "TxnResult": "Failed",
+      "ProcReturnCode": "V013",
+      "BatchNo": "4065",
+      "ReqId": "99922638",
+      "UsedPoint": "0",
+      "SrcType": "VPO",
+      "RefundedAmount": "0",
+      "RefundedPoint": "0",
+      "ReqDate": "0",
+      "SysDate": "0",
+      "F11": "237991",
+      "Mti": "0",
+      "Pcode": "0",
+      "F12": "0",
+      "F22": "0",
+      "F25": "0",
+      "VposElapsedTime": "0",
+      "BankingElapsedTime": "0",
+      "SocketElapsedTime": "0",
+      "HsmElapsedTime": "0",
+      "MpiElapsedTime": "0",
+      "UserPass": "UcBN0",
+      "MerchantPass": "12345678",
+      "DecryptedCard": "",
+      "Cvv2": "",
+      "hasOrderId": "true",
+      "TemplateType": "0",
+      "HasAddressCount": "false",
+      "IsPaymentFacilitator": "false",
+      "F11_ORG": "0",
+      "F12_ORG": "0",
+      "F22_ORG": "0",
+      "F25_ORG": "0",
+      "MTI_ORG": "0",
+      "IntervalType": "0",
+      "IntervalDuration": "0",
+      "RepeatCount": "0",
+      "RequestClientIp": "88.152.8.2",
+      "BankSpecificRequest": "0",
+      "VoidTime": "0",
+      "PaymentLinkId": "0",
+      "ArtiTaksit": "0"
+    },
+    "PaymentAddress": {
+      "UseExistingDataWhenInserting": "false",
+      "RequestGuid": "0",
+      "status": "0"
+    },
+    "ExtraParameters": {
+      "ArrayOfString": [
+        {
+          "string": [
+            "INCOMING_DATA",
+            "<INCOMING_DATA><MerchantId>085300000009704<\/MerchantId><UserCode>QNB_API_KULLANICI_3DPAY<\/UserCode><UserPass_masked>*****<\/UserPass_masked><MbrId>5<\/MbrId><SecureType>Report<\/SecureType><TxnType>TxnHistory<\/TxnType><Lang>tr<\/Lang><OrderId>202401010C2022<\/OrderId><\/INCOMING_DATA>"
+          ]
+        },
+        {
+          "string": [
+            "PAYFORFROMXMLREQUEST",
+            "1"
+          ]
+        },
+        {
+          "string": [
+            "SESSION_MRC_CODE",
+            "085300000009704"
+          ]
+        },
+        {
+          "string": [
+            "SESSION_SYSTEM_USER",
+            "0"
+          ]
+        }
+      ]
+    },
+    "IsOnUsCard": "false"
+  }
+}

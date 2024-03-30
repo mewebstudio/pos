@@ -1,44 +1,43 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Card\AbstractCreditCard;
 
 interface CryptInterface
 {
     /**
      * check hash of 3D secure response
      *
-     * @param AbstractPosAccount    $account
+     * @param AbstractPosAccount    $posAccount
      * @param array<string, string> $data
      *
      * @return bool
      */
-    public function check3DHash(AbstractPosAccount $account, array $data): bool;
+    public function check3DHash(AbstractPosAccount $posAccount, array $data): bool;
 
     /**
      * creates hash for 3D secure payments
      *
-     * @param AbstractPosAccount    $account
+     * @param AbstractPosAccount    $posAccount
      * @param array<string, string> $requestData
-     * @param string|null           $txType
      *
      * @return string
      */
-    public function create3DHash(AbstractPosAccount $account, array $requestData, ?string $txType = null): string;
+    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string;
 
     /**
      * create hash for non-3D actions
      *
-     * @param AbstractPosAccount      $account
-     * @param array<string, string>   $requestData
-     * @param string|null             $txType
-     * @param AbstractCreditCard|null $card
+     * @param AbstractPosAccount   $posAccount
+     * @param array<string, mixed> $requestData
      *
      * @return string
      */
-    public function createHash(AbstractPosAccount $account, array $requestData, ?string $txType = null, ?AbstractCreditCard $card = null): string;
+    public function createHash(AbstractPosAccount $posAccount, array $requestData): string;
 
     /**
      * @param string               $storeKey       hashing key
@@ -50,4 +49,14 @@ interface CryptInterface
      * @return string hashed string from values of $hashParams
      */
     public function hashFromParams(string $storeKey, array $data, string $hashParamsKey, string $paramSeparator): string;
+
+
+    /**
+     * generates random string for using as a nonce in requests
+     *
+     * @param int $length
+     *
+     * @return string
+     */
+    public function generateRandomString(int $length = 24): string;
 }
