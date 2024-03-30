@@ -74,6 +74,15 @@ class KuveytPosSerializerTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
+    /**
+     * @dataProvider decodeXmlDataProvider
+     */
+    public function testDecodeXML(string $input, string $txType, array $expected): void
+    {
+        $actual = $this->serializer->decode($input, $txType);
+
+        $this->assertSame($expected, $actual);
+    }
 
     public static function encodeDataProvider(): Generator
     {
@@ -177,16 +186,6 @@ HTML;
                 ],
             ],
         ];
-    }
-
-    /**
-     * @dataProvider decodeXmlDataProvider
-     */
-    public function testDecodeXML(string $input, string $txType, array $expected): void
-    {
-        $actual = $this->serializer->decode($input, $txType);
-
-        $this->assertSame($expected, $actual);
     }
 
     public static function decodeXmlDataProvider(): iterable
