@@ -20,6 +20,7 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\ToslaPosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapperTest;
+use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use Mews\Pos\Tests\Unit\Serializer\ToslaPosSerializerTest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -34,6 +35,8 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class ToslaPosTest extends TestCase
 {
+    use HttpClientTestTrait;
+
     public array $config;
 
     public CreditCardInterface $card;
@@ -549,41 +552,262 @@ class ToslaPosTest extends TestCase
         ];
     }
 
-    private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse
-    ): void
+    /**
+     * @dataProvider makeRegularPaymentDataProvider
+     */
+    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
     {
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($requestData, $txType)
-            ->willReturn($encodedRequestData);
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
-
-        $responseMock = $this->createMock(ResponseInterface::class);
-        $streamMock   = $this->createMock(StreamInterface::class);
-        $streamMock->expects(self::once())
-            ->method('getContents')
-            ->willReturn($responseContent);
-        $responseMock->expects(self::once())
-            ->method('getBody')
-            ->willReturn($streamMock);
-        $this->httpClientMock->expects(self::once())
-            ->method('post')
-            ->with($apiUrl, [
+        $account = $this->pos->getAccount();
+        $card    = $this->card;
+        $this->requestMapperMock->expects(self::once())
+            ->method('createNonSecurePaymentRequestData')
+            ->with($account, $order, $txType, $card)
+            ->willReturn(['createNonSecurePaymentRequestData']);
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
                 'headers' => [
                     'Content-Type' => 'application/json',
                 ],
-                'body'    => $encodedRequestData,
-            ])
-            ->willReturn($responseMock);
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createNonSecurePaymentRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['paymentResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapPaymentResponse')
+            ->with(['paymentResponse'], $txType, $order)
+            ->willReturn(['result']);
+
+        $this->pos->makeRegularPayment($order, $card, $txType);
+    }
+
+    /**
+     * @dataProvider makeRegularPostAuthPaymentDataProvider
+     */
+    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_PAY_POST_AUTH;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createNonSecurePostAuthPaymentRequestData')
+            ->with($account, $order)
+            ->willReturn(['createNonSecurePostAuthPaymentRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createNonSecurePostAuthPaymentRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['paymentResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapPaymentResponse')
+            ->with(['paymentResponse'], $txType, $order)
+            ->willReturn(['result']);
+
+        $this->pos->makeRegularPostPayment($order);
+    }
+
+
+    /**
+     * @dataProvider statusRequestDataProvider
+     */
+    public function testStatusRequest(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType = PosInterface::TX_TYPE_STATUS;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createStatusRequestData')
+            ->with($account, $order)
+            ->willReturn(['createStatusRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createStatusRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['decodedResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapStatusResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->status($order);
+    }
+
+    /**
+     * @dataProvider cancelRequestDataProvider
+     */
+    public function testCancelRequest(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType = PosInterface::TX_TYPE_CANCEL;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCancelRequestData')
+            ->with($account, $order)
+            ->willReturn(['createCancelRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createCancelRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['decodedResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapCancelResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->cancel($order);
+    }
+
+    /**
+     * @dataProvider refundRequestDataProvider
+     */
+    public function testRefundRequest(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType = PosInterface::TX_TYPE_REFUND;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createRefundRequestData')
+            ->with($account, $order)
+            ->willReturn(['createRefundRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createRefundRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['decodedResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapRefundResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->refund($order);
+    }
+
+    /**
+     * @dataProvider orderHistoryRequestDataProvider
+     */
+    public function testOrderHistoryRequest(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType = PosInterface::TX_TYPE_ORDER_HISTORY;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createOrderHistoryRequestData')
+            ->with($account, $order)
+            ->willReturn(['createOrderHistoryRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createOrderHistoryRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['decodedResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapOrderHistoryResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->orderHistory($order);
     }
 
     public static function getApiUrlDataProvider(): array
@@ -641,4 +865,117 @@ class ToslaPosTest extends TestCase
             ],
         ];
     }
+
+
+
+    public static function makeRegularPaymentDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
+                'api_url' => 'https://ent.akodepos.com/api/Payment/Payment',
+            ],
+        ];
+    }
+
+    public static function makeRegularPostAuthPaymentDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://ent.akodepos.com/api/Payment/postAuth',
+            ],
+        ];
+    }
+
+    public static function statusRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://ent.akodepos.com/api/Payment/inquiry',
+            ],
+        ];
+    }
+
+    public static function cancelRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://ent.akodepos.com/api/Payment/void',
+            ],
+        ];
+    }
+
+    public static function refundRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://ent.akodepos.com/api/Payment/refund',
+            ],
+        ];
+    }
+
+    public static function orderHistoryRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://ent.akodepos.com/api/Payment/history',
+            ],
+        ];
+    }
+
+    private function configureClientResponse(
+        string $txType,
+        string $apiUrl,
+        array  $requestData,
+        string $encodedRequestData,
+        string $responseContent,
+        array  $decodedResponse
+    ): void
+    {
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with($requestData, $txType)
+            ->willReturn($encodedRequestData);
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
+
+        $responseMock = $this->createMock(ResponseInterface::class);
+        $streamMock   = $this->createMock(StreamInterface::class);
+        $streamMock->expects(self::once())
+            ->method('getContents')
+            ->willReturn($responseContent);
+        $responseMock->expects(self::once())
+            ->method('getBody')
+            ->willReturn($streamMock);
+        $this->httpClientMock->expects(self::once())
+            ->method('post')
+            ->with($apiUrl, [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+                'body'    => $encodedRequestData,
+            ])
+            ->willReturn($responseMock);
+    }
+
 }
