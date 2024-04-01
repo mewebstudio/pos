@@ -35,6 +35,13 @@ class KuveytPosCryptTest extends TestCase
         $this->crypt = new KuveytPosCrypt(new NullLogger());
     }
 
+    public function testHashString(): void
+    {
+        $actual = $this->crypt->hashString('123');
+
+        $this->assertSame('QL0AFWMIX8NRZTKeof9cXsvbvu8=', $actual);
+    }
+
     /**
      * @dataProvider threeDHashCreateDataProvider
      */
@@ -43,6 +50,11 @@ class KuveytPosCryptTest extends TestCase
         $actual = $this->crypt->create3DHash($this->account, $requestData);
 
         $this->assertSame($expected, $actual);
+    }
+
+    public function testCheck3DHash(): void
+    {
+        $this->assertTrue($this->crypt->check3DHash($this->account, []));
     }
 
     /**

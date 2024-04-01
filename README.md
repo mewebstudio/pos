@@ -23,6 +23,7 @@ sistemlerinin kullanılabilmesidir.
 | PayFor                                                                                                      | Finansbank<br/>Enpara                                                          | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost                                     | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama<br/>Geçmiş İşlemleri sorgulama |
 | InterPOS                                                                                                    | Deniz bank                                                                     | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost                                     | İptal<br/>İade<br/>Durum sorgulama                                                                  |
 | Kuveyt POS                                                                                                  | Kuveyt Türk                                                                    | 3DSecure                                                                        | İptal<br/>İade<br/>Durum sorgulama<br/>(SOAP API)                                                   |
+| VakifKatilimPos<br/>(test edilmesi gerekiyor)                                                               | Vakıf Katılım                                                                  | NonSecure<br/>3DSecure<br/>3DHost                                               | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama<br/>Geçmiş İşlemleri sorgulama |
 
 ### Ana başlıklar
 

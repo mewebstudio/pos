@@ -119,15 +119,17 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @phpstan-param self::TX_TYPE_* $txType
-     * @phpstan-param self::MODEL_*   $paymentModel
+     * @phpstan-param self::TX_TYPE_*     $txType
+     * @phpstan-param self::MODEL_*       $paymentModel
+     * @phpstan-param self::TX_TYPE_PAY_* $orderTxType
      *
      * @param string|null $txType
      * @param string|null $paymentModel
+     * @param string|null $orderTxType
      *
      * @return non-empty-string
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null): string
+    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
         return $this->config['gateway_endpoints']['payment_api'];
     }
@@ -150,14 +152,20 @@ abstract class AbstractGateway implements PosInterface
 
     /**
      * @phpstan-param self::TX_TYPE_* $txType
+     * @phpstan-param self::TX_TYPE_PAY_* $orderTxType
      *
      * @param string|null $txType
+     * @param string|null $orderTxType transaction type of order when it was made
      *
      * @return non-empty-string
      */
-    public function getQueryAPIUrl(string $txType = null): string
+    public function getQueryAPIUrl(string $txType = null, ?string $orderTxType = null): string
     {
-        return $this->config['gateway_endpoints']['query_api'] ?? $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE);
+        return $this->config['gateway_endpoints']['query_api'] ?? $this->getApiURL(
+            $txType,
+            PosInterface::MODEL_NON_SECURE,
+            $orderTxType
+        );
     }
 
     /**
@@ -215,10 +223,10 @@ abstract class AbstractGateway implements PosInterface
             'model'   => PosInterface::MODEL_NON_SECURE,
             'tx_type' => $txType,
         ]);
-        if (in_array($txType, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)) {
+        if (\in_array($txType, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)) {
             $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $creditCard);
         } else {
-            throw new LogicException(sprintf('Invalid transaction type "%s" provided', $txType));
+            throw new LogicException(\sprintf('Invalid transaction type "%s" provided', $txType));
         }
 
         $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
@@ -307,7 +315,11 @@ abstract class AbstractGateway implements PosInterface
             $data,
             $txType,
             PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            $this->getApiURL(
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $order['transaction_type'] ?? null
+            )
         );
         $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
 
@@ -339,7 +351,11 @@ abstract class AbstractGateway implements PosInterface
             $data,
             $txType,
             PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            $this->getApiURL(
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $order['transaction_type'] ?? null
+            )
         );
         $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
 

@@ -86,7 +86,7 @@ class GarantiPosCrypt extends AbstractCrypt
      *
      * @return string
      */
-    protected function hashString(string $str): string
+    public function hashString(string $str): string
     {
         return $this->hashStringUpperCase($str, self::HASH_ALGORITHM);
     }

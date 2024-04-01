@@ -19,6 +19,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
@@ -30,6 +31,7 @@ use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\Gateways\ToslaPos;
+use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
@@ -49,16 +51,17 @@ class RequestDataMapperFactory
     public static function createGatewayRequestMapper(string $gatewayClass, EventDispatcherInterface $eventDispatcher, CryptInterface $crypt, array $currencies = []): RequestDataMapperInterface
     {
         $classMappings = [
-            ToslaPos::class       => ToslaPosRequestDataMapper::class,
-            EstPos::class         => EstPosRequestDataMapper::class,
-            EstV3Pos::class       => EstV3PosRequestDataMapper::class,
-            GarantiPos::class     => GarantiPosRequestDataMapper::class,
-            InterPos::class       => InterPosRequestDataMapper::class,
-            KuveytPos::class      => KuveytPosRequestDataMapper::class,
-            PayForPos::class      => PayForPosRequestDataMapper::class,
-            PosNet::class         => PosNetRequestDataMapper::class,
-            PosNetV1Pos::class    => PosNetV1PosRequestDataMapper::class,
-            PayFlexCPV4Pos::class => PayFlexCPV4PosRequestDataMapper::class,
+            ToslaPos::class        => ToslaPosRequestDataMapper::class,
+            EstPos::class          => EstPosRequestDataMapper::class,
+            EstV3Pos::class        => EstV3PosRequestDataMapper::class,
+            GarantiPos::class      => GarantiPosRequestDataMapper::class,
+            InterPos::class        => InterPosRequestDataMapper::class,
+            KuveytPos::class       => KuveytPosRequestDataMapper::class,
+            VakifKatilimPos::class => VakifKatilimPosRequestDataMapper::class,
+            PayForPos::class       => PayForPosRequestDataMapper::class,
+            PosNet::class          => PosNetRequestDataMapper::class,
+            PosNetV1Pos::class     => PosNetV1PosRequestDataMapper::class,
+            PayFlexCPV4Pos::class  => PayFlexCPV4PosRequestDataMapper::class,
         ];
         if (isset($classMappings[$gatewayClass])) {
             return new $classMappings[$gatewayClass]($eventDispatcher, $crypt, $currencies);

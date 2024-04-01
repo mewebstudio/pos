@@ -66,7 +66,7 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null): string
+    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType && null !== $paymentModel) {
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);

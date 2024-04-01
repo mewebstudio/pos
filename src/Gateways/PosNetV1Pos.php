@@ -58,7 +58,7 @@ class PosNetV1Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null): string
+    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType) {
             return parent::getApiURL().'/'.$this->requestDataMapper->mapTxType($txType);
