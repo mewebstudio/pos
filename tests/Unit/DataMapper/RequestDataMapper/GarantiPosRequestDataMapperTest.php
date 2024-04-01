@@ -31,7 +31,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
     private GarantiPosRequestDataMapper $requestDataMapper;
 
-    private $order;
+    private array $order;
 
     private $config;
 

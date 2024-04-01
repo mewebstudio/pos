@@ -131,9 +131,17 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
+    public function status(array $order): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function history(array $data): PosInterface
     {
-        throw new UnsupportedPaymentModelException();
+        throw new UnsupportedTransactionTypeException();
     }
 
     /**

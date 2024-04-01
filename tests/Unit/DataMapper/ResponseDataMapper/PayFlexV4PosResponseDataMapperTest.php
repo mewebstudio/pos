@@ -470,7 +470,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     public static function threeDPaymentDataProvider(): array
     {
         return [
-            'authFail1'                 => [
+            '3d_auth_fail'                 => [
                 'order'              => [],
                 'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
@@ -517,7 +517,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'installment_count'    => 0,
                 ],
             ],
-            'auth_success_payment_fail' => [
+            '3d_auth_success_payment_fail' => [
                 'order'              => [],
                 'txType'             => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'threeDResponseData' => [
@@ -584,7 +584,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'installment_count'    => 0,
                 ],
             ],
-            'success1'                  => [
+            'success1'                     => [
                 'order'              => [],
                 'txType'             => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'threeDResponseData' => [
