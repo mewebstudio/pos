@@ -13,6 +13,7 @@ use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\ToslaPos;
@@ -157,13 +158,14 @@ class ToslaPosTest extends TestCase
      * @dataProvider make3DPayPaymentDataProvider
      */
     public function testMake3DPayPayment(
-        array $order,
-        string $txType,
+        array   $order,
+        string  $txType,
         Request $request,
-        array $expectedResponse,
-        bool $is3DSuccess,
-        bool $isSuccess
-    ): void {
+        array   $expectedResponse,
+        bool    $is3DSuccess,
+        bool    $isSuccess
+    ): void
+    {
         if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
@@ -195,12 +197,12 @@ class ToslaPosTest extends TestCase
      * @dataProvider make3DPayPaymentDataProvider
      */
     public function testMake3DHostPayment(
-        array $order,
-        string $txType,
+        array   $order,
+        string  $txType,
         Request $request,
-        array $expectedResponse,
-        bool $is3DSuccess,
-        bool $isSuccess
+        array   $expectedResponse,
+        bool    $is3DSuccess,
+        bool    $isSuccess
     ): void
     {
         if ($is3DSuccess) {
@@ -221,7 +223,7 @@ class ToslaPosTest extends TestCase
             ->willReturn($is3DSuccess);
 
         $this->responseMapperMock->expects(self::once())
-            ->method('map3DPayResponseData')
+            ->method('map3DHostResponseData')
             ->willReturn($expectedResponse);
 
         $this->pos->make3DHostPayment($request, $order, $txType);
@@ -252,7 +254,8 @@ class ToslaPosTest extends TestCase
         string $encodedRequestData,
         string $responseData,
         array  $decodedResponseData,
-        array  $formData
+        array  $formData,
+        string $gatewayUrl
     ): void
     {
 
@@ -278,7 +281,7 @@ class ToslaPosTest extends TestCase
                 $decodedResponseData,
                 $paymentModel,
                 $txType,
-                'https://ent.akodepos.com/api/Payment/ProcessCardForm',
+                $gatewayUrl,
                 $card
             )
             ->willReturn($formData);
@@ -418,6 +421,11 @@ class ToslaPosTest extends TestCase
         $this->assertSame($result, $mappedResponse);
     }
 
+    public function testHistoryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->history([]);
+    }
 
     /**
      * @dataProvider orderHistoryDataProvider
@@ -516,7 +524,7 @@ class ToslaPosTest extends TestCase
 
     public static function threeDFormDataProvider(): iterable
     {
-        yield [
+        yield '3d_pay' => [
             'order'               => ToslaPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['order'],
             'paymentModel'        => PosInterface::MODEL_3D_PAY,
             'txType'              => PosInterface::TX_TYPE_PAY_AUTH,
@@ -526,6 +534,20 @@ class ToslaPosTest extends TestCase
             'responseData'        => ToslaPosSerializerTest::decodeDataProvider()['payment_register']['input'],
             'decodedResponseData' => ToslaPosSerializerTest::decodeDataProvider()['payment_register']['decoded'],
             'formData'            => ToslaPosRequestDataMapperTest::threeDFormDataProvider()['3d_pay_form_data']['expected'],
+            'gateway_url'         => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
+        ];
+
+        yield '3d_host' => [
+            'order'               => ToslaPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['order'],
+            'paymentModel'        => PosInterface::MODEL_3D_HOST,
+            'txType'              => PosInterface::TX_TYPE_PAY_AUTH,
+            'isWithCard'          => false,
+            'requestData'         => ToslaPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
+            'encodedRequestData'  => \json_encode(ToslaPosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
+            'responseData'        => ToslaPosSerializerTest::decodeDataProvider()['payment_register']['input'],
+            'decodedResponseData' => ToslaPosSerializerTest::decodeDataProvider()['payment_register']['decoded'],
+            'formData'            => ToslaPosRequestDataMapperTest::threeDFormDataProvider()['3d_pay_form_data']['expected'],
+            'gateway_url'         => 'https://ent.akodepos.com/api/Payment/threeDSecure/PA49E341381C94587AB4CB196DAC10DC02E509578520E4471A3EEE2BB4830AE4F',
         ];
     }
 
@@ -643,7 +665,7 @@ class ToslaPosTest extends TestCase
     public function testStatusRequest(array $order, string $apiUrl): void
     {
         $account = $this->pos->getAccount();
-        $txType = PosInterface::TX_TYPE_STATUS;
+        $txType  = PosInterface::TX_TYPE_STATUS;
 
         $this->requestMapperMock->expects(self::once())
             ->method('createStatusRequestData')
@@ -687,7 +709,7 @@ class ToslaPosTest extends TestCase
     public function testCancelRequest(array $order, string $apiUrl): void
     {
         $account = $this->pos->getAccount();
-        $txType = PosInterface::TX_TYPE_CANCEL;
+        $txType  = PosInterface::TX_TYPE_CANCEL;
 
         $this->requestMapperMock->expects(self::once())
             ->method('createCancelRequestData')
@@ -730,7 +752,7 @@ class ToslaPosTest extends TestCase
     public function testRefundRequest(array $order, string $apiUrl): void
     {
         $account = $this->pos->getAccount();
-        $txType = PosInterface::TX_TYPE_REFUND;
+        $txType  = PosInterface::TX_TYPE_REFUND;
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
@@ -773,7 +795,7 @@ class ToslaPosTest extends TestCase
     public function testOrderHistoryRequest(array $order, string $apiUrl): void
     {
         $account = $this->pos->getAccount();
-        $txType = PosInterface::TX_TYPE_ORDER_HISTORY;
+        $txType  = PosInterface::TX_TYPE_ORDER_HISTORY;
 
         $this->requestMapperMock->expects(self::once())
             ->method('createOrderHistoryRequestData')
@@ -865,7 +887,6 @@ class ToslaPosTest extends TestCase
             ],
         ];
     }
-
 
 
     public static function makeRegularPaymentDataProvider(): array

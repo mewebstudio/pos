@@ -11,7 +11,8 @@ use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\KuveytPos;
@@ -325,9 +326,44 @@ class KuveytPosTest extends TestCase
 
     public function testMakeRegularPayment(): void
     {
-        $this->expectException(NotImplementedException::class);
+        $this->expectException(UnsupportedPaymentModelException::class);
         $this->pos->makeRegularPayment([], $this->card, PosInterface::TX_TYPE_PAY_AUTH);
     }
+
+    public function testMakeRegularPostAuthPayment(): void
+    {
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->makeRegularPostPayment([]);
+    }
+
+    public function testHistoryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->history([]);
+    }
+
+    public function testOrderHistoryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->orderHistory([]);
+    }
+
+    public function testMake3DHostPayment(): void
+    {
+        $request = Request::create('', 'POST');
+
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
+    public function testMake3DPayPayment(): void
+    {
+        $request = Request::create('', 'POST');
+
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
 
     public static function make3DPaymentDataProvider(): array
     {
@@ -373,6 +409,26 @@ class KuveytPosTest extends TestCase
                 'expected'        => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
                 'is3DSuccess'     => true,
                 'isSuccess'       => true,
+            ],
+        ];
+    }
+
+    public static function makeRegularPaymentDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
+                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/Non3DPayGate',
+            ],
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
+                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizaten',
             ],
         ];
     }

@@ -114,7 +114,17 @@ class ToslaPos extends AbstractGateway
      */
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        return $this->make3DPayPayment($request, $order, $txType);
+        $request = $request->request;
+
+        if ($this->is3DAuthSuccess($request->all()) && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+            throw new HashMismatchException();
+        }
+
+        $this->response = $this->responseDataMapper->map3DHostResponseData($request->all(), $txType, $order);
+
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
+
+        return $this;
     }
 
     /**

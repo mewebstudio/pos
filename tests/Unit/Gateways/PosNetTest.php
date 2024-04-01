@@ -14,6 +14,8 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PosNet;
@@ -334,6 +336,249 @@ class PosNetTest extends TestCase
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
+    public function testMake3DHostPayment(): void
+    {
+        $request = Request::create('', 'POST');
+
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
+    public function testMake3DPayPayment(): void
+    {
+        $request = Request::create('', 'POST');
+
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
+    /**
+     * @dataProvider makeRegularPaymentDataProvider
+     */
+    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $card    = $this->card;
+        $this->requestMapperMock->expects(self::once())
+            ->method('createNonSecurePaymentRequestData')
+            ->with($account, $order, $txType, $card)
+            ->willReturn(['createNonSecurePaymentRequestData']);
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'xmldata=request-body',
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+            ],
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createNonSecurePaymentRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['paymentResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapPaymentResponse')
+            ->with(['paymentResponse'], $txType, $order)
+            ->willReturn(['result']);
+
+        $this->pos->makeRegularPayment($order, $card, $txType);
+    }
+
+    /**
+     * @dataProvider makeRegularPostAuthPaymentDataProvider
+     */
+    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_PAY_POST_AUTH;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createNonSecurePostAuthPaymentRequestData')
+            ->with($account, $order)
+            ->willReturn(['createNonSecurePostAuthPaymentRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createNonSecurePostAuthPaymentRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'xmldata=request-body',
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+            ],
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['paymentResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapPaymentResponse')
+            ->with(['paymentResponse'], $txType, $order)
+            ->willReturn(['result']);
+
+        $this->pos->makeRegularPostPayment($order);
+    }
+
+
+    /**
+     * @dataProvider statusRequestDataProvider
+     */
+    public function testStatusRequest(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_STATUS;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createStatusRequestData')
+            ->with($account, $order)
+            ->willReturn(['createStatusRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createStatusRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'xmldata=request-body',
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+            ],
+        );
+
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['decodedResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapStatusResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->status($order);
+    }
+
+    /**
+     * @dataProvider cancelRequestDataProvider
+     */
+    public function testCancelRequest(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CANCEL;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCancelRequestData')
+            ->with($account, $order)
+            ->willReturn(['createCancelRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createCancelRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'xmldata=request-body',
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+            ],
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['decodedResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapCancelResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->cancel($order);
+    }
+
+    /**
+     * @dataProvider refundRequestDataProvider
+     */
+    public function testRefundRequest(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_REFUND;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createRefundRequestData')
+            ->with($account, $order)
+            ->willReturn(['createRefundRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createRefundRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'xmldata=request-body',
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+            ],
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['decodedResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapRefundResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->refund($order);
+    }
+
+    public function testHistoryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->history([]);
+    }
+
+    public function testOrderHistoryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->orderHistory([]);
+    }
+
     public static function make3DPaymentDataProvider(): array
     {
         $resolveMerchantResponseData = [
@@ -343,7 +588,7 @@ class PosNetTest extends TestCase
         ];
 
         return [
-            'auth_fail' => [
+            'auth_fail'      => [
                 'order'           => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['order'],
                 'txType'          => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['txType'],
                 'request'         => Request::create('', 'POST', $resolveMerchantResponseData),
@@ -363,7 +608,7 @@ class PosNetTest extends TestCase
                 'is3DSuccess'     => false,
                 'isSuccess'       => false,
             ],
-            'success'   => [
+            'success'        => [
                 'order'           => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
                 'txType'          => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
                 'request'         => Request::create('', 'POST', $resolveMerchantResponseData),
@@ -372,6 +617,98 @@ class PosNetTest extends TestCase
                 'expected'        => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
                 'is3DSuccess'     => true,
                 'isSuccess'       => true,
+            ],
+        ];
+    }
+
+    public static function makeRegularPaymentDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
+                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
+            ],
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
+                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
+            ],
+        ];
+    }
+
+    public static function makeRegularPostAuthPaymentDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
+            ],
+        ];
+    }
+
+    public static function statusRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
+            ],
+        ];
+    }
+
+    public static function cancelRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
+            ],
+        ];
+    }
+
+    public static function refundRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
+            ],
+        ];
+    }
+
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
+            ],
+        ];
+    }
+
+    public static function orderHistoryRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
             ],
         ];
     }
