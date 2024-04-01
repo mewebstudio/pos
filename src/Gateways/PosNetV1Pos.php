@@ -158,7 +158,7 @@ class PosNetV1Pos extends AbstractGateway
      */
     protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
     {
-        $url = $this->getApiURL();
+        $url = $this->getApiURL($txType);
         $this->logger->debug('sending request', ['url' => $url]);
 
         if (!is_string($contents)) {
