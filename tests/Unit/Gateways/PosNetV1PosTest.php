@@ -68,11 +68,11 @@ class PosNetV1PosTest extends TestCase
         parent::setUp();
 
         $this->config = [
-            'name'  => 'Albaraka',
-            'class' => PosNetV1Pos::class,
-            'gateway_endpoints'  => [
-                'payment_api'     => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
-                'gateway_3d'      => 'https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx',
+            'name'              => 'Albaraka',
+            'class'             => PosNetV1Pos::class,
+            'gateway_endpoints' => [
+                'payment_api' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
+                'gateway_3d'  => 'https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx',
             ],
         ];
 
@@ -145,11 +145,12 @@ class PosNetV1PosTest extends TestCase
      */
     public function testGet3DFormData(
         bool $isWithCard
-    ): void {
-        $card = $isWithCard ? $this->card : null;
-        $order = ['id' => '124'];
+    ): void
+    {
+        $card         = $isWithCard ? $this->card : null;
+        $order        = ['id' => '124'];
         $paymentModel = PosInterface::MODEL_3D_SECURE;
-        $txType = PosInterface::TX_TYPE_PAY_AUTH;
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DFormData')
@@ -203,13 +204,17 @@ class PosNetV1PosTest extends TestCase
         ];
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
+                ->method('mapTxType')
+                ->with($txType)
+                ->willReturn('Sale');
+            $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
                 ->with($this->account, $order, $txType, $request->request->all())
                 ->willReturn($create3DPaymentRequestData);
             $this->prepareClient(
                 $this->httpClientMock,
                 'response-body',
-                $this->config['gateway_endpoints']['payment_api'],
+                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
                 [
                     'headers' => [
                         'Content-Type' => 'application/json',
@@ -270,11 +275,17 @@ class PosNetV1PosTest extends TestCase
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType, string $mappedTxType, string $apiUrl): void
     {
         $account = $this->pos->getAccount();
         $card    = $this->card;
+
         $this->requestMapperMock->expects(self::once())
+            ->method('mapTxType')
+            ->with($txType)
+            ->willReturn($mappedTxType);
+
+            $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePaymentRequestData')
             ->with($account, $order, $txType, $card)
             ->willReturn(['createNonSecurePaymentRequestData']);
@@ -315,6 +326,11 @@ class PosNetV1PosTest extends TestCase
     {
         $account = $this->pos->getAccount();
         $txType  = PosInterface::TX_TYPE_PAY_POST_AUTH;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('mapTxType')
+            ->with($txType)
+            ->willReturn('Capture');
 
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePostAuthPaymentRequestData')
@@ -358,7 +374,12 @@ class PosNetV1PosTest extends TestCase
     public function testStatusRequest(array $order, string $apiUrl): void
     {
         $account = $this->pos->getAccount();
-        $txType = PosInterface::TX_TYPE_STATUS;
+        $txType  = PosInterface::TX_TYPE_STATUS;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('mapTxType')
+            ->with($txType)
+            ->willReturn('TransactionInquiry');
 
         $this->requestMapperMock->expects(self::once())
             ->method('createStatusRequestData')
@@ -402,7 +423,12 @@ class PosNetV1PosTest extends TestCase
     public function testCancelRequest(array $order, string $apiUrl): void
     {
         $account = $this->pos->getAccount();
-        $txType = PosInterface::TX_TYPE_CANCEL;
+        $txType  = PosInterface::TX_TYPE_CANCEL;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('mapTxType')
+            ->with($txType)
+            ->willReturn('Reverse');
 
         $this->requestMapperMock->expects(self::once())
             ->method('createCancelRequestData')
@@ -445,7 +471,12 @@ class PosNetV1PosTest extends TestCase
     public function testRefundRequest(array $order, string $apiUrl): void
     {
         $account = $this->pos->getAccount();
-        $txType = PosInterface::TX_TYPE_REFUND;
+        $txType  = PosInterface::TX_TYPE_REFUND;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('mapTxType')
+            ->with($txType)
+            ->willReturn('Return');
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
@@ -529,7 +560,7 @@ class PosNetV1PosTest extends TestCase
 
     public static function make3DPaymentDataProvider(): array
     {
-        $dataSamples  = iterator_to_array(PosNetV1PosResponseDataMapperTest::threeDPaymentDataProvider());
+        $dataSamples = iterator_to_array(PosNetV1PosResponseDataMapperTest::threeDPaymentDataProvider());
 
         return [
             'auth_fail'                    => [
@@ -574,18 +605,20 @@ class PosNetV1PosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order'        => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'mappedTxType' => 'Sale',
+                'api_url'      => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
             ],
             [
-                'order'   => [
+                'order'        => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
+                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
+                'mappedTxType' => 'Auth',
+                'api_url'      => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Auth',
             ],
         ];
     }
@@ -597,7 +630,7 @@ class PosNetV1PosTest extends TestCase
                 'order'   => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
+                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Capture',
             ],
         ];
     }
@@ -609,7 +642,7 @@ class PosNetV1PosTest extends TestCase
                 'order'   => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
+                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/TransactionInquiry',
             ],
         ];
     }
@@ -621,7 +654,7 @@ class PosNetV1PosTest extends TestCase
                 'order'   => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
+                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Reverse',
             ],
         ];
     }
@@ -633,7 +666,7 @@ class PosNetV1PosTest extends TestCase
                 'order'   => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
+                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Return',
             ],
         ];
     }
