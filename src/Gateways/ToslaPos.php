@@ -168,10 +168,8 @@ class ToslaPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
-        $url = $this->getApiURL($txType, $paymentModel);
-
         $this->logger->debug('sending request', ['url' => $url]);
         $response = $this->client->post($url, [
             'headers' => [
@@ -232,7 +230,12 @@ class ToslaPos extends AbstractGateway
 
         $requestData = $this->serializer->encode($requestData, $txType);
 
-        return $this->send($requestData, $txType, $paymentModel);
+        return $this->send(
+            $requestData,
+            $txType,
+            $paymentModel,
+            $this->getApiURL($txType, $paymentModel)
+        );
     }
 
     /**

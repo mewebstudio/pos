@@ -100,7 +100,12 @@ class PosNetV1Pos extends AbstractGateway
         }
 
         $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+        $provisionResponse = $this->send(
+            $contents,
+            $txType,
+            PosInterface::MODEL_3D_SECURE,
+            $this->getApiURL($txType)
+        );
         $this->logger->debug('send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $provisionResponse, $txType, $order);
@@ -156,12 +161,11 @@ class PosNetV1Pos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
-        $url = $this->getApiURL($txType);
         $this->logger->debug('sending request', ['url' => $url]);
 
-        if (!is_string($contents)) {
+        if (!\is_string($contents)) {
             throw new InvalidArgumentException('Invalid data provided');
         }
 

@@ -82,7 +82,12 @@ class PosNet extends AbstractGateway
         }
 
         $contents           = $this->serializer->encode($requestData, $txType);
-        $userVerifyResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+        $userVerifyResponse = $this->send(
+            $contents,
+            $txType,
+            PosInterface::MODEL_3D_SECURE,
+            $this->getApiURL()
+        );
 
         if (!$this->is3DAuthSuccess($userVerifyResponse)) {
             $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, null, $txType, $order);
@@ -110,7 +115,12 @@ class PosNet extends AbstractGateway
         }
 
         $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+        $bankResponse = $this->send(
+            $contents,
+            $txType,
+            PosInterface::MODEL_3D_SECURE,
+            $this->getApiURL()
+        );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
@@ -182,9 +192,8 @@ class PosNet extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
-        $url = $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
 
         if (!\is_string($contents)) {
@@ -238,6 +247,11 @@ class PosNet extends AbstractGateway
 
         $xml = $this->serializer->encode($requestData, $txType);
 
-        return $this->send($xml, $txType, PosInterface::MODEL_3D_SECURE);
+        return $this->send(
+            $xml,
+            $txType,
+            PosInterface::MODEL_3D_SECURE,
+            $this->getApiURL()
+        );
     }
 }
