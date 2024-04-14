@@ -90,7 +90,12 @@ class PayForPos extends AbstractGateway
         }
 
         $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+        $bankResponse = $this->send(
+            $contents,
+            $txType,
+            PosInterface::MODEL_3D_SECURE,
+            $this->getApiURL()
+        );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);
 
@@ -174,9 +179,8 @@ class PayForPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
-        $url = $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
         $response = $this->client->post($url, [
             'headers' => [

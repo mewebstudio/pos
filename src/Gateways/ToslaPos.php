@@ -66,7 +66,7 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null): string
+    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType && null !== $paymentModel) {
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
@@ -168,10 +168,8 @@ class ToslaPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
-        $url = $this->getApiURL($txType, $paymentModel);
-
         $this->logger->debug('sending request', ['url' => $url]);
         $response = $this->client->post($url, [
             'headers' => [
@@ -232,7 +230,12 @@ class ToslaPos extends AbstractGateway
 
         $requestData = $this->serializer->encode($requestData, $txType);
 
-        return $this->send($requestData, $txType, $paymentModel);
+        return $this->send(
+            $requestData,
+            $txType,
+            $paymentModel,
+            $this->getApiURL($txType, $paymentModel)
+        );
     }
 
     /**

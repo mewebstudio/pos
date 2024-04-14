@@ -10,6 +10,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\ToslaPos;
+use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 
 trait PaymentTestTrait
@@ -19,7 +20,8 @@ trait PaymentTestTrait
         float  $amount = 1.01,
         int    $installment = 0,
         bool   $tekrarlanan = false
-    ): array {
+    ): array
+    {
         $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
 
         $order = [
@@ -141,6 +143,10 @@ trait PaymentTestTrait
             $cancelOrder['auth_code']       = $lastResponse['auth_code'];
             $cancelOrder['transaction_id']  = $lastResponse['transaction_id'];
             $cancelOrder['amount']          = $lastResponse['amount'];
+        } elseif (VakifKatilimPos::class === $gatewayClass) {
+            $cancelOrder['remote_order_id']  = $lastResponse['remote_order_id']; // banka tarafındaki order id
+            $cancelOrder['amount']           = $lastResponse['amount'];
+            $cancelOrder['transaction_type'] = $lastResponse['transaction_type'] ?? PosInterface::TX_TYPE_PAY_AUTH;
         } elseif (\Mews\Pos\Gateways\PayFlexV4Pos::class === $gatewayClass || \Mews\Pos\Gateways\PayFlexCPV4Pos::class === $gatewayClass) {
             // çalışmazsa $lastResponse['all']['ReferenceTransactionId']; ile denenmesi gerekiyor.
             $cancelOrder['transaction_id'] = $lastResponse['transaction_id'];
@@ -200,11 +206,21 @@ trait PaymentTestTrait
                 'currency' => $lastResponse['currency'],
                 'ip'       => '127.0.0.1',
             ];
+        } elseif (VakifKatilimPos::class === $gatewayClass) {
+            /** @var \DateTimeImmutable $txTime */
+            $txTime = $lastResponse['transaction_time'];
+            $order  = [
+                'auth_code'  => $lastResponse['auth_code'],
+                /**
+                 * Tarih aralığı maksimum 90 gün olabilir.
+                 */
+                'start_date' => $txTime->modify('-1 day'),
+                'end_date'   => $txTime->modify('+1 day'),
+            ];
         }
 
         return $order;
     }
-
 
     private function createHistoryOrder(string $gatewayClass, array $extraData): array
     {
@@ -212,6 +228,20 @@ trait PaymentTestTrait
             return [
                 // odeme tarihi
                 'transaction_date' => $extraData['transaction_date'] ?? new \DateTimeImmutable(),
+            ];
+        }
+
+        if (\Mews\Pos\Gateways\VakifKatilimPos::class === $gatewayClass) {
+            $txTime = new \DateTimeImmutable();
+
+            return [
+                'page'       => 1,
+                'page_size'  => 20,
+                /**
+                 * Tarih aralığı maksimum 90 gün olabilir.
+                 */
+                'start_date' => $txTime->modify('-1 day'),
+                'end_date'   => $txTime->modify('+1 day'),
             ];
         }
 
@@ -232,6 +262,10 @@ trait PaymentTestTrait
             $refundOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
             $refundOrder['auth_code']       = $lastResponse['auth_code'];
             $refundOrder['transaction_id']  = $lastResponse['transaction_id'];
+        } elseif (VakifKatilimPos::class === $gatewayClass) {
+            $refundOrder['remote_order_id']  = $lastResponse['remote_order_id']; // banka tarafındaki order id
+            $refundOrder['amount']           = $lastResponse['amount'];
+            $refundOrder['transaction_type'] = $lastResponse['transaction_type'] ?? PosInterface::TX_TYPE_PAY_AUTH;
         } elseif (\Mews\Pos\Gateways\PayFlexV4Pos::class === $gatewayClass || \Mews\Pos\Gateways\PayFlexCPV4Pos::class === $gatewayClass) {
             // çalışmazsa $lastResponse['all']['ReferenceTransactionId']; ile denenmesi gerekiyor.
             $refundOrder['transaction_id'] = $lastResponse['transaction_id'];

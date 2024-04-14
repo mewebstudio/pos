@@ -17,6 +17,7 @@ use Mews\Pos\Serializer\PosNetSerializer;
 use Mews\Pos\Serializer\PosNetV1PosSerializer;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Serializer\ToslaPosSerializer;
+use Mews\Pos\Serializer\VakifKatilimPosSerializer;
 
 /**
  * SerializerFactory
@@ -37,6 +38,7 @@ class SerializerFactory
             GarantiPosSerializer::class,
             InterPosSerializer::class,
             KuveytPosSerializer::class,
+            VakifKatilimPosSerializer::class,
             PayFlexV4PosSerializer::class,
             PayFlexCPV4PosSerializer::class,
             PayForPosSerializer::class,
@@ -50,6 +52,6 @@ class SerializerFactory
             }
         }
 
-        throw new DomainException(sprintf('Serializer not found for the gateway %s', $gatewayClass));
+        throw new DomainException(\sprintf('Serializer not found for the gateway %s', $gatewayClass));
     }
 }

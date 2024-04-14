@@ -69,7 +69,7 @@ abstract class AbstractCrypt implements CryptInterface
      *
      * @return string
      */
-    protected function hashString(string $str): string
+    public function hashString(string $str): string
     {
         return \base64_encode(\hash(static::HASH_ALGORITHM, $str, true));
     }

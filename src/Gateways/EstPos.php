@@ -98,7 +98,12 @@ class EstPos extends AbstractGateway
         }
 
         $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+        $provisionResponse = $this->send(
+            $contents,
+            $txType,
+            PosInterface::MODEL_3D_SECURE,
+            $this->getApiURL()
+        );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
             $request->all(),
@@ -162,10 +167,8 @@ class EstPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
-        $url = $this->getApiURL();
-
         $this->logger->debug('sending request', ['url' => $url]);
         $response = $this->client->post($url, ['body' => $contents]);
 

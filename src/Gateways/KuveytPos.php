@@ -164,7 +164,12 @@ class KuveytPos extends AbstractGateway
         }
 
         $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+        $bankResponse = $this->send(
+            $contents,
+            $txType,
+            PosInterface::MODEL_3D_SECURE,
+            $this->getApiURL()
+        );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
@@ -178,17 +183,16 @@ class KuveytPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
         if (\in_array($txType, [PosInterface::TX_TYPE_REFUND, PosInterface::TX_TYPE_STATUS, PosInterface::TX_TYPE_CANCEL], true)) {
             if (!\is_array($contents)) {
-                throw new InvalidArgumentException(sprintf('Invalid data type provided for %s transaction!', $txType));
+                throw new InvalidArgumentException(\sprintf('Invalid data type provided for %s transaction!', $txType));
             }
 
             return $this->data = $this->sendSoapRequest($contents, $txType);
         }
 
-        $url ??= $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
         $body     = [
             'body'    => $contents,
@@ -207,16 +211,19 @@ class KuveytPos extends AbstractGateway
      *
      * @param array<string, mixed>  $contents
      * @param string                $txType
-     * @param non-empty-string|null $url
      *
      * @return array<string, mixed>
      *
      * @throws SoapFault
      * @throws Throwable
      */
-    protected function sendSoapRequest(array $contents, string $txType, string $url = null): array
+    protected function sendSoapRequest(array $contents, string $txType): array
     {
-        $url ??= $this->getQueryAPIUrl();
+        $url = $this->getQueryAPIUrl();
+        $this->logger->debug('sending soap request', [
+            'txType' => $txType,
+            'url'    => $url,
+        ]);
 
         $sslConfig = [
             'allow_self_signed' => true,

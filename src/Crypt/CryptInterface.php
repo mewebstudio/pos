@@ -10,6 +10,13 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 interface CryptInterface
 {
     /**
+     * @param string $str
+     *
+     * @return string
+     */
+    public function hashString(string $str): string;
+
+    /**
      * check hash of 3D secure response
      *
      * @param AbstractPosAccount    $posAccount

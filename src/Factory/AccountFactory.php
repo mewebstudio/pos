@@ -112,9 +112,8 @@ class AccountFactory
      * @phpstan-param PosInterface::MODEL_* $model
      *
      * @param non-empty-string      $bank
-     * @param non-empty-string      $merchantId Mağaza Numarası
-     * @param non-empty-string      $username   POS panelinizden kullanıcı işlemleri sayfasında APİ rolünde kullanıcı
-     *                                oluşturulmalıdır
+     * @param non-empty-string      $merchantId Mağaza Numarası / Üye iş yeri tekil numarası
+     * @param non-empty-string      $username   Yönetim panelinden oluşturulan api rollü kullanıcı adı
      * @param non-empty-string      $customerId CustomerNumber, Müşteri No
      * @param non-empty-string      $storeKey   Oluşturulan APİ kullanıcısının şifre bilgisidir.
      * @param non-empty-string      $model

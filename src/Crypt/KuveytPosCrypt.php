@@ -56,8 +56,9 @@ class KuveytPosCrypt extends AbstractCrypt
 
         $hashData = [
             $posAccount->getClientId(),
-            $requestData['MerchantOrderId'],
-            $requestData['Amount'],
+            // non-payment request may not have MerchantOrderId and Amount fields
+            $requestData['MerchantOrderId'] ?? '',
+            $requestData['Amount'] ?? '',
             $posAccount->getUsername(),
             $hashedPassword,
         ];
