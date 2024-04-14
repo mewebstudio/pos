@@ -32,11 +32,19 @@ abstract class AbstractCrypt implements CryptInterface
      *
      * @param int<1, max> $length
      *
-     * @return string
+     * @return non-empty-string
      */
     public function generateRandomString(int $length = 24): string
     {
-        return \substr(\md5(\uniqid(\microtime())), 0, $length - 1);
+        $characters = '0123456789ABCDEF';
+        $charactersLength = \strlen($characters);
+        $randomString = '';
+
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[\rand(0, $charactersLength - 1)];
+        }
+
+        return $randomString;
     }
 
     /**
