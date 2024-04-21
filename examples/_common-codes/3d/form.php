@@ -117,7 +117,7 @@ try {
                 ],
             ];
             $requestData = $requestDataPreparedEvent->getRequestData();
-            $requestData = array_merge($requestData, $additionalRequestDataForKuveyt);
+            $requestData = array_merge_recursive($requestData, $additionalRequestDataForKuveyt);
             $requestDataPreparedEvent->setRequestData($requestData);
         });
 
