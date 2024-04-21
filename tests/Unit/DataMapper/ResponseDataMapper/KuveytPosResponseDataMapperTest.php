@@ -97,7 +97,12 @@ class KuveytPosResponseDataMapperTest extends TestCase
     public function testMapRefundResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+        ksort($actualData);
+        ksort($expectedData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -107,7 +112,12 @@ class KuveytPosResponseDataMapperTest extends TestCase
     public function testMapCancelResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+        ksort($actualData);
+        ksort($expectedData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -418,7 +428,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'installment_count'    => null,
                 ],
             ],
-            '3d_auth_fail'               => [
+            '3d_auth_fail'                   => [
                 'order'              => [],
                 'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
@@ -457,7 +467,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'installment_count'    => null,
                 ],
             ],
-            'success1'                => [
+            'success1'                       => [
                 'order'              => [],
                 'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
@@ -552,6 +562,200 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'currency'             => PosInterface::CURRENCY_TRY,
                     'error_code'           => null,
                     'masked_number'        => '5124********1609',
+                    'payment_model'        => '3d',
+                    'installment_count'    => 0,
+                ],
+            ],
+            'success_tdv2'                   => [
+                'order'              => [],
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
+                'threeDResponseData' => [
+                    'VPosMessage'     => [
+                        'OrderId'                          => '155767806',
+                        'OkUrl'                            => 'http://localhost/kuveytpos/3d/response.php',
+                        'FailUrl'                          => 'http://localhost/kuveytpos/3d/response.php',
+                        'MerchantId'                       => '496',
+                        'SubMerchantId'                    => '0',
+                        'CustomerId'                       => '400235',
+                        'UserName'                         => '',
+                        'HashPassword'                     => '',
+                        'CardNumber'                       => '51889619****2544',
+                        'IsTemporaryCard'                  => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'BatchID'                          => '545',
+                        'InstallmentCount'                 => '0',
+                        'Amount'                           => '101',
+                        'CancelAmount'                     => '0',
+                        'MerchantOrderId'                  => '2024042111A0',
+                        'OrderStatus'                      => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'RetryCount'                       => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'FECAmount'                        => '0',
+                        'CurrencyCode'                     => '949',
+                        'QeryId'                           => '0',
+                        'DebtId'                           => '0',
+                        'SurchargeAmount'                  => '0',
+                        'SGKDebtAmount'                    => '0',
+                        'TransactionSecurity'              => '3',
+                        'DeferringCount'                   => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'InstallmentMaturityCommisionFlag' => '0',
+                        'PaymentId'                        => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'OrderPOSTransactionId'            => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'TranDate'                         => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'TransactionUserId'                => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'DeviceData'                       => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'CardHolderData'                   => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                    ],
+                    'IsEnrolled'      => 'true',
+                    'IsVirtual'       => 'false',
+                    'ResponseCode'    => '00',
+                    'ResponseMessage' => 'Kart doğrulandı.',
+                    'OrderId'         => '155767806',
+                    'TransactionTime' => '0001-01-01T00:00:00',
+                    'MerchantOrderId' => '2024042111A0',
+                    'HashData'        => 'dlO20ZLqs4W5FfgY0VmUSBUpwoM=',
+                    'MD'              => 'KdipxuB/+AncDNdIKzh5uRh4flnYqSp3drh/2yzaOQraHWjGF+NOkvSjYzbQtRQn',
+                    'ReferenceId'     => '1d2a9d4cc853468090d915943341ad89',
+                    'MerchantId'      => [
+                        '@xsi:nil' => 'true',
+                        '#'        => '',
+                    ],
+                    'BusinessKey'     => '202404219999000000009059964',
+                    '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
+                    '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
+                ],
+                'paymentData'        => [
+                    'VPosMessage'     => [
+                        'OrderId'                          => '155767806',
+                        'OkUrl'                            => 'http://localhost/kuveytpos/3d/response.php',
+                        'FailUrl'                          => 'http://localhost/kuveytpos/3d/response.php',
+                        'MerchantId'                       => '496',
+                        'SubMerchantId'                    => '0',
+                        'CustomerId'                       => '400235',
+                        'UserName'                         => '',
+                        'HashPassword'                     => '',
+                        'CardNumber'                       => '51889619****2544',
+                        'IsTemporaryCard'                  => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'BatchID'                          => '545',
+                        'InstallmentCount'                 => '0',
+                        'Amount'                           => '101',
+                        'CancelAmount'                     => '0',
+                        'MerchantOrderId'                  => '2024042111A0',
+                        'OrderStatus'                      => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'RetryCount'                       => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'FECAmount'                        => '0',
+                        'CurrencyCode'                     => '949',
+                        'QeryId'                           => '0',
+                        'DebtId'                           => '0',
+                        'SurchargeAmount'                  => '0',
+                        'SGKDebtAmount'                    => '0',
+                        'TransactionSecurity'              => '3',
+                        'DeferringCount'                   => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'InstallmentMaturityCommisionFlag' => '0',
+                        'PaymentId'                        => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'OrderPOSTransactionId'            => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'TranDate'                         => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'TransactionUserId'                => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'DeviceData'                       => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                        'CardHolderData'                   => [
+                            '@xsi:nil' => 'true',
+                            '#'        => '',
+                        ],
+                    ],
+                    'IsEnrolled'      => 'true',
+                    'IsVirtual'       => 'false',
+                    'ProvisionNumber' => '050560',
+                    'RRN'             => '411219539222',
+                    'Stan'            => '539222',
+                    'ResponseCode'    => '00',
+                    'ResponseMessage' => 'OTORİZASYON VERİLDİ',
+                    'OrderId'         => '155767806',
+                    'TransactionTime' => '2024-04-21T19:01:28.95',
+                    'MerchantOrderId' => '2024042111A0',
+                    'HashData'        => 'N7zs7LHEy3lx6N2nb0FUG2UcnUw=',
+                    'MerchantId'      => [
+                        '@xsi:nil' => 'true',
+                        '#'        => '',
+                    ],
+                    'BusinessKey'     => '202404219999000000009042173',
+                    '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
+                    '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
+                ],
+                'expectedData'       => [
+                    'transaction_security' => 'MPI fallback',
+                    'md_status'            => null,
+                    'tx_status'            => null,
+                    'md_error_message'     => null,
+                    'transaction_id'       => '539222',
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => new \DateTimeImmutable(),
+                    'auth_code'            => '050560',
+                    'ref_ret_num'          => '411219539222',
+                    'error_message'        => null,
+                    'remote_order_id'      => '155767806',
+                    'order_id'             => '2024042111A0',
+                    'proc_return_code'     => '00',
+                    'status'               => 'approved',
+                    'status_detail'        => 'approved',
+                    'amount'               => 1.01,
+                    'currency'             => 'TRY',
+                    'error_code'           => null,
+                    'masked_number'        => '51889619****2544',
                     'payment_model'        => '3d',
                     'installment_count'    => 0,
                 ],
@@ -685,6 +889,47 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'installment_count' => 0,
             ],
         ];
+        yield 'tdv2_fail_hash_error' => [
+            'responseData' => [
+                'GetMerchantOrderDetailResult' => [
+                    'Results' => [
+                        'Result' => [
+                            'ErrorMessage' => 'Şifrelenen veriler (Hashdata) uyuşmamaktadır.',
+                            'ErrorCode'    => 'HashDataError',
+                            'IsFriendly'   => true,
+                            'Severity'     => 'BusinessError',
+                        ],
+                    ],
+                    'Success' => false,
+                    'Value'   => [
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'auth_code'         => null,
+                'capture'           => null,
+                'capture_amount'    => null,
+                'currency'          => null,
+                'error_code'        => 'HashDataError',
+                'error_message'     => 'Şifrelenen veriler (Hashdata) uyuşmamaktadır.',
+                'first_amount'      => null,
+                'installment_count' => null,
+                'masked_number'     => null,
+                'order_id'          => null,
+                'order_status'      => null,
+                'proc_return_code'  => null,
+                'ref_ret_num'       => null,
+                'refund_amount'     => null,
+                'status'            => 'declined',
+                'status_detail'     => null,
+                'transaction_id'    => null,
+                'transaction_type'  => null,
+                'transaction_time'  => null,
+                'capture_time'      => null,
+                'refund_time'       => null,
+                'cancel_time'       => null,
+            ],
+        ];
     }
 
     public static function cancelTestDataProvider(): iterable
@@ -753,7 +998,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'status_detail'    => null,
             ],
         ];
-        yield 'fail2' => [
+        yield 'fail_already_cancelled' => [
             'responseData' => [
                 'SaleReversalResult' => [
                     'Results' => [
@@ -787,7 +1032,43 @@ class KuveytPosResponseDataMapperTest extends TestCase
             'expectedData' => [
                 'order_id'         => null,
                 'auth_code'        => null,
-                'proc_return_code' => null,
+                'proc_return_code' => 'DbLayerError',
+                'transaction_id'   => null,
+                'currency'         => null,
+                'error_message'    => 'İşlem daha önce iptal edilmiştir.',
+                'ref_ret_num'      => null,
+                'status'           => 'declined',
+                'error_code'       => '21',
+                'status_detail'    => null,
+            ],
+        ];
+        yield 'tdv2_fail_already_cancelled' => [
+            'responseData' => [
+                'SaleReversalResult' => [
+                    'Results' => [
+                        'Result' => [
+                            'ErrorMessage' => 'İşlem daha önce iptal edilmiştir.',
+                            'ErrorCode'    => '21',
+                            'IsFriendly'   => true,
+                            'Severity'     => 'BusinessError',
+                        ],
+                    ],
+                    'Success' => false,
+                    'Value'   => [
+                        'IsEnrolled'      => false,
+                        'IsVirtual'       => false,
+                        'ResponseCode'    => 'DbLayerError',
+                        'OrderId'         => 0,
+                        'TransactionTime' => '0001-01-01T00:00:00',
+                        'MerchantId'      => null,
+                        'BusinessKey'     => '0',
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'order_id'         => null,
+                'auth_code'        => null,
+                'proc_return_code' => 'DbLayerError',
                 'transaction_id'   => null,
                 'currency'         => null,
                 'error_message'    => 'İşlem daha önce iptal edilmiştir.',
@@ -865,6 +1146,41 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'status_detail'    => null,
             ],
         ];
+        yield 'tdv2_fail_partial_refund_not_allowed' => [
+            'responseData' => [
+                'PartialDrawbackResult' => [
+                    'Results' => [
+                        'Result' => [
+                            'ErrorMessage' => 'Kısmi iade işlemi, satışla aynı gün içerisindeyse tutarın tamamı için yapılamaz. Tutarın tamamı için iptal işlemi yapabilirsiniz.',
+                            'IsFriendly'   => true,
+                            'Severity'     => 'BusinessError',
+                        ],
+                    ],
+                    'Success' => false,
+                    'Value'   => [
+                        'IsEnrolled'      => false,
+                        'IsVirtual'       => false,
+                        'ResponseCode'    => 'DbLayerError',
+                        'OrderId'         => 0,
+                        'TransactionTime' => '0001-01-01T00:00:00',
+                        'MerchantId'      => null,
+                        'BusinessKey'     => '0',
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'order_id'         => null,
+                'auth_code'        => null,
+                'proc_return_code' => 'DbLayerError',
+                'transaction_id'   => null,
+                'currency'         => null,
+                'ref_ret_num'      => null,
+                'status'           => 'declined',
+                'error_code'       => 'DbLayerError',
+                'error_message'    => 'Kısmi iade işlemi, satışla aynı gün içerisindeyse tutarın tamamı için yapılamaz. Tutarın tamamı için iptal işlemi yapabilirsiniz.',
+                'status_detail'    => null,
+            ],
+        ];
 
         yield 'success1' => [
             'responseData' => [
@@ -900,6 +1216,44 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'error_code'       => null,
                 'status_detail'    => null,
                 'remote_order_id'  => '114293626',
+            ],
+        ];
+        yield 'tdv2_success1' => [
+            'responseData' => [
+                'PartialDrawbackResult' => [
+                    'Results' => [
+
+                    ],
+                    'Success' => true,
+                    'Value'   => [
+                        'IsEnrolled'      => false,
+                        'IsVirtual'       => false,
+                        'ProvisionNumber' => '050569',
+                        'RRN'             => '411220539231',
+                        'Stan'            => '539231',
+                        'ResponseCode'    => '00',
+                        'ResponseMessage' => 'OTORİZASYON VERİLDİ',
+                        'OrderId'         => 155767811,
+                        'TransactionTime' => '2024-04-21T20:09:21.3829986',
+                        'MerchantOrderId' => '202404218A62',
+                        'CurrencyCode'    => '0949',
+                        'MerchantId'      => null,
+                        'BusinessKey'     => '202404219999000000009542260',
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'auth_code'        => '050569',
+                'currency'         => 'TRY',
+                'error_code'       => null,
+                'error_message'    => null,
+                'order_id'         => '202404218A62',
+                'proc_return_code' => '00',
+                'ref_ret_num'      => '411220539231',
+                'remote_order_id'  => '155767811',
+                'status'           => 'approved',
+                'status_detail'    => null,
+                'transaction_id'   => '539231',
             ],
         ];
     }

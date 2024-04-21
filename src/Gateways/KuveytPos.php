@@ -250,7 +250,13 @@ class KuveytPos extends AbstractGateway
             throw new RuntimeException('Bankaya istek başarısız!');
         }
 
-        return $this->serializer->decode($result, $txType);
+        $encodedResult = \json_encode($result);
+
+        if (false === $encodedResult) {
+            return [];
+        }
+
+        return $this->serializer->decode($encodedResult, $txType);
     }
 
     /**
