@@ -22,6 +22,7 @@ if ($request->getMethod() !== 'POST') {
 }
 $transaction = $request->get('tx', PosInterface::TX_TYPE_PAY_AUTH);
 $order       = getNewOrder(
+    $pos,
     $baseUrl,
     $ip,
     $request->get('currency', PosInterface::CURRENCY_TRY),

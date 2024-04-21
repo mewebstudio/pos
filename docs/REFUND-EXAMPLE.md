@@ -74,6 +74,17 @@ function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip
         $refundOrder['payment_model'] = $lastResponse['payment_model'];
     }
 
+    if (isset($lastResponse['recurring_id'])) {
+        // tekrarlanan odemeyi iade etmek icin:
+        if (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
+            // odemesi gerceklesmis recurring taksidinin iadesi:
+            $refundOrder += [
+                'recurring_id'                    => $lastResponse['recurring_id'],
+                'recurringOrderInstallmentNumber' => 1,
+            ];
+        }
+    }
+
     return $refundOrder;
 }
 

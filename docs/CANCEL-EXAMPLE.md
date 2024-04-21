@@ -79,13 +79,33 @@ function createCancelOrder(string $gatewayClass, array $lastResponse, string $ip
     }
 
 
-    if (isset($lastResponse['recurring_id'])
-        && \Mews\Pos\Gateways\EstPos::class === $gatewayClass || \Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass
-    ) {
+    if (isset($lastResponse['recurring_id'])) {
         // tekrarlanan odemeyi iptal etmek icin:
-        $cancelOrder = [
-            'recurringOrderInstallmentNumber' => 1, // hangi taksidi iptal etmek istiyoruz?
-        ];
+        if (\Mews\Pos\Gateways\EstPos::class === $gatewayClass || \Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass) {
+            $cancelOrder += [
+                'recurringOrderInstallmentNumber' => 1, // hangi taksidi iptal etmek istiyoruz?
+            ];
+        } elseif (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
+            // odemesi gerceklesmis recurring taksidin iptali:
+//            $cancelOrder += [
+//                'recurring_id'                    => $lastResponse['recurring_id'],
+//                'recurringOrderInstallmentNumber' => 1,
+//            ];
+
+            // odemesi henuz gerceklesmemis recurring taksidin iptali:
+            $cancelOrder += [
+                'recurring_id'                    => $lastResponse['recurring_id'],
+                'recurringOrderInstallmentNumber' => 2,
+                'recurring_payment_is_pending'    => true,
+            ];
+
+            // odemesi henuz gerceklesmemis recurring işlem talimatlarının tamamı iptal edilmek isteniyorsa
+//            $cancelOrder += [
+//                'recurring_id'                    => $lastResponse['recurring_id'],
+//                'recurringOrderInstallmentNumber' => null,
+//                'recurring_payment_is_pending'    => true,
+//            ];
+        }
     }
 
     return $cancelOrder;

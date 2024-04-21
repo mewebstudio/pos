@@ -357,6 +357,16 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @inheritDoc
+     *
+     * @return string
+     */
+    protected function mapCurrency(string $currency): string
+    {
+        return (string) $this->currencyMappings[$currency] ?? $currency;
+    }
+
+    /**
      * @param AbstractPosAccount $posAccount
      *
      * @return array{Name: string, Password: string, ClientId: string}

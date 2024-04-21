@@ -4,6 +4,15 @@
  */
 return [
     'banks' => [
+        'akbank-pos'           => [
+            'name'              => 'AKBANK T.A.S.',
+            'class'             => Mews\Pos\Gateways\AkbankPos::class,
+            'gateway_endpoints' => [
+                'payment_api'     => 'https://api.akbank.com/api/v1/payment/virtualpos',
+                'gateway_3d'      => 'https://virtualpospaymentgateway.akbank.com/securepay',
+                'gateway_3d_host' => 'https://virtualpospaymentgateway.akbank.com/payhosting',
+            ],
+        ],
         'akbankv3'             => [
             'name'  => 'AKBANK T.A.S.',
             'class' => Mews\Pos\Gateways\EstV3Pos::class,

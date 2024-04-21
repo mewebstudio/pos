@@ -82,11 +82,9 @@ class GarantiPosCrypt extends AbstractCrypt
     }
 
     /**
-     * @param string $str
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function hashString(string $str): string
+    public function hashString(string $str, ?string $encryptionKey = null): string
     {
         return $this->hashStringUpperCase($str, self::HASH_ALGORITHM);
     }
@@ -108,7 +106,7 @@ class GarantiPosCrypt extends AbstractCrypt
             \str_pad($posAccount->getTerminalId(), 9, '0', STR_PAD_LEFT),
         ];
 
-        return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map), 'sha1');
+        return $this->hashStringUpperCase(\implode(static::HASH_SEPARATOR, $map), 'sha1');
     }
 
     /**

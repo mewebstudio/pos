@@ -97,7 +97,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             ],
             'MACParams'             => 'MerchantNo:TerminalNo:SecureTransactionId:CavvData:Eci:MdStatus',
             'Amount'                => $this->formatAmount($order['amount']),
-            'CurrencyCode'          => self::mapCurrency($order['currency']),
+            'CurrencyCode'          => $this->mapCurrency($order['currency']),
             'PointAmount'           => 0,
             'OrderId'               => self::formatOrderId($order['id']),
             'InstallmentCount'      => $this->mapInstallment($order['installment']),
@@ -354,9 +354,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'TransactionType'   => $this->mapTxType($txType),
             'OrderId'           => self::formatOrderId($order['id']),
             'Amount'            => (string) $this->formatAmount($order['amount']),
-            'CurrencyCode'      => $this->mapCurrency($order['currency']),
+            'CurrencyCode'      => (string) $this->mapCurrency($order['currency']),
             'MerchantReturnURL' => (string) $order['success_url'],
-            'InstallmentCount'  => $this->mapInstallment($order['installment']),
+            'InstallmentCount'  => (string) $this->mapInstallment($order['installment']),
             'Language'          => $this->getLang($posAccount, $order),
             'TxnState'          => 'INITIAL',
             'OpenNewWindow'     => '0',
@@ -437,17 +437,17 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             $padLength = self::ORDER_ID_LENGTH;
         }
 
-        if (strlen($orderId) > $padLength) {
-            throw new InvalidArgumentException(sprintf(
+        if (\strlen($orderId) > $padLength) {
+            throw new InvalidArgumentException(\sprintf(
             // Banka tarafindan belirlenen kisitlama
                 "Saglanan siparis ID'nin (%s) uzunlugu %d karakter. Siparis ID %d karakterden uzun olamaz!",
                 $orderId,
-                strlen($orderId),
+                \strlen($orderId),
                 $padLength
             ));
         }
 
-        return str_pad($orderId, $padLength, '0', STR_PAD_LEFT);
+        return \str_pad($orderId, $padLength, '0', STR_PAD_LEFT);
     }
 
     /**

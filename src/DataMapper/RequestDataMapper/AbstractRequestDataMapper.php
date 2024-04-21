@@ -25,7 +25,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     /**
      * Transaction Types
      *
-     * @var array<PosInterface::TX_TYPE_*, string>
+     * @var array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>>
      */
     protected array $txTypeMappings = [];
 
@@ -43,7 +43,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
      * fakat bazi banklar ISO standarti kullanmiyorlar.
      * Currency mapping
      *
-     * @var non-empty-array<PosInterface::CURRENCY_*, string>
+     * @var non-empty-array<PosInterface::CURRENCY_*, string|int>
      */
     protected array $currencyMappings = [
         PosInterface::CURRENCY_TRY => '949',
@@ -65,9 +65,9 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     protected CryptInterface $crypt;
 
     /**
-     * @param EventDispatcherInterface                $eventDispatcher
-     * @param CryptInterface                          $crypt
-     * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
+     * @param EventDispatcherInterface                    $eventDispatcher
+     * @param CryptInterface                              $crypt
+     * @param array<PosInterface::CURRENCY_*, string|int> $currencyMappings
      */
     public function __construct(EventDispatcherInterface $eventDispatcher, CryptInterface $crypt, array $currencyMappings = [])
     {
@@ -111,7 +111,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * @return array<PosInterface::TX_TYPE_*, string>
+     * @return array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>>
      */
     public function getTxTypeMappings(): array
     {
@@ -119,7 +119,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * @return non-empty-array<PosInterface::CURRENCY_*, string>
+     * @return non-empty-array<PosInterface::CURRENCY_*, string|int>
      */
     public function getCurrencyMappings(): array
     {
@@ -136,31 +136,52 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     }
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_*    $txType
+     * @phpstan-param PosInterface::MODEL_*|null $paymentModel
      *
-     * @param string $txType
+     * @param string      $txType
+     * @param string|null $paymentModel
      *
      * @return string
      *
      * @throws UnsupportedTransactionTypeException
      */
-    public function mapTxType(string $txType): string
+    public function mapTxType(string $txType, ?string $paymentModel = null): string
     {
-        if (!$this->isSupportedTxType($txType)) {
+        if (!$this->isSupportedTxType($txType, $paymentModel)) {
             throw new UnsupportedTransactionTypeException();
         }
 
-        return $this->txTypeMappings[$txType];
+        if (\is_string($this->txTypeMappings[$txType])) {
+            return $this->txTypeMappings[$txType];
+        }
+
+        return $this->txTypeMappings[$txType][$paymentModel];
     }
 
     /**
-     * @param string $txType
+     * @phpstan-param PosInterface::TX_TYPE_*    $txType
+     * @phpstan-param PosInterface::MODEL_*|null $paymentModel
+     *
+     * @param string      $txType
+     * @param string|null $paymentModel
      *
      * @return bool
      */
-    public function isSupportedTxType(string $txType): bool
+    public function isSupportedTxType(string $txType, ?string $paymentModel = null): bool
     {
-        return isset($this->txTypeMappings[$txType]);
+        if (!isset($this->txTypeMappings[$txType])) {
+            return false;
+        }
+        if (\is_array($this->txTypeMappings[$txType])) {
+            if (null === $paymentModel) {
+                return false;
+            }
+
+            return isset($this->txTypeMappings[$txType][$paymentModel]);
+        }
+
+        return true;
     }
 
     /**
@@ -175,18 +196,18 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
      * formats installment
      * @param int $installment
      *
-     * @return string
+     * @return string|int
      */
-    abstract protected function mapInstallment(int $installment): string;
+    abstract protected function mapInstallment(int $installment);
 
     /**
      * @phpstan-param PosInterface::CURRENCY_* $currency
      *
      * @param string $currency
      *
-     * @return string currency code that is accepted by bank
+     * @return string|int currency code that is accepted by bank
      */
-    protected function mapCurrency(string $currency): string
+    protected function mapCurrency(string $currency)
     {
         return $this->currencyMappings[$currency] ?? $currency;
     }

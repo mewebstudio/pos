@@ -15,9 +15,10 @@ trait HttpClientTestTrait
         HttpClient $httpClient,
         string $responseContent,
         string $apiUrl,
-        array $requestData
+        array $requestData,
+        ?int $statusCode = null
     ): void {
-        $responseMock = $this->prepareHttpResponse($responseContent);
+        $responseMock = $this->prepareHttpResponse($responseContent, $statusCode);
 
         $httpClient->expects(self::once())
             ->method('post')
@@ -46,7 +47,7 @@ trait HttpClientTestTrait
             ->willReturnMap($returnMap);
     }
 
-    private function prepareHttpResponse(string $responseContent): ResponseInterface
+    private function prepareHttpResponse(string $responseContent, ?int $statusCode = null): ResponseInterface
     {
         $responseMock = $this->createMock(ResponseInterface::class);
         $streamMock   = $this->createMock(StreamInterface::class);
@@ -57,6 +58,12 @@ trait HttpClientTestTrait
         $responseMock->expects(self::once())
             ->method('getBody')
             ->willReturn($streamMock);
+
+        if (null !== $statusCode) {
+            $responseMock->expects(self::atLeastOnce())
+                ->method('getStatusCode')
+                ->willReturn($statusCode);
+        }
 
         return $responseMock;
     }

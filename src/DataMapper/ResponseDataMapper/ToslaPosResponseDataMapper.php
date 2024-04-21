@@ -53,7 +53,7 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
             return null;
         }
 
-        return parent::mapTxType($txType);
+        return parent::mapTxType((string) $txType);
     }
 
     /**

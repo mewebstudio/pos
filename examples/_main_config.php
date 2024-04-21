@@ -1,5 +1,6 @@
 <?php
 
+use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Session\Session;
 
@@ -21,6 +22,7 @@ $session        = new Session($sessionHandler);
 $session->start();
 
 $hostUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')."://$_SERVER[HTTP_HOST]";
+//$hostUrl .= '/pos/examples';
 $subMenu = [];
 
 $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
@@ -106,6 +108,7 @@ function createCard(PosInterface $pos, array $card): \Mews\Pos\Entity\Card\Credi
 }
 
 function getNewOrder(
+    PosInterface $pos,
     string $baseUrl,
     string $ip,
     string $currency = PosInterface::CURRENCY_TRY,
@@ -117,11 +120,16 @@ function getNewOrder(
     $successUrl = $baseUrl.'response.php';
     $failUrl = $baseUrl.'response.php';
 
-    $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
+    if ($tekrarlanan && get_class($pos) === AkbankPos::class) {
+        // AkbankPos'ta recurring odemede orderTrackId/orderId en az 36 karakter olmasi gerekiyor
+        $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 28));
+    } else {
+        $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 4));
+    }
 
     $order = [
         'id'          => $orderId,
-        'amount'      => 1.01,
+        'amount'      => 10.01,
         'currency'    => $currency,
         'installment' => $installment,
         'ip'          => filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ? $ip : '127.0.0.1',
@@ -137,7 +145,7 @@ function getNewOrder(
     }
 
     if ($tekrarlanan) {
-        // Desteleyen Gatewayler: GarantiPos, EstPos, PayFlexV4
+        // Desteleyen Gatewayler: GarantiPos, EstPos, PayFlexV4, AkbankPos
 
         $order['installment'] = 0; // Tekrarlayan ödemeler taksitli olamaz.
 
