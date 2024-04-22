@@ -220,13 +220,13 @@ class AkbankPosResponseDataMapperTest extends TestCase
     public function testMapStatusResponse(): void
     {
         $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
-        $this->responseDataMapper->mapStatusResponse( []);
+        $this->responseDataMapper->mapStatusResponse([]);
     }
 
     public function testMapHistoryResponse(): void
     {
         $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
-        $this->responseDataMapper->mapHistoryResponse( []);
+        $this->responseDataMapper->mapHistoryResponse([]);
     }
 
     public static function paymentDataProvider(): iterable
@@ -888,13 +888,13 @@ class AkbankPosResponseDataMapperTest extends TestCase
                     'transaction_security' => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
+                    'batch_num'            => null,
                     'proc_return_code'     => 'VPS-1279',
                     'status'               => 'declined',
                     'status_detail'        => null,
                     'error_code'           => null,
                     'error_message'        => null,
                     'order_id'             => '20240418D4A620240418D4A620240418D4A6',
-                    // todo 'recurring_id'         => null,
                     'installment_count'    => null,
                 ],
             ],
@@ -974,7 +974,7 @@ class AkbankPosResponseDataMapperTest extends TestCase
                     'error_code'           => 'VPS-1005',
                     'error_message'        => '183 TAKSIT TUTAR HAT',
                     'order_id'             => '20240420D268',
-                    'recurring_id'    => null,
+                    'recurring_id'         => null,
                     'installment_count'    => 2,
                 ],
             ],
@@ -1143,6 +1143,7 @@ class AkbankPosResponseDataMapperTest extends TestCase
                     'masked_number'        => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
+                    'batch_num'            => null,
                     'error_code'           => null,
                     'error_message'        => null,
                     'eci'                  => null,
@@ -1198,6 +1199,7 @@ class AkbankPosResponseDataMapperTest extends TestCase
                     'masked_number'        => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
+                    'batch_num'            => null,
                     'error_code'           => null,
                     'error_message'        => null,
                     'eci'                  => null,
@@ -1306,6 +1308,7 @@ class AkbankPosResponseDataMapperTest extends TestCase
                     'transaction_security' => null,
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
+                    'batch_num'            => null,
                     'status_detail'        => null,
                     'error_code'           => null,
                     'error_message'        => null,

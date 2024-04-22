@@ -158,6 +158,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             'payment_model'     => $paymentModel,
             'auth_code'         => null,
             'ref_ret_num'       => null,
+            'batch_num'         => null,
             'proc_return_code'  => null,
             'status'            => self::TX_DECLINED,
             'status_detail'     => null,

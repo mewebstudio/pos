@@ -179,6 +179,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'payment_model'     => 'regular',
                 'auth_code'         => null,
                 'ref_ret_num'       => null,
+                'batch_num'         => null,
                 'proc_return_code'  => 'MetaDataNotFound',
                 'status'            => 'declined',
                 'status_detail'     => 'MetaDataNotFound',
@@ -233,6 +234,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'payment_model'     => 'regular',
                 'auth_code'         => '896626',
                 'ref_ret_num'       => '904115005554',
+                'batch_num'         => '1906',
                 'proc_return_code'  => '00',
                 'status'            => 'approved',
                 'status_detail'     => 'approved',
@@ -334,6 +336,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'masked_number'        => '5124********1609',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
+                    'batch_num'            => '1576',
                     'error_message'        => 'Ödeme detayı bulunamadı.',
                     'order_id'             => 'MP-15',
                     'proc_return_code'     => 'MetaDataNotFound',
@@ -408,6 +411,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'masked_number'        => '5124********1609',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
+                    'batch_num'            => null,
                     'error_message'        => 'Geçerli bir MD değeri giriniz.',
                     'order_id'             => 'Order 123',
                     'proc_return_code'     => 'EmptyMDException',
@@ -418,7 +422,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'installment_count'    => null,
                 ],
             ],
-            '3d_auth_fail'               => [
+            '3d_auth_fail'                   => [
                 'order'              => [],
                 'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
@@ -443,6 +447,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'transaction_security' => 'MPI fallback',
                     'auth_code'            => null,
                     'ref_ret_num'          => null,
+                    'batch_num'            => null,
                     'proc_return_code'     => 'HashDataError',
                     'status'               => 'declined',
                     'status_detail'        => 'invalid_transaction',
@@ -457,7 +462,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'installment_count'    => null,
                 ],
             ],
-            'success1'                => [
+            'success1'                       => [
                 'order'              => [],
                 'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
                 'threeDResponseData' => [
@@ -542,6 +547,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'transaction_time'     => new \DateTimeImmutable(),
                     'auth_code'            => '896626',
                     'ref_ret_num'          => '904115005554',
+                    'batch_num'            => '1906',
                     'error_message'        => null,
                     'remote_order_id'      => '4480',
                     'order_id'             => '660723214',

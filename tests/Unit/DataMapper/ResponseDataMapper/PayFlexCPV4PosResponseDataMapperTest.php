@@ -87,7 +87,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'TransactionId' => '0cb6a57715144178a014afbe0185b9ed',
                 'MaskedPan'     => '49384601****4205',
             ],
-            'expectedData'      => [
+            'expectedData'  => [
                 'order_id'             => null,
                 'transaction_id'       => '0cb6a57715144178a014afbe0185b9ed',
                 'transaction_type'     => 'pay',
@@ -95,6 +95,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'transaction_security' => null,
                 'auth_code'            => null,
                 'ref_ret_num'          => null,
+                'batch_num'            => null,
                 'proc_return_code'     => '2053',
                 'status'               => 'declined',
                 'status_detail'        => null,
@@ -122,7 +123,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'TransactionId' => '868382724da7480c949dafbd016c7636',
                 'MaskedPan'     => '49384601****4205',
             ],
-            'expectedData'      => [
+            'expectedData'  => [
                 'order_id'             => null,
                 'transaction_id'       => '868382724da7480c949dafbd016c7636',
                 'transaction_type'     => 'pay',
@@ -130,6 +131,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'transaction_security' => null,
                 'auth_code'            => null,
                 'ref_ret_num'          => null,
+                'batch_num'            => null,
                 'proc_return_code'     => '0057',
                 'status'               => 'declined',
                 'status_detail'        => null,
@@ -182,7 +184,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'ErrorCode'            => null,
                 'ResponseMessage'      => null,
             ],
-            'expectedData'      => [
+            'expectedData'  => [
                 'order_id'             => '2023030913ED',
                 'transaction_id'       => '3ee068d5b5a747ada65dafc0016d5887',
                 'transaction_type'     => 'pay',
@@ -190,6 +192,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                 'transaction_security' => null,
                 'auth_code'            => '735879',
                 'ref_ret_num'          => '3ee068d5b5a747ada65dafc0016d5887',
+                'batch_num'            => null,
                 'proc_return_code'     => '0000',
                 'status'               => 'approved',
                 'status_detail'        => null,

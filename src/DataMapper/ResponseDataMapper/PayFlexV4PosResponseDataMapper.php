@@ -212,6 +212,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             $commonResponse['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['HostDate']);
             $commonResponse['auth_code']        = $rawPaymentResponseData['AuthCode'];
             $commonResponse['ref_ret_num']      = $rawPaymentResponseData['TransactionId'];
+            $commonResponse['batch_num']        = $rawPaymentResponseData['BatchNo'];
         }
 
         $this->logger->debug('mapped payment response', $commonResponse);
