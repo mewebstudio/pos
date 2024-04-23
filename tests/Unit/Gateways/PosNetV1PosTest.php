@@ -11,6 +11,8 @@ use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PosNetV1Pos;
@@ -66,11 +68,11 @@ class PosNetV1PosTest extends TestCase
         parent::setUp();
 
         $this->config = [
-            'name'  => 'Albaraka',
-            'class' => PosNetV1Pos::class,
-            'gateway_endpoints'  => [
-                'payment_api'     => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
-                'gateway_3d'      => 'https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx',
+            'name'              => 'Albaraka',
+            'class'             => PosNetV1Pos::class,
+            'gateway_endpoints' => [
+                'payment_api' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
+                'gateway_3d'  => 'https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx',
             ],
         ];
 
@@ -138,6 +140,36 @@ class PosNetV1PosTest extends TestCase
     }
 
     /**
+     * @testWith [true]
+     * [false]
+     */
+    public function testGet3DFormData(
+        bool $isWithCard
+    ): void
+    {
+        $card         = $isWithCard ? $this->card : null;
+        $order        = ['id' => '124'];
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DFormData')
+            ->with(
+                $this->pos->getAccount(),
+                $order,
+                $paymentModel,
+                $txType,
+                'https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx',
+                $card
+            )
+            ->willReturn(['formData']);
+
+        $actual = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+
+        $this->assertSame(['formData'], $actual);
+    }
+
+    /**
      * @dataProvider make3DPaymentDataProvider
      */
     public function testMake3DPayment(
@@ -172,13 +204,17 @@ class PosNetV1PosTest extends TestCase
         ];
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
+                ->method('mapTxType')
+                ->with($txType)
+                ->willReturn('Sale');
+            $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
                 ->with($this->account, $order, $txType, $request->request->all())
                 ->willReturn($create3DPaymentRequestData);
             $this->prepareClient(
                 $this->httpClientMock,
                 'response-body',
-                $this->config['gateway_endpoints']['payment_api'],
+                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
                 [
                     'headers' => [
                         'Content-Type' => 'application/json',
@@ -220,6 +256,275 @@ class PosNetV1PosTest extends TestCase
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
+    public function testMake3DHostPayment(): void
+    {
+        $request = Request::create('', 'POST');
+
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
+    public function testMake3DPayPayment(): void
+    {
+        $request = Request::create('', 'POST');
+
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
+    /**
+     * @dataProvider makeRegularPaymentDataProvider
+     */
+    public function testMakeRegularPayment(array $order, string $txType, string $mappedTxType, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $card    = $this->card;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('mapTxType')
+            ->with($txType)
+            ->willReturn($mappedTxType);
+
+            $this->requestMapperMock->expects(self::once())
+            ->method('createNonSecurePaymentRequestData')
+            ->with($account, $order, $txType, $card)
+            ->willReturn(['createNonSecurePaymentRequestData']);
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createNonSecurePaymentRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['paymentResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapPaymentResponse')
+            ->with(['paymentResponse'], $txType, $order)
+            ->willReturn(['result']);
+
+        $this->pos->makeRegularPayment($order, $card, $txType);
+    }
+
+    /**
+     * @dataProvider makeRegularPostAuthPaymentDataProvider
+     */
+    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_PAY_POST_AUTH;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('mapTxType')
+            ->with($txType)
+            ->willReturn('Capture');
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createNonSecurePostAuthPaymentRequestData')
+            ->with($account, $order)
+            ->willReturn(['createNonSecurePostAuthPaymentRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createNonSecurePostAuthPaymentRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['paymentResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapPaymentResponse')
+            ->with(['paymentResponse'], $txType, $order)
+            ->willReturn(['result']);
+
+        $this->pos->makeRegularPostPayment($order);
+    }
+
+
+    /**
+     * @dataProvider statusRequestDataProvider
+     */
+    public function testStatusRequest(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_STATUS;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('mapTxType')
+            ->with($txType)
+            ->willReturn('TransactionInquiry');
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createStatusRequestData')
+            ->with($account, $order)
+            ->willReturn(['createStatusRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createStatusRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['decodedResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapStatusResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->status($order);
+    }
+
+    /**
+     * @dataProvider cancelRequestDataProvider
+     */
+    public function testCancelRequest(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CANCEL;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('mapTxType')
+            ->with($txType)
+            ->willReturn('Reverse');
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCancelRequestData')
+            ->with($account, $order)
+            ->willReturn(['createCancelRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createCancelRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['decodedResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapCancelResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->cancel($order);
+    }
+
+    /**
+     * @dataProvider refundRequestDataProvider
+     */
+    public function testRefundRequest(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_REFUND;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('mapTxType')
+            ->with($txType)
+            ->willReturn('Return');
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createRefundRequestData')
+            ->with($account, $order)
+            ->willReturn(['createRefundRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createRefundRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                ],
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['decodedResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapRefundResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->refund($order);
+    }
+
+    public function testHistoryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->history([]);
+    }
+
+    public function testOrderHistoryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->orderHistory([]);
+    }
+
     public static function make3dPaymentTestProvider(): iterable
     {
         $dataSamples  = iterator_to_array(PosNetV1PosResponseDataMapperTest::threeDPaymentDataProvider());
@@ -255,7 +560,7 @@ class PosNetV1PosTest extends TestCase
 
     public static function make3DPaymentDataProvider(): array
     {
-        $dataSamples  = iterator_to_array(PosNetV1PosResponseDataMapperTest::threeDPaymentDataProvider());
+        $dataSamples = iterator_to_array(PosNetV1PosResponseDataMapperTest::threeDPaymentDataProvider());
 
         return [
             'auth_fail'                    => [
@@ -292,6 +597,76 @@ class PosNetV1PosTest extends TestCase
                 'expected'        => $dataSamples['success1']['expectedData'],
                 'is3DSuccess'     => true,
                 'isSuccess'       => true,
+            ],
+        ];
+    }
+
+    public static function makeRegularPaymentDataProvider(): array
+    {
+        return [
+            [
+                'order'        => [
+                    'id' => '2020110828BC',
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'mappedTxType' => 'Sale',
+                'api_url'      => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
+            ],
+            [
+                'order'        => [
+                    'id' => '2020110828BC',
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
+                'mappedTxType' => 'Auth',
+                'api_url'      => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Auth',
+            ],
+        ];
+    }
+
+    public static function makeRegularPostAuthPaymentDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Capture',
+            ],
+        ];
+    }
+
+    public static function statusRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/TransactionInquiry',
+            ],
+        ];
+    }
+
+    public static function cancelRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Reverse',
+            ],
+        ];
+    }
+
+    public static function refundRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Return',
             ],
         ];
     }

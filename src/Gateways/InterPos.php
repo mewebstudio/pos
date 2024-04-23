@@ -119,7 +119,9 @@ class InterPos extends AbstractGateway
      */
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        return $this->make3DPayPayment($request, $order, $txType);
+        $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all(), $txType, $order);
+
+        return $this;
     }
 
     /**

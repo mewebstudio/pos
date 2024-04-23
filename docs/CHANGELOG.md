@@ -17,7 +17,7 @@ Bu method ile kütüphanenin ilgili gateway için hangi işlemleri desteklediği
 
 ### Changed
 - Kütüphane PHP sürümü **v7.4**'e yükseltildi.
-- Deprecated olan `VakifBankCPPos` ve `PayFlexAccount` gateway sınıflar kaldırıldı.
+- Deprecated olan `VakifBankCPPos` ve `VakifBankPos` gateway sınıflar kaldırıldı.
 Yerine `PayFlexCPV4Pos` ve `PayFlexV4Pos` kullanabilirsiniz.
 - `AccountFactory::createVakifBankAccount()` method silindi, yerine `AccountFactory::createPayFlexAccount()` kullanabilirsiniz.
 - Constant'lar `AbstractGateway` sınıfından `PosInterface`'e taşındı.

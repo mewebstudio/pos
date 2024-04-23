@@ -11,6 +11,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\EstPos;
@@ -26,6 +27,8 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\EstPos
+ *
+ * @uses \Mews\Pos\Gateways\AbstractGateway
  */
 class EstPosTest extends TestCase
 {
@@ -145,6 +148,34 @@ class EstPosTest extends TestCase
         $this->assertSame($this->account, $this->pos->getAccount());
     }
 
+    /**
+     * @testWith [true]
+     * [false]
+     */
+    public function testGet3DFormData(
+        bool $isWithCard
+    ): void {
+        $card = $isWithCard ? $this->card : null;
+        $order = ['id' => '124'];
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DFormData')
+            ->with(
+                $this->pos->getAccount(),
+                $order,
+                $paymentModel,
+                $txType,
+                'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
+                $card
+            )
+            ->willReturn(['formData']);
+
+        $actual = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+
+        $this->assertSame(['formData'], $actual);
+    }
 
     /**
      * @return void
@@ -243,6 +274,12 @@ class EstPosTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public function testHistoryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->history([]);
     }
 
     /**
@@ -455,13 +492,95 @@ class EstPosTest extends TestCase
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
+    /**
+     * @dataProvider makeRegularPaymentDataProvider
+     */
+    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $card    = $this->card;
+        $this->requestMapperMock->expects(self::once())
+            ->method('createNonSecurePaymentRequestData')
+            ->with($account, $order, $txType, $card)
+            ->willReturn(['createNonSecurePaymentRequestData']);
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createNonSecurePaymentRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['paymentResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapPaymentResponse')
+            ->with(['paymentResponse'], $txType, $order)
+            ->willReturn(['result']);
+
+        $this->pos->makeRegularPayment($order, $card, $txType);
+    }
+
+    /**
+     * @dataProvider makeRegularPostAuthPaymentDataProvider
+     */
+    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_PAY_POST_AUTH;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createNonSecurePostAuthPaymentRequestData')
+            ->with($account, $order)
+            ->willReturn(['createNonSecurePostAuthPaymentRequestData']);
+
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with(['createNonSecurePostAuthPaymentRequestData'], $txType)
+            ->willReturn('request-body');
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            'response-body',
+            $apiUrl,
+            [
+                'body'    => 'request-body',
+            ]
+        );
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with('response-body', $txType)
+            ->willReturn(['paymentResponse']);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapPaymentResponse')
+            ->with(['paymentResponse'], $txType, $order)
+            ->willReturn(['result']);
+
+        $this->pos->makeRegularPostPayment($order);
+    }
+
     public static function make3DPaymentDataProvider(): array
     {
         return [
             'auth_fail'                    => [
                 'order'           => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['order'],
                 'txType'          => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['txType'],
-                'request'         => Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['threeDResponseData']),
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['threeDResponseData']
+                ),
                 'paymentResponse' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['paymentData'],
                 'expected'        => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['expectedData'],
                 'is3DSuccess'     => false,
@@ -470,7 +589,11 @@ class EstPosTest extends TestCase
             '3d_auth_success_payment_fail' => [
                 'order'           => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
                 'txType'          => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
-                'request'         => Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData']),
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData']
+                ),
                 'paymentResponse' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
                 'expected'        => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
                 'is3DSuccess'     => true,
@@ -479,7 +602,11 @@ class EstPosTest extends TestCase
             'success'                      => [
                 'order'           => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
                 'txType'          => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create('', 'POST', EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']),
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
+                ),
                 'paymentResponse' => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
                 'expected'        => EstPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
                 'is3DSuccess'     => true,
@@ -540,6 +667,98 @@ class EstPosTest extends TestCase
             'bank_response' => EstPosResponseDataMapperTest::orderHistoryTestDataProvider()['fail1']['responseData'],
             'expected_data' => EstPosResponseDataMapperTest::orderHistoryTestDataProvider()['fail1']['expectedData'],
             'isSuccess'     => false,
+        ];
+    }
+
+    public static function makeRegularPaymentDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
+                'api_url' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+            ],
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
+                'api_url' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+            ],
+        ];
+    }
+
+    public static function makeRegularPostAuthPaymentDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+            ],
+        ];
+    }
+
+    public static function statusRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+            ],
+        ];
+    }
+
+    public static function cancelRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+            ],
+        ];
+    }
+
+    public static function refundRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+            ],
+        ];
+    }
+
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+            ],
+        ];
+    }
+
+    public static function orderHistoryRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+            ],
         ];
     }
 }

@@ -12,7 +12,6 @@ use Mews\Pos\PosInterface;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\Serializer;
-use function sprintf;
 use function strip_tags;
 
 class PayFlexV4PosSerializer implements SerializerInterface
@@ -46,7 +45,7 @@ class PayFlexV4PosSerializer implements SerializerInterface
     public function encode(array $data, string $txType): string
     {
         if (PosInterface::TX_TYPE_HISTORY === $txType || PosInterface::TX_TYPE_ORDER_HISTORY === $txType) {
-            throw new DomainException(sprintf('Serialization of the transaction %s is not supported', $txType));
+            throw new DomainException(\sprintf('Serialization of the transaction %s is not supported', $txType));
         }
 
         if (PosInterface::TX_TYPE_STATUS === $txType) {
