@@ -1218,6 +1218,43 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'remote_order_id'  => '114293626',
             ],
         ];
+
+        yield 'tdv2_success_full_refund' => [
+            'responseData' => [
+                'DrawBackResult' => [
+                    'Results' => [],
+                    'Success' => true,
+                    'Value'   => [
+                        'IsEnrolled'      => false,
+                        'IsVirtual'       => false,
+                        'ProvisionNumber' => '050823',
+                        'RRN'             => '411415539590',
+                        'Stan'            => '539590',
+                        'ResponseCode'    => '00',
+                        'ResponseMessage' => 'OTORİZASYON VERİLDİ',
+                        'OrderId'         => 155767855,
+                        'TransactionTime' => '2024-04-23T15:19:15.7471578',
+                        'MerchantOrderId' => '202404229EAC',
+                        'CurrencyCode'    => '0949',
+                        'MerchantId'      => null,
+                        'BusinessKey'     => '202404239999000000013631520',
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'auth_code'        => '050823',
+                'currency'         => 'TRY',
+                'error_code'       => null,
+                'error_message'    => null,
+                'order_id'         => '202404229EAC',
+                'proc_return_code' => '00',
+                'ref_ret_num'      => '411415539590',
+                'remote_order_id'  => '155767855',
+                'status'           => 'approved',
+                'status_detail'    => null,
+                'transaction_id'   => '539590',
+            ],
+        ];
         yield 'tdv2_success1' => [
             'responseData' => [
                 'PartialDrawbackResult' => [

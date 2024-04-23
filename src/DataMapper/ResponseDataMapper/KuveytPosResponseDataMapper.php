@@ -204,8 +204,9 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             'all'              => $rawResponseData,
         ];
 
+        $drawbackResult = $rawResponseData['PartialDrawbackResult'] ?? $rawResponseData['DrawBackResult'];
+        $value          = $drawbackResult['Value'];
 
-        $value          = $rawResponseData['PartialDrawbackResult']['Value'];
         $procReturnCode = $this->getProcReturnCode($value);
 
         if (null === $procReturnCode) {
@@ -216,7 +217,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $responseResults = $rawResponseData['PartialDrawbackResult']['Results'];
+        $responseResults = $drawbackResult['Results'];
         if (self::TX_APPROVED !== $status && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
             if (isset($responseResults['Result'][0])) {
                 $responseResult = $responseResults['Result'][0];

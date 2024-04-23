@@ -268,7 +268,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                     'UserName'                         => 'apiuser',
                     'CardType'                         => 'Visa',
                     'BatchID'                          => 0,
-                    'TransactionType'                  => 'PartialDrawback',
+                    'TransactionType'                  => 'Drawback',
                     'InstallmentCount'                 => 0,
                     'Amount'                           => 101,
                     'DisplayAmount'                    => 0,

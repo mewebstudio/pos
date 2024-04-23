@@ -42,7 +42,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
         PosInterface::TX_TYPE_PAY_AUTH => 'Sale',
         PosInterface::TX_TYPE_CANCEL   => 'SaleReversal',
         PosInterface::TX_TYPE_STATUS   => 'GetMerchantOrderDetail',
-        PosInterface::TX_TYPE_REFUND   => 'PartialDrawback', // Also there is a "Drawback"
+        PosInterface::TX_TYPE_REFUND   => 'Drawback', // Also there is a "PartialDrawback"
     ];
 
     /**
