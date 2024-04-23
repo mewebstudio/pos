@@ -39,6 +39,17 @@ function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): arr
             'currency' => $lastResponse['currency'],
             'ip'       => '127.0.0.1',
         ];
+    } elseif (\Mews\Pos\Gateways\VakifKatilimPos::class === $gatewayClass) {
+        /** @var DateTimeImmutable $txTime */
+        $txTime = $lastResponse['transaction_time'];
+        $order  = [
+            'auth_code'  => $lastResponse['auth_code'],
+            /**
+             * Tarih aralığı maksimum 90 gün olabilir.
+             */
+            'start_date' => $txTime->modify('-1 day'),
+            'end_date'   => $txTime->modify('+1 day'),
+        ];
     }
 
     return $order;

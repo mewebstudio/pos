@@ -111,7 +111,12 @@ class PayFlexCPV4Pos extends AbstractGateway
          *     TransactionId: string,
          *     PaymentToken: string} $bankResponse
          */
-        $bankResponse = $this->send($requestData, PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE, $this->getQueryAPIUrl());
+        $bankResponse = $this->send(
+            $requestData,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            PosInterface::MODEL_3D_SECURE,
+            $this->getQueryAPIUrl()
+        );
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse, $txType, $order);
 
@@ -183,9 +188,8 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
-        $url ??= $this->getApiURL();
         $this->logger->debug('sending request', ['url' => $url]);
 
         $isXML = \is_string($contents);
@@ -242,7 +246,12 @@ class PayFlexCPV4Pos extends AbstractGateway
         }
 
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
-        $response = $this->send($requestData, $txType, $paymentModel);
+        $response = $this->send(
+            $requestData,
+            $txType,
+            $paymentModel,
+            $this->getApiURL()
+        );
 
         return $response;
     }

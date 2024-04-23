@@ -57,6 +57,11 @@ function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip
         $refundOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
         $refundOrder['auth_code']       = $lastResponse['auth_code'];
         $refundOrder['transaction_id']  = $lastResponse['transaction_id'];
+    } elseif (\Mews\Pos\Gateways\VakifKatilimPos::class === $gatewayClass) {
+        $refundOrder['remote_order_id']  = $lastResponse['remote_order_id']; // banka tarafındaki order id
+        $refundOrder['amount']           = $lastResponse['amount'];
+        // on otorizasyon islemin iadesi icin PosInterface::TX_TYPE_PAY_PRE_AUTH saglanmasi gerekiyor
+        $refundOrder['transaction_type'] = $lastResponse['transaction_type'] ?? PosInterface::TX_TYPE_PAY_AUTH;
     } elseif (\Mews\Pos\Gateways\PayFlexV4Pos::class === $gatewayClass || \Mews\Pos\Gateways\PayFlexCPV4Pos::class === $gatewayClass) {
         // çalışmazsa $lastResponse['all']['ReferenceTransactionId']; ile denenmesi gerekiyor.
         $refundOrder['transaction_id'] = $lastResponse['transaction_id'];

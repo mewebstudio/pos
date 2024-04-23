@@ -38,6 +38,7 @@
                 <li> <a href="<?= $hostUrl ?>/posnet-ykb/index.php">PosNet (YKB)</a></li>
                 <li> <a href="<?= $hostUrl ?>/posnet-v1/index.php">PosNetV1 (Albaraka)</a></li>
                 <li> <a href="<?= $hostUrl ?>/kuveytpos/index.php">KuveytPOS</a></li>
+                <li> <a href="<?= $hostUrl ?>/vakif-katilim/index.php">VakifKatilimPos</a></li>
             </ul>
         </nav>
     </div>

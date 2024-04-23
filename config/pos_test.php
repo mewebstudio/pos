@@ -105,5 +105,14 @@ return [
                 'query_api'   => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
             ],
         ],
+        'vakif-katilim' => [
+            'name'              => 'Vakıf Katılım',
+            'class'             => Mews\Pos\Gateways\VakifKatilimPos::class,
+            'gateway_endpoints' => [
+                'payment_api'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home',
+                'gateway_3d'      => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
+                'gateway_3d_host' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/CommonPaymentPage/CommonPaymentPage',
+            ],
+        ],
     ],
 ];
