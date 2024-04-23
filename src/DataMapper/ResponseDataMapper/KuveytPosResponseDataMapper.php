@@ -75,6 +75,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         $result['remote_order_id'] = $rawPaymentResponseData['OrderId'];
         // RRN:  Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['ref_ret_num'] = $rawPaymentResponseData['RRN'];
+        $result['batch_num']   = $vPosMessage['BatchID'];
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['transaction_id']    = $rawPaymentResponseData['Stan'];
         $result['amount']            = $this->formatAmount($vPosMessage['Amount']);
@@ -450,6 +451,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             $default['amount']        = $this->formatAmount($vPosMessage['Amount']);
             $default['currency']      = $this->mapCurrency($vPosMessage['CurrencyCode']);
             $default['masked_number'] = $vPosMessage['CardNumber'];
+            $default['batch_num']     = $vPosMessage['BatchID'] > 0 ? $vPosMessage['BatchID'] : null;
         }
 
         return $default;

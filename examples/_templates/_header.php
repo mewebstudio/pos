@@ -29,6 +29,7 @@
         <nav class="collapse navbar-collapse" id="bs-navbar">
             <ul class="nav navbar-nav">
                 <li> <a href="<?= $hostUrl ?>/tosla/index.php">Tosla (Ak Öde)</a></li>
+                <li> <a href="<?= $hostUrl ?>/akbankpos/index.php">Akbank POS</a></li>
                 <li> <a href="<?= $hostUrl ?>/payten/index.php">Payten V3</a></li>
                 <li> <a href="<?= $hostUrl ?>/finansbank-payfor/index.php">PayFor (Finansbank)</a></li>
                 <li> <a href="<?= $hostUrl ?>/garanti/index.php">Garanti POS</a></li>

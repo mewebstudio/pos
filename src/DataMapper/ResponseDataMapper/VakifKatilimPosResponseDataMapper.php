@@ -63,6 +63,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         $result['auth_code']       = $rawPaymentResponseData['ProvisionNumber'];
         // RRN:  Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['ref_ret_num'] = $rawPaymentResponseData['RRN'];
+        $result['batch_num']   = $vPosMessage['BatchID'];
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['transaction_id']    = $rawPaymentResponseData['Stan'];
         $result['masked_number']     = $vPosMessage['CardNumber'];

@@ -28,15 +28,19 @@ abstract class AbstractCrypt implements CryptInterface
     }
 
     /**
-     * generates random string for using as a nonce in requests
-     *
-     * @param int<1, max> $length
-     *
-     * @return string
+     * @inheritDoc
      */
     public function generateRandomString(int $length = 24): string
     {
-        return \substr(\md5(\uniqid(\microtime())), 0, $length - 1);
+        $characters = '0123456789ABCDEF';
+        $charactersLength = \strlen($characters);
+        $randomString = '';
+
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[\rand(0, $charactersLength - 1)];
+        }
+
+        return $randomString;
     }
 
     /**
@@ -61,15 +65,13 @@ abstract class AbstractCrypt implements CryptInterface
 
         $hashVal = $this->concatenateHashKey($storeKey, $paramsVal);
 
-        return $this->hashString($hashVal);
+        return $this->hashString($hashVal, $storeKey);
     }
 
     /**
-     * @param string $str
-     *
-     * @return string
+     * @inheritDoc
      */
-    public function hashString(string $str): string
+    public function hashString(string $str, ?string $encryptionKey = null): string
     {
         return \base64_encode(\hash(static::HASH_ALGORITHM, $str, true));
     }

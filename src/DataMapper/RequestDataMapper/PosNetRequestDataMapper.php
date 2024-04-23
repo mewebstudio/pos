@@ -382,12 +382,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             $padLength = self::ORDER_ID_LENGTH;
         }
 
-        if (strlen($orderId) > $padLength) {
-            throw new InvalidArgumentException(sprintf(
+        if (\strlen($orderId) > $padLength) {
+            throw new InvalidArgumentException(\sprintf(
             // Banka tarafindan belirlenen kisitlama
                 "Saglanan siparis ID'nin (%s) uzunlugu %d karakter. Siparis ID %d karakterden uzun olamaz!",
                 $orderId,
-                strlen($orderId),
+                \strlen($orderId),
                 $padLength
             ));
         }

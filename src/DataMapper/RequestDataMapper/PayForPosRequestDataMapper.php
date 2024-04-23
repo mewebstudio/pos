@@ -304,6 +304,16 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @inheritDoc
+     *
+     * @return string
+     */
+    protected function mapCurrency(string $currency): string
+    {
+        return (string) $this->currencyMappings[$currency] ?? $currency;
+    }
+
+    /**
      * @param AbstractPosAccount $posAccount
      *
      * @return array{MerchantId: string, UserCode: string, UserPass: string}

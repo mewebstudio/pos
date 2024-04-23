@@ -5,6 +5,7 @@
 
 namespace Mews\Pos\Factory;
 
+use Mews\Pos\Crypt\AkbankPosCrypt;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\Crypt\EstPosCrypt;
 use Mews\Pos\Crypt\EstV3PosCrypt;
@@ -17,6 +18,7 @@ use Mews\Pos\Crypt\PayForPosCrypt;
 use Mews\Pos\Crypt\PosNetCrypt;
 use Mews\Pos\Crypt\PosNetV1PosCrypt;
 use Mews\Pos\Crypt\ToslaPosCrypt;
+use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
@@ -45,6 +47,7 @@ class CryptFactory
     {
         $classMappings = [
             ToslaPos::class        => ToslaPosCrypt::class,
+            AkbankPos::class       => AkbankPosCrypt::class,
             EstV3Pos::class        => EstV3PosCrypt::class,
             EstPos::class          => EstPosCrypt::class,
             GarantiPos::class      => GarantiPosCrypt::class,

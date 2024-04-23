@@ -365,6 +365,16 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @inheritDoc
+     *
+     * @return string
+     */
+    protected function mapCurrency(string $currency): string
+    {
+        return (string) $this->currencyMappings[$currency] ?? $currency;
+    }
+
+    /**
      * @param PayFlexAccount $posAccount
      *
      * @return array{MerchantId: string, Password: string, TerminalNo: string}

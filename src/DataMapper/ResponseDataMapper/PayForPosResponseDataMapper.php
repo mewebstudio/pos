@@ -510,7 +510,8 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 
         if (self::TX_APPROVED === $threeDAuthStatus) {
             $result['installment_count'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount']);
-            $result['transaction_time'] = new \DateTimeImmutable($raw3DAuthResponseData['TransactionDate']);
+            $result['transaction_time']  = new \DateTimeImmutable($raw3DAuthResponseData['TransactionDate']);
+            $result['batch_num']         = $raw3DAuthResponseData['BatchNo'];
         }
 
         if (PosInterface::MODEL_3D_SECURE === $result['payment_model']) {

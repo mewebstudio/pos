@@ -63,6 +63,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             'group_id'         => $rawPaymentResponseData['Order']['GroupID'],
             'auth_code'        => self::TX_APPROVED === $status ? $transaction['AuthCode'] : null,
             'ref_ret_num'      => self::TX_APPROVED === $status ? $transaction['RetrefNum'] : null,
+            'batch_num'        => self::TX_APPROVED === $status ? $transaction['BatchNum'] : null,
             'transaction_time' => self::TX_APPROVED === $status ? new \DateTimeImmutable($provDate) : null,
             'proc_return_code' => $procReturnCode,
             'status'           => $status,

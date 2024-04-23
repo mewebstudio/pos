@@ -18,7 +18,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     /** @var array<string, PosInterface::CURRENCY_*> */
     protected array $currencyMappings;
 
-    /** @var array<string, PosInterface::TX_TYPE_*> */
+    /** @var array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>> */
     protected array $txTypeMappings;
 
     /** @var array<string, PosInterface::MODEL_*> */
@@ -34,12 +34,12 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     {
         $this->logger             = $logger;
         $this->currencyMappings   = \array_flip($currencyMappings);
-        $this->txTypeMappings     = \array_flip($txTypeMappings);
+        $this->txTypeMappings     = $txTypeMappings;
         $this->secureTypeMappings = \array_flip($secureTypeMappings);
     }
 
     /**
-     * @return array<string, PosInterface::TX_TYPE_*>
+     * @return array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>>
      */
     public function getTxTypeMappings(): array
     {
@@ -53,7 +53,16 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
      */
     public function mapTxType($txType): ?string
     {
-        return $this->txTypeMappings[$txType] ?? null;
+        foreach ($this->txTypeMappings as $mappedTxType => $mapping) {
+            if (\is_array($mapping) && \in_array($txType, $mapping, true)) {
+                return $mappedTxType;
+            }
+            if ($mapping === $txType) {
+                return $mappedTxType;
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -149,6 +158,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             'payment_model'     => $paymentModel,
             'auth_code'         => null,
             'ref_ret_num'       => null,
+            'batch_num'         => null,
             'proc_return_code'  => null,
             'status'            => self::TX_DECLINED,
             'status_detail'     => null,

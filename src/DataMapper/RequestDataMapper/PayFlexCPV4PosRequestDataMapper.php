@@ -315,6 +315,16 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @inheritDoc
+     *
+     * @return string
+     */
+    protected function mapCurrency(string $currency): string
+    {
+        return (string) $this->currencyMappings[$currency] ?? $currency;
+    }
+
+    /**
+     * @inheritDoc
      */
     protected function preparePaymentOrder(array $order): array
     {

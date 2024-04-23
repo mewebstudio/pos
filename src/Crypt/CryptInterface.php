@@ -10,11 +10,12 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 interface CryptInterface
 {
     /**
-     * @param string $str
+     * @param string      $str
+     * @param string|null $encryptionKey
      *
      * @return string
      */
-    public function hashString(string $str): string;
+    public function hashString(string $str, ?string $encryptionKey = null): string;
 
     /**
      * check hash of 3D secure response
@@ -61,7 +62,7 @@ interface CryptInterface
     /**
      * generates random string for using as a nonce in requests
      *
-     * @param int $length
+     * @param int<1, max> $length
      *
      * @return string
      */

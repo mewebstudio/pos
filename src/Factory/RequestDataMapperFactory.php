@@ -7,6 +7,7 @@ namespace Mews\Pos\Factory;
 
 use DomainException;
 use Mews\Pos\Crypt\CryptInterface;
+use Mews\Pos\DataMapper\RequestDataMapper\AkbankPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
@@ -20,6 +21,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
+use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
@@ -52,6 +54,7 @@ class RequestDataMapperFactory
     {
         $classMappings = [
             ToslaPos::class        => ToslaPosRequestDataMapper::class,
+            AkbankPos::class       => AkbankPosRequestDataMapper::class,
             EstPos::class          => EstPosRequestDataMapper::class,
             EstV3Pos::class        => EstV3PosRequestDataMapper::class,
             GarantiPos::class      => GarantiPosRequestDataMapper::class,

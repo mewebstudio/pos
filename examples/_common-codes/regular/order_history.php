@@ -22,6 +22,16 @@ function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): arr
         $order = [
             'id' => $lastResponse['order_id'],
         ];
+    } elseif (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
+        if (isset($lastResponse['recurring_id'])) {
+            $order = [
+                'recurring_id' => $lastResponse['recurring_id'],
+            ];
+        } else {
+            $order = [
+                'id' => $lastResponse['order_id'],
+            ];
+        }
     } elseif (ToslaPos::class === $gatewayClass) {
         $order = [
             'id'               => $lastResponse['order_id'],

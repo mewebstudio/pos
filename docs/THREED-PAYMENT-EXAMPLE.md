@@ -80,7 +80,7 @@ $order = [
 ];
 
 if ($tekrarlanan = false) { // recurring payments
-    // Desteleyen Gatewayler: GarantiPos, EstPos, EstV3Pos, PayFlexV4
+    // Desteleyen Gatewayler: GarantiPos, EstPos, EstV3Pos, PayFlexV4, AkbankPos
     $order['installment'] = 0; // Tekrarlayan ödemeler taksitli olamaz.
 
     $recurringFrequency     = 3;

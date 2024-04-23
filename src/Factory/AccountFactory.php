@@ -5,6 +5,7 @@
 
 namespace Mews\Pos\Factory;
 
+use Mews\Pos\Entity\Account\AkbankPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Account\InterPosAccount;
@@ -42,6 +43,23 @@ class AccountFactory
         self::checkParameters($model, $storeKey);
 
         return new EstPosAccount($bank, $clientId, $kullaniciAdi, $password, $lang, $storeKey);
+    }
+
+    /**
+     * @phpstan-param PosInterface::LANG_* $lang
+     *
+     * @param non-empty-string      $bank
+     * @param non-empty-string      $merchantSafeId 32 karakter üye İş Yeri numarası
+     * @param non-empty-string      $terminalSafeId 32 karakter
+     * @param non-empty-string      $secretKey
+     * @param non-empty-string      $lang
+     * @param non-empty-string|null $subMerchantId  Max 15 karakter
+     *
+     * @return AkbankPosAccount
+     */
+    public static function createAkbankPosAccount(string $bank, string $merchantSafeId, string $terminalSafeId, string $secretKey, string $lang = PosInterface::LANG_TR, ?string $subMerchantId = null): AkbankPosAccount
+    {
+        return new AkbankPosAccount($bank, $merchantSafeId, $terminalSafeId, $secretKey, $lang, $subMerchantId);
     }
 
     /**

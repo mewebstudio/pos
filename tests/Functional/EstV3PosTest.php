@@ -274,7 +274,7 @@ class EstV3PosTest extends TestCase
             Before3DFormHashCalculatedEvent::class,
             function (Before3DFormHashCalculatedEvent $before3DFormHashCalculatedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
-                $this->assertCount(17, $before3DFormHashCalculatedEvent->getFormInputs());
+                $this->assertCount(16, $before3DFormHashCalculatedEvent->getFormInputs());
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $before3DFormHashCalculatedEvent->getTxType());
                 $formInputs = $before3DFormHashCalculatedEvent->getFormInputs();
                 $formInputs['test_input'] = 'test_value';
@@ -287,7 +287,7 @@ class EstV3PosTest extends TestCase
             PosInterface::TX_TYPE_PAY_AUTH,
             $this->card
         );
-        $this->assertCount(19, $formData['inputs']);
+        $this->assertCount(18, $formData['inputs']);
         $this->assertArrayHasKey('test_input', $formData['inputs']);
         $this->assertTrue($eventIsThrown);
     }
