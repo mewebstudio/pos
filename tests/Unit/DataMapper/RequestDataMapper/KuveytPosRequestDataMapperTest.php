@@ -9,13 +9,10 @@ use Generator;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Exceptions\BankClassNullException;
-use Mews\Pos\Exceptions\BankNotFoundException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -27,23 +24,15 @@ use Psr\Log\NullLogger;
  */
 class KuveytPosRequestDataMapperTest extends TestCase
 {
-    public KuveytPosAccount $account;
+    private KuveytPosAccount $account;
 
     private CreditCardInterface $card;
 
     private KuveytPosRequestDataMapper $requestDataMapper;
 
-    /**
-     * @return void
-     *
-     * @throws BankClassNullException
-     * @throws BankNotFoundException
-     */
     protected function setUp(): void
     {
         parent::setUp();
-
-        $config = require __DIR__.'/../../../../config/pos_test.php';
 
         $this->account = AccountFactory::createKuveytPosAccount(
             'kuveytpos',
@@ -54,10 +43,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
         );
 
         $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos        = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
-        $this->card = CreditCardFactory::createForGateway(
-            $pos,
+        $this->card = CreditCardFactory::create(
             '4155650100416111',
             25,
             1,
@@ -281,7 +268,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                     'UserName'                         => 'apiuser',
                     'CardType'                         => 'Visa',
                     'BatchID'                          => 0,
-                    'TransactionType'                  => 'PartialDrawback',
+                    'TransactionType'                  => 'Drawback',
                     'InstallmentCount'                 => 0,
                     'Amount'                           => 101,
                     'DisplayAmount'                    => 0,
@@ -466,6 +453,9 @@ class KuveytPosRequestDataMapperTest extends TestCase
                     'CardExpireDateYear'  => '25',
                     'CardExpireDateMonth' => '01',
                     'CardCVV2'            => '123',
+                    'DeviceData'          => [
+                        'ClientIP' => '127.0.0.1',
+                    ],
                 ],
             ],
         ];

@@ -172,6 +172,39 @@ try {
         }
     });
 
+    // KuveytVos TDV2.0.0 icin ozel biri durum
+    $eventDispatcher->addListener(
+        RequestDataPreparedEvent::class,
+        function (RequestDataPreparedEvent $requestDataPreparedEvent) use ($pos): void {
+            if (get_class($pos) !== \Mews\Pos\Gateways\KuveytPos::class) {
+                return;
+            }
+            // KuveytPos TDV2.0.0 icin zorunlu eklenmesi gereken ekstra alanlar:
+            $additionalRequestDataForKuveyt = [
+                'DeviceData' => [
+                    //2 karakter olmalıdır. 01-Mobil, 02-Web Browser için kullanılmalıdır.
+                    'DeviceChannel' => '02',
+                ],
+                'CardHolderData' => [
+                    'BillAddrCity' => 'İstanbul',
+                    // ISO 3166-1 sayısal üç haneli ülke kodu standardı kullanılmalıdır.
+                    'BillAddrCountry' => '792',
+                    'BillAddrLine1' => 'XXX Mahallesi XXX Caddesi No 55 Daire 1',
+                    'BillAddrPostCode' => '34000',
+                    // ISO 3166-2'de tanımlı olan il/eyalet kodu olmalıdır.
+                    'BillAddrState' => '40',
+                    'Email' => 'xxxxx@gmail.com',
+                    'MobilePhone' => [
+                        'Cc' => '90',
+                        'Subscriber' => '1234567899',
+                    ],
+                ],
+            ];
+            $requestData = $requestDataPreparedEvent->getRequestData();
+            $requestData = array_merge_recursive($requestData, $additionalRequestDataForKuveyt);
+            $requestDataPreparedEvent->setRequestData($requestData);
+        });
+
     $formData = $pos->get3DFormData(
         $order,
         $paymentModel,
