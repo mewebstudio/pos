@@ -19,7 +19,7 @@ use Mews\Pos\PosInterface;
 class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /** @var string */
-    public const API_VERSION = '1.0.0';
+    public const API_VERSION = 'TDV2.0.0';
 
     /** @var string */
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
@@ -39,10 +39,10 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH    => 'Sale',
-        PosInterface::TX_TYPE_CANCEL => 'SaleReversal',
-        PosInterface::TX_TYPE_STATUS => 'GetMerchantOrderDetail',
-        PosInterface::TX_TYPE_REFUND => 'PartialDrawback', // Also there is a "Drawback"
+        PosInterface::TX_TYPE_PAY_AUTH => 'Sale',
+        PosInterface::TX_TYPE_CANCEL   => 'SaleReversal',
+        PosInterface::TX_TYPE_STATUS   => 'GetMerchantOrderDetail',
+        PosInterface::TX_TYPE_REFUND   => 'Drawback', // Also there is a "PartialDrawback"
     ];
 
     /**
@@ -133,6 +133,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 'MerchantOrderId'     => $order['id'],
                 'OkUrl'               => $order['success_url'],
                 'FailUrl'             => $order['fail_url'],
+                'DeviceData'          => [
+                    'ClientIP' => $order['ip'],
+                ],
             ];
 
         if ($creditCard instanceof CreditCardInterface) {
