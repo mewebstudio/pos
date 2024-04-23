@@ -752,6 +752,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                     'transaction_time'     => new \DateTimeImmutable(),
                     'auth_code'            => '050560',
                     'ref_ret_num'          => '411219539222',
+                    'batch_num'            => '545',
                     'error_message'        => null,
                     'remote_order_id'      => '155767806',
                     'order_id'             => '2024042111A0',
