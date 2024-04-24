@@ -392,7 +392,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      */
     protected function preparePaymentOrder(array $order): array
     {
-        return array_merge($order, [
+        return \array_merge($order, [
             'installment' => $order['installment'] ?? 0,
             'currency'    => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ]);
@@ -403,7 +403,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      */
     protected function prepareStatusOrder(array $order): array
     {
-        return array_merge($order, [
+        return \array_merge($order, [
             'id'         => $order['id'],
             'currency'   => $order['currency'] ?? PosInterface::CURRENCY_TRY,
             'start_date' => $order['start_date'] ?? date_create('-360 day'),

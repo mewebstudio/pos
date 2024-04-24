@@ -175,6 +175,44 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedData, $actual);
     }
 
+    public function testGet3DFormData(): void
+    {
+        $expected = [
+            'gateway' => 'https://bank-gateway.com',
+            'method'  => 'POST',
+            'inputs'  => [
+                'abc' => '123',
+            ],
+        ];
+
+        $actual = $this->requestDataMapper->create3DFormData(
+            $this->account,
+            ['abc' => '123'],
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            'https://bank-gateway.com',
+        );
+
+        $this->assertSame($expected, $actual);
+    }
+
+    public function testCreateNonSecurePostAuthPaymentRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, []);
+    }
+
+    public function testCreateOrderHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createOrderHistoryRequestData($this->account, []);
+    }
+
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account, []);
+    }
 
     public static function createCancelRequestDataProvider(): iterable
     {

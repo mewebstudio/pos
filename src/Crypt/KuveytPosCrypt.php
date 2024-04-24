@@ -6,6 +6,7 @@
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Exceptions\NotImplementedException;
 
 class KuveytPosCrypt extends AbstractCrypt
 {
@@ -40,7 +41,7 @@ class KuveytPosCrypt extends AbstractCrypt
      */
     public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
-        return true;
+        throw new NotImplementedException();
     }
 
     /**

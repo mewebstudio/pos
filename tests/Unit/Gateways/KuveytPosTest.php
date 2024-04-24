@@ -173,26 +173,14 @@ class KuveytPosTest extends TestCase
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $card         = $this->card;
-
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['form-data'], $txType)
-            ->willReturn('encoded-request-data');
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($response, $txType)
-            ->willReturn(['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url']);
-        $this->prepareClient(
-            $this->httpClientMock,
-            $response,
+        $requestData = ['form-data'];
+        $this->configureClientResponse(
+            $txType,
             'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelPayGate',
-            [
-                'body'    => 'encoded-request-data',
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-            ],
+            $requestData,
+            'encoded-request-data',
+            $response,
+            ['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url'],
         );
 
         $this->eventDispatcherMock->expects(self::once())
@@ -207,7 +195,7 @@ class KuveytPosTest extends TestCase
                 $txType,
                 $card
             )
-            ->willReturn(['form-data']);
+            ->willReturn($requestData);
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DFormData')
@@ -239,12 +227,8 @@ class KuveytPosTest extends TestCase
         bool    $isSuccess
     ): void
     {
-        if ($is3DSuccess) {
-            $this->cryptMock->expects(self::once())
-                ->method('check3DHash')
-                ->with($this->account, $decodedRequest)
-                ->willReturn(true);
-        }
+        $this->cryptMock->expects(self::never())
+            ->method('check3DHash');
 
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
@@ -423,13 +407,40 @@ class KuveytPosTest extends TestCase
                 'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
                 'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/Non3DPayGate',
             ],
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizaten',
-            ],
         ];
+    }
+
+    private function configureClientResponse(
+        string $txType,
+        string $apiUrl,
+        array  $requestData,
+        string $encodedRequestData,
+        string $responseContent,
+        array  $decodedResponse,
+        ?int $statusCode = null
+    ): void
+    {
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with($requestData, $txType)
+            ->willReturn($encodedRequestData);
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            $responseContent,
+            $apiUrl,
+            [
+                'headers' => [
+                    'Content-Type' => 'text/xml; charset=UTF-8',
+                ],
+                'body'    => $encodedRequestData,
+            ],
+            $statusCode
+        );
     }
 }

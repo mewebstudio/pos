@@ -143,10 +143,6 @@ class KuveytPos extends AbstractGateway
             return $this;
         }
 
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
-            throw new HashMismatchException();
-        }
-
         $this->logger->debug('finishing payment');
 
         $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);

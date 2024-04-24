@@ -115,7 +115,7 @@ try {
 }
 ```
 ```html
-<!-- $formData içeriği HTML forma render ediyoruz ve kullanıcıyı banka gateway'ine yönlendiriyoruy. -->
+<!-- $formData içeriği HTML forma render ediyoruz ve kullanıcıyı banka gateway'ine yönlendiriyoruz. -->
 <form method="<?= $formData['method']; ?>" action="<?= $formData['gateway']; ?>"  class="redirect-form" role="form">
     <?php foreach ($formData['inputs'] as $key => $value) : ?>
         <input type="hidden" name="<?= $key; ?>" value="<?= $value; ?>">

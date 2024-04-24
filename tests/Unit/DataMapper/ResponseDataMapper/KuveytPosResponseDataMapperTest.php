@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
@@ -16,6 +17,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper
  */
 class KuveytPosResponseDataMapperTest extends TestCase
 {
@@ -85,6 +87,11 @@ class KuveytPosResponseDataMapperTest extends TestCase
         }
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        if ([] !== $responseData) {
+            $this->assertArrayHasKey('all', $actualData);
+            $this->assertIsArray($actualData['all']);
+            $this->assertNotEmpty($actualData['all']);
+        }
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -164,6 +171,30 @@ class KuveytPosResponseDataMapperTest extends TestCase
         $this->assertEquals($expectedData, $actualData);
     }
 
+    public function testMap3DPayResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DPayResponseData([], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
+    public function testMap3DHostResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DHostResponseData([], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
+    public function testMapHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapHistoryResponse([]);
+    }
+
+    public function testMapOrderHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapOrderHistoryResponse([]);
+    }
+
     public static function paymentTestDataProvider(): iterable
     {
         yield 'fail1' => [
@@ -198,7 +229,28 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'installment_count' => null,
             ],
         ];
-
+        yield 'empty' => [
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+            'responseData' => [],
+            'expectedData' => [
+                'order_id'          => null,
+                'transaction_id'    => null,
+                'transaction_type'  => 'pay',
+                'transaction_time'  => null,
+                'currency'          => null,
+                'amount'            => null,
+                'payment_model'     => 'regular',
+                'auth_code'         => null,
+                'ref_ret_num'       => null,
+                'batch_num'         => null,
+                'proc_return_code'  => null,
+                'status'            => 'declined',
+                'status_detail'     => null,
+                'error_code'        => null,
+                'error_message'     => null,
+                'installment_count' => null,
+            ],
+        ];
         yield 'success1' => [
             'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
