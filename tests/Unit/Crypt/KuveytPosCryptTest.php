@@ -54,6 +54,13 @@ class KuveytPosCryptTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
+    public function testCreate3DHashException(): void
+    {
+        $account = $this->createMock(AbstractPosAccount::class);
+        $this->expectException(\LogicException::class);
+        $this->crypt->create3DHash($account, []);
+    }
+
     public function testCheck3DHash(): void
     {
         $this->expectException(NotImplementedException::class);

@@ -21,6 +21,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class KuveytPosRequestDataMapperTest extends TestCase
 {
