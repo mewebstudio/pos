@@ -79,7 +79,7 @@ class KuveytPosTest extends TestCase
             'name'              => 'kuveyt-pos',
             'class'             => KuveytPos::class,
             'gateway_endpoints' => [
-                'payment_api' => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelProvisionGate',
+                'payment_api' => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home',
                 'gateway_3d'  => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelPayGate',
                 'query_api'   => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
             ],
@@ -162,6 +162,26 @@ class KuveytPosTest extends TestCase
         $this->assertFalse($this->pos->isTestMode());
         $this->pos->setTestMode(true);
         $this->assertTrue($this->pos->isTestMode());
+    }
+
+    /**
+     * @dataProvider getApiUrlDataProvider
+     */
+    public function testGetApiURL(?string $txType, ?string $paymentModel, string $expected): void
+    {
+        $actual = $this->pos->getApiURL($txType, $paymentModel);
+
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * @dataProvider getApiUrlExceptionDataProvider
+     */
+    public function testGetApiURLException(string $txType, string $paymentModel, string $exceptionClass): void
+    {
+        $this->expectException($exceptionClass);
+
+        $this->pos->getApiURL($txType, $paymentModel);
     }
 
     /**
@@ -253,7 +273,7 @@ class KuveytPosTest extends TestCase
             $this->prepareClient(
                 $this->httpClientMock,
                 'response-body',
-                $this->config['gateway_endpoints']['payment_api'],
+                'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelProvisionGate',
                 [
                     'body'    => 'request-body',
                     'headers' => [
@@ -308,10 +328,35 @@ class KuveytPosTest extends TestCase
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
-    public function testMakeRegularPayment(): void
+    /**
+     * @dataProvider makeRegularPaymentDataProvider
+     */
+    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
     {
-        $this->expectException(UnsupportedPaymentModelException::class);
-        $this->pos->makeRegularPayment([], $this->card, PosInterface::TX_TYPE_PAY_AUTH);
+        $account = $this->pos->getAccount();
+        $card    = $this->card;
+        $this->requestMapperMock->expects(self::once())
+            ->method('createNonSecurePaymentRequestData')
+            ->with($account, $order, $txType, $card)
+            ->willReturn(['createNonSecurePaymentRequestData']);
+
+        $paymentResponse = ['paymentResponse'];
+
+        $this->configureClientResponse(
+            $txType,
+            $apiUrl,
+            ['createNonSecurePaymentRequestData'],
+            'request-body',
+            'response-body',
+            $paymentResponse
+        );
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapPaymentResponse')
+            ->with($paymentResponse, $txType, $order)
+            ->willReturn(['result']);
+
+        $this->pos->makeRegularPayment($order, $card, $txType);
     }
 
     public function testMakeRegularPostAuthPayment(): void
@@ -405,7 +450,7 @@ class KuveytPosTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/Non3DPayGate',
+                'api_url' => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/Non3DPayGate',
             ],
         ];
     }
@@ -442,5 +487,52 @@ class KuveytPosTest extends TestCase
             ],
             $statusCode
         );
+    }
+
+    public static function getApiUrlDataProvider(): array
+    {
+        return [
+            [
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'expected'     => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelProvisionGate',
+            ],
+            [
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel' => PosInterface::MODEL_NON_SECURE,
+                'expected'     => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/Non3DPayGate',
+            ],
+            [
+                'txType'       => PosInterface::TX_TYPE_REFUND,
+                'paymentModel' => PosInterface::MODEL_NON_SECURE,
+                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
+            ],
+            [
+                'txType'       => PosInterface::TX_TYPE_CANCEL,
+                'paymentModel' => PosInterface::MODEL_NON_SECURE,
+                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
+            ],
+            [
+                'txType'       => PosInterface::TX_TYPE_STATUS,
+                'paymentModel' => PosInterface::MODEL_NON_SECURE,
+                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
+            ],
+            [
+                'txType'       => null,
+                'paymentModel' => null,
+                'expected'     => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home',
+            ],
+        ];
+    }
+
+    public static function getApiUrlExceptionDataProvider(): array
+    {
+        return [
+            [
+                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel'    => PosInterface::MODEL_3D_PAY,
+                'exception_class' => UnsupportedTransactionTypeException::class,
+            ],
+        ];
     }
 }

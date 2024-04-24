@@ -9,13 +9,13 @@ $baseUrl = $bankTestsUrl.'/regular/';
 $account = \Mews\Pos\Factory\AccountFactory::createKuveytPosAccount(
     'kuveytpos',
     '496',
-    'apiuser1',
+    'apitest',
     '400235',
-    'Api1232',
+    'api123',
     PosInterface::MODEL_3D_SECURE
 );
 
 $pos = getGateway($account, $eventDispatcher);
 
 $templateTitle = 'Regular Payment';
-$paymentModel = PosInterface::MODEL_3D_SECURE;
+$paymentModel = PosInterface::MODEL_NON_SECURE;

@@ -176,11 +176,18 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['transaction_id']    = $orderContract['Stan'];
             $defaultResponse['currency']          = $this->mapCurrency($orderContract['FEC']);
             $defaultResponse['first_amount']      = (float) $orderContract['FirstAmount'];
-            $defaultResponse['capture_amount']    = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
-            $defaultResponse['capture']           = $defaultResponse['first_amount'] > 0 && $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
             $defaultResponse['masked_number']     = $orderContract['CardNumber'];
             $defaultResponse['transaction_time']  = new \DateTimeImmutable($orderContract['OrderDate']);
             $defaultResponse['installment_count'] = $this->mapInstallment($orderContract['InstallmentCount']);
+            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $defaultResponse['order_status']) {
+                $defaultResponse['capture_amount'] = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
+                $defaultResponse['capture']        = $defaultResponse['first_amount'] > 0 && $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
+                if ($defaultResponse['capture']) {
+                    $defaultResponse['capture_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
+                }
+            } elseif (PosInterface::PAYMENT_STATUS_CANCELED === $defaultResponse['order_status']) {
+                $defaultResponse['cancel_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
+            }
         }
 
         return $defaultResponse;

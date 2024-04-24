@@ -94,7 +94,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 'TransactionType'              => $this->mapTxType($txType),
                 'InstallmentCount'             => $responseData['VPosMessage']['InstallmentCount'],
                 'Amount'                       => $responseData['VPosMessage']['Amount'],
-                'DisplayAmount'                => $this->formatAmount($responseData['VPosMessage']['Amount']),
+                'DisplayAmount'                => $responseData['VPosMessage']['Amount'],
                 'CurrencyCode'                 => $responseData['VPosMessage']['CurrencyCode'],
                 'MerchantOrderId'              => $responseData['VPosMessage']['MerchantOrderId'],
                 'TransactionSecurity'          => $responseData['VPosMessage']['TransactionSecurity'],
@@ -161,11 +161,34 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param KuveytPosAccount $posAccount
+     *
      * {@inheritDoc}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
     {
-        throw new NotImplementedException();
+        $order = $this->preparePaymentOrder($order);
+
+        $requestData = $this->getRequestAccountData($posAccount) + [
+                'APIVersion'          => self::API_VERSION,
+                'HashData'            => '',
+                'TransactionType'     => $this->mapTxType($txType),
+                'TransactionSecurity' => '1',
+                'MerchantOrderId'     => (string) $order['id'],
+                'Amount'              => $this->formatAmount($order['amount']),
+                'DisplayAmount'       => $this->formatAmount($order['amount']),
+                'CurrencyCode'        => $this->mapCurrency($order['currency']),
+                'InstallmentCount'    => $this->mapInstallment($order['installment']),
+                'CardHolderName'      => $creditCard->getHolderName(),
+                'CardNumber'          => $creditCard->getNumber(),
+                'CardExpireDateYear'  => $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT),
+                'CardExpireDateMonth' => $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT),
+                'CardCVV2'            => $creditCard->getCvv(),
+            ];
+
+        $requestData['HashData'] = $this->crypt->createHash($posAccount, $requestData);
+
+        return $requestData;
     }
 
     /**
