@@ -29,7 +29,8 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      */
     protected array $orderStatusMappings = [
         1 => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        5 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
+        4 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
+        5 => PosInterface::PAYMENT_STATUS_PARTIALLY_REFUNDED,
         6 => PosInterface::PAYMENT_STATUS_CANCELED,
     ];
 
@@ -187,6 +188,8 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
                 }
             } elseif (PosInterface::PAYMENT_STATUS_CANCELED === $defaultResponse['order_status']) {
                 $defaultResponse['cancel_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
+            } elseif (PosInterface::PAYMENT_STATUS_FULLY_REFUNDED === $defaultResponse['order_status']) {
+                $defaultResponse['refund_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
             }
         }
 
