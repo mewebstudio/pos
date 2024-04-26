@@ -43,6 +43,7 @@ class AkbankPosSerializer implements SerializerInterface
         if ('' === $data) {
             return [];
         }
+
         $decodedData = $this->serializer->decode($data, JsonEncoder::FORMAT);
 
         if (PosInterface::TX_TYPE_HISTORY === $txType && isset($decodedData['data'])) {
@@ -66,15 +67,18 @@ class AkbankPosSerializer implements SerializerInterface
         if (!$gzipStream) {
             return '';
         }
+
         $decompressedData = '';
         $i                = 0;
         while (!gzeof($gzipStream)) {
-            $i++;
+            ++$i;
             if ($i > 1000000) {
                 throw new \RuntimeException('Invalid history data');
             }
+
             $decompressedData .= gzread($gzipStream, 1024);
         }
+
         gzclose($gzipStream);
 
         return $decompressedData;

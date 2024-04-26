@@ -356,7 +356,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'Amount'            => (string) $this->formatAmount($order['amount']),
             'CurrencyCode'      => (string) $this->mapCurrency($order['currency']),
             'MerchantReturnURL' => (string) $order['success_url'],
-            'InstallmentCount'  => (string) $this->mapInstallment($order['installment']),
+            'InstallmentCount'  => $this->mapInstallment($order['installment']),
             'Language'          => $this->getLang($posAccount, $order),
             'TxnState'          => 'INITIAL',
             'OpenNewWindow'     => '0',

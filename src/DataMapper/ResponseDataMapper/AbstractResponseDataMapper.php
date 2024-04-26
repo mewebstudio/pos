@@ -57,6 +57,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             if (\is_array($mapping) && \in_array($txType, $mapping, true)) {
                 return $mappedTxType;
             }
+
             if ($mapping === $txType) {
                 return $mappedTxType;
             }

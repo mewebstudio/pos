@@ -107,6 +107,7 @@ class AkbankPosCrypt extends AbstractCrypt
         if (null === $encryptionKey) {
             throw new \LogicException('Encryption key zorunlu!');
         }
+
         $str = \hash_hmac(static::HASH_ALGORITHM, $str, $encryptionKey, true);
 
         return \base64_encode($str);

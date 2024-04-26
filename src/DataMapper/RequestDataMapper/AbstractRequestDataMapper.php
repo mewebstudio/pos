@@ -173,6 +173,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
         if (!isset($this->txTypeMappings[$txType])) {
             return false;
         }
+
         if (\is_array($this->txTypeMappings[$txType])) {
             if (null === $paymentModel) {
                 return false;

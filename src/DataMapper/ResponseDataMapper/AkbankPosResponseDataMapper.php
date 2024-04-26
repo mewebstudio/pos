@@ -289,21 +289,26 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
                 } else {
                     $transactions[] = $this->mapSingleOrderHistoryTransaction($rawTx);
                 }
-                $orderId = $orderId ?? $rawTx['orgOrderId'] ?? $rawTx['orderId'] ?? null;
+
+                $orderId ??= $rawTx['orgOrderId'] ?? $rawTx['orderId'] ?? null;
             }
         }
 
         if (!$isRecurringOrder) {
-            \usort($transactions, function (array $tx1, array $tx2) {
+            \usort($transactions, static function (array $tx1, array $tx2) {
                 if (null !== $tx1['transaction_time'] && null === $tx2['transaction_time']) {
                     return 1;
                 }
+
                 if (null === $tx1['transaction_time'] && null !== $tx2['transaction_time']) {
                     return -1;
                 }
+
                 if ($tx1['transaction_time'] == $tx2['transaction_time']) {
                     return 0;
-                } elseif ($tx1['transaction_time'] < $tx2['transaction_time']) {
+                }
+
+                if ($tx1['transaction_time'] < $tx2['transaction_time']) {
                     return -1;
                 }
 
@@ -520,6 +525,7 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
             if (PosInterface::PAYMENT_STATUS_PAYMENT_PENDING !== $transaction['order_status']) {
                 $transaction['transaction_time'] = new \DateTimeImmutable($rawTx['txnDateTime']);
             }
+
             if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transaction['order_status']) {
                 $transaction['batch_num']      = $rawTx['batchNumber'];
                 $transaction['ref_ret_num']    = $rawTx['rrn'];

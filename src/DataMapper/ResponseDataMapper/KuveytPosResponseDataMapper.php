@@ -230,11 +230,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
 
         $responseResults = $drawbackResult['Results'];
         if (self::TX_APPROVED !== $status && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
-            if (isset($responseResults['Result'][0])) {
-                $responseResult = $responseResults['Result'][0];
-            } else {
-                $responseResult = $responseResults['Result'];
-            }
+            $responseResult             = $responseResults['Result'][0] ?? $responseResults['Result'];
             $result['proc_return_code'] = $procReturnCode;
             $result['error_code']       = $responseResult['ErrorCode'] ?? $procReturnCode;
             $result['error_message']    = $responseResult['ErrorMessage'];
@@ -292,11 +288,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
 
         $responseResults = $rawResponseData['SaleReversalResult']['Results'];
         if (self::TX_APPROVED !== $status && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
-            if (isset($responseResults['Result'][0])) {
-                $responseResult = $responseResults['Result'][0];
-            } else {
-                $responseResult = $responseResults['Result'];
-            }
+            $responseResult             = $responseResults['Result'][0] ?? $responseResults['Result'];
             $result['proc_return_code'] = $procReturnCode;
             $result['error_code']       = $responseResult['ErrorCode'] ?? $procReturnCode;
             $result['error_message']    = $responseResult['ErrorMessage'];

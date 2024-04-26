@@ -165,6 +165,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 ksort($item);
             }
         }
+
         foreach ($expected as &$item) {
             if (is_array($item)) {
                 ksort($item);
@@ -193,6 +194,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 ksort($item);
             }
         }
+
         foreach ($expected as &$item) {
             if (is_array($item)) {
                 ksort($item);
@@ -221,6 +223,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 ksort($item);
             }
         }
+
         foreach ($expected as &$item) {
             if (is_array($item)) {
                 ksort($item);

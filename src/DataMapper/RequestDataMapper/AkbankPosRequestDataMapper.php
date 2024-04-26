@@ -377,6 +377,7 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
         if (null !== $posAccount->getSubMerchantId()) {
             $inputs['subMerchantId'] = $posAccount->getSubMerchantId();
         }
+
         if ($creditCard instanceof CreditCardInterface) {
             $inputs['creditCard']  = $creditCard->getNumber();
             $inputs['expiredDate'] = $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);

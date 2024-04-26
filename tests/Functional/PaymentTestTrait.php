@@ -5,7 +5,6 @@
 
 namespace Mews\Pos\Tests\Functional;
 
-use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
@@ -23,7 +22,7 @@ trait PaymentTestTrait
         bool   $tekrarlanan = false
     ): array
     {
-        if ($tekrarlanan && get_class($this->pos) === AkbankPos::class) {
+        if ($tekrarlanan && $this->pos instanceof \Mews\Pos\Gateways\AkbankPos) {
             // AkbankPos'ta recurring odemede orderTrackId/orderId en az 36 karakter olmasi gerekiyor
             $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 28));
         } else {

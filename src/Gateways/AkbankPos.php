@@ -181,6 +181,7 @@ class AkbankPos extends AbstractGateway
         if (!\is_string($contents)) {
             throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
         }
+
         $hash = $this->requestDataMapper->getCrypt()->hashString($contents, $this->account->getStoreKey());
 
         $response = $this->client->post($url, [
@@ -217,10 +218,6 @@ class AkbankPos extends AbstractGateway
             PosInterface::TX_TYPE_HISTORY => 'portal/report/transaction',
         ];
 
-        if (isset($arr[$txType])) {
-            return $arr[$txType];
-        }
-
-        return 'transaction/process';
+        return $arr[$txType] ?? 'transaction/process';
     }
 }

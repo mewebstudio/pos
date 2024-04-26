@@ -92,6 +92,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
             $this->assertIsArray($actualData['all']);
             $this->assertNotEmpty($actualData['all']);
         }
+
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
