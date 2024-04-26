@@ -1,4 +1,25 @@
 # Changelog
+## [1.1.0] - 2024-04-26
+
+### New Features
+- [Akbank POS](https://sanalpos-prep.akbank.com/) entegrasyonu eklendi. (issue #191)
+- **Vakif Katılım POS** entegrasyonu eklendi. (issue #181)
+- **KuveytPos** - TDV2.0.0 API'a upgrade edildi. (issue #172)
+- **KuveytPos** - MODEL_NON_SECURE ödeme desteği eklendi.
+
+### Changed
+- **KuveytPos** ödeme durum sorgulama isteğinin response mapping'i iyileştirildi.
+- **KuveytPos** iade işlemi için _PartialDrawback_ yerine artık _Drawback_ kullanılıyor.
+
+### Fixed
+- **KuveytPos** - iptal ve iade çalışmama sorunu çözüldü. (issue #159)
+
+### Breaking Changes
+- ayarlar dosyasında KuvetPos için `payment_api` değeri
+  `https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home/ThreeDModelProvisionGate` yerine
+  `https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home` kullanmanız gerekiyor.
+- composer.json'a `ext-zlib` extension zorunluluğu eklendi.
+
 ## [1.0.0] - 2024-03-30
 ### New Features
 
