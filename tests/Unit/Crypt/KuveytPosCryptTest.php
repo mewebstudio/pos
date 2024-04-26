@@ -6,7 +6,9 @@
 namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\KuveytPosCrypt;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\NullLogger;
@@ -52,9 +54,18 @@ class KuveytPosCryptTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
+    public function testCreate3DHashException(): void
+    {
+        $account = $this->createMock(AbstractPosAccount::class);
+        $this->expectException(\LogicException::class);
+        $this->crypt->create3DHash($account, []);
+    }
+
     public function testCheck3DHash(): void
     {
-        $this->assertTrue($this->crypt->check3DHash($this->account, []));
+        $this->expectException(NotImplementedException::class);
+
+        $this->crypt->check3DHash($this->account, []);
     }
 
     /**
@@ -65,6 +76,13 @@ class KuveytPosCryptTest extends TestCase
         $actual = $this->crypt->createHash($this->account, $requestData);
 
         $this->assertSame($expected, $actual);
+    }
+
+    public function testCreateHashException(): void
+    {
+        $account = $this->createMock(AbstractPosAccount::class);
+        $this->expectException(\LogicException::class);
+        $this->crypt->createHash($account, []);
     }
 
     public static function hashCreateDataProvider(): array

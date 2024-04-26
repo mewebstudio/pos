@@ -14,7 +14,6 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
-use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
@@ -120,10 +119,6 @@ class VakifKatilimPos extends AbstractGateway
             $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, null, $txType, $order);
 
             return $this;
-        }
-
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
-            throw new HashMismatchException();
         }
 
         $this->logger->debug('finishing payment');

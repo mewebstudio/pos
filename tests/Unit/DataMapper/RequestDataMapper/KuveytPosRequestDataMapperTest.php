@@ -6,21 +6,21 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Generator;
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class KuveytPosRequestDataMapperTest extends TestCase
 {
@@ -29,6 +29,9 @@ class KuveytPosRequestDataMapperTest extends TestCase
     private CreditCardInterface $card;
 
     private KuveytPosRequestDataMapper $requestDataMapper;
+
+    /** @var CryptInterface|MockObject */
+    private CryptInterface $crypt;
 
     protected function setUp(): void
     {
@@ -53,8 +56,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
             CreditCardInterface::CARD_TYPE_VISA
         );
 
-        $crypt                   = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());
-        $this->requestDataMapper = new KuveytPosRequestDataMapper($dispatcher, $crypt);
+        $this->crypt             = $this->createMock(CryptInterface::class);
+        $this->requestDataMapper = new KuveytPosRequestDataMapper($dispatcher, $this->crypt);
     }
 
     /**
@@ -128,6 +131,10 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $account = $this->account;
         $card    = $this->card;
 
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->willReturn('request-3d-hash');
+
         $actualData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $account,
             $order,
@@ -135,7 +142,11 @@ class KuveytPosRequestDataMapperTest extends TestCase
             $txType,
             $card
         );
-        $this->assertEquals($expectedData, $actualData);
+
+        ksort($expectedData);
+        ksort($actualData);
+
+        $this->assertSame($expectedData, $actualData);
     }
 
     /**
@@ -143,7 +154,26 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData(array $order, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn('request-hash');
+
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
+
+        foreach ($actual as &$item) {
+            if (is_array($item)) {
+                ksort($item);
+            }
+        }
+        foreach ($expected as &$item) {
+            if (is_array($item)) {
+                ksort($item);
+            }
+        }
+
+        \ksort($actual);
+        \ksort($expected);
+
         $this->assertEquals($expected, $actual);
     }
 
@@ -152,8 +182,27 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData(array $order, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn('request-hash');
+
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+
+        foreach ($actual as &$item) {
+            if (is_array($item)) {
+                ksort($item);
+            }
+        }
+        foreach ($expected as &$item) {
+            if (is_array($item)) {
+                ksort($item);
+            }
+        }
+
+        \ksort($actual);
+        \ksort($expected);
+
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -161,20 +210,111 @@ class KuveytPosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData(array $order, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn('request-hash');
+
         $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+
+        foreach ($actual as &$item) {
+            if (is_array($item)) {
+                ksort($item);
+            }
+        }
+        foreach ($expected as &$item) {
+            if (is_array($item)) {
+                ksort($item);
+            }
+        }
+
+        \ksort($actual);
+        \ksort($expected);
+
+        $this->assertSame($expected, $actual);
     }
 
     /**
      * @dataProvider create3DPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(KuveytPosAccount $kuveytPosAccount, array $order, string $txType, array $responseData, array $expectedData): void
+    public function testCreate3DPaymentRequestData(array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($kuveytPosAccount, $order, $txType, $responseData);
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn('request-hash');
 
-        $this->assertEquals($expectedData, $actual);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $responseData
+        );
+
+        \ksort($actual);
+        \ksort($expectedData);
+
+        $this->assertSame($expectedData, $actual);
     }
 
+    /**
+     * @dataProvider nonSecurePaymentRequestDataProvider
+     */
+    public function testCreateNonSecurePaymentRequestData(array $order, string $txType, array $expectedData): void
+    {
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->willReturn('request-hash');
+
+        $actualData = $this->requestDataMapper->createNonSecurePaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $this->card
+        );
+
+        ksort($expectedData);
+        ksort($actualData);
+
+        $this->assertSame($expectedData, $actualData);
+    }
+
+    public function testGet3DFormData(): void
+    {
+        $expected = [
+            'gateway' => 'https://bank-gateway.com',
+            'method'  => 'POST',
+            'inputs'  => [
+                'abc' => '123',
+            ],
+        ];
+
+        $actual = $this->requestDataMapper->create3DFormData(
+            $this->account,
+            ['abc' => '123'],
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            'https://bank-gateway.com',
+        );
+
+        $this->assertSame($expected, $actual);
+    }
+
+    public function testCreateNonSecurePostAuthPaymentRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, []);
+    }
+
+    public function testCreateOrderHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createOrderHistoryRequestData($this->account, []);
+    }
+
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account, []);
+    }
 
     public static function createCancelRequestDataProvider(): iterable
     {
@@ -206,7 +346,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'VPosMessage'           => [
                     'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
-                    'HashData'                         => 'Om26dd7XpVGq0KyTJBM3TUH4fSU=',
+                    'HashData'                         => 'request-hash',
                     'MerchantId'                       => '80',
                     'SubMerchantId'                    => 0,
                     'CustomerId'                       => '400235',
@@ -261,7 +401,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'VPosMessage'           => [
                     'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
-                    'HashData'                         => 'Om26dd7XpVGq0KyTJBM3TUH4fSU=',
+                    'HashData'                         => 'request-hash',
                     'MerchantId'                       => '80',
                     'SubMerchantId'                    => 0,
                     'CustomerId'                       => '400235',
@@ -312,7 +452,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'VPosMessage'           => [
                     'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
-                    'HashData'                         => 'RwQ5Sfc6D4Ovy7jvQgf5jGA/rOk=',
+                    'HashData'                         => 'request-hash',
                     'MerchantId'                       => '80',
                     'SubMerchantId'                    => 0,
                     'CustomerId'                       => '400235',
@@ -342,28 +482,17 @@ class KuveytPosRequestDataMapperTest extends TestCase
 
     public static function create3DPaymentRequestDataDataProvider(): array
     {
-        $account = AccountFactory::createKuveytPosAccount(
-            'kuveytpos',
-            '80',
-            'apiuser',
-            '400235',
-            'Api123'
-        );
-
         $order = [
             'id'          => '2020110828BC',
             'amount'      => 1,
             'installment' => '0',
             'currency'    => PosInterface::CURRENCY_TRY,
-            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
             'ip'          => '127.0.0.1',
             'lang'        => PosInterface::LANG_TR,
         ];
 
         return [
             [
-                'account'      => $account,
                 'order'        => $order,
                 'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'responseData' => [
@@ -395,7 +524,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 ],
                 'expected'     => [
                     'APIVersion'                   => KuveytPosRequestDataMapper::API_VERSION,
-                    'HashData'                     => '9nMtjMKzb7y/hOC4RiDZXkR8uqE=',
+                    'HashData'                     => 'request-hash',
                     'MerchantId'                   => '80',
                     'CustomerId'                   => '400235',
                     'UserName'                     => 'apiuser',
@@ -409,7 +538,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                     'TransactionType'              => 'Sale',
                     'InstallmentCount'             => '0',
                     'Amount'                       => '100',
-                    'DisplayAmount'                => 10000,
+                    'DisplayAmount'                => '100',
                     'CurrencyCode'                 => '0949',
                     'MerchantOrderId'              => '2020110828BC',
                     'TransactionSecurity'          => '3',
@@ -437,7 +566,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                     'MerchantId'          => '80',
                     'UserName'            => 'apiuser',
                     'CustomerId'          => '400235',
-                    'HashData'            => 'aEW1KcKuzz2e+oeU36kyEnC65/4=',
+                    'HashData'            => 'request-3d-hash',
                     'TransactionType'     => 'Sale',
                     'TransactionSecurity' => '3',
                     'InstallmentCount'    => '0',
@@ -456,6 +585,41 @@ class KuveytPosRequestDataMapperTest extends TestCase
                     'DeviceData'          => [
                         'ClientIP' => '127.0.0.1',
                     ],
+                ],
+            ],
+        ];
+    }
+
+    public static function nonSecurePaymentRequestDataProvider(): array
+    {
+        return [
+            'pay_no_installment' => [
+                'order'    => [
+                    'id'          => '2020110828BC',
+                    'amount'      => 1.10,
+                    'ip'          => '127.0.0.1',
+                    'installment' => 0,
+                    'currency'    => PosInterface::CURRENCY_TRY,
+                ],
+                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
+                'expected' => [
+                    'APIVersion'          => 'TDV2.0.0',
+                    'Amount'              => 110,
+                    'CardCVV2'            => '123',
+                    'CardExpireDateMonth' => '01',
+                    'CardExpireDateYear'  => '25',
+                    'CardHolderName'      => 'John Doe',
+                    'CardNumber'          => '4155650100416111',
+                    'CurrencyCode'        => '0949',
+                    'CustomerId'          => '400235',
+                    'DisplayAmount'       => 110,
+                    'HashData'            => 'request-hash',
+                    'InstallmentCount'    => '0',
+                    'MerchantId'          => '80',
+                    'MerchantOrderId'     => '2020110828BC',
+                    'TransactionSecurity' => '1',
+                    'TransactionType'     => 'Sale',
+                    'UserName'            => 'apiuser',
                 ],
             ],
         ];

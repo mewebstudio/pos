@@ -138,4 +138,120 @@ class KuveytPosTest extends TestCase
         $this->assertNotEmpty($formData);
         $this->assertTrue($eventIsThrown);
     }
+
+    public function testNonSecurePaymentSuccess(): array
+    {
+        $order = $this->createPaymentOrder();
+
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(17, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->payment(
+            PosInterface::MODEL_NON_SECURE,
+            $order,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $this->card
+        );
+
+        $response = $this->pos->getResponse();
+
+        $this->assertTrue($this->pos->isSuccess());
+
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+
+        return $this->pos->getResponse();
+    }
+
+    /**
+     * @depends testRefundFail
+     */
+    public function testCancelSuccess(array $lastResponse): array
+    {
+        $statusOrder = $this->createCancelOrder(\get_class($this->pos), $lastResponse);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(15, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->cancel($statusOrder);
+
+        $this->assertTrue($this->pos->isSuccess());
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+
+        return $lastResponse;
+    }
+
+    /**
+     * @depends testNonSecurePaymentSuccess
+     */
+    public function testStatusSuccess(array $lastResponse): array
+    {
+        $statusOrder = $this->createStatusOrder(\get_class($this->pos), $lastResponse);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_STATUS, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(15, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->status($statusOrder);
+
+        $this->assertTrue($this->pos->isSuccess());
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+
+        return $lastResponse;
+    }
+
+    /**
+     * @depends testNonSecurePaymentSuccess
+     */
+    public function testRefundFail(array $lastResponse): array
+    {
+        $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+        $refundOrder['amount'] = 1.0;
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_REFUND, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(15, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->refund($refundOrder);
+
+        $this->assertFalse($this->pos->isSuccess());
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+        $this->assertSame(
+            'İade işlemi, satışla aynı gün içerisinde yapılamaz. İptal işlemi yapabilirsiniz.',
+            $response['error_message']
+        );
+
+        return $lastResponse;
+    }
 }
