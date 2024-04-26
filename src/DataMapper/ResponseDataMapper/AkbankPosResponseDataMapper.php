@@ -573,19 +573,26 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
             $transaction['batch_num']    = $rawTx['batchNumber'] ?? null;
             $transaction['order_status'] = $this->mapOrderStatus($rawTx['txnStatus'], $rawTx['preAuthStatus'] ?? null);
             $transaction['auth_code']    = $rawTx['authCode'];
-            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transaction['order_status'] && \in_array(
+            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transaction['order_status']) {
+                if (\in_array(
                     $transaction['transaction_type'],
                     [
                         PosInterface::TX_TYPE_PAY_AUTH,
                         PosInterface::TX_TYPE_PAY_POST_AUTH,
                     ],
                     true,
-                )
-            ) {
-                $transaction['capture_amount'] = null === $rawTx['amount'] ? null : $this->formatAmount($rawTx['amount']);
-                $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
-                if ($transaction['capture']) {
-                    $transaction['capture_time'] = new \DateTimeImmutable($rawTx['txnDateTime']);
+                )) {
+                    $transaction['capture_amount'] = null === $rawTx['amount'] ? null : $this->formatAmount($rawTx['amount']);
+                    $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
+                    if ($transaction['capture']) {
+                        $transaction['capture_time'] = new \DateTimeImmutable($rawTx['txnDateTime']);
+                    }
+                } elseif (PosInterface::TX_TYPE_PAY_PRE_AUTH === $transaction['transaction_type']) {
+                    $transaction['capture_amount'] = null === $rawTx['preAuthCloseAmount'] ? null : $this->formatAmount($rawTx['preAuthCloseAmount']);
+                    $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
+                    if ($transaction['capture']) {
+                        $transaction['capture_time'] = new \DateTimeImmutable($rawTx['preAuthCloseDate']);
+                    }
                 }
             }
         } else {
