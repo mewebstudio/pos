@@ -16,7 +16,10 @@
 
 ### Breaking Changes
 - ayarlar dosyasında KuvetPos için `payment_api` değeri
-  `https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home/ThreeDModelProvisionGate` yerine
+  `https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home/ThreeDModelProvisionGate`
+
+   yerine
+
   `https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home` kullanmanız gerekiyor.
 - composer.json'a `ext-zlib` extension zorunluluğu eklendi.
 
