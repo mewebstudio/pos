@@ -33,10 +33,15 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
      * @var array<string, PosInterface::PAYMENT_STATUS_*>
      */
     private array $orderStatusMappings = [
-        'N' => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        'S' => PosInterface::PAYMENT_STATUS_ERROR,
-        'V' => PosInterface::PAYMENT_STATUS_CANCELED,
-        'R' => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
+        'N'         => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
+        'S'         => PosInterface::PAYMENT_STATUS_ERROR,
+        'V'         => PosInterface::PAYMENT_STATUS_CANCELED,
+        'R'         => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
+
+        // status that are return on history request
+        'Başarılı'  => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
+        'Başarısız' => PosInterface::PAYMENT_STATUS_ERROR,
+        'İptal'     => PosInterface::PAYMENT_STATUS_CANCELED,
     ];
 
     /**
@@ -284,21 +289,26 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
                 } else {
                     $transactions[] = $this->mapSingleOrderHistoryTransaction($rawTx);
                 }
-                $orderId = $orderId ?? $rawTx['orgOrderId'] ?? $rawTx['orderId'] ?? null;
+
+                $orderId ??= $rawTx['orgOrderId'] ?? $rawTx['orderId'] ?? null;
             }
         }
 
         if (!$isRecurringOrder) {
-            \usort($transactions, function (array $tx1, array $tx2) {
+            \usort($transactions, static function (array $tx1, array $tx2) {
                 if (null !== $tx1['transaction_time'] && null === $tx2['transaction_time']) {
                     return 1;
                 }
+
                 if (null === $tx1['transaction_time'] && null !== $tx2['transaction_time']) {
                     return -1;
                 }
+
                 if ($tx1['transaction_time'] == $tx2['transaction_time']) {
                     return 0;
-                } elseif ($tx1['transaction_time'] < $tx2['transaction_time']) {
+                }
+
+                if ($tx1['transaction_time'] < $tx2['transaction_time']) {
                     return -1;
                 }
 
@@ -324,7 +334,35 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapHistoryResponse(array $rawResponseData): array
     {
-        throw new NotImplementedException();
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+
+        $mappedTransactions = [];
+        $procReturnCode     = $this->getProcReturnCode($rawResponseData);
+        $status             = self::TX_DECLINED;
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+            foreach ($rawResponseData['data']['txnDetailList'] as $rawTx) {
+                $mappedTransactions[] = $this->mapSingleHistoryTransaction($rawTx);
+            }
+        }
+
+        $result = [
+            'proc_return_code' => $procReturnCode,
+            'error_code'       => null,
+            'error_message'    => null,
+            'status'           => $status,
+            'status_detail'    => null !== $procReturnCode ? $this->getStatusDetail($procReturnCode) : null,
+            'trans_count'      => \count($mappedTransactions),
+            'transactions'     => $mappedTransactions,
+            'all'              => $rawResponseData,
+        ];
+
+        if (null !== $procReturnCode && self::PROCEDURE_SUCCESS_CODE !== $procReturnCode) {
+            $result['error_code']    = $procReturnCode;
+            $result['error_message'] = $rawResponseData['responseMessage'];
+        }
+
+        return $result;
     }
 
     /**
@@ -413,8 +451,6 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $transaction['status_detail']     = $this->getStatusDetail($transaction['proc_return_code']);
-        $transaction['ref_ret_num']       = $rawTx['rrn'];
-        $transaction['masked_number']     = $rawTx['maskedCardNumber'];
         $transaction['currency']          = $this->mapCurrency($rawTx['currencyCode']);
         $transaction['installment_count'] = $this->mapInstallment($rawTx['installCount']);
         $transaction['transaction_type']  = $this->mapTxType($rawTx['txnCode']);
@@ -422,23 +458,33 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
         $transaction['transaction_time']  = new \DateTimeImmutable($rawTx['txnDateTime']);
 
         if (self::TX_APPROVED === $transaction['status']) {
+            $transaction['masked_number'] = $rawTx['maskedCardNumber'];
+            $transaction['ref_ret_num']   = $rawTx['rrn'];
             // batchNumber is not provided when payment is canceled
             $transaction['batch_num']    = $rawTx['batchNumber'] ?? null;
             $transaction['order_status'] = $this->mapOrderStatus($rawTx['txnStatus'], $rawTx['preAuthStatus'] ?? null);
             $transaction['auth_code']    = $rawTx['authCode'];
-            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transaction['order_status'] && \in_array(
-                $transaction['transaction_type'],
-                [
-                        PosInterface::TX_TYPE_PAY_AUTH,
-                        PosInterface::TX_TYPE_PAY_POST_AUTH,
-                    ],
-                true,
-            )
-            ) {
-                $transaction['capture_amount'] = null === $rawTx['amount'] ? null : $this->formatAmount($rawTx['amount']);
-                $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
-                if ($transaction['capture']) {
-                    $transaction['capture_time'] = new \DateTimeImmutable($rawTx['txnDateTime']);
+            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transaction['order_status']) {
+                if (\in_array(
+                        $transaction['transaction_type'],
+                        [
+                            PosInterface::TX_TYPE_PAY_AUTH,
+                            PosInterface::TX_TYPE_PAY_POST_AUTH,
+                        ],
+                        true,
+                    )
+                ) {
+                    $transaction['capture_amount'] = null === $rawTx['amount'] ? null : $this->formatAmount($rawTx['amount']);
+                    $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
+                    if ($transaction['capture']) {
+                        $transaction['capture_time'] = new \DateTimeImmutable($rawTx['txnDateTime']);
+                    }
+                } elseif (PosInterface::TX_TYPE_PAY_PRE_AUTH === $transaction['transaction_type']) {
+                    $transaction['capture_amount'] = null === $rawTx['preAuthCloseAmount'] ? null : $this->formatAmount($rawTx['preAuthCloseAmount']);
+                    $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
+                    if ($transaction['capture']) {
+                        $transaction['capture_time'] = new \DateTimeImmutable($rawTx['preAuthCloseDate']);
+                    }
                 }
             }
         } else {
@@ -479,12 +525,68 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
             if (PosInterface::PAYMENT_STATUS_PAYMENT_PENDING !== $transaction['order_status']) {
                 $transaction['transaction_time'] = new \DateTimeImmutable($rawTx['txnDateTime']);
             }
+
             if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transaction['order_status']) {
                 $transaction['batch_num']      = $rawTx['batchNumber'];
                 $transaction['ref_ret_num']    = $rawTx['rrn'];
                 $transaction['capture_amount'] = null === $rawTx['amount'] ? null : $this->formatAmount($rawTx['amount']);
                 $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
                 $transaction['capture_time']   = new \DateTimeImmutable($rawTx['txnDateTime']);
+            }
+        } else {
+            $transaction['error_code'] = $transaction['proc_return_code'];
+        }
+
+        return $transaction;
+    }
+
+    /**
+     * @param array<string, string|null> $rawTx
+     *
+     * @return array<string, int|string|null|float|bool|\DateTimeImmutable>
+     *
+     * @throws \Exception
+     */
+    private function mapSingleHistoryTransaction(array $rawTx): array
+    {
+        $rawTx                           = $this->emptyStringsToNull($rawTx);
+        $transaction                     = $this->getDefaultOrderHistoryTxResponse();
+        $transaction['proc_return_code'] = $this->getProcReturnCode($rawTx);
+        if (self::PROCEDURE_SUCCESS_CODE === $transaction['proc_return_code']) {
+            $transaction['status'] = self::TX_APPROVED;
+        }
+
+        $transaction['order_id']      = null;
+        $transaction['status_detail'] = $this->getStatusDetail($transaction['proc_return_code']);
+
+        $transaction['currency']          = $this->mapCurrency($rawTx['currencyCode']);
+        $transaction['installment_count'] = $this->mapInstallment($rawTx['installmentCount']);
+        $transaction['transaction_type']  = $this->mapTxType($rawTx['txnCode']);
+        $transaction['first_amount']      = null === $rawTx['amount'] ? null : $this->formatAmount($rawTx['amount']);
+        $transaction['transaction_time']  = new \DateTimeImmutable($rawTx['txnDateTime']);
+
+        if (self::TX_APPROVED === $transaction['status']) {
+            $transaction['order_id']      = $rawTx['orderId'];
+            $transaction['masked_number'] = $rawTx['maskedCardNumber'];
+            $transaction['ref_ret_num']   = $rawTx['rrn'];
+            // batchNumber is not provided when payment is canceled
+            $transaction['batch_num']    = $rawTx['batchNumber'] ?? null;
+            $transaction['order_status'] = $this->mapOrderStatus($rawTx['txnStatus'], $rawTx['preAuthStatus'] ?? null);
+            $transaction['auth_code']    = $rawTx['authCode'];
+            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transaction['order_status'] && \in_array(
+                    $transaction['transaction_type'],
+                    [
+                        PosInterface::TX_TYPE_PAY_AUTH,
+                        PosInterface::TX_TYPE_PAY_POST_AUTH,
+                    ],
+                    true,
+                )
+            ) {
+                $transaction['capture_amount'] = null === $rawTx['amount'] ? null : $this->formatAmount($rawTx['amount']);
+                $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
+                if ($transaction['capture']) {
+                    $transaction['capture_time'] = new \DateTimeImmutable($rawTx['txnDateTime']);
+                }
             }
         } else {
             $transaction['error_code'] = $transaction['proc_return_code'];

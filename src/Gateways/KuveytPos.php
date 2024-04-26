@@ -79,6 +79,7 @@ class KuveytPos extends AbstractGateway
         )) {
             return $this->getQueryAPIUrl();
         }
+
         if (null !== $txType && null !== $paymentModel) {
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
         }

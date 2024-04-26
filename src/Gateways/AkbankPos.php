@@ -39,7 +39,7 @@ class AkbankPos extends AbstractGateway
         PosInterface::TX_TYPE_CANCEL        => true,
         PosInterface::TX_TYPE_REFUND        => true,
         PosInterface::TX_TYPE_ORDER_HISTORY => true,
-        PosInterface::TX_TYPE_HISTORY       => false,
+        PosInterface::TX_TYPE_HISTORY       => true,
     ];
 
     /**
@@ -172,14 +172,6 @@ class AkbankPos extends AbstractGateway
 
     /**
      * @inheritDoc
-     */
-    public function history(array $data): PosInterface
-    {
-        throw new UnsupportedTransactionTypeException();
-    }
-
-    /**
-     * @inheritDoc
      *
      * @return array<string, mixed>
      */
@@ -189,6 +181,7 @@ class AkbankPos extends AbstractGateway
         if (!\is_string($contents)) {
             throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
         }
+
         $hash = $this->requestDataMapper->getCrypt()->hashString($contents, $this->account->getStoreKey());
 
         $response = $this->client->post($url, [
@@ -225,10 +218,6 @@ class AkbankPos extends AbstractGateway
             PosInterface::TX_TYPE_HISTORY => 'portal/report/transaction',
         ];
 
-        if (isset($arr[$txType])) {
-            return $arr[$txType];
-        }
-
-        return 'transaction/process';
+        return $arr[$txType] ?? 'transaction/process';
     }
 }

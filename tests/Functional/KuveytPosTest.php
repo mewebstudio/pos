@@ -123,6 +123,7 @@ class KuveytPosTest extends TestCase
                 ];
                 $requestData                    = $requestDataPreparedEvent->getRequestData();
                 $requestData                    = array_merge($requestData, $additionalRequestDataForKuveyt);
+
                 $requestDataPreparedEvent->setRequestData($requestData);
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
             });
@@ -228,7 +229,7 @@ class KuveytPosTest extends TestCase
      */
     public function testRefundFail(array $lastResponse): array
     {
-        $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+        $refundOrder           = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
         $refundOrder['amount'] = 1.0;
 
         $eventIsThrown = false;

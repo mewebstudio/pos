@@ -21,6 +21,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\AkbankPosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class AkbankPosRequestDataMapperTest extends TestCase
 {
@@ -383,16 +384,63 @@ class AkbankPosRequestDataMapperTest extends TestCase
         $this->assertSame($expected, $actualData);
     }
 
-    public function testCreateHistoryRequestData(): void
+    /**
+     * @dataProvider historyRequestDataProvider
+     */
+    public function testCreateHistoryRequestData(array $data, array $expected): void
     {
-        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
-        $this->requestDataMapper->createHistoryRequestData($this->account, []);
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expected['randomNumber']);
+
+        $actualData = $this->requestDataMapper->createHistoryRequestData($this->account, $data);
+        ksort($actualData);
+        ksort($expected);
+        $this->assertSame($expected, $actualData);
     }
 
     public function testCreateStatusRequestData(): void
     {
         $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
         $this->requestDataMapper->createStatusRequestData($this->account, []);
+    }
+
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            'with_batch_number' => [
+                'order'    => [
+                    'batch_num' => 39,
+                ],
+                'expected' => [
+                    'terminal'     => [
+                        'merchantSafeId' => '2023090417500272654BD9A49CF07574',
+                        'terminalSafeId' => '2023090417500284633D137A249DBBEB',
+                    ],
+                    'report'       => [
+                        'batchNumber' => 39,
+                    ],
+                    'randomNumber' => '128-character-random-string',
+                ],
+            ],
+            'with_date_range'   => [
+                'order'    => [
+                    'start_date' => new \DateTimeImmutable('2024-04-13 13:00:00'),
+                    'end_date'   => new \DateTimeImmutable('2024-04-14 13:00:00'),
+                ],
+                'expected' => [
+                    'terminal'     => [
+                        'merchantSafeId' => '2023090417500272654BD9A49CF07574',
+                        'terminalSafeId' => '2023090417500284633D137A249DBBEB',
+                    ],
+                    'report'       => [
+                        'startDateTime' => '2024-04-13T13:00:00.000',
+                        'endDateTime'   => '2024-04-14T13:00:00.000',
+                    ],
+                    'randomNumber' => '128-character-random-string',
+                ],
+            ],
+        ];
     }
 
     public static function cancelRequestDataProvider(): array
