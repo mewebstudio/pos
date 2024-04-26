@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
@@ -16,6 +17,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper
  */
 class KuveytPosResponseDataMapperTest extends TestCase
 {
@@ -85,6 +87,11 @@ class KuveytPosResponseDataMapperTest extends TestCase
         }
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        if ([] !== $responseData) {
+            $this->assertArrayHasKey('all', $actualData);
+            $this->assertIsArray($actualData['all']);
+            $this->assertNotEmpty($actualData['all']);
+        }
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -136,7 +143,11 @@ class KuveytPosResponseDataMapperTest extends TestCase
         unset($actualData['refund_time'], $expectedData['refund_time']);
         unset($actualData['cancel_time'], $expectedData['cancel_time']);
 
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -162,6 +173,30 @@ class KuveytPosResponseDataMapperTest extends TestCase
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
         $this->assertEquals($expectedData, $actualData);
+    }
+
+    public function testMap3DPayResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DPayResponseData([], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
+    public function testMap3DHostResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DHostResponseData([], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
+    public function testMapHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapHistoryResponse([]);
+    }
+
+    public function testMapOrderHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapOrderHistoryResponse([]);
     }
 
     public static function paymentTestDataProvider(): iterable
@@ -198,7 +233,28 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'installment_count' => null,
             ],
         ];
-
+        yield 'empty' => [
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+            'responseData' => [],
+            'expectedData' => [
+                'order_id'          => null,
+                'transaction_id'    => null,
+                'transaction_type'  => 'pay',
+                'transaction_time'  => null,
+                'currency'          => null,
+                'amount'            => null,
+                'payment_model'     => 'regular',
+                'auth_code'         => null,
+                'ref_ret_num'       => null,
+                'batch_num'         => null,
+                'proc_return_code'  => null,
+                'status'            => 'declined',
+                'status_detail'     => null,
+                'error_code'        => null,
+                'error_message'     => null,
+                'installment_count' => null,
+            ],
+        ];
         yield 'success1' => [
             'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
             'responseData' => [
@@ -888,7 +944,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'capture'           => true,
                 'remote_order_id'   => '114293600',
                 'currency'          => PosInterface::CURRENCY_TRY,
-                'capture_time'      => null,
+                'capture_time'      => new \DateTimeImmutable('2023-07-08T23:45:35.283'),
                 'transaction_time'  => new \DateTimeImmutable('2023-07-08T23:45:15.797'),
                 'cancel_time'       => null,
                 'refund_amount'     => null,
@@ -934,6 +990,279 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'transaction_time'  => null,
                 'capture_time'      => null,
                 'refund_time'       => null,
+                'cancel_time'       => null,
+            ],
+        ];
+        yield 'tdv2_success_tx_pay' => [
+            'responseData' => [
+                'GetMerchantOrderDetailResult' => [
+                    'Results' => [],
+                    'Success' => true,
+                    'Value'   => [
+                        'OrderContract' => [
+                            'IsSelected'          => false,
+                            'IsSelectable'        => true,
+                            'OrderId'             => 155768281,
+                            'MerchantOrderId'     => '20240424C7A5',
+                            'MerchantId'          => 496,
+                            'CardHolderName'      => 'John Doe',
+                            'CardType'            => 'MasterCard',
+                            'CardNumber'          => '518896******2544',
+                            'OrderDate'           => '2024-04-24T16:03:42.07',
+                            'OrderStatus'         => 1,
+                            'LastOrderStatus'     => 1,
+                            'OrderType'           => 1,
+                            'TransactionStatus'   => 1,
+                            'FirstAmount'         => '10.01',
+                            'CancelAmount'        => '0.00',
+                            'DrawbackAmount'      => '0.00',
+                            'ClosedAmount'        => '0.00',
+                            'FEC'                 => '0949',
+                            'VPSEntryMode'        => 'ECOM',
+                            'InstallmentCount'    => 0,
+                            'TransactionSecurity' => 3,
+                            'ResponseCode'        => '00',
+                            'ResponseExplain'     => 'İşlem gerçekleştirildi.',
+                            'EndOfDayStatus'      => 1,
+                            'TransactionSide'     => 'Auto',
+                            'CardHolderIPAddress' => '',
+                            'MerchantIPAddress'   => '45.130.202.59',
+                            'MerchantUserName'    => 'apitest',
+                            'ProvNumber'          => '050990',
+                            'BatchId'             => 545,
+                            'CardExpireDate'      => '2506',
+                            'PosTerminalId'       => 'VP008759',
+                            'Explain'             => '',
+                            'Explain2'            => '',
+                            'Explain3'            => '',
+                            'RRN'                 => '411516539768',
+                            'Stan'                => '539768',
+                            'UserName'            => 'vposuser',
+                            'HostName'            => 'STD8BOATEST1',
+                            'SystemDate'          => '2024-04-24T16:03:42.077',
+                            'UpdateUserName'      => 'vposuser',
+                            'UpdateHostName'      => 'STD8BOATEST2',
+                            'UpdateSystemDate'    => '2024-04-24T16:04:12.373',
+                            'EndOfDayDate'        => null,
+                            'HostIP'              => '172.20.8.84',
+                            'FECAmount'           => '0',
+                            'IdentityTaxNumber'   => '',
+                            'QueryId'             => '0',
+                            'DebtId'              => '0',
+                            'DebtorName'          => '',
+                            'Period'              => '',
+                            'SurchargeAmount'     => '0',
+                            'SGKDebtAmount'       => '0',
+                            'DeferringCount'      => null,
+                        ],
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'auth_code'         => '050990',
+                'capture'           => true,
+                'capture_amount'    => 10.01,
+                'currency'          => 'TRY',
+                'error_code'        => null,
+                'error_message'     => null,
+                'first_amount'      => 10.01,
+                'installment_count' => 0,
+                'masked_number'     => '518896******2544',
+                'order_id'          => '20240424C7A5',
+                'order_status'      => 'PAYMENT_COMPLETED',
+                'proc_return_code'  => '00',
+                'ref_ret_num'       => '411516539768',
+                'refund_amount'     => null,
+                'remote_order_id'   => '155768281',
+                'status'            => 'approved',
+                'status_detail'     => null,
+                'transaction_id'    => '539768',
+                'transaction_type'  => null,
+                'transaction_time'  => new \DateTimeImmutable('2024-04-24T16:03:42.07'),
+                'capture_time'      => new \DateTimeImmutable('2024-04-24T16:04:12.373'),
+                'refund_time'       => null,
+                'cancel_time'       => null,
+            ],
+        ];
+        yield 'tdv2_success_tx_pay_then_cancel' => [
+            'responseData' => [
+                'GetMerchantOrderDetailResult' => [
+                    'Results' => [],
+                    'Success' => true,
+                    'Value'   => [
+                        'OrderContract' => [
+                            'IsSelected'          => false,
+                            'IsSelectable'        => true,
+                            'OrderId'             => 155768281,
+                            'MerchantOrderId'     => '20240424C7A5',
+                            'MerchantId'          => 496,
+                            'CardHolderName'      => 'John Doe',
+                            'CardType'            => 'MasterCard',
+                            'CardNumber'          => '518896******2544',
+                            'OrderDate'           => '2024-04-24T16:03:42.07',
+                            'OrderStatus'         => 1,
+                            'LastOrderStatus'     => 6,
+                            'OrderType'           => 1,
+                            'TransactionStatus'   => 1,
+                            'FirstAmount'         => '10.01',
+                            'CancelAmount'        => '10.01',
+                            'DrawbackAmount'      => '0.00',
+                            'ClosedAmount'        => '0.00',
+                            'FEC'                 => '0949',
+                            'VPSEntryMode'        => 'ECOM',
+                            'InstallmentCount'    => 0,
+                            'TransactionSecurity' => 3,
+                            'ResponseCode'        => '00',
+                            'ResponseExplain'     => 'İşlem gerçekleştirildi.',
+                            'EndOfDayStatus'      => 1,
+                            'TransactionSide'     => 'Auto',
+                            'CardHolderIPAddress' => '',
+                            'MerchantIPAddress'   => '45.130.202.59',
+                            'MerchantUserName'    => 'apitest',
+                            'ProvNumber'          => '050990',
+                            'BatchId'             => 545,
+                            'CardExpireDate'      => '2506',
+                            'PosTerminalId'       => 'VP008759',
+                            'Explain'             => '',
+                            'Explain2'            => '',
+                            'Explain3'            => '',
+                            'RRN'                 => '411516539768',
+                            'Stan'                => '539768',
+                            'UserName'            => 'vposuser',
+                            'HostName'            => 'STD8BOATEST1',
+                            'SystemDate'          => '2024-04-24T16:03:42.077',
+                            'UpdateUserName'      => 'webgate',
+                            'UpdateHostName'      => 'STD8BOATEST1',
+                            'UpdateSystemDate'    => '2024-04-24T16:09:27.067',
+                            'EndOfDayDate'        => null,
+                            'HostIP'              => '172.20.8.84',
+                            'FECAmount'           => '0',
+                            'IdentityTaxNumber'   => '',
+                            'QueryId'             => '0',
+                            'DebtId'              => '0',
+                            'DebtorName'          => '',
+                            'Period'              => '',
+                            'SurchargeAmount'     => '0',
+                            'SGKDebtAmount'       => '0',
+                            'DeferringCount'      => null,
+                        ],
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'auth_code'         => '050990',
+                'capture'           => null,
+                'capture_amount'    => null,
+                'currency'          => 'TRY',
+                'error_code'        => null,
+                'error_message'     => null,
+                'first_amount'      => 10.01,
+                'installment_count' => 0,
+                'masked_number'     => '518896******2544',
+                'order_id'          => '20240424C7A5',
+                'order_status'      => 'CANCELED',
+                'proc_return_code'  => '00',
+                'ref_ret_num'       => '411516539768',
+                'refund_amount'     => null,
+                'remote_order_id'   => '155768281',
+                'status'            => 'approved',
+                'status_detail'     => null,
+                'transaction_id'    => '539768',
+                'transaction_type'  => null,
+                'transaction_time'  => new \DateTimeImmutable('2024-04-24T16:03:42.07'),
+                'capture_time'      => null,
+                'refund_time'       => null,
+                'cancel_time'       => new \DateTimeImmutable('2024-04-24T16:09:27.067'),
+            ],
+        ];
+        yield 'tdv2_success_tx_pay_then_refund' => [
+            'responseData' => [
+                'GetMerchantOrderDetailResult' => [
+                    'Results' => [],
+                    'Success' => true,
+                    'Value'   => [
+                        'OrderContract' => [
+                            'IsSelected'          => false,
+                            'IsSelectable'        => true,
+                            'OrderId'             => 155768298,
+                            'MerchantOrderId'     => '202404240DEE',
+                            'MerchantId'          => 496,
+                            'CardHolderName'      => 'John Doe',
+                            'CardType'            => 'MasterCard',
+                            'CardNumber'          => '518896******2544',
+                            'OrderDate'           => '2024-04-24T16:33:44.01',
+                            'OrderStatus'         => 1,
+                            'LastOrderStatus'     => 4,
+                            'OrderType'           => 1,
+                            'TransactionStatus'   => 1,
+                            'FirstAmount'         => '10.01',
+                            'CancelAmount'        => '0.00',
+                            'DrawbackAmount'      => '10.01',
+                            'ClosedAmount'        => '0.00',
+                            'FEC'                 => '0949',
+                            'VPSEntryMode'        => 'ECOM',
+                            'InstallmentCount'    => 0,
+                            'TransactionSecurity' => 1,
+                            'ResponseCode'        => '00',
+                            'ResponseExplain'     => 'İşlem gerçekleştirildi.',
+                            'EndOfDayStatus'      => 2,
+                            'TransactionSide'     => 'Auto',
+                            'CardHolderIPAddress' => '',
+                            'MerchantIPAddress'   => '45.130.202.55',
+                            'MerchantUserName'    => 'apitest',
+                            'ProvNumber'          => '051004',
+                            'BatchId'             => 545,
+                            'CardExpireDate'      => '2506',
+                            'PosTerminalId'       => 'VP008759',
+                            'Explain'             => '',
+                            'Explain2'            => '',
+                            'Explain3'            => '',
+                            'RRN'                 => '411516539788',
+                            'Stan'                => '539788',
+                            'UserName'            => 'vposuser',
+                            'HostName'            => 'STD8BOATEST2',
+                            'SystemDate'          => '2024-04-24T16:33:44.02',
+                            'UpdateUserName'      => 'webgate',
+                            'UpdateHostName'      => 'STD8BOATEST2',
+                            'UpdateSystemDate'    => '2024-04-26T10:59:49.443',
+                            'EndOfDayDate'        => '2024-04-24T17:08:46.15',
+                            'HostIP'              => '172.20.8.85',
+                            'FECAmount'           => '0',
+                            'IdentityTaxNumber'   => '',
+                            'QueryId'             => '0',
+                            'DebtId'              => '0',
+                            'DebtorName'          => '',
+                            'Period'              => '',
+                            'SurchargeAmount'     => '0',
+                            'SGKDebtAmount'       => '0',
+                            'DeferringCount'      => null,
+                        ],
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'auth_code'         => '051004',
+                'capture'           => null,
+                'capture_amount'    => null,
+                'currency'          => 'TRY',
+                'error_code'        => null,
+                'error_message'     => null,
+                'first_amount'      => 10.01,
+                'installment_count' => 0,
+                'masked_number'     => '518896******2544',
+                'order_id'          => '202404240DEE',
+                'order_status'      => 'FULLY_REFUNDED',
+                'proc_return_code'  => '00',
+                'ref_ret_num'       => '411516539788',
+                'refund_amount'     => null,
+                'remote_order_id'   => '155768298',
+                'status'            => 'approved',
+                'status_detail'     => null,
+                'transaction_id'    => '539788',
+                'transaction_type'  => null,
+                'transaction_time'  => new \DateTimeImmutable('2024-04-24T16:33:44.01'),
+                'capture_time'      => null,
+                'refund_time'       => new \DateTimeImmutable('2024-04-26T10:59:49.443'),
                 'cancel_time'       => null,
             ],
         ];

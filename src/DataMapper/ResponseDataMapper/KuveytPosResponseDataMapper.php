@@ -29,7 +29,8 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      */
     protected array $orderStatusMappings = [
         1 => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        5 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
+        4 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
+        5 => PosInterface::PAYMENT_STATUS_PARTIALLY_REFUNDED,
         6 => PosInterface::PAYMENT_STATUS_CANCELED,
     ];
 
@@ -123,7 +124,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData, $txType, $order);
+        throw new NotImplementedException();
     }
 
     /**
@@ -131,7 +132,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
+        throw new NotImplementedException();
     }
 
     /**
@@ -176,11 +177,20 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['transaction_id']    = $orderContract['Stan'];
             $defaultResponse['currency']          = $this->mapCurrency($orderContract['FEC']);
             $defaultResponse['first_amount']      = (float) $orderContract['FirstAmount'];
-            $defaultResponse['capture_amount']    = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
-            $defaultResponse['capture']           = $defaultResponse['first_amount'] > 0 && $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
             $defaultResponse['masked_number']     = $orderContract['CardNumber'];
             $defaultResponse['transaction_time']  = new \DateTimeImmutable($orderContract['OrderDate']);
             $defaultResponse['installment_count'] = $this->mapInstallment($orderContract['InstallmentCount']);
+            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $defaultResponse['order_status']) {
+                $defaultResponse['capture_amount'] = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
+                $defaultResponse['capture']        = $defaultResponse['first_amount'] > 0 && $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
+                if ($defaultResponse['capture']) {
+                    $defaultResponse['capture_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
+                }
+            } elseif (PosInterface::PAYMENT_STATUS_CANCELED === $defaultResponse['order_status']) {
+                $defaultResponse['cancel_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
+            } elseif (PosInterface::PAYMENT_STATUS_FULLY_REFUNDED === $defaultResponse['order_status']) {
+                $defaultResponse['refund_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
+            }
         }
 
         return $defaultResponse;

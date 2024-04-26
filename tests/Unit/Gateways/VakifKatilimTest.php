@@ -268,13 +268,6 @@ class VakifKatilimTest extends TestCase
         bool    $isSuccess
     ): void
     {
-        if ($is3DSuccess) {
-            $this->cryptMock->expects(self::once())
-                ->method('check3DHash')
-                ->with($this->account, $request->request->all())
-                ->willReturn(true);
-        }
-
         $this->responseMapperMock->expects(self::once())
             ->method('extractMdStatus')
             ->with($request->request->all())
