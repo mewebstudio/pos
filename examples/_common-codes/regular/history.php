@@ -30,6 +30,17 @@ function createHistoryOrder(string $gatewayClass, array $extraData): array
             'start_date' => $txTime->modify('-1 day'),
             'end_date'   => $txTime->modify('+1 day'),
         ];
+    } elseif (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
+        $txTime = new \DateTimeImmutable();
+        $order  = [
+            // Gün aralığı 1 günden fazla girilemez
+            'start_date' => $txTime->modify('-23 hour'),
+            'end_date'   => $txTime,
+        ];
+//        ya da batch number ile (batch number odeme isleminden alinan response'da bulunur):
+//        $order  = [
+//            'batch_num' => 24,
+//        ];
     }
 
     return $order;

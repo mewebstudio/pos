@@ -320,11 +320,33 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * İşlem cevabında, sadece 9999 adet işlem sorgulanabilir.
+     * Tarih aralığında, 9999 adet işlemden daha fazla işlem olması durumunda,
+     * “VPS-2235” - "Toplam kayıt sayısı aşıldı. Batch No girerek ilerleyiniz.” hatası verilecektir.
+     *
+     * @param AkbankPosAccount $posAccount
+     *
      * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array
     {
-        throw new NotImplementedException();
+        $order = $this->prepareHistoryOrder($data);
+
+        $requestData = $this->getRequestAccountData($posAccount) + [
+                'randomNumber' => $this->crypt->generateRandomString(),
+            ];
+        if (isset($order['batch_num'])) {
+            $requestData['report'] = [
+                'batchNumber'   => $order['batch_num'],
+            ];
+        } elseif (isset($order['start_date']) && isset($order['end_date'])) {
+            $requestData['report'] = [
+                'startDateTime' => $this->formatRequestDateTime($order['start_date']),
+                'endDateTime'   => $this->formatRequestDateTime($order['end_date']),
+            ];
+        }
+
+        return $requestData;
     }
 
     /**

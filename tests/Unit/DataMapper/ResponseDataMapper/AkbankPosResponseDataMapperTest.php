@@ -15,6 +15,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AkbankPosResponseDataMapper
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper
  */
 class AkbankPosResponseDataMapperTest extends TestCase
 {
@@ -197,7 +198,6 @@ class AkbankPosResponseDataMapperTest extends TestCase
                 );
             }
 
-
             foreach ($responseData['txnDetailList'] as $key => $tx) {
                 if (isset($tx['txnDateTime'])) {
                     $this->assertEquals($expectedData['transactions'][$key]['transaction_time'], $actualData['transactions'][$key]['transaction_time']);
@@ -223,10 +223,14 @@ class AkbankPosResponseDataMapperTest extends TestCase
         $this->responseDataMapper->mapStatusResponse([]);
     }
 
-    public function testMapHistoryResponse(): void
+    /**
+     * @dataProvider historyDataProvider
+     */
+    public function testMapHistoryResponse(array $response, int $expectedTxCount): void
     {
-        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
-        $this->responseDataMapper->mapHistoryResponse([]);
+        $actual = $this->responseDataMapper->mapHistoryResponse($response);
+
+        $this->assertCount($expectedTxCount, $actual['transactions']);
     }
 
     public static function paymentDataProvider(): iterable
@@ -2617,5 +2621,63 @@ class AkbankPosResponseDataMapperTest extends TestCase
                 ],
             ],
         ];
+    }
+
+    public static function historyDataProvider(): \Generator
+    {
+        $input = file_get_contents(__DIR__.'/../../test_data/akbankpos/history/daily_history.json');
+        yield [
+            'responseData'    => json_decode($input, true),
+            'expectedTxCount' => 525,
+        ];
+
+        $input = file_get_contents(__DIR__.'/../../test_data/akbankpos/history/daily_history_2.json');
+
+        yield [
+            'responseData'    => json_decode($input, true),
+            'expectedTxCount' => 8,
+        ];
+
+        $input = file_get_contents(__DIR__.'/../../test_data/akbankpos/history/daily_recurring_history.json');
+
+        yield 'recurring' => [
+            'responseData'    => json_decode($input, true),
+            'expectedTxCount' => 7,
+        ];
+
+        yield 'failed' => [
+            'responseData'    => [
+                "requestId"       => "VPS00020599126001999999999920240425095529000904",
+                "responseMessage" => "Gün aralığı 1 günden fazla girilemez",
+                "responseCode"    => "VPS-2229",
+            ],
+            'expectedTxCount' => 0,
+        ];
+
+        yield 'no_transactions' => [
+            'responseData'    => [
+                'data'            => [
+                    'txnDateTime'   => '2024-04-25T13:19:22.237',
+                    'terminal'      => [
+                        'merchantSafeId' => '2023090417500272654BD9A49CF07574',
+                        'terminalSafeId' => '2023090417500284633D137A249DBBEB',
+                    ],
+                    'txnDetailList' => [
+
+                    ],
+                ],
+                'requestId'       => 'VPS00020599128206999999999920240425131923000239',
+                'terminal'        => [
+                    'terminalSafeId' => '2023090417500284633D137A249DBBEB',
+                    'merchantSafeId' => '2023090417500272654BD9A49CF07574',
+                ],
+                'responseMessage' => 'SUCCESSFUL',
+                'txnDateTime'     => '2024-04-25T13:19:22.237',
+                'responseCode'    => 'VPS-0000',
+            ],
+            'expectedTxCount' => 0,
+        ];
+
+
     }
 }

@@ -30,6 +30,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\AkbankPos
+ * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class AkbankPosTest extends TestCase
 {
@@ -381,10 +382,35 @@ class AkbankPosTest extends TestCase
         $this->assertSame($actual, $formData);
     }
 
-    public function testHistoryRequest(): void
+    /**
+     * @dataProvider historyRequestDataProvider
+     */
+    public function testHistoryRequest(array $order, string $apiUrl): void
     {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->pos->history([]);
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_HISTORY;
+
+        $requestData = ['createHistoryRequestData'];
+        $this->requestMapperMock->expects(self::once())
+            ->method('createHistoryRequestData')
+            ->with($account, $order)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $apiUrl,
+            $requestData,
+            'request-body',
+            'response-body',
+            ['decodedResponse']
+        );
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapHistoryResponse')
+            ->with(['decodedResponse'])
+            ->willReturn(['result']);
+
+        $this->pos->history($order);
     }
 
     /**
@@ -733,7 +759,7 @@ class AkbankPosTest extends TestCase
                 'is3DSuccess'     => true,
                 'isSuccess'       => false,
             ],
-            'success' => [
+            'success'                      => [
                 'order'           => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
                 'txType'          => AkbankPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
                 'request'         => Request::create(
@@ -848,7 +874,7 @@ class AkbankPosTest extends TestCase
         string $encodedRequestData,
         string $responseContent,
         array  $decodedResponse,
-        ?int $statusCode = null
+        ?int   $statusCode = null
     ): void
     {
         $this->cryptMock->expects(self::once())
@@ -879,5 +905,17 @@ class AkbankPosTest extends TestCase
             ],
             $statusCode
         );
+    }
+
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'batch_num' => 123,
+                ],
+                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/portal/report/transaction',
+            ],
+        ];
     }
 }

@@ -144,6 +144,27 @@ class AkbankPosTest extends TestCase
         $this->assertTrue($eventIsThrown);
     }
 
+    public function testHistorySuccess(): void
+    {
+        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), []);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_HISTORY, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(3, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->history($historyOrder);
+
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertTrue($eventIsThrown);
+        $this->assertNotEmpty($response['transactions']);
+    }
+
     public function testNonSecurePrePaymentSuccess(): array
     {
         $order = $this->createPaymentOrder(PosInterface::CURRENCY_TRY, 30.0, 3);
@@ -355,5 +376,29 @@ class AkbankPosTest extends TestCase
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
+    }
+
+    /**
+     * @depends testCancelRecurringOrder
+     */
+    public function testRecurringHistorySuccess(): void
+    {
+        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), []);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_HISTORY, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(3, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->recurringPos->history($historyOrder);
+
+        $response = $this->recurringPos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertTrue($eventIsThrown);
+        $this->assertNotEmpty($response['transactions']);
     }
 }

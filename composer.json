@@ -17,6 +17,7 @@
         "ext-json": "*",
         "ext-libxml": "*",
         "ext-openssl": "*",
+        "ext-zlib": "*",
         "php-http/discovery": "^1.14",
         "psr/event-dispatcher-implementation": "*",
         "psr/http-client-implementation": "*",
