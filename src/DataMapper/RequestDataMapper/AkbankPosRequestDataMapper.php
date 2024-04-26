@@ -482,7 +482,7 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @param array<string, mixed> $data
      *
-     * @return array{batch_num: int}|array{start_date: DateTimeInterface, end_date: DateTimeInterface}
+     * @return array{batch_num?: int, start_date?: DateTimeInterface, end_date?: DateTimeInterface}
      */
     protected function prepareHistoryOrder(array $data): array
     {

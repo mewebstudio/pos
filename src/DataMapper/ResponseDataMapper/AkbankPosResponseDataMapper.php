@@ -413,8 +413,6 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $transaction['status_detail']     = $this->getStatusDetail($transaction['proc_return_code']);
-        $transaction['ref_ret_num']       = $rawTx['rrn'];
-        $transaction['masked_number']     = $rawTx['maskedCardNumber'];
         $transaction['currency']          = $this->mapCurrency($rawTx['currencyCode']);
         $transaction['installment_count'] = $this->mapInstallment($rawTx['installCount']);
         $transaction['transaction_type']  = $this->mapTxType($rawTx['txnCode']);
@@ -422,23 +420,33 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
         $transaction['transaction_time']  = new \DateTimeImmutable($rawTx['txnDateTime']);
 
         if (self::TX_APPROVED === $transaction['status']) {
+            $transaction['masked_number'] = $rawTx['maskedCardNumber'];
+            $transaction['ref_ret_num']   = $rawTx['rrn'];
             // batchNumber is not provided when payment is canceled
             $transaction['batch_num']    = $rawTx['batchNumber'] ?? null;
             $transaction['order_status'] = $this->mapOrderStatus($rawTx['txnStatus'], $rawTx['preAuthStatus'] ?? null);
             $transaction['auth_code']    = $rawTx['authCode'];
-            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transaction['order_status'] && \in_array(
-                $transaction['transaction_type'],
-                [
-                        PosInterface::TX_TYPE_PAY_AUTH,
-                        PosInterface::TX_TYPE_PAY_POST_AUTH,
-                    ],
-                true,
-            )
-            ) {
-                $transaction['capture_amount'] = null === $rawTx['amount'] ? null : $this->formatAmount($rawTx['amount']);
-                $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
-                if ($transaction['capture']) {
-                    $transaction['capture_time'] = new \DateTimeImmutable($rawTx['txnDateTime']);
+            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transaction['order_status']) {
+                if (\in_array(
+                        $transaction['transaction_type'],
+                        [
+                            PosInterface::TX_TYPE_PAY_AUTH,
+                            PosInterface::TX_TYPE_PAY_POST_AUTH,
+                        ],
+                        true,
+                    )
+                ) {
+                    $transaction['capture_amount'] = null === $rawTx['amount'] ? null : $this->formatAmount($rawTx['amount']);
+                    $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
+                    if ($transaction['capture']) {
+                        $transaction['capture_time'] = new \DateTimeImmutable($rawTx['txnDateTime']);
+                    }
+                } elseif (PosInterface::TX_TYPE_PAY_PRE_AUTH === $transaction['transaction_type']) {
+                    $transaction['capture_amount'] = null === $rawTx['preAuthCloseAmount'] ? null : $this->formatAmount($rawTx['preAuthCloseAmount']);
+                    $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];
+                    if ($transaction['capture']) {
+                        $transaction['capture_time'] = new \DateTimeImmutable($rawTx['preAuthCloseDate']);
+                    }
                 }
             }
         } else {
