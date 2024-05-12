@@ -64,15 +64,20 @@ $order = [
     'amount'      => 1.01,
     'currency'    => \Mews\Pos\PosInterface::CURRENCY_TRY, //optional. default: TRY
     'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
-
-    // Success ve Fail URL'ler farklı olabilir ama kütüphane success ve fail için aynı kod çalıştırır.
-    // success_url ve fail_url'lerin aynı olmasın fayda var çünkü bazı gateyway'ler tek bir URL kabul eder.
-    'success_url' => 'https://example.com/response.php',
-    'fail_url'    => 'https://example.com/response.php',
-
-    //lang degeri verilmezse account (EstPosAccount) dili kullanılacak
+    // lang degeri verilmezse account (EstPosAccount) dili kullanılacak
     'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
+    if (in_array($paymentModel, [
+        PosInterface::MODEL_3D_SECURE,
+        PosInterface::MODEL_3D_PAY,
+        PosInterface::MODEL_3D_HOST,
+        PosInterface::MODEL_3D_PAY_HOSTING,
+    ], true)) {
+        // Success ve Fail URL'ler farklı olabilir ama kütüphane success ve fail için aynı kod çalıştırır.
+        // success_url ve fail_url'lerin aynı olmasın fayda var çünkü bazı gateyway'ler tek bir URL kabul eder.
+        $order['success_url'] = 'https://example.com/response.php';
+        $order['fail_url']    = 'https://example.com/response.php';
+    }
 
 
 $session->set('order', $order);

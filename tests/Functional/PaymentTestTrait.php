@@ -16,6 +16,7 @@ use Mews\Pos\PosInterface;
 trait PaymentTestTrait
 {
     private function createPaymentOrder(
+        string $paymentModel,
         string $currency = PosInterface::CURRENCY_TRY,
         float  $amount = 1.01,
         int    $installment = 0,
@@ -35,9 +36,17 @@ trait PaymentTestTrait
             'currency'    => $currency,
             'installment' => $installment,
             'ip'          => '127.0.0.1',
-            'success_url' => 'http:localhost/response.php',
-            'fail_url'    => 'http:localhost/response.php',
         ];
+
+        if (\in_array($paymentModel, [
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_PAY,
+            PosInterface::MODEL_3D_HOST,
+            PosInterface::MODEL_3D_PAY_HOSTING,
+        ], true)) {
+            $order['success_url'] = 'http:localhost/response.php';
+            $order['fail_url']    = 'http:localhost/response.php';
+        }
 
         if ($tekrarlanan) {
             // Desteleyen Gatewayler: GarantiPos, EstPos, EstV3Pos, PayFlexV4

@@ -10,8 +10,9 @@ require '_config.php';
 
 require '../../_templates/_header.php';
 
-$order = getNewOrder(
+$order = createPaymentOrder(
     $pos,
+    $paymentModel,
     $baseUrl,
     $ip,
     $request->get('currency', PosInterface::CURRENCY_TRY),
