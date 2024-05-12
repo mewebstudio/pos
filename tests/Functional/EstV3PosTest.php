@@ -36,7 +36,7 @@ class EstV3PosTest extends TestCase
         $config = require __DIR__.'/../../config/pos_test.php';
 
         $account = AccountFactory::createEstPosAccount(
-            'akbankv3',
+            'payten_v3_hash',
             '700655000200',
             'ISBANKAPI',
             'ISBANK07',

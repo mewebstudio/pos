@@ -11,7 +11,8 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 require './vendor/autoload.php';
 
 // API kullanıcı bilgileri
-// AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
+// AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
+// /examples altındaki örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -55,8 +56,7 @@ function createStatusOrder(string $gatewayClass, array $lastResponse, string $ip
     }
     if (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
         /**
-         * payment_model:
-         * siparis olusturulurken kullanilan odeme modeli
+         * payment_model: siparis olusturulurken kullanilan odeme modeli.
          * orderId'yi dogru sekilde formatlamak icin zorunlu.
          */
         $statusOrder['payment_model'] = $lastResponse['payment_model'];

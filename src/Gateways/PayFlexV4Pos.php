@@ -22,6 +22,8 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * PayFlex MPI ISD v4 gateway'i destekler (INNOVA BİLİŞİM ÇÖZÜMLERİ A.Ş)
  * Dokumanlar: http://sanalpos.innova.com.tr/
+ *
+ * VakıfBank VPOS 7/24
  */
 class PayFlexV4Pos extends AbstractGateway
 {

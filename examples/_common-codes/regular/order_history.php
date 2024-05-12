@@ -1,11 +1,5 @@
 <?php
 
-use Mews\Pos\Gateways\EstPos;
-use Mews\Pos\Gateways\EstV3Pos;
-use Mews\Pos\Gateways\GarantiPos;
-use Mews\Pos\Gateways\PayForPos;
-use Mews\Pos\Gateways\ToslaPos;
-
 $templateTitle = 'Order History';
 
 // ilgili bankanin _config.php dosyasi load ediyoruz.
@@ -18,7 +12,7 @@ require '../../_templates/_header.php';
 function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): array
 {
     $order = [];
-    if (EstPos::class === $gatewayClass || EstV3Pos::class === $gatewayClass) {
+    if (\Mews\Pos\Gateways\EstPos::class === $gatewayClass || \Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass) {
         $order = [
             'id' => $lastResponse['order_id'],
         ];
@@ -32,25 +26,25 @@ function createOrderHistoryOrder(string $gatewayClass, array $lastResponse): arr
                 'id' => $lastResponse['order_id'],
             ];
         }
-    } elseif (ToslaPos::class === $gatewayClass) {
+    } elseif (\Mews\Pos\Gateways\ToslaPos::class === $gatewayClass) {
         $order = [
             'id'               => $lastResponse['order_id'],
             'transaction_date' => $lastResponse['transaction_time'], // odeme tarihi
             'page'             => 1, // optional, default: 1
             'page_size'        => 10, // optional, default: 10
         ];
-    } elseif (PayForPos::class === $gatewayClass) {
+    } elseif (\Mews\Pos\Gateways\PayForPos::class === $gatewayClass) {
         $order = [
             'id' => $lastResponse['order_id'],
         ];
-    } elseif (GarantiPos::class === $gatewayClass) {
+    } elseif (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
         $order = [
             'id'       => $lastResponse['order_id'],
             'currency' => $lastResponse['currency'],
             'ip'       => '127.0.0.1',
         ];
     } elseif (\Mews\Pos\Gateways\VakifKatilimPos::class === $gatewayClass) {
-        /** @var DateTimeImmutable $txTime */
+        /** @var \DateTimeImmutable $txTime */
         $txTime = $lastResponse['transaction_time'];
         $order  = [
             'auth_code'  => $lastResponse['auth_code'],

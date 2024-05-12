@@ -41,157 +41,175 @@ if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
     $session->set('card', $request->request->all());
 }
 
-try {
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR START
+// ============================================================================================
 
+$formVerisiniOlusturmakIcinApiIstegiGonderenGatewayler = [
+    \Mews\Pos\Gateways\PosNet::class,
+    \Mews\Pos\Gateways\KuveytPos::class,
+    \Mews\Pos\Gateways\ToslaPos::class,
+    \Mews\Pos\Gateways\VakifKatilimPos::class,
+    \Mews\Pos\Gateways\PayFlexV4Pos::class,
+    \Mews\Pos\Gateways\PayFlexCPV4Pos::class,
+];
+if (in_array(get_class($pos), $formVerisiniOlusturmakIcinApiIstegiGonderenGatewayler, true)) {
     /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
     $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
-            /**
-             * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
-             * Ornek:
-             * if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
-             *     $data = $event->getRequestData();
-             *     $data['abcd'] = '1234';
-             *     $event->setRequestData($data);
-             * }
-             *
-             * Bu asamada bu Event sadece PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos, ToslaPos gatewayler'de trigger edilir.
-             */
-        });
+        //Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
+        // Ornek:
+//            if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
+//                $data         = $event->getRequestData();
+//                $data['abcd'] = '1234';
+//                $event->setRequestData($data);
+//            }
+    });
+}
 
-    // KuveytVos TDV2.0.0 icin ozel biri durum
-    $eventDispatcher->addListener(
-        RequestDataPreparedEvent::class,
-        function (RequestDataPreparedEvent $requestDataPreparedEvent) use ($pos): void {
-            if (get_class($pos) !== \Mews\Pos\Gateways\KuveytPos::class) {
-                return;
-            }
-            // KuveytPos TDV2.0.0 icin zorunlu eklenmesi gereken ekstra alanlar:
-            $additionalRequestDataForKuveyt = [
-                'DeviceData' => [
-                    /**
-                     * DeviceChannel : DeviceData alanı içerisinde gönderilmesi beklenen işlemin yapıldığı cihaz bilgisi.
-                     * 2 karakter olmalıdır. 01-Mobil, 02-Web Browser için kullanılmalıdır.
-                     */
-                    'DeviceChannel' => '02',
-                ],
-                'CardHolderData' => [
-                    /**
-                     * BillAddrCity: Kullanılan kart ile ilişkili kart hamilinin fatura adres şehri.
-                     * Maksimum 50 karakter uzunluğunda olmalıdır.
-                     */
-                    'BillAddrCity' => 'İstanbul',
-                    /**
-                     * BillAddrCountry Kullanılan kart ile ilişkili kart hamilinin fatura adresindeki ülke kodu.
-                     * Maksimum 3 karakter uzunluğunda olmalıdır.
-                     * ISO 3166-1 sayısal üç haneli ülke kodu standardı kullanılmalıdır.
-                     */
-                    'BillAddrCountry' => '792',
-                    /**
-                     * BillAddrLine1: Kullanılan kart ile ilişkili kart hamilinin teslimat adresinde yer alan sokak vb. bilgileri içeren açık adresi.
-                     * Maksimum 150 karakter uzunluğunda olmalıdır.
-                     */
-                    'BillAddrLine1' => 'XXX Mahallesi XXX Caddesi No 55 Daire 1',
-                    /**
-                     * BillAddrPostCode: Kullanılan kart ile ilişkili kart hamilinin fatura adresindeki posta kodu.
-                     */
-                    'BillAddrPostCode' => '34000',
-                    /**
-                     * BillAddrState: CardHolderData alanı içerisinde gönderilmesi beklenen ödemede kullanılan kart ile ilişkili kart hamilinin fatura adresindeki il veya eyalet bilgisi kodu.
-                     * ISO 3166-2'de tanımlı olan il/eyalet kodu olmalıdır.
-                     */
-                    'BillAddrState' => '40',
-                    /**
-                     * Email: Kullanılan kart ile ilişkili kart hamilinin iş yerinde oluşturduğu hesapta kullandığı email adresi.
-                     * Maksimum 254 karakter uzunluğunda olmalıdır.
-                     */
-                    'Email' => 'xxxxx@gmail.com',
-                    'MobilePhone' => [
-                        /**
-                         * Cc: Kullanılan kart ile ilişkili kart hamilinin cep telefonuna ait ülke kodu. 1-3 karakter uzunluğunda olmalıdır.
-                         */
-                        'Cc' => '90',
-                        /**
-                         * Subscriber: Kullanılan kart ile ilişkili kart hamilinin cep telefonuna ait abone numarası.
-                         * Maksimum 15 karakter uzunluğunda olmalıdır.
-                         */
-                        'Subscriber' => '1234567899',
-                    ],
-                ],
-            ];
-            $requestData = $requestDataPreparedEvent->getRequestData();
-            $requestData = array_merge_recursive($requestData, $additionalRequestDataForKuveyt);
-            $requestDataPreparedEvent->setRequestData($requestData);
-        });
-
-        /**
-         * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
-         */
-        $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event) use ($pos): void {
-            if (get_class($pos) === \Mews\Pos\Gateways\EstPos::class || get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+// KuveytVos TDV2.0.0 icin ozel biri durum
+$eventDispatcher->addListener(
+    RequestDataPreparedEvent::class,
+    function (RequestDataPreparedEvent $requestDataPreparedEvent) use ($pos): void {
+        if (get_class($pos) !== \Mews\Pos\Gateways\KuveytPos::class) {
+            return;
+        }
+        // KuveytPos TDV2.0.0 icin zorunlu eklenmesi gereken ekstra alanlar:
+        $additionalRequestDataForKuveyt = [
+            'DeviceData' => [
                 /**
-                 * Örnek 1: İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
-                    $supportedPaymentModels = [
-                    \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY,
-                    \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY_HOSTING,
-                    \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
-                    ];
-                    if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
-                    $formInputs           = $event->getFormInputs();
-                    $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
-                    $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
-                    $event->setFormInputs($formInputs);
-                }*/
-            }
-            if (get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+                 * DeviceChannel : DeviceData alanı içerisinde gönderilmesi beklenen işlemin yapıldığı cihaz bilgisi.
+                 * 2 karakter olmalıdır. 01-Mobil, 02-Web Browser için kullanılmalıdır.
+                 */
+                'DeviceChannel' => '02',
+            ],
+            'CardHolderData' => [
+                /**
+                 * BillAddrCity: Kullanılan kart ile ilişkili kart hamilinin fatura adres şehri.
+                 * Maksimum 50 karakter uzunluğunda olmalıdır.
+                 */
+                'BillAddrCity' => 'İstanbul',
+                /**
+                 * BillAddrCountry Kullanılan kart ile ilişkili kart hamilinin fatura adresindeki ülke kodu.
+                 * Maksimum 3 karakter uzunluğunda olmalıdır.
+                 * ISO 3166-1 sayısal üç haneli ülke kodu standardı kullanılmalıdır.
+                 */
+                'BillAddrCountry' => '792',
+                /**
+                 * BillAddrLine1: Kullanılan kart ile ilişkili kart hamilinin teslimat adresinde yer alan sokak vb. bilgileri içeren açık adresi.
+                 * Maksimum 150 karakter uzunluğunda olmalıdır.
+                 */
+                'BillAddrLine1' => 'XXX Mahallesi XXX Caddesi No 55 Daire 1',
+                /**
+                 * BillAddrPostCode: Kullanılan kart ile ilişkili kart hamilinin fatura adresindeki posta kodu.
+                 */
+                'BillAddrPostCode' => '34000',
+                /**
+                 * BillAddrState: CardHolderData alanı içerisinde gönderilmesi beklenen ödemede kullanılan kart ile ilişkili kart hamilinin fatura adresindeki il veya eyalet bilgisi kodu.
+                 * ISO 3166-2'de tanımlı olan il/eyalet kodu olmalıdır.
+                 */
+                'BillAddrState' => '40',
+                /**
+                 * Email: Kullanılan kart ile ilişkili kart hamilinin iş yerinde oluşturduğu hesapta kullandığı email adresi.
+                 * Maksimum 254 karakter uzunluğunda olmalıdır.
+                 */
+                'Email' => 'xxxxx@gmail.com',
+                'MobilePhone' => [
+                    /**
+                     * Cc: Kullanılan kart ile ilişkili kart hamilinin cep telefonuna ait ülke kodu. 1-3 karakter uzunluğunda olmalıdır.
+                     */
+                    'Cc' => '90',
+                    /**
+                     * Subscriber: Kullanılan kart ile ilişkili kart hamilinin cep telefonuna ait abone numarası.
+                     * Maksimum 15 karakter uzunluğunda olmalıdır.
+                     */
+                    'Subscriber' => '1234567899',
+                ],
+            ],
+        ];
+        $requestData = $requestDataPreparedEvent->getRequestData();
+        $requestData = array_merge_recursive($requestData, $additionalRequestDataForKuveyt);
+        $requestDataPreparedEvent->setRequestData($requestData);
+    });
+
+    /**
+     * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
+     * Eger ekleyeceginiz veri hash hesaplamada kullanilmiyorsa form verisi olusturduktan sonra da ekleyebilirsiniz.
+     */
+    $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event) use ($pos): void {
+        if (get_class($pos) === \Mews\Pos\Gateways\EstPos::class || get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+            //Örnek 1: İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
+//                $supportedPaymentModels = [
+//                    \Mews\Pos\PosInterface::MODEL_3D_PAY,
+//                    \Mews\Pos\PosInterface::MODEL_3D_PAY_HOSTING,
+//                    \Mews\Pos\PosInterface::MODEL_3D_HOST,
+//                ];
+//                if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
+//                    $formInputs           = $event->getFormInputs();
+//                    $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
+//                    $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
+//                    $event->setFormInputs($formInputs);
+//                }
+        }
+        if (get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
 //                // Örnek 2: callbackUrl eklenmesi
 //                $formInputs                = $event->getFormInputs();
 //                $formInputs['callbackUrl'] = $formInputs['failUrl'];
 //                $formInputs['refreshTime'] = '10'; // birim: saniye; callbackUrl sisteminin doğru çalışması için eklenmesi gereken parametre
 //                $event->setFormInputs($formInputs);
-            }
-        });
+        }
+    });
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR END
+// ============================================================================================
 
-
-
+try {
     $formData = $pos->get3DFormData($order, $paymentModel, $transaction, $card);
-
-
-    /**
-     * PosNet vftCode - VFT Kampanya kodunu. Vade Farklı işlemler için kullanılacak olan kampanya kodunu belirler.
-     * Üye İşyeri için tanımlı olan kampanya kodu, İşyeri Yönetici Ekranlarına giriş
-     * yapıldıktan sonra, Üye İşyeri bilgileri sayfasından öğrenilebilinir.
-     */
-    if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
-        // YapiKredi
-        // $formData['inputs']['vftCode'] = 'xxx';
-    }
-    if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
-        // Albaraka
-        // $formData['inputs']['VftCode'] = 'xxx';
-    }
-
-    /**
-     * KOICode - Joker Vadaa Kampanya Kodu.
-     * Degerler - 1: Ek Taksit 2: Taksit Atlatma 3: Ekstra Puan 4: Kontur Kazanım 5: Ekstre Erteleme 6: Özel Vade Farkı
-     * İşyeri, UseJokerVadaa alanını 1 yaparak bankanın joker vadaa sorgu ve müşteri joker vadaa
-     * kampanya seçim ekranının açılmasını ve Joker Vadaa kampanya seçiminin müşteriye bırakılmasını
-     * sağlayabilir. İşyeri, müşterilere ortak ödeme sayfasında kampanya sunulmasını istemiyorsa
-     * UseJokerVadaa alanını 0 set etmesi gerekir.
-     */
-    if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
-        // Albaraka
-        // $formData['inputs']['UseJokerVadaa'] = '1';
-        // $formData['inputs']['KOICode']       = 'xxx';
-    }
-    if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
-        // YapiKredi
-        // $formData['inputs']['useJokerVadaa'] = '1';
-    }
-
     //dd($formData);
 } catch (\Throwable $e) {
     dd($e);
 }
+
+
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR START
+// ============================================================================================
+
+/**
+ * PosNet vftCode - VFT Kampanya kodunu. Vade Farklı işlemler için kullanılacak olan kampanya kodunu belirler.
+ * Üye İşyeri için tanımlı olan kampanya kodu, İşyeri Yönetici Ekranlarına giriş
+ * yapıldıktan sonra, Üye İşyeri bilgileri sayfasından öğrenilebilinir.
+ */
+if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
+    // YapiKredi
+    // $formData['inputs']['vftCode'] = 'xxx';
+}
+if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
+    // Albaraka
+    // $formData['inputs']['VftCode'] = 'xxx';
+}
+
+/**
+ * KOICode - Joker Vadaa Kampanya Kodu.
+ * Degerler - 1: Ek Taksit 2: Taksit Atlatma 3: Ekstra Puan 4: Kontur Kazanım 5: Ekstre Erteleme 6: Özel Vade Farkı
+ * İşyeri, UseJokerVadaa alanını 1 yaparak bankanın joker vadaa sorgu ve müşteri joker vadaa
+ * kampanya seçim ekranının açılmasını ve Joker Vadaa kampanya seçiminin müşteriye bırakılmasını
+ * sağlayabilir. İşyeri, müşterilere ortak ödeme sayfasında kampanya sunulmasını istemiyorsa
+ * UseJokerVadaa alanını 0 set etmesi gerekir.
+ */
+if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
+    // Albaraka
+    // $formData['inputs']['UseJokerVadaa'] = '1';
+    // $formData['inputs']['KOICode']       = 'xxx';
+}
+if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
+    // YapiKredi
+    // $formData['inputs']['useJokerVadaa'] = '1';
+}
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR END
+// ============================================================================================
+
+
 $flowType = $request->get('payment_flow_type');
 ?>
 

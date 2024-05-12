@@ -11,7 +11,8 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 require './vendor/autoload.php';
 
 // API kullanıcı bilgileri
-// AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
+// AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
+// /examples altındaki örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -45,15 +46,14 @@ require 'config.php';
 
 function createHistoryOrder(string $gatewayClass, array $extraData): array
 {
-    $order = [];
-
+    $order  = [];
+    $txTime = new \DateTimeImmutable();
     if (\Mews\Pos\Gateways\PayForPos::class === $gatewayClass) {
         $order = [
             // odeme tarihi
-            'transaction_date'  => $extraData['transaction_date'] ?? new \DateTimeImmutable(),
+            'transaction_date'  => $extraData['transaction_date'] ?? $txTime,
         ];
     } elseif (\Mews\Pos\Gateways\VakifKatilimPos::class === $gatewayClass) {
-        $txTime = new \DateTimeImmutable();
         $order  = [
             'page'       => 1,
             'page_size'  => 20,
@@ -61,7 +61,6 @@ function createHistoryOrder(string $gatewayClass, array $extraData): array
             'end_date'   => $txTime->modify('+1 day'),
         ];
     } elseif (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
-        $txTime = new \DateTimeImmutable();
         $order  = [
             // Gün aralığı 1 günden fazla girilemez
             'start_date' => $txTime->modify('-23 hour'),

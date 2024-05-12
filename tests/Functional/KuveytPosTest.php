@@ -19,7 +19,7 @@ class KuveytPosTest extends TestCase
 
     private EventDispatcher $eventDispatcher;
 
-    /** @var KuveytPosTest */
+    /** @var \Mews\Pos\Gateways\KuveytPos */
     private PosInterface $pos;
 
     private array $lastResponse;

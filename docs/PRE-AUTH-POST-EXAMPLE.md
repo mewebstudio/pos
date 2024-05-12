@@ -22,7 +22,8 @@ $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
 $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_PRE_AUTH;
 
 // API kullanıcı bilgileri
-// AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
+// AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
+// /examples altındaki örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -114,7 +115,7 @@ try {
         $transactionType,
         $card
     );
-} catch (\Throwable $e) {
+} catch (\Exception|\Error $e) {
     var_dump($e);
     exit;
 }
@@ -177,6 +178,9 @@ try  {
 } catch (\Mews\Pos\Exceptions\HashMismatchException $e) {
    // Bankadan gelen verilerin bankaya ait olmadığında bu exception oluşur.
    // Banka API bilgileriniz hatalı ise de oluşur.
+} catch (\Exception|\Error $e) {
+    var_dump($e);
+    exit;
 }
 ```
 
@@ -226,6 +230,9 @@ $order = createPostPayOrder(
     $postAuthAmount
 );
 
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR START
+// ============================================================================================
 /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
 $eventDispatcher->addListener(
     \Mews\Pos\Event\RequestDataPreparedEvent::class,
@@ -239,10 +246,14 @@ $eventDispatcher->addListener(
             }
         }
     });
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR END
+// ============================================================================================
+
 try {
     $pos->payment($paymentModel, $order, $transaction);
     var_dump($response);
-catch (\Exception $e) {
+} catch (\Exception|\Error $e) {
     var_dump($e);
     exit;
 }

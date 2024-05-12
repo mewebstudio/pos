@@ -10,41 +10,51 @@ require '../../_templates/_header.php';
 
 /**
  * alttaki script
- * MODEL_NON_SECURE ve TX_TYPE_PAY_AUTH, TX_TYPE_PAY_PRE_AUTH odemede kullanicidan kredi karti alindiktan
- * sonra odemeyi tamamlamak icin calisir.
+ * MODEL_NON_SECURE ve TX_TYPE_PAY_AUTH, TX_TYPE_PAY_PRE_AUTH odemede kullanicidan
+ * kredi karti alindiktan sonra odemeyi tamamlar.
  */
 // non secure odemede POST ile kredi kart bilgileri gelmesi bekleniyor.
 if (($request->getMethod() !== 'POST')) {
     echo new RedirectResponse($baseUrl);
     exit();
 }
-
-try {
-    /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
-    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($pos) {
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR START
+// ============================================================================================
+/** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
+$eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($pos) {
 //         Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
 //         Ornek:
 //         $data = $event->getRequestData();
 //         $data['abcd'] = '1234';
 //         $event->setRequestData($data);
 
-        /**
-         * KOICode - 1: Ek Taksit 2: Taksit Atlatma 3: Ekstra Puan 4: Kontur Kazanım 5: Ekstre Erteleme 6: Özel Vade Farkı
-         */
-        if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
-            // Albaraka PosNet KOICode ekleme
-            // $data            = $event->getRequestData();
-            // $data['KOICode'] = '1';
-            // $event->setRequestData($data);
-        }
-        if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
-            // Yapikredi PosNet KOICode ekleme
-            // $data            = $event->getRequestData();
-            // $data['sale']['koiCode'] = '1';
-            // $event->setRequestData($data);
-        }
-    });
-
+    /**
+     * KOICodes:
+     * 1:Ek Taksit
+     * 2: Taksit Atlatma
+     * 3: Ekstra Puan
+     * 4: Kontur Kazanım
+     * 5: Ekstre Erteleme
+     * 6: Özel Vade Farkı
+     */
+    if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
+        // Albaraka PosNet KOICode ekleme
+        // $data            = $event->getRequestData();
+        // $data['KOICode'] = '1';
+        // $event->setRequestData($data);
+    }
+    if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
+        // Yapikredi PosNet KOICode ekleme
+        // $data            = $event->getRequestData();
+        // $data['sale']['koiCode'] = '1';
+        // $event->setRequestData($data);
+    }
+});
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR END
+// ============================================================================================
+try {
     doPayment($pos, $paymentModel, $transaction, $order, $card);
 } catch (Exception $e) {
     dd($e);

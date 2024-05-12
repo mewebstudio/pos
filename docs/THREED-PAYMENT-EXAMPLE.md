@@ -30,7 +30,8 @@ $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
 $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
 
 // API kullanıcı bilgileri
-// AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
+// AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
+// /examples altındaki örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -99,10 +100,10 @@ if ($tekrarlanan = false) { // recurring payments
 $session->set('order', $order);
 
 // Kredi kartı bilgileri
-try {
 $card = null;
 if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
-    $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
+    try {
+        $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
             $pos,
             $_POST['card_number'],
             $_POST['card_year'],
@@ -126,6 +127,9 @@ if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
     }
 }
 
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR START
+// ============================================================================================
 try {
     /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
     $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
@@ -211,10 +215,13 @@ try {
         $transactionType,
         $card
     );
-} catch (\Throwable $e) {
+} catch (\Exception|\Error $e) {
     var_dump($e);
     exit;
 }
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR END
+// ============================================================================================
 ```
 ```html
 <!-- $formData içeriği HTML forma render ediyoruz ve kullanıcıyı banka gateway'ine yönlendiriyoruz. -->
@@ -263,6 +270,10 @@ if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
     }
 }
 
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR START
+// ============================================================================================
+
 //    //Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği
 //    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($paymentModel) {
 //        if ($event->getTxType() === \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH && \Mews\Pos\PosInterface::MODEL_3D_SECURE === $paymentModel) {
@@ -272,6 +283,11 @@ if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
 //            $event->setRequestData($data);
 //        }
 //    });
+
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR END
+// ============================================================================================
+
 
 // Ödeme tamamlanıyor,
 try  {
@@ -296,5 +312,8 @@ try  {
 } catch (\Mews\Pos\Exceptions\HashMismatchException $e) {
    // Bankadan gelen verilerin bankaya ait olmadığında bu exception oluşur.
    // Banka API bilgileriniz hatalı ise de oluşur.
+} catch (\Error $e) {
+    var_dump($e);
+    exit;
 }
 ```

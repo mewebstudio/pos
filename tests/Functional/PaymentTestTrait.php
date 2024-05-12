@@ -206,7 +206,7 @@ trait PaymentTestTrait
         } elseif (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
             if (isset($lastResponse['recurring_id'])) {
                 $order = [
-                    'id' => $lastResponse['order_id'],
+                    'id'           => $lastResponse['order_id'],
                     'recurring_id' => $lastResponse['recurring_id'],
                 ];
             } else {

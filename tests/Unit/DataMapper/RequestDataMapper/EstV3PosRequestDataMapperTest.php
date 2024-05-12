@@ -38,7 +38,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $config = require __DIR__.'/../../../../config/pos_test.php';
 
         $this->account = AccountFactory::createEstPosAccount(
-            'akbankv3',
+            'payten_v3_hash',
             '190100000',
             'ZIRAATAPI',
             'ZIRAAT19',
