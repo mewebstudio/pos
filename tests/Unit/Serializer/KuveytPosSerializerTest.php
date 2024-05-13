@@ -5,14 +5,13 @@
 
 namespace Mews\Pos\Tests\Unit\Serializer;
 
-use DomainException;
 use Generator;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\KuveytPosSerializer;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\KuveytPosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
-use function iterator_to_array;
 
 /**
  * @covers \Mews\Pos\Serializer\KuveytPosSerializer
@@ -50,10 +49,10 @@ class KuveytPosSerializerTest extends TestCase
 
     public function testEncodeException(): void
     {
-        $this->expectException(DomainException::class);
+        $this->expectException(UnsupportedTransactionTypeException::class);
         $this->serializer->encode(['abc' => 1], PosInterface::TX_TYPE_HISTORY);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(UnsupportedTransactionTypeException::class);
         $this->serializer->encode(['abc' => 1], PosInterface::TX_TYPE_ORDER_HISTORY);
     }
 

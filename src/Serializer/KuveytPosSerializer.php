@@ -5,13 +5,12 @@
 
 namespace Mews\Pos\Serializer;
 
-use DomainException;
 use DOMAttr;
 use DOMDocument;
 use DOMElement;
 use DOMNamedNodeMap;
 use DOMNodeList;
-use Exception;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -54,7 +53,9 @@ class KuveytPosSerializer implements SerializerInterface
     public function encode(array $data, string $txType)
     {
         if (PosInterface::TX_TYPE_HISTORY === $txType || PosInterface::TX_TYPE_ORDER_HISTORY === $txType) {
-            throw new DomainException(\sprintf('Serialization of the transaction %s is not supported', $txType));
+            throw new UnsupportedTransactionTypeException(
+                \sprintf('Serialization of the transaction %s is not supported', $txType)
+            );
         }
 
         if (\in_array($txType, $this->nonPaymentTransactions, true)) {
@@ -81,7 +82,7 @@ class KuveytPosSerializer implements SerializerInterface
                 return $this->transformReceived3DFormData($data);
             }
 
-            throw new Exception($data, $notEncodableValueException->getCode(), $notEncodableValueException);
+            throw new \RuntimeException($data, $notEncodableValueException->getCode(), $notEncodableValueException);
         }
     }
 

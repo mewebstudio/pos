@@ -167,7 +167,7 @@ class PayFlexCPV4Pos extends AbstractGateway
 
         if (null !== $data['ErrorCode']) {
             $this->logger->error('payment register fail response', $data);
-            throw new Exception('İşlem gerçekleştirilemiyor');
+            throw new \RuntimeException('İşlem gerçekleştirilemiyor');
         }
 
         $this->logger->debug('preparing 3D form data');

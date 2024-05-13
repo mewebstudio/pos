@@ -5,7 +5,6 @@
 
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
-use Exception;
 use InvalidArgumentException;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
@@ -248,7 +247,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritDoc}
      *
-     * @throws Exception
+     * @throws InvalidArgumentException
      */
     public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null, array $extraData = null): array
     {

@@ -5,7 +5,6 @@
 
 namespace Mews\Pos\Gateways;
 
-use Exception;
 use InvalidArgumentException;
 use LogicException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
@@ -157,7 +156,7 @@ class PosNet extends AbstractGateway
 
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $data['approved']) {
             $this->logger->error('enrollment fail response', $data);
-            throw new Exception($data['respText']);
+            throw new \RuntimeException($data['respText']);
         }
 
         $this->logger->debug('preparing 3D form data');

@@ -23,7 +23,6 @@ use RuntimeException;
 use SoapClient;
 use SoapFault;
 use Symfony\Component\HttpFoundation\Request;
-use Throwable;
 
 /**
  * Kuveyt banki desteleyen Gateway
@@ -228,7 +227,6 @@ class KuveytPos extends AbstractGateway
      * @return array<string, mixed>
      *
      * @throws SoapFault
-     * @throws Throwable
      */
     private function sendSoapRequest(array $contents, string $txType, string $url): array
     {
@@ -261,7 +259,7 @@ class KuveytPos extends AbstractGateway
         $client = new SoapClient($url, $options);
         try {
             $result = $client->__soapCall($this->requestDataMapper->mapTxType($txType), ['parameters' => ['request' => $contents]]);
-        } catch (Throwable $throwable) {
+        } catch (SoapFault $throwable) {
             $this->logger->error('soap error response', [
                 'message' => $throwable->getMessage(),
             ]);

@@ -10,7 +10,6 @@ use DOMDocument;
 use DOMElement;
 use DOMNamedNodeMap;
 use DOMNodeList;
-use Exception;
 use Mews\Pos\Gateways\VakifKatilimPos;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -63,7 +62,7 @@ class VakifKatilimPosSerializer implements SerializerInterface
                 return $this->transformReceived3DFormData($data);
             }
 
-            throw new Exception($data, $notEncodableValueException->getCode(), $notEncodableValueException);
+            throw new \RuntimeException($data, $notEncodableValueException->getCode(), $notEncodableValueException);
         }
     }
 
@@ -98,7 +97,7 @@ class VakifKatilimPosSerializer implements SerializerInterface
         /** @var DOMElement|null $formNode */
         $formNode = $dom->getElementsByTagName('form')->item(0);
         if (null === $formNode) {
-            throw new \Exception($response, 974);
+            throw new \RuntimeException($response, 974);
         }
 
         /** @var DOMNamedNodeMap $attributes */
