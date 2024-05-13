@@ -9,6 +9,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 
 /**
@@ -268,6 +269,8 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      * @param string                               $txType
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     protected function create3DFormDataCommon(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {

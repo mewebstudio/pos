@@ -5,7 +5,6 @@
 
 namespace Mews\Pos\Gateways;
 
-use Exception;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
@@ -17,6 +16,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -69,6 +69,8 @@ class PayFlexCPV4Pos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @throws ClientExceptionInterface
      */
     public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
@@ -127,6 +129,8 @@ class PayFlexCPV4Pos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @throws ClientExceptionInterface
      */
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
@@ -221,7 +225,8 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @return array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null}
      *
-     * @throws Exception
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     private function registerPayment(array $order, string $txType, string $paymentModel, CreditCardInterface $creditCard = null): array
     {

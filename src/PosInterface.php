@@ -7,7 +7,10 @@ namespace Mews\Pos;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -111,6 +114,11 @@ interface PosInterface
      * @param CreditCardInterface|null $creditCard
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
+     *
+     * @throws \RuntimeException when request to the bank to get 3D form data failed
+     * @throws \LogicException when card data is not provided when it is required for the given payment model
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null): array;
 
@@ -123,6 +131,10 @@ interface PosInterface
      * @param string               $txType
      *
      * @return PosInterface
+     *
+     * @throws \LogicException
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface;
 
@@ -132,6 +144,10 @@ interface PosInterface
      * @param array<string, mixed> $order
      *
      * @return PosInterface
+     *
+     * @throws UnsupportedPaymentModelException
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     public function makeRegularPostPayment(array $order): PosInterface;
 
@@ -145,6 +161,11 @@ interface PosInterface
      * @param CreditCardInterface|null $creditCard simdilik sadece PayFlexV4Pos icin card isteniyor.
      *
      * @return PosInterface
+     *
+     * @throws HashMismatchException
+     * @throws UnsupportedTransactionTypeException
+     * @throws UnsupportedPaymentModelException
+     * @throws ClientExceptionInterface
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface;
 
@@ -157,6 +178,10 @@ interface PosInterface
      * @param string               $txType
      *
      * @return PosInterface
+     *
+     * @throws HashMismatchException
+     * @throws UnsupportedTransactionTypeException
+     * @throws UnsupportedPaymentModelException
      */
     public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface;
 
@@ -169,6 +194,10 @@ interface PosInterface
      * @param string               $txType
      *
      * @return PosInterface
+     *
+     * @throws HashMismatchException
+     * @throws UnsupportedTransactionTypeException
+     * @throws UnsupportedPaymentModelException
      */
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface;
 
@@ -188,6 +217,9 @@ interface PosInterface
      * @return PosInterface
      *
      * @throws UnsupportedPaymentModelException
+     * @throws UnsupportedTransactionTypeException
+     * @throws \LogicException
+     * @throws ClientExceptionInterface
      */
     public function payment(string $paymentModel, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface;
 
@@ -197,6 +229,9 @@ interface PosInterface
      * @param array<string, mixed> $order
      *
      * @return PosInterface
+     *
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     public function refund(array $order): PosInterface;
 
@@ -206,6 +241,9 @@ interface PosInterface
      * @param array<string, mixed> $order
      *
      * @return PosInterface
+     *
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     public function cancel(array $order): PosInterface;
 
@@ -215,6 +253,9 @@ interface PosInterface
      * @param array<string, mixed> $order
      *
      * @return PosInterface
+     *
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     public function status(array $order): PosInterface;
 
@@ -224,6 +265,9 @@ interface PosInterface
      * @param array<string, mixed> $order
      *
      * @return PosInterface
+     *
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     public function orderHistory(array $order): PosInterface;
 
@@ -231,6 +275,9 @@ interface PosInterface
      * @param array<string, mixed> $data
      *
      * @return PosInterface
+     *
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     public function history(array $data): PosInterface;
 

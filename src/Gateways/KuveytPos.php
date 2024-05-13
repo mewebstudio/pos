@@ -5,7 +5,6 @@
 
 namespace Mews\Pos\Gateways;
 
-use Exception;
 use InvalidArgumentException;
 use LogicException;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
@@ -19,6 +18,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use RuntimeException;
 use SoapClient;
 use SoapFault;
@@ -64,6 +64,8 @@ class KuveytPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
@@ -122,6 +124,8 @@ class KuveytPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @throws SoapFault
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
@@ -141,6 +145,8 @@ class KuveytPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @throws SoapFault
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
@@ -193,6 +199,9 @@ class KuveytPos extends AbstractGateway
      * @inheritDoc
      *
      * @return array<string, mixed>
+     *
+     * @throws UnsupportedTransactionTypeException
+     * @throws SoapFault
      */
     protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
@@ -227,6 +236,8 @@ class KuveytPos extends AbstractGateway
      * @return array<string, mixed>
      *
      * @throws SoapFault
+     * @throws RuntimeException
+     * @throws UnsupportedTransactionTypeException
      */
     private function sendSoapRequest(array $contents, string $txType, string $url): array
     {
@@ -296,7 +307,10 @@ class KuveytPos extends AbstractGateway
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      *
-     * @throws Exception
+     * @throws RuntimeException
+     * @throws UnsupportedTransactionTypeException
+     * @throws SoapFault
+     * @throws ClientExceptionInterface
      */
     private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {

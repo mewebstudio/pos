@@ -10,6 +10,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 
 /**
@@ -165,6 +166,8 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      *     MerchantId: string,
      *     Password: string,
      *     TerminalNo: string}
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $posAccount, array $order): array
     {

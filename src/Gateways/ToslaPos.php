@@ -17,6 +17,7 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -65,6 +66,8 @@ class ToslaPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
@@ -207,7 +210,8 @@ class ToslaPos extends AbstractGateway
      *
      * @return array<string, mixed>
      *
-     * @throws \Exception
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     private function registerPayment(array $order, string $paymentModel, string $txType): array
     {

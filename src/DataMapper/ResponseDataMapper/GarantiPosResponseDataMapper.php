@@ -462,8 +462,6 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
      * @param array<string, string|null> $rawTx
      *
      * @return array<string, int|string|null|float|bool|\DateTime>
-     *
-     * @throws \Exception
      */
     private function mapSingleOrderHistoryTransaction(array $rawTx): array
     {

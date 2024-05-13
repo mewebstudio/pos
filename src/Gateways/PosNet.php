@@ -19,6 +19,7 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -227,6 +228,9 @@ class PosNet extends AbstractGateway
      * @param CreditCardInterface                  $creditCard
      *
      * @return array{approved: string, respCode: string, respText: string, oosRequestDataResponse?: array{data1: string, data2: string, sign: string}}
+     *
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     private function getOosTransactionData(array $order, string $txType, CreditCardInterface $creditCard): array
     {

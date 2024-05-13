@@ -10,6 +10,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 
 /**
@@ -286,6 +287,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      * @param PosNetAccount                        $posAccount
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function create3DEnrollmentCheckRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
     {

@@ -544,8 +544,6 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
      * @param array<string, string|null> $rawTx
      *
      * @return array<string, int|string|null|float|bool|\DateTimeImmutable>
-     *
-     * @throws \Exception
      */
     private function mapSingleHistoryTransaction(array $rawTx): array
     {
@@ -609,8 +607,6 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
      * @param string               $paymentModel
      *
      * @return array<string, mixed>
-     *
-     * @throws \Exception
      */
     private function map3DResponseData(array $raw3DAuthResponseData, string $paymentModel): array
     {
