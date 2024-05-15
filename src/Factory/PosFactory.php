@@ -61,6 +61,12 @@ class PosFactory
             throw new BankClassNullException();
         }
 
+        if (!\in_array(PosInterface::class, \class_implements($class), true)) {
+            throw new \InvalidArgumentException(
+                \sprintf('gateway class must be implementation of %s', PosInterface::class)
+            );
+        }
+
         $currencies = [];
         if (isset($config['currencies'])) {
             $currencies = $config['currencies'];
