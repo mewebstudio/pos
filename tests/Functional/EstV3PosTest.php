@@ -80,9 +80,9 @@ class EstV3PosTest extends TestCase
             $this->card
         );
 
-        $this->assertTrue($this->pos->isSuccess());
-
         $response = $this->pos->getResponse();
+        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? null);
+
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
