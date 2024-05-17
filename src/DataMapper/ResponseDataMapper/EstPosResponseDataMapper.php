@@ -88,7 +88,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'group_id'         => $rawPaymentResponseData['GroupId'],
             'transaction_id'   => $rawPaymentResponseData['TransId'],
             'transaction_time' => self::TX_APPROVED === $status ? new \DateTimeImmutable($extra['TRXDATE']) : null,
-            'auth_code'        => $rawPaymentResponseData['AuthCode'],
+            'auth_code'        => $rawPaymentResponseData['AuthCode'] ?? null,
             'ref_ret_num'      => $rawPaymentResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,
             'status'           => $status,
