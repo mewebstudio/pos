@@ -250,10 +250,6 @@ class VakifKatilimPos extends AbstractGateway
             PosInterface::TX_TYPE_HISTORY       => 'SelectOrder',
         ];
 
-        if (!isset($arr[$txType])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
         if (\is_string($arr[$txType])) {
             return $arr[$txType];
         }
