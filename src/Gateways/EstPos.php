@@ -16,8 +16,6 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Implementation of Payten Payment Gateway
- * todo cardType verisi dokumantasyona gore kontrol edilmesi gerekiyor.
- * cardType gondermeden de su an calisiyor.
  *
  * @deprecated use Mews\Pos\Gateways\EstV3Pos.
  * For security reasons this class which uses sha1 hashing algorithm is not recommended to use.
