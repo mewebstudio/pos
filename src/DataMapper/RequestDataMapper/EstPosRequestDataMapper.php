@@ -41,14 +41,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritdoc}
      */
-    protected array $cardTypeMapping = [
-        CreditCardInterface::CARD_TYPE_VISA       => '1',
-        CreditCardInterface::CARD_TYPE_MASTERCARD => '2',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
     protected array $recurringOrderFrequencyMapping = [
         'DAY'   => 'D',
         'WEEK'  => 'W',
@@ -286,7 +278,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         ];
 
         if ($creditCard instanceof CreditCardInterface) {
-            $inputs['cardType']                        = $this->cardTypeMapping[$creditCard->getType()];
             $inputs['pan']                             = $creditCard->getNumber();
             $inputs['Ecom_Payment_Card_ExpDate_Month'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
             $inputs['Ecom_Payment_Card_ExpDate_Year']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);

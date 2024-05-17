@@ -149,7 +149,6 @@ class EstV3PosRequestDataMapperTest extends TestCase
                         'TranType'                        => 'Auth',
                         'hashAlgorithm'                   => 'ver3',
                         'hash'                            => '3fvBzh0HT3UiKUTXis0Ke2NG3mAp9eBOwx26bstv+l6L946GrOF2JklXfqTNc6VBeqUSkuLxo4ErtwCWuPCzYw==',
-                        'cardType'                        => '1',
                         'pan'                             => '5555444433332222',
                         'Ecom_Payment_Card_ExpDate_Month' => '01',
                         'Ecom_Payment_Card_ExpDate_Year'  => '22',

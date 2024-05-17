@@ -430,7 +430,6 @@ class EstPosRequestDataMapperTest extends TestCase
                         'taksit'                          => '',
                         'islemtipi'                       => 'Auth',
                         'hash'                            => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
-                        'cardType'                        => '1',
                         'pan'                             => '5555444433332222',
                         'Ecom_Payment_Card_ExpDate_Month' => '01',
                         'Ecom_Payment_Card_ExpDate_Year'  => '22',
