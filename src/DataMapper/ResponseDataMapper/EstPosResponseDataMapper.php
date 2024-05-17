@@ -265,7 +265,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         return [
             'order_id'         => $rawResponseData['OrderId'],
             'group_id'         => $rawResponseData['GroupId'],
-            'auth_code'        => $rawResponseData['AuthCode'],
+            'auth_code'        => $rawResponseData['AuthCode'] ?? null,
             'ref_ret_num'      => $rawResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,
             'transaction_id'   => $rawResponseData['TransId'],
@@ -308,7 +308,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         return [
             'order_id'         => $rawResponseData['OrderId'],
             'group_id'         => $rawResponseData['GroupId'],
-            'auth_code'        => $rawResponseData['AuthCode'],
+            'auth_code'        => $rawResponseData['AuthCode'] ?? null,
             'ref_ret_num'      => $rawResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,
             'transaction_id'   => $rawResponseData['TransId'],

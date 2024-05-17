@@ -1476,7 +1476,7 @@ class EstPosResponseDataMapperTest extends TestCase
     {
         return
             [
-                'success1' => [
+                'success1'               => [
                     'responseData' => [
                         'OrderId'        => '20221030B3FF',
                         'GroupId'        => '20221030B3FF',
@@ -1512,7 +1512,7 @@ class EstPosResponseDataMapperTest extends TestCase
                         'status_detail'    => 'approved',
                     ],
                 ],
-                'fail1'    => [
+                'fail_order_not_found_1' => [
                     'responseData' => [
                         'OrderId'        => '',
                         'GroupId'        => '',
@@ -1543,8 +1543,38 @@ class EstPosResponseDataMapperTest extends TestCase
                         'status_detail'    => 'general_error',
                     ],
                 ],
-                [
-                    // recurring success case
+                'fail_order_not_found_2' => [
+                    'responseData' => [
+                        'OrderId'        => 'a1a7d184',
+                        'GroupId'        => 'a1a7d184',
+                        'Response'       => 'Declined',
+                        'HostRefNum'     => '413719757716',
+                        'ProcReturnCode' => '99',
+                        'TransId'        => '',
+                        'ErrMsg'         => 'İptal edilmeye uygun satış işlemi bulunamadı.',
+                        'Extra'          => [
+                            'TRXDATE'             => '20240516 22:56:09',
+                            'EXTENDED_ERROR_CODE' => '215001',
+                            'TRACEID'             => '3f423f86e9d886bf1cffae49d93268be',
+                            'NUMCODE'             => '99',
+                            'ERRORCODE'           => 'CORE-2008',
+                        ],
+                    ],
+                    'expectedData' => [
+                        'order_id'         => 'a1a7d184',
+                        'group_id'         => 'a1a7d184',
+                        'auth_code'        => null,
+                        'ref_ret_num'      => '413719757716',
+                        'proc_return_code' => '99',
+                        'transaction_id'   => null,
+                        'error_code'       => 'CORE-2008',
+                        'num_code'         => '99',
+                        'error_message'    => 'İptal edilmeye uygun satış işlemi bulunamadı.',
+                        'status'           => 'declined',
+                        'status_detail'    => 'general_error',
+                    ],
+                ],
+                'success_recurring_1' => [
                     'responseData' => [
                         'RECURRINGOPERATION' => 'CANCEL',
                         'RECORDTYPE'         => 'ORDER',

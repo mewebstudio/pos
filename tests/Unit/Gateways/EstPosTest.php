@@ -619,8 +619,8 @@ class EstPosTest extends TestCase
     {
         return [
             'fail_1'    => [
-                'bank_response' => EstPosResponseDataMapperTest::cancelTestDataProvider()['fail1']['responseData'],
-                'expected_data' => EstPosResponseDataMapperTest::cancelTestDataProvider()['fail1']['expectedData'],
+                'bank_response' => EstPosResponseDataMapperTest::cancelTestDataProvider()['fail_order_not_found_1']['responseData'],
+                'expected_data' => EstPosResponseDataMapperTest::cancelTestDataProvider()['fail_order_not_found_1']['expectedData'],
                 'isSuccess'     => false,
             ],
             'success_1' => [
