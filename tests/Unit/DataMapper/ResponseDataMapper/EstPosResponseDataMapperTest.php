@@ -1575,7 +1575,7 @@ class EstPosResponseDataMapperTest extends TestCase
     {
         return
             [
-                'success1'               => [
+                'success1'                         => [
                     'responseData' => [
                         'OrderId'        => '20221030B3FF',
                         'GroupId'        => '20221030B3FF',
@@ -1611,7 +1611,44 @@ class EstPosResponseDataMapperTest extends TestCase
                         'status_detail'    => 'approved',
                     ],
                 ],
-                'fail_order_not_found_1' => [
+                'success_without_extra_error_code' => [
+                    'responseData' => [
+                        'OrderId'        => '230',
+                        'GroupId'        => '800',
+                        'Response'       => 'Approved',
+                        'AuthCode'       => '160769',
+                        'HostRefNum'     => '48',
+                        'ProcReturnCode' => '00',
+                        'TransId'        => '2836',
+                        'ErrMsg'         => '',
+                        'ERRORCODE'      => '',
+                        'Extra'          => [
+                            'KULLANILANPUAN'     => '000000000000',
+                            'CARDBRAND'          => 'VISA',
+                            'TRXDATE'            => '2017 13:14:06',
+                            'KULLANILABILIRPUAN' => '000000000380',
+                            'ACQSTAN'            => '769388',
+                            'KAZANILANPUAN'      => '000000000229',
+                            'TRACEID'            => '4d68eab86e6',
+                            'NUMCODE'            => '00',
+                            'SETTLEID'           => '87',
+                        ],
+                    ],
+                    'expectedData' => [
+                        'order_id'         => '230',
+                        'group_id'         => '800',
+                        'auth_code'        => '160769',
+                        'ref_ret_num'      => '48',
+                        'proc_return_code' => '00',
+                        'transaction_id'   => '2836',
+                        'error_code'       => null,
+                        'num_code'         => '00',
+                        'error_message'    => null,
+                        'status'           => 'approved',
+                        'status_detail'    => 'approved',
+                    ],
+                ],
+                'fail_order_not_found_1'           => [
                     'responseData' => [
                         'OrderId'        => '',
                         'GroupId'        => '',
@@ -1636,13 +1673,13 @@ class EstPosResponseDataMapperTest extends TestCase
                         'proc_return_code' => '99',
                         'transaction_id'   => '22303M5IA11121',
                         'error_code'       => 'CORE-2008',
-                        'num_code'         => '992008',
+                        'num_code'         => null,
                         'error_message'    => 'İptal edilmeye uygun satış işlemi bulunamadı.',
                         'status'           => 'declined',
                         'status_detail'    => 'general_error',
                     ],
                 ],
-                'fail_order_not_found_2' => [
+                'fail_order_not_found_2'           => [
                     'responseData' => [
                         'OrderId'        => 'a1a7d184',
                         'GroupId'        => 'a1a7d184',
@@ -1661,19 +1698,19 @@ class EstPosResponseDataMapperTest extends TestCase
                     ],
                     'expectedData' => [
                         'order_id'         => 'a1a7d184',
-                        'group_id'         => 'a1a7d184',
+                        'group_id'         => null,
                         'auth_code'        => null,
                         'ref_ret_num'      => '413719757716',
                         'proc_return_code' => '99',
                         'transaction_id'   => null,
                         'error_code'       => 'CORE-2008',
-                        'num_code'         => '99',
+                        'num_code'         => null,
                         'error_message'    => 'İptal edilmeye uygun satış işlemi bulunamadı.',
                         'status'           => 'declined',
                         'status_detail'    => 'general_error',
                     ],
                 ],
-                'success_recurring_1'    => [
+                'success_recurring_1'              => [
                     'responseData' => [
                         'RECURRINGOPERATION' => 'CANCEL',
                         'RECORDTYPE'         => 'ORDER',
@@ -1749,16 +1786,43 @@ class EstPosResponseDataMapperTest extends TestCase
                 ],
                 'expectedData' => [
                     'order_id'         => '20221030B3FF',
-                    'group_id'         => '20221030B3FF',
+                    'group_id'         => null,
                     'auth_code'        => null,
                     'ref_ret_num'      => null,
                     'proc_return_code' => '99',
                     'transaction_id'   => '22303M8rC11328',
-                    'num_code'         => '992508',
+                    'num_code'         => null,
                     'error_code'       => 'CORE-2508',
                     'error_message'    => 'Iade yapilamaz, siparis gunsonuna girmemis.',
                     'status'           => 'declined',
                     'status_detail'    => 'general_error',
+                ],
+            ],
+            'fail2'    => [
+                'responseData' => [
+                    'OrderId'    => '2c544d',
+                    'Response'   => 'Declined',
+                    'HostRefNum' => '413051',
+                    'TransId'    => '24082',
+                    'ErrMsg'     => 'Net Tutar 0.',
+                    'Extra'      => [
+                        'TRXDATE'   => '20240517 14:28:33',
+                        'TRACEID'   => '73631448ab0c1e',
+                        'ERRORCODE' => '215021',
+                    ],
+                ],
+                'expectedData' => [
+                    'order_id'         => '2c544d',
+                    'group_id'         => null,
+                    'auth_code'        => null,
+                    'ref_ret_num'      => '413051',
+                    'proc_return_code' => null,
+                    'transaction_id'   => '24082',
+                    'num_code'         => null,
+                    'error_code'       => '215021',
+                    'error_message'    => 'Net Tutar 0.',
+                    'status'           => 'declined',
+                    'status_detail'    => null,
                 ],
             ],
         ];

@@ -262,23 +262,30 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $errorCode = $rawResponseData['Extra']['ERRORCODE'] ?? $rawResponseData['ERRORCODE'];
-        $errorCode = '' !== $errorCode ? $errorCode : null;
-
-        return [
+        $result = [
             'order_id'         => $rawResponseData['OrderId'],
-            'group_id'         => $rawResponseData['GroupId'],
-            'auth_code'        => $rawResponseData['AuthCode'] ?? null,
+            'group_id'         => null,
+            'auth_code'        => null,
             'ref_ret_num'      => $rawResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,
             'transaction_id'   => $rawResponseData['TransId'],
-            'num_code'         => $rawResponseData['Extra']['NUMCODE'],
-            'error_code'       => $errorCode,
+            'num_code'         => null,
+            'error_code'       => null,
             'error_message'    => $rawResponseData['ErrMsg'],
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
             'all'              => $rawResponseData,
         ];
+
+        if (self::TX_APPROVED === $status) {
+            $result['group_id']  = $rawResponseData['GroupId'];
+            $result['auth_code'] = $rawResponseData['AuthCode'];
+            $result['num_code']  = $rawResponseData['Extra']['NUMCODE'];
+        } else {
+            $result['error_code'] = $rawResponseData['Extra']['ERRORCODE'] ?? $rawResponseData['ERRORCODE'] ?? null;
+        }
+
+        return $result;
     }
 
     /**
@@ -308,20 +315,30 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             ];
         }
 
-        return [
+        $result = [
             'order_id'         => $rawResponseData['OrderId'],
-            'group_id'         => $rawResponseData['GroupId'],
-            'auth_code'        => $rawResponseData['AuthCode'] ?? null,
+            'group_id'         => null,
+            'auth_code'        => null,
             'ref_ret_num'      => $rawResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,
             'transaction_id'   => $rawResponseData['TransId'],
-            'error_code'       => $rawResponseData['Extra']['ERRORCODE'],
-            'num_code'         => $rawResponseData['Extra']['NUMCODE'],
+            'error_code'       => null,
+            'num_code'         => null,
             'error_message'    => $rawResponseData['ErrMsg'],
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
             'all'              => $rawResponseData,
         ];
+
+        if (self::TX_APPROVED === $status) {
+            $result['group_id']  = $rawResponseData['GroupId'];
+            $result['auth_code'] = $rawResponseData['AuthCode'];
+            $result['num_code']  = $rawResponseData['Extra']['NUMCODE'];
+        } else {
+            $result['error_code'] = $rawResponseData['Extra']['ERRORCODE'] ?? $rawResponseData['ERRORCODE'] ?? null;
+        }
+
+        return $result;
     }
 
     /**
