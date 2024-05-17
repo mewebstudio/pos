@@ -262,6 +262,9 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
+        $errorCode = $rawResponseData['Extra']['ERRORCODE'] ?? $rawResponseData['ERRORCODE'];
+        $errorCode = '' !== $errorCode ? $errorCode : null;
+
         return [
             'order_id'         => $rawResponseData['OrderId'],
             'group_id'         => $rawResponseData['GroupId'],
@@ -270,7 +273,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'proc_return_code' => $procReturnCode,
             'transaction_id'   => $rawResponseData['TransId'],
             'num_code'         => $rawResponseData['Extra']['NUMCODE'],
-            'error_code'       => $rawResponseData['Extra']['ERRORCODE'],
+            'error_code'       => $errorCode,
             'error_message'    => $rawResponseData['ErrMsg'],
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),

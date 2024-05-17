@@ -1691,40 +1691,77 @@ class EstPosResponseDataMapperTest extends TestCase
 
     public static function refundTestDataProvider(): array
     {
-        return
-            [
-                'fail1' => [
-                    'responseData' => [
-                        'OrderId'        => '20221030B3FF',
-                        'GroupId'        => '20221030B3FF',
-                        'Response'       => 'Error',
-                        'AuthCode'       => '',
-                        'HostRefNum'     => '',
-                        'ProcReturnCode' => '99',
-                        'TransId'        => '22303M8rC11328',
-                        'ErrMsg'         => 'Iade yapilamaz, siparis gunsonuna girmemis.',
-                        'Extra'          => [
-                            'SETTLEID'  => '',
-                            'TRXDATE'   => '20221030 12:58:42',
-                            'ERRORCODE' => 'CORE-2508',
-                            'NUMCODE'   => '992508',
-                        ],
-                    ],
-                    'expectedData' => [
-                        'order_id'         => '20221030B3FF',
-                        'group_id'         => '20221030B3FF',
-                        'auth_code'        => null,
-                        'ref_ret_num'      => null,
-                        'proc_return_code' => '99',
-                        'transaction_id'   => '22303M8rC11328',
-                        'num_code'         => '992508',
-                        'error_code'       => 'CORE-2508',
-                        'error_message'    => 'Iade yapilamaz, siparis gunsonuna girmemis.',
-                        'status'           => 'declined',
-                        'status_detail'    => 'general_error',
+        return [
+            'success1' => [
+                'responseData' => [
+                    'OrderId'        => 'df0e',
+                    'GroupId'        => 'dfc36f0e',
+                    'Response'       => 'Approved',
+                    'AuthCode'       => '46',
+                    'HostRefNum'     => '41',
+                    'ProcReturnCode' => '00',
+                    'TransId'        => '24138',
+                    'ErrMsg'         => '',
+                    'ERRORCODE'      => '',
+                    'Extra'          => [
+                        'KULLANILANPUAN'     => '000000000000',
+                        'CARDBRAND'          => 'MASTERCARD',
+                        'CARDHOLDERNAME'     => 'ME* DE*',
+                        'TRXDATE'            => '20240517 13:30:43',
+                        'KULLANILABILIRPUAN' => '000000005450',
+                        'ACQSTAN'            => '74',
+                        'KAZANILANPUAN'      => '000000000000',
+                        'TRACEID'            => 'e7ba2a6',
+                        'NUMCODE'            => '00',
+                        'SETTLEID'           => '',
                     ],
                 ],
-            ];
+                'expectedData' => [
+                    'order_id'         => 'df0e',
+                    'group_id'         => 'dfc36f0e',
+                    'auth_code'        => '46',
+                    'ref_ret_num'      => '41',
+                    'proc_return_code' => '00',
+                    'transaction_id'   => '24138',
+                    'num_code'         => '00',
+                    'error_code'       => null,
+                    'error_message'    => null,
+                    'status'           => 'approved',
+                    'status_detail'    => 'approved',
+                ],
+            ],
+            'fail1'    => [
+                'responseData' => [
+                    'OrderId'        => '20221030B3FF',
+                    'GroupId'        => '20221030B3FF',
+                    'Response'       => 'Error',
+                    'AuthCode'       => '',
+                    'HostRefNum'     => '',
+                    'ProcReturnCode' => '99',
+                    'TransId'        => '22303M8rC11328',
+                    'ErrMsg'         => 'Iade yapilamaz, siparis gunsonuna girmemis.',
+                    'Extra'          => [
+                        'SETTLEID'  => '',
+                        'TRXDATE'   => '20221030 12:58:42',
+                        'ERRORCODE' => 'CORE-2508',
+                        'NUMCODE'   => '992508',
+                    ],
+                ],
+                'expectedData' => [
+                    'order_id'         => '20221030B3FF',
+                    'group_id'         => '20221030B3FF',
+                    'auth_code'        => null,
+                    'ref_ret_num'      => null,
+                    'proc_return_code' => '99',
+                    'transaction_id'   => '22303M8rC11328',
+                    'num_code'         => '992508',
+                    'error_code'       => 'CORE-2508',
+                    'error_message'    => 'Iade yapilamaz, siparis gunsonuna girmemis.',
+                    'status'           => 'declined',
+                    'status_detail'    => 'general_error',
+                ],
+            ],
+        ];
     }
 
     public static function orderHistoryTestDataProvider(): array
