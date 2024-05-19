@@ -96,6 +96,11 @@ Son yapılan değişiklikler için [`CHANGELOG`](./docs/CHANGELOG.md).
 
 ### Kurulum
 
+#### Frameworks
+- **Symfony** kurulum için [mews/pos-bundle](https://github.com/mewebstudio/PosBundle) kullanabilirsiniz.
+
+#### Basic kurulum
+
 ```sh
 $ composer require symfony/event-dispatcher mews/pos
 ```
