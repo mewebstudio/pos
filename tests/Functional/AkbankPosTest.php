@@ -65,7 +65,7 @@ class AkbankPosTest extends TestCase
 
     public function testNonSecurePaymentSuccess(): array
     {
-        $order = $this->createPaymentOrder();
+        $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
 
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
@@ -167,7 +167,12 @@ class AkbankPosTest extends TestCase
 
     public function testNonSecurePrePaymentSuccess(): array
     {
-        $order = $this->createPaymentOrder(PosInterface::CURRENCY_TRY, 30.0, 3);
+        $order = $this->createPaymentOrder(
+            PosInterface::MODEL_NON_SECURE,
+            PosInterface::CURRENCY_TRY,
+            30.0,
+            3
+        );
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -229,6 +234,7 @@ class AkbankPosTest extends TestCase
     public function testNonSecurePaymentRecurringSuccess(): array
     {
         $order = $this->createPaymentOrder(
+            PosInterface::MODEL_NON_SECURE,
             PosInterface::CURRENCY_TRY,
             5,
             3,

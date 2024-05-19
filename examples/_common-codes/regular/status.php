@@ -22,8 +22,7 @@ function createStatusOrder(string $gatewayClass, array $lastResponse, string $ip
     }
     if (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
         /**
-         * payment_model:
-         * siparis olusturulurken kullanilan odeme modeli
+         * payment_model: siparis olusturulurken kullanilan odeme modeli.
          * orderId'yi dogru sekilde formatlamak icin zorunlu.
          */
         $statusOrder['payment_model'] = $lastResponse['payment_model'];

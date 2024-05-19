@@ -11,9 +11,9 @@ return [
                 'gateway_3d_host' => 'https://virtualpospaymentgatewaypre.akbank.com/payhosting',
             ],
         ],
-        'akbankv3'             => [
+        'payten_v3_hash'       => [
             'name'              => 'AKBANK T.A.S.',
-            'class'             => Mews\Pos\Gateways\EstPos::class,
+            'class'             => Mews\Pos\Gateways\EstV3Pos::class,
             'gateway_endpoints' => [
                 'payment_api' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
                 'gateway_3d'  => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
@@ -114,7 +114,7 @@ return [
                 'query_api'   => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
             ],
         ],
-        'vakif-katilim' => [
+        'vakif-katilim'        => [
             'name'              => 'Vakıf Katılım',
             'class'             => Mews\Pos\Gateways\VakifKatilimPos::class,
             'gateway_endpoints' => [

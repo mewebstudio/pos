@@ -7,7 +7,7 @@ require '../_payment_config.php';
 $baseUrl = $bankTestsUrl.'/3d-pay/';
 //account bilgileri kendi account bilgilerinizle degistiriniz
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
-    'akbankv3',
+    'payten_v3_hash',
     '700655000200',
     'ISBANKAPI',
     'ISBANK07',

@@ -5,6 +5,7 @@
 
 namespace Mews\Pos\Serializer;
 
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 
 interface SerializerInterface
@@ -23,6 +24,8 @@ interface SerializerInterface
      * @param string               $txType
      *
      * @return string|array<string, mixed> returns XML/JSON string or $data itself when encoding is not needed
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function encode(array $data, string $txType);
 
@@ -33,6 +36,8 @@ interface SerializerInterface
      * @param string $txType
      *
      * @return array<string, mixed>
+     *
+     * @throws \RuntimeException
      */
     public function decode(string $data, string $txType): array;
 }

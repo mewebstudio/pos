@@ -65,7 +65,7 @@ class GarantiPosTest extends TestCase
 
     public function testNonSecurePaymentSuccess(): array
     {
-        $order = $this->createPaymentOrder();
+        $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -148,7 +148,12 @@ class GarantiPosTest extends TestCase
 
     public function testNonSecurePrePaymentSuccess(): array
     {
-        $order = $this->createPaymentOrder(PosInterface::CURRENCY_TRY, 1.91, 3);
+        $order = $this->createPaymentOrder(
+            PosInterface::MODEL_NON_SECURE,
+            PosInterface::CURRENCY_TRY,
+            1.91,
+            3
+        );
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -207,7 +212,7 @@ class GarantiPosTest extends TestCase
 
     public function testGet3DFormData(): void
     {
-        $order = $this->createPaymentOrder();
+        $order = $this->createPaymentOrder(PosInterface::MODEL_3D_SECURE);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(

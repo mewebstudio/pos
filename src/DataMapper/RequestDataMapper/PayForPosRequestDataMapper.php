@@ -189,6 +189,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @param array{transaction_date: \DateTimeInterface} $data
+     *
      * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array

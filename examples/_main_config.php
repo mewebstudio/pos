@@ -107,8 +107,9 @@ function createCard(PosInterface $pos, array $card): \Mews\Pos\Entity\Card\Credi
     }
 }
 
-function getNewOrder(
+function createPaymentOrder(
     PosInterface $pos,
+    string $paymentModel,
     string $baseUrl,
     string $ip,
     string $currency = PosInterface::CURRENCY_TRY,
@@ -116,10 +117,6 @@ function getNewOrder(
     bool $tekrarlanan = false,
     ?string $lang = null
 ): array {
-
-    $successUrl = $baseUrl.'response.php';
-    $failUrl = $baseUrl.'response.php';
-
     if ($tekrarlanan && get_class($pos) === AkbankPos::class) {
         // AkbankPos'ta recurring odemede orderTrackId/orderId en az 36 karakter olmasi gerekiyor
         $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 28));
@@ -133,11 +130,17 @@ function getNewOrder(
         'currency'    => $currency,
         'installment' => $installment,
         'ip'          => filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ? $ip : '127.0.0.1',
-
-        // 3d, 3d_pay, 3d_host odemeler icin zorunlu
-        'success_url' => $successUrl, // https://example.com/payment
-        'fail_url'    => $failUrl, // https://example.com/payment
     ];
+
+    if (in_array($paymentModel, [
+        PosInterface::MODEL_3D_SECURE,
+        PosInterface::MODEL_3D_PAY,
+        PosInterface::MODEL_3D_HOST,
+        PosInterface::MODEL_3D_PAY_HOSTING,
+    ], true)) {
+        $order['success_url'] = $baseUrl.'response.php';
+        $order['fail_url']    = $baseUrl.'response.php';
+    }
 
     if ($lang) {
         //lang degeri verilmezse account (EstPosAccount) dili kullanilacak

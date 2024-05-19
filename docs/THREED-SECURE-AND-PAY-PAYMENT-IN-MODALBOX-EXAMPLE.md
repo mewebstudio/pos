@@ -28,8 +28,8 @@ $session->start();
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
 $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
 
-// API kullanıcı bilgileri
-// AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
+// AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
+// /examples altındaki örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',

@@ -36,7 +36,7 @@ class EstV3PosTest extends TestCase
         $config = require __DIR__.'/../../config/pos_test.php';
 
         $account = AccountFactory::createEstPosAccount(
-            'akbankv3',
+            'payten_v3_hash',
             '700655000200',
             'ISBANKAPI',
             'ISBANK07',
@@ -62,7 +62,7 @@ class EstV3PosTest extends TestCase
 
     public function testNonSecurePaymentSuccess(): array
     {
-        $order = $this->createPaymentOrder();
+        $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -147,7 +147,12 @@ class EstV3PosTest extends TestCase
 
     public function testNonSecurePrePaymentSuccess(): array
     {
-        $order = $this->createPaymentOrder(PosInterface::CURRENCY_TRY, 2.01, 3);
+        $order = $this->createPaymentOrder(
+            PosInterface::MODEL_NON_SECURE,
+            PosInterface::CURRENCY_TRY,
+            2.01,
+            3
+        );
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -267,7 +272,7 @@ class EstV3PosTest extends TestCase
 
     public function testGet3DFormData(): void
     {
-        $order = $this->createPaymentOrder();
+        $order = $this->createPaymentOrder(PosInterface::MODEL_3D_SECURE);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(

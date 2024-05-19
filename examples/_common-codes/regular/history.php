@@ -1,7 +1,5 @@
 <?php
 
-use Mews\Pos\Gateways\PayForPos;
-
 $templateTitle = 'History Request';
 
 // ilgili bankanin _config.php dosyasi load ediyoruz.
@@ -12,15 +10,14 @@ require '../../_templates/_header.php';
 
 function createHistoryOrder(string $gatewayClass, array $extraData): array
 {
-    $order = [];
-
-    if (PayForPos::class === $gatewayClass) {
+    $order  = [];
+    $txTime = new \DateTimeImmutable();
+    if (\Mews\Pos\Gateways\PayForPos::class === $gatewayClass) {
         $order = [
             // odeme tarihi
-            'transaction_date' => $extraData['transaction_date'] ?? new \DateTimeImmutable(),
+            'transaction_date' => $extraData['transaction_date'] ?? $txTime,
         ];
     } elseif (\Mews\Pos\Gateways\VakifKatilimPos::class === $gatewayClass) {
-        $txTime = new \DateTimeImmutable();
         $order  = [
             'page'       => 1,
             'page_size'  => 20,
@@ -31,7 +28,6 @@ function createHistoryOrder(string $gatewayClass, array $extraData): array
             'end_date'   => $txTime->modify('+1 day'),
         ];
     } elseif (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
-        $txTime = new \DateTimeImmutable();
         $order  = [
             // Gün aralığı 1 günden fazla girilemez
             'start_date' => $txTime->modify('-23 hour'),

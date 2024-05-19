@@ -139,6 +139,8 @@ class AccountFactory
      * @param non-empty-string|null $subMerchantId
      *
      * @return KuveytPosAccount
+     *
+     * @throws MissingAccountInfoException
      */
     public static function createKuveytPosAccount(string $bank, string $merchantId, string $username, string $customerId, string $storeKey, string $model = PosInterface::MODEL_3D_SECURE, string $lang = PosInterface::LANG_TR, ?string $subMerchantId = null): KuveytPosAccount
     {

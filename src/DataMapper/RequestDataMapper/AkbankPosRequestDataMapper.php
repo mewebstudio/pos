@@ -565,8 +565,6 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @return \DateTimeImmutable
-     *
-     * @throws \Exception
      */
     private function createDateTime(): \DateTimeImmutable
     {

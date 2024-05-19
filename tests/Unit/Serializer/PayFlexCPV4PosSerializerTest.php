@@ -5,8 +5,8 @@
 
 namespace Mews\Pos\Tests\Unit\Serializer;
 
-use DomainException;
 use Generator;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\PayFlexCPV4PosSerializer;
@@ -68,13 +68,13 @@ class PayFlexCPV4PosSerializerTest extends TestCase
     {
         $data = ['abc' => 1];
 
-        $this->expectException(DomainException::class);
+        $this->expectException(UnsupportedTransactionTypeException::class);
         $this->serializer->encode($data, PosInterface::TX_TYPE_HISTORY);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(UnsupportedTransactionTypeException::class);
         $this->serializer->encode($data, PosInterface::TX_TYPE_ORDER_HISTORY);
 
-        $this->expectException(DomainException::class);
+        $this->expectException(UnsupportedTransactionTypeException::class);
         $this->serializer->encode($data, PosInterface::TX_TYPE_STATUS);
     }
 

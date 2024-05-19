@@ -64,7 +64,9 @@
             <div class="form-group col-md-4">
                 <select name="tx" id="currency" class="form-control input-lg">
                     <option value="<?= \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH; ?>" selected>Ödeme</option>
-                    <option value="<?= \Mews\Pos\PosInterface::TX_TYPE_PAY_PRE_AUTH; ?>">Ön Provizyon</option>
+                    <?php if ($pos::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH, $paymentModel)): ?>
+                        <option value="<?= \Mews\Pos\PosInterface::TX_TYPE_PAY_PRE_AUTH; ?>">Ön Provizyon</option>
+                    <?php endif; ?>
                 </select>
             </div>
             <div class="form-group col-md-4">

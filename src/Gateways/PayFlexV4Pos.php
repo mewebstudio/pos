@@ -22,6 +22,8 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * PayFlex MPI ISD v4 gateway'i destekler (INNOVA BİLİŞİM ÇÖZÜMLERİ A.Ş)
  * Dokumanlar: http://sanalpos.innova.com.tr/
+ *
+ * VakıfBank VPOS 7/24
  */
 class PayFlexV4Pos extends AbstractGateway
 {
@@ -155,18 +157,18 @@ class PayFlexV4Pos extends AbstractGateway
          */
         if ('E' === $status) {
             $this->logger->error('enrollment fail response', $data);
-            throw new Exception($data['ErrorMessage'], $data['MessageErrorCode']);
+            throw new \RuntimeException($data['ErrorMessage'], $data['MessageErrorCode']);
         }
 
         if ('N' === $status) {
             //half secure olarak devam et yada satisi iptal et.
             $this->logger->error('enrollment fail response', $data);
-            throw new Exception('Kart 3-D Secure programına dâhil değil');
+            throw new \RuntimeException('Kart 3-D Secure programına dâhil değil');
         }
 
         if ('U' === $status) {
             $this->logger->error('enrollment fail response', $data);
-            throw new Exception('İşlem gerçekleştirilemiyor');
+            throw new \RuntimeException('İşlem gerçekleştirilemiyor');
         }
 
         $this->logger->debug('preparing 3D form data');

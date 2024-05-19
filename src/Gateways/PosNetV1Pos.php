@@ -57,6 +57,8 @@ class PosNetV1Pos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {

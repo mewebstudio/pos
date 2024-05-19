@@ -10,8 +10,9 @@ require '_config.php';
 
 require '../../_templates/_header.php';
 
-$order = getNewOrder(
+$order = createPaymentOrder(
     $pos,
+    $paymentModel,
     $baseUrl,
     $ip,
     $request->get('currency', PosInterface::CURRENCY_TRY),
@@ -21,38 +22,44 @@ $order = getNewOrder(
 );
 $session->set('order', $order);
 
-/** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
-$eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
-    /**
-     * Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
-     * Ornek:
-     * if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
-     *     $data = $event->getRequestData();
-     *     $data['abcd'] = '1234';
-     *     $event->setRequestData($data);
-     * }
-     *
-     * Bu asamada bu Event sadece PosNet, PayFlexCPV4Pos, PayFlexV4Pos, KuveytPos gatewayler'de trigger edilir.
-     */
-});
+$formVerisiniOlusturmakIcinApiIstegiGonderenGatewayler = [
+    \Mews\Pos\Gateways\PosNet::class,
+    \Mews\Pos\Gateways\KuveytPos::class,
+    \Mews\Pos\Gateways\ToslaPos::class,
+    \Mews\Pos\Gateways\VakifKatilimPos::class,
+    \Mews\Pos\Gateways\PayFlexV4Pos::class,
+    \Mews\Pos\Gateways\PayFlexCPV4Pos::class,
+];
+if (in_array(get_class($pos), $formVerisiniOlusturmakIcinApiIstegiGonderenGatewayler, true)) {
+    /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
+    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
+//        // Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
+//        // Ornek:
+//        if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
+//            $data         = $event->getRequestData();
+//            $data['abcd'] = '1234';
+//            $event->setRequestData($data);
+//        }
+    });
+}
+
 
 /**
  * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
  */
 $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event) {
-    /**
-     * Örneğin İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
-     * $supportedPaymentModels = [
-     * \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY,
-     * \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY_HOSTING,
-     * \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
-     * ];
-     * if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
-     * $formInputs           = $event->getFormInputs();
-     * $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
-     * $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
-     * $event->setFormInputs($formInputs);
-     * }*/
+    // Örneğin İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
+//    $supportedPaymentModels = [
+//        \Mews\Pos\PosInterface::MODEL_3D_PAY,
+//        \Mews\Pos\PosInterface::MODEL_3D_PAY_HOSTING,
+//        \Mews\Pos\PosInterface::MODEL_3D_HOST,
+//    ];
+//    if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
+//        $formInputs           = $event->getFormInputs();
+//        $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
+//        $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
+//        $event->setFormInputs($formInputs);
+//    }
 });
 
 try {
