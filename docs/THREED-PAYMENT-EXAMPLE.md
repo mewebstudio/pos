@@ -2,7 +2,7 @@
 ### Örnek 3DSecure, 3DPay, 3DHost ödeme kodu
 
 3DSecure, 3DPay, 3DHost ödemeniz gereken kodlar arasında tek fark `$paymentModel` değeridir.
-```
+```php
 $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
 // veya
 // $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_PAY;
@@ -51,7 +51,7 @@ try {
     // GarantiPos ve KuveytPos'u test ortamda test edebilmek için zorunlu.
     $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
-    var_dump($e));
+    var_dump($e);
     exit;
 }
 ```
