@@ -386,8 +386,6 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
      * @param array<string, mixed> $rawResponseData
      *
      * @return array<string, mixed>
-     *
-     * @throws \Exception
      */
     public function mapSingleHistoryResponse(array $rawResponseData): array
     {

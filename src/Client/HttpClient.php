@@ -5,12 +5,12 @@
 
 namespace Mews\Pos\Client;
 
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
-use function http_build_query;
 
 /**
  * @phpstan-type PostPayload array{body?: array<string, string>|string, headers?: array<string, string>, form_params?: array<string, string>}
@@ -46,6 +46,8 @@ class HttpClient
      * @param array|null $payload
      *
      * @return ResponseInterface
+     *
+     * @throws ClientExceptionInterface
      */
     public function post(string $path, ?array $payload = []): ResponseInterface
     {
@@ -60,6 +62,8 @@ class HttpClient
      * @param array|null $payload
      *
      * @return ResponseInterface
+     *
+     * @throws ClientExceptionInterface
      */
     private function send(string $method, string $path, ?array $payload = []): ResponseInterface
     {
@@ -83,7 +87,7 @@ class HttpClient
             $body = null;
             if (isset($payload['form_params'])) {
                 $request         = $request->withHeader('Content-Type', 'application/x-www-form-urlencoded');
-                $payload['body'] = http_build_query($payload['form_params']);
+                $payload['body'] = \http_build_query($payload['form_params']);
             }
 
             if (isset($payload['body'])) {

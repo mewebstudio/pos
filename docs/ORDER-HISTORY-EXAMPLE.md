@@ -11,7 +11,8 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 require './vendor/autoload.php';
 
 // API kullanıcı bilgileri
-// AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
+// AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
+// /examples altındaki örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -94,7 +95,12 @@ $lastResponse = $session->get('last_response');
 
 $order = createOrderHistoryOrder(get_class($pos), $lastResponse);
 
-$pos->orderHistory($order);
+try {
+    $pos->orderHistory($order);
+} catch (\Error $e) {
+    var_dump($e);
+    exit;
+}
 $response = $pos->getResponse();
 var_dump($response);
 ```

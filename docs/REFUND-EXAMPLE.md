@@ -11,7 +11,8 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 require './vendor/autoload.php';
 
 // API kullanıcı bilgileri
-// AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
+// AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
+// /examples altındaki örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -59,7 +60,6 @@ function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip
         $refundOrder['transaction_id']  = $lastResponse['transaction_id'];
     } elseif (\Mews\Pos\Gateways\VakifKatilimPos::class === $gatewayClass) {
         $refundOrder['remote_order_id']  = $lastResponse['remote_order_id']; // banka tarafındaki order id
-        $refundOrder['amount']           = $lastResponse['amount'];
         // on otorizasyon islemin iadesi icin PosInterface::TX_TYPE_PAY_PRE_AUTH saglanmasi gerekiyor
         $refundOrder['transaction_type'] = $lastResponse['transaction_type'] ?? PosInterface::TX_TYPE_PAY_AUTH;
     } elseif (\Mews\Pos\Gateways\PayFlexV4Pos::class === $gatewayClass || \Mews\Pos\Gateways\PayFlexCPV4Pos::class === $gatewayClass) {
@@ -67,8 +67,7 @@ function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip
         $refundOrder['transaction_id'] = $lastResponse['transaction_id'];
     } elseif (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
         /**
-         * payment_model:
-         * siparis olusturulurken kullanilan odeme modeli
+         * payment_model: siparis olusturulurken kullanilan odeme modeli.
          * orderId'yi dogru şekilde formatlamak icin zorunlu.
          */
         $refundOrder['payment_model'] = $lastResponse['payment_model'];

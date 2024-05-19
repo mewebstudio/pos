@@ -11,6 +11,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 
 /**
@@ -116,6 +117,8 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      * @param CreditCardInterface|null             $creditCard
      *
      * @return array<string, string>
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function create3DEnrollmentCheckRequestData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null): array
     {

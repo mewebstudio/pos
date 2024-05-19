@@ -22,7 +22,8 @@ $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
 $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_PRE_AUTH;
 
 // API kullanıcı bilgileri
-// AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
+// AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
+// /examples altındaki örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -64,15 +65,20 @@ $order = [
     'amount'      => 1.01,
     'currency'    => \Mews\Pos\PosInterface::CURRENCY_TRY, //optional. default: TRY
     'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
-
-    // Success ve Fail URL'ler farklı olabilir ama kütüphane success ve fail için aynı kod çalıştırır.
-    // success_url ve fail_url'lerin aynı olmasın fayda var çünkü bazı gateyway'ler tek bir URL kabul eder.
-    'success_url' => 'https://example.com/response.php',
-    'fail_url'    => 'https://example.com/response.php',
-
-    //lang degeri verilmezse account (EstPosAccount) dili kullanılacak
+    // lang degeri verilmezse account (EstPosAccount) dili kullanılacak
     'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
+    if (in_array($paymentModel, [
+        PosInterface::MODEL_3D_SECURE,
+        PosInterface::MODEL_3D_PAY,
+        PosInterface::MODEL_3D_HOST,
+        PosInterface::MODEL_3D_PAY_HOSTING,
+    ], true)) {
+        // Success ve Fail URL'ler farklı olabilir ama kütüphane success ve fail için aynı kod çalıştırır.
+        // success_url ve fail_url'lerin aynı olmasın fayda var çünkü bazı gateyway'ler tek bir URL kabul eder.
+        $order['success_url'] = 'https://example.com/response.php';
+        $order['fail_url']    = 'https://example.com/response.php';
+    }
 
 
 $session->set('order', $order);
@@ -109,7 +115,7 @@ try {
         $transactionType,
         $card
     );
-} catch (\Throwable $e) {
+} catch (\Exception|\Error $e) {
     var_dump($e);
     exit;
 }
@@ -172,6 +178,9 @@ try  {
 } catch (\Mews\Pos\Exceptions\HashMismatchException $e) {
    // Bankadan gelen verilerin bankaya ait olmadığında bu exception oluşur.
    // Banka API bilgileriniz hatalı ise de oluşur.
+} catch (\Exception|\Error $e) {
+    var_dump($e);
+    exit;
 }
 ```
 
@@ -221,6 +230,9 @@ $order = createPostPayOrder(
     $postAuthAmount
 );
 
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR START
+// ============================================================================================
 /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
 $eventDispatcher->addListener(
     \Mews\Pos\Event\RequestDataPreparedEvent::class,
@@ -234,10 +246,14 @@ $eventDispatcher->addListener(
             }
         }
     });
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR END
+// ============================================================================================
+
 try {
     $pos->payment($paymentModel, $order, $transaction);
     var_dump($response);
-catch (\Exception $e) {
+} catch (\Exception|\Error $e) {
     var_dump($e);
     exit;
 }

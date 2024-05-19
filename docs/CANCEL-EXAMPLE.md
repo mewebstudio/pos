@@ -11,7 +11,8 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 require './vendor/autoload.php';
 
 // API kullanıcı bilgileri
-// AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
+// AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
+// /examples altındaki örnek kodlara bakınız.
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -69,8 +70,7 @@ function createCancelOrder(string $gatewayClass, array $lastResponse, string $ip
         $cancelOrder['transaction_id'] = $lastResponse['transaction_id'];
     } elseif (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
         /**
-         * payment_model:
-         * siparis olusturulurken kullanilan odeme modeli
+         * payment_model: siparis olusturulurken kullanilan odeme modeli.
          * orderId'yi dogru şekilde formatlamak icin zorunlu.
          */
         $cancelOrder['payment_model'] = $lastResponse['payment_model'];

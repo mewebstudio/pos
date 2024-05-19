@@ -16,6 +16,7 @@ use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -500,6 +501,8 @@ abstract class AbstractGateway implements PosInterface
      * @param non-empty-string            $url      URL address of the API
      *
      * @return array<string, mixed>
+     *
+     * @throws ClientExceptionInterface
      */
     abstract protected function send($contents, string $txType, string $paymentModel, string $url): array;
 

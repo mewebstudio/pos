@@ -452,8 +452,6 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
      * @param array<string, string|null> $rawTx
      *
      * @return array<string, int|string|null|float|bool|\DateTimeImmutable>
-     *
-     * @throws \Exception
      */
     private function mapSingleHistoryTransaction(array $rawTx): array
     {
@@ -469,8 +467,6 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
      * @param array<string, string|null> $rawTx
      *
      * @return array<string, int|string|null|float|bool|\DateTimeImmutable>
-     *
-     * @throws \Exception
      */
     private function mapSingleOrderHistoryTransaction(array $rawTx): array
     {

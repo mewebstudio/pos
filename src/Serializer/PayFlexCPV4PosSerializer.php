@@ -5,8 +5,7 @@
 
 namespace Mews\Pos\Serializer;
 
-use DomainException;
-use Exception;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
@@ -44,7 +43,9 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
     public function encode(array $data, string $txType)
     {
         if (PosInterface::TX_TYPE_HISTORY === $txType || PosInterface::TX_TYPE_ORDER_HISTORY === $txType || PosInterface::TX_TYPE_STATUS === $txType) {
-            throw new DomainException(\sprintf('Serialization of the transaction %s is not supported', $txType));
+            throw new UnsupportedTransactionTypeException(
+                \sprintf('Serialization of the transaction %s is not supported', $txType)
+            );
         }
 
         if (PosInterface::TX_TYPE_REFUND === $txType || PosInterface::TX_TYPE_CANCEL === $txType) {
@@ -64,7 +65,7 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
         } catch (NotEncodableValueException $notEncodableValueException) {
             if ($this->isHTML($data)) {
                 // if something wrong server responds with HTML content
-                throw new Exception($data, $notEncodableValueException->getCode(), $notEncodableValueException);
+                throw new \RuntimeException($data, $notEncodableValueException->getCode(), $notEncodableValueException);
             }
         }
 

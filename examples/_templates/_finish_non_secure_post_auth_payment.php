@@ -11,9 +11,8 @@ require '../../_templates/_header.php';
 
 /**
  * alttaki script
- * MODEL_NON_SECURE ve TX_TYPE_PAY_POST_AUTH odemede ise kredi bilgileri olmadan Ön Otorizasyon İşlemi tamamlar.
+ * MODEL_NON_SECURE ve TX_TYPE_PAY_POST_AUTH odemede kredi kart bilgileri olmadan Ön Otorizasyon İşlemi tamamlar.
  */
-// non secure odemede POST ile kredi kart bilgileri gelmesi bekleniyor.
 if (PosInterface::TX_TYPE_PAY_POST_AUTH !== $transaction) {
     echo new RedirectResponse($baseUrl);
     exit();

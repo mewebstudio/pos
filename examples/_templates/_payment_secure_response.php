@@ -20,7 +20,8 @@ require '../../_templates/_header.php';
 // 3D odemelerde gatewayden genelde POST istek bekleniyor.
 if (($request->getMethod() !== 'POST')
     // PayFlex-CP GET request ile cevapliyor
-    && ($request->getMethod() === 'GET' && [] === $request->query->all())
+    && ($request->getMethod() === 'GET'
+        && (get_class($pos) !== \Mews\Pos\Gateways\PayFlexCPV4Pos::class || [] === $request->query->all()))
 ) {
     echo new RedirectResponse($baseUrl);
     exit();
@@ -31,29 +32,37 @@ if (!$order) {
     throw new Exception('Sipariş bulunamadı, session sıfırlanmış olabilir.');
 }
 
-try {
-    /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
-    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($pos, $paymentModel) {
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR START
+// ============================================================================================
+/** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
+$eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($pos) {
 //         Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
 //         Ornek:
 //         $data = $event->getRequestData();
 //         $data['abcd'] = '1234';
 //         $event->setRequestData($data);
-        /**
-         * Bu asamada bu Event genellikle 1 kere trigger edilir.
-         * Bir tek PosNet MODEL_3D_SECURE odemede 2 kere API call'i yapildigi icin bu event 2 kere trigger edilir.
-         */
+    /**
+     * Bu asamada bu Event genellikle 1 kere trigger edilir.
+     * Bir tek PosNet MODEL_3D_SECURE odemede 2 kere API call'i yapildigi icin bu event 2 kere trigger edilir.
+     */
 
-        /**
-         * KOICode - 1: Ek Taksit 2: Taksit Atlatma 3: Ekstra Puan 4: Kontur Kazanım 5: Ekstre Erteleme 6: Özel Vade Farkı
-         */
-        if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos && $event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
-            // Albaraka PosNet KOICode ekleme
-            // $data            = $event->getRequestData();
-            // $data['KOICode'] = '1';
-            // $event->setRequestData($data);
-        }
-    });
+    /**
+     * KOICodes
+     * 1: Ek Taksit
+     * 2: Taksit Atlatma
+     * 3: Ekstra Puan
+     * 4: Kontur Kazanım
+     * 5: Ekstre Erteleme
+     * 6: Özel Vade Farkı
+     */
+    if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos && $event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
+        // Albaraka PosNet KOICode ekleme
+        // $data            = $event->getRequestData();
+        // $data['KOICode'] = '1';
+        // $event->setRequestData($data);
+    }
+});
 
 
 //    //Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği
@@ -66,16 +75,21 @@ try {
 //        }
 //    });
 
-    $card = null;
-    if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
-        // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
-        $savedCard = $session->get('card');
-        $card      = createCard($pos, $savedCard);
-    }
+$card = null;
+if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
+    // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
+    $savedCard = $session->get('card');
+    $card      = createCard($pos, $savedCard);
+}
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR END
+// ============================================================================================
+
+try {
     doPayment($pos, $paymentModel, $transaction, $order, $card);
 } catch (HashMismatchException $e) {
     dd($e);
-} catch (Exception $e) {
+} catch (\Exception|\Error $e) {
     dd($e);
 }
 $response = $pos->getResponse();

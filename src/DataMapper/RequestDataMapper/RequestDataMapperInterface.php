@@ -71,6 +71,8 @@ interface RequestDataMapperInterface
      * @param CreditCardInterface|null             $creditCard
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array;
 
@@ -83,6 +85,8 @@ interface RequestDataMapperInterface
      * @param array<string, mixed>                 $responseData gateway'den gelen cevap
      *
      * @return array<string, mixed>
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function create3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData): array;
 
@@ -95,6 +99,8 @@ interface RequestDataMapperInterface
      * @param CreditCardInterface                  $creditCard
      *
      * @return array<string, mixed>
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array;
 
@@ -103,6 +109,8 @@ interface RequestDataMapperInterface
      * @param array<string, string|int|float|null> $order
      *
      * @return array<string, mixed>
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $posAccount, array $order): array;
 
@@ -111,6 +119,8 @@ interface RequestDataMapperInterface
      * @param array<string, string|int|float|null> $order
      *
      * @return array<string, mixed>
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function createStatusRequestData(AbstractPosAccount $posAccount, array $order): array;
 
@@ -119,6 +129,8 @@ interface RequestDataMapperInterface
      * @param array<string, string|int|float|null> $order
      *
      * @return array<string, mixed>
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function createCancelRequestData(AbstractPosAccount $posAccount, array $order): array;
 
@@ -127,6 +139,8 @@ interface RequestDataMapperInterface
      * @param array<string, string|int|float|null> $order
      *
      * @return array<string, mixed>
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array;
 
@@ -135,6 +149,8 @@ interface RequestDataMapperInterface
      * @param array<string, string|int|float|null> $order
      *
      * @return array<string, mixed>
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function createOrderHistoryRequestData(AbstractPosAccount $posAccount, array $order): array;
 
@@ -143,6 +159,8 @@ interface RequestDataMapperInterface
      * @param array<string, mixed> $data bankaya gore degisen ozel degerler
      *
      * @return array<string, mixed>
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array;
 }

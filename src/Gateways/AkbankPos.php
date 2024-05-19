@@ -174,6 +174,8 @@ class AkbankPos extends AbstractGateway
      * @inheritDoc
      *
      * @return array<string, mixed>
+     *
+     * @throws \RuntimeException thrown when we get HTTP 400 error
      */
     protected function send($contents, string $txType, string $paymentModel, string $url): array
     {

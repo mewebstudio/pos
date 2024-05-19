@@ -5,7 +5,6 @@
 
 namespace Mews\Pos\Gateways;
 
-use Exception;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
@@ -17,6 +16,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -63,6 +63,8 @@ class VakifKatilimPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
@@ -151,6 +153,8 @@ class VakifKatilimPos extends AbstractGateway
      * @inheritDoc
      *
      * @return array<string, mixed>
+     *
+     * @throws UnsupportedTransactionTypeException
      */
     protected function send($contents, string $txType, string $paymentModel, string $url = null): array
     {
@@ -182,7 +186,8 @@ class VakifKatilimPos extends AbstractGateway
      *
      * @return array{gateway: string, form_inputs: array<string, string>}
      *
-     * @throws Exception
+     * @throws UnsupportedTransactionTypeException
+     * @throws ClientExceptionInterface
      */
     private function sendEnrollmentRequest(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {
