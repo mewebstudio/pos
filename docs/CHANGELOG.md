@@ -1,4 +1,13 @@
 # Changelog
+## [1.2.0] - 2024-05-19
+
+### New Features
+- **EstPos** TROY kart desteği eklendi. (issue #205)
+
+### Changed
+- Symfony v4 ve v7 desteği eklendi
+- Atılan exception'lar daha spesifik olacak şekilde refactor edildi.
+
 ## [1.1.0] - 2024-04-26
 
 ### New Features
