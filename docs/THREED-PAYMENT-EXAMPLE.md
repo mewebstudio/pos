@@ -17,28 +17,37 @@ $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 **config.php (Ayar dosyası)**
 ```php
 <?php
+
+use Mews\Pos\Exceptions\BankClassNullException;
+use Mews\Pos\Exceptions\BankNotFoundException;
+use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\PosInterface;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage;
+
 require './vendor/autoload.php';
 
-$sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
+$sessionHandler = new NativeSessionStorage([
     'cookie_samesite' => 'None',
     'cookie_secure' => true,
 ]);
-$session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
+$session        = new Session($sessionHandler);
 $session->start();
 
-$paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
-$transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
+$paymentModel = PosInterface::MODEL_3D_SECURE;
+$transactionType = PosInterface::TX_TYPE_PAY_AUTH;
 
 // API kullanıcı bilgileri
 // AccountFactory'de kullanılacak method Gateway'e göre değişir. Örnek kodlara bakınız.
-$account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
+$account = AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
     'yourKullaniciAdi',
     'yourSifre',
     $paymentModel,
     'yourStoreKey',
-    \Mews\Pos\PosInterface::LANG_TR
+    PosInterface::LANG_TR
 );
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
@@ -46,11 +55,11 @@ $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
 try {
     $config = require __DIR__.'/pos_test_ayarlar.php';
 
-    $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher);
+    $pos = PosFactory::createPosGateway($account, $config, $eventDispatcher);
 
     // GarantiPos ve KuveytPos'u test ortamda test edebilmek için zorunlu.
     $pos->setTestMode(true);
-} catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
+} catch (BankNotFoundException | BankClassNullException $e) {
     var_dump($e);
     exit;
 }
