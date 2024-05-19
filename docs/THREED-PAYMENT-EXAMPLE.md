@@ -239,7 +239,7 @@ try {
         $transactionType,
         $card
     );
-} catch (Throwable $e) {
+} catch (\Exception|\Error $e) {
     var_dump($e);
     exit;
 }
