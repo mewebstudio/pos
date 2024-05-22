@@ -257,26 +257,7 @@ $pos = \Mews\Pos\Factory\PosFactory::createPosGateway(
 
 ## Genel Kultur
 
-### NonSecure, 3D Secure, 3DPay ve 3DHost ödeme modeller arasındaki farklar
-
-- **3DSecure** - Bankaya göre farklı isimler verilebilir, örn. 3D Full.
-  Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödemeyi tamamlamak
-  için
-  banka gateway'ne 1 istek daha (_provizyon_ isteği) gönderir.
-  Bu isteği göndermeden ödeme **tamamlanmaz**.
-- **3DPay** - Bankaya göre farklı isimler verilebilir, örn. 3D Half.
-  Gateway'den (3D şifre girdiginiz sayfadan) döndükten sonra ödeme bitmiş
-  sayılır.
-  3DSecure ödemede yapıldığı gibi ekstra provizyon istek gönderilmez.
-- **3DHost** - Kredi kart girişi için kullanıcı bankanın sayfasına yönledirilir,
-  kredi kart bilgileri girdikten sonra bankanın 3D gateway sayfasına
-  yönlendirilir,
-  ordan da websitenize geri yönlendirilir. Yönlendirme sonucunda ödeme
-  tamanlanmış olur.
-- **NonSecure** - Ödeme işlemi kullanıcı 3D onay işlemi yapmadan gerçekleşir.
-- **NonSecure, 3DSecure ve 3DPay** - Ödemede kredi kart bilgisi websiteniz
-  tarafından alınır.
-  **3DHost** ödemede ise banka websayfasından alınır.
+Ödeme modelleri hakkında bilgi edinmek istiyorsanız [bu makaleyi](https://medium.com/p/fa5cd016999c) inceleyebilirsiniz.
 
 ### Otorizasyon, Ön Otorizasyon, Ön Provizyon Kapama İşlemler arasındaki farklar
 
