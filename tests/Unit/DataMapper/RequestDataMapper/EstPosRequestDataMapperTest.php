@@ -52,7 +52,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'TRPS0200'
         );
 
-        $this->order = [
+        $this->order      = [
             'id'          => 'order222',
             'ip'          => '127.0.0.1',
             'amount'      => '100.25',
@@ -63,7 +63,7 @@ class EstPosRequestDataMapperTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $this->crypt = $this->createMock(CryptInterface::class);
+        $this->crypt      = $this->createMock(CryptInterface::class);
 
         $this->requestDataMapper = new EstPosRequestDataMapper($this->dispatcher, $this->crypt);
         $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
@@ -480,7 +480,7 @@ class EstPosRequestDataMapperTest extends TestCase
     public static function postAuthRequestDataProvider(): array
     {
         return [
-            'without_amount' => [
+            'without_amount'       => [
                 'order'    => [
                     'id' => '2020110828BC',
                 ],
@@ -493,7 +493,7 @@ class EstPosRequestDataMapperTest extends TestCase
                     'Total'    => null,
                 ],
             ],
-            'with_amount'    => [
+            'with_amount'          => [
                 'order'    => [
                     'id'     => '2020110828BC',
                     'amount' => 1.0,
@@ -505,6 +505,24 @@ class EstPosRequestDataMapperTest extends TestCase
                     'Type'     => 'PostAuth',
                     'OrderId'  => '2020110828BC',
                     'Total'    => 1.0,
+                ],
+            ],
+            'with_pre_auth_amount' => [
+                'order'    => [
+                    'id'              => '2020110828BC',
+                    'amount'          => 1.1,
+                    'pre_auth_amount' => 1.0,
+                ],
+                'expected' => [
+                    'Name'     => 'ISBANKAPI',
+                    'Password' => 'ISBANK07',
+                    'ClientId' => '700655000200',
+                    'Type'     => 'PostAuth',
+                    'OrderId'  => '2020110828BC',
+                    'Total'    => 1.1,
+                    'Extra'    => [
+                        'PREAMT' => 1.0,
+                    ],
                 ],
             ],
         ];

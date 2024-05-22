@@ -11,10 +11,11 @@ $templateTitle = 'Post Auth Order (ön provizyonu kapama)';
 function createPostPayOrder(string $gatewayClass, array $lastResponse, string $ip, ?float $postAuthAmount = null): array
 {
     $postAuth = [
-        'id'       => $lastResponse['order_id'],
-        'amount'   => $postAuthAmount ?? $lastResponse['amount'],
-        'currency' => $lastResponse['currency'],
-        'ip'       => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
+        'id'              => $lastResponse['order_id'],
+        'amount'          => $postAuthAmount ?? $lastResponse['amount'],
+        'pre_auth_amount' => $lastResponse['amount'], // amount > pre_auth_amount durumlar icin kullanilir
+        'currency'        => $lastResponse['currency'],
+        'ip'              => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
 
     if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
@@ -32,7 +33,7 @@ $lastResponse = $session->get('last_response');
 
 $preAuthAmount = $lastResponse['amount'];
 // otorizasyon kapama amount'u ön otorizasyon amount'tan daha fazla olabilir.
-$postAuthAmount = $lastResponse['amount'] + 0.02;
+$postAuthAmount = $lastResponse['amount'] + 0.20;
 $gatewayClass = get_class($pos);
 
 $order = createPostPayOrder(
@@ -41,20 +42,6 @@ $order = createPostPayOrder(
     $ip,
     $postAuthAmount
 );
-
-// ($preAuthAmount < $postAuthAmount) durumda API isteğe ekstra değerler eklenmesi gerekiyor.
-/** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
-$eventDispatcher->addListener(
-    \Mews\Pos\Event\RequestDataPreparedEvent::class,
-    function (\Mews\Pos\Event\RequestDataPreparedEvent $event) use ($preAuthAmount, $postAuthAmount) {
-        if (\Mews\Pos\Gateways\EstPos::class === $event->getGatewayClass() || \Mews\Pos\Gateways\EstV3Pos::class === $event->getGatewayClass()) {
-            if ($preAuthAmount < $postAuthAmount) {
-                $requestData                    = $event->getRequestData();
-                $requestData['Extra']['PREAMT'] = $preAuthAmount;
-                $event->setRequestData($requestData);
-            }
-        }
-    });
 
 $transaction = PosInterface::TX_TYPE_PAY_POST_AUTH;
 

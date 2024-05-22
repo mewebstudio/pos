@@ -185,20 +185,20 @@ class EstV3PosTest extends TestCase
      */
     public function testNonSecurePostPaymentSuccessWithMoreAmount(array $lastResponse): array
     {
-        $order           = $this->createPostPayOrder(\get_class($this->pos), $lastResponse);
-        $preAuthAmount   = $order['amount'];
-        // deduct more money than in pre auth request
-        $order['amount'] += 0.05;
+        $order           = $this->createPostPayOrder(
+            \get_class($this->pos),
+            $lastResponse,
+            // deduct more money than in pre auth request
+            $lastResponse['amount'] + 0.20,
+        );
+
         $eventIsThrown   = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown, $preAuthAmount): void {
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_POST_AUTH, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-                $requestData                    = $requestDataPreparedEvent->getRequestData();
-                $requestData['Extra']['PREAMT'] = $preAuthAmount;
-                $requestDataPreparedEvent->setRequestData($requestData);
+                $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
             });
 
         $this->pos->payment(
@@ -207,8 +207,9 @@ class EstV3PosTest extends TestCase
             PosInterface::TX_TYPE_PAY_POST_AUTH
         );
 
-        $this->assertTrue($this->pos->isSuccess());
         $response = $this->pos->getResponse();
+        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? null);
+
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
