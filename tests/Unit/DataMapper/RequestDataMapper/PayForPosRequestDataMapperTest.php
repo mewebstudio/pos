@@ -10,10 +10,12 @@ use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -36,6 +38,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     private array $order;
 
     private array $config;
+
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
 
     protected function setUp(): void
     {
@@ -62,11 +67,11 @@ class PayForPosRequestDataMapperTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $this->crypt = $this->createMock(CryptInterface::class);
-        $dispatcher  = $this->createMock(EventDispatcherInterface::class);
-        $pos         = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
+        $this->crypt      = $this->createMock(CryptInterface::class);
+        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $pos              = PosFactory::createPosGateway($this->account, $this->config, $this->dispatcher);
 
-        $this->requestDataMapper = new PayForPosRequestDataMapper($dispatcher, $this->crypt);
+        $this->requestDataMapper = new PayForPosRequestDataMapper($this->dispatcher, $this->crypt);
         $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet');
     }
 
@@ -229,6 +234,15 @@ class PayForPosRequestDataMapperTest extends TestCase
             ->method('generateRandomString')
             ->willReturn($expected['inputs']['Rnd']);
 
+        $this->dispatcher->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $paymentModel) {
+                return $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+                    && PayForPos::class === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
+                    && count($dispatchedEvent->getFormInputs()) > 3;
+            }));
 
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,

@@ -11,6 +11,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -605,5 +606,15 @@ class GarantiPosTest extends TestCase
                 'body' => $encodedRequestData,
             ],
         );
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    ;
+            }));
     }
 }

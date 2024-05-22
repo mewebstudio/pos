@@ -315,6 +315,8 @@ class AkbankPosTest extends TestCase
                 ->method('encode');
             $this->serializerMock->expects(self::never())
                 ->method('decode');
+            $this->eventDispatcherMock->expects(self::never())
+                ->method('dispatch');
         }
 
         $this->pos->make3DPayment($request, $order, $txType);
@@ -433,10 +435,6 @@ class AkbankPosTest extends TestCase
             ->method('createOrderHistoryRequestData')
             ->with($account, $order)
             ->willReturn($requestData);
-
-        $this->eventDispatcherMock->expects(self::once())
-            ->method('dispatch')
-            ->with($this->logicalAnd($this->isInstanceOf(RequestDataPreparedEvent::class)));
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapOrderHistoryResponse')
@@ -883,5 +881,15 @@ class AkbankPosTest extends TestCase
             ],
             $statusCode
         );
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    ;
+            }));
     }
 }

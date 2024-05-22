@@ -46,8 +46,8 @@ $order = createPostPayOrder(
 /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
 $eventDispatcher->addListener(
     \Mews\Pos\Event\RequestDataPreparedEvent::class,
-    function (\Mews\Pos\Event\RequestDataPreparedEvent $event) use ($gatewayClass, $preAuthAmount, $postAuthAmount) {
-        if (\Mews\Pos\Gateways\EstPos::class === $gatewayClass || \Mews\Pos\Gateways\EstV3Pos::class === $gatewayClass) {
+    function (\Mews\Pos\Event\RequestDataPreparedEvent $event) use ($preAuthAmount, $postAuthAmount) {
+        if (\Mews\Pos\Gateways\EstPos::class === $event->getGatewayClass() || \Mews\Pos\Gateways\EstV3Pos::class === $event->getGatewayClass()) {
             if ($preAuthAmount < $postAuthAmount) {
                 $requestData                    = $event->getRequestData();
                 $requestData['Extra']['PREAMT'] = $preAuthAmount;

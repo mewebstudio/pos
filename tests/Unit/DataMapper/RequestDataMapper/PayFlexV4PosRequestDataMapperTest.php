@@ -34,6 +34,9 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
+
     private array $order;
 
     protected function setUp(): void
@@ -61,11 +64,11 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos        = PosFactory::createPosGateway($this->account, $config, $dispatcher);
+        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $pos              = PosFactory::createPosGateway($this->account, $config, $this->dispatcher);
 
         $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new PayFlexV4PosRequestDataMapper($dispatcher, $this->crypt);
+        $this->requestDataMapper = new PayFlexV4PosRequestDataMapper($this->dispatcher, $this->crypt);
         $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
@@ -232,6 +235,10 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     public function testCreate3DFormData(): void
     {
         $expectedValue = $this->getSample3DFormDataFromEnrollmentResponse();
+
+        $this->dispatcher->expects(self::never())
+            ->method('dispatch');
+
         $actualData    = $this->requestDataMapper->create3DFormData(
             null,
             null,

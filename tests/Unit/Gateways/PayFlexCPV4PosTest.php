@@ -14,6 +14,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -308,6 +309,8 @@ class PayFlexCPV4PosTest extends TestCase
                 ->method('encode');
             $this->serializerMock->expects(self::never())
                 ->method('decode');
+            $this->eventDispatcherMock->expects(self::never())
+                ->method('dispatch');
         }
 
         $this->pos->make3DPayPayment($request, $order, $txType);
@@ -584,5 +587,15 @@ class PayFlexCPV4PosTest extends TestCase
             $apiUrl,
             is_string($encodedRequestData) ? ['body' => $encodedRequestData] : ['form_params' => $encodedRequestData],
         );
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    ;
+            }));
     }
 }

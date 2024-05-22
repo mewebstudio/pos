@@ -13,6 +13,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -492,9 +493,6 @@ class PayFlexV4PosTest extends TestCase
         ];
     }
 
-
-
-
     public static function makeRegularPaymentDataProvider(): array
     {
         return [
@@ -638,5 +636,15 @@ class PayFlexV4PosTest extends TestCase
                 'form_params' => is_string($encodedRequestData) ? ['prmstr' => $encodedRequestData] : $encodedRequestData
             ]
         );
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    ;
+            }));
     }
 }

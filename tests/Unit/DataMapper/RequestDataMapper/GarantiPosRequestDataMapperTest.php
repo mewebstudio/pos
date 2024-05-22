@@ -9,6 +9,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -16,6 +17,7 @@ use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
@@ -34,6 +36,9 @@ class GarantiPosRequestDataMapperTest extends TestCase
     private array $order;
 
     private $config;
+
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
 
     protected function setUp(): void
     {
@@ -64,11 +69,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'ip'          => '156.155.154.153',
         ];
 
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos        = PosFactory::createPosGateway($this->account, $this->config, $dispatcher);
+        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $pos              = PosFactory::createPosGateway($this->account, $this->config, $this->dispatcher);
 
         $crypt                   = CryptFactory::createGatewayCrypt(GarantiPos::class, new NullLogger());
-        $this->requestDataMapper = new GarantiPosRequestDataMapper($dispatcher, $crypt);
+        $this->requestDataMapper = new GarantiPosRequestDataMapper($this->dispatcher, $crypt);
         $this->requestDataMapper->setTestMode(true);
 
         $this->card = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet');
@@ -237,15 +242,29 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'gateway' => $gatewayURL,
         ];
 
-        //test without card
-        $this->assertEquals($form, $this->requestDataMapper->create3DFormData(
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $this->dispatcher->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $paymentModel) {
+                return $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+                    && GarantiPos::class === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
+                    && count($dispatchedEvent->getFormInputs()) > 3;
+            }));
+
+        $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
             $this->order,
-            PosInterface::MODEL_3D_SECURE,
-            PosInterface::TX_TYPE_PAY_AUTH,
+            $paymentModel,
+            $txType,
             $gatewayURL,
             $this->card
-        ));
+        );
+
+        //test without card
+        $this->assertEquals($form, $actual);
     }
 
     /**

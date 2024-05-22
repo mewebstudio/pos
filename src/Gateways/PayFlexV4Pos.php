@@ -78,7 +78,12 @@ class PayFlexV4Pos extends AbstractGateway
         // NOT: diger gatewaylerden farkli olarak payflex kredit bilgilerini bu asamada da istiyor.
         $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $requestData, $creditCard);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this)
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -213,7 +218,12 @@ class PayFlexV4Pos extends AbstractGateway
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $creditCard);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this)
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [

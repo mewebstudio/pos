@@ -10,6 +10,7 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -243,7 +244,13 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
 
         $data = $this->create3DFormDataCommon($posAccount, $preparedOrder, $paymentModel, $txType, $gatewayURL, $creditCard);
 
-        $event = new Before3DFormHashCalculatedEvent($data['inputs'], $posAccount->getBank(), $txType, $paymentModel);
+        $event = new Before3DFormHashCalculatedEvent(
+            $data['inputs'],
+            $posAccount->getBank(),
+            $txType,
+            $paymentModel,
+            EstPos::class
+        );
         $this->eventDispatcher->dispatch($event);
         $data['inputs'] = $event->getFormInputs();
 

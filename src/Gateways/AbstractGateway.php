@@ -230,7 +230,12 @@ abstract class AbstractGateway implements PosInterface
             throw new LogicException(\sprintf('Invalid transaction type "%s" provided', $txType));
         }
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this)
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -267,7 +272,12 @@ abstract class AbstractGateway implements PosInterface
 
         $requestData = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this)
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -299,7 +309,12 @@ abstract class AbstractGateway implements PosInterface
         $txType      = PosInterface::TX_TYPE_REFUND;
         $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this)
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -335,7 +350,12 @@ abstract class AbstractGateway implements PosInterface
         $txType      = PosInterface::TX_TYPE_CANCEL;
         $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this)
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -371,7 +391,12 @@ abstract class AbstractGateway implements PosInterface
         $txType      = PosInterface::TX_TYPE_STATUS;
         $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this)
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -403,7 +428,12 @@ abstract class AbstractGateway implements PosInterface
         $txType      = PosInterface::TX_TYPE_HISTORY;
         $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $data);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this)
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -435,7 +465,12 @@ abstract class AbstractGateway implements PosInterface
         $txType      = PosInterface::TX_TYPE_ORDER_HISTORY;
         $requestData = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this)
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [

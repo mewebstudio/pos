@@ -11,6 +11,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -189,9 +190,6 @@ class VakifKatilimTest extends TestCase
             'bank-api-html-response',
             $decodedResponse,
         );
-
-        $this->eventDispatcherMock->expects(self::once())
-            ->method('dispatch');
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DEnrollmentCheckRequestData')
@@ -805,5 +803,15 @@ class VakifKatilimTest extends TestCase
                 ],
             ],
         );
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    ;
+            }));
     }
 }

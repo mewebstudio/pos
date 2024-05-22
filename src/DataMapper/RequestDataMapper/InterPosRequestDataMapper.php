@@ -9,6 +9,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -228,7 +229,13 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             $inputs['Cvv2']     = $creditCard->getCvv();
         }
 
-        $event = new Before3DFormHashCalculatedEvent($inputs, $posAccount->getBank(), $txType, $paymentModel);
+        $event = new Before3DFormHashCalculatedEvent(
+            $inputs,
+            $posAccount->getBank(),
+            $txType,
+            $paymentModel,
+            InterPos::class
+        );
         $this->eventDispatcher->dispatch($event);
         $inputs = $event->getFormInputs();
 

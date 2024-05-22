@@ -21,21 +21,28 @@ class RequestDataPreparedEvent
     /** @var PosInterface::TX_TYPE_* */
     private string $txType;
 
+    /** @var class-string<PosInterface> */
+    private string $gatewayClass;
+
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
+     * @phpstan-param PosInterface::TX_TYPE_*    $txType
+     * @phpstan-param class-string<PosInterface> $gatewayClass
      *
      * @param array<string, mixed> $requestData
      * @param string               $bank
      * @param string               $txType
+     * @param string               $gatewayClass
      */
     public function __construct(
         array  $requestData,
         string $bank,
-        string $txType
+        string $txType,
+        string $gatewayClass
     ) {
-        $this->requestData = $requestData;
-        $this->bank        = $bank;
-        $this->txType = $txType;
+        $this->requestData  = $requestData;
+        $this->bank         = $bank;
+        $this->txType       = $txType;
+        $this->gatewayClass = $gatewayClass;
     }
 
     /**
@@ -72,5 +79,13 @@ class RequestDataPreparedEvent
     public function getBank(): string
     {
         return $this->bank;
+    }
+
+    /**
+     * @return class-string<PosInterface>
+     */
+    public function getGatewayClass(): string
+    {
+        return $this->gatewayClass;
     }
 }

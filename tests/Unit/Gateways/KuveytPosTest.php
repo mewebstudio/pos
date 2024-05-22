@@ -11,6 +11,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -204,9 +205,6 @@ class KuveytPosTest extends TestCase
             ['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url'],
         );
 
-        $this->eventDispatcherMock->expects(self::once())
-            ->method('dispatch');
-
         $this->requestMapperMock->expects(self::once())
             ->method('create3DEnrollmentCheckRequestData')
             ->with(
@@ -282,6 +280,16 @@ class KuveytPosTest extends TestCase
                     ],
                 ]
             );
+
+            $this->eventDispatcherMock->expects(self::once())
+                ->method('dispatch')
+                ->with($this->callback(function ($dispatchedEvent) use ($txType, $create3DPaymentRequestData) {
+                    return $dispatchedEvent instanceof RequestDataPreparedEvent
+                        && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
+                        ;
+                }));
 
             $this->serializerMock->expects(self::once())
                 ->method('encode')
@@ -536,5 +544,15 @@ class KuveytPosTest extends TestCase
             ],
             $statusCode
         );
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    ;
+            }));
     }
 }

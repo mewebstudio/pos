@@ -17,6 +17,7 @@ use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
@@ -31,6 +32,9 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
 
     private PayFlexCPV4PosRequestDataMapper $requestDataMapper;
 
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -43,8 +47,9 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             PosInterface::MODEL_3D_SECURE
         );
 
+        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
         $crypt                   = CryptFactory::createGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
-        $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
+        $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($this->dispatcher, $crypt);
     }
 
     /**
@@ -140,6 +145,9 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DFormData(array $queryParams, array $expected): void
     {
+        $this->dispatcher->expects(self::never())
+            ->method('dispatch');
+
         $actualData = $this->requestDataMapper->create3DFormData(
             null,
             null,

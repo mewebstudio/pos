@@ -30,6 +30,9 @@ class ToslaPosRequestDataMapperTest extends TestCase
     /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
+
     private ToslaPosRequestDataMapper $requestDataMapper;
 
     protected function setUp(): void
@@ -45,11 +48,11 @@ class ToslaPosRequestDataMapperTest extends TestCase
             'POS_ENT_Test_001!*!*',
         );
 
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos        = PosFactory::createPosGateway($this->account, $config, $dispatcher);
+        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $pos              = PosFactory::createPosGateway($this->account, $config, $this->dispatcher);
 
         $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new ToslaPosRequestDataMapper($dispatcher, $this->crypt);
+        $this->requestDataMapper = new ToslaPosRequestDataMapper($this->dispatcher, $this->crypt);
         $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
@@ -199,6 +202,9 @@ class ToslaPosRequestDataMapperTest extends TestCase
 
         $this->crypt->expects(self::never())
             ->method('generateRandomString');
+
+        $this->dispatcher->expects(self::never())
+            ->method('dispatch');
 
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,

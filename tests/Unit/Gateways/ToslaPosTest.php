@@ -311,10 +311,6 @@ class ToslaPosTest extends TestCase
             ->with($account, $order)
             ->willReturn($requestData);
 
-        $this->eventDispatcherMock->expects(self::once())
-            ->method('dispatch')
-            ->with($this->logicalAnd($this->isInstanceOf(RequestDataPreparedEvent::class)));
-
         $this->responseMapperMock->expects(self::once())
             ->method('mapStatusResponse')
             ->with($decodedResponse)
@@ -355,10 +351,6 @@ class ToslaPosTest extends TestCase
             ->with($this->pos->getAccount(), $order)
             ->willReturn($requestData);
 
-        $this->eventDispatcherMock->expects(self::once())
-            ->method('dispatch')
-            ->with($this->logicalAnd($this->isInstanceOf(RequestDataPreparedEvent::class)));
-
         $this->responseMapperMock->expects(self::once())
             ->method('mapCancelResponse')
             ->with($decodedResponse)
@@ -397,10 +389,6 @@ class ToslaPosTest extends TestCase
             ->method('createRefundRequestData')
             ->with($this->pos->getAccount(), $order)
             ->willReturn($requestData);
-
-        $this->eventDispatcherMock->expects(self::once())
-            ->method('dispatch')
-            ->with($this->logicalAnd($this->isInstanceOf(RequestDataPreparedEvent::class)));
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapRefundResponse')
@@ -449,10 +437,6 @@ class ToslaPosTest extends TestCase
             ->method('createOrderHistoryRequestData')
             ->with($account, $order)
             ->willReturn($requestData);
-
-        $this->eventDispatcherMock->expects(self::once())
-            ->method('dispatch')
-            ->with($this->logicalAnd($this->isInstanceOf(RequestDataPreparedEvent::class)));
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapOrderHistoryResponse')
@@ -888,5 +872,15 @@ class ToslaPosTest extends TestCase
                 'body'    => $encodedRequestData,
             ],
         );
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    ;
+            }));
     }
 }

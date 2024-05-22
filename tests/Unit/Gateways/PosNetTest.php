@@ -14,6 +14,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -283,6 +284,24 @@ class PosNetTest extends TestCase
                     ],
                 ]
             );
+
+            $this->eventDispatcherMock->expects(self::exactly(2))
+                ->method('dispatch')
+                // could not find another way expect using deprecated withConsecutive() function
+                ->withConsecutive(
+                    [$this->callback(function ($dispatchedEvent) use ($txType, $resolveMerchantRequestData) {
+                        return $dispatchedEvent instanceof RequestDataPreparedEvent
+                            && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                            && $txType === $dispatchedEvent->getTxType()
+                            && $resolveMerchantRequestData === $dispatchedEvent->getRequestData();
+                    })],
+                    [$this->callback(function ($dispatchedEvent) use ($txType, $create3DPaymentRequestData) {
+                        return $dispatchedEvent instanceof RequestDataPreparedEvent
+                            && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                            && $txType === $dispatchedEvent->getTxType()
+                            && $create3DPaymentRequestData === $dispatchedEvent->getRequestData();
+                    })]
+                );
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
@@ -642,5 +661,15 @@ class PosNetTest extends TestCase
                 'body'    => \sprintf('xmldata=%s', $encodedRequestData),
             ],
         );
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    ;
+            }));
     }
 }

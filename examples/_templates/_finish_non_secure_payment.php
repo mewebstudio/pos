@@ -22,7 +22,7 @@ if (($request->getMethod() !== 'POST')) {
 // OZEL DURUMLAR ICIN KODLAR START
 // ============================================================================================
 /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
-$eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($pos) {
+$eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
 //         Burda istek banka API'na gonderilmeden once gonderilecek veriyi degistirebilirsiniz.
 //         Ornek:
 //         $data = $event->getRequestData();
@@ -38,13 +38,13 @@ $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (Request
      * 5: Ekstre Erteleme
      * 6: Özel Vade Farkı
      */
-    if ($pos instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
+    if ($event->getGatewayClass() instanceof \Mews\Pos\Gateways\PosNetV1Pos) {
         // Albaraka PosNet KOICode ekleme
         // $data            = $event->getRequestData();
         // $data['KOICode'] = '1';
         // $event->setRequestData($data);
     }
-    if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
+    if ($event->getGatewayClass() instanceof \Mews\Pos\Gateways\PosNet) {
         // Yapikredi PosNet KOICode ekleme
         // $data            = $event->getRequestData();
         // $data['sale']['koiCode'] = '1';

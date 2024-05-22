@@ -15,6 +15,7 @@ use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
@@ -30,6 +31,9 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
 
     private VakifKatilimPosRequestDataMapper $requestDataMapper;
 
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -42,7 +46,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
             'kdsnsksl',
         );
 
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
 
         $this->card = CreditCardFactory::create(
             '4155650100416111',
@@ -53,7 +57,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
         );
 
         $crypt                   = CryptFactory::createGatewayCrypt(VakifKatilimPos::class, new NullLogger());
-        $this->requestDataMapper = new VakifKatilimPosRequestDataMapper($dispatcher, $crypt);
+        $this->requestDataMapper = new VakifKatilimPosRequestDataMapper($this->dispatcher, $crypt);
     }
 
     /**

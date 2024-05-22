@@ -9,6 +9,7 @@ use InvalidArgumentException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -16,9 +17,10 @@ use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper
@@ -30,6 +32,9 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     private PosNetV1PosRequestDataMapper $requestDataMapper;
 
     private PosNetAccount $account;
+
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
 
     protected function setUp(): void
     {
@@ -46,13 +51,13 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
-        $dispatcher = new EventDispatcher();
-        $pos = PosFactory::createPosGateway($this->account, $config, $dispatcher);
+        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $pos              = PosFactory::createPosGateway($this->account, $config, $this->dispatcher);
 
         $this->card = CreditCardFactory::createForGateway($pos, '5400619360964581', '20', '01', '056', 'ahmet');
 
         $crypt                   = CryptFactory::createGatewayCrypt(PosNetV1Pos::class, new NullLogger());
-        $this->requestDataMapper = new PosNetV1PosRequestDataMapper($dispatcher, $crypt);
+        $this->requestDataMapper = new PosNetV1PosRequestDataMapper($this->dispatcher, $crypt);
     }
 
     /**
@@ -182,10 +187,21 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DFormData(array $order, string $txType, string $gatewayUrl, array $expected): void
     {
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $this->dispatcher->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $paymentModel) {
+                return $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+                    && PosNetV1Pos::class === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
+                    && count($dispatchedEvent->getFormInputs()) > 3;
+            }));
+
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
             $order,
-            PosInterface::MODEL_3D_SECURE,
+            $paymentModel,
             $txType,
             $gatewayUrl,
             $this->card
