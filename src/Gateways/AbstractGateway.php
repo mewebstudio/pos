@@ -234,7 +234,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData,
             $this->account->getBank(),
             $txType,
-            \get_class($this)
+            \get_class($this),
+            $order
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
@@ -276,7 +277,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData,
             $this->account->getBank(),
             $txType,
-            \get_class($this)
+            \get_class($this),
+            $order
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
@@ -313,7 +315,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData,
             $this->account->getBank(),
             $txType,
-            \get_class($this)
+            \get_class($this),
+            $order
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
@@ -354,7 +357,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData,
             $this->account->getBank(),
             $txType,
-            \get_class($this)
+            \get_class($this),
+            $order
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
@@ -395,7 +399,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData,
             $this->account->getBank(),
             $txType,
-            \get_class($this)
+            \get_class($this),
+            $order
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
@@ -432,7 +437,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData,
             $this->account->getBank(),
             $txType,
-            \get_class($this)
+            \get_class($this),
+            $data
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
@@ -469,7 +475,8 @@ abstract class AbstractGateway implements PosInterface
             $requestData,
             $this->account->getBank(),
             $txType,
-            \get_class($this)
+            \get_class($this),
+            $order
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {

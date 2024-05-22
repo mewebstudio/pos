@@ -228,6 +228,7 @@ class PayForTest extends TestCase
                 'request-body',
                 'response-body',
                 $paymentResponse,
+                $order
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -331,6 +332,7 @@ class PayForTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -363,6 +365,7 @@ class PayForTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -396,6 +399,7 @@ class PayForTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -428,6 +432,7 @@ class PayForTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -460,6 +465,7 @@ class PayForTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -492,6 +498,7 @@ class PayForTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -524,6 +531,7 @@ class PayForTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -665,7 +673,8 @@ class PayForTest extends TestCase
         array  $requestData,
         string $encodedRequestData,
         string $responseContent,
-        array  $decodedResponse
+        array  $decodedResponse,
+        array  $order
     ): void
     {
         $this->serializerMock->expects(self::once())
@@ -692,11 +701,12 @@ class PayForTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order) {
                 return $dispatchedEvent instanceof RequestDataPreparedEvent
                     && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                     && $txType === $dispatchedEvent->getTxType()
                     && $requestData === $dispatchedEvent->getRequestData()
+                    && $order === $dispatchedEvent->getOrder()
                     ;
             }));
     }

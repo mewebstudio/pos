@@ -154,9 +154,10 @@ class PayFlexV4PosTest extends TestCase
         $this->expectException(Exception::class);
         $txType      = PosInterface::TX_TYPE_PAY_AUTH;
         $requestData = ['request-data'];
+        $order       = $this->order;
         $this->requestMapperMock->expects(self::once())
             ->method('create3DEnrollmentCheckRequestData')
-            ->with($this->pos->getAccount(), $this->order, $this->card)
+            ->with($this->pos->getAccount(), $order, $this->card)
             ->willReturn($requestData);
 
         $this->configureClientResponse(
@@ -166,12 +167,13 @@ class PayFlexV4PosTest extends TestCase
             $requestData,
             'response-body',
             self::getSampleEnrollmentFailResponseDataProvider(),
+            $order
         );
 
         $this->requestMapperMock->expects(self::never())
             ->method('create3DFormData');
 
-        $this->pos->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, $txType, $this->card);
+        $this->pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $txType, $this->card);
     }
 
     /**
@@ -200,6 +202,7 @@ class PayFlexV4PosTest extends TestCase
             $requestData,
             'response-body',
             $enrollmentResponse,
+            $order
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -264,6 +267,7 @@ class PayFlexV4PosTest extends TestCase
                 'request-body',
                 'response-body',
                 $paymentResponse,
+                $order
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -329,6 +333,7 @@ class PayFlexV4PosTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -360,6 +365,7 @@ class PayFlexV4PosTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -393,6 +399,7 @@ class PayFlexV4PosTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -425,6 +432,7 @@ class PayFlexV4PosTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -457,6 +465,7 @@ class PayFlexV4PosTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -610,7 +619,8 @@ class PayFlexV4PosTest extends TestCase
         array  $requestData,
         $encodedRequestData,
         string $responseContent,
-        array  $decodedResponse
+        array  $decodedResponse,
+        array  $order
     ): void
     {
         if ($requestData === $encodedRequestData) {
@@ -639,11 +649,12 @@ class PayFlexV4PosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order) {
                 return $dispatchedEvent instanceof RequestDataPreparedEvent
                     && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                     && $txType === $dispatchedEvent->getTxType()
                     && $requestData === $dispatchedEvent->getRequestData()
+                    && $order === $dispatchedEvent->getOrder()
                     ;
             }));
     }

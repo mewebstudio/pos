@@ -177,6 +177,7 @@ class PayFlexCPV4PosTest extends TestCase
             $requestData,
             'response-body',
             $enrollmentResponse,
+            $order
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -234,6 +235,7 @@ class PayFlexCPV4PosTest extends TestCase
             $requestData,
             'response-body',
             $enrollmentResponse,
+            $order
         );
 
         $this->requestMapperMock->expects(self::never())
@@ -292,6 +294,7 @@ class PayFlexCPV4PosTest extends TestCase
                 $create3DPaymentStatusRequestData,
                 'response-body',
                 $paymentResponse,
+                $order
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -341,6 +344,7 @@ class PayFlexCPV4PosTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -373,6 +377,7 @@ class PayFlexCPV4PosTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -411,6 +416,7 @@ class PayFlexCPV4PosTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -443,6 +449,7 @@ class PayFlexCPV4PosTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -563,7 +570,8 @@ class PayFlexCPV4PosTest extends TestCase
         array  $requestData,
         $encodedRequestData,
         string $responseContent,
-        array  $decodedResponse
+        array  $decodedResponse,
+        array  $order
     ): void
     {
         if ($requestData === $encodedRequestData) {
@@ -590,11 +598,12 @@ class PayFlexCPV4PosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order) {
                 return $dispatchedEvent instanceof RequestDataPreparedEvent
                     && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                     && $txType === $dispatchedEvent->getTxType()
                     && $requestData === $dispatchedEvent->getRequestData()
+                    && $order === $dispatchedEvent->getOrder()
                     ;
             }));
     }

@@ -152,10 +152,11 @@ class PosNetTest extends TestCase
     {
         $txType      = PosInterface::TX_TYPE_PAY_AUTH;
         $requestData = ['request-data'];
+        $order       = $this->order;
         $this->expectException(Exception::class);
         $this->requestMapperMock->expects(self::once())
             ->method('create3DEnrollmentCheckRequestData')
-            ->with($this->pos->getAccount(), $this->order, $txType, $this->card)
+            ->with($this->pos->getAccount(), $order, $txType, $this->card)
             ->willReturn($requestData);
 
         $responseData = [
@@ -171,12 +172,13 @@ class PosNetTest extends TestCase
             'request-body',
             'response-body',
             $responseData,
+            $order
         );
 
         $this->requestMapperMock->expects(self::never())
             ->method('create3DFormData');
 
-        $this->pos->get3DFormData($this->order, PosInterface::MODEL_3D_SECURE, $txType, $this->card);
+        $this->pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $txType, $this->card);
     }
 
     /**
@@ -289,17 +291,21 @@ class PosNetTest extends TestCase
                 ->method('dispatch')
                 // could not find another way expect using deprecated withConsecutive() function
                 ->withConsecutive(
-                    [$this->callback(function ($dispatchedEvent) use ($txType, $resolveMerchantRequestData) {
+                    [$this->callback(function ($dispatchedEvent) use ($txType, $resolveMerchantRequestData, $order) {
                         return $dispatchedEvent instanceof RequestDataPreparedEvent
                             && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                             && $txType === $dispatchedEvent->getTxType()
-                            && $resolveMerchantRequestData === $dispatchedEvent->getRequestData();
+                            && $resolveMerchantRequestData === $dispatchedEvent->getRequestData()
+                            && $order === $dispatchedEvent->getOrder()
+                            ;
                     })],
-                    [$this->callback(function ($dispatchedEvent) use ($txType, $create3DPaymentRequestData) {
+                    [$this->callback(function ($dispatchedEvent) use ($txType, $create3DPaymentRequestData, $order) {
                         return $dispatchedEvent instanceof RequestDataPreparedEvent
                             && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                             && $txType === $dispatchedEvent->getTxType()
-                            && $create3DPaymentRequestData === $dispatchedEvent->getRequestData();
+                            && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
+                            && $order === $dispatchedEvent->getOrder()
+                            ;
                     })]
                 );
 
@@ -315,6 +321,7 @@ class PosNetTest extends TestCase
                 'resolveMerchantRequestData-body',
                 'resolveMerchantRequestData-body',
                 $resolveResponse,
+                $order
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -370,6 +377,7 @@ class PosNetTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -402,6 +410,7 @@ class PosNetTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -435,6 +444,7 @@ class PosNetTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -467,6 +477,7 @@ class PosNetTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -499,6 +510,7 @@ class PosNetTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -637,7 +649,8 @@ class PosNetTest extends TestCase
         array  $requestData,
         string $encodedRequestData,
         string $responseContent,
-        array  $decodedResponse
+        array  $decodedResponse,
+        array  $order
     ): void
     {
         $this->serializerMock->expects(self::once())
@@ -664,11 +677,12 @@ class PosNetTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order) {
                 return $dispatchedEvent instanceof RequestDataPreparedEvent
                     && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                     && $txType === $dispatchedEvent->getTxType()
                     && $requestData === $dispatchedEvent->getRequestData()
+                    && $order === $dispatchedEvent->getOrder()
                     ;
             }));
     }

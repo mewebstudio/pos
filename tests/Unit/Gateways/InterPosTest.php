@@ -210,6 +210,7 @@ class InterPosTest extends TestCase
                 ['request-body'],
                 'response-body',
                 $paymentResponse,
+                $order
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -326,6 +327,7 @@ class InterPosTest extends TestCase
             ['request-body'],
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -358,6 +360,7 @@ class InterPosTest extends TestCase
             ['request-body'],
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -391,6 +394,7 @@ class InterPosTest extends TestCase
             ['request-body'],
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -423,6 +427,7 @@ class InterPosTest extends TestCase
             ['request-body'],
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -455,6 +460,7 @@ class InterPosTest extends TestCase
             ['request-body'],
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -556,7 +562,8 @@ class InterPosTest extends TestCase
         array  $requestData,
         array  $encodedRequestData,
         string $responseContent,
-        array  $decodedResponse
+        array  $decodedResponse,
+        array  $order
     ): void
     {
         $this->serializerMock->expects(self::once())
@@ -580,11 +587,12 @@ class InterPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order) {
                 return $dispatchedEvent instanceof RequestDataPreparedEvent
                     && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                     && $txType === $dispatchedEvent->getTxType()
                     && $requestData === $dispatchedEvent->getRequestData()
+                    && $order === $dispatchedEvent->getOrder()
                     ;
             }));
     }

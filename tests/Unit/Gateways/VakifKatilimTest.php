@@ -180,6 +180,7 @@ class VakifKatilimTest extends TestCase
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $card         = $this->card;
         $requestData  = ['form-data'];
+        $order        = $this->order;
 
         $decodedResponse = ['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url'];
         $this->configureClientResponse(
@@ -189,6 +190,7 @@ class VakifKatilimTest extends TestCase
             'request-body',
             'bank-api-html-response',
             $decodedResponse,
+            $order
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -213,7 +215,7 @@ class VakifKatilimTest extends TestCase
                 $card
             )
             ->willReturn(['3d-form-data']);
-        $result = $this->pos->get3DFormData($this->order, $paymentModel, $txType, $card);
+        $result = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
         $this->assertSame(['3d-form-data'], $result);
     }
@@ -283,6 +285,7 @@ class VakifKatilimTest extends TestCase
                 'request-body',
                 'response-body',
                 $paymentResponse,
+                $order
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -366,6 +369,7 @@ class VakifKatilimTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -398,6 +402,7 @@ class VakifKatilimTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -431,6 +436,7 @@ class VakifKatilimTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -463,6 +469,7 @@ class VakifKatilimTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -495,6 +502,7 @@ class VakifKatilimTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -528,6 +536,7 @@ class VakifKatilimTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -560,6 +569,7 @@ class VakifKatilimTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -780,7 +790,8 @@ class VakifKatilimTest extends TestCase
         array  $requestData,
         string $encodedRequestData,
         string $responseContent,
-        array  $decodedResponse
+        array  $decodedResponse,
+        array  $order
     ): void
     {
         $this->serializerMock->expects(self::once())
@@ -806,11 +817,12 @@ class VakifKatilimTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order) {
                 return $dispatchedEvent instanceof RequestDataPreparedEvent
                     && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                     && $txType === $dispatchedEvent->getTxType()
                     && $requestData === $dispatchedEvent->getRequestData()
+                    && $order === $dispatchedEvent->getOrder()
                     ;
             }));
     }

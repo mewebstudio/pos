@@ -16,6 +16,9 @@ class RequestDataPreparedEvent
     /** @var array<string, mixed> */
     private array $requestData;
 
+    /** @var array<string, mixed> */
+    private array $order;
+
     private string $bank;
 
     /** @var PosInterface::TX_TYPE_* */
@@ -32,17 +35,20 @@ class RequestDataPreparedEvent
      * @param string               $bank
      * @param string               $txType
      * @param string               $gatewayClass
+     * @param array<string, mixed> $order
      */
     public function __construct(
         array  $requestData,
         string $bank,
         string $txType,
-        string $gatewayClass
+        string $gatewayClass,
+        array  $order
     ) {
         $this->requestData  = $requestData;
         $this->bank         = $bank;
         $this->txType       = $txType;
         $this->gatewayClass = $gatewayClass;
+        $this->order        = $order;
     }
 
     /**
@@ -63,6 +69,14 @@ class RequestDataPreparedEvent
         $this->requestData = $requestData;
 
         return $this;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getOrder(): array
+    {
+        return $this->order;
     }
 
     /**

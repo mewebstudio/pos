@@ -195,7 +195,8 @@ class KuveytPosTest extends TestCase
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $card         = $this->card;
-        $requestData = ['form-data'];
+        $requestData  = ['form-data'];
+        $order        = $this->order;
         $this->configureClientResponse(
             $txType,
             'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelPayGate',
@@ -203,6 +204,7 @@ class KuveytPosTest extends TestCase
             'encoded-request-data',
             $response,
             ['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url'],
+            $order
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -227,7 +229,7 @@ class KuveytPosTest extends TestCase
                 $card
             )
             ->willReturn(['3d-form-data']);
-        $result = $this->pos->get3DFormData($this->order, $paymentModel, $txType, $card);
+        $result = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
         $this->assertSame(['3d-form-data'], $result);
     }
@@ -283,11 +285,12 @@ class KuveytPosTest extends TestCase
 
             $this->eventDispatcherMock->expects(self::once())
                 ->method('dispatch')
-                ->with($this->callback(function ($dispatchedEvent) use ($txType, $create3DPaymentRequestData) {
+                ->with($this->callback(function ($dispatchedEvent) use ($txType, $create3DPaymentRequestData, $order) {
                     return $dispatchedEvent instanceof RequestDataPreparedEvent
                         && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                         && $txType === $dispatchedEvent->getTxType()
                         && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
                         ;
                 }));
 
@@ -358,7 +361,8 @@ class KuveytPosTest extends TestCase
             $requestData,
             'request-body',
             'response-body',
-            $paymentResponse
+            $paymentResponse,
+            $order
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -519,7 +523,8 @@ class KuveytPosTest extends TestCase
         string $encodedRequestData,
         string $responseContent,
         array  $decodedResponse,
-        ?int $statusCode = null
+        array  $order,
+        ?int   $statusCode = null
     ): void
     {
         $this->serializerMock->expects(self::once())
@@ -547,11 +552,12 @@ class KuveytPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData) {
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order) {
                 return $dispatchedEvent instanceof RequestDataPreparedEvent
                     && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                     && $txType === $dispatchedEvent->getTxType()
                     && $requestData === $dispatchedEvent->getRequestData()
+                    && $order === $dispatchedEvent->getOrder()
                     ;
             }));
     }
