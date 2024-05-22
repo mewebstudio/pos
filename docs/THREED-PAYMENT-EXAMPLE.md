@@ -152,22 +152,23 @@ try {
      */
     $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event): void {
         if ($event->getGatewayClass() === \Mews\Pos\Gateways\EstPos::class || $event->getGatewayClass() === \Mews\Pos\Gateways\EstV3Pos::class) {
-            /**
-             * Örnek 1: İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
-                $supportedPaymentModels = [
-                \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY,
-                \Mews\Pos\Gateways\PosInterface::MODEL_3D_PAY_HOSTING,
-                \Mews\Pos\Gateways\PosInterface::MODEL_3D_HOST,
-                ];
-                if ($event->getTxType() === \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
-                $formInputs           = $event->getFormInputs();
-                $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
-                $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
-                $event->setFormInputs($formInputs);
-            }*/
-
+            //    if ($event->getGatewayClass() !== \Mews\Pos\Gateways\EstV3Pos::class || $event->getGatewayClass() !== \Mews\Pos\Gateways\EstPos::class) {
+            //        return;
+            //    }
+            //    // Örneğin İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
+            //    $supportedPaymentModels = [
+            //        \Mews\Pos\PosInterface::MODEL_3D_PAY,
+            //        \Mews\Pos\PosInterface::MODEL_3D_PAY_HOSTING,
+            //        \Mews\Pos\PosInterface::MODEL_3D_HOST,
+            //    ];
+            //    if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH && in_array($event->getPaymentModel(), $supportedPaymentModels, true)) {
+            //        $formInputs           = $event->getFormInputs();
+            //        $formInputs['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
+            //        $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
+            //        $event->setFormInputs($formInputs);
+            //    }
         }
-        if (get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+        if ($event->getGatewayClass() === \Mews\Pos\Gateways\EstV3Pos::class) {
 //           Örnek 2: callbackUrl eklenmesi
 //           $formInputs                = $event->getFormInputs();
 //           $formInputs['callbackUrl'] = $formInputs['failUrl'];
@@ -274,9 +275,9 @@ if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
 // OZEL DURUMLAR ICIN KODLAR START
 // ============================================================================================
 
-//    //Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği
-//    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) use ($paymentModel) {
-//        if ($event->getTxType() === \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH && \Mews\Pos\PosInterface::MODEL_3D_SECURE === $paymentModel) {
+//    // Isbank İMECE için ekstra alanların eklenme örneği
+//    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
+//        if ($event->getPaymentModel() === PosInterface::MODEL_3D_SECURE && $event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
 //            $data                    = $event->getRequestData();
 //            $data['Extra']['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
 //            $data['Extra']['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı

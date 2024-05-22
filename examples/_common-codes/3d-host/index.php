@@ -48,7 +48,10 @@ if (in_array(get_class($pos), $formVerisiniOlusturmakIcinApiIstegiGonderenGatewa
  * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
  */
 $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event) {
-    // Örneğin İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
+//    if ($event->getGatewayClass() !== \Mews\Pos\Gateways\EstV3Pos::class || $event->getGatewayClass() !== \Mews\Pos\Gateways\EstPos::class) {
+//        return;
+//    }
+//    // Örneğin İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
 //    $supportedPaymentModels = [
 //        \Mews\Pos\PosInterface::MODEL_3D_PAY,
 //        \Mews\Pos\PosInterface::MODEL_3D_PAY_HOSTING,
