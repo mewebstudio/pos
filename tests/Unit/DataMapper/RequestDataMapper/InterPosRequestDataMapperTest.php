@@ -13,7 +13,6 @@ use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -43,8 +42,6 @@ class InterPosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $config = require __DIR__.'/../../../../config/pos_test.php';
-
         $userCode     = 'InterTestApi';
         $userPass     = '3';
         $shopCode     = '3123';
@@ -70,12 +67,11 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
 
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos              = PosFactory::createPosGateway($this->account, $config, $this->dispatcher);
 
         $this->crypt             = $this->createMock(CryptInterface::class);
         $this->requestDataMapper = new InterPosRequestDataMapper($this->dispatcher, $this->crypt);
 
-        $this->card = CreditCardFactory::createForGateway($pos, '5555444433332222', '21', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card = CreditCardFactory::create('5555444433332222', '21', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**

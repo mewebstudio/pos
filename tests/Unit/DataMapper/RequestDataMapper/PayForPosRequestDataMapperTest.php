@@ -14,7 +14,6 @@ use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -37,16 +36,12 @@ class PayForPosRequestDataMapperTest extends TestCase
 
     private array $order;
 
-    private array $config;
-
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->config = require __DIR__.'/../../../../config/pos_test.php';
 
         $this->account = AccountFactory::createPayForAccount(
             'qnbfinansbank-payfor',
@@ -69,10 +64,9 @@ class PayForPosRequestDataMapperTest extends TestCase
 
         $this->crypt      = $this->createMock(CryptInterface::class);
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos              = PosFactory::createPosGateway($this->account, $this->config, $this->dispatcher);
 
         $this->requestDataMapper = new PayForPosRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet');
+        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
     }
 
     /**

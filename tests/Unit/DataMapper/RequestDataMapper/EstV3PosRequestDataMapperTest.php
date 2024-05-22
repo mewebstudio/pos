@@ -12,7 +12,6 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -40,8 +39,6 @@ class EstV3PosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $config = require __DIR__.'/../../../../config/pos_test.php';
-
         $this->account = AccountFactory::createEstPosAccount(
             'payten_v3_hash',
             '190100000',
@@ -52,11 +49,10 @@ class EstV3PosRequestDataMapperTest extends TestCase
         );
 
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos              = PosFactory::createPosGateway($this->account, $config, $this->dispatcher);
 
         $this->crypt             = $this->createMock(CryptInterface::class);
         $this->requestDataMapper = new EstV3PosRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**

@@ -12,7 +12,6 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -39,8 +38,6 @@ class ToslaPosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $config = require __DIR__.'/../../../../config/pos_test.php';
-
         $this->account = AccountFactory::createToslaPosAccount(
             'tosla',
             '1000000494',
@@ -49,11 +46,10 @@ class ToslaPosRequestDataMapperTest extends TestCase
         );
 
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos              = PosFactory::createPosGateway($this->account, $config, $this->dispatcher);
 
         $this->crypt             = $this->createMock(CryptInterface::class);
         $this->requestDataMapper = new ToslaPosRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**

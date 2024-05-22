@@ -14,7 +14,6 @@ use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -44,8 +43,6 @@ class EstPosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $config = require __DIR__.'/../../../../config/pos_test.php';
-
         $this->account = AccountFactory::createEstPosAccount(
             'akbank',
             '700655000200',
@@ -67,10 +64,9 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
         $this->crypt = $this->createMock(CryptInterface::class);
-        $pos = PosFactory::createPosGateway($this->account, $config, $this->dispatcher);
 
         $this->requestDataMapper = new EstPosRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**

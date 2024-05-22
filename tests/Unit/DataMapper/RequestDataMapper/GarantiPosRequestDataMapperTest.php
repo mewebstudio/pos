@@ -14,7 +14,6 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -35,16 +34,12 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
     private array $order;
 
-    private $config;
-
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->config = require __DIR__.'/../../../../config/pos_test.php';
 
         $this->account = AccountFactory::createGarantiPosAccount(
             'garanti',
@@ -70,13 +65,12 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
 
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos              = PosFactory::createPosGateway($this->account, $this->config, $this->dispatcher);
 
         $crypt                   = CryptFactory::createGatewayCrypt(GarantiPos::class, new NullLogger());
         $this->requestDataMapper = new GarantiPosRequestDataMapper($this->dispatcher, $crypt);
         $this->requestDataMapper->setTestMode(true);
 
-        $this->card = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet');
+        $this->card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
     }
 
     /**
@@ -212,7 +206,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     public function testGet3DFormData(): void
     {
         $account    = $this->account;
-        $gatewayURL = $this->config['banks'][$this->account->getBank()]['gateway_endpoints']['gateway_3d'];
+        $gatewayURL = 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine';
         $inputs     = [
             'secure3dsecuritylevel' => '3D',
             'mode'                  => 'TEST',

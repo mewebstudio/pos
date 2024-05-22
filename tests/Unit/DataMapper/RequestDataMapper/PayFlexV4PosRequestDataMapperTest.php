@@ -14,7 +14,6 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -43,8 +42,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $config = require __DIR__.'/../../../../config/pos_test.php';
-
         $this->account = AccountFactory::createPayFlexAccount(
             'vakifbank',
             '000000000111111',
@@ -65,11 +62,10 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         ];
 
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos              = PosFactory::createPosGateway($this->account, $config, $this->dispatcher);
 
         $this->crypt             = $this->createMock(CryptInterface::class);
         $this->requestDataMapper = new PayFlexV4PosRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card              = CreditCardFactory::create('5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**

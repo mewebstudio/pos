@@ -14,14 +14,12 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper
@@ -183,10 +181,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $pos = PosFactory::createPosGateway($account, $config, new EventDispatcher());
-        $pos->setTestMode(true);
-
-        $card = CreditCardFactory::createForGateway($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $card = CreditCardFactory::create('5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
 
         yield 'with_card_1' => [
             'account'  => $account,

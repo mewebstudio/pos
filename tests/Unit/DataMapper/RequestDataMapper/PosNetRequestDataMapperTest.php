@@ -13,7 +13,6 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -41,8 +40,6 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $config = require __DIR__.'/../../../../config/pos_test.php';
-
         $this->account = AccountFactory::createPosNetAccount(
             'yapikredi',
             '6706598320',
@@ -63,10 +60,9 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
 
         $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
-        $pos                     = PosFactory::createPosGateway($this->account, $config, $this->dispatcher);
         $crypt                   = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
         $this->requestDataMapper = new PosNetRequestDataMapper($this->dispatcher, $crypt);
-        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet');
+        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
     }
 
     /**
