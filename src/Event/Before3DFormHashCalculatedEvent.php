@@ -25,21 +25,32 @@ class Before3DFormHashCalculatedEvent
     /** @var PosInterface::MODEL_3D_* */
     private string $paymentModel;
 
+    /** @var class-string<PosInterface> */
+    private string $gatewayClass;
+
     /**
      * @phpstan-param PosInterface::TX_TYPE_PAY_* $txType
      * @phpstan-param PosInterface::MODEL_3D_*    $paymentModel
+     * @phpstan-param class-string<PosInterface>  $gatewayClass
      *
      * @param array<string, string> $formInputs
      * @param string                $bank
      * @param string                $txType
      * @param string                $paymentModel
+     * @param string                $gatewayClass
      */
-    public function __construct(array $formInputs, string $bank, string $txType, string $paymentModel)
-    {
+    public function __construct(
+        array $formInputs,
+        string $bank,
+        string $txType,
+        string $paymentModel,
+        string $gatewayClass
+    ) {
         $this->formInputs   = $formInputs;
         $this->bank         = $bank;
         $this->txType       = $txType;
         $this->paymentModel = $paymentModel;
+        $this->gatewayClass = $gatewayClass;
     }
 
     /**
@@ -84,5 +95,13 @@ class Before3DFormHashCalculatedEvent
         $this->formInputs = $formInputs;
 
         return $this;
+    }
+
+    /**
+     * @return class-string<PosInterface>
+     */
+    public function getGatewayClass(): string
+    {
+        return $this->gatewayClass;
     }
 }

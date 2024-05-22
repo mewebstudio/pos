@@ -11,6 +11,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -28,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\VakifKatilimPos
+ * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class VakifKatilimTest extends TestCase
 {
@@ -174,34 +176,23 @@ class VakifKatilimTest extends TestCase
      */
     public function testGetCommon3DFormDataSuccessResponse(): void
     {
-        $response     = 'bank-api-html-response';
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $card         = $this->card;
+        $requestData  = ['form-data'];
+        $order        = $this->order;
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['form-data'], $txType)
-            ->willReturn('encoded-request-data');
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($response, $txType)
-            ->willReturn(['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url']);
-        $this->prepareClient(
-            $this->httpClientMock,
-            $response,
+        $decodedResponse = ['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url'];
+        $this->configureClientResponse(
+            $txType,
             'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
-            [
-                'body'    => 'encoded-request-data',
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-            ],
+            $requestData,
+            'request-body',
+            'bank-api-html-response',
+            $decodedResponse,
+            $order,
+            $paymentModel
         );
-
-        $this->eventDispatcherMock->expects(self::once())
-            ->method('dispatch');
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DEnrollmentCheckRequestData')
@@ -212,7 +203,7 @@ class VakifKatilimTest extends TestCase
                 $txType,
                 $card
             )
-            ->willReturn(['form-data']);
+            ->willReturn($requestData);
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DFormData')
@@ -225,7 +216,7 @@ class VakifKatilimTest extends TestCase
                 $card
             )
             ->willReturn(['3d-form-data']);
-        $result = $this->pos->get3DFormData($this->order, $paymentModel, $txType, $card);
+        $result = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
         $this->assertSame(['3d-form-data'], $result);
     }
@@ -282,38 +273,22 @@ class VakifKatilimTest extends TestCase
             'create3DPaymentRequestData',
         ];
 
-
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
                 ->with($this->account, $order, $txType, $request->request->all())
                 ->willReturn($create3DPaymentRequestData);
-            $this->prepareClient(
-                $this->httpClientMock,
-                'response-body',
+
+            $this->configureClientResponse(
+                $txType,
                 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelProvisionGate',
-                [
-                    'body'    => 'request-body',
-                    'headers' => [
-                        'Content-Type' => 'text/xml; charset=UTF-8',
-                    ],
-                ]
+                $create3DPaymentRequestData,
+                'request-body',
+                'response-body',
+                $paymentResponse,
+                $order,
+                PosInterface::MODEL_3D_SECURE
             );
-
-            $this->serializerMock->expects(self::once())
-                ->method('encode')
-                ->with($create3DPaymentRequestData, $txType)
-                ->willReturn('request-body');
-
-            $this->serializerMock->expects(self::exactly(1))
-                ->method('decode')
-                ->willReturnMap([
-                    [
-                        'response-body',
-                        $txType,
-                        $paymentResponse,
-                    ],
-                ]);
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
@@ -332,6 +307,8 @@ class VakifKatilimTest extends TestCase
                 ->method('decode')
                 ->with(urldecode($request->request->get('AuthenticationResponse')), $txType)
                 ->willReturn($request->request->all());
+            $this->eventDispatcherMock->expects(self::never())
+                ->method('dispatch');
         }
 
         $this->pos->make3DPayment($request, $order, $txType);
@@ -378,37 +355,29 @@ class VakifKatilimTest extends TestCase
      */
     public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $card    = $this->card;
+        $account     = $this->pos->getAccount();
+        $card        = $this->card;
+        $requestData = ['createNonSecurePaymentRequestData'];
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePaymentRequestData')
             ->with($account, $order, $txType, $card)
-            ->willReturn(['createNonSecurePaymentRequestData']);
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+            ->willReturn($requestData);
+
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createNonSecurePaymentRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['paymentResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapPaymentResponse')
-            ->with(['paymentResponse'], $txType, $order)
+            ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
         $this->pos->makeRegularPayment($order, $card, $txType);
@@ -419,39 +388,30 @@ class VakifKatilimTest extends TestCase
      */
     public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_PAY_POST_AUTH;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
+        $requestData = ['createNonSecurePostAuthPaymentRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePostAuthPaymentRequestData')
             ->with($account, $order)
-            ->willReturn(['createNonSecurePostAuthPaymentRequestData']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createNonSecurePostAuthPaymentRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['paymentResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapPaymentResponse')
-            ->with(['paymentResponse'], $txType, $order)
+            ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
         $this->pos->makeRegularPostPayment($order);
@@ -463,40 +423,30 @@ class VakifKatilimTest extends TestCase
      */
     public function testStatusRequest(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_STATUS;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_STATUS;
+        $requestData = ['createStatusRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createStatusRequestData')
             ->with($account, $order)
-            ->willReturn(['createStatusRequestData']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createStatusRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
-
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['decodedResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapStatusResponse')
-            ->with(['decodedResponse'])
+            ->with($decodedResponse)
             ->willReturn(['result']);
 
         $this->pos->status($order);
@@ -507,39 +457,30 @@ class VakifKatilimTest extends TestCase
      */
     public function testCancelRequest(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_CANCEL;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CANCEL;
+        $requestData = ['createCancelRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createCancelRequestData')
             ->with($account, $order)
-            ->willReturn(['createCancelRequestData']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createCancelRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['decodedResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapCancelResponse')
-            ->with(['decodedResponse'])
+            ->with($decodedResponse)
             ->willReturn(['result']);
 
         $this->pos->cancel($order);
@@ -550,39 +491,30 @@ class VakifKatilimTest extends TestCase
      */
     public function testRefundRequest(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_REFUND;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_REFUND;
+        $requestData = ['createRefundRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
             ->with($account, $order)
-            ->willReturn(['createRefundRequestData']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createRefundRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['decodedResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapRefundResponse')
-            ->with(['decodedResponse'])
+            ->with($decodedResponse)
             ->willReturn(['result']);
 
         $this->pos->refund($order);
@@ -594,39 +526,30 @@ class VakifKatilimTest extends TestCase
      */
     public function testHistoryRequest(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_HISTORY;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_HISTORY;
+        $requestData = ['createHistoryRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createHistoryRequestData')
             ->with($account, $order)
-            ->willReturn(['createHistoryRequestData']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createHistoryRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['decodedResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapHistoryResponse')
-            ->with(['decodedResponse'])
+            ->with($decodedResponse)
             ->willReturn(['result']);
 
         $this->pos->history($order);
@@ -637,39 +560,30 @@ class VakifKatilimTest extends TestCase
      */
     public function testOrderHistoryRequest(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_ORDER_HISTORY;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_ORDER_HISTORY;
+        $requestData = ['createOrderHistoryRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createOrderHistoryRequestData')
             ->with($account, $order)
-            ->willReturn(['createOrderHistoryRequestData']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createOrderHistoryRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['decodedResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapOrderHistoryResponse')
-            ->with(['decodedResponse'])
+            ->with($decodedResponse)
             ->willReturn(['result']);
 
         $this->pos->orderHistory($order);
@@ -877,5 +791,50 @@ class VakifKatilimTest extends TestCase
                 'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/SelectOrder',
             ],
         ];
+    }
+
+    private function configureClientResponse(
+        string $txType,
+        string $apiUrl,
+        array  $requestData,
+        string $encodedRequestData,
+        string $responseContent,
+        array  $decodedResponse,
+        array  $order,
+        string $paymentModel
+    ): void
+    {
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with($requestData, $txType)
+            ->willReturn($encodedRequestData);
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            $responseContent,
+            $apiUrl,
+            [
+                'body'    => $encodedRequestData,
+                'headers' => [
+                    'Content-Type' => 'text/xml; charset=UTF-8',
+                ],
+            ],
+        );
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order, $paymentModel) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    && $order === $dispatchedEvent->getOrder()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
+                    ;
+            }));
     }
 }

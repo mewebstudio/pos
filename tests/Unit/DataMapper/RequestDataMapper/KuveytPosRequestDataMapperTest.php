@@ -33,6 +33,9 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /** @var CryptInterface|MockObject */
     private CryptInterface $crypt;
 
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -45,7 +48,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'Api123'
         );
 
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
 
         $this->card = CreditCardFactory::create(
             '4155650100416111',
@@ -57,7 +60,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         );
 
         $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new KuveytPosRequestDataMapper($dispatcher, $this->crypt);
+        $this->requestDataMapper = new KuveytPosRequestDataMapper($this->dispatcher, $this->crypt);
     }
 
     /**
@@ -290,11 +293,16 @@ class KuveytPosRequestDataMapperTest extends TestCase
             ],
         ];
 
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $this->dispatcher->expects(self::never())
+            ->method('dispatch');
+
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
             ['abc' => '123'],
-            PosInterface::MODEL_3D_SECURE,
-            PosInterface::TX_TYPE_PAY_AUTH,
+            $paymentModel,
+            $txType,
             'https://bank-gateway.com',
         );
 

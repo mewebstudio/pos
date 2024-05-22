@@ -150,8 +150,8 @@ try {
      * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
      * Eğer ekleyeceğiniz veri hash hesaplamada kullanılmıyorsa Form verisi oluştuktan sonra da güncelleyebilirsiniz.
      */
-    $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event) use ($pos): void {
-        if (get_class($pos) === \Mews\Pos\Gateways\EstPos::class || get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+    $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event): void {
+        if ($event->getGatewayClass() === \Mews\Pos\Gateways\EstPos::class || $event->getGatewayClass() === \Mews\Pos\Gateways\EstV3Pos::class) {
             /**
              * Örnek 1: İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
                 $supportedPaymentModels = [
@@ -179,8 +179,8 @@ try {
     // KuveytVos TDV2.0.0 icin ozel biri durum
     $eventDispatcher->addListener(
         RequestDataPreparedEvent::class,
-        function (RequestDataPreparedEvent $requestDataPreparedEvent) use ($pos): void {
-            if (get_class($pos) !== \Mews\Pos\Gateways\KuveytPos::class) {
+        function (RequestDataPreparedEvent $requestDataPreparedEvent): void {
+            if ($event->getGatewayClass() !== \Mews\Pos\Gateways\KuveytPos::class) {
                 return;
             }
             // KuveytPos TDV2.0.0 icin zorunlu eklenmesi gereken ekstra alanlar:

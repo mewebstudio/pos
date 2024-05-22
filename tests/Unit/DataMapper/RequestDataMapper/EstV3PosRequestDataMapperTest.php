@@ -9,9 +9,10 @@ use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -31,11 +32,12 @@ class EstV3PosRequestDataMapperTest extends TestCase
     /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
+
     protected function setUp(): void
     {
         parent::setUp();
-
-        $config = require __DIR__.'/../../../../config/pos_test.php';
 
         $this->account = AccountFactory::createEstPosAccount(
             'payten_v3_hash',
@@ -46,12 +48,11 @@ class EstV3PosRequestDataMapperTest extends TestCase
             '123456'
         );
 
-        $dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $pos        = PosFactory::createPosGateway($this->account, $config, $dispatcher);
+        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
 
         $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new EstV3PosRequestDataMapper($dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->requestDataMapper = new EstV3PosRequestDataMapper($this->dispatcher, $this->crypt);
+        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**
@@ -73,6 +74,17 @@ class EstV3PosRequestDataMapperTest extends TestCase
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expected['inputs']['rnd']);
+
+        $this->dispatcher->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $paymentModel) {
+                return $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+                    && EstV3Pos::class === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
+                    && count($dispatchedEvent->getFormInputs()) > 3
+                    ;
+            }));
 
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,

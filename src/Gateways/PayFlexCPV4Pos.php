@@ -88,7 +88,14 @@ class PayFlexCPV4Pos extends AbstractGateway
         // Burda odemenin basarili olup olmadigini sorguluyoruz.
         $requestData = $this->requestDataMapper->create3DPaymentStatusRequestData($this->account, $queryParams);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), PosInterface::TX_TYPE_PAY_AUTH);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_3D_PAY
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -238,7 +245,14 @@ class PayFlexCPV4Pos extends AbstractGateway
             $creditCard
         );
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            $paymentModel
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [

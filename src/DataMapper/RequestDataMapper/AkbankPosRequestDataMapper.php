@@ -11,6 +11,7 @@ use Mews\Pos\Entity\Account\AkbankPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -394,7 +395,8 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
             $data['inputs'],
             $posAccount->getBank(),
             $txType,
-            $paymentModel
+            $paymentModel,
+            AkbankPos::class
         );
         $this->eventDispatcher->dispatch($event);
         $data['inputs'] = $event->getFormInputs();

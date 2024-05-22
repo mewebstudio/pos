@@ -12,6 +12,7 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -386,7 +387,13 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
 
         $inputs += $cardData;
 
-        $event = new Before3DFormHashCalculatedEvent($inputs, $posAccount->getBank(), $txType, $paymentModel);
+        $event = new Before3DFormHashCalculatedEvent(
+            $inputs,
+            $posAccount->getBank(),
+            $txType,
+            $paymentModel,
+            PosNetV1Pos::class
+        );
         $this->eventDispatcher->dispatch($event);
         $inputs = $event->getFormInputs();
 

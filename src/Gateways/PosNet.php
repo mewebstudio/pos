@@ -69,7 +69,14 @@ class PosNet extends AbstractGateway
             $request->all()
         );
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_3D_SECURE
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -102,7 +109,14 @@ class PosNet extends AbstractGateway
 
         $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_3D_SECURE
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -153,7 +167,7 @@ class PosNet extends AbstractGateway
             throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
         }
 
-        $data = $this->getOosTransactionData($order, $txType, $creditCard);
+        $data = $this->getOosTransactionData($order, $txType, $paymentModel, $creditCard);
 
         if ($this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $data['approved']) {
             $this->logger->error('enrollment fail response', $data);
@@ -222,9 +236,11 @@ class PosNet extends AbstractGateway
      * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
      *
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
      * @param array<string, int|string|float|null> $order
      * @param string                               $txType
+     * @param string                               $paymentModel
      * @param CreditCardInterface                  $creditCard
      *
      * @return array{approved: string, respCode: string, respText: string, oosRequestDataResponse?: array{data1: string, data2: string, sign: string}}
@@ -232,11 +248,23 @@ class PosNet extends AbstractGateway
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    private function getOosTransactionData(array $order, string $txType, CreditCardInterface $creditCard): array
+    private function getOosTransactionData(array $order, string $txType, string $paymentModel, CreditCardInterface $creditCard): array
     {
-        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $creditCard);
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $creditCard
+        );
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            $paymentModel
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [

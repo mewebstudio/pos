@@ -13,9 +13,9 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
@@ -33,11 +33,12 @@ class PosNetRequestDataMapperTest extends TestCase
 
     private PosNetAccount $account;
 
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
+
     protected function setUp(): void
     {
         parent::setUp();
-
-        $config = require __DIR__.'/../../../../config/pos_test.php';
 
         $this->account = AccountFactory::createPosNetAccount(
             'yapikredi',
@@ -58,11 +59,10 @@ class PosNetRequestDataMapperTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $dispatcher              = $this->createMock(EventDispatcherInterface::class);
-        $pos                     = PosFactory::createPosGateway($this->account, $config, $dispatcher);
+        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
         $crypt                   = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
-        $this->requestDataMapper = new PosNetRequestDataMapper($dispatcher, $crypt);
-        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet');
+        $this->requestDataMapper = new PosNetRequestDataMapper($this->dispatcher, $crypt);
+        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
     }
 
     /**
@@ -232,6 +232,9 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreate3DFormData(array $ooTxSuccessData, array $order, string $gatewayURL, array $expected): void
     {
+        $this->dispatcher->expects(self::never())
+            ->method('dispatch');
+
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
             $order,

@@ -78,7 +78,14 @@ class PayFlexV4Pos extends AbstractGateway
         // NOT: diger gatewaylerden farkli olarak payflex kredit bilgilerini bu asamada da istiyor.
         $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $requestData, $creditCard);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_3D_SECURE
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
@@ -145,7 +152,7 @@ class PayFlexV4Pos extends AbstractGateway
             throw new LogicException('Kredi kartı bilgileri eksik!');
         }
 
-        $data = $this->sendEnrollmentRequest($order, $creditCard, $txType);
+        $data = $this->sendEnrollmentRequest($order, $creditCard, $txType, $paymentModel);
 
         $status = $data['Message']['VERes']['Status'];
         /**
@@ -186,9 +193,10 @@ class PayFlexV4Pos extends AbstractGateway
         $this->logger->debug('sending request', ['url' => $url]);
 
         $isXML = \is_string($contents);
-        $body = $isXML ? ['form_params' => ['prmstr' => $contents]] : ['form_params' => $contents];
 
-        $response = $this->client->post($url, $body);
+        $response = $this->client->post($url, [
+            'form_params' => $isXML ? ['prmstr' => $contents] : $contents,
+        ]);
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
@@ -199,20 +207,29 @@ class PayFlexV4Pos extends AbstractGateway
      * (Enrollment Status) sorulması, yani kart 3-D Secure programına dâhil mi yoksa değil mi sorgusu
      *
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
      * @param array<string, int|string|float|null> $order
      * @param CreditCardInterface                  $creditCard
      * @param string                               $txType
+     * @param string                               $paymentModel
      *
      * @return array<string, mixed>
      *
      * @throws Exception
      */
-    private function sendEnrollmentRequest(array $order, CreditCardInterface $creditCard, string $txType): array
+    private function sendEnrollmentRequest(array $order, CreditCardInterface $creditCard, string $txType, string $paymentModel): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $creditCard);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            $paymentModel
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [

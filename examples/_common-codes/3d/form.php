@@ -69,8 +69,8 @@ if (in_array(get_class($pos), $formVerisiniOlusturmakIcinApiIstegiGonderenGatewa
 // KuveytVos TDV2.0.0 icin ozel biri durum
 $eventDispatcher->addListener(
     RequestDataPreparedEvent::class,
-    function (RequestDataPreparedEvent $requestDataPreparedEvent) use ($pos): void {
-        if (get_class($pos) !== \Mews\Pos\Gateways\KuveytPos::class) {
+    function (RequestDataPreparedEvent $requestDataPreparedEvent): void {
+        if ($requestDataPreparedEvent->getGatewayClass() !== \Mews\Pos\Gateways\KuveytPos::class) {
             return;
         }
         // KuveytPos TDV2.0.0 icin zorunlu eklenmesi gereken ekstra alanlar:
@@ -135,8 +135,8 @@ $eventDispatcher->addListener(
      * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
      * Eger ekleyeceginiz veri hash hesaplamada kullanilmiyorsa form verisi olusturduktan sonra da ekleyebilirsiniz.
      */
-    $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event) use ($pos): void {
-        if (get_class($pos) === \Mews\Pos\Gateways\EstPos::class || get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+    $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event): void {
+        if ($event->getGatewayClass() === \Mews\Pos\Gateways\EstPos::class || $event->getGatewayClass() === \Mews\Pos\Gateways\EstV3Pos::class) {
             //Örnek 1: İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
 //                $supportedPaymentModels = [
 //                    \Mews\Pos\PosInterface::MODEL_3D_PAY,
@@ -150,7 +150,7 @@ $eventDispatcher->addListener(
 //                    $event->setFormInputs($formInputs);
 //                }
         }
-        if (get_class($pos) === \Mews\Pos\Gateways\EstV3Pos::class) {
+        if ($event->getGatewayClass() === \Mews\Pos\Gateways\EstV3Pos::class) {
 //                // Örnek 2: callbackUrl eklenmesi
 //                $formInputs                = $event->getFormInputs();
 //                $formInputs['callbackUrl'] = $formInputs['failUrl'];

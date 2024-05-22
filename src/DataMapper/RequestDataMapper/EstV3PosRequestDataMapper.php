@@ -7,6 +7,7 @@ namespace Mews\Pos\DataMapper\RequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
+use Mews\Pos\Gateways\EstV3Pos;
 
 /**
  * Creates request data for EstPos Gateway requests that supports v3 Hash algorithm
@@ -27,7 +28,13 @@ class EstV3PosRequestDataMapper extends EstPosRequestDataMapper
 
         $data['inputs']['hashAlgorithm'] = 'ver3';
 
-        $event = new Before3DFormHashCalculatedEvent($data['inputs'], $posAccount->getBank(), $txType, $paymentModel);
+        $event = new Before3DFormHashCalculatedEvent(
+            $data['inputs'],
+            $posAccount->getBank(),
+            $txType,
+            $paymentModel,
+            EstV3Pos::class
+        );
         $this->eventDispatcher->dispatch($event);
         $data['inputs'] = $event->getFormInputs();
 

@@ -14,13 +14,12 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\NullLogger;
-use Symfony\Component\EventDispatcher\EventDispatcher;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper
@@ -30,6 +29,9 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
     public PayFlexAccount $account;
 
     private PayFlexCPV4PosRequestDataMapper $requestDataMapper;
+
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
 
     protected function setUp(): void
     {
@@ -43,8 +45,9 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             PosInterface::MODEL_3D_SECURE
         );
 
+        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
         $crypt                   = CryptFactory::createGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
-        $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
+        $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($this->dispatcher, $crypt);
     }
 
     /**
@@ -140,6 +143,9 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DFormData(array $queryParams, array $expected): void
     {
+        $this->dispatcher->expects(self::never())
+            ->method('dispatch');
+
         $actualData = $this->requestDataMapper->create3DFormData(
             null,
             null,
@@ -175,10 +181,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $pos = PosFactory::createPosGateway($account, $config, new EventDispatcher());
-        $pos->setTestMode(true);
-
-        $card = CreditCardFactory::createForGateway($pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $card = CreditCardFactory::create('5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
 
         yield 'with_card_1' => [
             'account'  => $account,

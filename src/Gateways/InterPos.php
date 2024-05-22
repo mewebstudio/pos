@@ -83,7 +83,14 @@ class InterPos extends AbstractGateway
 
         $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $gatewayResponse);
 
-        $event = new RequestDataPreparedEvent($requestData, $this->account->getBank(), $txType);
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_3D_SECURE
+        );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [

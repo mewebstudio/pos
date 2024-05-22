@@ -12,6 +12,7 @@ use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -359,7 +360,13 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             $inputs['cardcvv2']            = $creditCard->getCvv();
         }
 
-        $event = new Before3DFormHashCalculatedEvent($inputs, $posAccount->getBank(), $txType, $paymentModel);
+        $event = new Before3DFormHashCalculatedEvent(
+            $inputs,
+            $posAccount->getBank(),
+            $txType,
+            $paymentModel,
+            GarantiPos::class
+        );
         $this->eventDispatcher->dispatch($event);
         $inputs = $event->getFormInputs();
 

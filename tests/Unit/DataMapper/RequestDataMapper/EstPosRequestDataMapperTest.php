@@ -10,10 +10,11 @@ use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\PosFactory;
+use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -33,13 +34,14 @@ class EstPosRequestDataMapperTest extends TestCase
     /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
+    /** @var EventDispatcherInterface & MockObject */
+    private EventDispatcherInterface $dispatcher;
+
     private array $order;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $config = require __DIR__.'/../../../../config/pos_test.php';
 
         $this->account = AccountFactory::createEstPosAccount(
             'akbank',
@@ -60,12 +62,11 @@ class EstPosRequestDataMapperTest extends TestCase
             'fail_url'    => 'https://domain.com/fail_url',
             'lang'        => PosInterface::LANG_TR,
         ];
-        $dispatcher  = $this->createMock(EventDispatcherInterface::class);
+        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
         $this->crypt = $this->createMock(CryptInterface::class);
-        $pos         = PosFactory::createPosGateway($this->account, $config, $dispatcher);
 
-        $this->requestDataMapper = new EstPosRequestDataMapper($dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::createForGateway($pos, '5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->requestDataMapper = new EstPosRequestDataMapper($this->dispatcher, $this->crypt);
+        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**
@@ -219,6 +220,17 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expected['inputs']['rnd']);
+
+        $this->dispatcher->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $paymentModel) {
+                return $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+                    && EstPos::class === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
+                    && count($dispatchedEvent->getFormInputs()) > 3
+                    ;
+            }));
 
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,

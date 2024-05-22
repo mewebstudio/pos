@@ -11,6 +11,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -29,6 +30,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\KuveytPos
+ * @covers  \Mews\Pos\Gateways\AbstractGateway
  */
 class KuveytPosTest extends TestCase
 {
@@ -193,7 +195,8 @@ class KuveytPosTest extends TestCase
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $card         = $this->card;
-        $requestData = ['form-data'];
+        $requestData  = ['form-data'];
+        $order        = $this->order;
         $this->configureClientResponse(
             $txType,
             'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelPayGate',
@@ -201,10 +204,9 @@ class KuveytPosTest extends TestCase
             'encoded-request-data',
             $response,
             ['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url'],
+            $order,
+            $paymentModel
         );
-
-        $this->eventDispatcherMock->expects(self::once())
-            ->method('dispatch');
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DEnrollmentCheckRequestData')
@@ -228,7 +230,7 @@ class KuveytPosTest extends TestCase
                 $card
             )
             ->willReturn(['3d-form-data']);
-        $result = $this->pos->get3DFormData($this->order, $paymentModel, $txType, $card);
+        $result = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
         $this->assertSame(['3d-form-data'], $result);
     }
@@ -281,6 +283,18 @@ class KuveytPosTest extends TestCase
                     ],
                 ]
             );
+            $paymentModel = PosInterface::MODEL_3D_SECURE;
+            $this->eventDispatcherMock->expects(self::once())
+                ->method('dispatch')
+                ->with($this->callback(function ($dispatchedEvent) use ($txType, $create3DPaymentRequestData, $order, $paymentModel) {
+                    return $dispatchedEvent instanceof RequestDataPreparedEvent
+                        && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel()
+                        ;
+                }));
 
             $this->serializerMock->expects(self::once())
                 ->method('encode')
@@ -333,22 +347,25 @@ class KuveytPosTest extends TestCase
      */
     public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $card    = $this->card;
+        $account     = $this->pos->getAccount();
+        $card        = $this->card;
+        $requestData = ['createNonSecurePaymentRequestData'];
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePaymentRequestData')
             ->with($account, $order, $txType, $card)
-            ->willReturn(['createNonSecurePaymentRequestData']);
+            ->willReturn($requestData);
 
         $paymentResponse = ['paymentResponse'];
 
         $this->configureClientResponse(
             $txType,
             $apiUrl,
-            ['createNonSecurePaymentRequestData'],
+            $requestData,
             'request-body',
             'response-body',
-            $paymentResponse
+            $paymentResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -455,40 +472,6 @@ class KuveytPosTest extends TestCase
         ];
     }
 
-    private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        ?int $statusCode = null
-    ): void
-    {
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($requestData, $txType)
-            ->willReturn($encodedRequestData);
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-                'body'    => $encodedRequestData,
-            ],
-            $statusCode
-        );
-    }
-
     public static function getApiUrlDataProvider(): array
     {
         return [
@@ -534,5 +517,53 @@ class KuveytPosTest extends TestCase
                 'exception_class' => UnsupportedTransactionTypeException::class,
             ],
         ];
+    }
+
+    private function configureClientResponse(
+        string $txType,
+        string $apiUrl,
+        array  $requestData,
+        string $encodedRequestData,
+        string $responseContent,
+        array  $decodedResponse,
+        array  $order,
+        string $paymentModel,
+        ?int   $statusCode = null
+    ): void
+    {
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with($requestData, $txType)
+            ->willReturn($encodedRequestData);
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            $responseContent,
+            $apiUrl,
+            [
+                'headers' => [
+                    'Content-Type' => 'text/xml; charset=UTF-8',
+                ],
+                'body'    => $encodedRequestData,
+            ],
+            $statusCode
+        );
+
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order, $paymentModel) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    && $order === $dispatchedEvent->getOrder()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
+                    ;
+            }));
     }
 }

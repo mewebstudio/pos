@@ -107,6 +107,7 @@ class PosNetResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['proc_return_code'] = $procReturnCode;
             $defaultResponse['error_code']       = $raw3DAuthResponseData['respCode'];
             $defaultResponse['error_message']    = $raw3DAuthResponseData['respText'];
+            $defaultResponse['3d_all']           = $raw3DAuthResponseData;
 
             return $defaultResponse;
         }

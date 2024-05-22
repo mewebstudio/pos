@@ -297,7 +297,9 @@ class AkbankPosTest extends TestCase
                 $create3DPaymentRequestData,
                 'request-body',
                 'response-body',
-                $paymentResponse
+                $paymentResponse,
+                $order,
+                PosInterface::MODEL_3D_SECURE
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -315,6 +317,8 @@ class AkbankPosTest extends TestCase
                 ->method('encode');
             $this->serializerMock->expects(self::never())
                 ->method('decode');
+            $this->eventDispatcherMock->expects(self::never())
+                ->method('dispatch');
         }
 
         $this->pos->make3DPayment($request, $order, $txType);
@@ -387,27 +391,30 @@ class AkbankPosTest extends TestCase
      */
     public function testHistoryRequest(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_HISTORY;
-
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_HISTORY;
         $requestData = ['createHistoryRequestData'];
+
         $this->requestMapperMock->expects(self::once())
             ->method('createHistoryRequestData')
             ->with($account, $order)
             ->willReturn($requestData);
 
+        $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
             $apiUrl,
             $requestData,
             'request-body',
             'response-body',
-            ['decodedResponse']
+            $decodedResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapHistoryResponse')
-            ->with(['decodedResponse'])
+            ->with($decodedResponse)
             ->willReturn(['result']);
 
         $this->pos->history($order);
@@ -426,14 +433,13 @@ class AkbankPosTest extends TestCase
         bool   $isSuccess
     ): void
     {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_ORDER_HISTORY;
+
         $this->requestMapperMock->expects(self::once())
             ->method('createOrderHistoryRequestData')
-            ->with($this->pos->getAccount(), $order)
+            ->with($account, $order)
             ->willReturn($requestData);
-
-        $this->eventDispatcherMock->expects(self::once())
-            ->method('dispatch')
-            ->with($this->logicalAnd($this->isInstanceOf(RequestDataPreparedEvent::class)));
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapOrderHistoryResponse')
@@ -441,12 +447,14 @@ class AkbankPosTest extends TestCase
             ->willReturn($mappedResponse);
 
         $this->configureClientResponse(
-            PosInterface::TX_TYPE_ORDER_HISTORY,
+            $txType,
             'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
             $requestData,
             $encodedRequest,
             $responseContent,
-            $decodedResponse
+            $decodedResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->pos->orderHistory($order);
@@ -468,13 +476,16 @@ class AkbankPosTest extends TestCase
             ->with($account, $order, $txType, $card)
             ->willReturn(['createNonSecurePaymentRequestData']);
 
+        $requestData = ['createNonSecurePaymentRequestData'];
         $this->configureClientResponse(
             $txType,
             $apiUrl,
-            ['createNonSecurePaymentRequestData'],
+            $requestData,
             'request-body',
             $apiUrl,
-            ['paymentResponse']
+            ['paymentResponse'],
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -490,20 +501,23 @@ class AkbankPosTest extends TestCase
      */
     public function testMakeRegularPaymentBadRequest(array $order, string $txType, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $card    = $this->card;
+        $account     = $this->pos->getAccount();
+        $card        = $this->card;
+        $requestData = ['createNonSecurePaymentRequestData'];
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePaymentRequestData')
             ->with($account, $order, $txType, $card)
-            ->willReturn(['createNonSecurePaymentRequestData']);
+            ->willReturn($requestData);
 
         $this->configureClientResponse(
             $txType,
             $apiUrl,
-            ['createNonSecurePaymentRequestData'],
+            $requestData,
             'request-body',
             $apiUrl,
             ['code' => 123, 'message' => 'error'],
+            $order,
+            PosInterface::MODEL_NON_SECURE,
             400
         );
 
@@ -516,21 +530,24 @@ class AkbankPosTest extends TestCase
      */
     public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_PAY_POST_AUTH;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
+        $requestData = ['createNonSecurePostAuthPaymentRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePostAuthPaymentRequestData')
             ->with($account, $order)
-            ->willReturn(['createNonSecurePostAuthPaymentRequestData']);
+            ->willReturn($requestData);
 
         $this->configureClientResponse(
             $txType,
             $apiUrl,
-            ['createNonSecurePostAuthPaymentRequestData'],
+            $requestData,
             'request-body',
             $apiUrl,
-            ['paymentResponse']
+            ['paymentResponse'],
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -552,21 +569,24 @@ class AkbankPosTest extends TestCase
      */
     public function testCancelRequest(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_CANCEL;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CANCEL;
+        $requestData = ['createCancelRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createCancelRequestData')
             ->with($account, $order)
-            ->willReturn(['createCancelRequestData']);
+            ->willReturn($requestData);
 
         $this->configureClientResponse(
             $txType,
             $apiUrl,
-            ['createCancelRequestData'],
+            $requestData,
             'request-body',
             $apiUrl,
-            ['decodedResponse']
+            ['decodedResponse'],
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -582,13 +602,14 @@ class AkbankPosTest extends TestCase
      */
     public function testRefundRequest(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_REFUND;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_REFUND;
+        $requestData = ['createRefundRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
             ->with($account, $order)
-            ->willReturn(['createRefundRequestData']);
+            ->willReturn($requestData);
 
         $this->configureClientResponse(
             $txType,
@@ -596,7 +617,9 @@ class AkbankPosTest extends TestCase
             ['createRefundRequestData'],
             'request-body',
             $apiUrl,
-            ['decodedResponse']
+            ['decodedResponse'],
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -605,36 +628,6 @@ class AkbankPosTest extends TestCase
             ->willReturn(['result']);
 
         $this->pos->refund($order);
-    }
-
-    /**
-     * @dataProvider orderHistoryRequestDataProvider
-     */
-    public function testOrderHistoryRequest(array $order, string $apiUrl): void
-    {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_ORDER_HISTORY;
-
-        $this->requestMapperMock->expects(self::once())
-            ->method('createOrderHistoryRequestData')
-            ->with($account, $order)
-            ->willReturn(['createOrderHistoryRequestData']);
-
-        $this->configureClientResponse(
-            $txType,
-            $apiUrl,
-            ['createOrderHistoryRequestData'],
-            'request-body',
-            $apiUrl,
-            ['decodedResponse']
-        );
-
-        $this->responseMapperMock->expects(self::once())
-            ->method('mapOrderHistoryResponse')
-            ->with(['decodedResponse'])
-            ->willReturn(['result']);
-
-        $this->pos->orderHistory($order);
     }
 
     public static function getApiUrlDataProvider(): array
@@ -707,18 +700,6 @@ class AkbankPosTest extends TestCase
     }
 
     public static function refundRequestDataProvider(): array
-    {
-        return [
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
-            ],
-        ];
-    }
-
-    public static function orderHistoryRequestDataProvider(): array
     {
         return [
             [
@@ -867,6 +848,18 @@ class AkbankPosTest extends TestCase
         ];
     }
 
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'batch_num' => 123,
+                ],
+                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/portal/report/transaction',
+            ],
+        ];
+    }
+
     private function configureClientResponse(
         string $txType,
         string $apiUrl,
@@ -874,6 +867,8 @@ class AkbankPosTest extends TestCase
         string $encodedRequestData,
         string $responseContent,
         array  $decodedResponse,
+        array  $order,
+        string $paymentModel,
         ?int   $statusCode = null
     ): void
     {
@@ -905,17 +900,17 @@ class AkbankPosTest extends TestCase
             ],
             $statusCode
         );
-    }
 
-    public static function historyRequestDataProvider(): array
-    {
-        return [
-            [
-                'order'   => [
-                    'batch_num' => 123,
-                ],
-                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/portal/report/transaction',
-            ],
-        ];
+        $this->eventDispatcherMock->expects(self::once())
+            ->method('dispatch')
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order, $paymentModel) {
+                return $dispatchedEvent instanceof RequestDataPreparedEvent
+                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                    && $txType === $dispatchedEvent->getTxType()
+                    && $requestData === $dispatchedEvent->getRequestData()
+                    && $order === $dispatchedEvent->getOrder()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
+                    ;
+            }));
     }
 }
