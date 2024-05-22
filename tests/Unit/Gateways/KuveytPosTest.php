@@ -204,7 +204,8 @@ class KuveytPosTest extends TestCase
             'encoded-request-data',
             $response,
             ['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url'],
-            $order
+            $order,
+            $paymentModel
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -282,15 +283,16 @@ class KuveytPosTest extends TestCase
                     ],
                 ]
             );
-
+            $paymentModel = PosInterface::MODEL_3D_SECURE;
             $this->eventDispatcherMock->expects(self::once())
                 ->method('dispatch')
-                ->with($this->callback(function ($dispatchedEvent) use ($txType, $create3DPaymentRequestData, $order) {
+                ->with($this->callback(function ($dispatchedEvent) use ($txType, $create3DPaymentRequestData, $order, $paymentModel) {
                     return $dispatchedEvent instanceof RequestDataPreparedEvent
                         && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                         && $txType === $dispatchedEvent->getTxType()
                         && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
                         && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel()
                         ;
                 }));
 
@@ -362,7 +364,8 @@ class KuveytPosTest extends TestCase
             'request-body',
             'response-body',
             $paymentResponse,
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -524,6 +527,7 @@ class KuveytPosTest extends TestCase
         string $responseContent,
         array  $decodedResponse,
         array  $order,
+        string $paymentModel,
         ?int   $statusCode = null
     ): void
     {
@@ -552,12 +556,13 @@ class KuveytPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order) {
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order, $paymentModel) {
                 return $dispatchedEvent instanceof RequestDataPreparedEvent
                     && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                     && $txType === $dispatchedEvent->getTxType()
                     && $requestData === $dispatchedEvent->getRequestData()
                     && $order === $dispatchedEvent->getOrder()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
                     ;
             }));
     }

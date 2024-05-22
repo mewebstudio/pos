@@ -132,7 +132,8 @@ class VakifKatilimPos extends AbstractGateway
             $this->account->getBank(),
             $txType,
             \get_class($this),
-            $order
+            $order,
+            PosInterface::MODEL_3D_SECURE
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
@@ -204,7 +205,8 @@ class VakifKatilimPos extends AbstractGateway
             $this->account->getBank(),
             $txType,
             \get_class($this),
-            $order
+            $order,
+            $paymentModel
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {

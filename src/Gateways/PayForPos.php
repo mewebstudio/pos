@@ -82,7 +82,8 @@ class PayForPos extends AbstractGateway
             $this->account->getBank(),
             $txType,
             \get_class($this),
-            $order
+            $order,
+            PosInterface::MODEL_3D_SECURE
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {

@@ -225,7 +225,8 @@ class ToslaPos extends AbstractGateway
             $this->account->getBank(),
             $txType,
             \get_class($this),
-            $order
+            $order,
+            $paymentModel
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {

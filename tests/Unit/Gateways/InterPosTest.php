@@ -210,7 +210,8 @@ class InterPosTest extends TestCase
                 ['request-body'],
                 'response-body',
                 $paymentResponse,
-                $order
+                $order,
+                PosInterface::MODEL_3D_SECURE
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -327,7 +328,8 @@ class InterPosTest extends TestCase
             ['request-body'],
             'response-body',
             $decodedResponse,
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -360,7 +362,8 @@ class InterPosTest extends TestCase
             ['request-body'],
             'response-body',
             $decodedResponse,
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -394,7 +397,8 @@ class InterPosTest extends TestCase
             ['request-body'],
             'response-body',
             $decodedResponse,
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -427,7 +431,8 @@ class InterPosTest extends TestCase
             ['request-body'],
             'response-body',
             $decodedResponse,
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -460,7 +465,8 @@ class InterPosTest extends TestCase
             ['request-body'],
             'response-body',
             $decodedResponse,
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -563,7 +569,8 @@ class InterPosTest extends TestCase
         array  $encodedRequestData,
         string $responseContent,
         array  $decodedResponse,
-        array  $order
+        array  $order,
+        string $paymentModel
     ): void
     {
         $this->serializerMock->expects(self::once())
@@ -587,12 +594,13 @@ class InterPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order) {
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order, $paymentModel) {
                 return $dispatchedEvent instanceof RequestDataPreparedEvent
                     && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                     && $txType === $dispatchedEvent->getTxType()
                     && $requestData === $dispatchedEvent->getRequestData()
                     && $order === $dispatchedEvent->getOrder()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
                     ;
             }));
     }

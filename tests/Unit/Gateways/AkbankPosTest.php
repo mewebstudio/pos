@@ -298,7 +298,8 @@ class AkbankPosTest extends TestCase
                 'request-body',
                 'response-body',
                 $paymentResponse,
-                $order
+                $order,
+                PosInterface::MODEL_3D_SECURE
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -407,7 +408,8 @@ class AkbankPosTest extends TestCase
             'request-body',
             'response-body',
             $decodedResponse,
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -451,7 +453,8 @@ class AkbankPosTest extends TestCase
             $encodedRequest,
             $responseContent,
             $decodedResponse,
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->pos->orderHistory($order);
@@ -481,7 +484,8 @@ class AkbankPosTest extends TestCase
             'request-body',
             $apiUrl,
             ['paymentResponse'],
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -513,6 +517,7 @@ class AkbankPosTest extends TestCase
             $apiUrl,
             ['code' => 123, 'message' => 'error'],
             $order,
+            PosInterface::MODEL_NON_SECURE,
             400
         );
 
@@ -541,7 +546,8 @@ class AkbankPosTest extends TestCase
             'request-body',
             $apiUrl,
             ['paymentResponse'],
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -579,7 +585,8 @@ class AkbankPosTest extends TestCase
             'request-body',
             $apiUrl,
             ['decodedResponse'],
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -611,7 +618,8 @@ class AkbankPosTest extends TestCase
             'request-body',
             $apiUrl,
             ['decodedResponse'],
-            $order
+            $order,
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -860,6 +868,7 @@ class AkbankPosTest extends TestCase
         string $responseContent,
         array  $decodedResponse,
         array  $order,
+        string $paymentModel,
         ?int   $statusCode = null
     ): void
     {
@@ -894,12 +903,13 @@ class AkbankPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order) {
+            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order, $paymentModel) {
                 return $dispatchedEvent instanceof RequestDataPreparedEvent
                     && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
                     && $txType === $dispatchedEvent->getTxType()
                     && $requestData === $dispatchedEvent->getRequestData()
                     && $order === $dispatchedEvent->getOrder()
+                    && $paymentModel === $dispatchedEvent->getPaymentModel()
                     ;
             }));
     }

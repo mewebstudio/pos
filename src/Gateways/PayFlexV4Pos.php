@@ -83,7 +83,8 @@ class PayFlexV4Pos extends AbstractGateway
             $this->account->getBank(),
             $txType,
             \get_class($this),
-            $order
+            $order,
+            PosInterface::MODEL_3D_SECURE
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
@@ -151,7 +152,7 @@ class PayFlexV4Pos extends AbstractGateway
             throw new LogicException('Kredi kartı bilgileri eksik!');
         }
 
-        $data = $this->sendEnrollmentRequest($order, $creditCard, $txType);
+        $data = $this->sendEnrollmentRequest($order, $creditCard, $txType, $paymentModel);
 
         $status = $data['Message']['VERes']['Status'];
         /**
@@ -206,16 +207,18 @@ class PayFlexV4Pos extends AbstractGateway
      * (Enrollment Status) sorulması, yani kart 3-D Secure programına dâhil mi yoksa değil mi sorgusu
      *
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      *
      * @param array<string, int|string|float|null> $order
      * @param CreditCardInterface                  $creditCard
      * @param string                               $txType
+     * @param string                               $paymentModel
      *
      * @return array<string, mixed>
      *
      * @throws Exception
      */
-    private function sendEnrollmentRequest(array $order, CreditCardInterface $creditCard, string $txType): array
+    private function sendEnrollmentRequest(array $order, CreditCardInterface $creditCard, string $txType, string $paymentModel): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $creditCard);
 
@@ -224,7 +227,8 @@ class PayFlexV4Pos extends AbstractGateway
             $this->account->getBank(),
             $txType,
             \get_class($this),
-            $order
+            $order,
+            $paymentModel
         );
         $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
