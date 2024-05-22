@@ -32,6 +32,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\PayFlexCPV4Pos
+ * @covers  \Mews\Pos\Gateways\AbstractGateway
  */
 class PayFlexCPV4PosTest extends TestCase
 {
@@ -153,6 +154,7 @@ class PayFlexCPV4PosTest extends TestCase
         $enrollmentResponse = PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['queryParams'];
         $txType             = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel       = PosInterface::MODEL_3D_SECURE;
+        $requestData        = ['request-data'];
         $card               = $this->card;
         $order              = $this->order;
 
@@ -165,22 +167,16 @@ class PayFlexCPV4PosTest extends TestCase
                 $paymentModel,
                 $card
             )
-            ->willReturn(['request-data']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::never())
-            ->method('encode');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-content',
+        $this->configureClientResponse(
+            $txType,
             $this->config['gateway_endpoints']['payment_api'],
-            ['form_params' => ['request-data']],
+            $requestData,
+            $requestData,
+            'response-body',
+            $enrollmentResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-content', $txType)
-            ->willReturn($enrollmentResponse);
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DFormData')
@@ -211,6 +207,7 @@ class PayFlexCPV4PosTest extends TestCase
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $card         = $this->card;
         $order        = $this->order;
+        $requestData  = ['request-data'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DEnrollmentCheckRequestData')
@@ -221,27 +218,22 @@ class PayFlexCPV4PosTest extends TestCase
                 $paymentModel,
                 $card
             )
-            ->willReturn(['request-data']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::never())
-            ->method('encode');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-content',
+        $enrollmentResponse = [
+            'CommonPaymentUrl' => null,
+            'PaymentToken'     => null,
+            'ErrorCode'        => '5007',
+            'ResponseMessage'  => 'Güvenlik Numarası Hatalı',
+        ];
+        $this->configureClientResponse(
+            $txType,
             $this->config['gateway_endpoints']['payment_api'],
-            ['form_params' => ['request-data']],
+            $requestData,
+            $requestData,
+            'response-body',
+            $enrollmentResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-content', $txType)
-            ->willReturn([
-                'CommonPaymentUrl' => null,
-                'PaymentToken'     => null,
-                'ErrorCode'        => '5007',
-                'ResponseMessage'  => 'Güvenlik Numarası Hatalı',
-            ]);
 
         $this->requestMapperMock->expects(self::never())
             ->method('create3DFormData');
@@ -291,22 +283,15 @@ class PayFlexCPV4PosTest extends TestCase
                 ->method('create3DPaymentStatusRequestData')
                 ->with($this->account, $request->query->all())
                 ->willReturn($create3DPaymentStatusRequestData);
-            $this->prepareClient(
-                $this->httpClientMock,
-                'response-body',
+
+            $this->configureClientResponse(
+                $txType,
                 $this->config['gateway_endpoints']['query_api'],
-                [
-                    'form_params' => $create3DPaymentStatusRequestData,
-                ],
+                $create3DPaymentStatusRequestData,
+                $create3DPaymentStatusRequestData,
+                'response-body',
+                $paymentResponse,
             );
-
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-
-            $this->serializerMock->expects(self::once())
-                ->method('decode')
-                ->with('response-body', $txType)
-                ->willReturn($paymentResponse);
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPayResponseData')
@@ -337,34 +322,27 @@ class PayFlexCPV4PosTest extends TestCase
      */
     public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $card    = $this->card;
+        $account     = $this->pos->getAccount();
+        $card        = $this->card;
+        $requestData = ['createNonSecurePaymentRequestData'];
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePaymentRequestData')
             ->with($account, $order, $txType, $card)
-            ->willReturn(['createNonSecurePaymentRequestData']);
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+            ->willReturn($requestData);
+
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createNonSecurePaymentRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['paymentResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapPaymentResponse')
-            ->with(['paymentResponse'], $txType, $order)
+            ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
         $this->pos->makeRegularPayment($order, $card, $txType);
@@ -375,36 +353,28 @@ class PayFlexCPV4PosTest extends TestCase
      */
     public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_PAY_POST_AUTH;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
+        $requestData = ['createNonSecurePostAuthPaymentRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePostAuthPaymentRequestData')
             ->with($account, $order)
-            ->willReturn(['createNonSecurePostAuthPaymentRequestData']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createNonSecurePostAuthPaymentRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['paymentResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapPaymentResponse')
-            ->with(['paymentResponse'], $txType, $order)
+            ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
         $this->pos->makeRegularPostPayment($order);
@@ -421,36 +391,28 @@ class PayFlexCPV4PosTest extends TestCase
      */
     public function testCancelRequest(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType = PosInterface::TX_TYPE_CANCEL;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CANCEL;
+        $requestData = ['createCancelRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createCancelRequestData')
             ->with($account, $order)
-            ->willReturn(['createCancelRequestData']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createCancelRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['decodedResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapCancelResponse')
-            ->with(['decodedResponse'])
+            ->with($decodedResponse)
             ->willReturn(['result']);
 
         $this->pos->cancel($order);
@@ -461,36 +423,28 @@ class PayFlexCPV4PosTest extends TestCase
      */
     public function testRefundRequest(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType = PosInterface::TX_TYPE_REFUND;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_REFUND;
+        $requestData = ['createRefundRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
             ->with($account, $order)
-            ->willReturn(['createRefundRequestData']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createRefundRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['decodedResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapRefundResponse')
-            ->with(['decodedResponse'])
+            ->with($decodedResponse)
             ->willReturn(['result']);
 
         $this->pos->refund($order);
@@ -598,5 +552,37 @@ class PayFlexCPV4PosTest extends TestCase
                 'api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
             ],
         ];
+    }
+
+    private function configureClientResponse(
+        string $txType,
+        string $apiUrl,
+        array  $requestData,
+        $encodedRequestData,
+        string $responseContent,
+        array  $decodedResponse
+    ): void
+    {
+        if ($requestData === $encodedRequestData) {
+            $this->serializerMock->expects(self::never())
+                ->method('encode');
+        } else {
+            $this->serializerMock->expects(self::once())
+                ->method('encode')
+                ->with($requestData, $txType)
+                ->willReturn($encodedRequestData);
+        }
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            $responseContent,
+            $apiUrl,
+            is_string($encodedRequestData) ? ['body' => $encodedRequestData] : ['form_params' => $encodedRequestData],
+        );
     }
 }

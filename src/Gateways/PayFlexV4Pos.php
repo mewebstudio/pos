@@ -186,9 +186,10 @@ class PayFlexV4Pos extends AbstractGateway
         $this->logger->debug('sending request', ['url' => $url]);
 
         $isXML = \is_string($contents);
-        $body = $isXML ? ['form_params' => ['prmstr' => $contents]] : ['form_params' => $contents];
 
-        $response = $this->client->post($url, $body);
+        $response = $this->client->post($url, [
+            'form_params' => $isXML ? ['prmstr' => $contents] : $contents,
+        ]);
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);

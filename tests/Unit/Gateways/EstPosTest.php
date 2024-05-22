@@ -27,8 +27,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\EstPos
- *
- * @uses \Mews\Pos\Gateways\AbstractGateway
+ * @covers  \Mews\Pos\Gateways\AbstractGateway
  */
 class EstPosTest extends TestCase
 {
@@ -238,38 +237,31 @@ class EstPosTest extends TestCase
      */
     public function testStatus(array $bankResponse, array $expectedData, bool $isSuccess): void
     {
-        $statusRequestData = [
-            'statusRequestData',
-        ];
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_STATUS;
+        $requestData = ['createStatusRequestData'];
+        $order       = $this->order;
+
         $this->requestMapperMock->expects(self::once())
             ->method('createStatusRequestData')
-            ->willReturn($statusRequestData);
+            ->with($account, $order)
+            ->willReturn($requestData);
 
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $this->configureClientResponse(
+            $txType,
             'https://entegrasyon.asseco-see.com.tr/fim/api',
-            [
-                'body' => 'request-body',
-            ],
+            $requestData,
+            'request-body',
+            'response-body',
+            $bankResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($statusRequestData, PosInterface::TX_TYPE_STATUS)
-            ->willReturn('request-body');
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', PosInterface::TX_TYPE_STATUS)
-            ->willReturn($bankResponse);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapStatusResponse')
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->status($this->order);
+        $this->pos->status($order);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
@@ -287,39 +279,31 @@ class EstPosTest extends TestCase
      */
     public function testOrderHistory(array $bankResponse, array $expectedData, bool $isSuccess): void
     {
-        $historyRequestData = [
-            'historyRequestData',
-        ];
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_ORDER_HISTORY;
+        $requestData = ['createOrderHistoryRequestData'];
+        $order       = $this->order;
+
         $this->requestMapperMock->expects(self::once())
             ->method('createOrderHistoryRequestData')
-            ->willReturn($historyRequestData);
+            ->with($account, $order)
+            ->willReturn($requestData);
 
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $this->configureClientResponse(
+            $txType,
             'https://entegrasyon.asseco-see.com.tr/fim/api',
-            [
-                'body' => 'request-body',
-            ],
+            $requestData,
+            'request-body',
+            'response-body',
+            $bankResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($historyRequestData, PosInterface::TX_TYPE_ORDER_HISTORY)
-            ->willReturn('request-body');
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', PosInterface::TX_TYPE_ORDER_HISTORY)
-            ->willReturn($bankResponse);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapOrderHistoryResponse')
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-
-        $this->pos->orderHistory($this->order);
+        $this->pos->orderHistory($order);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
@@ -331,38 +315,31 @@ class EstPosTest extends TestCase
      */
     public function testCancel(array $bankResponse, array $expectedData, bool $isSuccess): void
     {
-        $cancelRequestData = [
-            'cancelRequestData',
-        ];
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CANCEL;
+        $requestData = ['createCancelRequestData'];
+        $order       = $this->order;
+
         $this->requestMapperMock->expects(self::once())
             ->method('createCancelRequestData')
-            ->willReturn($cancelRequestData);
+            ->with($account, $order)
+            ->willReturn($requestData);
 
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $this->configureClientResponse(
+            $txType,
             'https://entegrasyon.asseco-see.com.tr/fim/api',
-            [
-                'body' => 'request-body',
-            ],
+            $requestData,
+            'request-body',
+            'response-body',
+            $bankResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($cancelRequestData, PosInterface::TX_TYPE_CANCEL)
-            ->willReturn('request-body');
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', PosInterface::TX_TYPE_CANCEL)
-            ->willReturn($bankResponse);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapCancelResponse')
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->cancel($this->order);
+        $this->pos->cancel($order);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
@@ -374,38 +351,31 @@ class EstPosTest extends TestCase
      */
     public function testRefund(array $bankResponse, array $expectedData, bool $isSuccess): void
     {
-        $refundRequestData = [
-            'refundRequestData',
-        ];
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_REFUND;
+        $requestData = ['createRefundRequestData'];
+        $order       = $this->order;
+
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
-            ->willReturn($refundRequestData);
+            ->with($account, $order)
+            ->willReturn($requestData);
 
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $this->configureClientResponse(
+            $txType,
             'https://entegrasyon.asseco-see.com.tr/fim/api',
-            [
-                'body' => 'request-body',
-            ],
+            $requestData,
+            'request-body',
+            'response-body',
+            $bankResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($refundRequestData, PosInterface::TX_TYPE_REFUND)
-            ->willReturn('request-body');
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', PosInterface::TX_TYPE_REFUND)
-            ->willReturn($bankResponse);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapRefundResponse')
             ->with($bankResponse)
             ->willReturn($expectedData);
 
-        $this->pos->refund($this->order);
+        $this->pos->refund($order);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
@@ -450,23 +420,15 @@ class EstPosTest extends TestCase
                 ->method('create3DPaymentRequestData')
                 ->with($this->account, $order, $txType, $request->request->all())
                 ->willReturn($create3DPaymentRequestData);
-            $this->prepareClient(
-                $this->httpClientMock,
-                'response-body',
-                $this->config['gateway_endpoints']['payment_api'],
-                [
-                    'body' => 'request-body',
-                ],
-            );
 
-            $this->serializerMock->expects(self::once())
-                ->method('encode')
-                ->with($create3DPaymentRequestData, $txType)
-                ->willReturn('request-body');
-            $this->serializerMock->expects(self::once())
-                ->method('decode')
-                ->with('response-body', $txType)
-                ->willReturn($paymentResponse);
+            $this->configureClientResponse(
+                $txType,
+                'https://entegrasyon.asseco-see.com.tr/fim/api',
+                $create3DPaymentRequestData,
+                'request-body',
+                'response-body',
+                $paymentResponse,
+            );
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
@@ -483,6 +445,8 @@ class EstPosTest extends TestCase
                 ->method('encode');
             $this->serializerMock->expects(self::never())
                 ->method('decode');
+            $this->eventDispatcherMock->expects(self::never())
+                ->method('dispatch');
         }
 
         $this->pos->make3DPayment($request, $order, $txType);
@@ -497,34 +461,27 @@ class EstPosTest extends TestCase
      */
     public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $card    = $this->card;
+        $account     = $this->pos->getAccount();
+        $card        = $this->card;
+        $requestData = ['createNonSecurePaymentRequestData'];
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePaymentRequestData')
             ->with($account, $order, $txType, $card)
-            ->willReturn(['createNonSecurePaymentRequestData']);
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+            ->willReturn($requestData);
+
+        $decodedResponse = ['paymentResponse'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createNonSecurePaymentRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['paymentResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapPaymentResponse')
-            ->with(['paymentResponse'], $txType, $order)
+            ->with($decodedResponse, $txType, $order)
             ->willReturn(['result']);
 
         $this->pos->makeRegularPayment($order, $card, $txType);
@@ -535,32 +492,24 @@ class EstPosTest extends TestCase
      */
     public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_PAY_POST_AUTH;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
+        $requestData = ['createNonSecurePostAuthPaymentRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePostAuthPaymentRequestData')
             ->with($account, $order)
-            ->willReturn(['createNonSecurePostAuthPaymentRequestData']);
+            ->willReturn($requestData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with(['createNonSecurePostAuthPaymentRequestData'], $txType)
-            ->willReturn('request-body');
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            'response-body',
+        $decodedResponse = ['paymentResponse'];
+        $this->configureClientResponse(
+            $txType,
             $apiUrl,
-            [
-                'body'    => 'request-body',
-            ]
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
         );
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with('response-body', $txType)
-            ->willReturn(['paymentResponse']);
 
         $this->responseMapperMock->expects(self::once())
             ->method('mapPaymentResponse')
@@ -726,39 +675,32 @@ class EstPosTest extends TestCase
         ];
     }
 
-    public static function refundRequestDataProvider(): array
+    private function configureClientResponse(
+        string $txType,
+        string $apiUrl,
+        array  $requestData,
+        string $encodedRequestData,
+        string $responseContent,
+        array  $decodedResponse
+    ): void
     {
-        return [
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            ],
-        ];
-    }
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with($requestData, $txType)
+            ->willReturn($encodedRequestData);
 
-    public static function historyRequestDataProvider(): array
-    {
-        return [
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            ],
-        ];
-    }
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
 
-    public static function orderHistoryRequestDataProvider(): array
-    {
-        return [
+        $this->prepareClient(
+            $this->httpClientMock,
+            $responseContent,
+            $apiUrl,
             [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+                'body' => $encodedRequestData,
             ],
-        ];
+        );
     }
 }

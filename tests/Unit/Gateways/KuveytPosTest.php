@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\KuveytPos
+ * @covers  \Mews\Pos\Gateways\AbstractGateway
  */
 class KuveytPosTest extends TestCase
 {
@@ -333,19 +334,20 @@ class KuveytPosTest extends TestCase
      */
     public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
     {
-        $account = $this->pos->getAccount();
-        $card    = $this->card;
+        $account     = $this->pos->getAccount();
+        $card        = $this->card;
+        $requestData = ['createNonSecurePaymentRequestData'];
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePaymentRequestData')
             ->with($account, $order, $txType, $card)
-            ->willReturn(['createNonSecurePaymentRequestData']);
+            ->willReturn($requestData);
 
         $paymentResponse = ['paymentResponse'];
 
         $this->configureClientResponse(
             $txType,
             $apiUrl,
-            ['createNonSecurePaymentRequestData'],
+            $requestData,
             'request-body',
             'response-body',
             $paymentResponse
@@ -455,40 +457,6 @@ class KuveytPosTest extends TestCase
         ];
     }
 
-    private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        ?int $statusCode = null
-    ): void
-    {
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($requestData, $txType)
-            ->willReturn($encodedRequestData);
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-                'body'    => $encodedRequestData,
-            ],
-            $statusCode
-        );
-    }
-
     public static function getApiUrlDataProvider(): array
     {
         return [
@@ -534,5 +502,39 @@ class KuveytPosTest extends TestCase
                 'exception_class' => UnsupportedTransactionTypeException::class,
             ],
         ];
+    }
+
+    private function configureClientResponse(
+        string $txType,
+        string $apiUrl,
+        array  $requestData,
+        string $encodedRequestData,
+        string $responseContent,
+        array  $decodedResponse,
+        ?int $statusCode = null
+    ): void
+    {
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with($requestData, $txType)
+            ->willReturn($encodedRequestData);
+
+        $this->serializerMock->expects(self::once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
+
+        $this->prepareClient(
+            $this->httpClientMock,
+            $responseContent,
+            $apiUrl,
+            [
+                'headers' => [
+                    'Content-Type' => 'text/xml; charset=UTF-8',
+                ],
+                'body'    => $encodedRequestData,
+            ],
+            $statusCode
+        );
     }
 }
