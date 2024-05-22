@@ -18,7 +18,7 @@ trait PaymentTestTrait
     private function createPaymentOrder(
         string $paymentModel,
         string $currency = PosInterface::CURRENCY_TRY,
-        float  $amount = 1.01,
+        float  $amount = 10.01,
         int    $installment = 0,
         bool   $tekrarlanan = false
     ): array
@@ -69,13 +69,14 @@ trait PaymentTestTrait
         return $order;
     }
 
-    private function createPostPayOrder(string $gatewayClass, array $lastResponse): array
+    private function createPostPayOrder(string $gatewayClass, array $lastResponse, ?float $postAuthAmount = null): array
     {
         $postAuth = [
-            'id'       => $lastResponse['order_id'],
-            'amount'   => $lastResponse['amount'],
-            'currency' => $lastResponse['currency'],
-            'ip'       => '127.0.0.1',
+            'id'              => $lastResponse['order_id'],
+            'amount'          => $postAuthAmount ?? $lastResponse['amount'],
+            'pre_auth_amount' => $lastResponse['amount'],
+            'currency'        => $lastResponse['currency'],
+            'ip'              => '127.0.0.1',
         ];
 
         if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {

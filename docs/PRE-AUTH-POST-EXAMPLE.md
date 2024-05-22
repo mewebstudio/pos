@@ -199,10 +199,11 @@ $lastResponse = $session->get('last_response');
 function createPostPayOrder(string $gatewayClass, array $lastResponse, string $ip, ?float $postAuthAmount = null): array
 {
     $postAuth = [
-        'id'       => $lastResponse['order_id'],
-        'amount'   => $postAuthAmount ?? $lastResponse['amount'],
-        'currency' => $lastResponse['currency'],
-        'ip'       => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
+        'id'              => $lastResponse['order_id'],
+        'amount'          => $postAuthAmount ?? $lastResponse['amount'],
+        'pre_auth_amount' => $lastResponse['amount'], // amount > pre_auth_amount durumlar icin kullanilir
+        'currency'        => $lastResponse['currency'],
+        'ip'              => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
 
     if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
@@ -219,7 +220,7 @@ function createPostPayOrder(string $gatewayClass, array $lastResponse, string $i
 $lastResponse = $session->get('last_response');
 
 $preAuthAmount = $lastResponse['amount'];
-// otorizasyon kapama amount'u ön otorizasyon amount'tan daha fazla olabilir.
+// Bazi gatewaylerde otorizasyon kapama amount'u ön otorizasyon amount'tan daha fazla olabilir.
 $postAuthAmount = $lastResponse['amount'] + 0.02;
 $gatewayClass = get_class($pos);
 
@@ -229,26 +230,6 @@ $order = createPostPayOrder(
     '127.0.0.1',
     $postAuthAmount
 );
-
-// ============================================================================================
-// OZEL DURUMLAR ICIN KODLAR START
-// ============================================================================================
-/** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
-$eventDispatcher->addListener(
-    \Mews\Pos\Event\RequestDataPreparedEvent::class,
-    function (\Mews\Pos\Event\RequestDataPreparedEvent $event) use ($preAuthAmount, $postAuthAmount) {
-        if (\Mews\Pos\Gateways\EstPos::class === $event->getGatewayClass() || \Mews\Pos\Gateways\EstV3Pos::class === $event->getGatewayClass()) {
-            // ($preAuthAmount < $postAuthAmount) durumda API isteğe ekstra değerler eklenmesi gerekiyor.
-            if ($preAuthAmount < $postAuthAmount) {
-                $requestData                    = $event->getRequestData();
-                $requestData['Extra']['PREAMT'] = $preAuthAmount;
-                $event->setRequestData($requestData);
-            }
-        }
-    });
-// ============================================================================================
-// OZEL DURUMLAR ICIN KODLAR END
-// ============================================================================================
 
 try {
     $pos->payment($paymentModel, $order, $transaction);

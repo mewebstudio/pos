@@ -128,11 +128,18 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePostPaymentOrder($order);
 
-        return $this->getRequestAccountData($posAccount) + [
+        $requestData = $this->getRequestAccountData($posAccount) + [
                 'Type'    => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'OrderId' => (string) $order['id'],
                 'Total'   => isset($order['amount']) ? (float) $this->formatAmount($order['amount']) : null,
             ];
+
+        if (isset($order['amount']) && isset($order['pre_auth_amount']) && $order['pre_auth_amount'] < $order['amount']) {
+            // when amount < pre_auth_amount then we need to send PREAMT value
+            $requestData['Extra']['PREAMT'] = $order['pre_auth_amount'];
+        }
+
+        return $requestData;
     }
 
     /**
@@ -330,8 +337,9 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     protected function preparePostPaymentOrder(array $order): array
     {
         return [
-            'id'     => $order['id'],
-            'amount' => $order['amount'] ?? null,
+            'id'              => $order['id'],
+            'amount'          => $order['amount'] ?? null,
+            'pre_auth_amount' => $order['pre_auth_amount'] ?? null,
         ];
     }
 
