@@ -65,15 +65,15 @@ $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (Request
 });
 
 
-//    //Isbank İMECE kart ile MODEL_3D_SECURE yöntemiyle ödeme için ekstra alanların eklenme örneği
-//    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
-//        if ($event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
+//  // Isbank İMECE için ekstra alanların eklenme örneği
+    $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
+//        if ($event->getPaymentModel() === PosInterface::MODEL_3D_SECURE && $event->getTxType() === PosInterface::TX_TYPE_PAY_AUTH) {
 //            $data                    = $event->getRequestData();
 //            $data['Extra']['IMCKOD'] = '9999'; // IMCKOD bilgisi bankadan alınmaktadır.
 //            $data['Extra']['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı
 //            $event->setRequestData($data);
 //        }
-//    });
+    });
 
 $card = null;
 if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
