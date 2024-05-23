@@ -288,14 +288,15 @@ trait PaymentTestTrait
         return [];
     }
 
-    private function createRefundOrder(string $gatewayClass, array $lastResponse): array
+    private function createRefundOrder(string $gatewayClass, array $lastResponse, ?float $refundAmount = null): array
     {
         $refundOrder = [
-            'id'          => $lastResponse['order_id'], // MerchantOrderId
-            'amount'      => $lastResponse['amount'],
-            'currency'    => $lastResponse['currency'],
-            'ref_ret_num' => $lastResponse['ref_ret_num'],
-            'ip'          => '127.0.0.1',
+            'id'           => $lastResponse['order_id'], // MerchantOrderId
+            'amount'       => $refundAmount ?? $lastResponse['amount'],
+            'order_amount' => $lastResponse['amount'],
+            'currency'     => $lastResponse['currency'],
+            'ref_ret_num'  => $lastResponse['ref_ret_num'],
+            'ip'           => '127.0.0.1',
         ];
 
         if (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {

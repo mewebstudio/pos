@@ -353,7 +353,6 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'RRN'                   => '318923298433',
                 'Stan'                  => '298433',
                 'ProvisionNumber'       => '241839',
-                'TransactionType'       => 0,
                 'VPosMessage'           => [
                     'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
@@ -385,7 +384,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     public static function createRefundRequestDataProvider(): Generator
     {
         yield [
-            'order'    => [
+            'full_order' => [
                 'id'              => '2023070849CD',
                 'remote_order_id' => '114293600',
                 'ref_ret_num'     => '318923298433',
@@ -394,7 +393,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'amount'          => 1.01,
                 'currency'        => PosInterface::CURRENCY_TRY,
             ],
-            'expected' => [
+            'expected'   => [
                 'IsFromExternalNetwork' => true,
                 'BusinessKey'           => 0,
                 'ResourceId'            => 0,
@@ -408,7 +407,6 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'RRN'                   => '318923298433',
                 'Stan'                  => '298433',
                 'ProvisionNumber'       => '241839',
-                'TransactionType'       => 0,
                 'VPosMessage'           => [
                     'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
@@ -424,6 +422,58 @@ class KuveytPosRequestDataMapperTest extends TestCase
                     'Amount'                           => 101,
                     'DisplayAmount'                    => 0,
                     'CancelAmount'                     => 101,
+                    'MerchantOrderId'                  => '2023070849CD',
+                    'FECAmount'                        => 0,
+                    'CurrencyCode'                     => '0949',
+                    'QeryId'                           => 0,
+                    'DebtId'                           => 0,
+                    'SurchargeAmount'                  => 0,
+                    'SGKDebtAmount'                    => 0,
+                    'TransactionSecurity'              => 1,
+                ],
+            ],
+        ];
+
+        yield [
+            'partial_refund' => [
+                'id'              => '2023070849CD',
+                'remote_order_id' => '114293600',
+                'ref_ret_num'     => '318923298433',
+                'auth_code'       => '241839',
+                'transaction_id'  => '298433',
+                'amount'          => 9.01,
+                'order_amount'    => 10.01,
+                'currency'        => PosInterface::CURRENCY_TRY,
+            ],
+            'expected'       => [
+                'IsFromExternalNetwork' => true,
+                'BusinessKey'           => 0,
+                'ResourceId'            => 0,
+                'ActionId'              => 0,
+                'LanguageId'            => 0,
+                'CustomerId'            => '400235',
+                'MailOrTelephoneOrder'  => true,
+                'Amount'                => 901,
+                'MerchantId'            => '80',
+                'OrderId'               => '114293600',
+                'RRN'                   => '318923298433',
+                'Stan'                  => '298433',
+                'ProvisionNumber'       => '241839',
+                'VPosMessage'           => [
+                    'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
+                    'InstallmentMaturityCommisionFlag' => 0,
+                    'HashData'                         => 'request-hash',
+                    'MerchantId'                       => '80',
+                    'SubMerchantId'                    => 0,
+                    'CustomerId'                       => '400235',
+                    'UserName'                         => 'apiuser',
+                    'CardType'                         => 'Visa',
+                    'BatchID'                          => 0,
+                    'TransactionType'                  => 'PartialDrawback',
+                    'InstallmentCount'                 => 0,
+                    'Amount'                           => 901,
+                    'DisplayAmount'                    => 0,
+                    'CancelAmount'                     => 901,
                     'MerchantOrderId'                  => '2023070849CD',
                     'FECAmount'                        => 0,
                     'CurrencyCode'                     => '0949',

@@ -10,14 +10,18 @@ require '_config.php';
 
 require '../../_templates/_header.php';
 
-function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip): array
+function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip, ?float $refundAmount = null): array
 {
     $refundOrder = [
-        'id'          => $lastResponse['order_id'], // MerchantOrderId
-        'amount'      => $lastResponse['amount'],
-        'currency'    => $lastResponse['currency'],
-        'ref_ret_num' => $lastResponse['ref_ret_num'],
-        'ip'          => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
+        'id'           => $lastResponse['order_id'], // MerchantOrderId
+        'amount'       => $refundAmount ?? $lastResponse['amount'],
+
+        // toplam siparis tutari, kismi iade mi ya da tam iade mi oldugunu anlamak icin kullanilir.
+        'order_amount' => $lastResponse['amount'],
+
+        'currency'     => $lastResponse['currency'],
+        'ref_ret_num'  => $lastResponse['ref_ret_num'],
+        'ip'           => filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4) ? $ip : '127.0.0.1',
     ];
 
     if (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
@@ -53,8 +57,17 @@ function createRefundOrder(string $gatewayClass, array $lastResponse, string $ip
     return $refundOrder;
 }
 
+$lastResponse = $session->get('last_response');
+// kismi iade:
+$refundAmount = $lastResponse['amount'] - 2;
 
-$order = createRefundOrder(get_class($pos), $session->get('last_response'), $ip);
+
+$order = createRefundOrder(
+    get_class($pos),
+    $lastResponse,
+    $ip,
+    $refundAmount
+);
 dump($order);
 
 $transaction = PosInterface::TX_TYPE_REFUND;

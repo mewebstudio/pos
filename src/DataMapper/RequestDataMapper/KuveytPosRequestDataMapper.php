@@ -277,7 +277,6 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'RRN'                   => $order['ref_ret_num'],
             'Stan'                  => $order['transaction_id'],
             'ProvisionNumber'       => $order['auth_code'],
-            'TransactionType'       => 0,
             'VPosMessage'           => $this->getRequestAccountData($posAccount) + [
                     'APIVersion'                       => self::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
@@ -314,6 +313,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->prepareRefundOrder($order);
 
+        $isPartialRefund = isset($order['order_amount']) && $order['order_amount'] > $order['amount'];
+        $txType          = $isPartialRefund ? 'PartialDrawback' : $this->mapTxType(PosInterface::TX_TYPE_REFUND);
+
         $result = [
             'IsFromExternalNetwork' => true,
             'BusinessKey'           => 0,
@@ -328,7 +330,6 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'RRN'                   => $order['ref_ret_num'],
             'Stan'                  => $order['transaction_id'],
             'ProvisionNumber'       => $order['auth_code'],
-            'TransactionType'       => 0,
             'VPosMessage'           => $this->getRequestAccountData($posAccount) + [
                     'APIVersion'                       => self::API_VERSION,
                     'InstallmentMaturityCommisionFlag' => 0,
@@ -336,7 +337,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                     'SubMerchantId'                    => 0,
                     'CardType'                         => $this->cardTypeMapping[CreditCardInterface::CARD_TYPE_VISA], //Default gönderilebilir.
                     'BatchID'                          => 0,
-                    'TransactionType'                  => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
+                    'TransactionType'                  => $txType,
                     'InstallmentCount'                 => 0,
                     'Amount'                           => $this->formatAmount($order['amount']),
                     'DisplayAmount'                    => 0,
@@ -465,6 +466,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'auth_code'       => $order['auth_code'],
             'transaction_id'  => $order['transaction_id'],
             'amount'          => $order['amount'],
+            'order_amount'    => $order['order_amount'] ?? null,
             'currency'        => $order['currency'] ?? PosInterface::CURRENCY_TRY,
         ]);
     }
