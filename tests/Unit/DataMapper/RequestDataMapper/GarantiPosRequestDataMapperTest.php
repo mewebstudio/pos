@@ -240,13 +240,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $this->dispatcher->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $paymentModel) {
-                return $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
-                    && GarantiPos::class === $dispatchedEvent->getGatewayClass()
-                    && $txType === $dispatchedEvent->getTxType()
-                    && $paymentModel === $dispatchedEvent->getPaymentModel()
-                    && count($dispatchedEvent->getFormInputs()) > 3;
-            }));
+            ->with($this->callback(static fn($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+                && GarantiPos::class === $dispatchedEvent->getGatewayClass()
+                && $txType === $dispatchedEvent->getTxType()
+                && $paymentModel === $dispatchedEvent->getPaymentModel()
+                && count($dispatchedEvent->getFormInputs()) > 3));
 
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,

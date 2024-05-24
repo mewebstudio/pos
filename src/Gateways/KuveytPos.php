@@ -207,7 +207,6 @@ class KuveytPos extends AbstractGateway
      *
      * @return array<string, mixed>
      *
-     * @throws UnsupportedTransactionTypeException
      * @throws SoapFault
      */
     protected function send($contents, string $txType, string $paymentModel, string $url): array
@@ -244,7 +243,6 @@ class KuveytPos extends AbstractGateway
      *
      * @throws SoapFault
      * @throws RuntimeException
-     * @throws UnsupportedTransactionTypeException
      */
     private function sendSoapRequest(array $contents, string $txType, string $url): array
     {
@@ -276,13 +274,16 @@ class KuveytPos extends AbstractGateway
 
         $client = new SoapClient($url, $options);
         try {
-            $result = $client->__soapCall($this->requestDataMapper->mapTxType($txType), ['parameters' => ['request' => $contents]]);
-        } catch (SoapFault $throwable) {
+            $result = $client->__soapCall(
+                $contents['VPosMessage']['TransactionType'],
+                ['parameters' => ['request' => $contents]]
+            );
+        } catch (SoapFault $soapFault) {
             $this->logger->error('soap error response', [
-                'message' => $throwable->getMessage(),
+                'message' => $soapFault->getMessage(),
             ]);
 
-            throw $throwable;
+            throw $soapFault;
         }
 
         if (null === $result) {

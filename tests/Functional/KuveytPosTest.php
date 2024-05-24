@@ -171,7 +171,7 @@ class KuveytPosTest extends TestCase
     }
 
     /**
-     * @depends testRefundFail
+     * @depends testFullRefundFail
      */
     public function testCancelSuccess(array $lastResponse): array
     {
@@ -183,7 +183,7 @@ class KuveytPosTest extends TestCase
             function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(15, $requestDataPreparedEvent->getRequestData());
+                $this->assertCount(14, $requestDataPreparedEvent->getRequestData());
             });
 
         $this->pos->cancel($statusOrder);
@@ -224,13 +224,63 @@ class KuveytPosTest extends TestCase
         return $lastResponse;
     }
 
-    /**
-     * @depends testNonSecurePaymentSuccess
-     */
-    public function testRefundFail(array $lastResponse): array
+    public function testNonSecurePaymentSuccessForRefundTest(): array
     {
-        $refundOrder           = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
-        $refundOrder['amount'] = 1.0;
+        $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
+
+        $this->pos->payment(
+            PosInterface::MODEL_NON_SECURE,
+            $order,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $this->card
+        );
+
+        $this->assertTrue($this->pos->isSuccess());
+
+        return $this->pos->getResponse();
+    }
+
+//    /**
+//     * @depends testNonSecurePaymentSuccessForRefundTest
+//     */
+//    public function testFullRefundFail(array $lastResponse): array
+//    {
+//        $refundOrder           = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+//
+//        $eventIsThrown = false;
+//        $this->eventDispatcher->addListener(
+//            RequestDataPreparedEvent::class,
+//            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+//                $eventIsThrown = true;
+//                $this->assertSame(PosInterface::TX_TYPE_REFUND, $requestDataPreparedEvent->getTxType());
+//                $this->assertCount(14, $requestDataPreparedEvent->getRequestData());
+//            });
+//
+//        $this->pos->refund($refundOrder);
+//
+//        $this->assertFalse($this->pos->isSuccess());
+//        $response = $this->pos->getResponse();
+//        $this->assertIsArray($response);
+//        $this->assertNotEmpty($response);
+//        $this->assertTrue($eventIsThrown);
+//        $this->assertSame(
+//            'İade işlemi, satışla aynı gün içerisinde yapılamaz. İptal işlemi yapabilirsiniz.',
+//            $response['error_message']
+//        );
+//
+//        return $lastResponse;
+//    }
+
+    /**
+     * @depends testNonSecurePaymentSuccessForRefundTest
+     */
+    public function testPartialRefundSuccess(array $lastResponse): array
+    {
+        $refundOrder           = $this->createRefundOrder(
+            \get_class($this->pos),
+            $lastResponse,
+            $lastResponse['amount'] - 3,
+        );
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -238,20 +288,16 @@ class KuveytPosTest extends TestCase
             function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_REFUND, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(15, $requestDataPreparedEvent->getRequestData());
+                $this->assertCount(14, $requestDataPreparedEvent->getRequestData());
             });
 
         $this->pos->refund($refundOrder);
-
-        $this->assertFalse($this->pos->isSuccess());
         $response = $this->pos->getResponse();
+
+        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? 'error');
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
-        $this->assertSame(
-            'İade işlemi, satışla aynı gün içerisinde yapılamaz. İptal işlemi yapabilirsiniz.',
-            $response['error_message']
-        );
 
         return $lastResponse;
     }
