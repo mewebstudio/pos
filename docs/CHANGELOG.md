@@ -1,4 +1,17 @@
 # Changelog
+## [1.3.0] - 2024-05-24
+
+### New Features
+- **KuveytPos** kısmi iade desteği eklendi. (issue #205)
+- **EstPos/Payten** ön otorizasyonu kapatırken daha fazla miktar desteği eklendi. (issue #171)
+
+### Changed
+- Dispatched event'lere **gatewayClass**, **order**, **paymenModel** verileri eklendi.
+
+### Fixed
+- **PosNet** - 3D Secure ödeme başarısız olduğunda `3d_all` boş olması giderildi.
+
+# Changelog
 ## [1.2.0] - 2024-05-19
 
 ### New Features

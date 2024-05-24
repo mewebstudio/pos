@@ -254,6 +254,9 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * Eğer kısmi tutarlı iade işlemi yapılmak isteniyorsa, iade işlemi requestinde transaction alanı gönderilmelidir.
+     * Eğer transaction alanı gönderilmezse, iade işlemi tam tutarlı olarak gerçekleşecektir.
+     *
      * @param AkbankPosAccount $posAccount
      *
      * {@inheritDoc}
