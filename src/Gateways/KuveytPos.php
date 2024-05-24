@@ -278,12 +278,12 @@ class KuveytPos extends AbstractGateway
                 $contents['VPosMessage']['TransactionType'],
                 ['parameters' => ['request' => $contents]]
             );
-        } catch (SoapFault $throwable) {
+        } catch (SoapFault $soapFault) {
             $this->logger->error('soap error response', [
-                'message' => $throwable->getMessage(),
+                'message' => $soapFault->getMessage(),
             ]);
 
-            throw $throwable;
+            throw $soapFault;
         }
 
         if (null === $result) {

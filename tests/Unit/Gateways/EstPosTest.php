@@ -722,14 +722,11 @@ class EstPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order, $paymentModel) {
-                return $dispatchedEvent instanceof RequestDataPreparedEvent
-                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                    && $txType === $dispatchedEvent->getTxType()
-                    && $requestData === $dispatchedEvent->getRequestData()
-                    && $order === $dispatchedEvent->getOrder()
-                    && $paymentModel === $dispatchedEvent->getPaymentModel()
-                    ;
-            }));
+            ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
+                && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                && $txType === $dispatchedEvent->getTxType()
+                && $requestData === $dispatchedEvent->getRequestData()
+                && $order === $dispatchedEvent->getOrder()
+                && $paymentModel === $dispatchedEvent->getPaymentModel()));
     }
 }

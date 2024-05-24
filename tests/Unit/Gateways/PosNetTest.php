@@ -293,24 +293,18 @@ class PosNetTest extends TestCase
                 ->method('dispatch')
                 // could not find another way expect using deprecated withConsecutive() function
                 ->withConsecutive(
-                    [$this->callback(function ($dispatchedEvent) use ($txType, $resolveMerchantRequestData, $order, $paymentModel) {
-                        return $dispatchedEvent instanceof RequestDataPreparedEvent
-                            && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                            && $txType === $dispatchedEvent->getTxType()
-                            && $resolveMerchantRequestData === $dispatchedEvent->getRequestData()
-                            && $order === $dispatchedEvent->getOrder()
-                            && $paymentModel === $dispatchedEvent->getPaymentModel()
-                            ;
-                    })],
-                    [$this->callback(function ($dispatchedEvent) use ($txType, $create3DPaymentRequestData, $order, $paymentModel) {
-                        return $dispatchedEvent instanceof RequestDataPreparedEvent
-                            && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                            && $txType === $dispatchedEvent->getTxType()
-                            && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
-                            && $order === $dispatchedEvent->getOrder()
-                            && $paymentModel === $dispatchedEvent->getPaymentModel()
-                            ;
-                    })]
+                    [$this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
+                        && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $resolveMerchantRequestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel())],
+                    [$this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
+                        && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel())]
                 );
 
             $this->responseMapperMock->expects(self::once())
@@ -688,14 +682,11 @@ class PosNetTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(function ($dispatchedEvent) use ($txType, $requestData, $order, $paymentModel) {
-                return $dispatchedEvent instanceof RequestDataPreparedEvent
-                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                    && $txType === $dispatchedEvent->getTxType()
-                    && $requestData === $dispatchedEvent->getRequestData()
-                    && $order === $dispatchedEvent->getOrder()
-                    && $paymentModel === $dispatchedEvent->getPaymentModel()
-                    ;
-            }));
+            ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
+                && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                && $txType === $dispatchedEvent->getTxType()
+                && $requestData === $dispatchedEvent->getRequestData()
+                && $order === $dispatchedEvent->getOrder()
+                && $paymentModel === $dispatchedEvent->getPaymentModel()));
     }
 }
