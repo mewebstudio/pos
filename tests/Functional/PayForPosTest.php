@@ -135,8 +135,8 @@ class PayForPosTest extends TestCase
 
         $this->pos->cancel($statusOrder);
 
-        $this->assertTrue($this->pos->isSuccess());
         $response = $this->pos->getResponse();
+        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);

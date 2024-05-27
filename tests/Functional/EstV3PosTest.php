@@ -81,7 +81,7 @@ class EstV3PosTest extends TestCase
         );
 
         $response = $this->pos->getResponse();
-        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? null);
+        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
 
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
@@ -208,7 +208,7 @@ class EstV3PosTest extends TestCase
         );
 
         $response = $this->pos->getResponse();
-        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? null);
+        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
 
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
