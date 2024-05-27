@@ -259,6 +259,7 @@ if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
     if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
         // bu gateway için ödemeyi tamamlarken tekrar kart bilgisi lazım.
         $cardData = $session->get('card');
+        $session->remove('card');
         $card = \Mews\Pos\Factory\CreditCardFactory::createForGateway(
             $pos,
             $cardData['card_number'],
