@@ -488,6 +488,11 @@ class KuveytPosTest extends TestCase
                 'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
             ],
             [
+                'txType'       => PosInterface::TX_TYPE_REFUND_PARTIAL,
+                'paymentModel' => PosInterface::MODEL_NON_SECURE,
+                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
+            ],
+            [
                 'txType'       => PosInterface::TX_TYPE_CANCEL,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',

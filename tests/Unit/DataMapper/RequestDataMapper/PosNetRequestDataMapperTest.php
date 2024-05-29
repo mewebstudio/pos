@@ -259,13 +259,15 @@ class PosNetRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @dataProvider refundDataProvider
+     * @dataProvider refundRequestDataProvider
      */
-    public function testCreateRefundRequestData(array $order, array $expectedData): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
-        $this->assertEquals($expectedData, $actual);
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
     }
 
     public static function threeDFormDataDataProvider(): array
@@ -450,7 +452,7 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
     }
 
-    public static function refundDataProvider(): array
+    public static function refundRequestDataProvider(): array
     {
         return [
             'with_order_id'    => [
@@ -460,6 +462,7 @@ class PosNetRequestDataMapperTest extends TestCase
                     'amount'        => 50,
                     'currency'      => PosInterface::CURRENCY_TRY,
                 ],
+                'tx_type'  => PosInterface::TX_TYPE_REFUND,
                 'expected' => [
                     'mid'              => '6706598320',
                     'tid'              => '67005551',
@@ -478,6 +481,7 @@ class PosNetRequestDataMapperTest extends TestCase
                     'amount'        => 50,
                     'currency'      => PosInterface::CURRENCY_TRY,
                 ],
+                'tx_type'  => PosInterface::TX_TYPE_REFUND,
                 'expected' => [
                     'mid'              => '6706598320',
                     'tid'              => '67005551',

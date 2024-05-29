@@ -42,12 +42,13 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritdoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH      => 'Auth',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'PreAuth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH => 'PostAuth',
-        PosInterface::TX_TYPE_CANCEL        => 'Void',
-        PosInterface::TX_TYPE_REFUND        => 'Refund',
-        PosInterface::TX_TYPE_STATUS        => 'StatusHistory',
+        PosInterface::TX_TYPE_PAY_AUTH       => 'Auth',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'PreAuth',
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'PostAuth',
+        PosInterface::TX_TYPE_CANCEL         => 'Void',
+        PosInterface::TX_TYPE_REFUND         => 'Refund',
+        PosInterface::TX_TYPE_REFUND_PARTIAL => 'Refund',
+        PosInterface::TX_TYPE_STATUS         => 'StatusHistory',
     ];
 
     /**
@@ -170,7 +171,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{OrderId: null, orgOrderId: string, PurchAmount: string, TxnType: string, SecureType: string, Lang: string, MOTO: string, UserCode: string, UserPass: string, ShopCode: string}
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
     {
         $order = $this->prepareRefundOrder($order);
 
@@ -178,7 +179,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderId'     => null,
                 'orgOrderId'  => (string) $order['id'],
                 'PurchAmount' => (string) $order['amount'],
-                'TxnType'     => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
+                'TxnType'     => $this->mapTxType($refundTxType),
                 'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'Lang'        => $this->getLang($posAccount, $order),
                 'MOTO'        => self::MOTO,

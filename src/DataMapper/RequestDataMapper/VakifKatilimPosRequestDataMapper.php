@@ -229,7 +229,7 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
      * @param KuveytPosAccount $posAccount
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
     {
         $order = $this->prepareRefundOrder($order);
 

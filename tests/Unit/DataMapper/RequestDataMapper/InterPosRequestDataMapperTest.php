@@ -254,19 +254,15 @@ class InterPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider refundOrderDataProvider
      */
-    public function testCreateRefundRequestData(): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expectedData): void
     {
-        $order = [
-            'id'     => '2020110828BC',
-            'amount' => 50,
-        ];
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-
-        $expectedData = $this->getSampleRefundXMLData($order, $this->account);
-        $this->assertEquals($expectedData, $actual);
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -390,28 +386,6 @@ class InterPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param array           $order
-     * @param InterPosAccount $interPosAccount
-     *
-     * @return array
-     */
-    private function getSampleRefundXMLData(array $order, InterPosAccount $interPosAccount): array
-    {
-        return [
-            'UserCode'    => $interPosAccount->getUsername(),
-            'UserPass'    => $interPosAccount->getPassword(),
-            'ShopCode'    => $interPosAccount->getClientId(),
-            'OrderId'     => null,
-            'orgOrderId'  => $order['id'],
-            'PurchAmount' => $order['amount'],
-            'TxnType'     => 'Refund',
-            'SecureType'  => 'NonSecure',
-            'Lang'        => $interPosAccount->getLang(),
-            'MOTO'        => '0',
-        ];
-    }
-
     public static function threeDFormDataProvider(): array
     {
         $order = [
@@ -504,6 +478,48 @@ class InterPosRequestDataMapperTest extends TestCase
                         'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
                     ],
                 ],
+            ],
+        ];
+    }
+
+    public static function refundOrderDataProvider(): \Generator
+    {
+        $order = [
+            'id'     => '2020110828BC',
+            'amount' => 123.1,
+        ];
+
+        yield [
+            'order'        => $order,
+            'tx_type'      => PosInterface::TX_TYPE_REFUND,
+            'expectedData' => [
+                'Lang'        => 'tr',
+                'MOTO'        => '0',
+                'OrderId'     => null,
+                'PurchAmount' => '123.1',
+                'SecureType'  => 'NonSecure',
+                'ShopCode'    => '3123',
+                'TxnType'     => 'Refund',
+                'UserCode'    => 'InterTestApi',
+                'UserPass'    => '3',
+                'orgOrderId'  => '2020110828BC',
+            ],
+        ];
+
+        yield [
+            'order'        => $order,
+            'tx_type'      => PosInterface::TX_TYPE_REFUND_PARTIAL,
+            'expectedData' => [
+                'Lang'        => 'tr',
+                'MOTO'        => '0',
+                'OrderId'     => null,
+                'PurchAmount' => '123.1',
+                'SecureType'  => 'NonSecure',
+                'ShopCode'    => '3123',
+                'TxnType'     => 'Refund',
+                'UserCode'    => 'InterTestApi',
+                'UserPass'    => '3',
+                'orgOrderId'  => '2020110828BC',
             ],
         ];
     }

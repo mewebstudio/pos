@@ -489,15 +489,14 @@ class VakifKatilimTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $apiUrl): void
+    public function testRefundRequest(array $order, string $txType, string $apiUrl): void
     {
         $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_REFUND;
         $requestData = ['createRefundRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
-            ->with($account, $order)
+            ->with($account, $order, $txType)
             ->willReturn($requestData);
 
         $decodedResponse = ['decodedData'];
@@ -660,6 +659,12 @@ class VakifKatilimTest extends TestCase
                 'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/DrawBack',
             ],
             [
+                'txType'       => PosInterface::TX_TYPE_REFUND_PARTIAL,
+                'orderTxType'  => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel' => PosInterface::MODEL_NON_SECURE,
+                'expected'     => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PartialDrawBack',
+            ],
+            [
                 'txType'       => PosInterface::TX_TYPE_CANCEL,
                 'orderTxType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
@@ -752,19 +757,31 @@ class VakifKatilimTest extends TestCase
     public static function refundRequestDataProvider(): array
     {
         return [
-            'pay_order'      => [
+            'pay_order'                => [
                 'order'   => [
                     'id'               => '2020110828BC',
                     'transaction_type' => PosInterface::TX_TYPE_PAY_AUTH,
                 ],
+                'txType'  => PosInterface::TX_TYPE_REFUND,
                 'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/DrawBack',
             ],
-            'pay_auth_order' => [
+            'pay_auth_order'           => [
                 'order'   => [
                     'id'               => '2020110828BC',
                     'transaction_type' => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 ],
+                'txType'  => PosInterface::TX_TYPE_REFUND,
                 'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PreAuthorizationDrawBack',
+            ],
+            'pay_order_partial_refund' => [
+                'order'   => [
+                    'id'               => '2020110828BC',
+                    'order_amount'     => 10,
+                    'amount'           => 5,
+                    'transaction_type' => PosInterface::TX_TYPE_PAY_AUTH,
+                ],
+                'txType'  => PosInterface::TX_TYPE_REFUND_PARTIAL,
+                'api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/PartialDrawBack',
             ],
         ];
     }

@@ -49,12 +49,13 @@ class ToslaPos extends AbstractGateway
             PosInterface::MODEL_3D_HOST,
         ],
 
-        PosInterface::TX_TYPE_HISTORY       => false,
-        PosInterface::TX_TYPE_ORDER_HISTORY => true,
-        PosInterface::TX_TYPE_PAY_POST_AUTH => true,
-        PosInterface::TX_TYPE_CANCEL        => true,
-        PosInterface::TX_TYPE_REFUND        => true,
-        PosInterface::TX_TYPE_STATUS        => true,
+        PosInterface::TX_TYPE_HISTORY        => false,
+        PosInterface::TX_TYPE_ORDER_HISTORY  => true,
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => true,
+        PosInterface::TX_TYPE_CANCEL         => true,
+        PosInterface::TX_TYPE_REFUND         => true,
+        PosInterface::TX_TYPE_REFUND_PARTIAL => true,
+        PosInterface::TX_TYPE_STATUS         => true,
     ];
 
 
@@ -260,20 +261,21 @@ class ToslaPos extends AbstractGateway
     private function getRequestURIByTransactionType(string $txType, string $paymentModel): string
     {
         $arr = [
-            PosInterface::TX_TYPE_PAY_AUTH      => [
+            PosInterface::TX_TYPE_PAY_AUTH       => [
                 PosInterface::MODEL_NON_SECURE => 'Payment',
                 PosInterface::MODEL_3D_PAY     => 'threeDPayment',
                 PosInterface::MODEL_3D_HOST    => 'threeDPayment',
             ],
-            PosInterface::TX_TYPE_PAY_PRE_AUTH  => [
+            PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
                 PosInterface::MODEL_3D_PAY  => 'threeDPreAuth',
                 PosInterface::MODEL_3D_HOST => 'threeDPreAuth',
             ],
-            PosInterface::TX_TYPE_PAY_POST_AUTH => 'postAuth',
-            PosInterface::TX_TYPE_CANCEL        => 'void',
-            PosInterface::TX_TYPE_REFUND        => 'refund',
-            PosInterface::TX_TYPE_STATUS        => 'inquiry',
-            PosInterface::TX_TYPE_ORDER_HISTORY => 'history',
+            PosInterface::TX_TYPE_PAY_POST_AUTH  => 'postAuth',
+            PosInterface::TX_TYPE_CANCEL         => 'void',
+            PosInterface::TX_TYPE_REFUND         => 'refund',
+            PosInterface::TX_TYPE_REFUND_PARTIAL => 'refund',
+            PosInterface::TX_TYPE_STATUS         => 'inquiry',
+            PosInterface::TX_TYPE_ORDER_HISTORY  => 'history',
         ];
 
         if (!isset($arr[$txType])) {

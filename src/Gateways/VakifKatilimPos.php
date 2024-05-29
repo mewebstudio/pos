@@ -39,20 +39,21 @@ class VakifKatilimPos extends AbstractGateway
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
-        PosInterface::TX_TYPE_PAY_AUTH      => [
+        PosInterface::TX_TYPE_PAY_AUTH       => [
             PosInterface::MODEL_NON_SECURE,
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_3D_HOST,
         ],
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => [
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
             PosInterface::MODEL_NON_SECURE,
         ],
-        PosInterface::TX_TYPE_PAY_POST_AUTH => true,
-        PosInterface::TX_TYPE_STATUS        => true,
-        PosInterface::TX_TYPE_CANCEL        => true,
-        PosInterface::TX_TYPE_REFUND        => true,
-        PosInterface::TX_TYPE_HISTORY       => true,
-        PosInterface::TX_TYPE_ORDER_HISTORY => true,
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => true,
+        PosInterface::TX_TYPE_STATUS         => true,
+        PosInterface::TX_TYPE_CANCEL         => true,
+        PosInterface::TX_TYPE_REFUND         => true,
+        PosInterface::TX_TYPE_REFUND_PARTIAL => true,
+        PosInterface::TX_TYPE_HISTORY        => true,
+        PosInterface::TX_TYPE_ORDER_HISTORY  => true,
     ];
 
     /** @return KuveytPosAccount */
@@ -244,29 +245,34 @@ class VakifKatilimPos extends AbstractGateway
         $orderTxType ??= PosInterface::TX_TYPE_PAY_AUTH;
 
         $arr = [
-            PosInterface::TX_TYPE_PAY_AUTH      => [
+            PosInterface::TX_TYPE_PAY_AUTH       => [
                 PosInterface::MODEL_NON_SECURE => 'Non3DPayGate',
                 PosInterface::MODEL_3D_SECURE  => 'ThreeDModelProvisionGate',
             ],
-            PosInterface::TX_TYPE_PAY_PRE_AUTH  => [
+            PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
                 PosInterface::MODEL_NON_SECURE => 'PreAuthorizaten',
             ],
-            PosInterface::TX_TYPE_PAY_POST_AUTH => 'PreAuthorizatenClose',
-            PosInterface::TX_TYPE_CANCEL        => [
+            PosInterface::TX_TYPE_PAY_POST_AUTH  => 'PreAuthorizatenClose',
+            PosInterface::TX_TYPE_CANCEL         => [
                 PosInterface::MODEL_NON_SECURE => [
                     PosInterface::TX_TYPE_PAY_AUTH     => 'SaleReversal',
                     PosInterface::TX_TYPE_PAY_PRE_AUTH => 'PreAuthorizationReversal',
                 ],
             ],
-            PosInterface::TX_TYPE_REFUND        => [
+            PosInterface::TX_TYPE_REFUND         => [
                 PosInterface::MODEL_NON_SECURE => [
                     PosInterface::TX_TYPE_PAY_AUTH     => 'DrawBack',
                     PosInterface::TX_TYPE_PAY_PRE_AUTH => 'PreAuthorizationDrawBack',
                 ],
             ],
-            PosInterface::TX_TYPE_STATUS        => 'SelectOrderByMerchantOrderId',
-            PosInterface::TX_TYPE_ORDER_HISTORY => 'SelectOrder',
-            PosInterface::TX_TYPE_HISTORY       => 'SelectOrder',
+            PosInterface::TX_TYPE_REFUND_PARTIAL => [
+                PosInterface::MODEL_NON_SECURE => [
+                    PosInterface::TX_TYPE_PAY_AUTH => 'PartialDrawBack',
+                ],
+            ],
+            PosInterface::TX_TYPE_STATUS         => 'SelectOrderByMerchantOrderId',
+            PosInterface::TX_TYPE_ORDER_HISTORY  => 'SelectOrder',
+            PosInterface::TX_TYPE_HISTORY        => 'SelectOrder',
         ];
 
         if (\is_string($arr[$txType])) {
