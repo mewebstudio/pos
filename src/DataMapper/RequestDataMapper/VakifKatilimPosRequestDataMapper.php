@@ -35,13 +35,6 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH => '1',
-    ];
-
-    /**
      * Currency mapping
      *
      * {@inheritdoc}

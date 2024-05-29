@@ -9,7 +9,6 @@ use Generator;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -58,24 +57,6 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
 
         $crypt                   = CryptFactory::createGatewayCrypt(VakifKatilimPos::class, new NullLogger());
         $this->requestDataMapper = new VakifKatilimPosRequestDataMapper($this->dispatcher, $crypt);
-    }
-
-    /**
-     * @testWith ["pay", "1"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
-    {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @testWith ["Sale"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
     }
 
     /**
