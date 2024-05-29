@@ -98,6 +98,7 @@ Son yapılan değişiklikler için [`CHANGELOG`](./docs/CHANGELOG.md).
 
 #### Frameworks
 - **Symfony** kurulum için [mews/pos-bundle](https://github.com/mewebstudio/PosBundle) kullanabilirsiniz.
+- **Laravel** kurulum için [mews/laravel-pos](https://github.com/mewebstudio/laravel-pos) kullanabilirsiniz.
 
 #### Basic kurulum
 
