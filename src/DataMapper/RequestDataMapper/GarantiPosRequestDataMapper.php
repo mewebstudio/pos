@@ -52,7 +52,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         PosInterface::TX_TYPE_PAY_POST_AUTH => 'postauth',
         PosInterface::TX_TYPE_CANCEL        => 'void',
         PosInterface::TX_TYPE_REFUND        => 'refund',
-        PosInterface::TX_TYPE_HISTORY       => 'orderhistoryinq',
+        PosInterface::TX_TYPE_ORDER_HISTORY => 'orderhistoryinq',
         PosInterface::TX_TYPE_STATUS        => 'orderinq',
     ];
 
@@ -79,10 +79,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
-                'IPAddress'    => $responseData['customeripaddress'],
+                'IPAddress' => $responseData['customeripaddress'],
             ],
             'Order'       => [
-                'OrderID'     => $responseData['orderid'],
+                'OrderID' => $responseData['orderid'],
             ],
             'Transaction' => [
                 'Type'                  => $responseData['txntype'],
@@ -123,11 +123,11 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Card'        => $this->getCardData($creditCard),
             'Order'       => [
-                'OrderID'     => $order['id'],
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType($txType),
@@ -162,7 +162,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -194,7 +194,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -228,7 +228,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount, true),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -263,7 +263,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount, true),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -298,13 +298,13 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_HISTORY),
+                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_ORDER_HISTORY),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),
