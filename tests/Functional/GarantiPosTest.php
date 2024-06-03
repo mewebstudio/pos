@@ -260,4 +260,28 @@ class GarantiPosTest extends TestCase
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
     }
+
+    /**
+     * @depends testStatusSuccess
+     */
+    public function testHistorySuccess(): void
+    {
+        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), [], '127.0.0.1');
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_HISTORY, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->history($historyOrder);
+
+        $response = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertTrue($eventIsThrown);
+        $this->assertNotEmpty($response['transactions']);
+    }
 }

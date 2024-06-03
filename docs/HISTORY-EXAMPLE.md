@@ -44,7 +44,7 @@ try {
 
 require 'config.php';
 
-function createHistoryOrder(string $gatewayClass, array $extraData): array
+function createHistoryOrder(string $gatewayClass, array $extraData, string $ip): array
 {
     $order  = [];
     $txTime = new \DateTimeImmutable();
@@ -58,6 +58,14 @@ function createHistoryOrder(string $gatewayClass, array $extraData): array
             'page'       => 1,
             'page_size'  => 20,
             'start_date' => $txTime->modify('-1 day'),
+            'end_date'   => $txTime->modify('+1 day'),
+        ];
+    } elseif (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
+        $order = [
+            'ip'         => $ip,
+            'page'       => 1, //optional
+            // Başlangıç ve bitiş tarihleri arasında en fazla 30 gün olabilir
+            'start_date' => $txTime,
             'end_date'   => $txTime->modify('+1 day'),
         ];
     } elseif (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
@@ -75,7 +83,7 @@ function createHistoryOrder(string $gatewayClass, array $extraData): array
     return $order;
 }
 
-$order = createHistoryOrder(get_class($pos), []);
+$order = createHistoryOrder(get_class($pos), [], '127.0.0.1');
 
 $pos->history($order);
 $response = $pos->getResponse();

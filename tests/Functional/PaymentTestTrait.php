@@ -248,18 +248,17 @@ trait PaymentTestTrait
         return $order;
     }
 
-    private function createHistoryOrder(string $gatewayClass, array $extraData): array
+    private function createHistoryOrder(string $gatewayClass, array $extraData, string $ip): array
     {
+        $txTime = new \DateTimeImmutable();
         if (PayForPos::class === $gatewayClass) {
             return [
                 // odeme tarihi
-                'transaction_date' => $extraData['transaction_date'] ?? new \DateTimeImmutable(),
+                'transaction_date' => $extraData['transaction_date'] ?? $txTime,
             ];
         }
 
         if (\Mews\Pos\Gateways\VakifKatilimPos::class === $gatewayClass) {
-            $txTime = new \DateTimeImmutable();
-
             return [
                 'page'       => 1,
                 'page_size'  => 20,
@@ -271,9 +270,17 @@ trait PaymentTestTrait
             ];
         }
 
-        if (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
-            $txTime = new \DateTimeImmutable();
+        if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
+            return [
+                'ip'         => $ip,
+                'page'       => 1,
+                // Başlangıç ve bitiş tarihleri arasında en fazla 30 gün olabilir
+                'start_date' => $txTime->modify('-1 day'),
+                'end_date'   => $txTime->modify('+1 day'),
+            ];
+        }
 
+        if (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
             return [
                 // Gün aralığı 1 günden fazla girilemez
                 'start_date' => $txTime->modify('-23 hour'),

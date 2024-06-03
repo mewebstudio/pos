@@ -253,7 +253,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         /** @var array{Response: array<string, string|null>} $transaction */
-        $transaction     = $rawResponseData['Transaction'];
+        $transaction = $rawResponseData['Transaction'];
         /** @var array<string, string|null> $orderInqResult */
         $orderInqResult  = $rawResponseData['Order']['OrderInqResult'];
         $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
@@ -333,7 +333,36 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapHistoryResponse(array $rawResponseData): array
     {
-        throw new NotImplementedException();
+        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
+        $procReturnCode  = $this->getProcReturnCode($rawResponseData);
+        $status          = self::TX_DECLINED;
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        $mappedTransactions = [];
+        if (self::TX_APPROVED === $status) {
+            $rawTransactions = $rawResponseData['Order']['OrderListInqResult']['OrderTxnList']['OrderTxn'];
+            if (\count($rawTransactions) !== \count($rawTransactions, COUNT_RECURSIVE)) {
+                foreach ($rawTransactions as $transaction) {
+                    $mappedTransaction    = $this->mapSingleHistoryTransaction($transaction);
+                    $mappedTransactions[] = $mappedTransaction;
+                }
+            } else {
+                $mappedTransactions[] = $this->mapSingleHistoryTransaction($rawTransactions);
+            }
+        }
+
+        return [
+            'proc_return_code' => $procReturnCode,
+            'error_code'       => self::TX_DECLINED === $status ? $procReturnCode : null,
+            'error_message'    => self::TX_DECLINED === $status ? $rawResponseData['Transaction']['Response']['ErrorMsg'] : null,
+            'status'           => $status,
+            'status_detail'    => $this->getStatusDetail($procReturnCode),
+            'trans_count'      => \count($mappedTransactions),
+            'transactions'     => $mappedTransactions,
+            'all'              => $rawResponseData,
+        ];
     }
 
     /**
@@ -350,6 +379,23 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
     public function extractMdStatus(array $raw3DAuthResponseData): ?string
     {
         return $raw3DAuthResponseData['mdstatus'] ?? null;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function mapTxType($txType): ?string
+    {
+        $historyResponseTxTypes = [
+            'Satis'                 => PosInterface::TX_TYPE_PAY_AUTH,
+            'On Otorizasyon'        => PosInterface::TX_TYPE_PAY_PRE_AUTH,
+            'On Otorizasyon Kapama' => PosInterface::TX_TYPE_PAY_POST_AUTH,
+            'Iade'                  => PosInterface::TX_TYPE_REFUND,
+            'Iptal'                 => PosInterface::TX_TYPE_CANCEL,
+            // ... Odul Sorgulama
+        ];
+
+        return $historyResponseTxTypes[$txType] ?? parent::mapTxType($txType);
     }
 
     /**
@@ -459,6 +505,40 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
+     * @inheritDoc
+     */
+    protected function mapCurrency(string $currency): string
+    {
+        $historyResponseCurrencyMapping = [
+            'TL'  => PosInterface::CURRENCY_TRY,
+            'USD' => PosInterface::CURRENCY_USD,
+            'EUR' => PosInterface::CURRENCY_EUR,
+            'RUB' => PosInterface::CURRENCY_RUB,
+            'JPY' => PosInterface::CURRENCY_JPY,
+            'GBP' => PosInterface::CURRENCY_GBP,
+        ];
+
+        return $historyResponseCurrencyMapping[$currency] ?? parent::mapCurrency($currency);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    protected function mapInstallment(?string $installment): int
+    {
+        if (null === $installment) {
+            return 0;
+        }
+
+        // history response
+        if ('Pesin' === $installment || '1' === $installment) {
+            return 0;
+        }
+
+        return parent::mapInstallment($installment);
+    }
+
+    /**
      * @param array<string, string|null> $rawTx
      *
      * @return array<string, int|string|null|float|bool|\DateTime>
@@ -493,5 +573,98 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         return $defaultResponse;
+    }
+
+    /**
+     * @param array<string, string|null> $rawTx
+     *
+     * @return array<string, mixed>
+     */
+    private function mapSingleHistoryTransaction(array $rawTx): array
+    {
+        $procReturnCode = $rawTx['ResponseCode'];
+        $status         = self::TX_DECLINED;
+        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+            $status = self::TX_APPROVED;
+        }
+
+        $defaultResponse                     = $this->getDefaultOrderHistoryTxResponse();
+        $defaultResponse['auth_code']        = $rawTx['AuthCode'] ?? null;
+        $defaultResponse['ref_ret_num']      = $rawTx['RetrefNum'] ?? null;
+        $defaultResponse['order_id']         = $rawTx['OrderID'];
+        $defaultResponse['batch_num']        = $rawTx['BatchNum'];
+        $defaultResponse['proc_return_code'] = $procReturnCode;
+        $defaultResponse['transaction_type'] = null !== $rawTx['TrxType'] ? $this->mapTxType($rawTx['TrxType']) : null;
+        $defaultResponse['order_status']     = null !== $rawTx['Status'] ? $this->mapHistoryOrderStatus($rawTx['Status'], $defaultResponse['transaction_type']) : null;
+        $defaultResponse['status']           = $status;
+        $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
+        $defaultResponse['error_code']       = self::TX_APPROVED === $status ? null : $procReturnCode;
+        $defaultResponse['error_message']    = self::TX_APPROVED === $status ? null : $rawTx['SysErrMsg'];
+
+        // 3D Secure => 3D
+        // 3D Pay => 3D
+        // NonSecure => ''
+        $defaultResponse['payment_model']    = '3D' === $rawTx['SafeType'] ? PosInterface::MODEL_3D_SECURE : PosInterface::MODEL_NON_SECURE;
+        $defaultResponse['transaction_time'] = null !== $rawTx['LastTrxDate'] ? new \DateTimeImmutable($rawTx['LastTrxDate']) : null;
+        if (self::TX_APPROVED === $status) {
+            $defaultResponse['masked_number']     = $rawTx['CardNumberMasked'];
+            $defaultResponse['installment_count'] = $this->mapInstallment($rawTx['InstallmentCnt']);
+            $defaultResponse['currency']          = null !== $rawTx['CurrencyCode'] ? $this->mapCurrency($rawTx['CurrencyCode']) : null;
+            $defaultResponse['first_amount']      = null !== $rawTx['AuthAmount'] ? $this->formatAmount($rawTx['AuthAmount']) : null;
+            if ($defaultResponse['order_status'] === PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED) {
+                $defaultResponse['capture_amount'] = $defaultResponse['first_amount'];
+                $defaultResponse['capture']        = $defaultResponse['first_amount'] > 0 ? $defaultResponse['capture_amount'] === $defaultResponse['first_amount'] : null;
+                $defaultResponse['capture_time']   = $defaultResponse['transaction_time'];
+            }
+        }
+
+        return $defaultResponse;
+    }
+
+    /**
+     * todo anlasilmayan durumlar:
+     * - "Status" => "Iptal", "TrxType" => "Satis"
+     * - "Status" => "Iptal", "TrxType" => "On Otorizasyon"
+     * - "Status" => "Iptal", "TrxType" => "Iptal"
+     * - "Status" => "Iptal", "TrxType" => "Iade"
+     *
+     * @param string                       $txStatus
+     * @param PosInterface::TX_TYPE_*|null $txType
+     *
+     * @return string|null
+     */
+    private function mapHistoryOrderStatus(string $txStatus, ?string $txType): ?string
+    {
+        if (null === $txType) {
+            return null;
+        }
+        // txStatus possible values:
+        // Basarili
+        // Basarisiz
+        // Iptal
+        // Onaylandi
+
+        if ('Basarili' === $txStatus || 'Onaylandi' === $txStatus) {
+            if (PosInterface::TX_TYPE_CANCEL === $txType) {
+                return PosInterface::PAYMENT_STATUS_CANCELED;
+            }
+            if (PosInterface::TX_TYPE_REFUND === $txType) {
+                // todo how can we decide if order is partially or fully refunded?
+                return PosInterface::PAYMENT_STATUS_FULLY_REFUNDED;
+            }
+            if (PosInterface::TX_TYPE_PAY_AUTH === $txType || PosInterface::TX_TYPE_PAY_POST_AUTH === $txType) {
+                return PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED;
+            }
+            if (PosInterface::TX_TYPE_PAY_PRE_AUTH === $txType) {
+                return PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED;
+            }
+
+            return null;
+        }
+        if ('Iptal' === $txStatus) {
+            return null;
+        }
+
+        return PosInterface::PAYMENT_STATUS_ERROR;
     }
 }

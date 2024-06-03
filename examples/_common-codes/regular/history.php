@@ -8,7 +8,7 @@ require_once '_config.php';
 
 require '../../_templates/_header.php';
 
-function createHistoryOrder(string $gatewayClass, array $extraData): array
+function createHistoryOrder(string $gatewayClass, array $extraData, string $ip): array
 {
     $order  = [];
     $txTime = new \DateTimeImmutable();
@@ -27,6 +27,15 @@ function createHistoryOrder(string $gatewayClass, array $extraData): array
             'start_date' => $txTime->modify('-1 day'),
             'end_date'   => $txTime->modify('+1 day'),
         ];
+    } elseif (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
+        $order = [
+            'ip'         => $ip,
+            'currency'   => \Mews\Pos\PosInterface::CURRENCY_USD,
+            'page'       => 1, //optional
+            // Başlangıç ve bitiş tarihleri arasında en fazla 30 gün olabilir
+            'start_date' => $txTime,
+            'end_date'   => $txTime->modify('+1 day'),
+        ];
     } elseif (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
         $order  = [
             // Gün aralığı 1 günden fazla girilemez
@@ -42,7 +51,7 @@ function createHistoryOrder(string $gatewayClass, array $extraData): array
     return $order;
 }
 
-$order = createHistoryOrder(get_class($pos), []);
+$order = createHistoryOrder(get_class($pos), [], $ip);
 dump($order);
 
 $transaction = \Mews\Pos\PosInterface::TX_TYPE_HISTORY;

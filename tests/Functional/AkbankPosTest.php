@@ -146,7 +146,7 @@ class AkbankPosTest extends TestCase
 
     public function testHistorySuccess(): void
     {
-        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), []);
+        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), [], '127.0.0.1');
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -389,7 +389,7 @@ class AkbankPosTest extends TestCase
      */
     public function testRecurringHistorySuccess(): void
     {
-        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), []);
+        $historyOrder = $this->createHistoryOrder(\get_class($this->pos), [], '127.0.0.1');
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(

@@ -14,7 +14,6 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -48,7 +47,7 @@ class GarantiPos extends AbstractGateway
         PosInterface::TX_TYPE_CANCEL        => true,
         PosInterface::TX_TYPE_REFUND        => true,
         PosInterface::TX_TYPE_ORDER_HISTORY => true,
-        PosInterface::TX_TYPE_HISTORY       => false,
+        PosInterface::TX_TYPE_HISTORY       => true,
     ];
 
 
@@ -136,14 +135,6 @@ class GarantiPos extends AbstractGateway
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function history(array $data): PosInterface
-    {
-        throw new UnsupportedTransactionTypeException();
     }
 
     /**
