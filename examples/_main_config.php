@@ -38,6 +38,10 @@ $installments = [
     12 => '12 Taksit',
 ];
 
+$paymentModel  = null;
+$posClass      = null;
+$transaction   = null;
+
 function doPayment(PosInterface $pos, string $paymentModel, string $transaction, array $order, ?\Mews\Pos\Entity\Card\CreditCardInterface $card)
 {
     if (!$pos::isSupportedTransaction($transaction, $paymentModel)) {

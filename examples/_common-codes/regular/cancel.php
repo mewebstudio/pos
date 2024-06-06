@@ -2,10 +2,12 @@
 
 use Mews\Pos\PosInterface;
 
-$templateTitle = 'Refund Order';
+$templateTitle = 'Cancel Order';
+
 // ilgili bankanin _config.php dosyasi load ediyoruz.
 // ornegin /examples/finansbank-payfor/regular/_config.php
 require '_config.php';
+$transaction = PosInterface::TX_TYPE_CANCEL;
 
 require '../../_templates/_header.php';
 
@@ -79,8 +81,6 @@ function createCancelOrder(string $gatewayClass, array $lastResponse, string $ip
 
 $order = createCancelOrder(get_class($pos), $session->get('last_response'), $ip);
 dump($order);
-
-$transaction = PosInterface::TX_TYPE_CANCEL;
 
 try {
     $pos->cancel($order);

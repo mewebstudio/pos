@@ -81,7 +81,7 @@
             <?php if (\Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH === $transaction) : ?>
                 <a href="<?= $bankTestsUrl ?>/regular/cancel.php" class="btn btn-lg btn-danger">Cancel payment</a>
             <?php endif; ?>
-            <a href="<?= $bankTestsUrl ?>/regular/status.php" class="btn btn-lg btn-default">Payment Status</a>
+            <a href="<?= $bankTestsUrl ?>/regular/status.php" class="btn btn-lg btn-light">Payment Status</a>
         <?php endif; ?>
         <a href="index.php" class="btn btn-lg btn-info">&lt; Click to payment form</a>
     </div>

@@ -7,6 +7,7 @@ $templateTitle = 'Refund Order';
 // ilgili bankanin _config.php dosyasi load ediyoruz.
 // ornegin /examples/finansbank-payfor/regular/_config.php
 require '_config.php';
+$transaction = PosInterface::TX_TYPE_REFUND;
 
 require '../../_templates/_header.php';
 
@@ -69,8 +70,6 @@ $order = createRefundOrder(
     $refundAmount
 );
 dump($order);
-
-$transaction = PosInterface::TX_TYPE_REFUND;
 
 try {
     $pos->refund($order);

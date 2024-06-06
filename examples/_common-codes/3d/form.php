@@ -260,24 +260,28 @@ $flowType = $request->get('payment_flow_type');
     </pre>
 
     <script>
-        $('#result-alert').hide();
+        document.getElementById('result-alert').style.display = 'none';
         let messageReceived = false;
 
         /**
          * Bankadan geri websitenize yönlendirme yapıldıktan sonra alınan sonuca göre başarılı/başarısız alert box'u gösterir.
          */
         let displayResponse = function (event) {
-            let alertBox = $('#result-alert');
+            let alertBox = document.getElementById('result-alert');
             let data = JSON.parse(atob(event.data));
-            $('#result-response').append(JSON.stringify(data, null, '\t'));
+
+            let resultResponse = document.getElementById('result-response');
+            resultResponse.appendChild(document.createTextNode(JSON.stringify(data, null, '\t')));
+
             if (data.status === 'approved') {
-                alertBox.append('payment successful');
-                alertBox.addClass('alert-info');
+                alertBox.appendChild(document.createTextNode('payment successful'));
+                alertBox.classList.add('alert-info');
             } else {
-                alertBox.addClass('alert-danger');
-                alertBox.append('payment failed: ' + data.error_message ?? data.md_error_message);
+                alertBox.classList.add('alert-danger');
+                alertBox.appendChild(document.createTextNode('payment failed: ' + (data.error_message ?? data.md_error_message)));
             }
-            alertBox.show();
+
+            alertBox.style.display = 'block';
         }
     </script>
 <?php endif; ?>
@@ -287,9 +291,14 @@ $flowType = $request->get('payment_flow_type');
 
 <?php if ('by_iframe' === $flowType) : ?>
     <div class="modal fade" tabindex="-1" role="dialog" id="iframe-modal" data-keyboard="false" data-backdrop="static">
-        <div class="modal-dialog" role="document" id="iframe-modal-dialog" style="width: 426px;">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close"
-                    style="color: white; opacity: 1;"><span aria-hidden="true">&times;</span></button>
+        <div class="modal-dialog" role="document" style="width: 426px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body"  id="iframe-modal-body">
+                </div>
+            </div>
         </div>
     </div>
     <script>
@@ -302,7 +311,8 @@ $flowType = $request->get('payment_flow_type');
         window.addEventListener('message', function (event) {
             messageReceived = true;
             displayResponse(event);
-            $('#iframe-modal').modal('hide');
+            let myModal = bootstrap.Modal.getInstance(document.getElementById('iframe-modal'));
+            myModal.hide();
         });
 
         /**
@@ -310,20 +320,24 @@ $flowType = $request->get('payment_flow_type');
          * modal box içinde yeni iframe oluşturuyoruz ve iframe içine $renderedForm verisini basıyoruz.
          */
         let iframe = document.createElement('iframe');
-        document.getElementById("iframe-modal-dialog").appendChild(iframe);
-        $(iframe).height('500px');
-        $(iframe).width('410px');
+        document.getElementById("iframe-modal-body").appendChild(iframe);
+        iframe.style.height = '500px';
+        iframe.style.width = '410px';
         iframe.contentWindow.document.open();
         iframe.contentWindow.document.write(`<?= $renderedForm; ?>`);
         iframe.contentWindow.document.close();
-        $('#iframe-modal').modal('show');
+        let modalElement = document.getElementById('iframe-modal');
+        let myModal = new bootstrap.Modal(modalElement, {
+            keyboard: false
+        })
+        myModal.show();
 
-        $('#iframe-modal').on('hidden.bs.modal', function () {
+        modalElement.addEventListener('hidden.bs.modal', function () {
             if (!messageReceived) {
-                let alertBox = $('#result-alert');
-                alertBox.addClass('alert-danger');
-                alertBox.append('modal box kapatildi');
-                alertBox.show();
+                let alertBox = document.getElementById('result-alert');
+                alertBox.classList.add('alert-danger');
+                alertBox.appendChild(document.createTextNode('modal box kapatildi'));
+                alertBox.style.display = 'block';
             }
         });
     </script>
@@ -368,12 +382,12 @@ $flowType = $request->get('payment_flow_type');
          */
         let closeInterval = setInterval(function () {
             if (popupWindow.closed && !messageReceived) {
-                // windows is closed without completing payment
+                // window is closed without completing payment
                 clearInterval(closeInterval);
-                let alertBox = $('#result-alert');
-                alertBox.addClass('alert-danger');
-                alertBox.append('popup kapatildi');
-                alertBox.show();
+                let alertBox = document.getElementById('result-alert');
+                alertBox.classList.add('alert-danger');
+                alertBox.appendChild(document.createTextNode('popup kapatildi'));
+                alertBox.style.display = 'block';
             }
         }, 1000);
     </script>
