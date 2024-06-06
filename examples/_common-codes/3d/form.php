@@ -268,7 +268,7 @@ $flowType = $request->get('payment_flow_type');
          */
         let displayResponse = function (event) {
             let alertBox = $('#result-alert');
-            let data = JSON.parse(event.data);
+            let data = JSON.parse(atob(event.data));
             $('#result-response').append(JSON.stringify(data, null, '\t'));
             if (data.status === 'approved') {
                 alertBox.append('payment successful');

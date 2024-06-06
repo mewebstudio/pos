@@ -106,11 +106,11 @@ require __DIR__.'/_render_payment_response.php';
     if (window.opener && window.opener !== window) {
         // you are in a popup
         // send result data to parent window
-        window.opener.parent.postMessage(`<?= json_encode($response); ?>`);
+        window.opener.parent.postMessage(`<?= base64_encode(json_encode($response)); ?>`);
     } else if (window.parent) {
         // you are in iframe
         // send result data to parent window
-        window.parent.postMessage(`<?= json_encode($response); ?>`);
+        window.parent.postMessage(`<?= base64_encode(json_encode($response)); ?>`);
     }
 </script>
 <?php require __DIR__.'/_footer.php'; ?>

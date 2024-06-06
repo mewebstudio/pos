@@ -175,7 +175,7 @@ $renderedForm = ob_get_clean();
      */
     let displayResponse = function (event) {
         let alertBox = $('#result-alert');
-        let data = JSON.parse(event.data);
+        let data = JSON.parse(atob(event.data));
         $('#result-response').append(JSON.stringify(data, null, '\t'));
         if (data.status === 'approved') {
             alertBox.append('payment successful');
@@ -277,7 +277,7 @@ try  {
     if (window.parent) {
         // response.php iframe'de calisti
         // odeme sonucunu ana window'a yani form.php'e gonderiyoruz.
-        window.parent.postMessage(`<?= json_encode($response); ?>`);
+        window.parent.postMessage(`<?= base64_encode(json_encode($response)); ?>`);
     }
 </script>
 ```
