@@ -233,12 +233,11 @@ $flowType = $request->get('payment_flow_type');
 -->
     <?php require '../../_templates/_redirect_form.php'; ?>
     <script>
-        $(function () {
-            let redirectForm = $('form.redirect-form')
-            if (redirectForm.length) {
-                redirectForm.submit()
-            }
-        })
+        // Formu JS ile otomatik submit ederek kullaniciyi banka gatewayine yonlendiriyoruz.
+        let redirectForm = document.querySelector('form.redirect-form');
+        if (redirectForm) {
+            redirectForm.submit();
+        }
     </script>
 
 

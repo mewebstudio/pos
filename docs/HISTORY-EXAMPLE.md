@@ -12,7 +12,8 @@ require './vendor/autoload.php';
 
 // API kullanıcı bilgileri
 // AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
-// /examples altındaki örnek kodlara bakınız.
+// /examples altındaki _config.php dosyalara bakınız
+// (örn: /examples/akbankpos/3d/_config.php)
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -30,7 +31,7 @@ try {
 
     $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher);
 
-    // GarantiPos ve KuveytPos'u test ortamda test edebilmek için zorunlu.
+    // GarantiPos'u test ortamda test edebilmek için zorunlu.
     $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
     var_dump($e));
@@ -77,7 +78,12 @@ function createHistoryOrder(string $gatewayClass, array $extraData): array
 
 $order = createHistoryOrder(get_class($pos), []);
 
-$pos->history($order);
+try {
+    $pos->history($order);
+} catch (\Error $e) {
+    var_dump($e);
+    exit;
+}
 $response = $pos->getResponse();
 var_dump($response);
 ```

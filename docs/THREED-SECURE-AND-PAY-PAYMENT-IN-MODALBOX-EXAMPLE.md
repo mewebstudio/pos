@@ -29,7 +29,8 @@ $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
 $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
 
 // AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
-// /examples altındaki örnek kodlara bakınız.
+// /examples altındaki _config.php dosyalara bakınız
+// (örn: /examples/akbankpos/3d/_config.php)
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -47,7 +48,7 @@ try {
 
     $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher);
 
-    // GarantiPos ve KuveytPos'u test ortamda test edebilmek için zorunlu.
+    // GarantiPos'u test ortamda test edebilmek için zorunlu.
     $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
     var_dump($e));
@@ -92,7 +93,7 @@ require 'config.php';
 
 // Sipariş bilgileri
 $order = [
-    'id'          => 'BENZERSIZ-SIPERIS-ID',
+    'id'          => 'BENZERSIZ-SIPARIS-ID',
     'amount'      => 1.01,
     'currency'    => \Mews\Pos\PosInterface::CURRENCY_TRY, //optional. default: TRY
     'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
