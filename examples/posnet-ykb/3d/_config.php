@@ -6,6 +6,9 @@ use Mews\Pos\PosInterface;
 require '../_payment_config.php';
 
 $baseUrl = $bankTestsUrl.'/3d/';
+// NOT: PosNet testleri lokalde yapilamiyor.
+//      Ortam farketmeksizin Yapikrediyle iletisime gecip, sunucu IP adresinize izin verilmesini sağlamanız gerekiyor.
+
 //account bilgileri kendi account bilgilerinizle degistiriniz
 $account = AccountFactory::createPosNetAccount(
     'yapikredi',
