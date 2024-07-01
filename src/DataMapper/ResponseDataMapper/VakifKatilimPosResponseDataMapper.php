@@ -236,7 +236,6 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         $result['order_id']         = $vposMessage['MerchantOrderId'];
         $result['remote_order_id']  = (string) $rawResponseData['OrderId'];
         $result['status']           = $status;
-        $result['currency']         = $this->mapCurrency($vposMessage['FECCurrencyCode']);
 
         if (self::TX_APPROVED !== $status) {
             $result['error_code']    = $procReturnCode;

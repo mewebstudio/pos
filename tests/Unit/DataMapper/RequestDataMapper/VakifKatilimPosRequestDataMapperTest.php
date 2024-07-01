@@ -210,7 +210,10 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
     public function testCreateRefundRequestData(array $order, array $expected): void
     {
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+
+        \ksort($actual);
+        \ksort($expected);
+        $this->assertSame($expected, $actual);
     }
 
     /**
