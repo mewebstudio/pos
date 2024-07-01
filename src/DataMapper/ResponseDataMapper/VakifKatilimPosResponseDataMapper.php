@@ -546,7 +546,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         /** @var array<string, string> $vPosMessage */
-        $vPosMessage = $rawPaymentResponseData['VPosMessageContract'];
+        $vPosMessage = $rawPaymentResponseData['VPosMessage'];
 
         // ProvisionNumber: Başarılı işlemlerde kart bankasının vermiş olduğu otorizasyon numarasıdır.
         $result['order_id']        = $rawPaymentResponseData['MerchantOrderId'];
@@ -555,7 +555,8 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         $result['ref_ret_num'] = $rawPaymentResponseData['RRN'];
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['transaction_id']    = $rawPaymentResponseData['Stan'];
-        $result['auth_code']       = $rawPaymentResponseData['ProvisionNumber'] ?? null;
+        $result['batch_num']         = $vPosMessage['BatchId'];
+        $result['auth_code']         = $rawPaymentResponseData['ProvisionNumber'] ?? null;
         $result['masked_number']     = $vPosMessage['CardNumber'] ?? null;
         $result['currency']          = isset($vPosMessage['CurrencyCode']) ? $this->mapCurrency($vPosMessage['CurrencyCode']) : $order['currency'];
         $result['amount']            = $this->formatAmount($vPosMessage['Amount']);

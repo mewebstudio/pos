@@ -303,10 +303,8 @@ class VakifKatilimTest extends TestCase
                 ->method('create3DPaymentRequestData');
             $this->serializerMock->expects(self::never())
                 ->method('encode');
-            $this->serializerMock->expects(self::once())
-                ->method('decode')
-                ->with(urldecode($request->request->get('AuthenticationResponse')), $txType)
-                ->willReturn($request->request->all());
+            $this->serializerMock->expects(self::never())
+                ->method('decode');
             $this->eventDispatcherMock->expects(self::never())
                 ->method('dispatch');
         }
@@ -592,7 +590,20 @@ class VakifKatilimTest extends TestCase
     public static function make3DPaymentDataProvider(): array
     {
         return [
-            'auth_fail' => [
+            '3d_auth_fail' => [
+                'order'           => VakifKatilimPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail1']['order'],
+                'txType'          => VakifKatilimPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail1']['txType'],
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    VakifKatilimPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail1']['threeDResponseData']
+                ),
+                'paymentResponse' => VakifKatilimPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail1']['paymentData'],
+                'expected'        => VakifKatilimPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail1']['expectedData'],
+                'is3DSuccess'     => false,
+                'isSuccess'       => false,
+            ],
+            'auth_success' => [
                 'order'           => VakifKatilimPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
                 'txType'          => VakifKatilimPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
                 'request'         => Request::create(
