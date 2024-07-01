@@ -5,6 +5,7 @@ $templateTitle = 'History Request';
 // ilgili bankanin _config.php dosyasi load ediyoruz.
 // ornegin /examples/finansbank-payfor/regular/_config.php
 require_once '_config.php';
+$transaction = \Mews\Pos\PosInterface::TX_TYPE_HISTORY;
 
 require '../../_templates/_header.php';
 
@@ -53,8 +54,6 @@ function createHistoryOrder(string $gatewayClass, array $extraData, string $ip):
 
 $order = createHistoryOrder(get_class($pos), [], $ip);
 dump($order);
-
-$transaction = \Mews\Pos\PosInterface::TX_TYPE_HISTORY;
 
 try {
     $pos->history($order);

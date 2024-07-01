@@ -29,7 +29,8 @@ $paymentModel = \Mews\Pos\PosInterface::MODEL_3D_SECURE;
 $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
 
 // AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
-// /examples altındaki örnek kodlara bakınız.
+// /examples altındaki _config.php dosyalara bakınız
+// (örn: /examples/akbankpos/3d/_config.php)
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -47,7 +48,7 @@ try {
 
     $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher);
 
-    // GarantiPos ve KuveytPos'u test ortamda test edebilmek için zorunlu.
+    // GarantiPos'u test ortamda test edebilmek için zorunlu.
     $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
     var_dump($e));
@@ -92,7 +93,7 @@ require 'config.php';
 
 // Sipariş bilgileri
 $order = [
-    'id'          => 'BENZERSIZ-SIPERIS-ID',
+    'id'          => 'BENZERSIZ-SIPARIS-ID',
     'amount'      => 1.01,
     'currency'    => \Mews\Pos\PosInterface::CURRENCY_TRY, //optional. default: TRY
     'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
@@ -166,24 +167,28 @@ $renderedForm = ob_get_clean();
 </pre>
 
 <script>
-    $('#result-alert').hide();
+    document.getElementById('result-alert').style.display = 'none';
     let messageReceived = false;
 
     /**
      * Bankadan geri websitenize yönlendirme yapıldıktan sonra alınan sonuca göre başarılı/başarısız alert box'u gösterir.
      */
     let displayResponse = function (event) {
-        let alertBox = $('#result-alert');
-        let data = JSON.parse(event.data);
-        $('#result-response').append(JSON.stringify(data, null, '\t'));
+        let alertBox = document.getElementById('result-alert');
+        let data = JSON.parse(atob(event.data));
+
+        let resultResponse = document.getElementById('result-response');
+        resultResponse.appendChild(document.createTextNode(JSON.stringify(data, null, '\t')));
+
         if (data.status === 'approved') {
-            alertBox.append('payment successful');
-            alertBox.addClass('alert-info');
+            alertBox.appendChild(document.createTextNode('payment successful'));
+            alertBox.classList.add('alert-info');
         } else {
-            alertBox.addClass('alert-danger');
-            alertBox.append('payment failed: ' + data.error_message ?? data.md_error_message);
+            alertBox.classList.add('alert-danger');
+            alertBox.appendChild(document.createTextNode('payment failed: ' + (data.error_message ?? data.md_error_message)));
         }
-        alertBox.show();
+
+        alertBox.style.display = 'block';
     }
 </script>
 
@@ -203,7 +208,8 @@ $renderedForm = ob_get_clean();
         window.addEventListener('message', function (event) {
             messageReceived = true;
             displayResponse(event);
-            $('#iframe-modal').modal('hide');
+            let myModal = bootstrap.Modal.getInstance(document.getElementById('iframe-modal'));
+            myModal.hide();
         });
 
         /**
@@ -211,20 +217,24 @@ $renderedForm = ob_get_clean();
          * modal box içinde yeni iframe oluşturuyoruz ve iframe içine $renderedForm verisini basıyoruz.
          */
         let iframe = document.createElement('iframe');
-        document.getElementById("iframe-modal-dialog").appendChild(iframe);
-        $(iframe).height('500px');
-        $(iframe).width('410px');
+        document.getElementById("iframe-modal-body").appendChild(iframe);
+        iframe.style.height = '500px';
+        iframe.style.width = '410px';
         iframe.contentWindow.document.open();
         iframe.contentWindow.document.write(`<?= $renderedForm; ?>`);
         iframe.contentWindow.document.close();
-        $('#iframe-modal').modal('show');
+        let modalElement = document.getElementById('iframe-modal');
+        let myModal = new bootstrap.Modal(modalElement, {
+            keyboard: false
+        })
+        myModal.show();
 
-        $('#iframe-modal').on('hidden.bs.modal', function () {
+        modalElement.addEventListener('hidden.bs.modal', function () {
             if (!messageReceived) {
-                let alertBox = $('#result-alert');
-                alertBox.addClass('alert-danger');
-                alertBox.append('modal box kapatildi');
-                alertBox.show();
+                let alertBox = document.getElementById('result-alert');
+                alertBox.classList.add('alert-danger');
+                alertBox.appendChild(document.createTextNode('modal box kapatildi'));
+                alertBox.style.display = 'block';
             }
         });
     </script>
@@ -276,7 +286,7 @@ try  {
     if (window.parent) {
         // response.php iframe'de calisti
         // odeme sonucunu ana window'a yani form.php'e gonderiyoruz.
-        window.parent.postMessage(`<?= json_encode($response); ?>`);
+        window.parent.postMessage(`<?= base64_encode(json_encode($response)); ?>`);
     }
 </script>
 ```

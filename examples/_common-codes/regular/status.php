@@ -3,10 +3,10 @@
 use Mews\Pos\PosInterface;
 
 $templateTitle = 'Order Status';
-
 // ilgili bankanin _config.php dosyasi load ediyoruz.
 // ornegin /examples/finansbank-payfor/regular/_config.php
 require '_config.php';
+$transaction = PosInterface::TX_TYPE_STATUS;
 
 require '../../_templates/_header.php';
 
@@ -42,8 +42,6 @@ function createStatusOrder(string $gatewayClass, array $lastResponse, string $ip
 
 $order = createStatusOrder(get_class($pos), $session->get('last_response'), $ip);
 dump($order);
-
-$transaction = PosInterface::TX_TYPE_STATUS;
 
 $pos->status($order);
 

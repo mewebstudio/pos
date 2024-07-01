@@ -231,6 +231,33 @@ class AkbankPosTest extends TestCase
         return $lastResponse;
     }
 
+    /**
+     * @depends testNonSecurePostPaymentSuccess
+     */
+    public function testRefundSuccess(array $lastResponse): array
+    {
+        $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_REFUND, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->refund($refundOrder);
+
+        $response = $this->pos->getResponse();
+        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+
+        return $lastResponse;
+    }
+
     public function testNonSecurePaymentRecurringSuccess(): array
     {
         $order = $this->createPaymentOrder(
@@ -403,6 +430,7 @@ class AkbankPosTest extends TestCase
         $this->recurringPos->history($historyOrder);
 
         $response = $this->recurringPos->getResponse();
+        $this->assertTrue($this->recurringPos->isSuccess());
         $this->assertIsArray($response);
         $this->assertTrue($eventIsThrown);
         $this->assertNotEmpty($response['transactions']);

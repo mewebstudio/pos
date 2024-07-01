@@ -383,6 +383,7 @@ class ToslaPosTest extends TestCase
      */
     public function testRefund(
         array  $order,
+        string $txType,
         array  $requestData,
         string $encodedRequest,
         string $responseContent,
@@ -393,7 +394,7 @@ class ToslaPosTest extends TestCase
     {
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
-            ->with($this->pos->getAccount(), $order)
+            ->with($this->pos->getAccount(), $order, $txType)
             ->willReturn($requestData);
 
         $this->responseMapperMock->expects(self::once())
@@ -499,6 +500,7 @@ class ToslaPosTest extends TestCase
     {
         yield [
             'order'               => ToslaPosRequestDataMapperTest::refundRequestDataProvider()[0]['order'],
+            'txType'              => PosInterface::TX_TYPE_REFUND,
             'requestData'         => ToslaPosRequestDataMapperTest::refundRequestDataProvider()[0]['expected'],
             'encodedRequestData'  => \json_encode(ToslaPosRequestDataMapperTest::refundRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
             'responseData'        => \json_encode(ToslaPosResponseDataMapperTest::refundDataProvider()['success1']['responseData'], JSON_THROW_ON_ERROR),
@@ -721,7 +723,7 @@ class ToslaPosTest extends TestCase
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
-            ->with($account, $order)
+            ->with($account, $order, $txType)
             ->willReturn($requestData);
 
         $decodedResponse = ['decodedData'];
@@ -790,6 +792,11 @@ class ToslaPosTest extends TestCase
             ],
             [
                 'txType'       => PosInterface::TX_TYPE_REFUND,
+                'paymentModel' => PosInterface::MODEL_NON_SECURE,
+                'expected'     => 'https://ent.akodepos.com/api/Payment/refund',
+            ],
+            [
+                'txType'       => PosInterface::TX_TYPE_REFUND_PARTIAL,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/refund',
             ],

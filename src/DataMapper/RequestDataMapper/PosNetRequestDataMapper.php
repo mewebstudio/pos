@@ -46,12 +46,13 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH      => 'Sale',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'Auth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH => 'Capt',
-        PosInterface::TX_TYPE_CANCEL        => 'reverse',
-        PosInterface::TX_TYPE_REFUND        => 'return',
-        PosInterface::TX_TYPE_STATUS        => 'agreement',
+        PosInterface::TX_TYPE_PAY_AUTH       => 'Sale',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'Auth',
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'Capt',
+        PosInterface::TX_TYPE_CANCEL         => 'reverse',
+        PosInterface::TX_TYPE_REFUND         => 'return',
+        PosInterface::TX_TYPE_REFUND_PARTIAL => 'return',
+        PosInterface::TX_TYPE_STATUS         => 'agreement',
     ];
 
     /**
@@ -201,11 +202,11 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
     {
         $order = $this->prepareRefundOrder($order);
 
-        $txType      = $this->mapTxType(PosInterface::TX_TYPE_REFUND);
+        $txType      = $this->mapTxType($refundTxType);
         $requestData = [
             'mid'              => $posAccount->getClientId(),
             'tid'              => $posAccount->getTerminalId(),

@@ -213,16 +213,16 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedValue, $actualData);
     }
 
-    public function testCreateRefundRequestData(): void
+    /**
+     * @dataProvider refundRequestDataProvider
+     */
+    public function testCreateRefundRequestData(array $order, string $txType, array $expectedData): void
     {
-        $order                   = $this->order;
-        $order['transaction_id'] = '7022b92e-3aa1-44fb-86d4-33658c700c80';
-        $order['amount']         = 1000;
+        $actualData = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
-        $expectedValue = $this->getSampleRefundRequestData();
-        $actualData    = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-
-        $this->assertEquals($expectedValue, $actualData);
+        \ksort($actualData);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actualData);
     }
 
     /**
@@ -235,7 +235,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $this->dispatcher->expects(self::never())
             ->method('dispatch');
 
-        $actualData    = $this->requestDataMapper->create3DFormData(
+        $actualData = $this->requestDataMapper->create3DFormData(
             null,
             null,
             null,
@@ -451,6 +451,44 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         ];
     }
 
+    public static function refundRequestDataProvider(): array
+    {
+        return [
+            'full_refund'    => [
+                'order'    => [
+                    'transaction_id' => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'amount'         => 5,
+                    'ip'             => '127.0.0.1',
+                ],
+                'txType'   => PosInterface::TX_TYPE_REFUND,
+                'expected' => [
+                    'ClientIp'               => '127.0.0.1',
+                    'CurrencyAmount'         => '5.00',
+                    'MerchantId'             => '000000000111111',
+                    'Password'               => '3XTgER89as',
+                    'ReferenceTransactionId' => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'TransactionType'        => 'Refund',
+                ],
+            ],
+            'partial_refund' => [
+                'order'    => [
+                    'transaction_id' => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'amount'         => 5,
+                    'ip'             => '127.0.0.1',
+                ],
+                'txType'   => PosInterface::TX_TYPE_REFUND_PARTIAL,
+                'expected' => [
+                    'ClientIp'               => '127.0.0.1',
+                    'CurrencyAmount'         => '5.00',
+                    'MerchantId'             => '000000000111111',
+                    'Password'               => '3XTgER89as',
+                    'ReferenceTransactionId' => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'TransactionType'        => 'Refund',
+                ],
+            ],
+        ];
+    }
+
     /**
      * @param PayFlexAccount      $posAccount
      * @param array               $order
@@ -494,18 +532,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'CurrencyAmount'         => '1000.00',
             'CurrencyCode'           => '949',
             'ClientIp'               => $order['ip'],
-        ];
-    }
-
-    private function getSampleRefundRequestData(): array
-    {
-        return [
-            'MerchantId'             => '000000000111111',
-            'Password'               => '3XTgER89as',
-            'TransactionType'        => 'Refund',
-            'ReferenceTransactionId' => '7022b92e-3aa1-44fb-86d4-33658c700c80',
-            'ClientIp'               => '127.0.0.1',
-            'CurrencyAmount'         => '1000.00',
         ];
     }
 

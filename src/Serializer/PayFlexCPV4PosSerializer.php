@@ -48,7 +48,9 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
             );
         }
 
-        if (PosInterface::TX_TYPE_REFUND === $txType || PosInterface::TX_TYPE_CANCEL === $txType) {
+        if (PosInterface::TX_TYPE_REFUND === $txType
+            || PosInterface::TX_TYPE_REFUND_PARTIAL === $txType
+            || PosInterface::TX_TYPE_CANCEL === $txType) {
             return $this->serializer->encode($data, XmlEncoder::FORMAT);
         }
 

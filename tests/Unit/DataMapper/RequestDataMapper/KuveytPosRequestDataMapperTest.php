@@ -184,13 +184,13 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createRefundRequestDataProvider
      */
-    public function testCreateRefundRequestData(array $order, array $expected): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expected): void
     {
         $this->crypt->expects(self::once())
             ->method('createHash')
             ->willReturn('request-hash');
 
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
         foreach ($actual as &$item) {
             if (is_array($item)) {
@@ -384,7 +384,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     public static function createRefundRequestDataProvider(): Generator
     {
         yield [
-            'full_order' => [
+            'full_refund' => [
                 'id'              => '2023070849CD',
                 'remote_order_id' => '114293600',
                 'ref_ret_num'     => '318923298433',
@@ -393,7 +393,8 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'amount'          => 1.01,
                 'currency'        => PosInterface::CURRENCY_TRY,
             ],
-            'expected'   => [
+            'tx_type'     => PosInterface::TX_TYPE_REFUND,
+            'expected'    => [
                 'IsFromExternalNetwork' => true,
                 'BusinessKey'           => 0,
                 'ResourceId'            => 0,
@@ -445,6 +446,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
                 'order_amount'    => 10.01,
                 'currency'        => PosInterface::CURRENCY_TRY,
             ],
+            'tx_type'        => PosInterface::TX_TYPE_REFUND_PARTIAL,
             'expected'       => [
                 'IsFromExternalNetwork' => true,
                 'BusinessKey'           => 0,

@@ -5,6 +5,7 @@ $templateTitle = 'Order History';
 // ilgili bankanin _config.php dosyasi load ediyoruz.
 // ornegin /examples/finansbank-payfor/regular/_config.php
 require_once '_config.php';
+$transaction = \Mews\Pos\PosInterface::TX_TYPE_ORDER_HISTORY;
 
 require '../../_templates/_header.php';
 
@@ -63,8 +64,6 @@ $lastResponse = $session->get('last_response');
 
 $order = createOrderHistoryOrder(get_class($pos), $lastResponse);
 dump($order);
-
-$transaction = \Mews\Pos\PosInterface::TX_TYPE_ORDER_HISTORY;
 
 try {
     $pos->orderHistory($order);

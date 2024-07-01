@@ -35,13 +35,6 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH => '1',
-    ];
-
-    /**
      * Currency mapping
      *
      * {@inheritdoc}
@@ -229,7 +222,7 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
      * @param KuveytPosAccount $posAccount
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
     {
         $order = $this->prepareRefundOrder($order);
 

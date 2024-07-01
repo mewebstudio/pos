@@ -196,6 +196,9 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         return $defaultResponse;
     }
 
+    /**
+     * @inheritDoc
+     */
     public function mapRefundResponse(array $rawResponseData): array
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);

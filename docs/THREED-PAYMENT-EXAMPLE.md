@@ -31,7 +31,8 @@ $transactionType = \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH;
 
 // API kullanıcı bilgileri
 // AccountFactory'de kullanılacak method Gateway'e göre değişir!!!
-// /examples altındaki örnek kodlara bakınız.
+// /examples altındaki _config.php dosyalara bakınız
+// (örn: /examples/akbankpos/3d/_config.php)
 $account = \Mews\Pos\Factory\AccountFactory::createEstPosAccount(
     'akbank', //pos config'deki ayarın index name'i
     'yourClientID',
@@ -49,7 +50,7 @@ try {
 
     $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher);
 
-    // GarantiPos ve KuveytPos'u test ortamda test edebilmek için zorunlu.
+    // GarantiPos'u test ortamda test edebilmek için zorunlu.
     $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
     var_dump($e);
@@ -66,7 +67,7 @@ require 'config.php';
 
 // Sipariş bilgileri
 $order = [
-    'id'          => 'BENZERSIZ-SIPERIS-ID',
+    'id'          => 'BENZERSIZ-SIPARIS-ID',
     'amount'      => 1.01,
     'currency'    => \Mews\Pos\PosInterface::CURRENCY_TRY, //optional. default: TRY
     'installment' => 0, //0 ya da 1'den büyük değer, optional. default: 0
@@ -210,6 +211,9 @@ try {
             $requestDataPreparedEvent->setRequestData($requestData);
         });
 
+// ============================================================================================
+// OZEL DURUMLAR ICIN KODLAR END
+// ============================================================================================
     $formData = $pos->get3DFormData(
         $order,
         $paymentModel,
@@ -220,9 +224,6 @@ try {
     var_dump($e);
     exit;
 }
-// ============================================================================================
-// OZEL DURUMLAR ICIN KODLAR END
-// ============================================================================================
 ```
 ```html
 <!-- $formData içeriği HTML forma render ediyoruz ve kullanıcıyı banka gateway'ine yönlendiriyoruz. -->
@@ -237,13 +238,11 @@ try {
     </div>
 </form>
 <script>
-    $(function () {
-        // Formu JS ile otomatik submit ederek kullaniciyi banka gatewayine yonlendiriyoruz.
-        let redirectForm = $('form.redirect-form')
-        if (redirectForm.length) {
-            redirectForm.submit()
-        }
-    })
+    // Formu JS ile otomatik submit ederek kullaniciyi banka gatewayine yonlendiriyoruz.
+    let redirectForm = document.querySelector('form.redirect-form');
+    if (redirectForm) {
+        redirectForm.submit();
+    }
 </script>
 ```
 **response.php (gateway'den döndükten sonra çalışacak kod)**
@@ -300,20 +299,18 @@ try  {
         $card
     );
 
-    // Ödeme başarılı mı?
-    $pos->isSuccess();
-
     // Sonuç çıktısı
     $response = $pos->getResponse();
     var_dump($response);
     // response içeriği için /examples/template/_payment_response.php dosyaya bakınız.
 
+    // Ödeme başarılı mı?
     if ($pos->isSuccess()) {
         // NOT: Ödeme durum sorgulama, iptal ve iade işlemleri yapacaksanız $response değerini saklayınız.
     }
 } catch (\Mews\Pos\Exceptions\HashMismatchException $e) {
    // Bankadan gelen verilerin bankaya ait olmadığında bu exception oluşur.
-   // Banka API bilgileriniz hatalı ise de oluşur.
+   // veya Banka API bilgileriniz hatalı ise de oluşur.
 } catch (\Error $e) {
     var_dump($e);
     exit;

@@ -105,6 +105,12 @@ class KuveytPosSerializerTest extends TestCase
             'expected' => $refundTests[0]['expected'],
         ];
 
+        yield 'test_partial_refund' => [
+            'input'    => $refundTests[0]['expected'],
+            'txType'   => PosInterface::TX_TYPE_REFUND_PARTIAL,
+            'expected' => $refundTests[0]['expected'],
+        ];
+
         yield 'test_cancel' => [
             'input'    => ['abc' => 1],
             'txType'   => PosInterface::TX_TYPE_CANCEL,
