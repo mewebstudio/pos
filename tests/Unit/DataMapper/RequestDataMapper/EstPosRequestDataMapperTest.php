@@ -272,20 +272,15 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider refundRequestDataProvider
      */
-    public function testCreateRefundRequestData(): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expectedData): void
     {
-        $order = [
-            'id'       => '2020110828BC',
-            'amount'   => 50,
-            'currency' => PosInterface::CURRENCY_TRY,
-        ];
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-
-        $expectedData = $this->getSampleRefundXMLData($this->account, $order);
-        $this->assertEquals($expectedData, $actual);
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
     }
 
 
@@ -545,6 +540,46 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
+    public static function refundRequestDataProvider(): array
+    {
+        return [
+            'full_refund'    => [
+                'order'    => [
+                    'id'       => 'order-123',
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 5,
+                ],
+                'txType'   => PosInterface::TX_TYPE_REFUND,
+                'expected' => [
+                    'ClientId' => '700655000200',
+                    'Currency' => '949',
+                    'Name'     => 'ISBANKAPI',
+                    'OrderId'  => 'order-123',
+                    'Password' => 'ISBANK07',
+                    'Total'    => '5',
+                    'Type'     => 'Credit',
+                ],
+            ],
+            'partial_refund' => [
+                'order'    => [
+                    'id'       => 'order-123',
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 5,
+                ],
+                'txType'   => PosInterface::TX_TYPE_REFUND_PARTIAL,
+                'expected' => [
+                    'ClientId' => '700655000200',
+                    'Currency' => '949',
+                    'Name'     => 'ISBANKAPI',
+                    'OrderId'  => 'order-123',
+                    'Password' => 'ISBANK07',
+                    'Total'    => '5',
+                    'Type'     => 'Credit',
+                ],
+            ],
+        ];
+    }
+
     /**
      * @param AbstractPosAccount $posAccount
      * @param array              $order
@@ -644,29 +679,5 @@ class EstPosRequestDataMapperTest extends TestCase
                 'RECURRINGID' => $order['recurringId'],
             ],
         ];
-    }
-
-    /**
-     * @param AbstractPosAccount $posAccount
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleRefundXMLData(AbstractPosAccount $posAccount, array $order): array
-    {
-        $data = [
-            'Name'     => $posAccount->getUsername(),
-            'Password' => $posAccount->getPassword(),
-            'ClientId' => $posAccount->getClientId(),
-            'OrderId'  => $order['id'],
-            'Currency' => 949,
-            'Type'     => 'Credit',
-        ];
-
-        if ($order['amount']) {
-            $data['Total'] = $order['amount'];
-        }
-
-        return $data;
     }
 }

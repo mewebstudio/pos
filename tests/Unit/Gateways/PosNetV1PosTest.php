@@ -440,7 +440,7 @@ class PosNetV1PosTest extends TestCase
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
-            ->with($account, $order)
+            ->with($account, $order, $txType)
             ->willReturn($requestData);
 
         $decodedResponse = ['decodedData'];

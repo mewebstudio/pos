@@ -40,6 +40,9 @@ interface PosInterface
     public const TX_TYPE_REFUND = 'refund';
 
     /** @var string */
+    public const TX_TYPE_REFUND_PARTIAL = 'refund_partial';
+
+    /** @var string */
     public const TX_TYPE_STATUS = 'status';
 
     /** @var string */

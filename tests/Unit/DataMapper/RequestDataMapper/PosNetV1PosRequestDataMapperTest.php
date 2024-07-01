@@ -163,7 +163,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData(array $order, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account,$order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
 
         $this->assertEquals($expectedData, $actual);
     }
@@ -216,10 +216,13 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createRefundRequestDataDataProvider
      */
-    public function testCreateRefundRequestData(array $order, array $expected): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expected): void
     {
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
+
+        ksort($actual);
+        ksort($expected);
+        $this->assertSame($expected, $actual);
     }
 
 
@@ -281,7 +284,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     public static function nonSecurePaymentRequestDataDataProvider(): iterable
     {
         yield [
-            'order' => [
+            'order'    => [
                 'id'          => '123',
                 'amount'      => 10.0,
                 'installment' => 0,
@@ -449,6 +452,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
                 'transaction_type' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
+            'tx_type'  => PosInterface::TX_TYPE_REFUND,
             'expected' => [
                 'ApiType'                => 'JSON',
                 'ApiVersion'             => 'V100',
@@ -473,6 +477,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
                 'transaction_type' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
+            'tx_type'  => PosInterface::TX_TYPE_REFUND,
             'expected' => [
                 'ApiType'                => 'JSON',
                 'ApiVersion'             => 'V100',
@@ -497,6 +502,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'payment_model'    => PosInterface::MODEL_3D_SECURE,
                 'transaction_type' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
+            'tx_type'  => PosInterface::TX_TYPE_REFUND,
             'expected' => [
                 'ApiType'                => 'JSON',
                 'ApiVersion'             => 'V100',
@@ -521,6 +527,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'amount'           => 112,
                 'transaction_type' => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             ],
+            'tx_type'  => PosInterface::TX_TYPE_REFUND,
             'expected' => [
                 'ApiType'                => 'JSON',
                 'ApiVersion'             => 'V100',

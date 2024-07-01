@@ -24,13 +24,14 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH      => 'Sale',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'Auth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH => 'Capture',
-        PosInterface::TX_TYPE_CANCEL        => 'Cancel',
-        PosInterface::TX_TYPE_REFUND        => 'Refund',
-        PosInterface::TX_TYPE_HISTORY       => 'TxnHistory',
-        PosInterface::TX_TYPE_STATUS        => 'OrderInquiry',
+        PosInterface::TX_TYPE_PAY_AUTH       => 'Sale',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'Auth',
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'Capture',
+        PosInterface::TX_TYPE_CANCEL         => 'Cancel',
+        PosInterface::TX_TYPE_REFUND         => 'Refund',
+        PosInterface::TX_TYPE_REFUND_PARTIAL => 'Refund',
+        PosInterface::TX_TYPE_HISTORY        => 'TxnHistory',
+        PosInterface::TX_TYPE_STATUS         => 'OrderInquiry',
     ];
 
     /**
@@ -241,12 +242,12 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      * @return array{MerchantId: string, Password: string, TransactionType: string, ReferenceTransactionId: string,
      *     ClientIp: string, CurrencyAmount: string}
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
     {
         $order = $this->prepareRefundOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
+                'TransactionType'        => $this->mapTxType($refundTxType),
                 'ReferenceTransactionId' => (string) $order['transaction_id'],
                 'ClientIp'               => (string) $order['ip'],
                 'CurrencyAmount'         => $this->formatAmount($order['amount']),

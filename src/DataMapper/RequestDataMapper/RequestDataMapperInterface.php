@@ -135,14 +135,17 @@ interface RequestDataMapperInterface
     public function createCancelRequestData(AbstractPosAccount $posAccount, array $order): array;
 
     /**
+     * @phpstan-param PosInterface::TX_TYPE_REFUND* $refundTxType
+     *
      * @param AbstractPosAccount                   $posAccount
      * @param array<string, string|int|float|null> $order
+     * @param string                               $refundTxType
      *
      * @return array<string, mixed>
      *
      * @throws UnsupportedTransactionTypeException
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array;
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array;
 
     /**
      * @param AbstractPosAccount                   $posAccount

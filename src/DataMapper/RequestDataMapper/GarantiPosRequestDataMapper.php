@@ -47,13 +47,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH      => 'sales',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'preauth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH => 'postauth',
-        PosInterface::TX_TYPE_CANCEL        => 'void',
-        PosInterface::TX_TYPE_REFUND        => 'refund',
-        PosInterface::TX_TYPE_HISTORY       => 'orderhistoryinq',
-        PosInterface::TX_TYPE_STATUS        => 'orderinq',
+        PosInterface::TX_TYPE_PAY_AUTH       => 'sales',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'preauth',
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'postauth',
+        PosInterface::TX_TYPE_CANCEL         => 'void',
+        PosInterface::TX_TYPE_REFUND         => 'refund',
+        PosInterface::TX_TYPE_REFUND_PARTIAL => 'refund',
+        PosInterface::TX_TYPE_HISTORY        => 'orderhistoryinq',
+        PosInterface::TX_TYPE_STATUS         => 'orderinq',
     ];
 
     protected array $recurringOrderFrequencyMapping = [
@@ -254,7 +255,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
     {
         $order = $this->prepareRefundOrder($order);
 
@@ -269,7 +270,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
+                'Type'                  => $this->mapTxType($refundTxType),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek,
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),

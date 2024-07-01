@@ -31,13 +31,14 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH      => 'Auth',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'PreAuth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH => 'PostAuth',
-        PosInterface::TX_TYPE_CANCEL        => 'Void',
-        PosInterface::TX_TYPE_REFUND        => 'Credit',
-        PosInterface::TX_TYPE_STATUS        => 'ORDERSTATUS',
-        PosInterface::TX_TYPE_HISTORY       => 'ORDERHISTORY',
+        PosInterface::TX_TYPE_PAY_AUTH       => 'Auth',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'PreAuth',
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'PostAuth',
+        PosInterface::TX_TYPE_CANCEL         => 'Void',
+        PosInterface::TX_TYPE_REFUND         => 'Credit',
+        PosInterface::TX_TYPE_REFUND_PARTIAL => 'Credit',
+        PosInterface::TX_TYPE_STATUS         => 'ORDERSTATUS',
+        PosInterface::TX_TYPE_HISTORY        => 'ORDERHISTORY',
     ];
 
     /**
@@ -199,14 +200,14 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{OrderId: string, Currency: string, Type: string, Total?: string, Name: string, Password: string, ClientId: string}
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
     {
         $order = $this->prepareRefundOrder($order);
 
         $requestData = [
             'OrderId'  => (string) $order['id'],
             'Currency' => $this->mapCurrency($order['currency']),
-            'Type'     => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
+            'Type'     => $this->mapTxType($refundTxType),
         ];
 
         if (isset($order['amount'])) {

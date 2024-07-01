@@ -234,7 +234,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testCreateRefundRequestData(array $order, array $expected): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expected): void
     {
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
@@ -243,9 +243,11 @@ class ToslaPosRequestDataMapperTest extends TestCase
             ->method('createHash')
             ->willReturn($expected['hash']);
 
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
-        $this->assertEquals($expected, $actual);
+        ksort($actual);
+        ksort($expected);
+        $this->assertSame($expected, $actual);
     }
 
     public static function statusRequestDataProvider(): array
@@ -297,6 +299,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
                     'amount'    => 1.02,
                     'time_span' => '20231209215355',
                 ],
+                'tx_type'  => PosInterface::TX_TYPE_REFUND,
                 'expected' => [
                     'clientId' => '1000000494',
                     'apiUser'  => 'POS_ENT_Test_001',

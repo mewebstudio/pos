@@ -23,11 +23,12 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH      => '1',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => '2',
-        PosInterface::TX_TYPE_PAY_POST_AUTH => '3',
-        PosInterface::TX_TYPE_CANCEL        => '4',
-        PosInterface::TX_TYPE_REFUND        => '5',
+        PosInterface::TX_TYPE_PAY_AUTH       => '1',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => '2',
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => '3',
+        PosInterface::TX_TYPE_CANCEL         => '4',
+        PosInterface::TX_TYPE_REFUND         => '5',
+        PosInterface::TX_TYPE_REFUND_PARTIAL => '5',
     ];
 
     /**
@@ -146,7 +147,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
     {
         $order = $this->prepareRefundOrder($order);
 

@@ -368,13 +368,13 @@ class AkbankPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testCreateRefundRequestData(array $order, array $expectedData): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expectedData): void
     {
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expectedData['randomNumber']);
 
-        $actualData = $this->requestDataMapper->createRefundRequestData($this->account, $order);
+        $actualData = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
         $this->assertSame(23, \strlen($actualData['requestDateTime']));
         unset($actualData['requestDateTime']);
 
@@ -552,6 +552,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                     'amount'   => 1.02,
                     'currency' => PosInterface::CURRENCY_TRY,
                 ],
+                'txType'   => PosInterface::TX_TYPE_REFUND,
                 'expected' => [
                     'terminal'     => [
                         'merchantSafeId' => '2023090417500272654BD9A49CF07574',
@@ -576,6 +577,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                     'currency'                        => PosInterface::CURRENCY_TRY,
                     'recurringOrderInstallmentNumber' => 2,
                 ],
+                'txType'   => PosInterface::TX_TYPE_REFUND,
                 'expected' => [
                     'terminal'     => [
                         'merchantSafeId' => '2023090417500272654BD9A49CF07574',
