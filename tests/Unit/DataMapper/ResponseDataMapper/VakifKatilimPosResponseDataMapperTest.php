@@ -213,6 +213,26 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actualData);
     }
 
+    public function testMapHistoryResponseWithALotOfTxs(): void
+    {
+        $responseData = file_get_contents(__DIR__.'/../../test_data/vakifkatilimpos/history/success_history.json');
+
+        $actualData = $this->responseDataMapper->mapHistoryResponse(json_decode($responseData, true));
+
+        $this->assertCount(31, $actualData['transactions']);
+
+        if (count($actualData['transactions']) > 1
+            && null !== $actualData['transactions'][0]['transaction_time']
+            && null !== $actualData['transactions'][1]['transaction_time']
+        ) {
+            $this->assertGreaterThan(
+                $actualData['transactions'][0]['transaction_time'],
+                $actualData['transactions'][1]['transaction_time'],
+            );
+        }
+    }
+
+
     /**
      * @dataProvider orderHistoryTestDataProvider
      */
@@ -235,6 +255,7 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
         foreach (array_keys($actualData['transactions']) as $key) {
             $this->assertEquals($expectedData['transactions'][$key]['transaction_time'], $actualData['transactions'][$key]['transaction_time'], 'tx: '.$key);
             $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time'], 'tx: '.$key);
+            unset($actualData['transactions'][$key]['cancel_time'], $expectedData['transactions'][$key]['cancel_time']);
             unset($actualData['transactions'][$key]['transaction_time'], $expectedData['transactions'][$key]['transaction_time']);
             unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
             \ksort($actualData['transactions'][$key]);
@@ -594,6 +615,41 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
             ],
         ];
 
+        yield 'fail_order_not_found' => [
+            'responseData' => [
+                'VPosOrderData'   => '',
+                'ResponseCode'    => 'NonResult',
+                'ResponseMessage' => 'Kriterlere uygun sonuc bulunmamaktadir.',
+                'MerchantOrderId' => '124',
+                '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
+                '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
+            ],
+            'expectedData' => [
+                'auth_code'         => null,
+                'capture'           => null,
+                'capture_amount'    => null,
+                'currency'          => null,
+                'error_code'        => 'NonResult',
+                'error_message'     => 'Kriterlere uygun sonuc bulunmamaktadir.',
+                'first_amount'      => null,
+                'installment_count' => null,
+                'masked_number'     => null,
+                'order_id'          => '124',
+                'order_status'      => null,
+                'proc_return_code'  => 'NonResult',
+                'ref_ret_num'       => null,
+                'refund_amount'     => null,
+                'status'            => 'declined',
+                'status_detail'     => null,
+                'transaction_id'    => null,
+                'transaction_type'  => null,
+                'transaction_time'  => null,
+                'capture_time'      => null,
+                'refund_time'       => null,
+                'cancel_time'       => null,
+            ],
+        ];
+
         yield 'success1' => [
             'responseData' => [
                 'VPosOrderData'   => [
@@ -662,6 +718,81 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
                 'transaction_id'    => '014127',
                 'transaction_type'  => null,
                 'transaction_time'  => new \DateTimeImmutable('2020-12-24T09:21:41.55'),
+                'capture_time'      => null,
+                'refund_time'       => null,
+                'cancel_time'       => null,
+            ],
+        ];
+        yield 'success_canceled_order' => [
+            'responseData' => [
+                'VPosOrderData'   => [
+                    'OrderContract' => [
+                        'OrderId'                        => '6373591',
+                        'MerchantOrderId'                => '20240701CF44',
+                        'MerchantId'                     => '1',
+                        'PosTerminalId'                  => '111111',
+                        'OrderStatus'                    => '1',
+                        'OrderStatusDescription'         => 'Satis',
+                        'OrderType'                      => '1',
+                        'OrderTypeDescription'           => 'Pesin',
+                        'TransactionStatus'              => '1',
+                        'TransactionStatusDescription'   => 'Basarili',
+                        'LastOrderStatus'                => '6',
+                        'LastOrderStatusDescription'     => 'Iptal',
+                        'EndOfDayStatus'                 => '1',
+                        'EndOfDayStatusDescription'      => 'Acik',
+                        'FEC'                            => '0949',
+                        'FecDescription'                 => 'TRY',
+                        'TransactionSecurity'            => '3',
+                        'TransactionSecurityDescription' => '3d islem',
+                        'CardHolderName'                 => 'john doe',
+                        'CardType'                       => 'MasterCard',
+                        'CardNumber'                     => '5188********2666',
+                        'OrderDate'                      => '2024-07-01T15:03:06.963',
+                        'FirstAmount'                    => '10.01',
+                        'TranAmount'                     => '0',
+                        'FECAmount'                      => '0.00',
+                        'CancelAmount'                   => '10.01',
+                        'DrawbackAmount'                 => '0.00',
+                        'ClosedAmount'                   => '0.00',
+                        'InstallmentCount'               => '0',
+                        'ResponseCode'                   => '00',
+                        'ResponseExplain'                => 'İşlem onaylandı',
+                        'ProvNumber'                     => '668468',
+                        'RRN'                            => '418315149569',
+                        'Stan'                           => '435384',
+                        'MerchantUserName'               => 'apiuser',
+                        'BatchId'                        => '1',
+                    ],
+                ],
+                'ResponseCode'    => '00',
+                'ResponseMessage' => '',
+                'MerchantOrderId' => '20240701CF44',
+                '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
+                '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
+            ],
+            'expectedData' => [
+                'auth_code'         => '668468',
+                'capture'           => false,
+                'capture_amount'    => 0.0,
+                'currency'          => 'TRY',
+                'error_code'        => null,
+                'error_message'     => null,
+                'first_amount'      => 10.01,
+                'installment_count' => 0,
+                'masked_number'     => '5188********2666',
+                'order_id'          => '20240701CF44',
+                'order_status'      => 'Iptal',
+                'payment_model'     => '3d',
+                'proc_return_code'  => '00',
+                'ref_ret_num'       => '418315149569',
+                'refund_amount'     => null,
+                'remote_order_id'   => '6373591',
+                'status'            => 'approved',
+                'status_detail'     => 'approved',
+                'transaction_id'    => '435384',
+                'transaction_type'  => null,
+                'transaction_time'  => new \DateTimeImmutable('2024-07-01T15:03:06.963'),
                 'capture_time'      => null,
                 'refund_time'       => null,
                 'cancel_time'       => null,
@@ -1035,7 +1166,7 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
     public static function historyTestDataProvider(): array
     {
         return [
-            [
+            'test1'                => [
                 'input'    => [
                     'VPosOrderData'   => [
                         'OrderContract' => [
@@ -1177,13 +1308,31 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
                     ],
                 ],
             ],
+            'fail_order_not_found' => [
+                'input'    => [
+                    'VPosOrderData'   => '',
+                    'ResponseCode'    => 'NonResult',
+                    'ResponseMessage' => 'Kriterlere uygun sonuc bulunmamaktadir.',
+                    '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
+                    '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
+                ],
+                'expected' => [
+                    'proc_return_code' => 'NonResult',
+                    'error_code'       => 'NonResult',
+                    'error_message'    => 'Kriterlere uygun sonuc bulunmamaktadir.',
+                    'status'           => 'declined',
+                    'status_detail'    => 'NonResult',
+                    'trans_count'      => 0,
+                    'transactions'     => [],
+                ],
+            ],
         ];
     }
 
     public static function orderHistoryTestDataProvider(): array
     {
         return [
-            'fail1'    => [
+            'fail1'                   => [
                 'input'    => [
                     'VPosOrderData'   => '',
                     'ResponseCode'    => 'MerchantNotDefined',
@@ -1203,84 +1352,105 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
                     'transactions'     => [],
                 ],
             ],
-            'success1' => [
+            'order_not_found'         => [
+                'input'    => [
+                    'VPosOrderData'   => '',
+                    'ResponseCode'    => 'NonResult',
+                    'ResponseMessage' => 'Kriterlere uygun sonuc bulunmamaktadir.',
+                    '@xmlns:xsi'      => 'http://www.w3.org/2001/XMLSchema-instance',
+                    '@xmlns:xsd'      => 'http://www.w3.org/2001/XMLSchema',
+                ],
+                'expected' => [
+                    'proc_return_code' => 'NonResult',
+                    'order_id'         => null,
+                    'remote_order_id'  => null,
+                    'error_code'       => 'NonResult',
+                    'error_message'    => 'Kriterlere uygun sonuc bulunmamaktadir.',
+                    'status'           => 'declined',
+                    'status_detail'    => 'NonResult',
+                    'trans_count'      => 0,
+                    'transactions'     => [],
+                ],
+            ],
+            'success_pay_then_cancel' => [
                 'input'    => [
                     'VPosOrderData'   => [
                         'OrderContract' => [
                             [
-                                'OrderId'                        => '12754',
-                                'MerchantOrderId'                => '709834990',
+                                'OrderId'                        => '6373641',
+                                'MerchantOrderId'                => '202407019FDB',
                                 'MerchantId'                     => '1',
                                 'PosTerminalId'                  => '111111',
                                 'OrderStatus'                    => '1',
                                 'OrderStatusDescription'         => 'Satis',
-                                'OrderType'                      => '1',
-                                'OrderTypeDescription'           => 'Pesin',
-                                'TransactionStatus'              => '2',
-                                'TransactionStatusDescription'   => 'Basarisiz',
-                                'LastOrderStatus'                => '1',
-                                'LastOrderStatusDescription'     => 'Satis',
+                                'OrderType'                      => '2',
+                                'OrderTypeDescription'           => 'Taksitli',
+                                'TransactionStatus'              => '1',
+                                'TransactionStatusDescription'   => 'Basarili',
+                                'LastOrderStatus'                => '6',
+                                'LastOrderStatusDescription'     => 'Iptal',
                                 'EndOfDayStatus'                 => '1',
                                 'EndOfDayStatusDescription'      => 'Acik',
                                 'FEC'                            => '0949',
                                 'FecDescription'                 => 'TRY',
-                                'TransactionSecurity'            => '5',
-                                'TransactionSecurityDescription' => '',
-                                'CardHolderName'                 => 'Hasan Karacan',
+                                'TransactionSecurity'            => '3',
+                                'TransactionSecurityDescription' => '3d islem',
+                                'CardHolderName'                 => 'john doe',
                                 'CardType'                       => 'MasterCard',
-                                'CardNumber'                     => '5353********3233',
-                                'OrderDate'                      => '2020-12-25T12:13:35.74',
-                                'TranAmount'                     => '3.90',
-                                'FirstAmount'                    => '3.90',
+                                'CardNumber'                     => '5351********9885',
+                                'OrderDate'                      => '2024-07-01T15:21:28.123',
+                                'FirstAmount'                    => '10.01',
+                                'TranAmount'                     => '10.01',
                                 'FECAmount'                      => '0.00',
-                                'CancelAmount'                   => '0.00',
+                                'CancelAmount'                   => '10.01',
                                 'DrawbackAmount'                 => '0.00',
                                 'ClosedAmount'                   => '0.00',
-                                'InstallmentCount'               => '0',
-                                'ResponseCode'                   => '05',
-                                'ResponseExplain'                => 'Hata Kodu5',
-                                'ProvNumber'                     => '',
-                                'RRN'                            => '03611114146',
-                                'Stan'                           => '012246',
-                                'MerchantUserName'               => 'USERNAME',
-                                'BatchId'                        => '73',
+                                'InstallmentCount'               => '2',
+                                'ResponseCode'                   => '00',
+                                'ResponseExplain'                => 'İşlem onaylandı',
+                                'ProvNumber'                     => '520366',
+                                'RRN'                            => '418315158962',
+                                'Stan'                           => '435438',
+                                'MerchantUserName'               => 'apiuser',
+                                'BatchId'                        => '1',
                             ],
                             [
-                                'OrderId'                        => '12754',
-                                'MerchantOrderId'                => '709834990',
+                                'OrderId'                        => '6373641',
+                                'MerchantOrderId'                => '202407019FDB',
                                 'MerchantId'                     => '1',
                                 'PosTerminalId'                  => '111111',
-                                'OrderStatus'                    => '1',
-                                'OrderStatusDescription'         => 'Satis',
-                                'OrderType'                      => '1',
-                                'OrderTypeDescription'           => 'Pesin',
+                                'OrderStatus'                    => '6',
+                                'OrderStatusDescription'         => 'Iptal',
+                                'OrderType'                      => '2',
+                                'OrderTypeDescription'           => 'Taksitli',
                                 'TransactionStatus'              => '1',
                                 'TransactionStatusDescription'   => 'Basarili',
-                                'LastOrderStatus'                => '1',
-                                'LastOrderStatusDescription'     => 'Satis',
-                                'EndOfDayStatus'                 => '2',
-                                'EndOfDayStatusDescription'      => 'Kapali',
+                                'LastOrderStatus'                => '6',
+                                'LastOrderStatusDescription'     => 'Iptal',
+                                'EndOfDayStatus'                 => '1',
+                                'EndOfDayStatusDescription'      => 'Acik',
                                 'FEC'                            => '0949',
                                 'FecDescription'                 => 'TRY',
-                                'TransactionSecurity'            => '5',
-                                'TransactionSecurityDescription' => '',
-                                'CardHolderName'                 => 'Hasan Karacan',
+                                'TransactionSecurity'            => '3',
+                                'TransactionSecurityDescription' => '3d islem',
+                                'CardHolderName'                 => 'john doe',
                                 'CardType'                       => 'MasterCard',
-                                'CardNumber'                     => '5353********8906',
-                                'OrderDate'                      => '2020-12-25T08:41:40.947',
-                                'FirstAmount'                    => '2.70',
+                                'CardNumber'                     => '5351********9885',
+                                'OrderDate'                      => '2024-07-01T15:22:24.463',
+                                'FirstAmount'                    => '10.01',
+                                'TranAmount'                     => '10.01',
                                 'FECAmount'                      => '0.00',
-                                'CancelAmount'                   => '0.00',
+                                'CancelAmount'                   => '10.01',
                                 'DrawbackAmount'                 => '0.00',
                                 'ClosedAmount'                   => '0.00',
-                                'InstallmentCount'               => '0',
+                                'InstallmentCount'               => '2',
                                 'ResponseCode'                   => '00',
-                                'ResponseExplain'                => 'Provizyon alındı.',
-                                'ProvNumber'                     => '831168',
-                                'RRN'                            => '036008014143',
-                                'Stan'                           => '014143',
-                                'MerchantUserName'               => 'USERNAME',
-                                'BatchId'                        => '72',
+                                'ResponseExplain'                => 'İşlem onaylandı',
+                                'ProvNumber'                     => '520366',
+                                'RRN'                            => '418315158962',
+                                'Stan'                           => '435440',
+                                'MerchantUserName'               => 'apiuser',
+                                'BatchId'                        => '1',
                             ],
                         ],
                     ],
@@ -1291,8 +1461,8 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
                 ],
                 'expected' => [
                     'proc_return_code' => '00',
-                    'order_id'         => '709834990',
-                    'remote_order_id'  => '12754',
+                    'order_id'         => '202407019FDB',
+                    'remote_order_id'  => '6373641',
                     'error_code'       => null,
                     'error_message'    => null,
                     'status'           => 'approved',
@@ -1300,45 +1470,47 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
                     'trans_count'      => 2,
                     'transactions'     => [
                         [
-                            'auth_code'         => '831168',
-                            'proc_return_code'  => '00',
-                            'transaction_id'    => '014143',
-                            'transaction_time'  => new \DateTimeImmutable('2020-12-25T08:41:40.947'),
-                            'capture_time'      => null,
-                            'error_message'     => null,
-                            'ref_ret_num'       => '036008014143',
-                            'order_status'      => 'Satis',
-                            'transaction_type'  => null,
-                            'first_amount'      => 2.7,
-                            'capture_amount'    => 0,
-                            'status'            => 'approved',
-                            'error_code'        => null,
-                            'status_detail'     => 'approved',
-                            'capture'           => false,
+                            'auth_code'         => '520366',
+                            'capture'           => true,
+                            'capture_amount'    => 10.01,
                             'currency'          => 'TRY',
-                            'masked_number'     => '5353********8906',
-                            'payment_model'     => 'regular',
-                            'installment_count' => 0,
+                            'error_code'        => null,
+                            'error_message'     => null,
+                            'first_amount'      => 10.01,
+                            'installment_count' => 2,
+                            'masked_number'     => '5351********9885',
+                            'order_status'      => 'Iptal',
+                            'payment_model'     => '3d',
+                            'proc_return_code'  => '00',
+                            'ref_ret_num'       => '418315158962',
+                            'status'            => 'approved',
+                            'status_detail'     => 'approved',
+                            'transaction_id'    => '435438',
+                            'transaction_type'  => null,
+                            'transaction_time'  => new \DateTimeImmutable('2024-07-01T15:21:28.123'),
+                            'capture_time'      => new \DateTimeImmutable('2024-07-01T15:21:28.123'),
                         ],
                         [
-                            'auth_code'        => null,
-                            'proc_return_code' => '05',
-                            'transaction_id'   => '012246',
-                            'transaction_time' => new \DateTimeImmutable('2020-12-25T12:13:35.74'),
-                            'capture_time'     => null,
-                            'error_message'    => 'Hata Kodu5',
-                            'ref_ret_num'      => '03611114146',
-                            'order_status'     => null,
-                            'transaction_type' => null,
-                            'first_amount'     => null,
-                            'capture_amount'   => null,
-                            'status'           => 'declined',
-                            'error_code'       => '05',
-                            'status_detail'    => '05',
-                            'capture'          => null,
-                            'currency'         => 'TRY',
-                            'masked_number'    => null,
-                            'payment_model'    => 'regular',
+                            'auth_code'         => '520366',
+                            'capture'           => null,
+                            'capture_amount'    => null,
+                            'currency'          => 'TRY',
+                            'error_code'        => null,
+                            'error_message'     => null,
+                            'first_amount'      => 10.01,
+                            'installment_count' => 2,
+                            'masked_number'     => '5351********9885',
+                            'order_status'      => 'Iptal',
+                            'payment_model'     => '3d',
+                            'proc_return_code'  => '00',
+                            'ref_ret_num'       => '418315158962',
+                            'status'            => 'approved',
+                            'status_detail'     => 'approved',
+                            'transaction_id'    => '435440',
+                            'transaction_type'  => null,
+                            'transaction_time'  => new \DateTimeImmutable('2024-07-01T15:22:24.463'),
+                            'cancel_time'       => new \DateTimeImmutable('2024-07-01T15:22:24.463'),
+                            'capture_time'      => null,
                         ],
                     ],
                 ],

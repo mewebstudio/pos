@@ -314,8 +314,6 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
             }
         }
 
-        $mappedTransactions = \array_reverse($mappedTransactions);
-
         $result = [
             'proc_return_code' => $procReturnCode,
             'order_id'         => $orderId,
@@ -493,12 +491,21 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['installment_count'] = $this->mapInstallment($rawTx['InstallmentCount']);
             $defaultResponse['masked_number']     = $rawTx['CardNumber'];
             $defaultResponse['first_amount']      = (float) $rawTx['FirstAmount'];
-            $defaultResponse['capture_amount']    = isset($rawTx['TranAmount']) ? (float) $rawTx['TranAmount'] : 0;
-            $defaultResponse['capture']           = $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
             $defaultResponse['order_status']      = $rawTx['LastOrderStatusDescription'];
 
-            if ($defaultResponse['capture']) {
-                $defaultResponse['capture_time'] = $defaultResponse['transaction_time'];
+            /**
+             * OrderStatus
+             * 1 => Satis
+             * 6 => Iptal
+             */
+            if ('1' === $rawTx['OrderStatus']) {
+                $defaultResponse['capture_amount'] = isset($rawTx['TranAmount']) ? (float) $rawTx['TranAmount'] : 0;
+                $defaultResponse['capture']        = $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
+                if ($defaultResponse['capture']) {
+                    $defaultResponse['capture_time'] = $defaultResponse['transaction_time'];
+                }
+            } elseif ('6' === $rawTx['OrderStatus']) {
+                $defaultResponse['cancel_time'] = $defaultResponse['transaction_time'];
             }
         }
 
