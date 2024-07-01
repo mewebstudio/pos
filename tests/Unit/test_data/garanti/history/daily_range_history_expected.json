@@ -1,0 +1,155 @@
+{
+  "proc_return_code": "00",
+  "error_code": null,
+  "error_message": null,
+  "status": "approved",
+  "status_detail": "approved",
+  "trans_count": 5,
+  "transactions": [
+    {
+      "auth_code": "304919",
+      "proc_return_code": "00",
+      "transaction_id": null,
+      "transaction_time": {
+        "date": "2024-06-03 14:04:19.000000",
+        "timezone_type": 3,
+        "timezone": "UTC"
+      },
+      "capture_time": {
+        "date": "2024-06-03 14:04:19.000000",
+        "timezone_type": 3,
+        "timezone": "UTC"
+      },
+      "error_message": null,
+      "ref_ret_num": "415501676495",
+      "order_status": "PAYMENT_COMPLETED",
+      "transaction_type": "pay",
+      "first_amount": 10.01,
+      "capture_amount": 10.01,
+      "status": "approved",
+      "error_code": null,
+      "status_detail": "approved",
+      "capture": true,
+      "currency": "TRY",
+      "masked_number": "42822090****8015",
+      "order_id": "202406033030",
+      "batch_num": "576200",
+      "payment_model": "regular",
+      "installment_count": 0
+    },
+    {
+      "auth_code": null,
+      "proc_return_code": "05",
+      "transaction_id": null,
+      "transaction_time": {
+        "date": "2024-06-03 14:04:29.000000",
+        "timezone_type": 3,
+        "timezone": "UTC"
+      },
+      "capture_time": null,
+      "error_message": "RPC-05 condition was raised",
+      "ref_ret_num": "415501676496",
+      "order_status": "ERROR",
+      "transaction_type": "refund",
+      "first_amount": null,
+      "capture_amount": null,
+      "status": "declined",
+      "error_code": "05",
+      "status_detail": "reject",
+      "capture": null,
+      "currency": null,
+      "masked_number": null,
+      "order_id": "202406033030",
+      "batch_num": "576200",
+      "payment_model": "regular"
+    },
+    {
+      "auth_code": "304919",
+      "proc_return_code": "00",
+      "transaction_id": null,
+      "transaction_time": {
+        "date": "2024-06-03 14:20:59.000000",
+        "timezone_type": 3,
+        "timezone": "UTC"
+      },
+      "capture_time": {
+        "date": "2024-06-03 14:20:59.000000",
+        "timezone_type": 3,
+        "timezone": "UTC"
+      },
+      "error_message": null,
+      "ref_ret_num": "415501676585",
+      "order_status": "PAYMENT_COMPLETED",
+      "transaction_type": "pay",
+      "first_amount": 4903.17,
+      "capture_amount": 4903.17,
+      "status": "approved",
+      "error_code": null,
+      "status_detail": "approved",
+      "capture": true,
+      "currency": "TRY",
+      "masked_number": "42822090****8015",
+      "order_id": "__lwyvqzf9_____65848",
+      "batch_num": "576200",
+      "payment_model": "3d",
+      "installment_count": 0
+    },
+    {
+      "auth_code": "304919",
+      "proc_return_code": "00",
+      "transaction_id": null,
+      "transaction_time": {
+        "date": "2024-06-03 14:50:07.000000",
+        "timezone_type": 3,
+        "timezone": "UTC"
+      },
+      "capture_time": {
+        "date": "2024-06-03 14:50:07.000000",
+        "timezone_type": 3,
+        "timezone": "UTC"
+      },
+      "error_message": null,
+      "ref_ret_num": "415501676711",
+      "order_status": "PAYMENT_COMPLETED",
+      "transaction_type": "pay",
+      "first_amount": 276.0,
+      "capture_amount": 276.0,
+      "status": "approved",
+      "error_code": null,
+      "status_detail": "approved",
+      "capture": true,
+      "currency": "TRY",
+      "masked_number": "42822090****8015",
+      "order_id": "00000093877E202406031450",
+      "batch_num": "576200",
+      "payment_model": "3d",
+      "installment_count": 0
+    },
+    {
+      "auth_code": null,
+      "proc_return_code": "14",
+      "transaction_id": null,
+      "transaction_time": {
+        "date": "2024-06-03 15:09:57.000000",
+        "timezone_type": 3,
+        "timezone": "UTC"
+      },
+      "capture_time": null,
+      "error_message": "HATALI KART NUMARASI.",
+      "ref_ret_num": "415501676775",
+      "order_status": "ERROR",
+      "transaction_type": "pre",
+      "first_amount": null,
+      "capture_amount": null,
+      "status": "declined",
+      "error_code": "14",
+      "status_detail": null,
+      "capture": null,
+      "currency": null,
+      "masked_number": null,
+      "order_id": "202406038F95",
+      "batch_num": "576200",
+      "payment_model": "regular"
+    }
+  ]
+}

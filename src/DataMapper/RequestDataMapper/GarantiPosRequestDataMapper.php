@@ -11,7 +11,6 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
-use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 
@@ -32,7 +31,12 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /** @var string */
     public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
 
-    /** @var string */
+    /**
+     * MotoInd; işlemin MAilOrder bir işlem olup olmadığı bilgisinin gönderildiği alandır.
+     * Y (also E) ise işlem mail order bir işlemdir.
+     * N (also H) ise işlem ecommerce işlemidir.
+     * @var string
+     */
     private const MOTO = 'N';
 
     /**
@@ -53,7 +57,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         PosInterface::TX_TYPE_CANCEL         => 'void',
         PosInterface::TX_TYPE_REFUND         => 'refund',
         PosInterface::TX_TYPE_REFUND_PARTIAL => 'refund',
-        PosInterface::TX_TYPE_HISTORY        => 'orderhistoryinq',
+        PosInterface::TX_TYPE_ORDER_HISTORY  => 'orderhistoryinq',
+        PosInterface::TX_TYPE_HISTORY        => 'orderlistinq',
         PosInterface::TX_TYPE_STATUS         => 'orderinq',
     ];
 
@@ -80,10 +85,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
-                'IPAddress'    => $responseData['customeripaddress'],
+                'IPAddress' => $responseData['customeripaddress'],
             ],
             'Order'       => [
-                'OrderID'     => $responseData['orderid'],
+                'OrderID' => $responseData['orderid'],
             ],
             'Transaction' => [
                 'Type'                  => $responseData['txntype'],
@@ -124,11 +129,11 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Card'        => $this->getCardData($creditCard),
             'Order'       => [
-                'OrderID'     => $order['id'],
+                'OrderID' => $order['id'],
             ],
             'Transaction' => [
                 'Type'                  => $this->mapTxType($txType),
@@ -163,7 +168,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -195,7 +200,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -229,7 +234,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount, true),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -264,7 +269,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount, true),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
@@ -299,13 +304,13 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Version'     => self::API_VERSION,
             'Terminal'    => $this->getTerminalData($posAccount),
             'Customer'    => [
-                'IPAddress'    => $order['ip'],
+                'IPAddress' => $order['ip'],
             ],
             'Order'       => [
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_HISTORY),
+                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_ORDER_HISTORY),
                 'InstallmentCnt'        => $this->mapInstallment($order['installment']),
                 'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
                 'CurrencyCode'          => $this->mapCurrency($order['currency']),
@@ -320,11 +325,45 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param GarantiPosAccount $posAccount
      * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array
     {
-        throw new NotImplementedException();
+        $order = $this->prepareHistoryOrder($data);
+
+        $result = [
+            'Mode'        => $this->getMode(),
+            'Version'     => self::API_VERSION,
+            'Terminal'    => $this->getTerminalData($posAccount),
+            'Customer'    => [
+                'IPAddress' => $order['ip'],
+            ],
+            'Order'       => [
+                'OrderID'     => null,
+                'GroupID'     => null,
+                'Description' => null,
+                // Başlangıç ve bitiş tarihleri arasında en fazla 30 gün olabilir
+                'StartDate'   => $this->formatRequestDateTime($order['start_date']),
+                'EndDate'     => $this->formatRequestDateTime($order['end_date']),
+                /**
+                 * 500 adetten fazla işlem olması durumunda ListPageNum alanında diğer 500 lü grupların görüntülenmesi
+                 * için sayfa numarası yazılır.
+                 */
+                'ListPageNum' => $order['page'],
+            ],
+            'Transaction' => [
+                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_HISTORY),
+                'Amount'                => $this->formatAmount(1), //sabit olarak amount 100 gonderilecek
+                'CurrencyCode'          => $this->mapCurrency(PosInterface::CURRENCY_TRY),
+                'CardholderPresentCode' => '0',
+                'MotoInd'               => self::MOTO,
+            ],
+        ];
+
+        $result['Terminal']['HashData'] = $this->crypt->createHash($posAccount, $result);
+
+        return $result;
     }
 
 
@@ -466,6 +505,19 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
+    protected function prepareHistoryOrder(array $data): array
+    {
+        return [
+            'start_date' => $data['start_date'],
+            'end_date'   => $data['end_date'],
+            'page'       => $data['page'] ?? 1,
+            'ip'         => $data['ip'],
+        ];
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function prepareCancelOrder(array $order): array
     {
         return [
@@ -573,5 +625,15 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             'Type'              => 'R', // R:Sabit Tutarli   G:Degisken Tuta
             'StartDate'         => isset($recurringData['startDate']) ? $recurringData['startDate']->format('Ymd') : '',
         ];
+    }
+
+    /**
+     * @param \DateTimeInterface $dateTime
+     *
+     * @return string example 01/12/2010 11:11
+     */
+    private function formatRequestDateTime(\DateTimeInterface $dateTime): string
+    {
+        return $dateTime->format('d/m/Y H:i');
     }
 }

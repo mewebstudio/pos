@@ -191,6 +191,19 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider historyRequestDataProvider
+     */
+    public function testCreateHistoryRequestData(array $data, array $expectedData): void
+    {
+        $actualData = $this->requestDataMapper->createHistoryRequestData($this->account, $data);
+
+        \ksort($expectedData);
+        \ksort($actualData);
+
+        $this->assertSame($expectedData, $actualData);
+    }
+
+    /**
      * @dataProvider create3DPaymentRequestDataDataProvider
      */
     public function testCreate3DPaymentRequestData(GarantiPosAccount $garantiPosAccount, array $order, array $responseData, array $expected): void
@@ -542,6 +555,51 @@ class GarantiPosRequestDataMapperTest extends TestCase
                         'CardholderPresentCode' => '0',
                         'MotoInd'               => 'N',
                     ],
+                ],
+            ],
+        ];
+    }
+
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            [
+                'data'     => [
+                    'start_date' => new \DateTime('2022-05-18 00:00:00'),
+                    'end_date'   => new \DateTime('2022-05-18 23:59:59'),
+                    'ip'         => '127.0.0.1',
+                ],
+                'expected' => [
+                    'Customer' => [
+                        'IPAddress' => '127.0.0.1',
+                    ],
+
+                    'Mode'  => 'TEST',
+                    'Order' => [
+                        'OrderID'     => null,
+                        'GroupID'     => null,
+                        'Description' => null,
+                        'StartDate'   => '18/05/2022 00:00',
+                        'EndDate'     => '18/05/2022 23:59',
+                        'ListPageNum' => 1,
+                    ],
+
+                    'Terminal' => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'HashData'   => '9B53A55199EBAD2F486089FD7310C4BC0C61A99FC37EF61F6BBAE67FA17E47641540B203E83C9F2E64DB64B971FE6FF604274316F6D010426D6AA91BE1D924E6',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+
+                    'Transaction' => [
+                        'Type'                  => 'orderlistinq',
+                        'Amount'                => 100,
+                        'CurrencyCode'          => '949',
+                        'CardholderPresentCode' => '0',
+                        'MotoInd'               => 'N',
+                    ],
+                    'Version'     => '512',
                 ],
             ],
         ];
