@@ -189,7 +189,10 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
             $txType,
             $card
         );
-        $this->assertEquals($expectedData, $actualData);
+
+        ksort($actualData);
+        ksort($expectedData);
+        $this->assertSame($expectedData, $actualData);
     }
 
     /**
@@ -431,6 +434,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                     'TransactionSecurity' => '3',
                     'InstallmentCount'    => '0',
                     'Amount'              => 1001,
+                    'DisplayAmount'       => 1001,
                     'FECCurrencyCode'     => '0949',
                     'MerchantOrderId'     => '2020110828BC',
                     'OkUrl'               => 'http://localhost/finansbank-payfor/3d/success.php',
