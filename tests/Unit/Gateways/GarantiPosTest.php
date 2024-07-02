@@ -13,7 +13,6 @@ use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\GarantiPos;
@@ -426,7 +425,7 @@ class GarantiPosTest extends TestCase
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
-            ->with($account, $order)
+            ->with($account, $order, $txType)
             ->willReturn($requestData);
 
         $decodedResponse = ['decodedData'];
@@ -449,10 +448,38 @@ class GarantiPosTest extends TestCase
         $this->pos->refund($order);
     }
 
-    public function testHistoryRequest(): void
+    /**
+     * @dataProvider historyRequestDataProvider
+     */
+    public function testHistoryRequest(array $order, string $apiUrl): void
     {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->pos->history([]);
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_HISTORY;
+        $requestData = ['createHistoryRequestData'];
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createHistoryRequestData')
+            ->with($account, $order)
+            ->willReturn($requestData);
+
+        $decodedResponse = ['decodedData'];
+        $this->configureClientResponse(
+            $txType,
+            $apiUrl,
+            $requestData,
+            'request-body',
+            'response-body',
+            $decodedResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE
+        );
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapHistoryResponse')
+            ->with($decodedResponse)
+            ->willReturn(['result']);
+
+        $this->pos->history($order);
     }
 
     /**
@@ -631,5 +658,19 @@ class GarantiPosTest extends TestCase
                 && $requestData === $dispatchedEvent->getRequestData()
                 && $order === $dispatchedEvent->getOrder()
                 && $paymentModel === $dispatchedEvent->getPaymentModel()));
+    }
+
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            [
+                'order'   => [
+                    'ip'         => '127.0.0.1',
+                    'start_date' => new \DateTimeImmutable(),
+                    'end_date'   => new \DateTimeImmutable(),
+                ],
+                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+            ],
+        ];
     }
 }

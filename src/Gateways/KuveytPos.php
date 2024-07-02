@@ -43,17 +43,18 @@ class KuveytPos extends AbstractGateway
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
-        PosInterface::TX_TYPE_PAY_AUTH      => [
+        PosInterface::TX_TYPE_PAY_AUTH       => [
             PosInterface::MODEL_NON_SECURE,
             PosInterface::MODEL_3D_SECURE,
         ],
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => false,
-        PosInterface::TX_TYPE_PAY_POST_AUTH => false,
-        PosInterface::TX_TYPE_STATUS        => true,
-        PosInterface::TX_TYPE_CANCEL        => true,
-        PosInterface::TX_TYPE_REFUND        => true,
-        PosInterface::TX_TYPE_HISTORY       => false,
-        PosInterface::TX_TYPE_ORDER_HISTORY => false,
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => false,
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => false,
+        PosInterface::TX_TYPE_STATUS         => true,
+        PosInterface::TX_TYPE_CANCEL         => true,
+        PosInterface::TX_TYPE_REFUND         => true,
+        PosInterface::TX_TYPE_REFUND_PARTIAL => true,
+        PosInterface::TX_TYPE_HISTORY        => false,
+        PosInterface::TX_TYPE_ORDER_HISTORY  => false,
     ];
 
     /** @return KuveytPosAccount */
@@ -73,6 +74,7 @@ class KuveytPos extends AbstractGateway
             $txType,
             [
                 PosInterface::TX_TYPE_REFUND,
+                PosInterface::TX_TYPE_REFUND_PARTIAL,
                 PosInterface::TX_TYPE_STATUS,
                 PosInterface::TX_TYPE_CANCEL,
             ],
@@ -211,7 +213,12 @@ class KuveytPos extends AbstractGateway
      */
     protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
-        if (\in_array($txType, [PosInterface::TX_TYPE_REFUND, PosInterface::TX_TYPE_STATUS, PosInterface::TX_TYPE_CANCEL], true)) {
+        if (\in_array($txType, [
+            PosInterface::TX_TYPE_REFUND,
+            PosInterface::TX_TYPE_REFUND_PARTIAL,
+            PosInterface::TX_TYPE_STATUS,
+            PosInterface::TX_TYPE_CANCEL,
+        ], true)) {
             if (!\is_array($contents)) {
                 throw new InvalidArgumentException(\sprintf('Invalid data type provided for %s transaction!', $txType));
             }
@@ -233,7 +240,7 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_STATUS|PosInterface::TX_TYPE_REFUND|PosInterface::TX_TYPE_CANCEL $txType
+     * @phpstan-param PosInterface::TX_TYPE_STATUS|PosInterface::TX_TYPE_REFUND|PosInterface::TX_TYPE_REFUND_PARTIAL|PosInterface::TX_TYPE_CANCEL $txType
      *
      * @param array<string, mixed> $contents
      * @param string               $txType

@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
@@ -97,6 +98,12 @@ class GarantiPosResponseDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actualData);
     }
 
+    public function testMap3DHostResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DHostResponseData([], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
     /**
      * @dataProvider threeDPayPaymentDataProvider
      */
@@ -164,6 +171,44 @@ class GarantiPosResponseDataMapperTest extends TestCase
 
         $this->assertCount($actualData['trans_count'], $actualData['transactions']);
 
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
+        unset($actualData['all']);
+        $this->assertSame($expectedData, $actualData);
+    }
+
+    /**
+     * @dataProvider historyTestDataProvider
+     */
+    public function testMapHistoryResponse(array $responseData, array $expectedData): void
+    {
+        $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+
+        if (count($actualData['transactions']) > 1
+            && null !== $actualData['transactions'][0]['transaction_time']
+            && null !== $actualData['transactions'][1]['transaction_time']
+        ) {
+            $this->assertGreaterThan(
+                $actualData['transactions'][0]['transaction_time'],
+                $actualData['transactions'][1]['transaction_time']
+            );
+        }
+
+        $this->assertCount($actualData['trans_count'], $actualData['transactions']);
+
+        foreach (array_keys($actualData['transactions']) as $key) {
+            $this->assertEquals($expectedData['transactions'][$key]['transaction_time'], $actualData['transactions'][$key]['transaction_time'], 'tx: '.$key);
+            $this->assertEquals($expectedData['transactions'][$key]['capture_time'], $actualData['transactions'][$key]['capture_time'], 'tx: '.$key);
+            unset($actualData['transactions'][$key]['transaction_time'], $expectedData['transactions'][$key]['transaction_time']);
+            unset($actualData['transactions'][$key]['capture_time'], $expectedData['transactions'][$key]['capture_time']);
+            \ksort($actualData['transactions'][$key]);
+            \ksort($expectedData['transactions'][$key]);
+        }
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
         $this->assertSame($expectedData, $actualData);
     }
@@ -1729,6 +1774,205 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     'trans_count'      => 0,
                     'transactions'     => [],
                 ],
+            ],
+        ];
+    }
+
+    public static function historyTestDataProvider(): \Generator
+    {
+        $dateRangeHistoryExpected = \json_decode(\file_get_contents(__DIR__.'/../../test_data/garanti/history/daily_range_history_expected.json'), true);
+
+        foreach ($dateRangeHistoryExpected['transactions'] as &$item) {
+            if (null !== $item['transaction_time']) {
+                $item['transaction_time'] = new \DateTimeImmutable(
+                    $item['transaction_time']['date'],
+                    new \DateTimeZone($item['transaction_time']['timezone'])
+                );
+            }
+            if (null !== $item['capture_time']) {
+                $item['capture_time'] = new \DateTimeImmutable(
+                    $item['capture_time']['date'],
+                    new \DateTimeZone($item['capture_time']['timezone'])
+                );
+            }
+        }
+
+        yield 'success_data_range_history' => [
+            'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../test_data/garanti/history/date_range_history.json'), true),
+            //'responseData' => \json_decode(\file_get_contents(__DIR__.'/../../../../var/garanti-last-2-year-history.json'), true),
+            'expectedData' => $dateRangeHistoryExpected,
+        ];
+        yield 'success_single_transaction' => [
+            'responseData' => [
+                'Mode'        => '',
+                'Terminal'    => [
+                    'ProvUserID' => 'PROVAUT',
+                    'UserID'     => 'PROVAUT',
+                    'ID'         => '30691298',
+                    'MerchantID' => '7000679',
+                ],
+                'Customer'    => [
+                    'IPAddress'    => '172.26.0.1',
+                    'EmailAddress' => '',
+                ],
+                'Order'       => [
+                    'OrderID'            => '',
+                    'GroupID'            => '',
+                    'OrderListInqResult' => [
+                        'OrderTxnList' => [
+                            'TotalTxnCount'  => '1',
+                            'TotalPageCount' => '1',
+                            'ActPageNum'     => '1',
+                            'OrderTxn'       => [
+                                'Id'                       => '1',
+                                'LastTrxDate'              => '2024-06-03 16:06:29',
+                                'TrxType'                  => 'Satis',
+                                'OrderID'                  => '202406036C78',
+                                'Name'                     => '',
+                                'CardNumberMasked'         => '42822090****8015',
+                                'ExpireDate'               => '0830',
+                                'BankBin'                  => '42822090',
+                                'BatchNum'                 => '576200',
+                                'AuthCode'                 => '304919',
+                                'RetrefNum'                => '415501677066',
+                                'OrigRetrefNum'            => '',
+                                'InstallmentCnt'           => 'Pesin',
+                                'Status'                   => 'Basarili',
+                                'AuthAmount'               => '1001',
+                                'CurrencyCode'             => 'TL',
+                                'RemainingBNSAmount'       => '0',
+                                'UsedFBBAmount'            => '0',
+                                'UsedChequeType'           => '',
+                                'UsedChequeCount'          => '0',
+                                'UsedChequeAmount'         => '0',
+                                'SafeType'                 => '',
+                                'Comment1'                 => '',
+                                'Comment2'                 => '',
+                                'Comment3'                 => '',
+                                'UserId'                   => 'PROVAUT',
+                                'Settlement'               => 'N',
+                                'EmailAddress'             => '',
+                                'RecurringTotalPaymentNum' => '0',
+                                'RecurringLastPaymentNum'  => '0',
+                                'RecurringTxnAmount'       => '0',
+                                'ResponseCode'             => '00',
+                                'SysErrMsg'                => '',
+                            ],
+                        ],
+                    ],
+                ],
+                'Transaction' => [
+                    'Response'         => [
+                        'Source'     => 'GVPS',
+                        'Code'       => '00',
+                        'ReasonCode' => '',
+                        'Message'    => 'Approved',
+                        'ErrorMsg'   => '',
+                        'SysErrMsg'  => '',
+                    ],
+                    'RetrefNum'        => '',
+                    'AuthCode'         => '',
+                    'BatchNum'         => '',
+                    'SequenceNum'      => '',
+                    'ProvDate'         => '20240603 16:07:07',
+                    'CardNumberMasked' => '',
+                    'CardHolderName'   => '',
+                    'CardType'         => '',
+                    'HashData'         => 'C1DD90277E3CE36D6226FF02E59D95999D78793CF8942860600BA2800A63CB991A518C1DECA1609C99DA8F8995CBB78A54E7D34F337A8BFF60D10B6DB47C8750',
+                    'HostMsgList'      => '',
+                    'RewardInqResult'  => [
+                        'RewardList' => '',
+                        'ChequeList' => '',
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'proc_return_code' => '00',
+                'error_code'       => null,
+                'error_message'    => null,
+                'status'           => 'approved',
+                'status_detail'    => 'approved',
+                'trans_count'      => 1,
+                'transactions'     => [
+                    [
+                        'auth_code'         => '304919',
+                        'proc_return_code'  => '00',
+                        'transaction_id'    => null,
+                        'transaction_time'  => new \DateTimeImmutable('2024-06-03 16:06:29'),
+                        'capture_time'      => new \DateTimeImmutable('2024-06-03 16:06:29'),
+                        'error_message'     => null,
+                        'ref_ret_num'       => '415501677066',
+                        'order_status'      => 'PAYMENT_COMPLETED',
+                        'transaction_type'  => 'pay',
+                        'first_amount'      => 10.01,
+                        'capture_amount'    => 10.01,
+                        'status'            => 'approved',
+                        'error_code'        => null,
+                        'status_detail'     => 'approved',
+                        'capture'           => true,
+                        'currency'          => 'TRY',
+                        'masked_number'     => '42822090****8015',
+                        'order_id'          => '202406036C78',
+                        'batch_num'         => '576200',
+                        'payment_model'     => 'regular',
+                        'installment_count' => 0,
+                    ],
+                ],
+            ],
+        ];
+        yield 'fail_invalid_fields' => [
+            'responseData' => [
+                'Mode'        => '',
+                'Terminal'    => [
+                    'ProvUserID' => 'PROVAUT',
+                    'UserID'     => 'PROVAUT',
+                    'ID'         => '30691298',
+                    'MerchantID' => '7000679',
+                ],
+                'Customer'    => [
+                    'IPAddress'    => '',
+                    'EmailAddress' => '',
+                ],
+                'Order'       => [
+                    'OrderID'            => '',
+                    'GroupID'            => '',
+                    'OrderListInqResult' => [
+                        'OrderTxnList' => '',
+                    ],
+                ],
+                'Transaction' => [
+                    'Response'         => [
+                        'Source'     => 'GVPS',
+                        'Code'       => '92',
+                        'ReasonCode' => '0002',
+                        'Message'    => 'Declined',
+                        'ErrorMsg'   => 'Giriş yaptığınız işlem tipi için zorunlu alanları kontrol ediniz',
+                        'SysErrMsg'  => 'CustomerIPAddress field must contain value because of the Mandatory Rule:null',
+                    ],
+                    'RetrefNum'        => '',
+                    'AuthCode'         => '',
+                    'BatchNum'         => '',
+                    'SequenceNum'      => '',
+                    'ProvDate'         => '20240530 12:53:46',
+                    'CardNumberMasked' => '',
+                    'CardHolderName'   => '',
+                    'CardType'         => '',
+                    'HashData'         => '09852B466F45FE00769BE0E40F028FFF7B560CCA5871F8E562B910C2E9CEF9972A8C7F8655D67D1E31B24E81BF57F5B35F8446A94591256DCFEB92D551FEC858',
+                    'HostMsgList'      => '',
+                    'RewardInqResult'  => [
+                        'RewardList' => '',
+                        'ChequeList' => '',
+                    ],
+                ],
+            ],
+            'expectedData' => [
+                'proc_return_code' => '92',
+                'error_code'       => '92',
+                'error_message'    => 'Giriş yaptığınız işlem tipi için zorunlu alanları kontrol ediniz',
+                'status'           => 'declined',
+                'status_detail'    => 'invalid_transaction',
+                'trans_count'      => 0,
+                'transactions'     => [],
             ],
         ];
     }

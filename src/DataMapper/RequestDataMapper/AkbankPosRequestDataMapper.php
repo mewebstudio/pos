@@ -29,23 +29,24 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH      => [
+        PosInterface::TX_TYPE_PAY_AUTH       => [
             PosInterface::MODEL_NON_SECURE => '1000',
             PosInterface::MODEL_3D_SECURE  => '3000',
             PosInterface::MODEL_3D_PAY     => '3000',
             PosInterface::MODEL_3D_HOST    => '3000',
         ],
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => [
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
             PosInterface::MODEL_NON_SECURE => '1004',
             PosInterface::MODEL_3D_SECURE  => '3004',
             PosInterface::MODEL_3D_PAY     => '3004',
             PosInterface::MODEL_3D_HOST    => '3004',
         ],
-        PosInterface::TX_TYPE_PAY_POST_AUTH => '1005',
-        PosInterface::TX_TYPE_REFUND        => '1002',
-        PosInterface::TX_TYPE_CANCEL        => '1003',
-        PosInterface::TX_TYPE_ORDER_HISTORY => '1010',
-        PosInterface::TX_TYPE_HISTORY       => '1009',
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => '1005',
+        PosInterface::TX_TYPE_REFUND         => '1002',
+        PosInterface::TX_TYPE_REFUND_PARTIAL => '1002',
+        PosInterface::TX_TYPE_CANCEL         => '1003',
+        PosInterface::TX_TYPE_ORDER_HISTORY  => '1010',
+        PosInterface::TX_TYPE_HISTORY        => '1009',
     ];
 
     /**
@@ -261,13 +262,13 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * {@inheritDoc}
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
     {
         $order = $this->prepareRefundOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
                 'version'         => self::API_VERSION,
-                'txnCode'         => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
+                'txnCode'         => $this->mapTxType($refundTxType),
                 'requestDateTime' => $this->formatRequestDateTime($order['transaction_time']),
                 'randomNumber'    => $this->crypt->generateRandomString(),
                 'transaction'     => [

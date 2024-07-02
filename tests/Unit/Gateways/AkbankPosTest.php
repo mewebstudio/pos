@@ -600,15 +600,14 @@ class AkbankPosTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $apiUrl): void
+    public function testRefundRequest(array $order, string $txType, string $apiUrl): void
     {
         $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_REFUND;
         $requestData = ['createRefundRequestData'];
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
-            ->with($account, $order)
+            ->with($account, $order, $txType)
             ->willReturn($requestData);
 
         $this->configureClientResponse(
@@ -645,6 +644,11 @@ class AkbankPosTest extends TestCase
             ],
             [
                 'txType'       => PosInterface::TX_TYPE_REFUND,
+                'paymentModel' => PosInterface::MODEL_NON_SECURE,
+                'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
+            ],
+            [
+                'txType'       => PosInterface::TX_TYPE_REFUND_PARTIAL,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
             ],
@@ -702,10 +706,21 @@ class AkbankPosTest extends TestCase
     public static function refundRequestDataProvider(): array
     {
         return [
-            [
+            'full_refund'    => [
                 'order'   => [
-                    'id' => '2020110828BC',
+                    'id'     => '2020110828BC',
+                    'amount' => 5,
                 ],
+                'tx_type' => PosInterface::TX_TYPE_REFUND,
+                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
+            ],
+            'partial_refund' => [
+                'order'   => [
+                    'id'           => '2020110828BC',
+                    'amount'       => 5,
+                    'order_amount' => 10,
+                ],
+                'tx_type' => PosInterface::TX_TYPE_REFUND_PARTIAL,
                 'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
             ],
         ];

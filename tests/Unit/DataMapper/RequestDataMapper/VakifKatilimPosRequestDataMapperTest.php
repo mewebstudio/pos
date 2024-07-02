@@ -9,7 +9,6 @@ use Generator;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\CryptFactory;
@@ -58,24 +57,6 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
 
         $crypt                   = CryptFactory::createGatewayCrypt(VakifKatilimPos::class, new NullLogger());
         $this->requestDataMapper = new VakifKatilimPosRequestDataMapper($this->dispatcher, $crypt);
-    }
-
-    /**
-     * @testWith ["pay", "1"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
-    {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @testWith ["Sale"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
     }
 
     /**
@@ -207,9 +188,9 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createRefundRequestDataProvider
      */
-    public function testCreateRefundRequestData(array $order, array $expected): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expected): void
     {
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
         \ksort($actual);
         \ksort($expected);
@@ -327,6 +308,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                 'remote_order_id' => '114293600',
                 'amount'          => 1.01,
             ],
+            'tx_type'  => PosInterface::TX_TYPE_REFUND,
             'expected' => [
                 'MerchantId'      => '1',
                 'CustomerId'      => '11111',

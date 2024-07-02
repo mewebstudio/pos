@@ -23,6 +23,7 @@ class KuveytPosSerializer implements SerializerInterface
     /** @var string[] */
     private array $nonPaymentTransactions = [
         PosInterface::TX_TYPE_REFUND,
+        PosInterface::TX_TYPE_REFUND_PARTIAL,
         PosInterface::TX_TYPE_STATUS,
         PosInterface::TX_TYPE_CANCEL,
     ];

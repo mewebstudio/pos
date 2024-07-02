@@ -43,13 +43,14 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      */
     protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH      => 'Auth',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => 'PreAuth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH => 'PostAuth',
-        PosInterface::TX_TYPE_CANCEL        => 'Void',
-        PosInterface::TX_TYPE_REFUND        => 'Refund',
-        PosInterface::TX_TYPE_HISTORY       => 'TxnHistory',
-        PosInterface::TX_TYPE_STATUS        => 'OrderInquiry',
+        PosInterface::TX_TYPE_PAY_AUTH       => 'Auth',
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'PreAuth',
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'PostAuth',
+        PosInterface::TX_TYPE_CANCEL         => 'Void',
+        PosInterface::TX_TYPE_REFUND         => 'Refund',
+        PosInterface::TX_TYPE_REFUND_PARTIAL => 'Refund',
+        PosInterface::TX_TYPE_HISTORY        => 'TxnHistory',
+        PosInterface::TX_TYPE_STATUS         => 'OrderInquiry',
     ];
 
     /**
@@ -155,7 +156,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      * {@inheritDoc}
      * @return array{MbrId: string, SecureType: string, Lang: string, OrgOrderId: string, TxnType: string, PurchAmount: string, Currency: string, MerchantId: string, UserCode: string, UserPass: string}
      */
-    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order): array
+    public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
     {
         $order = $this->prepareRefundOrder($order);
 
@@ -164,7 +165,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
                 'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'Lang'        => $this->getLang($posAccount, $order),
                 'OrgOrderId'  => (string) $order['id'],
-                'TxnType'     => $this->mapTxType(PosInterface::TX_TYPE_REFUND),
+                'TxnType'     => $this->mapTxType($refundTxType),
                 'PurchAmount' => (string) $order['amount'],
                 'Currency'    => $this->mapCurrency($order['currency']),
             ];

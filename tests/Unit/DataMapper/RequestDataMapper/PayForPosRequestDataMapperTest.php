@@ -264,20 +264,15 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider refundRequestDataProvider
      */
-    public function testCreateRefundRequestData(): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expectedData): void
     {
-        $order = [
-            'id'       => '2020110828BC',
-            'currency' => PosInterface::CURRENCY_TRY,
-            'amount'   => 10.1,
-        ];
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order);
-
-        $expectedData = $this->getSampleRefundXMLData($this->account, $order);
-        $this->assertEquals($expectedData, $actual);
+        \ksort($expectedData);
+        \ksort($actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -390,34 +385,12 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $posAccount
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleRefundXMLData(AbstractPosAccount $posAccount, array $order): array
-    {
-        return [
-            'MbrId'       => '5',
-            'MerchantId'  => $posAccount->getClientId(),
-            'UserCode'    => $posAccount->getUsername(),
-            'UserPass'    => $posAccount->getPassword(),
-            'OrgOrderId'  => $order['id'],
-            'SecureType'  => 'NonSecure',
-            'Lang'        => 'tr',
-            'TxnType'     => 'Refund',
-            'PurchAmount' => $order['amount'],
-            'Currency'    => 949,
-        ];
-    }
-
     public static function orderHistoryRequestDataProvider(): array
     {
         return [
             [
                 'order'    => [
-                    'id'      => '2020110828BC',
+                    'id' => '2020110828BC',
                 ],
                 'expected' => [
                     'MerchantId' => '085300000009704',
@@ -437,7 +410,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         return [
             [
-                'data'    => [
+                'data'     => [
                     'transaction_date' => new \DateTime('2022-05-18'),
                 ],
                 'expected' => [
@@ -550,6 +523,52 @@ class PayForPosRequestDataMapperTest extends TestCase
                         'Rnd'              => '1deda47050cd38112cbf91f4',
                         'Hash'             => 'BSj3xu8dYQbdw5YM4JvTS+vmyUI=',
                     ],
+                ],
+            ],
+        ];
+    }
+
+    public static function refundRequestDataProvider(): array
+    {
+        return [
+            'full_refund'    => [
+                'order'    => [
+                    'id'       => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 5,
+                ],
+                'txType'   => PosInterface::TX_TYPE_REFUND,
+                'expected' => [
+                    'Currency'    => '949',
+                    'Lang'        => 'tr',
+                    'MbrId'       => '5',
+                    'MerchantId'  => '085300000009704',
+                    'OrgOrderId'  => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'PurchAmount' => '5',
+                    'SecureType'  => 'NonSecure',
+                    'TxnType'     => 'Refund',
+                    'UserCode'    => 'QNB_API_KULLANICI_3DPAY',
+                    'UserPass'    => 'UcBN0',
+                ],
+            ],
+            'partial_refund' => [
+                'order'    => [
+                    'id'       => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 5,
+                ],
+                'txType'   => PosInterface::TX_TYPE_REFUND_PARTIAL,
+                'expected' => [
+                    'Currency'    => '949',
+                    'Lang'        => 'tr',
+                    'MbrId'       => '5',
+                    'MerchantId'  => '085300000009704',
+                    'OrgOrderId'  => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'PurchAmount' => '5',
+                    'SecureType'  => 'NonSecure',
+                    'TxnType'     => 'Refund',
+                    'UserCode'    => 'QNB_API_KULLANICI_3DPAY',
+                    'UserPass'    => 'UcBN0',
                 ],
             ],
         ];

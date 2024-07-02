@@ -36,19 +36,20 @@ class PayForPos extends AbstractGateway
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
-        PosInterface::TX_TYPE_PAY_AUTH      => [
+        PosInterface::TX_TYPE_PAY_AUTH       => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_3D_PAY,
             PosInterface::MODEL_3D_HOST,
             PosInterface::MODEL_NON_SECURE,
         ],
-        PosInterface::TX_TYPE_PAY_PRE_AUTH  => true,
-        PosInterface::TX_TYPE_PAY_POST_AUTH => true,
-        PosInterface::TX_TYPE_STATUS        => true,
-        PosInterface::TX_TYPE_CANCEL        => true,
-        PosInterface::TX_TYPE_REFUND        => true,
-        PosInterface::TX_TYPE_HISTORY       => true,
-        PosInterface::TX_TYPE_ORDER_HISTORY => true,
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => true,
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => true,
+        PosInterface::TX_TYPE_STATUS         => true,
+        PosInterface::TX_TYPE_CANCEL         => true,
+        PosInterface::TX_TYPE_REFUND         => true,
+        PosInterface::TX_TYPE_REFUND_PARTIAL => true,
+        PosInterface::TX_TYPE_HISTORY        => true,
+        PosInterface::TX_TYPE_ORDER_HISTORY  => true,
     ];
 
     /** @return PayForAccount */

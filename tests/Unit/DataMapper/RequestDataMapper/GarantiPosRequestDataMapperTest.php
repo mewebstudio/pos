@@ -191,6 +191,19 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider historyRequestDataProvider
+     */
+    public function testCreateHistoryRequestData(array $data, array $expectedData): void
+    {
+        $actualData = $this->requestDataMapper->createHistoryRequestData($this->account, $data);
+
+        \ksort($expectedData);
+        \ksort($actualData);
+
+        $this->assertSame($expectedData, $actualData);
+    }
+
+    /**
      * @dataProvider create3DPaymentRequestDataDataProvider
      */
     public function testCreate3DPaymentRequestData(GarantiPosAccount $garantiPosAccount, array $order, array $responseData, array $expected): void
@@ -281,11 +294,13 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider refundOrderDataProvider
      */
-    public function testCreateRefundRequestData(GarantiPosAccount $garantiPosAccount, array $order, array $expectedData): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->createRefundRequestData($garantiPosAccount, $order);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
-        $this->assertEquals($expectedData, $actual);
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -435,7 +450,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
     public static function refundOrderDataProvider(): \Generator
     {
-        $order   = [
+        $order = [
             'id'          => '2020110828BC',
             'ip'          => '127.15.15.1',
             'currency'    => PosInterface::CURRENCY_TRY,
@@ -443,20 +458,10 @@ class GarantiPosRequestDataMapperTest extends TestCase
             'ref_ret_num' => '831803579226',
             'installment' => 0,
         ];
-        $account = AccountFactory::createGarantiPosAccount(
-            'garanti',
-            '7000679',
-            'PROVAUT',
-            '123qweASD/',
-            '30691298',
-            PosInterface::MODEL_3D_SECURE,
-            '12345678',
-            'PROVRFN',
-            '123qweASD/'
-        );
+
         yield [
-            'account'      => $account,
             'order'        => $order,
+            'tx_type'      => PosInterface::TX_TYPE_REFUND,
             'expectedData' => [
                 'Mode'        => 'TEST',
                 'Version'     => '512',
@@ -476,7 +481,38 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 'Transaction' => [
                     'Type'                  => 'refund',
                     'InstallmentCnt'        => '',
-                    'Amount'                => '12310',
+                    'Amount'                => 12310,
+                    'CurrencyCode'          => '949',
+                    'CardholderPresentCode' => '0',
+                    'MotoInd'               => 'N',
+                    'OriginalRetrefNum'     => '831803579226',
+                ],
+            ],
+        ];
+
+        yield [
+            'order'        => $order,
+            'tx_type'      => PosInterface::TX_TYPE_REFUND_PARTIAL,
+            'expectedData' => [
+                'Mode'        => 'TEST',
+                'Version'     => '512',
+                'Terminal'    => [
+                    'ProvUserID' => 'PROVRFN',
+                    'UserID'     => 'PROVRFN',
+                    'HashData'   => 'CF49751B3B793B9E1946A08815451989D0231D68A5B495C6EABA9C400442F2E6B7DF97446CE2D3562780767E634A6ECBAA1DF69F6DF7F447884A71BDE38D12AA',
+                    'ID'         => '30691298',
+                    'MerchantID' => '7000679',
+                ],
+                'Customer'    => [
+                    'IPAddress' => '127.15.15.1',
+                ],
+                'Order'       => [
+                    'OrderID' => '2020110828BC',
+                ],
+                'Transaction' => [
+                    'Type'                  => 'refund',
+                    'InstallmentCnt'        => '',
+                    'Amount'                => 12310,
                     'CurrencyCode'          => '949',
                     'CardholderPresentCode' => '0',
                     'MotoInd'               => 'N',
@@ -491,8 +527,8 @@ class GarantiPosRequestDataMapperTest extends TestCase
         return [
             [
                 'order'    => [
-                    'id' => 'order222',
-                    'ip' => '156.155.154.153',
+                    'id'          => 'order222',
+                    'ip'          => '156.155.154.153',
                     'installment' => 0,
                 ],
                 'expected' => [
@@ -519,6 +555,51 @@ class GarantiPosRequestDataMapperTest extends TestCase
                         'CardholderPresentCode' => '0',
                         'MotoInd'               => 'N',
                     ],
+                ],
+            ],
+        ];
+    }
+
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            [
+                'data'     => [
+                    'start_date' => new \DateTime('2022-05-18 00:00:00'),
+                    'end_date'   => new \DateTime('2022-05-18 23:59:59'),
+                    'ip'         => '127.0.0.1',
+                ],
+                'expected' => [
+                    'Customer' => [
+                        'IPAddress' => '127.0.0.1',
+                    ],
+
+                    'Mode'  => 'TEST',
+                    'Order' => [
+                        'OrderID'     => null,
+                        'GroupID'     => null,
+                        'Description' => null,
+                        'StartDate'   => '18/05/2022 00:00',
+                        'EndDate'     => '18/05/2022 23:59',
+                        'ListPageNum' => 1,
+                    ],
+
+                    'Terminal' => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'HashData'   => '9B53A55199EBAD2F486089FD7310C4BC0C61A99FC37EF61F6BBAE67FA17E47641540B203E83C9F2E64DB64B971FE6FF604274316F6D010426D6AA91BE1D924E6',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+
+                    'Transaction' => [
+                        'Type'                  => 'orderlistinq',
+                        'Amount'                => 100,
+                        'CurrencyCode'          => '949',
+                        'CardholderPresentCode' => '0',
+                        'MotoInd'               => 'N',
+                    ],
+                    'Version'     => '512',
                 ],
             ],
         ];
