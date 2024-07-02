@@ -236,7 +236,6 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         $result['order_id']         = $vposMessage['MerchantOrderId'];
         $result['remote_order_id']  = (string) $rawResponseData['OrderId'];
         $result['status']           = $status;
-        $result['currency']         = $this->mapCurrency($vposMessage['FECCurrencyCode']);
 
         if (self::TX_APPROVED !== $status) {
             $result['error_code']    = $procReturnCode;
@@ -314,8 +313,6 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
                 $remoteOrderId        = $tx['OrderId'];
             }
         }
-
-        $mappedTransactions = \array_reverse($mappedTransactions);
 
         $result = [
             'proc_return_code' => $procReturnCode,
@@ -494,12 +491,21 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['installment_count'] = $this->mapInstallment($rawTx['InstallmentCount']);
             $defaultResponse['masked_number']     = $rawTx['CardNumber'];
             $defaultResponse['first_amount']      = (float) $rawTx['FirstAmount'];
-            $defaultResponse['capture_amount']    = isset($rawTx['TranAmount']) ? (float) $rawTx['TranAmount'] : 0;
-            $defaultResponse['capture']           = $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
             $defaultResponse['order_status']      = $rawTx['LastOrderStatusDescription'];
 
-            if ($defaultResponse['capture']) {
-                $defaultResponse['capture_time'] = $defaultResponse['transaction_time'];
+            /**
+             * OrderStatus
+             * 1 => Satis
+             * 6 => Iptal
+             */
+            if ('1' === $rawTx['OrderStatus']) {
+                $defaultResponse['capture_amount'] = isset($rawTx['TranAmount']) ? (float) $rawTx['TranAmount'] : 0;
+                $defaultResponse['capture']        = $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
+                if ($defaultResponse['capture']) {
+                    $defaultResponse['capture_time'] = $defaultResponse['transaction_time'];
+                }
+            } elseif ('6' === $rawTx['OrderStatus']) {
+                $defaultResponse['cancel_time'] = $defaultResponse['transaction_time'];
             }
         }
 
@@ -546,7 +552,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         /** @var array<string, string> $vPosMessage */
-        $vPosMessage = $rawPaymentResponseData['VPosMessageContract'];
+        $vPosMessage = $rawPaymentResponseData['VPosMessage'];
 
         // ProvisionNumber: Başarılı işlemlerde kart bankasının vermiş olduğu otorizasyon numarasıdır.
         $result['order_id']        = $rawPaymentResponseData['MerchantOrderId'];
@@ -555,7 +561,8 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         $result['ref_ret_num'] = $rawPaymentResponseData['RRN'];
         // Stan: Pos bankası tarafında verilen referans işlem referans numarasıdır.
         $result['transaction_id']    = $rawPaymentResponseData['Stan'];
-        $result['auth_code']       = $rawPaymentResponseData['ProvisionNumber'] ?? null;
+        $result['batch_num']         = $vPosMessage['BatchId'];
+        $result['auth_code']         = $rawPaymentResponseData['ProvisionNumber'] ?? null;
         $result['masked_number']     = $vPosMessage['CardNumber'] ?? null;
         $result['currency']          = isset($vPosMessage['CurrencyCode']) ? $this->mapCurrency($vPosMessage['CurrencyCode']) : $order['currency'];
         $result['amount']            = $this->formatAmount($vPosMessage['Amount']);

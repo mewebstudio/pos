@@ -107,6 +107,7 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
                 'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
                 'InstallmentCount'    => $this->mapInstallment($order['installment']),
                 'Amount'              => $this->formatAmount($order['amount']),
+                'DisplayAmount'       => $this->formatAmount($order['amount']),
                 'FECCurrencyCode'     => $this->mapCurrency($order['currency']),
                 'MerchantOrderId'     => $order['id'],
                 'OkUrl'               => $order['success_url'],
