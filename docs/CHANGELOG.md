@@ -2,7 +2,7 @@
 ## [1.4.0] - 2024-07-02
 
 ### New Features
-- **GarantiPos** - geçmiş işlemleri sorgulama (PR #221).
+- **GarantiPos** - geçmiş işlemleri sorgulama desteği. (PR #221).
 - **VakifKatilimPos** - kısmi iade desteği. (issue #218)
 
 ### Fixed
