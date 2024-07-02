@@ -1,4 +1,15 @@
 # Changelog
+## [1.4.0] - 2024-07-02
+
+### New Features
+- **GarantiPos** - geçmiş işlemleri sorgulama (PR #221).
+- **VakifKatilimPos** - kısmi iade desteği. (issue #218)
+
+### Fixed
+- **VakifKatilimPos** - 3D Secure ödeme çalışmıyor.
+- **VakifKatilimPos** - iptal işlemi çalışmıyor.
+
+# Changelog
 ## [1.3.0] - 2024-05-24
 
 ### New Features
