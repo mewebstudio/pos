@@ -20,7 +20,8 @@ require './vendor/autoload.php';
 
 $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
     'cookie_samesite' => 'None',
-    'cookie_secure' => true,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
 ]);
 $session        = new \Symfony\Component\HttpFoundation\Session\Session($sessionHandler);
 $session->start();

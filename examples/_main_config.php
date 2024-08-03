@@ -16,17 +16,17 @@ $ip = $request->getClientIp();
 
 $sessionHandler = new \Symfony\Component\HttpFoundation\Session\Storage\NativeSessionStorage([
     'cookie_samesite' => 'None',
-    'cookie_secure' => true,
+    'cookie_secure'   => true,
+    'cookie_httponly' => true, // Javascriptin session'a erişimini engelliyoruz.
 ]);
 $session        = new Session($sessionHandler);
 $session->start();
 
 $hostUrl = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')."://$_SERVER[HTTP_HOST]";
-//$hostUrl .= '/pos/examples';
 $subMenu = [];
 
 $handler = new \Monolog\Handler\StreamHandler(__DIR__.'/../var/log/pos.log', \Psr\Log\LogLevel::DEBUG);
-$logger = new \Monolog\Logger('pos', [$handler]);
+$logger  = new \Monolog\Logger('pos', [$handler]);
 
 $eventDispatcher = new Symfony\Component\EventDispatcher\EventDispatcher();
 

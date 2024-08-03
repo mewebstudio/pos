@@ -1,9 +1,9 @@
 # Türk bankaları için sanal pos paketi (PHP)
 
-[![Version](http://poser.pugx.org/mews/pos/version)](https://packagist.org/packages/mews/pos)
-[![Monthly Downloads](http://poser.pugx.org/mews/pos/d/monthly)](https://packagist.org/packages/mews/pos)
-[![License](http://poser.pugx.org/mews/pos/license)](https://packagist.org/packages/mews/pos)
-[![PHP Version Require](http://poser.pugx.org/mews/pos/require/php)](https://packagist.org/packages/mews/pos)
+[![Version](https://poser.pugx.org/mews/pos/version)](https://packagist.org/packages/mews/pos)
+[![Monthly Downloads](https://poser.pugx.org/mews/pos/d/monthly)](https://packagist.org/packages/mews/pos)
+[![License](https://poser.pugx.org/mews/pos/license)](https://packagist.org/packages/mews/pos)
+[![PHP Version Require](https://poser.pugx.org/mews/pos/require/php)](https://packagist.org/packages/mews/pos)
 
 Bu paket ile amaçlanan; ortak bir arayüz sınıfı ile, tüm Türk banka sanal pos
 sistemlerinin kullanılabilmesidir.
@@ -119,20 +119,33 @@ $ composer require php-http/curl-client nyholm/psr7 symfony/event-dispatcher mew
 Diğer PSR-18 uygulamasını sağlayan
 kütüphaneler: https://packagist.org/providers/psr/http-client-implementation
 
-### Farkli Banka Sanal Poslarini Eklemek
-
-Kendi projenizin dizinindeyken
-
+Sonra kendi projenizin dizinindeyken alttaki komutu çalıştırarak
+ayarlar dosyasını projenize kopyalayınız.
 ```sh
-$ cp ./vendor/mews/pos/config/pos_production.php ./pos_ayarlar.php
+$ cp ./vendor/mews/pos/config/pos_production.php ./pos_prod_ayarlar.php
+```
+Test ortamda geliştirecekseniz test ayarları da kopyalanız:
+```sh
+$ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
+```
+Kopyaladıktan sonra ayarlardaki kullanmayacagığınız banka ayarları silebilirsiniz.
+
+Bundan sonra `Pos` nesnemizi, yeni ayarlarımıza göre oluşturup kullanmamız gerekir.
+Örnek:
+```php
+$yeniAyarlar = require __DIR__ . '/pos_prod_ayarlar.php';
+// veya ortamı için $yeniAyarlar = require __DIR__ . '/pos_test_ayarlar.php';
+
+$pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeniAyarlar, $eventDispatcher);
 ```
 
-ya da;
 
-Projenizde bir ayar dosyası oluşturup (`pos_ayarlar.php` gibi),
-paket içerisinde `./config/pos_production.php` dosyasının içeriğini buraya
-kopyalayın.
+_Kütüphanede yer alan `pos_production.php` ve `pos_test.php` ayar dosyaları projenizde direk kullanmayınız!
+Yukarda belirtildiği gibi kopyalayarak kullanmanız tavsiye edilir._
 
+### Farkli Banka Sanal Poslarini Eklemek
+
+Projenize kopyaladığınız `./pos_prod_ayarlar.php` dosyasına farklı banka ayarı eklemek için alttaki örneği kullanabilirsiniz.
 ```php
 <?php
 
@@ -150,7 +163,7 @@ return [
         ],
 
         // Yeni eklenen banka
-        'isbank'    => [
+        'isbank'    => [ // unique bir isim vermeniz gerekir.
             'name'  => 'İŞ BANKASI .A.S.',
             'class' => \Mews\Pos\Gateways\EstV3Pos::class, // Altyapı sınıfı
             'gateway_endpoints'  => [
@@ -160,21 +173,11 @@ return [
         ],
     ]
 ];
-
-```
-
-Bundan sonra nesnemizi, yeni ayarlarımıza göre oluşturup kullanmamız gerekir.
-Örnek:
-
-```php
-//yeni ayar yolu ya da degeri
-$yeniAyarlar = require __DIR__ . '/pos_ayarlar.php';
-$pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeniAyarlar, $eventDispatcher);
 ```
 
 ## Ornek Kodlar
 
-`/examples` ve `/docs` dizini içerisinde.
+Örnekleri `/examples` ve `/docs` dizini içerisinde bulabilirsiniz.
 
 3D ödeme örnek kodlar genel olarak kart bilgilerini website sunucusuna POST
 eder (`index.php` => `form.php`),
@@ -184,11 +187,11 @@ kredi kart formu ve aynı işlem akışı).
 Genel olarak kart bilgilerini, website sunucusuna POST yapmadan,
 direk gateway'e yönlendirecek şekilde kullanılabilinir (genelde, banka örnek
 kodları bu şekilde implement edilmiş).
-Fakat,
+Fakat
 
-- birden fazla bank seçenegi olunca veya müşteri banka degiştirmek istediginde
+- birden fazla bank seçeneği olunca veya müşteri banka degiştirmek istediğinde
   kart bilgi formunu ona göre güncellemeniz gerekecek.
-- üstelik YKB POSNet ve VakıfBank POS kart bilgilerini website sunucusu
+- üstelik YKB POSNet, Vakıf Katılım ve VakıfBank POS kart bilgilerini website sunucusu
   tarafından POST edilmesini gerektiriyor.
 
 ### Popup Windowda veya Iframe icinde odeme yapma
@@ -196,11 +199,7 @@ Fakat,
 Müşteriyi banka sayfasına redirect etmeden **iframe** üzerinden veya **popup
 window**
 üzerinden ödeme akışı
-`/examples/` içinde 3D ödeme ile örnek PHP ve JS kodlar yer almaktadır.
-
-Ayrıca Modal Box ile iframe kullarak ödeme
-örneği [/docs](./docs/THREED-SECURE-AND-PAY-PAYMENT-IN-MODALBOX-EXAMPLE.md)'ta
-bulabilirsiniz.
+[examples'da](./examples/) ve [/docs'da](./docs/THREED-SECURE-AND-PAY-PAYMENT-IN-MODALBOX-EXAMPLE.md) 3D ödeme ile örnek PHP ve JS kodlar yer almaktadır.
 
 #### Dikkat edilmesi gerekenler
 
@@ -224,10 +223,9 @@ gerekiyor. [çözüm](https://stackoverflow.com/a/51128675/4896948).
   gerekmekte.
   Bu hatayı alırsanız hosting firmanın verdiği IP adrese'de banka gateway'i
   tarafından izin verilmesini sağlayın.
-- kütüphane ortam degerini de kontrol etmeyi unutmayınız, ortama göre bankanın
-  URL'leri degişir.
+- kütüphane ortam değerini de kontrol etmeyi unutmayınız.
     - test ortamı için `$pos->setTestMode(true);`
-    - canlı ortamı için `$pos->setTestMode(false);` (default olarak `false`)
+    - canlı ortam için `$pos->setTestMode(false);` (default olarak `false`)
 
   _ortam değeri hem bankaya istek gönderirken hem de gelen isteği işlerken doğru
   deger olması gerekiyor._
