@@ -128,13 +128,13 @@ Test ortamda geliştirecekseniz test ayarları da kopyalanız:
 ```sh
 $ cp ./vendor/mews/pos/config/pos_test.php ./pos_test_ayarlar.php
 ```
-Kopyaladıktan sonra ayarlardaki kullanmayacagığınız banka ayarları silebilirsiniz.
+Kopyaladıktan sonra ayarlardaki kullanmayacağınız banka ayarları silebilirsiniz.
 
 Bundan sonra `Pos` nesnemizi, yeni ayarlarımıza göre oluşturup kullanmamız gerekir.
 Örnek:
 ```php
 $yeniAyarlar = require __DIR__ . '/pos_prod_ayarlar.php';
-// veya ortamı için $yeniAyarlar = require __DIR__ . '/pos_test_ayarlar.php';
+// veya test ortamı için $yeniAyarlar = require __DIR__ . '/pos_test_ayarlar.php';
 
 $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $yeniAyarlar, $eventDispatcher);
 ```
