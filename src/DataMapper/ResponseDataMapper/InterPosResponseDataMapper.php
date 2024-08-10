@@ -70,7 +70,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     {
         return $this->map3DCommonResponseData(
             $raw3DAuthResponseData,
-            $raw3DAuthResponseData,
+            $rawPaymentResponseData,
             $txType,
             PosInterface::MODEL_3D_SECURE
         );
@@ -306,13 +306,17 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $result['proc_return_code'] = $procReturnCode;
         $result['status']           = $status;
         $result['status_detail']    = $this->getStatusDetail($procReturnCode);
-        $result['all']              = $rawPaymentResponseData;
         $result['order_id']         = $rawPaymentResponseData['OrderId'];
         $result['transaction_id']   = $rawPaymentResponseData['TransId'];
         $result['auth_code']        = $rawPaymentResponseData['AuthCode'];
         $result['ref_ret_num']      = $rawPaymentResponseData['HostRefNum'];
         $result['error_code']       = $rawPaymentResponseData['ErrorCode'];
         $result['error_message']    = $rawPaymentResponseData['ErrorMessage'];
+        $result['all']              = $rawPaymentResponseData;
+
+        if (self::TX_APPROVED === $result['status']) {
+            $result['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['TRXDATE']);
+        }
 
         $this->logger->debug('mapped payment response', $result);
 

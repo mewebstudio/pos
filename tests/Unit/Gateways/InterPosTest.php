@@ -11,6 +11,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\InterPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -193,6 +194,16 @@ class InterPosTest extends TestCase
                 ->willReturn(true);
         }
 
+        $this->responseMapperMock->expects(self::once())
+            ->method('extractMdStatus')
+            ->with($request->request->all())
+            ->willReturn('3d-status');
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->with('3d-status')
+            ->willReturn($is3DSuccess);
+
         $create3DPaymentRequestData = [
             'create3DPaymentRequestData',
         ];
@@ -238,6 +249,33 @@ class InterPosTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public function testMake3DPaymentHashMismatchException(): void
+    {
+        $request = Request::create(
+            '',
+            'POST',
+            ['data']
+        );
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $request->request->all())
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('extractMdStatus')
+            ->with($request->request->all())
+            ->willReturn('3d-status');
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->with('3d-status')
+            ->willReturn(true);
+
+        $this->expectException(HashMismatchException::class);
+
+        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     /**
@@ -489,6 +527,16 @@ class InterPosTest extends TestCase
                 'check_hash'      => false,
                 'is3DSuccess'     => false,
                 'isSuccess'       => false,
+            ],
+            'success' => [
+                'order'           => ['order'],
+                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+                'request'         => Request::create('', 'POST', ['gateway_response']),
+                'paymentResponse' => ['paymentResponse'],
+                'expected'        => ['status' => 'approved'],
+                'check_hash'      => true,
+                'is3DSuccess'     => true,
+                'isSuccess'       => true,
             ],
         ];
     }

@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
@@ -89,6 +90,16 @@ class InterPosResponseDataMapperTest extends TestCase
             $txType,
             $order
         );
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
+        } else {
+            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('3d_all', $actualData);
+        $this->assertIsArray($actualData['3d_all']);
+        $this->assertNotEmpty($actualData['3d_all']);
         unset($actualData['all'], $actualData['3d_all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -159,6 +170,18 @@ class InterPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
         unset($actualData['all']);
         $this->assertSame($expectedData, $actualData);
+    }
+
+    public function testMapHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapHistoryResponse([]);
+    }
+
+    public function testMapOrderHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapOrderHistoryResponse([]);
     }
 
     public function threeDHashCheckDataProvider(): array
@@ -322,6 +345,118 @@ class InterPosResponseDataMapperTest extends TestCase
                     'payment_model'        => '3d',
                     'installment_count'    => null,
                     'transaction_time'     => null,
+                ],
+            ],
+            'success'   => [
+                'order'              => [],
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
+                'threeDResponseData' => [
+                    'Version'                 => '',
+                    'MerchantID'              => '',
+                    'ShopCode'                => 'gizlendi',
+                    'TxnStat'                 => 'Y',
+                    'MD'                      => 'gizlendi',
+                    'RetCode'                 => '',
+                    'RetDet'                  => '',
+                    'VenderCode'              => '',
+                    'Eci'                     => '02',
+                    'PayerAuthenticationCode' => 'gizlendi=',
+                    'PayerTxnId'              => '',
+                    'CavvAlg'                 => '',
+                    'PAResVerified'           => 'True',
+                    'PAResSyntaxOK'           => 'True',
+                    'Expiry'                  => 'expiry-123',
+                    'Pan'                     => 'kart*****no',
+                    'OrderId'                 => '33554969',
+                    'PurchAmount'             => '1',
+                    'Exponent'                => '',
+                    'Description'             => '',
+                    'Description2'            => '',
+                    'Currency'                => '949',
+                    'OkUrl'                   => 'gizlendi',
+                    'FailUrl'                 => 'gizlendi',
+                    '3DStatus'                => '1',
+                    'AuthCode'                => '',
+                    'HostRefNum'              => 'hostid',
+                    'TransId'                 => '',
+                    'TRXDATE'                 => '',
+                    'CardHolderName'          => '',
+                    'mdStatus'                => '1',
+                    'ProcReturnCode'          => '',
+                    'TxnResult'               => '',
+                    'ErrorMessage'            => '',
+                    'ErrorCode'               => '',
+                    'Response'                => '',
+                    'HASH'                    => 'gizlendi/gizlendi=',
+                    'HASHPARAMS'              => 'Version:PurchAmount:Exponent:Currency:OkUrl:FailUrl:MD:OrderId:ProcReturnCode:Response:mdStatus:',
+                    'HASHPARAMSVAL'           => 'gizlendi',
+                ],
+                'paymentData'        => [
+                    'OrderId'                       => '33554969',
+                    'ProcReturnCode'                => '00',
+                    'HostRefNum'                    => 'hostid',
+                    'AuthCode'                      => 'auth-code-123',
+                    'TxnResult'                     => 'Success',
+                    'ErrorMessage'                  => '',
+                    'CampanyId'                     => '',
+                    'CampanyInstallCount'           => '0',
+                    'CampanyShiftDateCount'         => '0',
+                    'CampanyTxnId'                  => '',
+                    'CampanyType'                   => '',
+                    'CampanyInstallment'            => '0',
+                    'CampanyDate'                   => '0',
+                    'CampanyAmnt'                   => '0',
+                    'TRXDATE'                       => '09.08.2024 10:40:34',
+                    'TransId'                       => 'trans-id-123',
+                    'ErrorCode'                     => '',
+                    'EarnedBonus'                   => '0,00',
+                    'UsedBonus'                     => '0,00',
+                    'AvailableBonus'                => '0,00',
+                    'BonusToBonus'                  => '0',
+                    'CampaignBonus'                 => '0,00',
+                    'FoldedBonus'                   => '0',
+                    'SurchargeAmount'               => '0',
+                    'Amount'                        => '1,00',
+                    'CardHolderName'                => 'kart-sahibi-abc',
+                    'QrReferenceNumber'             => '',
+                    'QrCardToken'                   => '',
+                    'QrData'                        => '',
+                    'QrPayIsSucess'                 => 'False',
+                    'QrIssuerPaymentMethod'         => '',
+                    'QrFastMessageReferenceNo'      => '',
+                    'QrFastParticipantReceiverCode' => '',
+                    'QrFastParticipantReceiverName' => '',
+                    'QrFastParticipantSenderCode'   => '',
+                    'QrFastSenderIban'              => '',
+                    'QrFastParticipantSenderName'   => '',
+                    'QrFastPaymentResultDesc'       => '',
+                ],
+                'expectedData'       => [
+                    'order_id'             => '33554969',
+                    'transaction_id'       => 'trans-id-123',
+                    'auth_code'            => 'auth-code-123',
+                    'ref_ret_num'          => 'hostid',
+                    'batch_num'            => null,
+                    'proc_return_code'     => '00',
+                    'status'               => 'approved',
+                    'status_detail'        => 'approved',
+                    'error_code'           => null,
+                    'error_message'        => null,
+                    'transaction_security' => 'Full 3D Secure',
+                    'md_status'            => '1',
+                    'masked_number'        => 'kart*****no',
+                    'month'                => null,
+                    'year'                 => null,
+                    'amount'               => 1.0,
+                    'currency'             => 'TRY',
+                    'eci'                  => '02',
+                    'tx_status'            => 'Y',
+                    'cavv'                 => null,
+                    'md_error_message'     => null,
+                    'transaction_type'     => 'pay',
+                    'payment_model'        => '3d',
+                    'installment_count'    => null,
+                    'transaction_time'     => new \DateTimeImmutable('09.08.2024 10:40:34'),
                 ],
             ],
         ];
