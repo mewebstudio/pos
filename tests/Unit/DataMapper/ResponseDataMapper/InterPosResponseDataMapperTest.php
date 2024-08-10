@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
@@ -169,6 +170,18 @@ class InterPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
         unset($actualData['all']);
         $this->assertSame($expectedData, $actualData);
+    }
+
+    public function testMapHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapHistoryResponse([]);
+    }
+
+    public function testMapOrderHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapOrderHistoryResponse([]);
     }
 
     public function threeDHashCheckDataProvider(): array
