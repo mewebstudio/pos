@@ -209,7 +209,11 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
 
         if (self::TX_APPROVED === $commonResponse['status']) {
             $commonResponse['transaction_id']   = $rawPaymentResponseData['TransactionId'];
-            $commonResponse['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['HostDate']);
+            $txTime                             = $rawPaymentResponseData['HostDate'];
+            if (\strlen($txTime) === 10) { // ziraat is sending host date without year
+                $txTime = date('Y').$txTime;
+            }
+            $commonResponse['transaction_time'] = new \DateTimeImmutable($txTime);
             $commonResponse['auth_code']        = $rawPaymentResponseData['AuthCode'];
             $commonResponse['ref_ret_num']      = $rawPaymentResponseData['TransactionId'];
             $commonResponse['batch_num']        = $rawPaymentResponseData['BatchNo'];
