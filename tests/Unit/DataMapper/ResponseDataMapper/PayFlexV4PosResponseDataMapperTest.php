@@ -435,7 +435,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
             'expectedData' => [
                 'transaction_id'    => '9972767117b3400eb2acafc0018643df',
                 'transaction_type'  => 'pay',
-                'transaction_time'  => new \DateTimeImmutable('2024-03-09 23:40:54'),
+                'transaction_time'  => new \DateTimeImmutable(date('Y').'-03-09 23:40:54'),
                 'auth_code'         => '961451',
                 'ref_ret_num'       => '9972767117b3400eb2acafc0018643df',
                 'batch_num'         => '300',
