@@ -1,0 +1,72 @@
+---
+name: Hata Bildirimi
+description: Hataları gidermemize yardımcı olacak bir rapor oluşturun
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Bu konuda zaten bir hata bildirimi olmadığından emin olun.
+        Bakınız: [hata bildirimleri](https://github.com/mewebstudio/pos/issues).
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Hatanın özeti
+      description: |
+        Yaşadığınız sorunun detayları.
+    validations:
+      required: true
+  - type: input
+    id: bank_name
+    attributes:
+      label: Banka ismi
+    validations:
+      required: true
+  - type: dropdown
+    id: gateway_class
+    attributes:
+      label: Gateway ismi
+      options:
+        - AkbankPos
+        - EstV3Pos
+        - GarantiPos
+        - InterPos
+        - KuveytPos
+        - PayFlexCPV4Pos
+        - PayFlexV4Pos
+        - PayForPos
+        - PosNet
+        - PosNetV1Pos
+        - ToslaPos
+        - VakifKatilimPos
+      default: 0
+    validations:
+      required: true
+  - type: dropdown
+    id: payment_model
+    attributes:
+      label: İşlem Tipi
+      options:
+        - MODEL_3D_SECURE ödeme
+        - MODEL_3D_PAY ödeme
+        - MODEL_3D_HOST ödeme
+        - MODEL_NON_SECURE ödeme
+        - Ödeme işlemi değil
+      default: 0
+    validations:
+      required: true
+  - type: input
+    id: library_version
+    attributes:
+      label: Kütüphane versiyonu
+    validations:
+      required: false
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: Bu konuda zaten bir hata bildirimi olmadığından eminim.
+          required: true
+        - label: Hatayı yeniden oluşturmak için gereken detayları ekledim.
+          required: true
