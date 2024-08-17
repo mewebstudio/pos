@@ -341,7 +341,8 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     protected function prepareStatusOrder(array $order): array
     {
         return [
-            'id' => $order['id'],
+            'id'             => $order['id'],
+            'transaction_id' => $order['transaction_id'] ?? null,
         ];
     }
 

@@ -248,6 +248,16 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedValue, $actualData);
     }
 
+    /**
+     * @dataProvider createStatusRequestDataDataProvider
+     */
+    public function testCreateStatusRequestData(array $order, array $expectedData): void
+    {
+        $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);
+
+        $this->assertSame($expectedData, $actual);
+    }
+
     public function testCreateOrderHistoryRequestData(): void
     {
         $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
@@ -258,6 +268,45 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     {
         $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
         $this->requestDataMapper->createHistoryRequestData($this->account, []);
+    }
+
+    public static function createStatusRequestDataDataProvider(): array
+    {
+        return [
+            'only_with_order_id'      => [
+                'order'    => [
+                    'id' => 'order222',
+                ],
+                'expected' => [
+                    'MerchantCriteria'    => [
+                        'HostMerchantId'   => '000000000111111',
+                        'MerchantPassword' => '3XTgER89as',
+                    ],
+                    'TransactionCriteria' => [
+                        'TransactionId' => '',
+                        'OrderId'       => 'order222',
+                        'AuthCode'      => '',
+                    ],
+                ],
+            ],
+            'with_order_id_and_tx_id' => [
+                'order'    => [
+                    'id'             => 'order222',
+                    'transaction_id' => 'tx222',
+                ],
+                'expected' => [
+                    'MerchantCriteria'    => [
+                        'HostMerchantId'   => '000000000111111',
+                        'MerchantPassword' => '3XTgER89as',
+                    ],
+                    'TransactionCriteria' => [
+                        'TransactionId' => 'tx222',
+                        'OrderId'       => 'order222',
+                        'AuthCode'      => '',
+                    ],
+                ],
+            ],
+        ];
     }
 
     /**
