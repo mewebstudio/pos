@@ -13,6 +13,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\Crypt\PosNetV1PosCrypt
+ * @covers \Mews\Pos\Crypt\AbstractCrypt
  */
 class PosNetV1PosCryptTest extends TestCase
 {
@@ -42,6 +43,17 @@ class PosNetV1PosCryptTest extends TestCase
     public function testHashFromParams(string $storeKey, array $data, string $expected): void
     {
         $this->assertSame($expected, $this->crypt->hashFromParams($storeKey, $data, 'MACParams', ':'));
+    }
+
+    public function testHashFromParamsWhenNotFound(): void
+    {
+        $data = self::hashFromParamsDataProvider()[0];
+        $this->assertSame('', $this->crypt->hashFromParams(
+            $data['storeKey'],
+            $data,
+            'NonExistingField',
+            ':'
+        ));
     }
 
     /**
