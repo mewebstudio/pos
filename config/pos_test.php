@@ -74,8 +74,8 @@ return [
             'class'             => Mews\Pos\Gateways\PayFlexV4Pos::class,
             'gateway_endpoints' => [
                 'payment_api' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
-                'gateway_3d'  => 'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspxs',
-                'query_api'   => 'https://sanalpos.vakifbank.com.tr/v4/UIWebService/Search.aspx', // todo update with the correct one
+                'gateway_3d'  => 'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspx',
+                'query_api'   => 'https://onlineodemetest.vakifbank.com.tr:4443/UIService/Search.aspx',
             ],
         ],
         'ziraat-vpos'          => [
