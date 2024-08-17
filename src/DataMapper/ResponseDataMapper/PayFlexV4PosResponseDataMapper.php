@@ -91,7 +91,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData, $txType, $order);
+        throw new NotImplementedException();
     }
 
     /**
@@ -99,7 +99,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
+        throw new NotImplementedException();
     }
 
     /**

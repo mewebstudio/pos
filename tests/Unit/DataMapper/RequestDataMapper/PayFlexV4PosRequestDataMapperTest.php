@@ -248,6 +248,18 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $this->assertEquals($expectedValue, $actualData);
     }
 
+    public function testCreateOrderHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createOrderHistoryRequestData($this->account, []);
+    }
+
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account, []);
+    }
+
     /**
      * @return array
      */

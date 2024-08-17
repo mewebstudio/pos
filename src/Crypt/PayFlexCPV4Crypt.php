@@ -37,7 +37,7 @@ class PayFlexCPV4Crypt extends AbstractCrypt
      */
     public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
-         return true;
+        throw new NotImplementedException();
     }
 
     /**
