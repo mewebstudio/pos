@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\PayFlexCPV4Crypt;
 use Mews\Pos\Entity\Account\PayFlexAccount;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -14,6 +15,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\Crypt\PayFlexCPV4Crypt
+ * @covers \Mews\Pos\Crypt\AbstractCrypt
  */
 class PayFlexCP4CryptTest extends TestCase
 {
@@ -47,7 +49,20 @@ class PayFlexCP4CryptTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
-    public function hashCreateDataProvider(): array
+    public function testCreateHash(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->crypt->createHash($this->account, []);
+    }
+
+    public function testCheck3DHash(): void
+    {
+        $this->expectException(NotImplementedException::class);
+
+        $this->crypt->check3DHash($this->account, []);
+    }
+
+    public static function hashCreateDataProvider(): array
     {
         return [
             [
@@ -62,7 +77,7 @@ class PayFlexCP4CryptTest extends TestCase
         ];
     }
 
-    public function threeDHashCreateDataProvider(): array
+    public static function threeDHashCreateDataProvider(): array
     {
         return [
             [

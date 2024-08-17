@@ -91,7 +91,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPaymentData($raw3DAuthResponseData, $raw3DAuthResponseData, $txType, $order);
+        throw new NotImplementedException();
     }
 
     /**
@@ -99,7 +99,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
+        throw new NotImplementedException();
     }
 
     /**
@@ -185,7 +185,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['order_status']     = $orderStatus;
         $defaultResponse['transaction_type'] = $this->mapTxType($txResultInfo['TransactionType']);
         $defaultResponse['currency']         = $this->mapCurrency($txResultInfo['AmountCode']);
-        $defaultResponse['first_amount']     = $this->formatAmount($txResultInfo['CurrencyAmount']);
+        $defaultResponse['first_amount']     = $this->formatAmount($txResultInfo['CurrencyAmount'] ?? $txResultInfo['Amount']);
         $defaultResponse['capture_amount']   = null;
         $defaultResponse['status']           = self::PROCEDURE_SUCCESS_CODE === $orderProcCode ? self::TX_APPROVED : self::TX_DECLINED;
         $defaultResponse['error_code']       = self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['HostResultCode'] : null;
@@ -209,7 +209,12 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
 
         if (self::TX_APPROVED === $commonResponse['status']) {
             $commonResponse['transaction_id']   = $rawPaymentResponseData['TransactionId'];
-            $commonResponse['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['HostDate']);
+            $txTime                             = $rawPaymentResponseData['HostDate'];
+            if (\strlen($txTime) === 10) { // ziraat is sending host date without year
+                $txTime = date('Y').$txTime;
+            }
+
+            $commonResponse['transaction_time'] = new \DateTimeImmutable($txTime);
             $commonResponse['auth_code']        = $rawPaymentResponseData['AuthCode'];
             $commonResponse['ref_ret_num']      = $rawPaymentResponseData['TransactionId'];
             $commonResponse['batch_num']        = $rawPaymentResponseData['BatchNo'];

@@ -73,6 +73,7 @@ class InterPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $this->assertArrayHasKey('all', $actualData);
         unset($actualData['all']);
         \ksort($expectedData);
         \ksort($actualData);
@@ -95,6 +96,7 @@ class InterPosResponseDataMapperTest extends TestCase
         } else {
             $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         }
+
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('3d_all', $actualData);
@@ -210,64 +212,89 @@ class InterPosResponseDataMapperTest extends TestCase
     }
 
 
-    public function paymentTestDataProvider(): array
+    public static function paymentTestDataProvider(): array
     {
-        return
-            [
-                'fail1' => [
-                    'order'        => [
-                        'currency' => PosInterface::CURRENCY_TRY,
-                        'amount'   => 1.01,
-                    ],
-                    'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                    'responseData' => [
-                        'OrderId'               => '20221225662C',
-                        'ProcReturnCode'        => '81',
-                        'HostRefNum'            => 'hostid',
-                        'AuthCode'              => '',
-                        'TxnResult'             => 'Failed',
-                        'ErrorMessage'          => 'Terminal Aktif Degil',
-                        'CampanyId'             => '',
-                        'CampanyInstallCount'   => '0',
-                        'CampanyShiftDateCount' => '0',
-                        'CampanyTxnId'          => '',
-                        'CampanyType'           => '',
-                        'CampanyInstallment'    => '0',
-                        'CampanyDate'           => '0',
-                        'CampanyAmnt'           => '0',
-                        'TRXDATE'               => '',
-                        'TransId'               => '',
-                        'ErrorCode'             => 'B810002',
-                        'EarnedBonus'           => '0',
-                        'UsedBonus'             => '0',
-                        'AvailableBonus'        => '0',
-                        'BonusToBonus'          => '0',
-                        'CampaignBonus'         => '0',
-                        'FoldedBonus'           => '0',
-                        'SurchargeAmount'       => '0',
-                        'Amount'                => '1,01',
-                        'CardHolderName'        => '',
-                    ],
-                    'expectedData' => [
-                        'order_id'          => '20221225662C',
-                        'transaction_id'    => null,
-                        'transaction_type'  => 'pay',
-                        'currency'          => 'TRY',
-                        'amount'            => 1.01,
-                        'payment_model'     => 'regular',
-                        'auth_code'         => null,
-                        'ref_ret_num'       => 'hostid',
-                        'batch_num'         => null,
-                        'proc_return_code'  => '81',
-                        'status'            => 'declined',
-                        'status_detail'     => 'invalid_credentials',
-                        'error_code'        => 'B810002',
-                        'error_message'     => 'Terminal Aktif Degil',
-                        'installment_count' => null,
-                        'transaction_time'  => null,
-                    ],
+        return [
+            'fail1' => [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
                 ],
-            ];
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'responseData' => [
+                    'OrderId'               => '20221225662C',
+                    'ProcReturnCode'        => '81',
+                    'HostRefNum'            => 'hostid',
+                    'AuthCode'              => '',
+                    'TxnResult'             => 'Failed',
+                    'ErrorMessage'          => 'Terminal Aktif Degil',
+                    'CampanyId'             => '',
+                    'CampanyInstallCount'   => '0',
+                    'CampanyShiftDateCount' => '0',
+                    'CampanyTxnId'          => '',
+                    'CampanyType'           => '',
+                    'CampanyInstallment'    => '0',
+                    'CampanyDate'           => '0',
+                    'CampanyAmnt'           => '0',
+                    'TRXDATE'               => '',
+                    'TransId'               => '',
+                    'ErrorCode'             => 'B810002',
+                    'EarnedBonus'           => '0',
+                    'UsedBonus'             => '0',
+                    'AvailableBonus'        => '0',
+                    'BonusToBonus'          => '0',
+                    'CampaignBonus'         => '0',
+                    'FoldedBonus'           => '0',
+                    'SurchargeAmount'       => '0',
+                    'Amount'                => '1,01',
+                    'CardHolderName'        => '',
+                ],
+                'expectedData' => [
+                    'order_id'          => '20221225662C',
+                    'transaction_id'    => null,
+                    'transaction_type'  => 'pay',
+                    'currency'          => 'TRY',
+                    'amount'            => 1.01,
+                    'payment_model'     => 'regular',
+                    'auth_code'         => null,
+                    'ref_ret_num'       => 'hostid',
+                    'batch_num'         => null,
+                    'proc_return_code'  => '81',
+                    'status'            => 'declined',
+                    'status_detail'     => 'invalid_credentials',
+                    'error_code'        => 'B810002',
+                    'error_message'     => 'Terminal Aktif Degil',
+                    'installment_count' => null,
+                    'transaction_time'  => null,
+                ],
+            ],
+            'empty' => [
+                'order'        => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'responseData' => [],
+                'expectedData' => [
+                    'order_id'          => null,
+                    'transaction_id'    => null,
+                    'transaction_time'  => null,
+                    'transaction_type'  => PosInterface::TX_TYPE_PAY_AUTH,
+                    'installment_count' => null,
+                    'currency'          => null,
+                    'amount'            => null,
+                    'payment_model'     => 'regular',
+                    'auth_code'         => null,
+                    'ref_ret_num'       => null,
+                    'batch_num'         => null,
+                    'proc_return_code'  => null,
+                    'status'            => 'declined',
+                    'status_detail'     => null,
+                    'error_code'        => null,
+                    'error_message'     => null,
+                ],
+            ],
+        ];
     }
 
 

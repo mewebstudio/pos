@@ -638,6 +638,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         if (null === $txType) {
             return null;
         }
+
         // txStatus possible values:
         // Basarili
         // Basarisiz
@@ -648,19 +649,23 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             if (PosInterface::TX_TYPE_CANCEL === $txType) {
                 return PosInterface::PAYMENT_STATUS_CANCELED;
             }
+
             if (PosInterface::TX_TYPE_REFUND === $txType) {
                 // todo how can we decide if order is partially or fully refunded?
                 return PosInterface::PAYMENT_STATUS_FULLY_REFUNDED;
             }
+
             if (PosInterface::TX_TYPE_PAY_AUTH === $txType || PosInterface::TX_TYPE_PAY_POST_AUTH === $txType) {
                 return PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED;
             }
+
             if (PosInterface::TX_TYPE_PAY_PRE_AUTH === $txType) {
                 return PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED;
             }
 
             return null;
         }
+
         if ('Iptal' === $txStatus) {
             return null;
         }

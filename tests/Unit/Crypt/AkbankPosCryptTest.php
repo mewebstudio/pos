@@ -17,6 +17,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\Crypt\AkbankPosCrypt
+ * @covers \Mews\Pos\Crypt\AbstractCrypt
  */
 class AkbankPosCryptTest extends TestCase
 {

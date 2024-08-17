@@ -21,6 +21,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class InterPosRequestDataMapperTest extends TestCase
 {
@@ -35,8 +36,6 @@ class InterPosRequestDataMapperTest extends TestCase
 
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
-
-    private array $order;
 
     protected function setUp(): void
     {
@@ -56,18 +55,7 @@ class InterPosRequestDataMapperTest extends TestCase
             $merchantPass
         );
 
-        $this->order = [
-            'id'          => 'order222',
-            'amount'      => '100.25',
-            'installment' => 0,
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'success_url' => 'https://domain.com/success',
-            'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => PosInterface::LANG_TR,
-        ];
-
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-
+        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
         $this->crypt             = $this->createMock(CryptInterface::class);
         $this->requestDataMapper = new InterPosRequestDataMapper($this->dispatcher, $this->crypt);
 
@@ -125,74 +113,53 @@ class InterPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider nonSecurePaymentPostRequestDataDataProvider
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData(): void
+    public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expectedData): void
     {
-        $order = [
-            'id'       => '2020110828BC',
-            'amount'   => 320,
-            'currency' => PosInterface::CURRENCY_TRY,
-        ];
-
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($order, $this->account);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider createNonSecurePaymentRequestDataDataProvider
      */
-    public function testCreateNonSecurePaymentRequestData(): void
+    public function testCreateNonSecurePaymentRequestData(array $order, CreditCardInterface $creditCard, array $expected): void
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData(
+            $this->account,
+            $order,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $creditCard
+        );
 
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->order, $this->card, $this->account);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider createCancelRequestDataDataProvider
      */
-    public function testCreateCancelRequestData(): void
+    public function testCreateCancelRequestData(array $order, array $expected): void
     {
-        $order = [
-            'id'   => '2020110828BC',
-            'lang' => PosInterface::LANG_EN,
-        ];
-
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleCancelXMLData($order, $this->account);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider create3DPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(): void
+    public function testCreate3DPaymentRequestData(array $order, array $responseData, array $expectedData): void
     {
-        $order        = [
-            'id'          => '2020110828BC',
-            'amount'      => 100.01,
-            'installment' => 0,
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-            'lang'        => PosInterface::LANG_EN,
-        ];
-        $responseData = [
-            'MD'                      => '1',
-            'PayerTxnId'              => '2',
-            'Eci'                     => '3',
-            'PayerAuthenticationCode' => '4',
-        ];
+        $actual = $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            $order,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $responseData
+        );
 
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, PosInterface::TX_TYPE_PAY_AUTH, $responseData);
-
-        $expectedData = $this->getSample3DPaymentRequestData($order, $this->account, $responseData);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -234,23 +201,17 @@ class InterPosRequestDataMapperTest extends TestCase
             $card
         );
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider createStatusRequestDataDataProvider
      */
-    public function testCreateStatusRequestData(): void
+    public function testCreateStatusRequestData(array $order, array $expectedData): void
     {
-        $order = [
-            'id'   => '2020110828BC',
-            'lang' => PosInterface::LANG_EN,
-        ];
-
         $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleStatusRequestData($order, $this->account);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -265,124 +226,162 @@ class InterPosRequestDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actual);
     }
 
-    /**
-     * @param array           $order
-     * @param InterPosAccount $interPosAccount
-     * @param array           $responseData
-     *
-     * @return array
-     */
-    private function getSample3DPaymentRequestData(array $order, InterPosAccount $interPosAccount, array $responseData): array
+    public function testCreateOrderHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createOrderHistoryRequestData($this->account, []);
+    }
+
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account, []);
+    }
+
+    public static function create3DPaymentRequestDataDataProvider(): array
     {
         return [
-            'UserCode'                => $interPosAccount->getUsername(),
-            'UserPass'                => $interPosAccount->getPassword(),
-            'ShopCode'                => $interPosAccount->getClientId(),
-            'TxnType'                 => 'Auth',
-            'SecureType'              => 'NonSecure',
-            'OrderId'                 => $order['id'],
-            'PurchAmount'             => $order['amount'],
-            'Currency'                => '949',
-            'InstallmentCount'        => '',
-            'MD'                      => $responseData['MD'],
-            'PayerTxnId'              => $responseData['PayerTxnId'],
-            'Eci'                     => $responseData['Eci'],
-            'PayerAuthenticationCode' => $responseData['PayerAuthenticationCode'],
-            'MOTO'                    => '0',
-            'Lang'                    => $order['lang'],
+            [
+                'order'        => [
+                    'id'     => 'order222',
+                    'amount' => '100.25',
+                    'lang'   => PosInterface::LANG_TR,
+                ],
+                'responseData' => [
+                    'MD'                      => '1',
+                    'PayerTxnId'              => '2',
+                    'Eci'                     => '3',
+                    'PayerAuthenticationCode' => '4',
+                ],
+                'expected'     => [
+                    'UserCode'                => 'InterTestApi',
+                    'UserPass'                => '3',
+                    'ShopCode'                => '3123',
+                    'TxnType'                 => 'Auth',
+                    'SecureType'              => 'NonSecure',
+                    'OrderId'                 => 'order222',
+                    'PurchAmount'             => '100.25',
+                    'Currency'                => '949',
+                    'InstallmentCount'        => '',
+                    'MD'                      => '1',
+                    'PayerTxnId'              => '2',
+                    'Eci'                     => '3',
+                    'PayerAuthenticationCode' => '4',
+                    'MOTO'                    => '0',
+                    'Lang'                    => PosInterface::LANG_TR,
+                ],
+            ],
         ];
     }
 
-    /**
-     * @param array           $order
-     * @param InterPosAccount $interPosAccount
-     *
-     * @return array
-     */
-    private function getSampleCancelXMLData(array $order, InterPosAccount $interPosAccount): array
+    public static function createCancelRequestDataDataProvider(): array
     {
         return [
-            'UserCode'   => $interPosAccount->getUsername(),
-            'UserPass'   => $interPosAccount->getPassword(),
-            'ShopCode'   => $interPosAccount->getClientId(),
-            'OrderId'    => null,
-            'orgOrderId' => $order['id'],
-            'TxnType'    => 'Void',
-            'SecureType' => 'NonSecure',
-            'Lang'       => $order['lang'],
+            [
+                'order'    => [
+                    'id'   => '2020110828BC',
+                    'lang' => PosInterface::LANG_EN,
+                ],
+                'expected' => [
+                    'UserCode'   => 'InterTestApi',
+                    'UserPass'   => '3',
+                    'ShopCode'   => '3123',
+                    'OrderId'    => null,
+                    'orgOrderId' => '2020110828BC',
+                    'TxnType'    => 'Void',
+                    'SecureType' => 'NonSecure',
+                    'Lang'       => PosInterface::LANG_EN,
+                ],
+            ],
         ];
     }
 
-    /**
-     * @param array               $order
-     * @param CreditCardInterface $creditCard
-     * @param InterPosAccount     $interPosAccount
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentRequestData(array $order, CreditCardInterface $creditCard, InterPosAccount $interPosAccount): array
+
+    public static function createNonSecurePaymentRequestDataDataProvider(): array
     {
-        $requestData = [
-            'UserCode'         => $interPosAccount->getUsername(),
-            'UserPass'         => $interPosAccount->getPassword(),
-            'ShopCode'         => $interPosAccount->getClientId(),
-            'TxnType'          => 'Auth',
-            'SecureType'       => 'NonSecure',
-            'OrderId'          => $order['id'],
-            'PurchAmount'      => $order['amount'],
-            'Currency'         => '949',
-            'InstallmentCount' => '',
-            'MOTO'             => '0',
-            'Lang'             => $order['lang'],
-        ];
+        $card = CreditCardFactory::create(
+            '5555444433332222',
+            '21',
+            '12',
+            '122',
+            'ahmet',
+            CreditCardInterface::CARD_TYPE_VISA
+        );
 
-        $requestData['CardType'] = '0';
-        $requestData['Pan']      = $creditCard->getNumber();
-        $requestData['Expiry']   = '1221';
-        $requestData['Cvv2']     = $creditCard->getCvv();
-
-        return $requestData;
-    }
-
-    /**
-     * @param array           $order
-     * @param InterPosAccount $interPosAccount
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentPostRequestData(array $order, InterPosAccount $interPosAccount): array
-    {
         return [
-            'UserCode'    => $interPosAccount->getUsername(),
-            'UserPass'    => $interPosAccount->getPassword(),
-            'ShopCode'    => $interPosAccount->getClientId(),
-            'TxnType'     => 'PostAuth',
-            'SecureType'  => 'NonSecure',
-            'OrderId'     => null,
-            'orgOrderId'  => $order['id'],
-            'PurchAmount' => $order['amount'],
-            'Currency'    => '949',
-            'MOTO'        => '0',
+            [
+                'order'    => [
+                    'id'          => 'order222',
+                    'amount'      => '100.25',
+                    'installment' => 0,
+                    'currency'    => PosInterface::CURRENCY_TRY,
+                    'lang'        => PosInterface::LANG_TR,
+                ],
+                'card'     => $card,
+                'expected' => [
+                    'UserCode'         => 'InterTestApi',
+                    'UserPass'         => '3',
+                    'ShopCode'         => '3123',
+                    'TxnType'          => 'Auth',
+                    'SecureType'       => 'NonSecure',
+                    'OrderId'          => 'order222',
+                    'PurchAmount'      => '100.25',
+                    'Currency'         => '949',
+                    'InstallmentCount' => '',
+                    'MOTO'             => '0',
+                    'Lang'             => PosInterface::LANG_TR,
+                    'CardType'         => '0',
+                    'Pan'              => $card->getNumber(),
+                    'Expiry'           => '1221',
+                    'Cvv2'             => $card->getCvv(),
+                ],
+            ],
         ];
     }
 
-    /**
-     * @param array           $order
-     * @param InterPosAccount $interPosAccount
-     *
-     * @return array
-     */
-    private function getSampleStatusRequestData(array $order, InterPosAccount $interPosAccount): array
+    public static function nonSecurePaymentPostRequestDataDataProvider(): array
     {
         return [
-            'UserCode'   => $interPosAccount->getUsername(),
-            'UserPass'   => $interPosAccount->getPassword(),
-            'ShopCode'   => $interPosAccount->getClientId(),
-            'OrderId'    => null,
-            'orgOrderId' => $order['id'],
-            'TxnType'    => 'StatusHistory',
-            'SecureType' => 'NonSecure',
-            'Lang'       => $order['lang'],
+            [
+                'order'    => [
+                    'id'     => 'order222',
+                    'amount' => 10.0,
+                ],
+                'expected' => [
+                    'UserCode'    => 'InterTestApi',
+                    'UserPass'    => '3',
+                    'ShopCode'    => '3123',
+                    'TxnType'     => 'PostAuth',
+                    'SecureType'  => 'NonSecure',
+                    'OrderId'     => null,
+                    'orgOrderId'  => 'order222',
+                    'PurchAmount' => '10',
+                    'Currency'    => '949',
+                    'MOTO'        => '0',
+                ],
+            ],
+        ];
+    }
+
+    public static function createStatusRequestDataDataProvider(): array
+    {
+        return [
+            [
+                'order'    => [
+                    'id'   => 'order222',
+                    'lang' => PosInterface::LANG_TR,
+                ],
+                'expected' => [
+                    'UserCode'   => 'InterTestApi',
+                    'UserPass'   => '3',
+                    'ShopCode'   => '3123',
+                    'OrderId'    => null,
+                    'orgOrderId' => 'order222',
+                    'TxnType'    => 'StatusHistory',
+                    'SecureType' => 'NonSecure',
+                    'Lang'       => PosInterface::LANG_TR,
+                ],
+            ],
         ];
     }
 
@@ -446,11 +445,11 @@ class InterPosRequestDataMapperTest extends TestCase
                         'Lang'             => 'tr',
                         'Currency'         => '949',
                         'InstallmentCount' => '',
-                        'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
                         'CardType'         => '0',
                         'Pan'              => '5555444433332222',
                         'Expiry'           => '1221',
                         'Cvv2'             => '122',
+                        'Hash'             => 'vEbwP8wnsGrBR9oCjfxP9wlho1g=',
                     ],
                 ],
             ],

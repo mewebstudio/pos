@@ -8,6 +8,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -15,6 +16,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper
  */
 class PayFlexV4PosResponseDataMapperTest extends TestCase
 {
@@ -129,6 +131,30 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
+    }
+
+    public function testMap3DPayResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DPayResponseData([], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
+    public function testMap3DHostResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DHostResponseData([], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
+    public function testMapHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapHistoryResponse([]);
+    }
+
+    public function testMapOrderHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapOrderHistoryResponse([]);
     }
 
     public static function statusTestDataProvider(): iterable
@@ -385,6 +411,57 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                 'transaction_id'    => '9972767117b3400eb2acafc0018643df',
                 'transaction_type'  => 'pay',
                 'transaction_time'  => new \DateTimeImmutable('2023-03-09 23:40:54'),
+                'auth_code'         => '961451',
+                'ref_ret_num'       => '9972767117b3400eb2acafc0018643df',
+                'batch_num'         => '300',
+                'order_id'          => '202303095646',
+                'proc_return_code'  => '0000',
+                'status'            => 'approved',
+                'status_detail'     => 'approved',
+                'error_code'        => null,
+                'error_message'     => null,
+                'currency'          => 'TRY',
+                'amount'            => 1.01,
+                'payment_model'     => 'regular',
+                'installment_count' => null,
+            ],
+        ];
+
+        yield 'success_with_short_host_date' => [
+            'txType'       => PosInterface::TX_TYPE_PAY_PRE_AUTH,
+            'responseData' => [
+                'MerchantId'              => '000100000013506',
+                'TransactionType'         => 'Sale',
+                'TransactionId'           => '9972767117b3400eb2acafc0018643df',
+                'ResultCode'              => '0000',
+                'ResultDetail'            => 'İŞLEM BAŞARILI',
+                'CustomItems'             => [
+                    'Item' => [
+                        '@name'  => 'CardHolderName',
+                        '@value' => 'AR* ÖZ*',
+                        '#'      => null,
+                    ],
+                ],
+                'InstallmentTable'        => null,
+                'CampaignResult'          => null,
+                'AuthCode'                => '961451',
+                'HostDate'                => '0309234054',
+                'Rrn'                     => '306823971358',
+                'TerminalNo'              => 'VP000579',
+                'GainedPoint'             => '10.00',
+                'TotalPoint'              => '103032.52',
+                'CurrencyAmount'          => '1.01',
+                'CurrencyCode'            => '949',
+                'OrderId'                 => '202303095646',
+                'ThreeDSecureType'        => '1',
+                'TransactionDeviceSource' => '0',
+                'BatchNo'                 => '300',
+                'TLAmount'                => '1.01',
+            ],
+            'expectedData' => [
+                'transaction_id'    => '9972767117b3400eb2acafc0018643df',
+                'transaction_type'  => 'pay',
+                'transaction_time'  => new \DateTimeImmutable(date('Y').'-03-09 23:40:54'),
                 'auth_code'         => '961451',
                 'ref_ret_num'       => '9972767117b3400eb2acafc0018643df',
                 'batch_num'         => '300',
