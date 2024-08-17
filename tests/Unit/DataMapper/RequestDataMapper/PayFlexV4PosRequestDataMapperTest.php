@@ -21,12 +21,11 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class PayFlexV4PosRequestDataMapperTest extends TestCase
 {
     public PayFlexAccount $account;
-
-    private CreditCardInterface $card;
 
     private PayFlexV4PosRequestDataMapper $requestDataMapper;
 
@@ -35,8 +34,6 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
 
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
-
-    private array $order;
 
     protected function setUp(): void
     {
@@ -50,22 +47,9 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             PosInterface::MODEL_3D_SECURE
         );
 
-
-        $this->order = [
-            'id'          => 'order222',
-            'amount'      => 100.00,
-            'installment' => 0,
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'success_url' => 'https://domain.com/success',
-            'fail_url'    => 'https://domain.com/fail_url',
-            'ip'          => '127.0.0.1',
-        ];
-
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-
+        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
         $this->crypt             = $this->createMock(CryptInterface::class);
         $this->requestDataMapper = new PayFlexV4PosRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::create('5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**
@@ -174,43 +158,38 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
 
 
     /**
-     * @return void
+     * @dataProvider createNonSecurePaymentRequestDataDataProvider
      */
-    public function testCreateNonSecurePaymentRequestData(): void
+    public function testCreateNonSecurePaymentRequestData(array $order, CreditCardInterface $creditCard, string $txType, array $expected): void
     {
-        $order           = $this->order;
-        $txType          = PosInterface::TX_TYPE_PAY_AUTH;
-        $order['amount'] = 1000;
+        $actualData = $this->requestDataMapper->createNonSecurePaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $creditCard
+        );
 
-        $expectedValue = $this->getSampleNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
-        $actualData    = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
-
-        $this->assertEquals($expectedValue, $actualData);
+        $this->assertSame($expected, $actualData);
     }
 
     /**
-     * @return void
+     * @dataProvider createNonSecurePostAuthPaymentRequestDataDataProvider
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData(): void
+    public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expected): void
     {
-        $order           = $this->order;
-        $order['amount'] = 1000;
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $expectedValue = $this->getSampleNonSecurePaymentPostRequestData($this->account, $order);
-        $actual        = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
-
-        $this->assertEquals($expectedValue, $actual);
+        $this->assertSame($expected, $actual);
     }
 
-    public function testCreateCancelRequestData(): void
+    /**
+     * @dataProvider createCancelRequestDataDataProvider
+     */
+    public function testCreateCancelRequestData(array $order, array $expected): void
     {
-        $order                   = $this->order;
-        $order['transaction_id'] = '7022b92e-3aa1-44fb-86d4-33658c700c80';
+        $actualData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $expectedValue = $this->getSampleCancelRequestData();
-        $actualData    = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-
-        $this->assertEquals($expectedValue, $actualData);
+        $this->assertSame($expected, $actualData);
     }
 
     /**
@@ -226,12 +205,10 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider create3DFormDataDataProvider
      */
-    public function testCreate3DFormData(): void
+    public function testCreate3DFormData(array $bankResponse, array $expected): void
     {
-        $expectedValue = $this->getSample3DFormDataFromEnrollmentResponse();
-
         $this->dispatcher->expects(self::never())
             ->method('dispatch');
 
@@ -242,10 +219,10 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             null,
             null,
             null,
-            $this->getSampleEnrollmentSuccessResponseDataProvider()['Message']['VERes']
+            $bankResponse
         );
 
-        $this->assertEquals($expectedValue, $actualData);
+        $this->assertSame($expected, $actualData);
     }
 
     /**
@@ -329,14 +306,22 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         ];
     }
 
-    private function getSampleCancelRequestData(): array
+    public static function createCancelRequestDataDataProvider(): array
     {
         return [
-            'MerchantId'             => '000000000111111',
-            'Password'               => '3XTgER89as',
-            'TransactionType'        => 'Cancel',
-            'ReferenceTransactionId' => '7022b92e-3aa1-44fb-86d4-33658c700c80',
-            'ClientIp'               => '127.0.0.1',
+            [
+                'order'    => [
+                    'transaction_id' => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'ip'             => '127.0.0.1',
+                ],
+                'expected' => [
+                    'MerchantId'             => '000000000111111',
+                    'Password'               => '3XTgER89as',
+                    'TransactionType'        => 'Cancel',
+                    'ReferenceTransactionId' => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'ClientIp'               => '127.0.0.1',
+                ],
+            ],
         ];
     }
 
@@ -438,7 +423,14 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $card = new CreditCard('5555444433332222', new \DateTimeImmutable('2021-12-01'), '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $card = CreditCardFactory::create(
+            '5555444433332222',
+            '2021',
+            '12',
+            '122',
+            'ahmet',
+            CreditCardInterface::CARD_TYPE_VISA
+        );
 
         yield [
             'order'    => $order,
@@ -550,67 +542,86 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param PayFlexAccount      $posAccount
-     * @param array               $order
-     * @param string              $txType
-     * @param CreditCardInterface $creditCard
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
+    public static function createNonSecurePaymentRequestDataDataProvider(): array
+    {
+        $creditCard = CreditCardFactory::create(
+            '5555444433332222',
+            '2021',
+            '12',
+            '122',
+            'ahmet',
+            CreditCardInterface::CARD_TYPE_VISA
+        );
+
+        return [
+            [
+                'order'    => [
+                    'id'     => 'order123',
+                    'amount' => 5,
+                    'ip'     => '127.0.0.1',
+                ],
+                'card'     => $creditCard,
+                'tx_type'  => PosInterface::TX_TYPE_PAY_AUTH,
+                'expected' => [
+                    'MerchantId'              => '000000000111111',
+                    'Password'                => '3XTgER89as',
+                    'TerminalNo'              => 'VP999999',
+                    'TransactionType'         => 'Sale',
+                    'OrderId'                 => 'order123',
+                    'CurrencyAmount'          => '5.00',
+                    'CurrencyCode'            => '949',
+                    'ClientIp'                => '127.0.0.1',
+                    'TransactionDeviceSource' => '0',
+                    'Pan'                     => $creditCard->getNumber(),
+                    'Expiry'                  => '202112',
+                    'Cvv'                     => $creditCard->getCvv(),
+                ],
+            ],
+        ];
+    }
+
+    public static function createNonSecurePostAuthPaymentRequestDataDataProvider(): array
     {
         return [
-            'MerchantId'              => $posAccount->getClientId(),
-            'Password'                => $posAccount->getPassword(),
-            'TerminalNo'              => $posAccount->getTerminalId(),
-            'TransactionType'         => $this->requestDataMapper->mapTxType($txType),
-            'OrderId'                 => $order['id'],
-            'CurrencyAmount'          => '1000.00',
-            'CurrencyCode'            => 949,
-            'ClientIp'                => $order['ip'],
-            'TransactionDeviceSource' => 0,
-            'Pan'                     => $creditCard->getNumber(),
-            'Expiry'                  => '202112',
-            'Cvv'                     => $creditCard->getCvv(),
+            [
+                'order'    => [
+                    'id'     => 'order123',
+                    'amount' => 1000,
+                    'ip'     => '127.0.0.1',
+                ],
+                'expected' => [
+                    'MerchantId'             => '000000000111111',
+                    'Password'               => '3XTgER89as',
+                    'TerminalNo'             => 'VP999999',
+                    'TransactionType'        => 'Capture',
+                    'ReferenceTransactionId' => 'order123',
+                    'CurrencyAmount'         => '1000.00',
+                    'CurrencyCode'           => '949',
+                    'ClientIp'               => '127.0.0.1',
+                ],
+            ],
         ];
     }
 
     /**
-     * @param PayFlexAccount $posAccount
-     * @param array          $order
-     *
      * @return array
      */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $posAccount, array $order): array
+    public static function create3DFormDataDataProvider(): array
     {
         return [
-            'MerchantId'             => $posAccount->getClientId(),
-            'Password'               => $posAccount->getPassword(),
-            'TerminalNo'             => $posAccount->getTerminalId(),
-            'TransactionType'        => 'Capture',
-            'ReferenceTransactionId' => $order['id'],
-            'CurrencyAmount'         => '1000.00',
-            'CurrencyCode'           => '949',
-            'ClientIp'               => $order['ip'],
-        ];
-    }
+            [
+                'response' => self::getSampleEnrollmentSuccessResponseDataProvider()['Message']['VERes'],
+                'expected' => [
+                    'gateway' => 'http',
+                    'method'  => 'POST',
+                    'inputs'  => [
 
-    /**
-     * @return array
-     */
-    private function getSample3DFormDataFromEnrollmentResponse(): array
-    {
-        $inputs = [
-            'PaReq'   => 'PaReq2',
-            'TermUrl' => 'TermUrl2',
-            'MD'      => 'MD3',
-        ];
-
-        return [
-            'gateway' => 'http',
-            'method'  => 'POST',
-            'inputs'  => $inputs,
+                        'PaReq'   => 'PaReq2',
+                        'TermUrl' => 'TermUrl2',
+                        'MD'      => 'MD3',
+                    ],
+                ],
+            ],
         ];
     }
 }

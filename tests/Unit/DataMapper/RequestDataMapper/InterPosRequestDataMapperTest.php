@@ -125,13 +125,13 @@ class InterPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createNonSecurePaymentRequestDataDataProvider
      */
-    public function testCreateNonSecurePaymentRequestData(array $order, CreditCardInterface $card, array $expected): void
+    public function testCreateNonSecurePaymentRequestData(array $order, CreditCardInterface $creditCard, array $expected): void
     {
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData(
             $this->account,
             $order,
             PosInterface::TX_TYPE_PAY_AUTH,
-            $card
+            $creditCard
         );
 
         $this->assertSame($expected, $actual);
