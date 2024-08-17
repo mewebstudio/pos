@@ -96,6 +96,7 @@ class InterPosResponseDataMapperTest extends TestCase
         } else {
             $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         }
+
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('3d_all', $actualData);

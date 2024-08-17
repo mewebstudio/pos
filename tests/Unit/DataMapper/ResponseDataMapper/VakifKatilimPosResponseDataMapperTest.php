@@ -17,6 +17,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\VakifKatilimPosResponseDataMapper
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper
  */
 class VakifKatilimPosResponseDataMapperTest extends TestCase
 {
@@ -220,16 +221,22 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapHistoryResponse(json_decode($responseData, true));
 
         $this->assertCount(31, $actualData['transactions']);
-
-        if (count($actualData['transactions']) > 1
-            && null !== $actualData['transactions'][0]['transaction_time']
-            && null !== $actualData['transactions'][1]['transaction_time']
-        ) {
-            $this->assertGreaterThan(
-                $actualData['transactions'][0]['transaction_time'],
-                $actualData['transactions'][1]['transaction_time'],
-            );
+        if (count($actualData['transactions']) <= 1) {
+            return;
         }
+
+        if (null === $actualData['transactions'][0]['transaction_time']) {
+            return;
+        }
+
+        if (null === $actualData['transactions'][1]['transaction_time']) {
+            return;
+        }
+
+        $this->assertGreaterThan(
+            $actualData['transactions'][0]['transaction_time'],
+            $actualData['transactions'][1]['transaction_time'],
+        );
     }
 
 

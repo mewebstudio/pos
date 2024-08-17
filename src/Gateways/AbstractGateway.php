@@ -314,6 +314,7 @@ abstract class AbstractGateway implements PosInterface
         if (isset($order['order_amount']) && $order['amount'] < $order['order_amount']) {
             $txType = PosInterface::TX_TYPE_REFUND_PARTIAL;
         }
+
         $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
         $event = new RequestDataPreparedEvent(

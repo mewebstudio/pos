@@ -17,6 +17,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper
  */
 class GarantiPosResponseDataMapperTest extends TestCase
 {
@@ -1789,6 +1790,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                     new \DateTimeZone($item['transaction_time']['timezone'])
                 );
             }
+
             if (null !== $item['capture_time']) {
                 $item['capture_time'] = new \DateTimeImmutable(
                     $item['capture_time']['date'],

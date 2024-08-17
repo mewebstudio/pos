@@ -213,6 +213,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             if (\strlen($txTime) === 10) { // ziraat is sending host date without year
                 $txTime = date('Y').$txTime;
             }
+
             $commonResponse['transaction_time'] = new \DateTimeImmutable($txTime);
             $commonResponse['auth_code']        = $rawPaymentResponseData['AuthCode'];
             $commonResponse['ref_ret_num']      = $rawPaymentResponseData['TransactionId'];
