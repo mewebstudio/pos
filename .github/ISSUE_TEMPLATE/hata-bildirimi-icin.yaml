@@ -20,6 +20,8 @@ body:
     id: bank_name
     attributes:
       label: Banka ismi
+      description: |
+        Sanal POS hizmeti aldığınız bankanın ismi.
     validations:
       required: true
   - type: dropdown
