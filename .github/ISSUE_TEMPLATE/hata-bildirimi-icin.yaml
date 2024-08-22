@@ -27,7 +27,7 @@ body:
   - type: dropdown
     id: gateway_class
     attributes:
-      label: Gateway ismi
+      label: Gateway PHP sınıfı
       options:
         - AkbankPos
         - EstV3Pos
