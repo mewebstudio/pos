@@ -232,20 +232,36 @@ class PosNetTest extends TestCase
                 ->with($this->account, $order, $txType, $request->request->all())
                 ->willReturn($create3DPaymentRequestData);
 
-            $this->serializerMock->expects(self::exactly(2))
+
+            $matcher = self::exactly(2);
+            $updatedRequestDataPreparedEvent1 = null;
+            $updatedRequestDataPreparedEvent2 = null;
+
+            $this->serializerMock->expects($matcher)
                 ->method('encode')
-                ->willReturnMap([
-                    [
-                        $resolveMerchantRequestData,
-                        $txType,
-                        'resolveMerchantRequestData-body',
-                    ],
-                    [
-                        $create3DPaymentRequestData,
-                        $txType,
-                        'payment-request-body',
-                    ],
-                ]);
+                ->with($this->callback(function ($requestData) use ($matcher, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2) {
+                    if ($matcher->getInvocationCount() === 1) {
+                        return $updatedRequestDataPreparedEvent1->getRequestData() === $requestData;
+                    }
+
+                    if ($matcher->getInvocationCount() === 2) {
+                        return $updatedRequestDataPreparedEvent2->getRequestData() === $requestData;
+                    }
+
+                    return true;
+                }), $this->callback(function ($txT) use ($txType) {
+                    return $txT === $txType;
+                }))
+                ->willReturnCallback(function () use ($matcher) {
+                    if ($matcher->getInvocationCount() === 1) {
+                        return 'resolveMerchantRequestData-body';
+                    }
+                    if ($matcher->getInvocationCount() === 2) {
+                        return 'payment-request-body';
+                    }
+
+                    return null;
+                });
 
             $this->serializerMock->expects(self::exactly(2))
                 ->method('decode')
@@ -289,23 +305,62 @@ class PosNetTest extends TestCase
             );
 
             $paymentModel = PosInterface::MODEL_3D_SECURE;
-            $this->eventDispatcherMock->expects(self::exactly(2))
+
+            $matcher2 = self::exactly(2);
+            $this->eventDispatcherMock->expects($matcher2)
                 ->method('dispatch')
-                // could not find another way expect using deprecated withConsecutive() function
-                ->withConsecutive(
-                    [$this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                        && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                        && $txType === $dispatchedEvent->getTxType()
-                        && $resolveMerchantRequestData === $dispatchedEvent->getRequestData()
-                        && $order === $dispatchedEvent->getOrder()
-                        && $paymentModel === $dispatchedEvent->getPaymentModel())],
-                    [$this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                        && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                        && $txType === $dispatchedEvent->getTxType()
-                        && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
-                        && $order === $dispatchedEvent->getOrder()
-                        && $paymentModel === $dispatchedEvent->getPaymentModel())]
-                );
+                ->with($this->logicalAnd(
+                    $this->isInstanceOf(RequestDataPreparedEvent::class),
+                    $this->callback(function ($dispatchedEvent) use (
+                        $resolveMerchantRequestData,
+                        $create3DPaymentRequestData,
+                        $txType,
+                        $order,
+                        $paymentModel,
+                        $matcher2,
+                        &$updatedRequestDataPreparedEvent1,
+                        &$updatedRequestDataPreparedEvent2
+                    ) {
+                        if ($matcher2->getInvocationCount() === 1) {
+                            $updatedRequestDataPreparedEvent1 = $dispatchedEvent;
+
+                            return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                                && $txType === $dispatchedEvent->getTxType()
+                                && $resolveMerchantRequestData === $dispatchedEvent->getRequestData()
+                                && $order === $dispatchedEvent->getOrder()
+                                && $paymentModel === $dispatchedEvent->getPaymentModel();
+                        }
+
+                        if ($matcher2->getInvocationCount() === 2) {
+                            $updatedRequestDataPreparedEvent2 = $dispatchedEvent;
+
+                            return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                                && $txType === $dispatchedEvent->getTxType()
+                                && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
+                                && $order === $dispatchedEvent->getOrder()
+                                && $paymentModel === $dispatchedEvent->getPaymentModel();
+                        }
+
+                        return false;
+                    })))
+                ->willReturnCallback(function () use ($matcher2, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2) {
+                    if ($matcher2->getInvocationCount() === 1) {
+                        $updatedRequestData = $updatedRequestDataPreparedEvent1->getRequestData();
+                        $updatedRequestData['test-update-request-data-with-event'] = true;
+                        $updatedRequestDataPreparedEvent1->setRequestData($updatedRequestData);
+
+                        return $updatedRequestDataPreparedEvent1;
+                    }
+                    if ($matcher2->getInvocationCount() === 2) {
+                        $updatedRequestData = $updatedRequestDataPreparedEvent2->getRequestData();
+                        $updatedRequestData['test-update-request-data-with-event'] = true;
+                        $updatedRequestDataPreparedEvent2->setRequestData($updatedRequestData);
+
+                        return $updatedRequestDataPreparedEvent2;
+                    }
+
+                    return false;
+                });
 
             $this->responseMapperMock->expects(self::once())
                 ->method('map3DPaymentData')
@@ -658,9 +713,11 @@ class PosNetTest extends TestCase
         string $paymentModel
     ): void
     {
+        $updatedRequestDataPreparedEvent = null;
+
         $this->serializerMock->expects(self::once())
             ->method('encode')
-            ->with($requestData, $txType)
+            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
             ->willReturn($encodedRequestData);
 
         $this->serializerMock->expects(self::once())
@@ -682,11 +739,24 @@ class PosNetTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                && $txType === $dispatchedEvent->getTxType()
-                && $requestData === $dispatchedEvent->getRequestData()
-                && $order === $dispatchedEvent->getOrder()
-                && $paymentModel === $dispatchedEvent->getPaymentModel()));
+            ->with($this->logicalAnd(
+                $this->isInstanceOf(RequestDataPreparedEvent::class),
+                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                    $updatedRequestDataPreparedEvent = $dispatchedEvent;
+
+                    return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $requestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel();
+                }
+                )))
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent) {
+                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData['test-update-request-data-with-event'] = true;
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+
+                return $updatedRequestDataPreparedEvent;
+            });
     }
 }

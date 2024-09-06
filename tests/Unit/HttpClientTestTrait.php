@@ -6,11 +6,15 @@
 namespace Mews\Pos\Tests\Unit;
 
 use Mews\Pos\Client\HttpClient;
+use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 
 trait HttpClientTestTrait
 {
+    /**
+     * @param HttpClient|MockObject $httpClient
+     */
     private function prepareClient(
         HttpClient $httpClient,
         string $responseContent,
@@ -26,6 +30,9 @@ trait HttpClientTestTrait
             ->willReturn($responseMock);
     }
 
+    /**
+     * @param HttpClient|MockObject $httpClient
+     */
     private function prepareHttpClientRequestMulti(
         HttpClient $httpClient,
         array $responseContents,

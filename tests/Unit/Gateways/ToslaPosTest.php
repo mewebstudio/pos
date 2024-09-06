@@ -881,10 +881,13 @@ class ToslaPosTest extends TestCase
         string $paymentModel
     ): void
     {
+        $updatedRequestDataPreparedEvent = null;
+
         $this->serializerMock->expects(self::once())
             ->method('encode')
-            ->with($requestData, $txType)
+            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
             ->willReturn($encodedRequestData);
+
         $this->serializerMock->expects(self::once())
             ->method('decode')
             ->with($responseContent, $txType)
@@ -904,11 +907,24 @@ class ToslaPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                && $txType === $dispatchedEvent->getTxType()
-                && $requestData === $dispatchedEvent->getRequestData()
-                && $order === $dispatchedEvent->getOrder()
-                && $paymentModel === $dispatchedEvent->getPaymentModel()));
+            ->with($this->logicalAnd(
+                $this->isInstanceOf(RequestDataPreparedEvent::class),
+                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                    $updatedRequestDataPreparedEvent = $dispatchedEvent;
+
+                    return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $requestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel();
+                }
+                )))
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent) {
+                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData['test-update-request-data-with-event'] = true;
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+
+                return $updatedRequestDataPreparedEvent;
+            });
     }
 }

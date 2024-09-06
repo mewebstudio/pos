@@ -229,7 +229,8 @@ class ToslaPos extends AbstractGateway
             $order,
             $paymentModel
         );
-        $this->eventDispatcher->dispatch($event);
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
