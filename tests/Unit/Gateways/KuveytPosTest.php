@@ -179,7 +179,7 @@ class KuveytPosTest extends TestCase
     /**
      * @dataProvider getApiUrlExceptionDataProvider
      */
-    public function testGetApiURLException(string $txType, string $paymentModel, string $exceptionClass): void
+    public function testGetApiURLException(?string $txType, ?string $paymentModel, string $exceptionClass): void
     {
         $this->expectException($exceptionClass);
 
@@ -544,11 +544,6 @@ class KuveytPosTest extends TestCase
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
             ],
-            [
-                'txType'       => null,
-                'paymentModel' => null,
-                'expected'     => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home',
-            ],
         ];
     }
 
@@ -559,6 +554,26 @@ class KuveytPosTest extends TestCase
                 'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel'    => PosInterface::MODEL_3D_PAY,
                 'exception_class' => UnsupportedTransactionTypeException::class,
+            ],
+            [
+                'txType'          => PosInterface::TX_TYPE_PAY_PRE_AUTH,
+                'paymentModel'    => PosInterface::MODEL_NON_SECURE,
+                'exception_class' => UnsupportedTransactionTypeException::class,
+            ],
+            [
+                'txType'          => null,
+                'paymentModel'    => null,
+                'exception_class' => \InvalidArgumentException::class,
+            ],
+            [
+                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel'    => null,
+                'exception_class' => \InvalidArgumentException::class,
+            ],
+            [
+                'txType'          => null,
+                'paymentModel'    => PosInterface::MODEL_3D_PAY,
+                'exception_class' => \InvalidArgumentException::class,
             ],
         ];
     }

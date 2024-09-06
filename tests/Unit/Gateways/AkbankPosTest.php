@@ -132,6 +132,16 @@ class AkbankPosTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
+    /**
+     * @dataProvider getApiUrlExceptionDataProvider
+     */
+    public function testGetApiURLException(?string $txType, string $exceptionClass): void
+    {
+        $this->expectException($exceptionClass);
+
+        $this->pos->getApiURL($txType);
+    }
+
     public function testGet3DGatewayURL(): void
     {
         $actual = $this->pos->get3DGatewayURL();
@@ -657,10 +667,15 @@ class AkbankPosTest extends TestCase
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/portal/report/transaction',
             ],
+        ];
+    }
+
+    public static function getApiUrlExceptionDataProvider(): array
+    {
+        return [
             [
-                'txType'       => null,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos',
+                'txType'          => null,
+                'exception_class' => \InvalidArgumentException::class,
             ],
         ];
     }

@@ -60,6 +60,7 @@ class PosNetV1Pos extends AbstractGateway
      * @inheritDoc
      *
      * @throws UnsupportedTransactionTypeException
+     * @throws \InvalidArgumentException when transaction type is not provided
      */
     public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
@@ -67,7 +68,7 @@ class PosNetV1Pos extends AbstractGateway
             return parent::getApiURL().'/'.$this->requestDataMapper->mapTxType($txType);
         }
 
-        return parent::getApiURL();
+        throw new \InvalidArgumentException('Transaction type is required to generate API URL');
     }
 
     /**

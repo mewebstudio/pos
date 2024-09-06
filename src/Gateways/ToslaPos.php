@@ -69,6 +69,7 @@ class ToslaPos extends AbstractGateway
      * @inheritDoc
      *
      * @throws UnsupportedTransactionTypeException
+     * @throws \InvalidArgumentException when transaction type or payment model are not provided
      */
     public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
@@ -76,7 +77,7 @@ class ToslaPos extends AbstractGateway
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
         }
 
-        return parent::getApiURL();
+        throw new \InvalidArgumentException('Transaction type and payment model are required to generate API URL');
     }
 
     /**

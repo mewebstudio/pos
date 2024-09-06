@@ -133,6 +133,15 @@ class ToslaPosTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
+    /**
+     * @dataProvider getApiUrlExceptionDataProvider
+     */
+    public function testGetApiURLException(?string $txType, ?string $paymentModel, string $exceptionClass): void
+    {
+        $this->expectException($exceptionClass);
+        $this->pos->getApiURL($txType, $paymentModel);
+    }
+
     public function testGet3DGatewayURL(): void
     {
         $actual = $this->pos->get3DGatewayURL();
@@ -855,6 +864,37 @@ class ToslaPosTest extends TestCase
                 'txType'       => PosInterface::TX_TYPE_ORDER_HISTORY,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://ent.akodepos.com/api/Payment/history',
+            ],
+        ];
+    }
+
+    public static function getApiUrlExceptionDataProvider(): array
+    {
+        return [
+            [
+                'txType'          => PosInterface::TX_TYPE_HISTORY,
+                'paymentModel'    => PosInterface::MODEL_NON_SECURE,
+                'exception_class' => UnsupportedTransactionTypeException::class,
+            ],
+            [
+                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel'    => PosInterface::MODEL_3D_SECURE,
+                'exception_class' => UnsupportedTransactionTypeException::class,
+            ],
+            [
+                'txType'          => null,
+                'paymentModel'    => null,
+                'exception_class' => \InvalidArgumentException::class,
+            ],
+            [
+                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel'    => null,
+                'exception_class' => \InvalidArgumentException::class,
+            ],
+            [
+                'txType'          => null,
+                'paymentModel'    => PosInterface::MODEL_3D_PAY,
+                'exception_class' => \InvalidArgumentException::class,
             ],
         ];
     }

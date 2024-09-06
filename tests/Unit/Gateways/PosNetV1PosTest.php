@@ -142,6 +142,15 @@ class PosNetV1PosTest extends TestCase
         $this->assertSame($expected, $this->pos->getApiURL($txType));
     }
 
+    public function testGetApiURLException(): void
+    {
+        $this->requestMapperMock->expects(self::never())
+            ->method('mapTxType');
+
+        $this->expectException(\InvalidArgumentException::class);
+        $this->pos->getApiURL();
+    }
+
     /**
      * @testWith [true]
      * [false]
