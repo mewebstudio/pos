@@ -12,6 +12,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -192,6 +193,27 @@ class ToslaPosTest extends TestCase
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
+    public function testMake3DPayPaymentHashMismatchException(): void
+    {
+        $data = ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
+        $request = Request::create('', 'POST', $data);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->willReturn(true);
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $data)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPayResponseData');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
     /**
      * @dataProvider make3DPayPaymentDataProvider
      */
@@ -230,6 +252,27 @@ class ToslaPosTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public function testMake3DHostPaymentHashMismatchException(): void
+    {
+        $data = ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
+        $request = Request::create('', 'POST', $data);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->willReturn(true);
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $data)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DHostResponseData');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     /**
@@ -559,7 +602,11 @@ class ToslaPosTest extends TestCase
             'auth_fail' => [
                 'order'       => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['order'],
                 'txType'      => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['txType'],
-                'request'     => Request::create('', 'POST', ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData']),
+                'request'     => Request::create(
+                    '',
+                    'POST',
+                    ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData']
+                ),
                 'expected'    => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['expectedData'],
                 'is3DSuccess' => false,
                 'isSuccess'   => false,
@@ -567,7 +614,11 @@ class ToslaPosTest extends TestCase
             'success'   => [
                 'order'       => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['order'],
                 'txType'      => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['txType'],
-                'request'     => Request::create('', 'POST', ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']),
+                'request'     => Request::create(
+                    '',
+                    'POST',
+                    ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']
+                ),
                 'expected'    => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['expectedData'],
                 'is3DSuccess' => true,
                 'isSuccess'   => true,

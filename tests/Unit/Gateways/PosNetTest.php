@@ -15,6 +15,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -392,6 +393,48 @@ class PosNetTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public function testMake3DPaymentHashMismatchException(): void
+    {
+        $resolveResponse = PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'];
+        $request = Request::create(
+            '',
+            'POST',
+            $resolveResponse
+        );
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $resolveResponse['oosResolveMerchantDataResponse'])
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->willReturn(true);
+
+        $resolveMerchantRequestData = [
+            'resolveMerchantRequestData',
+        ];
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DResolveMerchantRequestData')
+            ->willReturn($resolveMerchantRequestData);
+
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DPaymentRequestData');
+
+        $this->configureClientResponse(
+            PosInterface::TX_TYPE_PAY_AUTH,
+            'https://setmpos.ykb.com/PosnetWebService/XML',
+            $resolveMerchantRequestData,
+            'request-body',
+            'response-body',
+            $resolveResponse,
+            [],
+            PosInterface::MODEL_3D_SECURE
+        );
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     public function testMake3DHostPayment(): void

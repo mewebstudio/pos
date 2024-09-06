@@ -12,6 +12,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PayForPos;
@@ -256,6 +257,35 @@ class PayForTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public function testMake3DPaymentHashMismatchException(): void
+    {
+        $data = PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'];
+        $request = Request::create('', 'POST', $data);
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $data)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->willReturn(true);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPaymentData');
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DPaymentRequestData');
+        $this->serializerMock->expects(self::never())
+            ->method('encode');
+        $this->serializerMock->expects(self::never())
+            ->method('decode');
+        $this->eventDispatcherMock->expects(self::never())
+            ->method('dispatch');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     /**
@@ -556,7 +586,11 @@ class PayForTest extends TestCase
             'auth_fail'                  => [
                 'order'           => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['order'],
                 'txType'          => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['txType'],
-                'request'         => Request::create('', 'POST', PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['threeDResponseData']),
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['threeDResponseData']
+                ),
                 'paymentResponse' => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['paymentData'],
                 'expected'        => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['auth_fail1']['expectedData'],
                 'is3DSuccess'     => false,
@@ -565,7 +599,11 @@ class PayForTest extends TestCase
             'order_number_already_exist' => [
                 'order'           => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['order_number_already_exist']['order'],
                 'txType'          => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['order_number_already_exist']['txType'],
-                'request'         => Request::create('', 'POST', PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['order_number_already_exist']['threeDResponseData']),
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['order_number_already_exist']['threeDResponseData']
+                ),
                 'paymentResponse' => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['order_number_already_exist']['paymentData'],
                 'expected'        => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['order_number_already_exist']['expectedData'],
                 'is3DSuccess'     => false,
@@ -574,7 +612,11 @@ class PayForTest extends TestCase
             'success'                    => [
                 'order'           => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
                 'txType'          => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create('', 'POST', PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']),
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
+                ),
                 'paymentResponse' => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
                 'expected'        => PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
                 'is3DSuccess'     => true,

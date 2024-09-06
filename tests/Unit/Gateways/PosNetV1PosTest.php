@@ -12,6 +12,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -249,6 +250,36 @@ class PosNetV1PosTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public function testMake3DPaymentHashMismatchException(): void
+    {
+        $dataSamples = iterator_to_array(PosNetV1PosResponseDataMapperTest::threeDPaymentDataProvider());
+        $data = $dataSamples['3d_auth_success_payment_fail']['threeDResponseData'];
+        $request = Request::create('', 'POST', $data);
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $data)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->willReturn(true);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPaymentData');
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DPaymentRequestData');
+        $this->serializerMock->expects(self::never())
+            ->method('encode');
+        $this->serializerMock->expects(self::never())
+            ->method('decode');
+        $this->eventDispatcherMock->expects(self::never())
+            ->method('dispatch');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     public function testMake3DHostPayment(): void

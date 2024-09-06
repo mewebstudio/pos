@@ -353,6 +353,34 @@ class KuveytPosTest extends TestCase
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
+    public function testMake3DPaymentException(): void
+    {
+        $request = Request::create('');
+
+        $this->cryptMock->expects(self::never())
+            ->method('check3DHash');
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('extractMdStatus');
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('is3dAuthSuccess');
+
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPaymentData');
+
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DPaymentRequestData');
+        $this->serializerMock->expects(self::never())
+            ->method('encode');
+        $this->serializerMock->expects(self::never())
+            ->method('decode');
+
+        $this->expectException(\LogicException::class);
+        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
