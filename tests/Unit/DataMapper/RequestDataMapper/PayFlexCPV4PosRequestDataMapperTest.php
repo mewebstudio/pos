@@ -23,6 +23,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class PayFlexCPV4PosRequestDataMapperTest extends TestCase
 {
@@ -159,10 +160,37 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         $this->assertSame($expected, $actualData);
     }
 
+    public function testCreate3DPaymentRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            [],
+            PosInterface::TX_TYPE_PAY_AUTH,
+            []
+        );
+    }
+
+    public function testCreateStatusRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createStatusRequestData($this->account, []);
+    }
+
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account);
+    }
+
+    public function testCreateOrderHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createOrderHistoryRequestData($this->account, []);
+    }
+
     public static function registerDataProvider(): iterable
     {
-        $config = require __DIR__.'/../../../../config/pos_test.php';
-
         $account = AccountFactory::createPayFlexAccount(
             'vakifbank-cp',
             '000000000111111',

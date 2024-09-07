@@ -203,6 +203,12 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account);
+    }
+
     /**
      * @dataProvider threeDPaymentRequestDataDataProvider
      */

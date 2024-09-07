@@ -23,6 +23,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class PosNetV1PosRequestDataMapperTest extends TestCase
 {
@@ -233,6 +234,18 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     {
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
+    }
+
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account);
+    }
+
+    public function testCreateOrderHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createOrderHistoryRequestData($this->account, []);
     }
 
     /**

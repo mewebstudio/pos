@@ -19,6 +19,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class ToslaPosRequestDataMapperTest extends TestCase
 {
@@ -249,6 +250,24 @@ class ToslaPosRequestDataMapperTest extends TestCase
         ksort($expected);
         $this->assertSame($expected, $actual);
     }
+
+    public function testCreate3DPaymentRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            [],
+            PosInterface::TX_TYPE_PAY_AUTH,
+            []
+        );
+    }
+
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account);
+    }
+
 
     public static function statusRequestDataProvider(): array
     {

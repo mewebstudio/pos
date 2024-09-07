@@ -22,6 +22,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class PosNetRequestDataMapperTest extends TestCase
 {
@@ -268,6 +269,18 @@ class PosNetRequestDataMapperTest extends TestCase
         \ksort($actual);
         \ksort($expectedData);
         $this->assertSame($expectedData, $actual);
+    }
+
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account);
+    }
+
+    public function testCreateOrderHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createOrderHistoryRequestData($this->account, []);
     }
 
     public static function threeDFormDataDataProvider(): array
