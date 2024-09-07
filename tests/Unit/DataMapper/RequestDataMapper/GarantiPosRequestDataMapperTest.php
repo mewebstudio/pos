@@ -308,6 +308,34 @@ class GarantiPosRequestDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actual);
     }
 
+    public function testCreateRefundRequestDataWithoutRefundCredentials(): void
+    {
+        $this->account = AccountFactory::createGarantiPosAccount(
+            'garanti',
+            '7000679',
+            'PROVAUT',
+            '123qweASD/',
+            '30691298',
+            PosInterface::MODEL_3D_SECURE,
+            '12345678',
+        );
+        $order = [
+            'id'          => '2020110828BC',
+            'ip'          => '127.15.15.1',
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'amount'      => 123.1,
+            'ref_ret_num' => '831803579226',
+            'installment' => 0,
+        ];
+
+        $this->expectException(\LogicException::class);
+        $this->requestDataMapper->createRefundRequestData(
+            $this->account,
+            $order,
+            PosInterface::TX_TYPE_REFUND
+        );
+    }
+
     /**
      * @param GarantiPosAccount $posAccount
      * @param                   $order

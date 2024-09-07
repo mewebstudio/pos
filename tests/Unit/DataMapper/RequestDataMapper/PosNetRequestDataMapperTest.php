@@ -246,7 +246,25 @@ class PosNetRequestDataMapperTest extends TestCase
             $ooTxSuccessData['oosRequestDataResponse']
         );
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * @dataProvider threeDFormDataDataProvider
+     */
+    public function testCreate3DFormDataWithMissingData(): void
+    {
+        $this->dispatcher->expects(self::never())
+            ->method('dispatch');
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->requestDataMapper->create3DFormData(
+            $this->account,
+            [],
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            '/api',
+        );
     }
 
     /**
@@ -307,10 +325,10 @@ class PosNetRequestDataMapperTest extends TestCase
                     'gateway' => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
                     'method'  => 'POST',
                     'inputs'  => [
-                        'posnetData'        => 'AEFE78BFC852867FF57078B723E284D1BD52EED8264C6CBD110A1A9EA5EAA7533D1A82EFD614032D686C507738FDCDD2EDD00B22DEFEFE0795DC4674C16C02EBBFEC9DF0F495D5E23BE487A798BF8293C7C1D517D9600C96CBFD8816C9D8F8257442906CB9B10D8F1AABFBBD24AA6FB0E5533CDE67B0D9EA5ED621B91BF6991D5362182302B781241B56E47BAE1E86BC3D5AE7606212126A4E97AFC2',
-                        'posnetData2'       => '69D04861340091B7014B15158CA3C83413031B406F08B3792A0114C9958E6F0F216966C5EE32EAEEC7158BFF59DFCB77E20CD625',
                         'mid'               => '6706598320',
                         'posnetID'          => '27426',
+                        'posnetData'        => 'AEFE78BFC852867FF57078B723E284D1BD52EED8264C6CBD110A1A9EA5EAA7533D1A82EFD614032D686C507738FDCDD2EDD00B22DEFEFE0795DC4674C16C02EBBFEC9DF0F495D5E23BE487A798BF8293C7C1D517D9600C96CBFD8816C9D8F8257442906CB9B10D8F1AABFBBD24AA6FB0E5533CDE67B0D9EA5ED621B91BF6991D5362182302B781241B56E47BAE1E86BC3D5AE7606212126A4E97AFC2',
+                        'posnetData2'       => '69D04861340091B7014B15158CA3C83413031B406F08B3792A0114C9958E6F0F216966C5EE32EAEEC7158BFF59DFCB77E20CD625',
                         'digest'            => '9998F61E1D0C0FB6EC5203A748124F30',
                         'merchantReturnURL' => 'https://domain.com/success',
                         'url'               => '',
@@ -386,6 +404,25 @@ class PosNetRequestDataMapperTest extends TestCase
                     'reverse'          => [
                         'transaction' => 'sale',
                         'hostLogKey'  => '019676067890000191',
+                    ],
+                ],
+            ],
+            'with_auth_code'   => [
+                'order'    => [
+                    'id'            => '2020110828BC',
+                    'auth_code'     => '901477',
+                    'payment_model' => PosInterface::MODEL_3D_SECURE,
+                    'amount'        => 50,
+                    'currency'      => PosInterface::CURRENCY_TRY,
+                ],
+                'expected' => [
+                    'mid'              => '6706598320',
+                    'tid'              => '67005551',
+                    'tranDateRequired' => '1',
+                    'reverse'          => [
+                        'transaction' => 'sale',
+                        'authCode'    => '901477',
+                        'orderID'     => 'TDSC000000002020110828BC',
                     ],
                 ],
             ],

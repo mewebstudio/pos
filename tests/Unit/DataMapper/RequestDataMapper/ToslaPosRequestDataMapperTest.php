@@ -488,13 +488,17 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 ],
                 'tx_type'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'payment_model' => PosInterface::MODEL_3D_PAY,
-                'is_with_card'  => false,
+                'is_with_card'  => true,
                 'gateway'       => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
-                'expected'      => [
+                'expected' => [
                     'gateway' => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
                     'method'  => 'POST',
                     'inputs'  => [
                         'ThreeDSessionId' => 'P6D383818909442128AB50AB1EC7A4B83080874341688447DA74B90150C8857F2',
+                        'CardHolderName'  => 'ahmet',
+                        'CardNo'          => '5555444433332222',
+                        'ExpireDate'      => '01/22',
+                        'Cvv'             => '123',
                     ],
                 ],
             ],
