@@ -182,7 +182,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider threeDFormDataTestProvider
      */
-    public function testCreate3DFormData(array $order, string $txType, string $gatewayUrl, array $expected): void
+    public function testCreate3DFormData(array $order, string $txType, string $gatewayUrl, ?CreditCardInterface $card, array $expected): void
     {
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $this->dispatcher->expects(self::once())
@@ -199,10 +199,10 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             $paymentModel,
             $txType,
             $gatewayUrl,
-            $this->card
+            $card
         );
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -261,12 +261,17 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'lang'        => PosInterface::LANG_TR,
         ];
+        $card = CreditCardFactory::create('5400619360964581', '20', '01', '056', 'ahmet');
+
         $gatewayUrl = 'https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx';
         yield [
             'order'      => $order,
             'txType'     => PosInterface::TX_TYPE_PAY_AUTH,
             'gatewayUrl' => $gatewayUrl,
+            'card'       => $card,
             'expected'   => [
+                'gateway' => $gatewayUrl,
+                'method'  => 'POST',
                 'inputs'  => [
                     'MerchantNo'        => '6700950031',
                     'TerminalNo'        => '67540050',
@@ -288,8 +293,34 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                     'UseOOS'            => '0',
                     'Mac'               => 'xuhPbpcPJ6kVs7JeIXS8f06Cv0mb9cNPMfjp1HiB7Ew=',
                 ],
-                'method'  => 'POST',
+            ],
+        ];
+
+        yield '3d_host_order' => [
+            'order'      => $order,
+            'txType'     => PosInterface::TX_TYPE_PAY_AUTH,
+            'gatewayUrl' => $gatewayUrl,
+            'card'       => null,
+            'expected'   => [
                 'gateway' => $gatewayUrl,
+                'method'  => 'POST',
+                'inputs'  => [
+                    'MerchantNo'        => '6700950031',
+                    'TerminalNo'        => '67540050',
+                    'PosnetID'          => '1010028724242434',
+                    'TransactionType'   => 'Sale',
+                    'OrderId'           => '0000000620093100_024',
+                    'Amount'            => '175',
+                    'CurrencyCode'      => 'TL',
+                    'MerchantReturnURL' => 'https://domain.com/success',
+                    'InstallmentCount'  => '0',
+                    'Language'          => 'tr',
+                    'TxnState'          => 'INITIAL',
+                    'OpenNewWindow'     => '0',
+                    'UseOOS'            => '1',
+                    'MacParams'         => 'MerchantNo:TerminalNo:Amount',
+                    'Mac'               => 'UBdwWJh9rBCM0YWkBti7vHZm2G+nag16hAguohNrq1Y=',
+                ],
             ],
         ];
     }

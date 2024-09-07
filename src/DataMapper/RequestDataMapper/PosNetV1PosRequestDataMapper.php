@@ -382,7 +382,8 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
                  * UseOOS alanını 1 yaparak bankanın ortak ödeme sayfasının açılmasını ve
                  * bu ortak ödeme sayfası ile müşterinin kart bilgilerini girmesini sağlatabilir.
                  */
-                'UseOOS' => '1',
+                'UseOOS'    => '1',
+                'MacParams' => 'MerchantNo:TerminalNo:Amount',
             ];
         }
 
