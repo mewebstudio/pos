@@ -3,6 +3,7 @@ root = true
 
 # Unix-style newlines with a newline ending every file
 [*]
+charset = utf-8
 end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
@@ -10,6 +11,11 @@ trim_trailing_whitespace = true
 [*.php]
 indent_style = space
 indent_size = 4
+
+ij_php_align_assignments = true
+ij_php_align_class_constants = true
+ij_php_align_key_value_pairs = true
+ij_php_phpdoc_param_spaces_between_tag_and_type = 1
 
 [*.md]
 max_line_length = 80
