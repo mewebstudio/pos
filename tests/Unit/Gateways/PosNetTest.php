@@ -183,6 +183,21 @@ class PosNetTest extends TestCase
         $this->pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $txType, $this->card);
     }
 
+    public function testGet3DFormDataWithoutCard(): void
+    {
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DEnrollmentCheckRequestData');
+
+        $this->httpClientMock->expects(self::never())
+            ->method('post');
+
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
+        $this->expectException(\LogicException::class);
+        $this->pos->get3DFormData([], PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
     /**
      * @dataProvider make3DPaymentDataProvider
      */

@@ -204,7 +204,7 @@ class ToslaPosTest extends TestCase
 
     public function testMake3DPayPaymentHashMismatchException(): void
     {
-        $data = ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
+        $data    = ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
         $request = Request::create('', 'POST', $data);
 
         $this->responseMapperMock->expects(self::once())
@@ -265,7 +265,7 @@ class ToslaPosTest extends TestCase
 
     public function testMake3DHostPaymentHashMismatchException(): void
     {
-        $data = ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
+        $data    = ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
         $request = Request::create('', 'POST', $data);
 
         $this->responseMapperMock->expects(self::once())
@@ -342,6 +342,54 @@ class ToslaPosTest extends TestCase
         $actual = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
         $this->assertSame($actual, $formData);
+    }
+
+    public function testGet3DFormDataWithoutCard(): void
+    {
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DEnrollmentCheckRequestData');
+
+        $this->httpClientMock->expects(self::never())
+            ->method('post');
+
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
+        $this->expectException(\LogicException::class);
+        $this->pos->get3DFormData([], PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
+    /**
+     * @return void
+     *
+     * @dataProvider registerFailResponseDataProvider
+     */
+    public function testGet3DFormDataRegisterPaymentFail(array $response): void
+    {
+        $txType      = PosInterface::TX_TYPE_PAY_AUTH;
+        $requestData = ['request-data'];
+        $order       = ['order'];
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DEnrollmentCheckRequestData')
+            ->with($this->pos->getAccount(), $order)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            'https://ent.akodepos.com/api/Payment/threeDPayment',
+            $requestData,
+            'encoded-request',
+            'response-body',
+            $response,
+            $order,
+            PosInterface::MODEL_3D_PAY
+        );
+
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
+        $this->expectException(\RuntimeException::class);
+        $this->pos->get3DFormData($order, PosInterface::MODEL_3D_PAY, $txType, $this->card);
     }
 
     /**
@@ -491,8 +539,8 @@ class ToslaPosTest extends TestCase
         bool   $isSuccess
     ): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_ORDER_HISTORY;
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_ORDER_HISTORY;
 
         $this->requestMapperMock->expects(self::once())
             ->method('createOrderHistoryRequestData')
@@ -957,6 +1005,20 @@ class ToslaPosTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url' => 'https://ent.akodepos.com/api/Payment/refund',
+            ],
+        ];
+    }
+
+    public static function registerFailResponseDataProvider(): array
+    {
+        return [
+            'merchant_not_found' => [
+                'response' => [
+                    'Code'            => 202,
+                    'Message'         => 'Üye İşyeri Kullanıcısı Bulunamadı',
+                    'ThreeDSessionId' => null,
+                    'TransactionId'   => null,
+                ],
             ],
         ];
     }

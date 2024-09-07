@@ -549,6 +549,19 @@ class GarantiPosTest extends TestCase
     public static function make3DPaymentDataProvider(): array
     {
         return [
+            '3d_auth_fail_1' => [
+                'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['order'],
+                'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['txType'],
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['threeDResponseData']
+                ),
+                'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['paymentData'],
+                'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['expectedData'],
+                'is3DSuccess'     => false,
+                'isSuccess'       => false,
+            ],
             '3d_auth_success_payment_fail' => [
                 'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['order'],
                 'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['txType'],
