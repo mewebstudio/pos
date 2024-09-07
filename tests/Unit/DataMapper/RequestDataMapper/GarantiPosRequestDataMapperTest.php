@@ -23,6 +23,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class GarantiPosRequestDataMapperTest extends TestCase
 {
@@ -150,14 +151,18 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider nonSecurePaymentRequestDataDataProvider
      */
-    public function testCreateNonSecurePaymentRequestData(): void
+    public function testCreateNonSecurePaymentRequestData(array $order, string $txType, CreditCardInterface $card, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $card
+        );
 
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -339,43 +344,110 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param GarantiPosAccount   $posAccount
-     * @param array               $order
-     * @param CreditCardInterface $creditCard
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, CreditCardInterface $creditCard): array
+    public static function nonSecurePaymentRequestDataDataProvider(): array
     {
+        $card = CreditCardFactory::create(
+            '5555444433332222',
+            '22',
+            '01',
+            '123',
+            'ahmet',
+        );
+
         return [
-            'Mode'        => 'TEST',
-            'Version'     => '512',
-            'Terminal'    => [
-                'ProvUserID' => $posAccount->getUsername(),
-                'UserID'     => $posAccount->getUsername(),
-                'HashData'   => '2005F771B622399C0EC7B8BBBE9B5F7989B9587175239F0695C1E5D3BFAA0CF6D747A9CEE64D78B7081CB5193541AD9D129B929653E2B68BCAE6939E281D752E',
-                'ID'         => $posAccount->getTerminalId(),
-                'MerchantID' => $posAccount->getClientId(),
+            'basic'     => [
+                'order'    => [
+                    'id'          => 'order222',
+                    'amount'      => 100.25,
+                    'currency'    => PosInterface::CURRENCY_TRY,
+                    'installment' => 0,
+                    'ip'          => '127.0.0.1',
+                ],
+                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
+                'card'     => $card,
+                'expected' => [
+                    'Mode'        => 'TEST',
+                    'Version'     => '512',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'HashData'   => '2005F771B622399C0EC7B8BBBE9B5F7989B9587175239F0695C1E5D3BFAA0CF6D747A9CEE64D78B7081CB5193541AD9D129B929653E2B68BCAE6939E281D752E',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress' => '127.0.0.1',
+                    ],
+                    'Card'        => [
+                        'Number'     => '5555444433332222',
+                        'ExpireDate' => '0122',
+                        'CVV2'       => '123',
+                    ],
+                    'Order'       => [
+                        'OrderID' => 'order222',
+                    ],
+                    'Transaction' => [
+                        'Type'                  => 'sales',
+                        'InstallmentCnt'        => '',
+                        'Amount'                => 10025,
+                        'CurrencyCode'          => '949',
+                        'CardholderPresentCode' => '0',
+                        'MotoInd'               => 'N',
+                    ],
+                ],
             ],
-            'Customer'    => [
-                'IPAddress' => $order['ip'],
-            ],
-            'Card'        => [
-                'Number'     => $creditCard->getNumber(),
-                'ExpireDate' => '0122',
-                'CVV2'       => $creditCard->getCvv(),
-            ],
-            'Order'       => [
-                'OrderID' => $order['id'],
-            ],
-            'Transaction' => [
-                'Type'                  => 'sales',
-                'InstallmentCnt'        => '',
-                'Amount'                => 10025,
-                'CurrencyCode'          => 949,
-                'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
+            'recurring' => [
+                'order'    => [
+                    'id'        => 'order222',
+                    'amount'    => 100.25,
+                    'currency'  => PosInterface::CURRENCY_TRY,
+                    'ip'        => '127.0.0.1',
+                    'recurring' => [
+                        'frequency'     => 3,
+                        'frequencyType' => 'MONTH',
+                        'installment'   => 4,
+                        'startDate'     => new \DateTimeImmutable('2024-09-09 00:00:00'),
+                    ],
+                ],
+                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
+                'card'     => $card,
+                'expected' => [
+                    'Mode'        => 'TEST',
+                    'Version'     => '512',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'HashData'   => '2005F771B622399C0EC7B8BBBE9B5F7989B9587175239F0695C1E5D3BFAA0CF6D747A9CEE64D78B7081CB5193541AD9D129B929653E2B68BCAE6939E281D752E',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress' => '127.0.0.1',
+                    ],
+                    'Card'        => [
+                        'Number'     => '5555444433332222',
+                        'ExpireDate' => '0122',
+                        'CVV2'       => '123',
+                    ],
+                    'Order'       => [
+                        'OrderID' => 'order222',
+                    ],
+                    'Transaction' => [
+                        'Type'                  => 'sales',
+                        'InstallmentCnt'        => '',
+                        'Amount'                => 10025,
+                        'CurrencyCode'          => '949',
+                        'CardholderPresentCode' => '0',
+                        'MotoInd'               => 'N',
+                    ],
+                    'Recurring'   => [
+                        'TotalPaymentNum'   => '4',
+                        'FrequencyType'     => 'M',
+                        'FrequencyInterval' => '3',
+                        'Type'              => 'R',
+                        'StartDate'         => '20240909',
+                    ],
+                ],
             ],
         ];
     }
