@@ -132,12 +132,7 @@ class PayForPos extends AbstractGateway
     }
 
     /**
-     * Refund Order
-     * refund amount should be exactly the same with order amount.
-     * otherwise operation will be rejected
-     *
-     * Warning: You can not use refund for purchases made at the same date.
-     * Instead, you need to use cancel.
+     * Satış işlemi ile farklı batchtlerde olmalıdır.
      *
      * @inheritDoc
      */
