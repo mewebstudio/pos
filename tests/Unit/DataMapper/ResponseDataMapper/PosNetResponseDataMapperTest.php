@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
@@ -139,6 +140,23 @@ class PosNetResponseDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actualData);
     }
 
+    public function testMapHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapHistoryResponse([]);
+    }
+
+    public function testMap3DPayResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DPayResponseData([], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
+    public function testMap3DHostResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DHostResponseData([], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
 
     public function paymentTestDataProvider(): array
     {
