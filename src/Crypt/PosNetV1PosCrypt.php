@@ -26,13 +26,15 @@ class PosNetV1PosCrypt extends AbstractCrypt
         $hashData = [
             $posAccount->getClientId(),
             $posAccount->getTerminalId(),
-            $requestData['CardNo'],
-            $requestData['Cvv'],
-            $requestData['ExpiredDate'],
+            // no card data for 3D host payment
+            $requestData['CardNo'] ?? null,
+            $requestData['Cvv'] ?? null,
+            $requestData['ExpiredDate'] ?? null,
+
             $requestData['Amount'],
             $posAccount->getStoreKey(),
         ];
-        $hashStr  = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr  = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }

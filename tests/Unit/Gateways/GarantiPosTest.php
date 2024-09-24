@@ -12,6 +12,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -242,6 +243,35 @@ class GarantiPosTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public function testMake3DPaymentHashMismatchException(): void
+    {
+        $data = GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData'];
+        $request = Request::create('', 'POST', $data);
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $data)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->willReturn(true);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPaymentData');
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DPaymentRequestData');
+        $this->serializerMock->expects(self::never())
+            ->method('encode');
+        $this->serializerMock->expects(self::never())
+            ->method('decode');
+        $this->eventDispatcherMock->expects(self::never())
+            ->method('dispatch');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     public function testMake3DHostPayment(): void
@@ -519,10 +549,27 @@ class GarantiPosTest extends TestCase
     public static function make3DPaymentDataProvider(): array
     {
         return [
+            '3d_auth_fail_1' => [
+                'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['order'],
+                'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['txType'],
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['threeDResponseData']
+                ),
+                'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['paymentData'],
+                'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['expectedData'],
+                'is3DSuccess'     => false,
+                'isSuccess'       => false,
+            ],
             '3d_auth_success_payment_fail' => [
                 'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['order'],
                 'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['txType'],
-                'request'         => Request::create('', 'POST', GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData']),
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData']
+                ),
                 'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['paymentData'],
                 'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['expectedData'],
                 'is3DSuccess'     => true,
@@ -531,7 +578,11 @@ class GarantiPosTest extends TestCase
             'success'                      => [
                 'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
                 'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create('', 'POST', GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']),
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData']
+                ),
                 'paymentResponse' => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
                 'expected'        => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
                 'is3DSuccess'     => true,
@@ -631,9 +682,11 @@ class GarantiPosTest extends TestCase
         string $paymentModel
     ): void
     {
+        $updatedRequestDataPreparedEvent = null;
+
         $this->serializerMock->expects(self::once())
             ->method('encode')
-            ->with($requestData, $txType)
+            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
             ->willReturn($encodedRequestData);
 
         $this->serializerMock->expects(self::once())
@@ -652,12 +705,25 @@ class GarantiPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                && $txType === $dispatchedEvent->getTxType()
-                && $requestData === $dispatchedEvent->getRequestData()
-                && $order === $dispatchedEvent->getOrder()
-                && $paymentModel === $dispatchedEvent->getPaymentModel()));
+            ->with($this->logicalAnd(
+                $this->isInstanceOf(RequestDataPreparedEvent::class),
+                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                    $updatedRequestDataPreparedEvent = $dispatchedEvent;
+
+                    return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $requestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel();
+                }
+                )))
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent) {
+                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData['test-update-request-data-with-event'] = true;
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+
+                return $updatedRequestDataPreparedEvent;
+            });
     }
 
     public static function historyRequestDataProvider(): array

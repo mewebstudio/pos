@@ -86,7 +86,8 @@ class PayForPos extends AbstractGateway
             $order,
             PosInterface::MODEL_3D_SECURE
         );
-        $this->eventDispatcher->dispatch($event);
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
@@ -131,12 +132,7 @@ class PayForPos extends AbstractGateway
     }
 
     /**
-     * Refund Order
-     * refund amount should be exactly the same with order amount.
-     * otherwise operation will be rejected
-     *
-     * Warning: You can not use refund for purchases made at the same date.
-     * Instead, you need to use cancel.
+     * Satış işlemi ile farklı batchtlerde olmalıdır.
      *
      * @inheritDoc
      */

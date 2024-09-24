@@ -12,6 +12,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -205,6 +206,23 @@ class EstPosTest extends TestCase
         $this->assertTrue($pos->isSuccess());
     }
 
+    public function testMake3DHostPaymentHashMismatchException(): void
+    {
+        $data = EstPosResponseDataMapperTest::threeDHostPaymentDataProvider()['success1']['paymentData'];
+        $request = Request::create('', 'POST', $data);
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $data)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DHostResponseData');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
     /**
      * @return void
      */
@@ -231,6 +249,23 @@ class EstPosTest extends TestCase
         $result = $pos->getResponse();
         $this->assertSame($testData['expectedData'], $result);
         $this->assertTrue($pos->isSuccess());
+    }
+
+    public function testMake3DPayPaymentHashMismatchException(): void
+    {
+        $data = EstPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
+        $request = Request::create('', 'POST', $data);
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $data)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPayResponseData');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     /**
@@ -467,6 +502,36 @@ class EstPosTest extends TestCase
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
+    public function testMake3DPaymentHashMismatchException(): void
+    {
+        $data = EstPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData'];
+        $request = Request::create('', 'POST', $data);
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $data)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->willReturn(true);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPaymentData');
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DPaymentRequestData');
+        $this->serializerMock->expects(self::never())
+            ->method('encode');
+        $this->serializerMock->expects(self::never())
+            ->method('decode');
+        $this->eventDispatcherMock->expects(self::never())
+            ->method('dispatch');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
+
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
@@ -701,9 +766,11 @@ class EstPosTest extends TestCase
         string $paymentModel
     ): void
     {
+        $updatedRequestDataPreparedEvent = null;
+
         $this->serializerMock->expects(self::once())
             ->method('encode')
-            ->with($requestData, $txType)
+            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
             ->willReturn($encodedRequestData);
 
         $this->serializerMock->expects(self::once())
@@ -722,11 +789,24 @@ class EstPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                && $txType === $dispatchedEvent->getTxType()
-                && $requestData === $dispatchedEvent->getRequestData()
-                && $order === $dispatchedEvent->getOrder()
-                && $paymentModel === $dispatchedEvent->getPaymentModel()));
+            ->with($this->logicalAnd(
+                $this->isInstanceOf(RequestDataPreparedEvent::class),
+                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                    $updatedRequestDataPreparedEvent = $dispatchedEvent;
+
+                    return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $requestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel();
+                }
+                )))
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent) {
+                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData['test-update-request-data-with-event'] = true;
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+
+                return $updatedRequestDataPreparedEvent;
+            });
     }
 }

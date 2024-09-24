@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-namespace Gateways;
+namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
@@ -130,6 +130,16 @@ class AkbankPosTest extends TestCase
         $actual = $this->pos->getApiURL($txType, $paymentModel);
 
         $this->assertSame($expected, $actual);
+    }
+
+    /**
+     * @dataProvider getApiUrlExceptionDataProvider
+     */
+    public function testGetApiURLException(?string $txType, string $exceptionClass): void
+    {
+        $this->expectException($exceptionClass);
+
+        $this->pos->getApiURL($txType);
     }
 
     public function testGet3DGatewayURL(): void
@@ -657,10 +667,15 @@ class AkbankPosTest extends TestCase
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/portal/report/transaction',
             ],
+        ];
+    }
+
+    public static function getApiUrlExceptionDataProvider(): array
+    {
+        return [
             [
-                'txType'       => null,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos',
+                'txType'          => null,
+                'exception_class' => \InvalidArgumentException::class,
             ],
         ];
     }
@@ -887,6 +902,8 @@ class AkbankPosTest extends TestCase
         ?int   $statusCode = null
     ): void
     {
+        $updatedRequestDataPreparedEvent = null;
+
         $this->cryptMock->expects(self::once())
             ->method('hashString')
             ->with($encodedRequestData, $this->account->getStoreKey())
@@ -894,7 +911,7 @@ class AkbankPosTest extends TestCase
 
         $this->serializerMock->expects(self::once())
             ->method('encode')
-            ->with($requestData, $txType)
+            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
             ->willReturn($encodedRequestData);
 
         $this->serializerMock->expects(self::once())
@@ -918,11 +935,24 @@ class AkbankPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                && $txType === $dispatchedEvent->getTxType()
-                && $requestData === $dispatchedEvent->getRequestData()
-                && $order === $dispatchedEvent->getOrder()
-                && $paymentModel === $dispatchedEvent->getPaymentModel()));
+            ->with($this->logicalAnd(
+                $this->isInstanceOf(RequestDataPreparedEvent::class),
+                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                    $updatedRequestDataPreparedEvent = $dispatchedEvent;
+
+                    return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $requestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel();
+                }
+                )))
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent) {
+                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData['test-update-request-data-with-event'] = true;
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+
+                return $updatedRequestDataPreparedEvent;
+            });
     }
 }

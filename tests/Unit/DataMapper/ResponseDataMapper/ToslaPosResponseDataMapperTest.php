@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
@@ -169,7 +170,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider orderHistoryDataProvider
      */
-    public function testMapHistoryResponse(array $responseData, array $expectedData): void
+    public function testMapOrderHistoryResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
         if (isset($responseData['Transactions'])) {
@@ -201,6 +202,18 @@ class ToslaPosResponseDataMapperTest extends TestCase
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
+    }
+
+    public function testMap3DPaymentResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DPaymentData([], [], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
+    public function testMapHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapHistoryResponse([]);
     }
 
     public static function paymentDataProvider(): iterable

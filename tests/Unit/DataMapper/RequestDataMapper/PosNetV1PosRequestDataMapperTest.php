@@ -23,6 +23,7 @@ use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class PosNetV1PosRequestDataMapperTest extends TestCase
 {
@@ -181,7 +182,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider threeDFormDataTestProvider
      */
-    public function testCreate3DFormData(array $order, string $txType, string $gatewayUrl, array $expected): void
+    public function testCreate3DFormData(array $order, string $txType, string $gatewayUrl, ?CreditCardInterface $card, array $expected): void
     {
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $this->dispatcher->expects(self::once())
@@ -198,10 +199,10 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             $paymentModel,
             $txType,
             $gatewayUrl,
-            $this->card
+            $card
         );
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -235,6 +236,18 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account);
+    }
+
+    public function testCreateOrderHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createOrderHistoryRequestData($this->account, []);
+    }
+
     /**
      * @return array
      */
@@ -248,12 +261,17 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
             'success_url' => 'https://domain.com/success',
             'lang'        => PosInterface::LANG_TR,
         ];
+        $card = CreditCardFactory::create('5400619360964581', '20', '01', '056', 'ahmet');
+
         $gatewayUrl = 'https://epostest.albarakaturk.com.tr/ALBSecurePaymentUI/SecureProcess/SecureVerification.aspx';
         yield [
             'order'      => $order,
             'txType'     => PosInterface::TX_TYPE_PAY_AUTH,
             'gatewayUrl' => $gatewayUrl,
+            'card'       => $card,
             'expected'   => [
+                'gateway' => $gatewayUrl,
+                'method'  => 'POST',
                 'inputs'  => [
                     'MerchantNo'        => '6700950031',
                     'TerminalNo'        => '67540050',
@@ -275,8 +293,34 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                     'UseOOS'            => '0',
                     'Mac'               => 'xuhPbpcPJ6kVs7JeIXS8f06Cv0mb9cNPMfjp1HiB7Ew=',
                 ],
-                'method'  => 'POST',
+            ],
+        ];
+
+        yield '3d_host_order' => [
+            'order'      => $order,
+            'txType'     => PosInterface::TX_TYPE_PAY_AUTH,
+            'gatewayUrl' => $gatewayUrl,
+            'card'       => null,
+            'expected'   => [
                 'gateway' => $gatewayUrl,
+                'method'  => 'POST',
+                'inputs'  => [
+                    'MerchantNo'        => '6700950031',
+                    'TerminalNo'        => '67540050',
+                    'PosnetID'          => '1010028724242434',
+                    'TransactionType'   => 'Sale',
+                    'OrderId'           => '0000000620093100_024',
+                    'Amount'            => '175',
+                    'CurrencyCode'      => 'TL',
+                    'MerchantReturnURL' => 'https://domain.com/success',
+                    'InstallmentCount'  => '0',
+                    'Language'          => 'tr',
+                    'TxnState'          => 'INITIAL',
+                    'OpenNewWindow'     => '0',
+                    'UseOOS'            => '1',
+                    'MacParams'         => 'MerchantNo:TerminalNo:Amount',
+                    'Mac'               => 'UBdwWJh9rBCM0YWkBti7vHZm2G+nag16hAguohNrq1Y=',
+                ],
             ],
         ];
     }
@@ -394,6 +438,33 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'MAC'                    => 'wgyfAJPbEPtTtce/+HRlXajSRfYA0J6mUcH+16EbB78=',
             ],
         ];
+
+        yield 'with_installment' => [
+            'order'    => [
+                'id'          => '123',
+                'installment' => 2,
+                'amount'      => 12.3,
+                'currency'    => PosInterface::CURRENCY_TRY,
+                'ref_ret_num' => '159044932490000231',
+            ],
+            'expected' => [
+                'ApiType'                => 'JSON',
+                'ApiVersion'             => 'V100',
+                'MACParams'              => 'MerchantNo:TerminalNo',
+                'MerchantNo'             => '6700950031',
+                'TerminalNo'             => '67540050',
+                'CipheredData'           => null,
+                'DealerData'             => null,
+                'IsEncrypted'            => null,
+                'PaymentFacilitatorData' => null,
+                'Amount'                 => 1230,
+                'CurrencyCode'           => 'TL',
+                'ReferenceCode'          => '159044932490000231',
+                'InstallmentCount'       => '2',
+                'InstallmentType'        => 'Y',
+                'MAC'                    => 'wgyfAJPbEPtTtce/+HRlXajSRfYA0J6mUcH+16EbB78=',
+            ],
+        ];
     }
 
     public static function create3DPaymentRequestDataProvider(): \Generator
@@ -401,7 +472,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         $order = [
             'id'          => '2020110828BC',
             'amount'      => 100.01,
-            'installment' => '0',
+            'installment' => 0,
             'currency'    => PosInterface::CURRENCY_TRY,
         ];
         yield [
@@ -440,6 +511,45 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'MAC'                   => 'kAKxvbwXvmrM6lapGx1UcRTs454tsSuPrBXV7oA7L7w=',
             ],
         ];
+
+        $order['installment'] = 2;
+
+        yield 'with_installment' => [
+            'order'        => $order,
+            'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+            'responseData' => [
+                'SecureTransactionId' => '1010028947569644',
+                'CAVV'                => 'jKOBaLBL3hQ+CREBPu1HBQQAAAA=',
+                'ECI'                 => '02',
+                'MdStatus'            => '1',
+                'MD'                  => '9998F61E1D0C0FB6EC5203A748124F30',
+            ],
+            'expected'     => [
+                'ApiType'               => 'JSON',
+                'ApiVersion'            => 'V100',
+                'MerchantNo'            => '6700950031',
+                'TerminalNo'            => '67540050',
+                'PaymentInstrumentType' => 'CARD',
+                'IsEncrypted'           => 'N',
+                'IsTDSecureMerchant'    => 'Y',
+                'IsMailOrder'           => 'N',
+                'ThreeDSecureData'      => [
+                    'SecureTransactionId' => '1010028947569644',
+                    'CavvData'            => 'jKOBaLBL3hQ+CREBPu1HBQQAAAA=',
+                    'Eci'                 => '02',
+                    'MdStatus'            => 1,
+                    'MD'                  => '9998F61E1D0C0FB6EC5203A748124F30',
+                ],
+                'MACParams'             => 'MerchantNo:TerminalNo:SecureTransactionId:CavvData:Eci:MdStatus',
+                'Amount'                => 10001,
+                'CurrencyCode'          => 'TL',
+                'PointAmount'           => 0,
+                'OrderId'               => '000000002020110828BC',
+                'InstallmentCount'      => '2',
+                'InstallmentType'       => 'Y',
+                'MAC'                   => 'kAKxvbwXvmrM6lapGx1UcRTs454tsSuPrBXV7oA7L7w=',
+            ],
+        ];
     }
 
     public static function createRefundRequestDataDataProvider(): iterable
@@ -467,6 +577,33 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'ReferenceCode'          => '159044932490000231',
                 'OrderId'                => null,
                 'TransactionType'        => 'Sale',
+            ],
+        ];
+
+        yield 'refund_non_secure_order' => [
+            'order'    => [
+                'id'               => '000000002020110828BC',
+                'amount'           => 112,
+                'payment_model'    => PosInterface::MODEL_NON_SECURE,
+                'transaction_type' => PosInterface::TX_TYPE_PAY_AUTH,
+            ],
+            'tx_type'  => PosInterface::TX_TYPE_REFUND,
+            'expected' => [
+                'ApiType'                => 'JSON',
+                'ApiVersion'             => 'V100',
+                'MerchantNo'             => '6700950031',
+                'TerminalNo'             => '67540050',
+                'MACParams'              => 'MerchantNo:TerminalNo:ReferenceCode:OrderId',
+                'MAC'                    => '9Ffy2cgMphKFSg2nyXr38gKXJhC8HL+L6X3KEkpt0AQ=',
+                'CipheredData'           => null,
+                'DealerData'             => null,
+                'IsEncrypted'            => null,
+                'PaymentFacilitatorData' => null,
+                'ReferenceCode'          => null,
+                'OrderId'                => '0000000000002020110828BC',
+                'TransactionType'        => 'Sale',
+                'Amount'                 => 11200,
+                'CurrencyCode'           => 'TL',
             ],
         ];
 

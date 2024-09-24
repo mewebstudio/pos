@@ -45,6 +45,8 @@ class AkbankPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @throws \InvalidArgumentException when transaction type is not provided
      */
     public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
@@ -52,7 +54,7 @@ class AkbankPos extends AbstractGateway
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType);
         }
 
-        return parent::getApiURL();
+        throw new \InvalidArgumentException('Transaction type is required to generate API URL');
     }
 
     /** @return AkbankPosAccount */
@@ -93,7 +95,8 @@ class AkbankPos extends AbstractGateway
             $order,
             PosInterface::MODEL_3D_SECURE
         );
-        $this->eventDispatcher->dispatch($event);
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),

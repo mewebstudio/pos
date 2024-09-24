@@ -22,6 +22,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class EstPosRequestDataMapperTest extends TestCase
 {
@@ -66,7 +67,13 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->crypt      = $this->createMock(CryptInterface::class);
 
         $this->requestDataMapper = new EstPosRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card              = CreditCardFactory::create(
+            '5555444433332222',
+            '22',
+            '01',
+            '123',
+            'ahmet',
+        );
     }
 
     /**
@@ -142,14 +149,18 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider nonSecurePaymentRequestDataDataProvider
      */
-    public function testCreateNonSecurePaymentRequestData(): void
+    public function testCreateNonSecurePaymentRequestData(array $order, CreditCardInterface $card, string $txType, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $card
+        );
 
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -190,6 +201,12 @@ class EstPosRequestDataMapperTest extends TestCase
     {
         $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
         $this->assertEquals($expected, $actual);
+    }
+
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account);
     }
 
     /**
@@ -617,29 +634,76 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount  $posAccount
-     * @param array               $order
-     * @param CreditCardInterface $creditCard
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, CreditCardInterface $creditCard): array
+    public static function nonSecurePaymentRequestDataDataProvider(): array
     {
+        $card = CreditCardFactory::create(
+            '5555444433332222',
+            '22',
+            '01',
+            '123',
+            'ahmet',
+        );
+
         return [
-            'Name'      => $posAccount->getUsername(),
-            'Password'  => $posAccount->getPassword(),
-            'ClientId'  => $posAccount->getClientId(),
-            'Type'      => 'Auth',
-            'IPAddress' => $order['ip'],
-            'OrderId'   => $order['id'],
-            'Total'     => '100.25',
-            'Currency'  => '949',
-            'Taksit'    => '',
-            'Number'    => $creditCard->getNumber(),
-            'Expires'   => '01/22',
-            'Cvv2Val'   => $creditCard->getCvv(),
-            'Mode'      => 'P',
+            'basic'     => [
+                'order'    => [
+                    'id'     => 'order222',
+                    'amount' => 10.01,
+                    'ip'     => '127.0.0.1',
+                ],
+                'card'     => $card,
+                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
+                'expected' => [
+                    'Name'      => 'ISBANKAPI',
+                    'Password'  => 'ISBANK07',
+                    'ClientId'  => '700655000200',
+                    'Type'      => 'Auth',
+                    'IPAddress' => '127.0.0.1',
+                    'OrderId'   => 'order222',
+                    'Total'     => '10.01',
+                    'Currency'  => '949',
+                    'Taksit'    => '',
+                    'Number'    => '5555444433332222',
+                    'Expires'   => '01/22',
+                    'Cvv2Val'   => '123',
+                    'Mode'      => 'P',
+                ],
+            ],
+            'recurring' => [
+                'order'    => [
+                    'id'        => 'order222',
+                    'amount'    => 10.01,
+                    'ip'        => '127.0.0.1',
+                    'recurring' => [
+                        'frequency'     => 3,
+                        'frequencyType' => 'MONTH',
+                        'installment'   => 4,
+                    ],
+                ],
+                'card'     => $card,
+                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
+                'expected' => [
+                    'Name'      => 'ISBANKAPI',
+                    'Password'  => 'ISBANK07',
+                    'ClientId'  => '700655000200',
+                    'Type'      => 'Auth',
+                    'IPAddress' => '127.0.0.1',
+                    'OrderId'   => 'order222',
+                    'Total'     => '10.01',
+                    'Currency'  => '949',
+                    'Taksit'    => '',
+                    'Number'    => '5555444433332222',
+                    'Expires'   => '01/22',
+                    'Cvv2Val'   => '123',
+                    'Mode'      => 'P',
+                    'PbOrder'   => [
+                        'OrderType'              => '0',
+                        'OrderFrequencyInterval' => '3',
+                        'OrderFrequencyCycle'    => 'M',
+                        'TotalNumberPayments'    => '4',
+                    ],
+                ],
+            ],
         ];
     }
 

@@ -12,6 +12,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
+use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
@@ -132,6 +133,15 @@ class ToslaPosTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
+    /**
+     * @dataProvider getApiUrlExceptionDataProvider
+     */
+    public function testGetApiURLException(?string $txType, ?string $paymentModel, string $exceptionClass): void
+    {
+        $this->expectException($exceptionClass);
+        $this->pos->getApiURL($txType, $paymentModel);
+    }
+
     public function testGet3DGatewayURL(): void
     {
         $actual = $this->pos->get3DGatewayURL();
@@ -192,6 +202,27 @@ class ToslaPosTest extends TestCase
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
+    public function testMake3DPayPaymentHashMismatchException(): void
+    {
+        $data    = ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
+        $request = Request::create('', 'POST', $data);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->willReturn(true);
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $data)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPayResponseData');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
     /**
      * @dataProvider make3DPayPaymentDataProvider
      */
@@ -230,6 +261,27 @@ class ToslaPosTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public function testMake3DHostPaymentHashMismatchException(): void
+    {
+        $data    = ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
+        $request = Request::create('', 'POST', $data);
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->willReturn(true);
+
+        $this->cryptMock->expects(self::once())
+            ->method('check3DHash')
+            ->with($this->account, $data)
+            ->willReturn(false);
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DHostResponseData');
+
+        $this->expectException(HashMismatchException::class);
+        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     /**
@@ -290,6 +342,54 @@ class ToslaPosTest extends TestCase
         $actual = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
         $this->assertSame($actual, $formData);
+    }
+
+    public function testGet3DFormDataWithoutCard(): void
+    {
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DEnrollmentCheckRequestData');
+
+        $this->httpClientMock->expects(self::never())
+            ->method('post');
+
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
+        $this->expectException(\LogicException::class);
+        $this->pos->get3DFormData([], PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH);
+    }
+
+    /**
+     * @return void
+     *
+     * @dataProvider registerFailResponseDataProvider
+     */
+    public function testGet3DFormDataRegisterPaymentFail(array $response): void
+    {
+        $txType      = PosInterface::TX_TYPE_PAY_AUTH;
+        $requestData = ['request-data'];
+        $order       = ['order'];
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DEnrollmentCheckRequestData')
+            ->with($this->pos->getAccount(), $order)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            'https://ent.akodepos.com/api/Payment/threeDPayment',
+            $requestData,
+            'encoded-request',
+            'response-body',
+            $response,
+            $order,
+            PosInterface::MODEL_3D_PAY
+        );
+
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
+        $this->expectException(\RuntimeException::class);
+        $this->pos->get3DFormData($order, PosInterface::MODEL_3D_PAY, $txType, $this->card);
     }
 
     /**
@@ -439,8 +539,8 @@ class ToslaPosTest extends TestCase
         bool   $isSuccess
     ): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_ORDER_HISTORY;
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_ORDER_HISTORY;
 
         $this->requestMapperMock->expects(self::once())
             ->method('createOrderHistoryRequestData')
@@ -559,7 +659,11 @@ class ToslaPosTest extends TestCase
             'auth_fail' => [
                 'order'       => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['order'],
                 'txType'      => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['txType'],
-                'request'     => Request::create('', 'POST', ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData']),
+                'request'     => Request::create(
+                    '',
+                    'POST',
+                    ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['paymentData']
+                ),
                 'expected'    => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['auth_fail']['expectedData'],
                 'is3DSuccess' => false,
                 'isSuccess'   => false,
@@ -567,7 +671,11 @@ class ToslaPosTest extends TestCase
             'success'   => [
                 'order'       => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['order'],
                 'txType'      => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['txType'],
-                'request'     => Request::create('', 'POST', ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']),
+                'request'     => Request::create(
+                    '',
+                    'POST',
+                    ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']
+                ),
                 'expected'    => ToslaPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['expectedData'],
                 'is3DSuccess' => true,
                 'isSuccess'   => true,
@@ -808,6 +916,37 @@ class ToslaPosTest extends TestCase
         ];
     }
 
+    public static function getApiUrlExceptionDataProvider(): array
+    {
+        return [
+            [
+                'txType'          => PosInterface::TX_TYPE_HISTORY,
+                'paymentModel'    => PosInterface::MODEL_NON_SECURE,
+                'exception_class' => UnsupportedTransactionTypeException::class,
+            ],
+            [
+                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel'    => PosInterface::MODEL_3D_SECURE,
+                'exception_class' => UnsupportedTransactionTypeException::class,
+            ],
+            [
+                'txType'          => null,
+                'paymentModel'    => null,
+                'exception_class' => \InvalidArgumentException::class,
+            ],
+            [
+                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel'    => null,
+                'exception_class' => \InvalidArgumentException::class,
+            ],
+            [
+                'txType'          => null,
+                'paymentModel'    => PosInterface::MODEL_3D_PAY,
+                'exception_class' => \InvalidArgumentException::class,
+            ],
+        ];
+    }
+
 
     public static function makeRegularPaymentDataProvider(): array
     {
@@ -870,6 +1009,20 @@ class ToslaPosTest extends TestCase
         ];
     }
 
+    public static function registerFailResponseDataProvider(): array
+    {
+        return [
+            'merchant_not_found' => [
+                'response' => [
+                    'Code'            => 202,
+                    'Message'         => 'Üye İşyeri Kullanıcısı Bulunamadı',
+                    'ThreeDSessionId' => null,
+                    'TransactionId'   => null,
+                ],
+            ],
+        ];
+    }
+
     private function configureClientResponse(
         string $txType,
         string $apiUrl,
@@ -881,10 +1034,13 @@ class ToslaPosTest extends TestCase
         string $paymentModel
     ): void
     {
+        $updatedRequestDataPreparedEvent = null;
+
         $this->serializerMock->expects(self::once())
             ->method('encode')
-            ->with($requestData, $txType)
+            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
             ->willReturn($encodedRequestData);
+
         $this->serializerMock->expects(self::once())
             ->method('decode')
             ->with($responseContent, $txType)
@@ -904,11 +1060,24 @@ class ToslaPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                && $txType === $dispatchedEvent->getTxType()
-                && $requestData === $dispatchedEvent->getRequestData()
-                && $order === $dispatchedEvent->getOrder()
-                && $paymentModel === $dispatchedEvent->getPaymentModel()));
+            ->with($this->logicalAnd(
+                $this->isInstanceOf(RequestDataPreparedEvent::class),
+                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                    $updatedRequestDataPreparedEvent = $dispatchedEvent;
+
+                    return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $requestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel();
+                }
+                )))
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent) {
+                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData['test-update-request-data-with-event'] = true;
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+
+                return $updatedRequestDataPreparedEvent;
+            });
     }
 }

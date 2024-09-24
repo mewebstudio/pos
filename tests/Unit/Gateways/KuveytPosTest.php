@@ -179,7 +179,7 @@ class KuveytPosTest extends TestCase
     /**
      * @dataProvider getApiUrlExceptionDataProvider
      */
-    public function testGetApiURLException(string $txType, string $paymentModel, string $exceptionClass): void
+    public function testGetApiURLException(?string $txType, ?string $paymentModel, string $exceptionClass): void
     {
         $this->expectException($exceptionClass);
 
@@ -265,6 +265,7 @@ class KuveytPosTest extends TestCase
         $create3DPaymentRequestData = [
             'create3DPaymentRequestData',
         ];
+        $encodedRequestData = 'request-body';
 
 
         if ($is3DSuccess) {
@@ -277,7 +278,7 @@ class KuveytPosTest extends TestCase
                 'response-body',
                 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelProvisionGate',
                 [
-                    'body'    => 'request-body',
+                    'body'    => $encodedRequestData,
                     'headers' => [
                         'Content-Type' => 'text/xml; charset=UTF-8',
                     ],
@@ -286,17 +287,30 @@ class KuveytPosTest extends TestCase
             $paymentModel = PosInterface::MODEL_3D_SECURE;
             $this->eventDispatcherMock->expects(self::once())
                 ->method('dispatch')
-                ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                    && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                    && $txType === $dispatchedEvent->getTxType()
-                    && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
-                    && $order === $dispatchedEvent->getOrder()
-                    && $paymentModel === $dispatchedEvent->getPaymentModel()));
+                ->with($this->logicalAnd(
+                    $this->isInstanceOf(RequestDataPreparedEvent::class),
+                    $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($create3DPaymentRequestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                        $updatedRequestDataPreparedEvent = $dispatchedEvent;
+
+                        return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                            && $txType === $dispatchedEvent->getTxType()
+                            && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
+                            && $order === $dispatchedEvent->getOrder()
+                            && $paymentModel === $dispatchedEvent->getPaymentModel();
+                    }
+                    )))
+                ->willReturnCallback(function() use (&$updatedRequestDataPreparedEvent) {
+                    $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                    $updatedRequestData['test-update-request-data-with-event'] = true;
+                    $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+
+                    return $updatedRequestDataPreparedEvent;
+                });
 
             $this->serializerMock->expects(self::once())
                 ->method('encode')
-                ->with($create3DPaymentRequestData, $txType)
-                ->willReturn('request-body');
+                ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
+                ->willReturn($encodedRequestData);
 
             $this->serializerMock->expects(self::exactly(2))
                 ->method('decode')
@@ -337,6 +351,34 @@ class KuveytPosTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    public function testMake3DPaymentException(): void
+    {
+        $request = Request::create('');
+
+        $this->cryptMock->expects(self::never())
+            ->method('check3DHash');
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('extractMdStatus');
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('is3dAuthSuccess');
+
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('map3DPaymentData');
+
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DPaymentRequestData');
+        $this->serializerMock->expects(self::never())
+            ->method('encode');
+        $this->serializerMock->expects(self::never())
+            ->method('decode');
+
+        $this->expectException(\LogicException::class);
+        $this->pos->make3DPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     /**
@@ -502,11 +544,6 @@ class KuveytPosTest extends TestCase
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
             ],
-            [
-                'txType'       => null,
-                'paymentModel' => null,
-                'expected'     => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home',
-            ],
         ];
     }
 
@@ -517,6 +554,26 @@ class KuveytPosTest extends TestCase
                 'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel'    => PosInterface::MODEL_3D_PAY,
                 'exception_class' => UnsupportedTransactionTypeException::class,
+            ],
+            [
+                'txType'          => PosInterface::TX_TYPE_PAY_PRE_AUTH,
+                'paymentModel'    => PosInterface::MODEL_NON_SECURE,
+                'exception_class' => UnsupportedTransactionTypeException::class,
+            ],
+            [
+                'txType'          => null,
+                'paymentModel'    => null,
+                'exception_class' => \InvalidArgumentException::class,
+            ],
+            [
+                'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel'    => null,
+                'exception_class' => \InvalidArgumentException::class,
+            ],
+            [
+                'txType'          => null,
+                'paymentModel'    => PosInterface::MODEL_3D_PAY,
+                'exception_class' => \InvalidArgumentException::class,
             ],
         ];
     }
@@ -533,9 +590,11 @@ class KuveytPosTest extends TestCase
         ?int   $statusCode = null
     ): void
     {
+        $updatedRequestDataPreparedEvent = null;
+
         $this->serializerMock->expects(self::once())
             ->method('encode')
-            ->with($requestData, $txType)
+            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
             ->willReturn($encodedRequestData);
 
         $this->serializerMock->expects(self::once())
@@ -558,11 +617,24 @@ class KuveytPosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                && $txType === $dispatchedEvent->getTxType()
-                && $requestData === $dispatchedEvent->getRequestData()
-                && $order === $dispatchedEvent->getOrder()
-                && $paymentModel === $dispatchedEvent->getPaymentModel()));
+            ->with($this->logicalAnd(
+                $this->isInstanceOf(RequestDataPreparedEvent::class),
+                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                    $updatedRequestDataPreparedEvent = $dispatchedEvent;
+
+                    return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $requestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel();
+                }
+                )))
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent) {
+                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData['test-update-request-data-with-event'] = true;
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+
+                return $updatedRequestDataPreparedEvent;
+            });
     }
 }

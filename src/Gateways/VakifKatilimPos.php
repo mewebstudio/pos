@@ -66,6 +66,7 @@ class VakifKatilimPos extends AbstractGateway
      * @inheritDoc
      *
      * @throws UnsupportedTransactionTypeException
+     * @throws \InvalidArgumentException when transaction type or payment model are not provided
      */
     public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
@@ -73,7 +74,7 @@ class VakifKatilimPos extends AbstractGateway
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel, $orderTxType);
         }
 
-        return parent::getApiURL();
+        throw new \InvalidArgumentException('Transaction type and payment model are required to generate API URL');
     }
 
     /**
@@ -136,7 +137,8 @@ class VakifKatilimPos extends AbstractGateway
             $order,
             PosInterface::MODEL_3D_SECURE
         );
-        $this->eventDispatcher->dispatch($event);
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
@@ -209,7 +211,8 @@ class VakifKatilimPos extends AbstractGateway
             $order,
             $paymentModel
         );
-        $this->eventDispatcher->dispatch($event);
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),

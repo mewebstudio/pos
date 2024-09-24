@@ -19,6 +19,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class ToslaPosRequestDataMapperTest extends TestCase
 {
@@ -250,6 +251,24 @@ class ToslaPosRequestDataMapperTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
+    public function testCreate3DPaymentRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            [],
+            PosInterface::TX_TYPE_PAY_AUTH,
+            []
+        );
+    }
+
+    public function testCreateHistoryRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createHistoryRequestData($this->account);
+    }
+
+
     public static function statusRequestDataProvider(): array
     {
         return [
@@ -469,13 +488,17 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 ],
                 'tx_type'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'payment_model' => PosInterface::MODEL_3D_PAY,
-                'is_with_card'  => false,
+                'is_with_card'  => true,
                 'gateway'       => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
-                'expected'      => [
+                'expected' => [
                     'gateway' => 'https://ent.akodepos.com/api/Payment/ProcessCardForm',
                     'method'  => 'POST',
                     'inputs'  => [
                         'ThreeDSessionId' => 'P6D383818909442128AB50AB1EC7A4B83080874341688447DA74B90150C8857F2',
+                        'CardHolderName'  => 'ahmet',
+                        'CardNo'          => '5555444433332222',
+                        'ExpireDate'      => '01/22',
+                        'Cvv'             => '123',
                     ],
                 ],
             ],

@@ -49,6 +49,9 @@
         "symfony/http-client": "^5.4",
         "symfony/var-dumper": "^5.1"
     },
+    "suggest": {
+        "ext-soap": "KuveytPos ile iptal/iade gibi ödeme olmayan işlemleri yapacaksanız."
+    },
     "config": {
         "sort-packages": true,
         "allow-plugins": {

@@ -75,12 +75,12 @@ class PayFlexV4PosTest extends TestCase
         parent::setUp();
 
         $this->config = [
-            'name'  => 'VakifBank-VPOS',
-            'class' => PayFlexV4Pos::class,
-            'gateway_endpoints'  => [
-                'payment_api'     => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
-                'gateway_3d'      => 'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspxs',
-                'query_api'       => 'https://sanalpos.vakifbank.com.tr/v4/UIWebService/Search.aspx',
+            'name'              => 'VakifBank-VPOS',
+            'class'             => PayFlexV4Pos::class,
+            'gateway_endpoints' => [
+                'payment_api' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
+                'gateway_3d'  => 'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspxs',
+                'query_api'   => 'https://sanalpos.vakifbank.com.tr/v4/UIWebService/Search.aspx',
             ],
         ];
 
@@ -128,7 +128,14 @@ class PayFlexV4PosTest extends TestCase
 
         $this->pos->setTestMode(true);
 
-        $this->card = CreditCardFactory::createForGateway($this->pos, '5555444433332222', '2021', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->card = CreditCardFactory::create(
+            '5555444433332222',
+            '2021',
+            '12',
+            '122',
+            'ahmet',
+            CreditCardInterface::CARD_TYPE_VISA
+        );
     }
 
     /**
@@ -147,11 +154,10 @@ class PayFlexV4PosTest extends TestCase
     /**
      * @return void
      *
-     * @throws Exception
+     * @dataProvider enrollmentFailResponseDataProvider
      */
-    public function testGet3DFormDataEnrollmentFail(): void
+    public function testGet3DFormDataEnrollmentFail(array $response): void
     {
-        $this->expectException(Exception::class);
         $txType      = PosInterface::TX_TYPE_PAY_AUTH;
         $requestData = ['request-data'];
         $order       = $this->order;
@@ -162,11 +168,11 @@ class PayFlexV4PosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $this->config['gateway_endpoints']['gateway_3d'],
+            'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspxs',
             $requestData,
             $requestData,
             'response-body',
-            self::getSampleEnrollmentFailResponseDataProvider(),
+            $response,
             $order,
             PosInterface::MODEL_3D_SECURE
         );
@@ -174,7 +180,23 @@ class PayFlexV4PosTest extends TestCase
         $this->requestMapperMock->expects(self::never())
             ->method('create3DFormData');
 
+        $this->expectException(\RuntimeException::class);
         $this->pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $txType, $this->card);
+    }
+
+    public function testGet3DFormDataWithoutCard(): void
+    {
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DEnrollmentCheckRequestData');
+
+        $this->httpClientMock->expects(self::never())
+            ->method('post');
+
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
+        $this->expectException(\LogicException::class);
+        $this->pos->get3DFormData([], PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     /**
@@ -496,17 +518,21 @@ class PayFlexV4PosTest extends TestCase
         $this->pos->orderHistory([]);
     }
 
-    public static function getSampleEnrollmentFailResponseDataProvider(): array
+    public static function enrollmentFailResponseDataProvider(): array
     {
         return [
-            'Message'                   => [
-                'VERes' => [
-                    'Status' => 'E',
+            'merchant_not_found' => [
+                'response' => [
+                    'Message'                   => [
+                        'VERes' => [
+                            'Status' => 'E',
+                        ],
+                    ],
+                    'VerifyEnrollmentRequestId' => '0aebb0757acccae6fba75b2e4d78cecf',
+                    'MessageErrorCode'          => '2005',
+                    'ErrorMessage'              => 'Merchant cannot be found for this bank',
                 ],
             ],
-            'VerifyEnrollmentRequestId' => '0aebb0757acccae6fba75b2e4d78cecf',
-            'MessageErrorCode'          => '2005',
-            'ErrorMessage'              => 'Merchant cannot be found for this bank',
         ];
     }
 
@@ -595,28 +621,28 @@ class PayFlexV4PosTest extends TestCase
                 'isSuccess'       => false,
             ],
             '3d_auth_success_payment_fail' => [
-                'order'           => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
-                'txType'          => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
-                'request'         => Request::create(
+                'order'              => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['order'],
+                'txType'             => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['txType'],
+                'request'            => Request::create(
                     '',
                     'POST',
                     PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData']
-                ),                'paymentResponse' => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
-                'expected'        => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => false,
+                ), 'paymentResponse' => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['paymentData'],
+                'expected'           => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['expectedData'],
+                'is3DSuccess'        => true,
+                'isSuccess'          => false,
             ],
             'success'                      => [
-                'order'           => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
-                'txType'          => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
-                'request'         => Request::create(
+                'order'              => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
+                'txType'             => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
+                'request'            => Request::create(
                     '',
                     'POST',
                     PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail']['threeDResponseData']
-                ),                  'paymentResponse' => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
-                'expected'        => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
-                'is3DSuccess'     => true,
-                'isSuccess'       => true,
+                ), 'paymentResponse' => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
+                'expected'           => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
+                'is3DSuccess'        => true,
+                'isSuccess'          => true,
             ],
         ];
     }
@@ -625,20 +651,23 @@ class PayFlexV4PosTest extends TestCase
         string $txType,
         string $apiUrl,
         array  $requestData,
-        $encodedRequestData,
+               $encodedRequestData,
         string $responseContent,
         array  $decodedResponse,
         array  $order,
         string $paymentModel
     ): void
     {
+        $updatedRequestDataPreparedEvent = null;
+
         if ($requestData === $encodedRequestData) {
             $this->serializerMock->expects(self::never())
                 ->method('encode');
+            $encodedRequestData['test-update-request-data-with-event'] = true;
         } else {
             $this->serializerMock->expects(self::once())
                 ->method('encode')
-                ->with($requestData, $txType)
+                ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
                 ->willReturn($encodedRequestData);
         }
 
@@ -658,11 +687,24 @@ class PayFlexV4PosTest extends TestCase
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(fn($dispatchedEvent): bool => $dispatchedEvent instanceof RequestDataPreparedEvent
-                && get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                && $txType === $dispatchedEvent->getTxType()
-                && $requestData === $dispatchedEvent->getRequestData()
-                && $order === $dispatchedEvent->getOrder()
-                && $paymentModel === $dispatchedEvent->getPaymentModel()));
+            ->with($this->logicalAnd(
+                $this->isInstanceOf(RequestDataPreparedEvent::class),
+                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                    $updatedRequestDataPreparedEvent = $dispatchedEvent;
+
+                    return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                        && $txType === $dispatchedEvent->getTxType()
+                        && $requestData === $dispatchedEvent->getRequestData()
+                        && $order === $dispatchedEvent->getOrder()
+                        && $paymentModel === $dispatchedEvent->getPaymentModel();
+                }
+                )))
+            ->willReturnCallback(function() use (&$updatedRequestDataPreparedEvent) {
+                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData['test-update-request-data-with-event'] = true;
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+
+                return $updatedRequestDataPreparedEvent;
+            });
     }
 }

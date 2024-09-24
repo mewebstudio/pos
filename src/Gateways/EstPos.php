@@ -92,7 +92,8 @@ class EstPos extends AbstractGateway
             $order,
             PosInterface::MODEL_3D_SECURE
         );
-        $this->eventDispatcher->dispatch($event);
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),

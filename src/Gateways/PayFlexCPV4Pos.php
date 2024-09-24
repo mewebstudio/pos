@@ -97,7 +97,8 @@ class PayFlexCPV4Pos extends AbstractGateway
             $order,
             PosInterface::MODEL_3D_PAY
         );
-        $this->eventDispatcher->dispatch($event);
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
@@ -254,7 +255,8 @@ class PayFlexCPV4Pos extends AbstractGateway
             $order,
             $paymentModel
         );
-        $this->eventDispatcher->dispatch($event);
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
         if ($requestData !== $event->getRequestData()) {
             $this->logger->debug('Request data is changed via listeners', [
                 'txType'      => $event->getTxType(),
