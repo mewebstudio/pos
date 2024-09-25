@@ -9,10 +9,11 @@ use Mews\Pos\Crypt\ToslaPosCrypt;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Factory\AccountFactory;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\Crypt\ToslaPosCrypt
+ * @covers \Mews\Pos\Crypt\AbstractCrypt
  */
 class ToslaPosCryptTest extends TestCase
 {
@@ -31,7 +32,8 @@ class ToslaPosCryptTest extends TestCase
             'POS_ENT_Test_001!*!*',
         );
 
-        $this->crypt = new ToslaPosCrypt(new NullLogger());
+        $logger      = $this->createMock(LoggerInterface::class);
+        $this->crypt = new ToslaPosCrypt($logger);
     }
 
     public function testCreate3DHash(): void

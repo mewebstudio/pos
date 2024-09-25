@@ -13,7 +13,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\AkbankPosResponseDataMapperTest;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\Crypt\AkbankPosCrypt
@@ -38,7 +38,8 @@ class AkbankPosCryptTest extends TestCase
             'sub-2023090417500272654BD9A49CF07574'
         );
 
-        $this->crypt = new AkbankPosCrypt(new NullLogger());
+        $logger      = $this->createMock(LoggerInterface::class);
+        $this->crypt = new AkbankPosCrypt($logger);
     }
 
     public function testGenerateRandomString(): void

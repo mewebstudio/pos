@@ -9,10 +9,11 @@ use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\Crypt\PosNetCrypt
+ * @covers \Mews\Pos\Crypt\AbstractCrypt
  */
 class PosNetCryptTest extends TestCase
 {
@@ -33,7 +34,8 @@ class PosNetCryptTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
-        $this->crypt = new PosNetCrypt(new NullLogger());
+        $logger      = $this->createMock(LoggerInterface::class);
+        $this->crypt = new PosNetCrypt($logger);
     }
 
 

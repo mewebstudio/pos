@@ -10,10 +10,11 @@ use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\Crypt\GarantiPosCrypt
+ * @covers \Mews\Pos\Crypt\AbstractCrypt
  */
 class GarantiPosCryptTest extends TestCase
 {
@@ -37,7 +38,8 @@ class GarantiPosCryptTest extends TestCase
             '123qweASD/'
         );
 
-        $this->crypt = new GarantiPosCrypt(new NullLogger());
+        $logger      = $this->createMock(LoggerInterface::class);
+        $this->crypt = new GarantiPosCrypt($logger);
     }
 
     /**

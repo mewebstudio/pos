@@ -12,7 +12,7 @@ use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\Crypt\InterPosCrypt
@@ -42,7 +42,8 @@ class InterPosCryptTest extends TestCase
             $merchantPass
         );
 
-        $this->crypt = new InterPosCrypt(new NullLogger());
+        $logger      = $this->createMock(LoggerInterface::class);
+        $this->crypt = new InterPosCrypt($logger);
     }
 
     /**

@@ -10,10 +10,11 @@ use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\Crypt\EstPosCrypt
+ * @covers \Mews\Pos\Crypt\AbstractCrypt
  */
 class EstPosCryptTest extends TestCase
 {
@@ -34,7 +35,8 @@ class EstPosCryptTest extends TestCase
             'TRPS0200'
         );
 
-        $this->crypt = new EstPosCrypt(new NullLogger());
+        $logger      = $this->createMock(LoggerInterface::class);
+        $this->crypt = new EstPosCrypt($logger);
     }
 
     public function testCreate3DHash(): void
