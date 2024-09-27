@@ -5,15 +5,15 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper
@@ -23,17 +23,25 @@ class GarantiPosResponseDataMapperTest extends TestCase
 {
     private GarantiPosResponseDataMapper $responseDataMapper;
 
+    /** @var LoggerInterface&MockObject */
+    private LoggerInterface $logger;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $crypt                    = CryptFactory::createGatewayCrypt(GarantiPos::class, new NullLogger());
-        $requestDataMapper        = new GarantiPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
+        $this->logger = $this->createMock(LoggerInterface::class);
+
+        $requestDataMapper = new GarantiPosRequestDataMapper(
+            $this->createMock(EventDispatcherInterface::class),
+            $this->createMock(CryptInterface::class),
+        );
+
         $this->responseDataMapper = new GarantiPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
             $requestDataMapper->getSecureTypeMappings(),
-            new NullLogger()
+            $this->logger,
         );
     }
 

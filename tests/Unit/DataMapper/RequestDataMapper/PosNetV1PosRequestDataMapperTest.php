@@ -6,6 +6,7 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use InvalidArgumentException;
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -13,13 +14,11 @@ use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper
@@ -35,6 +34,9 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
 
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
+
+    /** @var CryptInterface & MockObject */
+    private CryptInterface $crypt;
 
     protected function setUp(): void
     {
@@ -53,8 +55,8 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
 
         $this->card = CreditCardFactory::create('5400619360964581', '20', '01', '056', 'ahmet');
 
-        $crypt                   = CryptFactory::createGatewayCrypt(PosNetV1Pos::class, new NullLogger());
-        $this->requestDataMapper = new PosNetV1PosRequestDataMapper($this->dispatcher, $crypt);
+        $this->crypt             = $this->createMock(CryptInterface::class);
+        $this->requestDataMapper = new PosNetV1PosRequestDataMapper($this->dispatcher, $this->crypt);
     }
 
     /**
@@ -154,9 +156,17 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expectedData): void
     {
+        $hashCalculationData = $expectedData;
+        unset($hashCalculationData['MAC']);
+
+        $this->crypt->expects(self::once())
+            ->method('hashFromParams')
+            ->with($this->account->getStoreKey(), $hashCalculationData, 'MACParams', ':')
+            ->willReturn($expectedData['MAC']);
+
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -164,9 +174,17 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData(array $order, array $expectedData): void
     {
+        $hashCalculationData        = $expectedData;
+        unset($hashCalculationData['MAC']);
+
+        $this->crypt->expects(self::once())
+            ->method('hashFromParams')
+            ->with($this->account->getStoreKey(), $hashCalculationData, 'MACParams', ':')
+            ->willReturn($expectedData['MAC']);
+
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
 
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -174,9 +192,17 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData(array $order, string $txType, array $responseData, array $expectedData): void
     {
+        $hashCalculationData        = $expectedData;
+        unset($hashCalculationData['MAC']);
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expectedData['MAC']);
+
         $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
 
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -192,6 +218,14 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 && $txType === $dispatchedEvent->getTxType()
                 && $paymentModel === $dispatchedEvent->getPaymentModel()
                 && count($dispatchedEvent->getFormInputs()) > 3));
+
+        $hashCalculationData        = $expected['inputs'];
+        unset($hashCalculationData['Mac']);
+
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['inputs']['Mac']);
 
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
@@ -210,8 +244,16 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData(array $order, array $expected): void
     {
+        $hashCalculationData        = $expected;
+        unset($hashCalculationData['MAC']);
+
+        $this->crypt->expects(self::once())
+            ->method('hashFromParams')
+            ->with($this->account->getStoreKey(), $hashCalculationData, 'MACParams', ':')
+            ->willReturn($expected['MAC']);
+
         $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -219,6 +261,14 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData(array $order, string $txType, array $expected): void
     {
+        $hashCalculationData        = $expected;
+        unset($hashCalculationData['MAC']);
+
+        $this->crypt->expects(self::once())
+            ->method('hashFromParams')
+            ->with($this->account->getStoreKey(), $hashCalculationData, 'MACParams', ':')
+            ->willReturn($expected['MAC']);
+
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
         ksort($actual);
@@ -232,8 +282,19 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData(array $order, array $expected): void
     {
+        $hashCalculationData        = $expected;
+        unset($hashCalculationData['MAC']);
+
+        $this->crypt->expects(self::once())
+            ->method('hashFromParams')
+            ->with($this->account->getStoreKey(), $hashCalculationData, 'MACParams', ':')
+            ->willReturn($expected['MAC']);
+
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+
+        ksort($actual);
+        ksort($expected);
+        $this->assertSame($expected, $actual);
     }
 
     public function testCreateHistoryRequestData(): void
@@ -789,12 +850,12 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'MerchantNo'             => '6700950031',
                 'TerminalNo'             => '67540050',
                 'MACParams'              => 'MerchantNo:TerminalNo',
-                'MAC'                    => 'wgyfAJPbEPtTtce/+HRlXajSRfYA0J6mUcH+16EbB78=',
                 'CipheredData'           => null,
                 'DealerData'             => null,
                 'IsEncrypted'            => 'N',
                 'PaymentFacilitatorData' => null,
                 'OrderId'                => 'TDS_000000002020110828BC',
+                'MAC'                    => 'wgyfAJPbEPtTtce/+HRlXajSRfYA0J6mUcH+16EbB78=',
             ],
         ];
     }

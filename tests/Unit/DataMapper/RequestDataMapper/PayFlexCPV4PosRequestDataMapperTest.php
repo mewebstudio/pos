@@ -5,6 +5,7 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
@@ -13,13 +14,10 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper
@@ -34,6 +32,9 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
+    /** @var CryptInterface & MockObject */
+    private CryptInterface $crypt;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -47,8 +48,8 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         );
 
         $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
-        $crypt                   = CryptFactory::createGatewayCrypt(PayFlexCPV4Pos::class, new NullLogger());
-        $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($this->dispatcher, $crypt);
+        $this->crypt             = $this->createMock(CryptInterface::class);
+        $this->requestDataMapper = new PayFlexCPV4PosRequestDataMapper($this->dispatcher, $this->crypt);
     }
 
     /**
@@ -129,6 +130,14 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DEnrollmentCheckData(AbstractPosAccount $posAccount, array $order, string $txType, ?CreditCard $creditCard, array $expectedData): void
     {
+        $hashCalculationData = $expectedData;
+        unset($hashCalculationData['HashedData']);
+
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expectedData['HashedData']);
+
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $posAccount,
             $order,
@@ -136,7 +145,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             PosInterface::MODEL_3D_SECURE,
             $creditCard
         );
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -228,7 +237,6 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'AllowNotEnrolledCard' => 'false',
                 'SuccessUrl'           => 'https://domain.com/success',
                 'FailUrl'              => 'https://domain.com/fail_url',
-                'HashedData'           => 'apZ/1+eWzqCRk9qqACxN0bBZQ8g=',
                 'RequestLanguage'      => 'tr-TR',
                 'Extract'              => '',
                 'CustomItems'          => '',
@@ -238,6 +246,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'ExpireMonth'          => '12',
                 'ExpireYear'           => '21',
                 'CardHoldersName'      => 'ahmet',
+                'HashedData'           => 'apZ/1+eWzqCRk9qqACxN0bBZQ8g=',
             ],
         ];
 
@@ -258,10 +267,10 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'AllowNotEnrolledCard' => 'false',
                 'SuccessUrl'           => 'https://domain.com/success',
                 'FailUrl'              => 'https://domain.com/fail_url',
-                'HashedData'           => 'apZ/1+eWzqCRk9qqACxN0bBZQ8g=',
                 'RequestLanguage'      => 'tr-TR',
                 'Extract'              => '',
                 'CustomItems'          => '',
+                'HashedData'           => 'apZ/1+eWzqCRk9qqACxN0bBZQ8g=',
             ],
         ];
     }

@@ -5,34 +5,43 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper
  */
 class InterPosResponseDataMapperTest extends TestCase
 {
     private InterPosResponseDataMapper $responseDataMapper;
 
+    /** @var LoggerInterface&MockObject */
+    private LoggerInterface $logger;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $crypt                    = CryptFactory::createGatewayCrypt(InterPos::class, new NullLogger());
-        $requestDataMapper        = new InterPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
+        $this->logger = $this->createMock(LoggerInterface::class);
+
+        $requestDataMapper        = new InterPosRequestDataMapper(
+            $this->createMock(EventDispatcherInterface::class),
+            $this->createMock(CryptInterface::class),
+        );
+
         $this->responseDataMapper = new InterPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
             $requestDataMapper->getSecureTypeMappings(),
-            new NullLogger()
+            $this->logger,
         );
     }
 

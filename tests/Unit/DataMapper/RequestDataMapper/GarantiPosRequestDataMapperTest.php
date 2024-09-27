@@ -5,21 +5,19 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper
@@ -33,10 +31,11 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
     private GarantiPosRequestDataMapper $requestDataMapper;
 
-    private array $order;
-
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
+
+    /** @var CryptInterface & MockObject */
+    private CryptInterface $crypt;
 
     protected function setUp(): void
     {
@@ -54,21 +53,9 @@ class GarantiPosRequestDataMapperTest extends TestCase
             '123qweASD/'
         );
 
-        $this->order = [
-            'id'          => 'order222',
-            'amount'      => '100.25',
-            'installment' => 0,
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'success_url' => 'https://domain.com/success',
-            'fail_url'    => 'https://domain.com/fail_url',
-            'lang'        => 'tr',
-            'ip'          => '156.155.154.153',
-        ];
-
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-
-        $crypt                   = CryptFactory::createGatewayCrypt(GarantiPos::class, new NullLogger());
-        $this->requestDataMapper = new GarantiPosRequestDataMapper($this->dispatcher, $crypt);
+        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt             = $this->createMock(CryptInterface::class);
+        $this->requestDataMapper = new GarantiPosRequestDataMapper($this->dispatcher, $this->crypt);
         $this->requestDataMapper->setTestMode(true);
 
         $this->card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
@@ -138,16 +125,21 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider nonSecurePaymentPostRequestDataDataProvider
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData(): void
+    public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expected): void
     {
-        $this->order['ref_ret_num'] = '831803579226';
+        $hashCalculationData                         = $expected;
+        $hashCalculationData['Terminal']['HashData'] = '';
 
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $this->order);
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['Terminal']['HashData']);
 
-        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->account, $this->order);
-        $this->assertEquals($expectedData, $actual);
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
+
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -155,6 +147,14 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData(array $order, string $txType, CreditCardInterface $card, array $expectedData): void
     {
+        $hashCalculationData                         = $expectedData;
+        $hashCalculationData['Terminal']['HashData'] = '';
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expectedData['Terminal']['HashData']);
+
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData(
             $this->account,
             $order,
@@ -166,23 +166,21 @@ class GarantiPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider cancelRequestDataProvider
      */
-    public function testCreateCancelRequestData(): void
+    public function testCreateCancelRequestData(array $order, array $expectedData): void
     {
-        $order = [
-            'id'          => '2020110828BC',
-            'ip'          => '127.15.15.1',
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'amount'      => '1.00',
-            'ref_ret_num' => '831803579226',
-            'installment' => 0,
-        ];
+        $hashCalculationData                         = $expectedData;
+        $hashCalculationData['Terminal']['HashData'] = '';
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expectedData['Terminal']['HashData']);
 
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleCancelXMLData($this->account, $order);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -190,9 +188,17 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreateOrderHistoryRequestData(array $order, array $expectedData): void
     {
+        $hashCalculationData                         = $expectedData;
+        $hashCalculationData['Terminal']['HashData'] = '';
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expectedData['Terminal']['HashData']);
+
         $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
 
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -200,6 +206,14 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreateHistoryRequestData(array $data, array $expectedData): void
     {
+        $hashCalculationData                         = $expectedData;
+        $hashCalculationData['Terminal']['HashData'] = '';
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expectedData['Terminal']['HashData']);
+
         $actualData = $this->requestDataMapper->createHistoryRequestData($this->account, $data);
 
         \ksort($expectedData);
@@ -213,49 +227,31 @@ class GarantiPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData(GarantiPosAccount $garantiPosAccount, array $order, array $responseData, array $expected): void
     {
+        $hashCalculationData                         = $expected;
+        $hashCalculationData['Terminal']['HashData'] = '';
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['Terminal']['HashData']);
+
         $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, '', $responseData);
 
         $this->assertEquals($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider threeDFormDataProvider
      */
-    public function testGet3DFormData(): void
+    public function testGet3DFormData(
+        array  $order,
+        string $gatewayURL,
+        string $txType,
+        string $paymentModel,
+        bool   $isWithCard,
+        array  $expected
+    ): void
     {
-        $account    = $this->account;
-        $gatewayURL = 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine';
-        $inputs     = [
-            'secure3dsecuritylevel' => '3D',
-            'mode'                  => 'TEST',
-            'apiversion'            => '512',
-            'terminalprovuserid'    => $account->getUsername(),
-            'terminaluserid'        => $account->getUsername(),
-            'terminalmerchantid'    => $account->getClientId(),
-            'terminalid'            => $account->getTerminalId(),
-            'txntype'               => 'sales',
-            'txnamount'             => '10025',
-            'txncurrencycode'       => '949',
-            'txninstallmentcount'   => '',
-            'orderid'               => $this->order['id'],
-            'successurl'            => $this->order['success_url'],
-            'errorurl'              => $this->order['fail_url'],
-            'customeripaddress'     => $this->order['ip'],
-            'secure3dhash'          => '372D6CB20B2B699D0A6667DFF46E3AA8CF3F9D8C2BB69A7C411895151FFCFAAB5277CCFE3B3A06035FEEFBFBFD40C79DBE51DBF867D0A24B37335A28F0CEFDE2',
-            'cardnumber'            => $this->card->getNumber(),
-            'cardexpiredatemonth'   => '01',
-            'cardexpiredateyear'    => '22',
-            'cardcvv2'              => $this->card->getCvv(),
-        ];
-
-        $form = [
-            'inputs'  => $inputs,
-            'method'  => 'POST',
-            'gateway' => $gatewayURL,
-        ];
-
-        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
         $this->dispatcher->expects(self::once())
             ->method('dispatch')
             ->with($this->callback(static fn($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
@@ -264,53 +260,67 @@ class GarantiPosRequestDataMapperTest extends TestCase
                 && $paymentModel === $dispatchedEvent->getPaymentModel()
                 && count($dispatchedEvent->getFormInputs()) > 3));
 
+        $hashCalculationData = $expected['inputs'];
+        unset($hashCalculationData['secure3dhash']);
+
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['inputs']['secure3dhash']);
+
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
-            $this->order,
+            $order,
             $paymentModel,
             $txType,
             $gatewayURL,
-            $this->card
+            $isWithCard ? $this->card : null
         );
 
-        //test without card
-        $this->assertEquals($form, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider statusRequestDataDataProvider
      */
-    public function testCreateStatusRequestData(): void
+    public function testCreateStatusRequestData(array $order, array $expected): void
     {
-        $order = [
-            'id'          => '2020110828BC',
-            'ip'          => '127.15.15.1',
-            'installment' => 0,
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'amount'      => 1,
-        ];
+        $hashCalculationData                         = $expected;
+        $hashCalculationData['Terminal']['HashData'] = '';
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['Terminal']['HashData']);
 
         $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleStatusRequestData($this->account, $order);
-        $this->assertEquals($expectedData, $actualData);
+        $this->assertSame($expected, $actualData);
     }
 
     /**
      * @dataProvider refundOrderDataProvider
      */
-    public function testCreateRefundRequestData(array $order, string $txType, array $expectedData): void
+    public function testCreateRefundRequestData(array $order, string $txType, array $expected): void
     {
+        $hashCalculationData                         = $expected;
+        $hashCalculationData['Terminal']['HashData'] = '';
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['Terminal']['HashData']);
+
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
         \ksort($actual);
-        \ksort($expectedData);
-        $this->assertSame($expectedData, $actual);
+        \ksort($expected);
+        $this->assertSame($expected, $actual);
     }
 
     public function testCreateRefundRequestDataWithoutRefundCredentials(): void
     {
-        $this->account = AccountFactory::createGarantiPosAccount(
+        $account = AccountFactory::createGarantiPosAccount(
             'garanti',
             '7000679',
             'PROVAUT',
@@ -319,7 +329,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
             PosInterface::MODEL_3D_SECURE,
             '12345678',
         );
-        $order = [
+        $order         = [
             'id'          => '2020110828BC',
             'ip'          => '127.15.15.1',
             'currency'    => PosInterface::CURRENCY_TRY,
@@ -330,44 +340,128 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $this->expectException(\LogicException::class);
         $this->requestDataMapper->createRefundRequestData(
-            $this->account,
+            $account,
             $order,
             PosInterface::TX_TYPE_REFUND
         );
     }
 
-    /**
-     * @param GarantiPosAccount $posAccount
-     * @param                   $order
-     *
-     * @return array
-     */
-    private function getSampleCancelXMLData(AbstractPosAccount $posAccount, array $order): array
+    public static function threeDFormDataProvider(): array
     {
+        $order = [
+            'id'          => 'order222',
+            'amount'      => '100.25',
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'success_url' => 'https://domain.com/success',
+            'fail_url'    => 'https://domain.com/fail_url',
+            'lang'        => 'tr',
+            'ip'          => '156.155.154.153',
+        ];
+
         return [
-            'Mode'        => 'TEST',
-            'Version'     => '512',
-            'Terminal'    => [
-                'ProvUserID' => $posAccount->getRefundUsername(),
-                'UserID'     => $posAccount->getRefundUsername(),
-                'HashData'   => '35E8410A78E24949D78F5E025B5E05AF470B01385A2ECBFEE6C5B3CDACFF78011D387ECAFDCE4B8453D80D35C2F344F3DAA6F2EF9143079F64DE88401EC5E4F5',
-                'ID'         => $posAccount->getTerminalId(),
-                'MerchantID' => $posAccount->getClientId(),
+            'without_card' => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => false,
+                'expected'     => [
+                    'gateway' => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'secure3dsecuritylevel' => '3D',
+                        'mode'                  => 'TEST',
+                        'apiversion'            => '512',
+                        'terminalprovuserid'    => 'PROVAUT',
+                        'terminaluserid'        => 'PROVAUT',
+                        'terminalmerchantid'    => '7000679',
+                        'terminalid'            => '30691298',
+                        'txntype'               => 'sales',
+                        'txnamount'             => '10025',
+                        'txncurrencycode'       => '949',
+                        'txninstallmentcount'   => '',
+                        'orderid'               => 'order222',
+                        'successurl'            => 'https://domain.com/success',
+                        'errorurl'              => 'https://domain.com/fail_url',
+                        'customeripaddress'     => '156.155.154.153',
+                        'secure3dhash'          => '372D6CB20B2B699D0A6667DFF46E3AA8CF3F9D8C2BB69A7C411895151FFCFAAB5277CCFE3B3A06035FEEFBFBFD40C79DBE51DBF867D0A24B37335A28F0CEFDE2',
+                    ],
+                ],
             ],
-            'Customer'    => [
-                'IPAddress' => $order['ip'],
+            'with_card'    => [
+                'order'        => $order,
+                'gatewayUrl'   => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => true,
+                'expected'     => [
+                    'gateway' => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'secure3dsecuritylevel' => '3D',
+                        'mode'                  => 'TEST',
+                        'apiversion'            => '512',
+                        'terminalprovuserid'    => 'PROVAUT',
+                        'terminaluserid'        => 'PROVAUT',
+                        'terminalmerchantid'    => '7000679',
+                        'terminalid'            => '30691298',
+                        'txntype'               => 'sales',
+                        'txnamount'             => '10025',
+                        'txncurrencycode'       => '949',
+                        'txninstallmentcount'   => '',
+                        'orderid'               => 'order222',
+                        'successurl'            => 'https://domain.com/success',
+                        'errorurl'              => 'https://domain.com/fail_url',
+                        'customeripaddress'     => '156.155.154.153',
+                        'cardnumber'            => '5555444433332222',
+                        'cardexpiredatemonth'   => '01',
+                        'cardexpiredateyear'    => '22',
+                        'cardcvv2'              => '123',
+                        'secure3dhash'          => '372D6CB20B2B699D0A6667DFF46E3AA8CF3F9D8C2BB69A7C411895151FFCFAAB5277CCFE3B3A06035FEEFBFBFD40C79DBE51DBF867D0A24B37335A28F0CEFDE2',
+                    ],
+                ],
             ],
-            'Order'       => [
-                'OrderID' => $order['id'],
-            ],
-            'Transaction' => [
-                'Type'                  => 'void',
-                'InstallmentCnt'        => '',
-                'Amount'                => 100,
-                'CurrencyCode'          => '949',
-                'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
-                'OriginalRetrefNum'     => $order['ref_ret_num'],
+        ];
+    }
+
+    public static function cancelRequestDataProvider(): array
+    {
+        $order = [
+            'id'          => '2020110828BC',
+            'ip'          => '127.0.0.1',
+            'ref_ret_num' => '831803579226',
+        ];
+
+        return [
+            [
+                'order'    => $order,
+                'expected' => [
+                    'Mode'        => 'TEST',
+                    'Version'     => '512',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVRFN',
+                        'UserID'     => 'PROVRFN',
+                        'HashData'   => '35E8410A78E24949D78F5E025B5E05AF470B01385A2ECBFEE6C5B3CDACFF78011D387ECAFDCE4B8453D80D35C2F344F3DAA6F2EF9143079F64DE88401EC5E4F5',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress' => '127.0.0.1',
+                    ],
+                    'Order'       => [
+                        'OrderID' => '2020110828BC',
+                    ],
+                    'Transaction' => [
+                        'Type'                  => 'void',
+                        'InstallmentCnt'        => '',
+                        'Amount'                => 100,
+                        'CurrencyCode'          => '949',
+                        'CardholderPresentCode' => '0',
+                        'MotoInd'               => 'N',
+                        'OriginalRetrefNum'     => '831803579226',
+                    ],
+                ],
             ],
         ];
     }
@@ -480,70 +574,81 @@ class GarantiPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param GarantiPosAccount $posAccount
-     * @param array             $order
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $posAccount, array $order): array
+    public static function nonSecurePaymentPostRequestDataDataProvider(): array
     {
+        $order = [
+            'id'          => 'order222',
+            'amount'      => 100.25,
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'ip'          => '127.0.0.1',
+            'ref_ret_num' => '831803579226',
+        ];
+
         return [
-            'Mode'        => 'TEST',
-            'Version'     => '512',
-            'Terminal'    => [
-                'ProvUserID' => $posAccount->getUsername(),
-                'UserID'     => $posAccount->getUsername(),
-                'HashData'   => '0CFE09F107274C6A07292DA061A4EECAB0F5F0CF87F831F2D3626A3346A941126C52D1D95A3B77ADF5AC348B3D25C76BA5D8D98A29557D087D3367BFFACCD25C',
-                'ID'         => $posAccount->getTerminalId(),
-                'MerchantID' => $posAccount->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress' => $order['ip'],
-            ],
-            'Order'       => [
-                'OrderID' => $order['id'],
-            ],
-            'Transaction' => [
-                'Type'              => 'postauth',
-                'Amount'            => 10025,
-                'CurrencyCode'      => '949',
-                'OriginalRetrefNum' => $order['ref_ret_num'],
+            [
+                'order'    => $order,
+                'expected' => [
+                    'Mode'        => 'TEST',
+                    'Version'     => '512',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'HashData'   => '',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress' => '127.0.0.1',
+                    ],
+                    'Order'       => [
+                        'OrderID' => 'order222',
+                    ],
+                    'Transaction' => [
+                        'Type'              => 'postauth',
+                        'Amount'            => 10025,
+                        'CurrencyCode'      => '949',
+                        'OriginalRetrefNum' => '831803579226',
+                    ],
+                ],
             ],
         ];
     }
 
-    /**
-     * @param GarantiPosAccount $posAccount
-     * @param array             $order
-     *
-     * @return array
-     */
-    private function getSampleStatusRequestData(AbstractPosAccount $posAccount, array $order): array
+    public static function statusRequestDataDataProvider(): array
     {
+        $order = [
+            'id' => '2020110828BC',
+            'ip' => '127.15.15.1',
+        ];
+
         return [
-            'Mode'        => 'TEST',
-            'Version'     => '512',
-            'Terminal'    => [
-                'ProvUserID' => $posAccount->getUsername(),
-                'UserID'     => $posAccount->getUsername(),
-                'HashData'   => '35E8410A78E24949D78F5E025B5E05AF470B01385A2ECBFEE6C5B3CDACFF78011D387ECAFDCE4B8453D80D35C2F344F3DAA6F2EF9143079F64DE88401EC5E4F5',
-                'ID'         => $posAccount->getTerminalId(),
-                'MerchantID' => $posAccount->getClientId(),
-            ],
-            'Customer'    => [
-                'IPAddress' => $order['ip'],
-            ],
-            'Order'       => [
-                'OrderID' => $order['id'],
-            ],
-            'Transaction' => [
-                'Type'                  => 'orderinq',
-                'InstallmentCnt'        => '',
-                'Amount'                => 100,
-                'CurrencyCode'          => '949',
-                'CardholderPresentCode' => '0',
-                'MotoInd'               => 'N',
+            [
+                'order'    => $order,
+                'expected' => [
+                    'Mode'        => 'TEST',
+                    'Version'     => '512',
+                    'Terminal'    => [
+                        'ProvUserID' => 'PROVAUT',
+                        'UserID'     => 'PROVAUT',
+                        'HashData'   => '35E8410A78E24949D78F5E025B5E05AF470B01385A2ECBFEE6C5B3CDACFF78011D387ECAFDCE4B8453D80D35C2F344F3DAA6F2EF9143079F64DE88401EC5E4F5',
+                        'ID'         => '30691298',
+                        'MerchantID' => '7000679',
+                    ],
+                    'Customer'    => [
+                        'IPAddress' => '127.15.15.1',
+                    ],
+                    'Order'       => [
+                        'OrderID' => '2020110828BC',
+                    ],
+                    'Transaction' => [
+                        'Type'                  => 'orderinq',
+                        'InstallmentCnt'        => '',
+                        'Amount'                => 100,
+                        'CurrencyCode'          => '949',
+                        'CardholderPresentCode' => '0',
+                        'MotoInd'               => 'N',
+                    ],
+                ],
             ],
         ];
     }

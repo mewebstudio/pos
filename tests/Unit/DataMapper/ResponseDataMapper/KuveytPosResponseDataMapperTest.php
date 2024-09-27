@@ -5,15 +5,15 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper
@@ -23,17 +23,24 @@ class KuveytPosResponseDataMapperTest extends TestCase
 {
     private KuveytPosResponseDataMapper $responseDataMapper;
 
+    /** @var LoggerInterface&MockObject */
+    private LoggerInterface $logger;
+
     protected function setUp(): void
     {
         parent::setUp();
 
-        $crypt                    = CryptFactory::createGatewayCrypt(KuveytPos::class, new NullLogger());
-        $requestDataMapper        = new KuveytPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
+        $this->logger = $this->createMock(LoggerInterface::class);
+
+        $requestDataMapper        = new KuveytPosRequestDataMapper(
+            $this->createMock(EventDispatcherInterface::class),
+            $this->createMock(CryptInterface::class),
+        );
         $this->responseDataMapper = new KuveytPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
             $requestDataMapper->getSecureTypeMappings(),
-            new NullLogger()
+            $this->logger,
         );
     }
 

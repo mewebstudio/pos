@@ -10,9 +10,10 @@ use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper
@@ -22,9 +23,14 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
 {
     private PayFlexV4PosResponseDataMapper $responseDataMapper;
 
+    /** @var LoggerInterface&MockObject */
+    private LoggerInterface $logger;
+
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->logger = $this->createMock(LoggerInterface::class);
 
         $requestDataMapper        = new PayFlexV4PosRequestDataMapper(
             $this->createMock(EventDispatcherInterface::class),
@@ -34,7 +40,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
             $requestDataMapper->getSecureTypeMappings(),
-            new NullLogger()
+            $this->logger,
         );
     }
 

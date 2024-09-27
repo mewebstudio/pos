@@ -6,19 +6,17 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use InvalidArgumentException;
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper
@@ -36,6 +34,9 @@ class PosNetRequestDataMapperTest extends TestCase
 
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
+
+    /** @var CryptInterface & MockObject */
+    private CryptInterface $crypt;
 
     protected function setUp(): void
     {
@@ -61,8 +62,8 @@ class PosNetRequestDataMapperTest extends TestCase
         ];
 
         $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
-        $crypt                   = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
-        $this->requestDataMapper = new PosNetRequestDataMapper($this->dispatcher, $crypt);
+        $this->crypt             = $this->createMock(CryptInterface::class);
+        $this->requestDataMapper = new PosNetRequestDataMapper($this->dispatcher, $this->crypt);
         $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
     }
 
@@ -191,11 +192,16 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @dataProvider create3DPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(array $order, string $txType, array $responseData, array $expected): void
+    public function testCreate3DPaymentRequestData(array $order, array $mappedOrder, string $txType, array $responseData, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->with($this->account, $mappedOrder)
+            ->willReturn($expected['oosTranData']['mac']);
+
         $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -221,11 +227,16 @@ class PosNetRequestDataMapperTest extends TestCase
     /**
      * @dataProvider resolveMerchantDataDataProvider
      */
-    public function testCreate3DResolveMerchantRequestData(array $order, array $responseData, array $expectedData): void
+    public function testCreate3DResolveMerchantRequestData(array $order, array $mappedOrder, array $responseData, array $expectedData): void
     {
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->with($this->account, $mappedOrder)
+            ->willReturn($expectedData['oosResolveMerchantData']['mac']);
+
         $actualData = $this->requestDataMapper->create3DResolveMerchantRequestData($this->account, $order, $responseData);
 
-        $this->assertEquals($expectedData, $actualData);
+        $this->assertSame($expectedData, $actualData);
     }
 
     /**
@@ -348,6 +359,12 @@ class PosNetRequestDataMapperTest extends TestCase
                     'amount'      => 100.01,
                     'installment' => '0',
                     'currency'    => PosInterface::CURRENCY_TRY,
+                ],
+                'mapped_order' => [
+                    'id'          => '000000002020110828BC',
+                    'amount'      => 10001,
+                    'installment' => '0',
+                    'currency'    => 'TL',
                 ],
                 'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'responseData' => [
@@ -586,6 +603,12 @@ class PosNetRequestDataMapperTest extends TestCase
                     'amount'      => 100.01,
                     'installment' => '0',
                     'currency'    => PosInterface::CURRENCY_TRY,
+                ],
+                'mapped_order'  => [
+                    'id'          => '000000002020110828BC',
+                    'amount'      => 10001,
+                    'installment' => '0',
+                    'currency'    => 'TL',
                 ],
                 'response_data' => [
                     'BankPacket'     => 'F61E1D0C0FB6EC5203A748124F309998F61E1D0C0FB6EC5203A748124F30',

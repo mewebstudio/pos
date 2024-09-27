@@ -6,21 +6,20 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Generator;
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class VakifKatilimPosRequestDataMapperTest extends TestCase
 {
@@ -32,6 +31,9 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
 
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
+
+    /** @var CryptInterface & MockObject */
+    private CryptInterface $crypt;
 
     protected function setUp(): void
     {
@@ -45,8 +47,6 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
             'kdsnsksl',
         );
 
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-
         $this->card = CreditCardFactory::create(
             '4155650100416111',
             25,
@@ -55,8 +55,9 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
             'John Doe',
         );
 
-        $crypt                   = CryptFactory::createGatewayCrypt(VakifKatilimPos::class, new NullLogger());
-        $this->requestDataMapper = new VakifKatilimPosRequestDataMapper($this->dispatcher, $crypt);
+        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt             = $this->createMock(CryptInterface::class);
+        $this->requestDataMapper = new VakifKatilimPosRequestDataMapper($this->dispatcher, $this->crypt);
     }
 
     /**
@@ -115,6 +116,16 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
         array  $expected
     ): void
     {
+        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
+            $hashCalculationData = $expected['inputs'];
+            unset($hashCalculationData['HashPassword']);
+
+            $this->crypt->expects(self::once())
+                ->method('hashString')
+                ->with($this->account->getStoreKey())
+                ->willReturn($expected['inputs']['HashPassword']);
+        }
+
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
             $order,
@@ -123,7 +134,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
             $gatewayURL,
         );
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -131,6 +142,19 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData(array $order, array $expectedData): void
     {
+        $this->crypt->expects(self::once())
+            ->method('hashString')
+            ->with($this->account->getStoreKey())
+            ->willReturn($expectedData['HashPassword']);
+
+        $hashCalculationData = $expectedData;
+        unset($hashCalculationData['HashData']);
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expectedData['HashData']);
+
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData(
             $this->account,
             $order,
@@ -138,7 +162,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
             $this->card
         );
 
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -146,12 +170,25 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expectedData): void
     {
+        $this->crypt->expects(self::once())
+            ->method('hashString')
+            ->with($this->account->getStoreKey())
+            ->willReturn($expectedData['HashPassword']);
+
+        $hashCalculationData = $expectedData;
+        unset($hashCalculationData['HashData']);
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expectedData['HashData']);
+
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData(
             $this->account,
             $order,
         );
 
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
 
@@ -162,6 +199,19 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
     {
         $account = $this->account;
         $card    = $this->card;
+
+        $this->crypt->expects(self::once())
+            ->method('hashString')
+            ->with($account->getStoreKey())
+            ->willReturn($expectedData['HashPassword']);
+
+        $hashCalculationData = $expectedData;
+        unset($hashCalculationData['HashData']);
+
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->with($account, $hashCalculationData)
+            ->willReturn($expectedData['HashData']);
 
         $actualData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $account,
@@ -181,8 +231,24 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData(array $order, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('hashString')
+            ->with($this->account->getStoreKey())
+            ->willReturn($expected['HashPassword']);
+
+        $hashCalculationData = $expected;
+        unset($hashCalculationData['HashData']);
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['HashData']);
+
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+
+        ksort($actual);
+        ksort($expected);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -190,6 +256,19 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData(array $order, string $txType, array $expected): void
     {
+        $this->crypt->expects(self::once())
+            ->method('hashString')
+            ->with($this->account->getStoreKey())
+            ->willReturn($expected['HashPassword']);
+
+        $hashCalculationData = $expected;
+        unset($hashCalculationData['HashData']);
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['HashData']);
+
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
         \ksort($actual);
@@ -202,8 +281,16 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
      */
     public function testCreateHistoryRequestData(array $order, array $expected): void
     {
+        $hashCalculationData = $expected;
+        unset($hashCalculationData['HashData']);
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['HashData']);
+
         $actual = $this->requestDataMapper->createHistoryRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
 
@@ -212,8 +299,16 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
      */
     public function testCreateOrderHistoryRequestData(array $order, array $expected): void
     {
+        $hashCalculationData = $expected;
+        unset($hashCalculationData['HashData']);
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['HashData']);
+
         $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -221,8 +316,16 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData(array $order, array $expected): void
     {
+        $hashCalculationData = $expected;
+        unset($hashCalculationData['HashData']);
+
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $hashCalculationData)
+            ->willReturn($expected['HashData']);
+
         $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -230,9 +333,19 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData(KuveytPosAccount $kuveytPosAccount, array $order, string $txType, array $responseData, array $expectedData): void
     {
+        $hashCalculationData = $expectedData;
+        $hashCalculationData['HashData'] = '';
+
+        $this->crypt->expects(self::once())
+            ->method('create3DHash')
+            ->with($kuveytPosAccount, $hashCalculationData)
+            ->willReturn($expectedData['HashData']);
+
         $actual = $this->requestDataMapper->create3DPaymentRequestData($kuveytPosAccount, $order, $txType, $responseData);
 
-        $this->assertEquals($expectedData, $actual);
+        ksort($expectedData);
+        ksort($actual);
+        $this->assertSame($expectedData, $actual);
     }
 
 
@@ -333,8 +446,8 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                 'CustomerId'      => '11111',
                 'UserName'        => 'APIUSER',
                 'SubMerchantId'   => '0',
-                'HashData'        => '4oNmzFPMeC/tOK8i/XCPNy4W+FU=',
                 'MerchantOrderId' => 'order-123',
+                'HashData'        => '4oNmzFPMeC/tOK8i/XCPNy4W+FU=',
             ],
         ];
     }
@@ -459,11 +572,11 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                 'FECCurrencyCode'     => '0949',
                 'CurrencyCode'        => '0949',
                 'TransactionSecurity' => '5',
-                'CardHolderName'      => 'John Doe',
                 'CardNumber'          => '4155650100416111',
                 'CardExpireDateYear'  => '25',
                 'CardExpireDateMonth' => '01',
                 'CardCVV2'            => '123',
+                'CardHolderName'      => 'John Doe',
                 'HashData'            => 'AYOjSzXn6dgwiV3U0vXzNTWlO8g=',
             ],
         ];
@@ -489,11 +602,11 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                 'CurrencyCode'        => '0949',
                 //'PaymentType'         => '1',
                 'TransactionSecurity' => '5',
-                'CardHolderName'      => 'John Doe',
                 'CardNumber'          => '4155650100416111',
                 'CardExpireDateYear'  => '25',
                 'CardExpireDateMonth' => '01',
                 'CardCVV2'            => '123',
+                'CardHolderName'      => 'John Doe',
                 'HashData'            => 'AYOjSzXn6dgwiV3U0vXzNTWlO8g=',
             ],
         ];
@@ -514,9 +627,9 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                 'SubMerchantId'     => '0',
                 'HashPassword'      => 'h58bUB83xQz2/21SUeOemUgkF5U=',
                 'MerchantOrderId'   => '123',
-                'HashData'          => 'K0LvOf07C/ayD53wWiykcUCZPc8=',
                 'OrderId'           => 'remote-123',
                 'CustomerIPAddress' => '127.0.0.1',
+                'HashData'          => 'K0LvOf07C/ayD53wWiykcUCZPc8=',
             ],
         ];
     }
@@ -535,7 +648,6 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                 'CustomerId'    => '11111',
                 'UserName'      => 'APIUSER',
                 'SubMerchantId' => '0',
-                'HashData'      => '58xhdJGlgIZtsid8cvSDlr8EItk=',
                 'StartDate'     => '2024-03-30',
                 'EndDate'       => '2024-03-31',
                 'LowerLimit'    => 0,
@@ -544,6 +656,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                 'OrderStatus'   => null,
                 'TranResult'    => null,
                 'OrderNo'       => null,
+                'HashData'      => '58xhdJGlgIZtsid8cvSDlr8EItk=',
             ],
         ];
     }
@@ -561,7 +674,6 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                 'CustomerId'    => '11111',
                 'UserName'      => 'APIUSER',
                 'SubMerchantId' => '0',
-                'HashData'      => '58xhdJGlgIZtsid8cvSDlr8EItk=',
                 'StartDate'     => '2024-03-30',
                 'EndDate'       => '2024-03-31',
                 'LowerLimit'    => 0,
@@ -570,6 +682,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                 'OrderStatus'   => null,
                 'TranResult'    => null,
                 'OrderNo'       => null,
+                'HashData'      => '58xhdJGlgIZtsid8cvSDlr8EItk=',
             ],
         ];
     }
