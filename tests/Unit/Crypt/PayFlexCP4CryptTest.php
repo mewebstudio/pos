@@ -11,7 +11,7 @@ use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\Crypt\PayFlexCPV4Crypt
@@ -35,7 +35,8 @@ class PayFlexCP4CryptTest extends TestCase
             PosInterface::MODEL_3D_SECURE
         );
 
-        $this->crypt = new PayFlexCPV4Crypt(new NullLogger());
+        $logger      = $this->createMock(LoggerInterface::class);
+        $this->crypt = new PayFlexCPV4Crypt($logger);
     }
 
 

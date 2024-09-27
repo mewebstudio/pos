@@ -5,15 +5,15 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\VakifKatilimPosResponseDataMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\VakifKatilimPosResponseDataMapper
@@ -23,17 +23,23 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
 {
     private VakifKatilimPosResponseDataMapper $responseDataMapper;
 
+    /** @var LoggerInterface&MockObject */
+    private LoggerInterface $logger;
+
     protected function setUp(): void
     {
         parent::setUp();
+        $this->logger = $this->createMock(LoggerInterface::class);
 
-        $crypt                    = CryptFactory::createGatewayCrypt(VakifKatilimPos::class, new NullLogger());
-        $requestDataMapper        = new VakifKatilimPosRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
+        $requestDataMapper        = new VakifKatilimPosRequestDataMapper(
+            $this->createMock(EventDispatcherInterface::class),
+            $this->createMock(CryptInterface::class),
+        );
         $this->responseDataMapper = new VakifKatilimPosResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
             $requestDataMapper->getSecureTypeMappings(),
-            new NullLogger()
+            $this->logger,
         );
     }
 

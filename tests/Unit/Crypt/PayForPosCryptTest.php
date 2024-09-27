@@ -9,10 +9,11 @@ use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\Crypt\PayForPosCrypt
+ * @covers \Mews\Pos\Crypt\AbstractCrypt
  */
 class PayForPosCryptTest extends TestCase
 {
@@ -33,7 +34,8 @@ class PayForPosCryptTest extends TestCase
             '12345678'
         );
 
-        $this->crypt = new PayForPosCrypt(new NullLogger());
+        $logger      = $this->createMock(LoggerInterface::class);
+        $this->crypt = new PayForPosCrypt($logger);
     }
 
 

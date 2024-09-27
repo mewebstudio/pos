@@ -1,4 +1,7 @@
 <?php
+/**
+ * @license MIT
+ */
 
 namespace Mews\Pos\Tests\Unit\Crypt;
 
@@ -7,10 +10,11 @@ use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\Crypt\EstV3PosCrypt
+ * @covers \Mews\Pos\Crypt\AbstractCrypt
  */
 class EstV3PosCryptTest extends TestCase
 {
@@ -31,7 +35,8 @@ class EstV3PosCryptTest extends TestCase
             '123456'
         );
 
-        $this->crypt = new EstV3PosCrypt(new NullLogger());
+        $logger      = $this->createMock(LoggerInterface::class);
+        $this->crypt = new EstV3PosCrypt($logger);
     }
 
     /**

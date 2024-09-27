@@ -11,10 +11,11 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\Crypt\KuveytPosCrypt
+ * @covers \Mews\Pos\Crypt\AbstractCrypt
  */
 class KuveytPosCryptTest extends TestCase
 {
@@ -34,7 +35,8 @@ class KuveytPosCryptTest extends TestCase
             'Api123'
         );
 
-        $this->crypt = new KuveytPosCrypt(new NullLogger());
+        $logger      = $this->createMock(LoggerInterface::class);
+        $this->crypt = new KuveytPosCrypt($logger);
     }
 
     public function testHashString(): void

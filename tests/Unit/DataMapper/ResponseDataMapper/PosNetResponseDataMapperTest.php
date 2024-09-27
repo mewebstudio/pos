@@ -5,34 +5,41 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Factory\CryptFactory;
-use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper
+ * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AbstractResponseDataMapper
  */
 class PosNetResponseDataMapperTest extends TestCase
 {
     private PosNetResponseDataMapper $responseDataMapper;
 
+    /** @var LoggerInterface&MockObject */
+    private LoggerInterface $logger;
+
     protected function setUp(): void
     {
         parent::setUp();
+        $this->logger = $this->createMock(LoggerInterface::class);
 
-        $crypt                    = CryptFactory::createGatewayCrypt(PosNet::class, new NullLogger());
-        $requestDataMapper        = new PosNetRequestDataMapper($this->createMock(EventDispatcherInterface::class), $crypt);
+        $requestDataMapper        = new PosNetRequestDataMapper(
+            $this->createMock(EventDispatcherInterface::class),
+            $this->createMock(CryptInterface::class),
+        );
         $this->responseDataMapper = new PosNetResponseDataMapper(
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
             $requestDataMapper->getSecureTypeMappings(),
-            new NullLogger()
+            $this->logger,
         );
     }
 

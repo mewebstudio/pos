@@ -9,9 +9,10 @@ use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\AkbankPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\AkbankPosResponseDataMapper;
 use Mews\Pos\PosInterface;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Log\NullLogger;
+use Psr\Log\LoggerInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\ResponseDataMapper\AkbankPosResponseDataMapper
@@ -21,9 +22,14 @@ class AkbankPosResponseDataMapperTest extends TestCase
 {
     private AkbankPosResponseDataMapper $responseDataMapper;
 
+    /** @var LoggerInterface&MockObject */
+    private LoggerInterface $logger;
+
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->logger = $this->createMock(LoggerInterface::class);
 
         $requestDataMapper = new AkbankPosRequestDataMapper(
             $this->createMock(EventDispatcherInterface::class),
@@ -34,7 +40,7 @@ class AkbankPosResponseDataMapperTest extends TestCase
             $requestDataMapper->getCurrencyMappings(),
             $requestDataMapper->getTxTypeMappings(),
             $requestDataMapper->getSecureTypeMappings(),
-            new NullLogger()
+            $this->logger
         );
     }
 
