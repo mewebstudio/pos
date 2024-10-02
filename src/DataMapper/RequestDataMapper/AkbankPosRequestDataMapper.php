@@ -344,7 +344,7 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
             $requestData['report'] = [
                 'batchNumber'   => $order['batch_num'],
             ];
-        } elseif (isset($order['start_date']) && isset($order['end_date'])) {
+        } elseif (isset($order['start_date'], $order['end_date'])) {
             $requestData['report'] = [
                 'startDateTime' => $this->formatRequestDateTime($order['start_date']),
                 'endDateTime'   => $this->formatRequestDateTime($order['end_date']),

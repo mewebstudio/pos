@@ -45,8 +45,8 @@ class RequestDataMapperFactory
     /**
      * @param class-string                            $gatewayClass
      * @param EventDispatcherInterface                $eventDispatcher
-     * @param array<PosInterface::CURRENCY_*, string> $currencies
      * @param CryptInterface                          $crypt
+     * @param array<PosInterface::CURRENCY_*, string> $currencies
      *
      * @return RequestDataMapperInterface
      */
@@ -65,13 +65,10 @@ class RequestDataMapperFactory
             PosNet::class          => PosNetRequestDataMapper::class,
             PosNetV1Pos::class     => PosNetV1PosRequestDataMapper::class,
             PayFlexCPV4Pos::class  => PayFlexCPV4PosRequestDataMapper::class,
+            PayFlexV4Pos::class    => PayFlexV4PosRequestDataMapper::class,
         ];
         if (isset($classMappings[$gatewayClass])) {
             return new $classMappings[$gatewayClass]($eventDispatcher, $crypt, $currencies);
-        }
-
-        if (PayFlexV4Pos::class === $gatewayClass) {
-            return new PayFlexV4PosRequestDataMapper($eventDispatcher, $crypt, $currencies);
         }
 
         throw new DomainException('unsupported gateway');

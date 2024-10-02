@@ -135,7 +135,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
                 'Total'   => isset($order['amount']) ? (float) $this->formatAmount($order['amount']) : null,
             ];
 
-        if (isset($order['amount']) && isset($order['pre_auth_amount']) && $order['pre_auth_amount'] < $order['amount']) {
+        if (isset($order['amount'], $order['pre_auth_amount']) && $order['pre_auth_amount'] < $order['amount']) {
             // when amount < pre_auth_amount then we need to send PREAMT value
             $requestData['Extra']['PREAMT'] = $order['pre_auth_amount'];
         }
@@ -271,9 +271,12 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
+     * @param AbstractPosAccount                   $posAccount
      * @param array<string, string|int|float|null> $order
      * @param string                               $paymentModel
      * @param string                               $txType
+     * @param string                               $gatewayURL
+     * @param CreditCardInterface|null             $creditCard
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      *

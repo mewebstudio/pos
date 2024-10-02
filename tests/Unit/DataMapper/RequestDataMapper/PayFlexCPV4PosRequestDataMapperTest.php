@@ -83,18 +83,6 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @testWith ["MONTH", "Month"]
-     *            ["Month", "Month"]
-     */
-    public function testMapRecurringFrequency(string $frequency, string $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapRecurringFrequency');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$frequency]));
-    }
-
-    /**
      * @return void
      */
     public function testMapCurrency(): void

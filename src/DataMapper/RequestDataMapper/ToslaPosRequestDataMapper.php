@@ -211,7 +211,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         if ($creditCard instanceof CreditCardInterface) {
             $inputs['CardHolderName'] = (string) $creditCard->getHolderName();
             $inputs['CardNo']         = $creditCard->getNumber();
-            $inputs['ExpireDate']     = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_DATE_FORMAT);
+            $inputs['ExpireDate']     = $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
             $inputs['Cvv']            = $creditCard->getCvv();
         }
 
