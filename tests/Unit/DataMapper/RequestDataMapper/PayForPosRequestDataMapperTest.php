@@ -120,49 +120,38 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider createNonSecurePostAuthPaymentRequestDataDataProvider
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData(): void
+    public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expected): void
     {
-        $order = [
-            'id'          => '2020110828BC',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'lang'        => PosInterface::LANG_TR,
-        ];
-
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleNonSecurePaymentPostRequestData($this->account, $order);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider nonSecurePaymentRequestDataProvider
      */
-    public function testCreateNonSecurePaymentRequestData(): void
+    public function testCreateNonSecurePaymentRequestData(array $order, string $txType, array $expected): void
     {
-        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $this->order, PosInterface::TX_TYPE_PAY_AUTH, $this->card);
+        $actual = $this->requestDataMapper->createNonSecurePaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $this->card
+        );
 
-        $expectedData = $this->getSampleNonSecurePaymentRequestData($this->account, $this->order, $this->card);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider createCancelRequestDataDataProvider
      */
-    public function testCreateCancelRequestData(): void
+    public function testCreateCancelRequestData(array $order, array $expected): void
     {
-        $order = [
-            'id'       => '2020110828BC',
-            'currency' => PosInterface::CURRENCY_TRY,
-        ];
-
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleCancelXMLData($this->account, $order);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -191,19 +180,13 @@ class PayForPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider create3DPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(): void
+    public function testCreate3DPaymentRequestData(array $order, array $responseData, array $expected): void
     {
-        $order        = [
-            'id' => '2020110828BC',
-        ];
-        $responseData = ['RequestGuid' => '1000000057437884'];
-
         $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, '', $responseData);
 
-        $expectedData = $this->getSample3DPaymentRequestData($this->account, $order, $responseData);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -245,22 +228,17 @@ class PayForPosRequestDataMapperTest extends TestCase
             $card
         );
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider createStatusRequestDataDataProvider
      */
-    public function testCreateStatusRequestData(): void
+    public function testCreateStatusRequestData(array $order, array $expected): void
     {
-        $order = [
-            'id' => '2020110828BC',
-        ];
-
         $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleStatusRequestData($this->account, $order);
-        $this->assertEquals($expectedData, $actualData);
+        $this->assertSame($expected, $actualData);
     }
 
     /**
@@ -275,113 +253,129 @@ class PayForPosRequestDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actual);
     }
 
-    /**
-     * @param AbstractPosAccount $posAccount
-     * @param array              $order
-     * @param array              $responseData
-     *
-     * @return array
-     */
-    private function getSample3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, array $responseData): array
+    public static function create3DPaymentRequestDataDataProvider(): array
     {
         return [
-            'RequestGuid' => $responseData['RequestGuid'],
-            'UserCode'    => $posAccount->getUsername(),
-            'UserPass'    => $posAccount->getPassword(),
-            'OrderId'     => $order['id'],
-            'SecureType'  => '3DModelPayment',
+            [
+                'order'         => [
+                    'id' => '2020110828BC',
+
+                ],
+                'response_data' => [
+                    'RequestGuid' => '1000000057437884',
+                ],
+                'expected'      => [
+                    'RequestGuid' => '1000000057437884',
+                    'UserCode'    => 'QNB_API_KULLANICI_3DPAY',
+                    'UserPass'    => 'UcBN0',
+                    'OrderId'     => '2020110828BC',
+                    'SecureType'  => '3DModelPayment',
+                ],
+            ],
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $posAccount
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleCancelXMLData(AbstractPosAccount $posAccount, array $order): array
+    public static function createCancelRequestDataDataProvider(): array
     {
         return [
-            'MbrId'      => '5',
-            'MerchantId' => $posAccount->getClientId(),
-            'UserCode'   => $posAccount->getUsername(),
-            'UserPass'   => $posAccount->getPassword(),
-            'OrgOrderId' => $order['id'],
-            'SecureType' => 'NonSecure',
-            'Lang'       => 'tr',
-            'TxnType'    => 'Void',
-            'Currency'   => 949,
+            [
+                'order'    => [
+                    'id'       => '2020110828BC',
+                    'currency' => PosInterface::CURRENCY_TRY,
+                ],
+                'expected' => [
+                    'MerchantId' => '085300000009704',
+                    'UserCode'   => 'QNB_API_KULLANICI_3DPAY',
+                    'UserPass'   => 'UcBN0',
+                    'MbrId'      => '5',
+                    'OrgOrderId' => '2020110828BC',
+                    'SecureType' => 'NonSecure',
+                    'TxnType'    => 'Void',
+                    'Currency'   => '949',
+                    'Lang'       => 'tr',
+                ],
+            ],
         ];
     }
 
-    /**
-     * @param AbstractPosAccount  $posAccount
-     * @param array               $order
-     * @param CreditCardInterface $creditCard
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, CreditCardInterface $creditCard): array
+    public static function nonSecurePaymentRequestDataProvider(): array
     {
         return [
-            'MbrId'            => '5',
-            'MerchantId'       => $posAccount->getClientId(),
-            'UserCode'         => $posAccount->getUsername(),
-            'UserPass'         => $posAccount->getPassword(),
-            'MOTO'             => '0',
-            'OrderId'          => $order['id'],
-            'SecureType'       => 'NonSecure',
-            'TxnType'          => 'Auth',
-            'PurchAmount'      => $order['amount'],
-            'Currency'         => 949,
-            'InstallmentCount' => 0,
-            'Lang'             => 'tr',
-            'CardHolderName'   => $creditCard->getHolderName(),
-            'Pan'              => $creditCard->getNumber(),
-            'Expiry'           => '0122',
-            'Cvv2'             => $creditCard->getCvv(),
+            [
+                'order'    => [
+                    'id'     => '2020110828BC',
+                    'amount' => 100.01,
+                ],
+                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
+                'expected' => [
+                    'MerchantId'       => '085300000009704',
+                    'UserCode'         => 'QNB_API_KULLANICI_3DPAY',
+                    'UserPass'         => 'UcBN0',
+                    'MbrId'            => '5',
+                    'MOTO'             => '0',
+                    'OrderId'          => '2020110828BC',
+                    'SecureType'       => 'NonSecure',
+                    'TxnType'          => 'Auth',
+                    'PurchAmount'      => '100.01',
+                    'Currency'         => '949',
+                    'InstallmentCount' => '0',
+                    'Lang'             => 'tr',
+                    'CardHolderName'   => 'ahmet',
+                    'Pan'              => '5555444433332222',
+                    'Expiry'           => '0122',
+                    'Cvv2'             => '123',
+                ],
+            ],
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $posAccount
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleNonSecurePaymentPostRequestData(AbstractPosAccount $posAccount, array $order): array
+    public static function createNonSecurePostAuthPaymentRequestDataDataProvider(): array
     {
         return [
-            'MbrId'       => '5',
-            'MerchantId'  => $posAccount->getClientId(),
-            'UserCode'    => $posAccount->getUsername(),
-            'UserPass'    => $posAccount->getPassword(),
-            'OrgOrderId'  => $order['id'],
-            'SecureType'  => 'NonSecure',
-            'TxnType'     => 'PostAuth',
-            'PurchAmount' => $order['amount'],
-            'Currency'    => 949,
-            'Lang'        => 'tr',
+            [
+                'order'    => [
+                    'id'          => '2020110828BC',
+                    'amount'      => 100.01,
+                    'installment' => 0,
+                    'currency'    => PosInterface::CURRENCY_TRY,
+                    'lang'        => PosInterface::LANG_TR,
+                ],
+                'expected' => [
+                    'MerchantId'  => '085300000009704',
+                    'UserCode'    => 'QNB_API_KULLANICI_3DPAY',
+                    'UserPass'    => 'UcBN0',
+                    'MbrId'       => '5',
+                    'OrgOrderId'  => '2020110828BC',
+                    'SecureType'  => 'NonSecure',
+                    'TxnType'     => 'PostAuth',
+                    'PurchAmount' => '100.01',
+                    'Currency'    => '949',
+                    'Lang'        => 'tr',
+                ],
+            ],
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $posAccount
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleStatusRequestData(AbstractPosAccount $posAccount, array $order): array
+
+    public static function createStatusRequestDataDataProvider(): array
     {
         return [
-            'MbrId'      => '5',
-            'MerchantId' => $posAccount->getClientId(),
-            'UserCode'   => $posAccount->getUsername(),
-            'UserPass'   => $posAccount->getPassword(),
-            'OrgOrderId' => $order['id'],
-            'SecureType' => 'Inquiry',
-            'Lang'       => 'tr',
-            'TxnType'    => 'OrderInquiry',
+            [
+                'order'    => [
+                    'id' => '2020110828BC',
+                ],
+                'expected' => [
+                    'MerchantId' => '085300000009704',
+                    'UserCode'   => 'QNB_API_KULLANICI_3DPAY',
+                    'UserPass'   => 'UcBN0',
+                    'MbrId'      => '5',
+                    'OrgOrderId' => '2020110828BC',
+                    'SecureType' => 'Inquiry',
+                    'Lang'       => 'tr',
+                    'TxnType'    => 'OrderInquiry',
+                ],
+            ],
+
         ];
     }
 
@@ -490,11 +484,11 @@ class PayForPosRequestDataMapperTest extends TestCase
                         'OkUrl'            => 'http://localhost/finansbank-payfor/3d/success.php',
                         'FailUrl'          => 'http://localhost/finansbank-payfor/3d/fail.php',
                         'Rnd'              => '1deda47050cd38112cbf91f4',
-                        'Hash'             => 'BSj3xu8dYQbdw5YM4JvTS+vmyUI=',
                         'CardHolderName'   => 'ahmet',
                         'Pan'              => '5555444433332222',
                         'Expiry'           => '0122',
                         'Cvv2'             => '123',
+                        'Hash'             => 'BSj3xu8dYQbdw5YM4JvTS+vmyUI=',
                     ],
                 ],
             ],

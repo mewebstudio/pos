@@ -118,7 +118,9 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
         unset($actualData['all'], $actualData['3d_all']);
-        $this->assertEquals($expectedData, $actualData);
+        ksort($expectedData);
+        ksort($actualData);
+        $this->assertSame($expectedData, $actualData);
     }
 
     /**

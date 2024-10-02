@@ -45,7 +45,7 @@ class ToslaPosCryptTest extends TestCase
         $expected    = 'BwZ05tt0aNgIgtrrqmlTwSIaeetpQyyGLH6xTsQbHae7ANCIVKmLHPxYWk5XP3Li5fr4La1bZS9/43OihP0dig==';
 
         $actual = $this->crypt->create3DHash($this->account, $requestData);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     public function testCreateHash(): void
@@ -57,7 +57,7 @@ class ToslaPosCryptTest extends TestCase
         $expected    = 'BwZ05tt0aNgIgtrrqmlTwSIaeetpQyyGLH6xTsQbHae7ANCIVKmLHPxYWk5XP3Li5fr4La1bZS9/43OihP0dig==';
 
         $actual = $this->crypt->createHash($this->account, $requestData);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**

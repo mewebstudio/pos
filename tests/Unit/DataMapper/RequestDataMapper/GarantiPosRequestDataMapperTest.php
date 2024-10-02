@@ -237,7 +237,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
 
         $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, '', $responseData);
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**

@@ -39,7 +39,7 @@ class PosNetSerializerTest extends TestCase
         $result   = $this->serializer->encode($data);
         $expected = str_replace(["\r"], '', $expected);
 
-        $this->assertEquals($expected, $result);
+        $this->assertSame($expected, $result);
     }
 
     /**

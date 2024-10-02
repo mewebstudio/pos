@@ -178,7 +178,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         \ksort($actual);
         \ksort($expected);
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**

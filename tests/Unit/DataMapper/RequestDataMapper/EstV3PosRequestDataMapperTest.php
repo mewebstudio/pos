@@ -92,7 +92,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
             $isWithCard ? $this->card : null
         );
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     public static function threeDFormDataProvider(): array
@@ -155,13 +155,13 @@ class EstV3PosRequestDataMapperTest extends TestCase
                         'lang'                            => 'tr',
                         'currency'                        => '949',
                         'taksit'                          => '',
-                        'TranType'                        => 'Auth',
-                        'hashAlgorithm'                   => 'ver3',
-                        'hash'                            => '3fvBzh0HT3UiKUTXis0Ke2NG3mAp9eBOwx26bstv+l6L946GrOF2JklXfqTNc6VBeqUSkuLxo4ErtwCWuPCzYw==',
                         'pan'                             => '5555444433332222',
                         'Ecom_Payment_Card_ExpDate_Month' => '01',
                         'Ecom_Payment_Card_ExpDate_Year'  => '22',
                         'cv2'                             => '123',
+                        'TranType'                        => 'Auth',
+                        'hashAlgorithm'                   => 'ver3',
+                        'hash'                            => '3fvBzh0HT3UiKUTXis0Ke2NG3mAp9eBOwx26bstv+l6L946GrOF2JklXfqTNc6VBeqUSkuLxo4ErtwCWuPCzYw==',
                     ],
                 ],
             ],

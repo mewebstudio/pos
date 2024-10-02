@@ -53,7 +53,7 @@ class EstPosCryptTest extends TestCase
         $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
 
         $actual = $this->crypt->create3DHash($this->account, $requestData);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -73,7 +73,7 @@ class EstPosCryptTest extends TestCase
         $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
 
         $actual = $this->crypt->create3DHash($this->account, $requestData);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
