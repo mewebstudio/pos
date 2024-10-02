@@ -145,7 +145,7 @@ class EstPosRequestDataMapperTest extends TestCase
     {
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -164,34 +164,13 @@ class EstPosRequestDataMapperTest extends TestCase
     }
 
     /**
-     * @return void
+     * @dataProvider createCancelRequestDataProvider
      */
-    public function testCreateCancelRequestData(): void
+    public function testCreateCancelRequestData(array $order, array $expected): void
     {
-        $order = [
-            'id' => '2020110828BC',
-        ];
-
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleCancelXMLData($this->account, $order);
-        $this->assertEquals($expectedData, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreateCancelRecurringOrderRequestData(): void
-    {
-        $order = [
-            'id'                              => '2020110828BC',
-            'recurringOrderInstallmentNumber' => '2',
-        ];
-
-        $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-
-        $expectedData = $this->getSampleRecurringOrderCancelXMLData($this->account, $order);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -200,7 +179,7 @@ class EstPosRequestDataMapperTest extends TestCase
     public function testCreateOrderHistoryRequestData(array $order, array $expected): void
     {
         $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     public function testCreateHistoryRequestData(): void
@@ -215,7 +194,7 @@ class EstPosRequestDataMapperTest extends TestCase
     public function testCreate3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData, array $expected): void
     {
         $actual = $this->requestDataMapper->create3DPaymentRequestData($posAccount, $order, $txType, $responseData);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -255,37 +234,17 @@ class EstPosRequestDataMapperTest extends TestCase
             $isWithCard ? $this->card : null
         );
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
-     * @return void
+     * @dataProvider statusRequestDataProvider
      */
-    public function testCreateStatusRequestData(): void
+    public function testCreateStatusRequestData(array $order, array $expected): void
     {
-        $order = [
-            'id' => '2020110828BC',
-        ];
-
         $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $expectedData = $this->getSampleStatusRequestData($this->account, $order);
-        $this->assertEquals($expectedData, $actualData);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreateRecurringStatusRequestData(): void
-    {
-        $order = [
-            'recurringId' => '2020110828BC',
-        ];
-
-        $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
-
-        $expectedData = $this->getSampleRecurringStatusRequestData($this->account, $order);
-        $this->assertEquals($expectedData, $actualData);
+        $this->assertSame($expected, $actualData);
     }
 
     /**
@@ -424,8 +383,8 @@ class EstPosRequestDataMapperTest extends TestCase
                         'lang'      => 'tr',
                         'currency'  => '949',
                         'taksit'    => '',
-                        'hash'      => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
                         'islemtipi' => 'Auth',
+                        'hash'      => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
                     ],
                 ],
             ],
@@ -450,11 +409,11 @@ class EstPosRequestDataMapperTest extends TestCase
                         'currency'                        => '949',
                         'taksit'                          => '',
                         'islemtipi'                       => 'Auth',
-                        'hash'                            => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
                         'pan'                             => '5555444433332222',
                         'Ecom_Payment_Card_ExpDate_Month' => '01',
                         'Ecom_Payment_Card_ExpDate_Year'  => '22',
                         'cv2'                             => '123',
+                        'hash'                            => 'TN+2/D8lijFd+5zAUar6SH6EiRY=',
                     ],
                 ],
             ],
@@ -597,39 +556,36 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $posAccount
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleCancelXMLData(AbstractPosAccount $posAccount, array $order): array
+    public static function createCancelRequestDataProvider(): array
     {
         return [
-            'Name'     => $posAccount->getUsername(),
-            'Password' => $posAccount->getPassword(),
-            'ClientId' => $posAccount->getClientId(),
-            'OrderId'  => $order['id'],
-            'Type'     => 'Void',
-        ];
-    }
-
-    /**
-     * @param AbstractPosAccount $posAccount
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleRecurringOrderCancelXMLData(AbstractPosAccount $posAccount, array $order): array
-    {
-        return [
-            'Name'     => $posAccount->getUsername(),
-            'Password' => $posAccount->getPassword(),
-            'ClientId' => $posAccount->getClientId(),
-            'Extra'    => [
-                'RECORDTYPE'         => 'Order',
-                'RECURRINGOPERATION' => 'Cancel',
-                'RECORDID'           => $order['id'].'-'.$order['recurringOrderInstallmentNumber'],
+            [
+                'order'    => [
+                    'id' => '2020110828BC',
+                ],
+                'expected' => [
+                    'Name'     => 'ISBANKAPI',
+                    'Password' => 'ISBANK07',
+                    'ClientId' => '700655000200',
+                    'OrderId'  => '2020110828BC',
+                    'Type'     => 'Void',
+                ],
+            ],
+            [
+                'order'    => [
+                    'id'                              => '2020110828BC',
+                    'recurringOrderInstallmentNumber' => '2',
+                ],
+                'expected' => [
+                    'Name'     => 'ISBANKAPI',
+                    'Password' => 'ISBANK07',
+                    'ClientId' => '700655000200',
+                    'Extra'    => [
+                        'RECORDTYPE'         => 'Order',
+                        'RECURRINGOPERATION' => 'Cancel',
+                        'RECORDID'           => '2020110828BC-2',
+                    ],
+                ],
             ],
         ];
     }
@@ -707,40 +663,36 @@ class EstPosRequestDataMapperTest extends TestCase
         ];
     }
 
-    /**
-     * @param AbstractPosAccount $posAccount
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleStatusRequestData(AbstractPosAccount $posAccount, array $order): array
+    public static function statusRequestDataProvider(): array
     {
         return [
-            'Name'     => $posAccount->getUsername(),
-            'Password' => $posAccount->getPassword(),
-            'ClientId' => $posAccount->getClientId(),
-            'OrderId'  => $order['id'],
-            'Extra'    => [
-                'ORDERSTATUS' => 'QUERY',
+            [
+                'order'    => [
+                    'id' => '2020110828BC',
+                ],
+                'expected' => [
+                    'Name'     => 'ISBANKAPI',
+                    'Password' => 'ISBANK07',
+                    'ClientId' => '700655000200',
+                    'Extra'    => [
+                        'ORDERSTATUS' => 'QUERY',
+                    ],
+                    'OrderId'  => '2020110828BC',
+                ],
             ],
-        ];
-    }
-
-    /**
-     * @param AbstractPosAccount $posAccount
-     * @param array              $order
-     *
-     * @return array
-     */
-    private function getSampleRecurringStatusRequestData(AbstractPosAccount $posAccount, array $order): array
-    {
-        return [
-            'Name'     => $posAccount->getUsername(),
-            'Password' => $posAccount->getPassword(),
-            'ClientId' => $posAccount->getClientId(),
-            'Extra'    => [
-                'ORDERSTATUS' => 'QUERY',
-                'RECURRINGID' => $order['recurringId'],
+            [
+                'order'    => [
+                    'recurringId' => '22303O8EA19252',
+                ],
+                'expected' => [
+                    'Name'     => 'ISBANKAPI',
+                    'Password' => 'ISBANK07',
+                    'ClientId' => '700655000200',
+                    'Extra'    => [
+                        'ORDERSTATUS' => 'QUERY',
+                        'RECURRINGID'  => '22303O8EA19252',
+                    ],
+                ],
             ],
         ];
     }

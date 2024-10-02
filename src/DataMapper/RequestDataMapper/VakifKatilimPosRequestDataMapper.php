@@ -411,13 +411,13 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @inheritDoc
      */
-    protected function prepareHistoryOrder(array $order): array
+    protected function prepareHistoryOrder(array $data): array
     {
         return [
-            'start_date' => $order['start_date'],
-            'end_date'   => $order['end_date'],
-            'page'       => $order['page'] ?? 1,
-            'page_size'  => $order['page_size'] ?? 10,
+            'start_date' => $data['start_date'],
+            'end_date'   => $data['end_date'],
+            'page'       => $data['page'] ?? 1,
+            'page_size'  => $data['page_size'] ?? 10,
         ];
     }
 

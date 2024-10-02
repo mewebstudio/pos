@@ -119,8 +119,8 @@ class ToslaPosTest extends TestCase
 
     public function testInit(): void
     {
-        $this->assertEquals($this->config, $this->pos->getConfig());
-        $this->assertEquals($this->account, $this->pos->getAccount());
+        $this->assertSame($this->config, $this->pos->getConfig());
+        $this->assertSame($this->account, $this->pos->getAccount());
     }
 
     /**
@@ -360,8 +360,6 @@ class ToslaPosTest extends TestCase
     }
 
     /**
-     * @return void
-     *
      * @dataProvider registerFailResponseDataProvider
      */
     public function testGet3DFormDataRegisterPaymentFail(array $response): void

@@ -166,7 +166,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
 
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -176,7 +176,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
 
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -186,7 +186,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
     /**
@@ -210,7 +210,7 @@ class PosNetRequestDataMapperTest extends TestCase
     public function testCreate3DEnrollmentCheckRequestData(array $order, string $txType, array $expectedData): void
     {
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $txType, $this->card);
-        $this->assertEquals($expectedData, $actual);
+        $this->assertSame($expectedData, $actual);
     }
 
 
@@ -285,7 +285,7 @@ class PosNetRequestDataMapperTest extends TestCase
     {
         $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $this->assertEquals($expectedData, $actualData);
+        $this->assertSame($expectedData, $actualData);
     }
 
     /**
@@ -462,7 +462,7 @@ class PosNetRequestDataMapperTest extends TestCase
                     'tranDateRequired' => '1',
                     'sale'             => [
                         'orderID'      => 'TST_190620093100_024',
-                        'installment'  => 0,
+                        'installment'  => '00',
                         'amount'       => 175,
                         'currencyCode' => 'TL',
                         'ccno'         => '5555444433332222',
@@ -513,6 +513,19 @@ class PosNetRequestDataMapperTest extends TestCase
                     'tid'       => '67005551',
                     'agreement' => [
                         'orderID' => 'TDSC000000002020110828BC',
+                    ],
+                ],
+            ],
+            [
+                'order'    => [
+                    'id'            => '2020110828BC',
+                    'payment_model' => PosInterface::MODEL_NON_SECURE,
+                ],
+                'expected' => [
+                    'mid'       => '6706598320',
+                    'tid'       => '67005551',
+                    'agreement' => [
+                        'orderID' => '0000000000002020110828BC',
                     ],
                 ],
             ],

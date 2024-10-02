@@ -131,7 +131,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     public function testCreate3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $gatewayResponse, CreditCardInterface $creditCard, array $expected): void
     {
         $actual = $this->requestDataMapper->create3DPaymentRequestData($posAccount, $order, $txType, $gatewayResponse, $creditCard);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -153,7 +153,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             ->willReturn($expected['VerifyEnrollmentRequestId']);
 
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $creditCard);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
 
@@ -464,11 +464,11 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
                 'Currency'                  => '949',
                 'SuccessUrl'                => 'https://domain.com/success',
                 'FailureUrl'                => 'https://domain.com/fail_url',
-                'IsRecurring'               => 'false',
-                'InstallmentCount'          => '2',
                 'Pan'                       => '5555444433332222',
                 'ExpiryDate'                => '2112',
                 'BrandName'                 => '100',
+                'IsRecurring'               => 'false',
+                'InstallmentCount'          => '2',
             ],
         ];
 
@@ -492,10 +492,10 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
                 'Currency'                  => '949',
                 'SuccessUrl'                => 'https://domain.com/success',
                 'FailureUrl'                => 'https://domain.com/fail_url',
-                'IsRecurring'               => 'true',
                 'Pan'                       => '5555444433332222',
                 'ExpiryDate'                => '2112',
                 'BrandName'                 => '100',
+                'IsRecurring'               => 'true',
                 'RecurringFrequency'        => '3',
                 'RecurringFrequencyType'    => 'Month',
                 'RecurringInstallmentCount' => '2',

@@ -117,7 +117,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
             ->willReturn($expected['hash']);
 
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -133,7 +133,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
             ->willReturn($expected['hash']);
 
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -149,7 +149,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
             ->willReturn($expected['hash']);
 
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -166,7 +166,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
 
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -183,7 +183,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
 
         $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
 
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
 
@@ -229,7 +229,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
 
         $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        $this->assertEquals($expected, $actualData);
+        $this->assertSame($expected, $actualData);
     }
 
     /**

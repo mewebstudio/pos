@@ -53,15 +53,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     ];
 
     /**
-     * {@inheritdoc}
-     */
-    protected array $recurringOrderFrequencyMapping = [
-        'DAY'   => 'Day',
-        'MONTH' => 'Month',
-        'YEAR'  => 'Year',
-    ];
-
-    /**
      * {@inheritDoc}
      *
      * @param PayFlexAccount $posAccount

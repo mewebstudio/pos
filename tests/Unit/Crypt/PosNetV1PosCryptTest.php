@@ -63,7 +63,7 @@ class PosNetV1PosCryptTest extends TestCase
     public function testCreateHash(array $requestData, string $expected): void
     {
         $actual = $this->crypt->createHash($this->account, $requestData);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
 

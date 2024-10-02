@@ -72,7 +72,7 @@ class EstV3PosCryptTest extends TestCase
         ];
 
         $actual = $this->crypt->create3DHash($this->account, $requestData);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     public function testCreate3DHashFor3DSecure(): void
@@ -95,7 +95,7 @@ class EstV3PosCryptTest extends TestCase
 
         $expected = '4aUsG5hqlIFLc9s8PKc5rWb2OLhmxDDewNgKa2XrwoYCIxlyVq8Fjl4IVaZzoqL983CfTseicmnTA0PjZr74xg==';
         $actual   = $this->crypt->create3DHash($this->account, $inputs);
-        $this->assertEquals($expected, $actual);
+        $this->assertSame($expected, $actual);
     }
 
     public function threeDHashCheckDataProvider(): array
