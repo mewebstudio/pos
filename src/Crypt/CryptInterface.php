@@ -30,8 +30,8 @@ interface CryptInterface
     /**
      * creates hash for 3D secure payments
      *
-     * @param AbstractPosAccount    $posAccount
-     * @param array<string, string> $requestData
+     * @param AbstractPosAccount              $posAccount
+     * @param array<string, string|int|float> $requestData
      *
      * @return string
      */

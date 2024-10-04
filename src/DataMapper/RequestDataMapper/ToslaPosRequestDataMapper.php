@@ -16,26 +16,11 @@ use Mews\Pos\PosInterface;
  */
 class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 {
-    /** @var string */
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'm/y';
-
-    /**
-     * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => '1',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => '2',
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => '3',
-        PosInterface::TX_TYPE_CANCEL         => '4',
-        PosInterface::TX_TYPE_REFUND         => '5',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => '5',
-    ];
-
     /**
      * @param ToslaPosAccount                      $posAccount
      * @param array<string, int|string|float|null> $order
      *
-     * @return array<string, string|int>
+     * @return array<string, string|int|float>
      */
     public function create3DEnrollmentCheckRequestData(AbstractPosAccount $posAccount, array $order): array
     {
@@ -44,11 +29,11 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'callbackUrl'      => (string) $order['success_url'],
             'orderId'          => (string) $order['id'],
-            'amount'           => $this->formatAmount($order['amount']),
-            'currency'         => (int) $this->mapCurrency($order['currency']),
-            'installmentCount' => (int) $this->mapInstallment($order['installment']),
+            'amount'           => $this->valueFormatter->formatAmount($order['amount']),
+            'currency'         => $this->valueMapper->mapCurrency($order['currency']),
+            'installmentCount' => $this->valueFormatter->formatInstallment($order['installment']),
             'rnd'              => $this->crypt->generateRandomString(),
-            'timeSpan'         => $order['time_span'],
+            'timeSpan'         => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
         ];
 
         $requestData['hash'] = $this->crypt->create3DHash($posAccount, $requestData);
@@ -73,14 +58,14 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = [
             'orderId'          => (string) $order['id'],
-            'amount'           => $this->formatAmount($order['amount']),
-            'currency'         => (int) $this->mapCurrency($order['currency']),
-            'installmentCount' => (int) $this->mapInstallment($order['installment']),
+            'amount'           => $this->valueFormatter->formatAmount($order['amount']),
+            'currency'         => $this->valueMapper->mapCurrency($order['currency']),
+            'installmentCount' => $this->valueFormatter->formatInstallment($order['installment']),
             'rnd'              => $this->crypt->generateRandomString(),
-            'timeSpan'         => $order['time_span'],
+            'timeSpan'         => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
             'cardHolderName'   => $creditCard->getHolderName(),
             'cardNo'           => $creditCard->getNumber(),
-            'expireDate'       => $creditCard->getExpirationDate('my'),
+            'expireDate'       => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'expireDate'),
             'cvv'              => $creditCard->getCvv(),
         ];
 
@@ -98,9 +83,9 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = [
             'orderId'  => (string) $order['id'],
-            'amount'   => $this->formatAmount($order['amount']),
+            'amount'   => $this->valueFormatter->formatAmount($order['amount']),
             'rnd'      => $this->crypt->generateRandomString(),
-            'timeSpan' => $order['time_span'],
+            'timeSpan' => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
         ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
@@ -118,7 +103,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'orderId'  => (string) $order['id'],
             'rnd'      => $this->crypt->generateRandomString(),
-            'timeSpan' => $order['time_span'],
+            'timeSpan' => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
         ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
@@ -136,7 +121,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'orderId'  => (string) $order['id'],
             'rnd'      => $this->crypt->generateRandomString(),
-            'timeSpan' => $order['time_span'],
+            'timeSpan' => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
         ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
@@ -154,8 +139,8 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'orderId'  => (string) $order['id'],
             'rnd'      => $this->crypt->generateRandomString(),
-            'amount'   => $this->formatAmount($order['amount']),
-            'timeSpan' => $order['time_span'],
+            'amount'   => $this->valueFormatter->formatAmount($order['amount']),
+            'timeSpan' => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
         ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
@@ -171,11 +156,11 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         $order       = $this->prepareOrderHistoryOrder($order);
         $requestData = [
             'orderId'         => (string) $order['id'],
-            'transactionDate' => $order['transaction_date']->format('Ymd'),
+            'transactionDate' => $this->valueFormatter->formatDateTime($order['transaction_date'], 'transactionDate'),
             'page'            => $order['page'],
             'pageSize'        => $order['page_size'],
             'rnd'             => $this->crypt->generateRandomString(),
-            'timeSpan'        => $order['time_span'],
+            'timeSpan'        => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
         ];
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
@@ -211,7 +196,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
         if ($creditCard instanceof CreditCardInterface) {
             $inputs['CardHolderName'] = (string) $creditCard->getHolderName();
             $inputs['CardNo']         = $creditCard->getNumber();
-            $inputs['ExpireDate']     = $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
+            $inputs['ExpireDate']     = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'ExpireDate');
             $inputs['Cvv']            = $creditCard->getCvv();
         }
 
@@ -220,30 +205,6 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'method'  => 'POST',
             'inputs'  => $inputs,
         ];
-    }
-
-    /**
-     * 0 => '0'
-     * 1 => '0'
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '0';
-    }
-
-    /**
-     * Get amount
-     * formats 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
-     */
-    protected function formatAmount(float $amount): int
-    {
-        return (int) (\round($amount, 2) * 100);
     }
 
     /**
@@ -332,13 +293,10 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @return string ex: 20231209201121
+     * @return \DateTimeImmutable
      */
-    private function newTimeSpan(): string
+    private function newTimeSpan(): \DateTimeImmutable
     {
-        $turkeyTimeZone = new \DateTimeZone('Europe/Istanbul');
-        $turkeyTime     = new \DateTime('now', $turkeyTimeZone);
-
-        return $turkeyTime->format('YmdHis');
+        return new \DateTimeImmutable('now', new \DateTimeZone('Europe/Istanbul'));
     }
 }
