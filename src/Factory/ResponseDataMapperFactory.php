@@ -50,19 +50,19 @@ class ResponseDataMapperFactory
     public static function createGatewayResponseMapper(string $gatewayClass, RequestDataMapperInterface $requestDataMapper, LoggerInterface $logger): ResponseDataMapperInterface
     {
         $classMappings = [
-            ToslaPos::class        => ToslaPosResponseDataMapper::class,
             AkbankPos::class       => AkbankPosResponseDataMapper::class,
-            EstV3Pos::class        => EstPosResponseDataMapper::class,
             EstPos::class          => EstPosResponseDataMapper::class,
+            EstV3Pos::class        => EstPosResponseDataMapper::class,
             GarantiPos::class      => GarantiPosResponseDataMapper::class,
             InterPos::class        => InterPosResponseDataMapper::class,
             KuveytPos::class       => KuveytPosResponseDataMapper::class,
-            VakifKatilimPos::class => VakifKatilimPosResponseDataMapper::class,
+            PayFlexCPV4Pos::class  => PayFlexCPV4PosResponseDataMapper::class,
+            PayFlexV4Pos::class    => PayFlexV4PosResponseDataMapper::class,
             PayForPos::class       => PayForPosResponseDataMapper::class,
             PosNet::class          => PosNetResponseDataMapper::class,
             PosNetV1Pos::class     => PosNetV1PosResponseDataMapper::class,
-            PayFlexV4Pos::class    => PayFlexV4PosResponseDataMapper::class,
-            PayFlexCPV4Pos::class  => PayFlexCPV4PosResponseDataMapper::class,
+            ToslaPos::class        => ToslaPosResponseDataMapper::class,
+            VakifKatilimPos::class => VakifKatilimPosResponseDataMapper::class,
         ];
 
         if (isset($classMappings[$gatewayClass])) {
@@ -74,6 +74,6 @@ class ResponseDataMapperFactory
             );
         }
 
-        throw new DomainException('unsupported gateway');
+        throw new DomainException(\sprintf('Response data mapper not found for the gateway %s', $gatewayClass));
     }
 }

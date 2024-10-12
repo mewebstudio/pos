@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-namespace Factory;
+namespace Mews\Pos\Tests\Unit\Factory;
 
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;

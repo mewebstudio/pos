@@ -53,24 +53,24 @@ class RequestDataMapperFactory
     public static function createGatewayRequestMapper(string $gatewayClass, EventDispatcherInterface $eventDispatcher, CryptInterface $crypt, array $currencies = []): RequestDataMapperInterface
     {
         $classMappings = [
-            ToslaPos::class        => ToslaPosRequestDataMapper::class,
             AkbankPos::class       => AkbankPosRequestDataMapper::class,
             EstPos::class          => EstPosRequestDataMapper::class,
             EstV3Pos::class        => EstV3PosRequestDataMapper::class,
             GarantiPos::class      => GarantiPosRequestDataMapper::class,
             InterPos::class        => InterPosRequestDataMapper::class,
             KuveytPos::class       => KuveytPosRequestDataMapper::class,
-            VakifKatilimPos::class => VakifKatilimPosRequestDataMapper::class,
+            PayFlexCPV4Pos::class  => PayFlexCPV4PosRequestDataMapper::class,
+            PayFlexV4Pos::class    => PayFlexV4PosRequestDataMapper::class,
             PayForPos::class       => PayForPosRequestDataMapper::class,
             PosNet::class          => PosNetRequestDataMapper::class,
             PosNetV1Pos::class     => PosNetV1PosRequestDataMapper::class,
-            PayFlexCPV4Pos::class  => PayFlexCPV4PosRequestDataMapper::class,
-            PayFlexV4Pos::class    => PayFlexV4PosRequestDataMapper::class,
+            ToslaPos::class        => ToslaPosRequestDataMapper::class,
+            VakifKatilimPos::class => VakifKatilimPosRequestDataMapper::class,
         ];
         if (isset($classMappings[$gatewayClass])) {
             return new $classMappings[$gatewayClass]($eventDispatcher, $crypt, $currencies);
         }
 
-        throw new DomainException('unsupported gateway');
+        throw new DomainException(\sprintf('Request data mapper not found for the gateway %s', $gatewayClass));
     }
 }

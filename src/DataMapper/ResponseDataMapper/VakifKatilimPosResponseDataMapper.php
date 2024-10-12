@@ -22,6 +22,18 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
+     * Order Status Codes
+     *
+     * @var array<int, PosInterface::PAYMENT_STATUS_*>
+     */
+    protected array $orderStatusMappings = [
+        1 => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
+        4 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
+        5 => PosInterface::PAYMENT_STATUS_PARTIALLY_REFUNDED,
+        6 => PosInterface::PAYMENT_STATUS_CANCELED,
+    ];
+
+    /**
      * {@inheritDoc}
      */
     public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
@@ -491,20 +503,16 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['installment_count'] = $this->mapInstallment($rawTx['InstallmentCount']);
             $defaultResponse['masked_number']     = $rawTx['CardNumber'];
             $defaultResponse['first_amount']      = (float) $rawTx['FirstAmount'];
-            $defaultResponse['order_status']      = $rawTx['LastOrderStatusDescription'];
+            $defaultResponse['order_status']      = $this->orderStatusMappings[$rawTx['LastOrderStatus']] ?? $rawTx['LastOrderStatusDescription'];
+            $initialOrderStatus                   = $this->orderStatusMappings[$rawTx['OrderStatus']] ?? null;
 
-            /**
-             * OrderStatus
-             * 1 => Satis
-             * 6 => Iptal
-             */
-            if ('1' === $rawTx['OrderStatus']) {
+            if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $initialOrderStatus) {
                 $defaultResponse['capture_amount'] = isset($rawTx['TranAmount']) ? (float) $rawTx['TranAmount'] : 0;
                 $defaultResponse['capture']        = $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
                 if ($defaultResponse['capture']) {
                     $defaultResponse['capture_time'] = $defaultResponse['transaction_time'];
                 }
-            } elseif ('6' === $rawTx['OrderStatus']) {
+            } elseif (PosInterface::PAYMENT_STATUS_CANCELED === $initialOrderStatus) {
                 $defaultResponse['cancel_time'] = $defaultResponse['transaction_time'];
             }
         }

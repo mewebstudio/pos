@@ -360,6 +360,14 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
             'transaction_time'     => isset($raw3DAuthResponseData['TRXDATE']) ? new \DateTimeImmutable($raw3DAuthResponseData['TRXDATE']) : null,
             'eci'                  => $raw3DAuthResponseData['Eci'],
+             /**
+             * TxnStat 3D doğrulama sonucunu belirtir :
+             * Y : Başarılı
+             * N : Başarısız
+             * A : Half Secure)
+             * U : Teknik Hata
+             * E : Hata
+             */
             'tx_status'            => $raw3DAuthResponseData['TxnStat'],
             'cavv'                 => null,
             'md_error_message'     => $raw3DAuthResponseData['ErrorMessage'],

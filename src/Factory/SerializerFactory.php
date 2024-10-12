@@ -34,18 +34,18 @@ class SerializerFactory
     {
         /** @var SerializerInterface[] $serializers */
         $serializers = [
-            ToslaPosSerializer::class,
             AkbankPosSerializer::class,
             EstPosSerializer::class,
             GarantiPosSerializer::class,
             InterPosSerializer::class,
             KuveytPosSerializer::class,
-            VakifKatilimPosSerializer::class,
-            PayFlexV4PosSerializer::class,
             PayFlexCPV4PosSerializer::class,
+            PayFlexV4PosSerializer::class,
             PayForPosSerializer::class,
             PosNetSerializer::class,
             PosNetV1PosSerializer::class,
+            ToslaPosSerializer::class,
+            VakifKatilimPosSerializer::class,
         ];
 
         foreach ($serializers as $serializer) {
