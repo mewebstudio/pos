@@ -48,7 +48,6 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $result['order_id']         = $rawPaymentResponseData['OrderId'];
         $result['transaction_id']   = $rawPaymentResponseData['TransId'];
         $result['auth_code']        = $rawPaymentResponseData['AuthCode'];
-        $result['ref_ret_num']      = $rawPaymentResponseData['HostRefNum'];
         $result['error_code']       = $rawPaymentResponseData['ErrorCode'];
         $result['error_message']    = $rawPaymentResponseData['ErrorMessage'];
         $result['currency']         = $order['currency'];
@@ -118,7 +117,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'order_id'         => $rawResponseData['OrderId'],
             'group_id'         => null,
             'auth_code'        => null,
-            'ref_ret_num'      => $rawResponseData['HostRefNum'],
+            'ref_ret_num'      => null,
             'proc_return_code' => $procReturnCode,
             'transaction_id'   => $rawResponseData['TransId'],
             'error_code'       => $rawResponseData['ErrorCode'],
@@ -145,7 +144,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'order_id'         => $rawResponseData['OrderId'],
             'group_id'         => null,
             'auth_code'        => $rawResponseData['AuthCode'],
-            'ref_ret_num'      => $rawResponseData['HostRefNum'],
+            'ref_ret_num'      => null,
             'proc_return_code' => $procReturnCode,
             'transaction_id'   => $rawResponseData['TransId'],
             'error_code'       => $rawResponseData['ErrorCode'],
@@ -180,7 +179,6 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['refund_amount']    = $rawResponseData['RefundedAmount'] > 0 ? $this->formatAmount($rawResponseData['RefundedAmount']) : null;
 
         // todo success cevap ornegi bulundugunda guncellenecek:
-        $defaultResponse['ref_ret_num']    = null;
         $defaultResponse['order_status']   = null;
         $defaultResponse['capture_amount'] = null;
         $defaultResponse['capture']        = null;
@@ -309,7 +307,6 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $result['order_id']         = $rawPaymentResponseData['OrderId'];
         $result['transaction_id']   = $rawPaymentResponseData['TransId'];
         $result['auth_code']        = $rawPaymentResponseData['AuthCode'];
-        $result['ref_ret_num']      = $rawPaymentResponseData['HostRefNum'];
         $result['error_code']       = $rawPaymentResponseData['ErrorCode'];
         $result['error_message']    = $rawPaymentResponseData['ErrorMessage'];
         $result['all']              = $rawPaymentResponseData;
@@ -353,7 +350,6 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $threeDResponse = [
             'order_id'             => $paymentResponseData['order_id'] ?? $raw3DAuthResponseData['OrderId'],
             'proc_return_code'     => $paymentResponseData['proc_return_code'] ?? $procReturnCode,
-            'ref_ret_num'          => $paymentResponseData['ref_ret_num'] ?? $raw3DAuthResponseData['HostRefNum'],
             'transaction_security' => null === $mdStatus ? null : $this->mapResponseTransactionSecurity($mdStatus),
             'payment_model'        => $paymentModel,
             'md_status'            => $mdStatus,
