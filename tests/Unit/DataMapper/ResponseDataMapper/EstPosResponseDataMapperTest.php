@@ -8,6 +8,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -197,7 +198,7 @@ class EstPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider orderHistoryTestDataProvider
      */
-    public function testMapHistoryResponse(array $responseData, array $expectedData): void
+    public function testMapOrderHistoryResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
         if (count($responseData['Extra']) > 0) {
@@ -228,6 +229,11 @@ class EstPosResponseDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actualData);
     }
 
+    public function testMapHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapHistoryResponse([]);
+    }
 
     public static function paymentTestDataProvider(): iterable
     {
@@ -503,6 +509,64 @@ class EstPosResponseDataMapperTest extends TestCase
                     'order_id'             => '2022103076E7',
                     'payment_model'        => '3d',
                     'installment_count'    => 0,
+                ],
+            ],
+            '3d_auth_fail_wrong_card_number_format' => [
+                'order'              => [
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 1.01,
+                ],
+                'txType'             => PosInterface::TX_TYPE_PAY_AUTH,
+                'threeDResponseData' => [
+                    'amount'                          => 0.01,
+                    'clientid'                        => '*',
+                    'currency'                        => '*',
+                    'Ecom_Payment_Card_ExpDate_Month' => 0,
+                    'Ecom_Payment_Card_ExpDate_Year'  => 0,
+                    'ErrMsg'                          => 'Girilen kart numarası doğru formatta değildir. Kart numarasını kontrol ederek tekrar işlem deneyiniz.',
+                    'ErrorCode'                       => 'HPP-1001',
+                    'failUrl'                         => 'https://*.com/odeme/f05e81c8-4ea0-44a9-8fe8-d45b854c62d9',
+                    'HASH'                            => '**/fxNKZvC4E2EbQOgiqNi9FeXBMj636Q==',
+                    'hashAlgorithm'                   => 'ver3',
+                    'lang'                            => 'tr',
+                    'maskedCreditCard'                => '***',
+                    'MaskedPan'                       => '**',
+                    'oid'                             => 'f05e81c8',
+                    'okUrl'                           => 'https://*.com/odeme/d45b854c62d9',
+                    'Response'                        => 'Error',
+                    'rnd'                             => 'MZrcwoSd1+-*',
+                    'storetype'                       => '3d',
+                    'taksit'                          => '',
+                    'traceId'                         => '****',
+                    'TranType'                        => 'Auth',
+                ],
+                'paymentData'        => [],
+                'expectedData'       => [
+                    'amount'               => 0.01,
+                    'auth_code'            => null,
+                    'batch_num'            => null,
+                    'cavv'                 => null,
+                    'currency'             => '*',
+                    'eci'                  => null,
+                    'error_code'           => 'HPP-1001',
+                    'error_message'        => 'Girilen kart numarası doğru formatta değildir. Kart numarasını kontrol ederek tekrar işlem deneyiniz.',
+                    'installment_count'    => 0,
+                    'masked_number'        => '***',
+                    'md_error_message'     => null,
+                    'md_status'            => null,
+                    'month'                => 0,
+                    'order_id'             => 'f05e81c8',
+                    'payment_model'        => '3d',
+                    'proc_return_code'     => null,
+                    'ref_ret_num'          => null,
+                    'status'               => 'declined',
+                    'status_detail'        => null,
+                    'transaction_id'       => null,
+                    'transaction_security' => null,
+                    'transaction_type'     => 'pay',
+                    'transaction_time'     => null,
+                    'tx_status'            => null,
+                    'year'                 => 0,
                 ],
             ],
             '3d_auth_success_payment_fail'          => [

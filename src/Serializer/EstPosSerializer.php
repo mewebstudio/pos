@@ -9,7 +9,6 @@ use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Serializer;
-use function in_array;
 
 class EstPosSerializer implements SerializerInterface
 {
@@ -30,7 +29,7 @@ class EstPosSerializer implements SerializerInterface
      */
     public static function supports(string $gatewayClass): bool
     {
-        return in_array($gatewayClass, [EstPos::class, EstV3Pos::class]);
+        return \in_array($gatewayClass, [EstPos::class, EstV3Pos::class]);
     }
 
     /**

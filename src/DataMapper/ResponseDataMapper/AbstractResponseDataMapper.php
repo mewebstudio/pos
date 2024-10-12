@@ -67,13 +67,13 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     }
 
     /**
-     * @param string|int $txType
+     * @param string|int $securityType
      *
      * @return PosInterface::MODEL_*|null
      */
-    public function mapSecurityType($txType): ?string
+    public function mapSecurityType($securityType): ?string
     {
-        return $this->secureTypeMappings[$txType] ?? null;
+        return $this->secureTypeMappings[$securityType] ?? null;
     }
 
 
