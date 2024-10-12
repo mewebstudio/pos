@@ -46,18 +46,18 @@ class CryptFactory
     public static function createGatewayCrypt(string $gatewayClass, LoggerInterface $logger): CryptInterface
     {
         $classMappings = [
-            ToslaPos::class        => ToslaPosCrypt::class,
             AkbankPos::class       => AkbankPosCrypt::class,
-            EstV3Pos::class        => EstV3PosCrypt::class,
             EstPos::class          => EstPosCrypt::class,
+            EstV3Pos::class        => EstV3PosCrypt::class,
             GarantiPos::class      => GarantiPosCrypt::class,
             InterPos::class        => InterPosCrypt::class,
             KuveytPos::class       => KuveytPosCrypt::class,
-            VakifKatilimPos::class => KuveytPosCrypt::class,
+            PayFlexCPV4Pos::class  => PayFlexCPV4Crypt::class,
             PayForPos::class       => PayForPosCrypt::class,
             PosNet::class          => PosNetCrypt::class,
             PosNetV1Pos::class     => PosNetV1PosCrypt::class,
-            PayFlexCPV4Pos::class  => PayFlexCPV4Crypt::class,
+            ToslaPos::class        => ToslaPosCrypt::class,
+            VakifKatilimPos::class => KuveytPosCrypt::class,
         ];
 
         if (isset($classMappings[$gatewayClass])) {
