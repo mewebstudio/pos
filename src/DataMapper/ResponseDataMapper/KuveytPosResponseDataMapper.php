@@ -25,7 +25,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * Order Status Codes
      *
-     * @var array<int, string>
+     * @var array<int, PosInterface::PAYMENT_STATUS_*>
      */
     protected array $orderStatusMappings = [
         1 => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
