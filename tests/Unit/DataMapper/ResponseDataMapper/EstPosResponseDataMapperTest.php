@@ -8,6 +8,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -197,7 +198,7 @@ class EstPosResponseDataMapperTest extends TestCase
     /**
      * @dataProvider orderHistoryTestDataProvider
      */
-    public function testMapHistoryResponse(array $responseData, array $expectedData): void
+    public function testMapOrderHistoryResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
         if (count($responseData['Extra']) > 0) {
@@ -228,6 +229,11 @@ class EstPosResponseDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actualData);
     }
 
+    public function testMapHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapHistoryResponse([]);
+    }
 
     public static function paymentTestDataProvider(): iterable
     {
