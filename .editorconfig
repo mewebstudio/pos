@@ -20,6 +20,7 @@ ij_php_align_phpdoc_comments = true
 ij_php_space_after_type_cast = true
 ij_php_concat_spaces = false
 ij_php_phpdoc_param_spaces_between_tag_and_type = 1
+ij_php_comma_after_last_array_element = true
 
 [*.md]
 max_line_length = 80
