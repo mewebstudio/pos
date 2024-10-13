@@ -9,6 +9,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 use Generator;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\VakifKatilimPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\VakifKatilimPosRequestValueMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
@@ -36,6 +38,9 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
     /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
+    private VakifKatilimPosRequestValueFormatter $valueFormatter;
+    private VakifKatilimPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -56,54 +61,17 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
             'John Doe',
         );
 
-        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new VakifKatilimPosRequestDataMapper($this->dispatcher, $this->crypt);
-    }
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new VakifKatilimPosRequestValueFormatter();
+        $this->valueMapper    = new VakifKatilimPosRequestValueMapper();
 
-    /**
-     * @return void
-     */
-    public function testFormatAmount(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('formatAmount');
-        $method->setAccessible(true);
-        $this->assertSame(0, $method->invokeArgs($this->requestDataMapper, [0]));
-        $this->assertSame(0, $method->invokeArgs($this->requestDataMapper, [0.0]));
-        $this->assertSame(1025, $method->invokeArgs($this->requestDataMapper, [10.25]));
-        $this->assertSame(1000, $method->invokeArgs($this->requestDataMapper, [10.00]));
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('0949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('0978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", "0"]
-     *           ["1", "0"]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
+        $this->requestDataMapper = new VakifKatilimPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
     }
 
     /**

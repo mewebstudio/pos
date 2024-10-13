@@ -52,10 +52,10 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
-     * @param array<PosInterface::CURRENCY_*, string> $currencyMappings
-     * @param array<PosInterface::TX_TYPE_*, string>  $txTypeMappings
-     * @param array<PosInterface::MODEL_*, string>    $secureTypeMappings
-     * @param LoggerInterface                         $logger
+     * @param array<PosInterface::CURRENCY_*, string|int>                                 $currencyMappings
+     * @param array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>> $txTypeMappings
+     * @param array<PosInterface::MODEL_*, string>                                        $secureTypeMappings
+     * @param LoggerInterface                                                             $logger
      */
     public function __construct(array $currencyMappings, array $txTypeMappings, array $secureTypeMappings, LoggerInterface $logger)
     {

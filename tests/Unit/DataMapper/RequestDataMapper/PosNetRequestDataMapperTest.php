@@ -9,9 +9,10 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 use InvalidArgumentException;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\PosNetRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\PosNetRequestValueMapper;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\PosInterface;
@@ -39,6 +40,9 @@ class PosNetRequestDataMapperTest extends TestCase
     /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
+    private PosNetRequestValueFormatter $valueFormatter;
+    private PosNetRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -62,102 +66,19 @@ class PosNetRequestDataMapperTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new PosNetRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
-    }
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new PosNetRequestValueFormatter();
+        $this->valueMapper    = new PosNetRequestValueMapper();
 
-    /**
-     * @testWith ["pay", "Sale"]
-     * ["pre", "Auth"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
-    {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
+        $this->requestDataMapper = new PosNetRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
 
-    /**
-     * @testWith ["Auth"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('TL', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('EU', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @return void
-     */
-    public function testFormatAmount(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('formatAmount');
-        $method->setAccessible(true);
-        $this->assertSame(100000, $method->invokeArgs($this->requestDataMapper, [1000]));
-        $this->assertSame(100000, $method->invokeArgs($this->requestDataMapper, [1000.00]));
-        $this->assertSame(100001, $method->invokeArgs($this->requestDataMapper, [1000.01]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", "00"]
-     *           ["1", "00"]
-     *           ["2", "02"]
-     *           ["12", "12"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapOrderIdToPrefixedOrderId(): void
-    {
-        $this->assertSame('TDSC00000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, PosInterface::MODEL_3D_SECURE));
-        $this->assertSame('000000000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, PosInterface::MODEL_3D_PAY));
-        $this->assertSame('000000000000000000000010', PosNetRequestDataMapper::mapOrderIdToPrefixedOrderId(10, PosInterface::MODEL_NON_SECURE));
-    }
-
-    /**
-     * @return void
-     */
-    public function testFormatOrderId(): void
-    {
-        $this->assertSame('0010', PosNetRequestDataMapper::formatOrderId(10, 4));
-        $this->assertSame('12345', PosNetRequestDataMapper::formatOrderId(12345, 5));
-        $this->assertSame('123456789012345566fm', PosNetRequestDataMapper::formatOrderId('123456789012345566fm'));
-    }
-
-    /**
-     * @return void
-     */
-    public function testFormatOrderIdFail(): void
-    {
-        $this->expectException(InvalidArgumentException::class);
-        PosNetRequestDataMapper::formatOrderId('123456789012345566fml');
+        $this->card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
     }
 
     /**
