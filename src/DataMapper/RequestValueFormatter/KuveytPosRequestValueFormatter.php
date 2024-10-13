@@ -10,6 +10,7 @@ class KuveytPosRequestValueFormatter implements RequestValueFormatterInterface
      * 0 => '0'
      * 1 => '0'
      * 2 => '2'
+     *
      * @inheritDoc
      */
     public function formatInstallment(int $installment): string
@@ -19,12 +20,9 @@ class KuveytPosRequestValueFormatter implements RequestValueFormatterInterface
 
 
     /**
-     * Amount Formatter
-     * converts 100 to 10000, or 10.01 to 1001
+     * example: 100 to 10000, or 10.01 to 1001
      *
-     * @param float $amount
-     *
-     * @return int
+     * @inheritDoc
      */
     public function formatAmount(float $amount): int
     {
@@ -36,12 +34,12 @@ class KuveytPosRequestValueFormatter implements RequestValueFormatterInterface
      */
     public function formatCardExpDate(\DateTimeInterface $expDate, string $fieldName): string
     {
-        if ('CardExpireDateMonth' === $fieldName) {
-            return $expDate->format('m');
-        }
-
         if ('CardExpireDateYear' === $fieldName) {
             return $expDate->format('y');
+        }
+
+        if ('CardExpireDateMonth' === $fieldName) {
+            return $expDate->format('m');
         }
 
         throw new \InvalidArgumentException('Unsupported field name');

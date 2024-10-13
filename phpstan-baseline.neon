@@ -126,11 +126,6 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
 
 		-
-			message: "#^Property Mews\\\\Pos\\\\DataMapper\\\\ResponseDataMapper\\\\AbstractResponseDataMapper\\:\\:\\$secureTypeMappings \\(array\\<string, '3d'\\|'3d_host'\\|'3d_pay'\\|'3d_pay_hosting'\\|'regular'\\>\\) does not accept non\\-empty\\-array\\<1\\|2\\|3\\|string, '3d'\\|'3d_host'\\|'3d_pay'\\|'3d_pay_hosting'\\|'regular'\\>\\.$#"
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
-
-		-
 			message: "#^Method Mews\\\\Pos\\\\Factory\\\\PosFactory\\:\\:createPosGateway\\(\\) should return Mews\\\\Pos\\\\PosInterface but returns object\\.$#"
 			count: 1
 			path: src/Factory/PosFactory.php
