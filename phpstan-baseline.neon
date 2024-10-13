@@ -31,16 +31,22 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/AbstractRequestDataMapper.php
 
 		-
-			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestDataMapper\\AkbankPosRequestDataMapper\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', string given\.$#'
+			message: '#^Parameter \#1 \$cardType of method Mews\\Pos\\DataMapper\\RequestValueMapper\\RequestValueMapperInterface\:\:mapCardType\(\) expects ''amex''\|''master''\|''troy''\|''visa'', ''amex''\|''master''\|''troy''\|''visa''\|null given\.$#'
 			identifier: argument.type
-			count: 5
-			path: src/DataMapper/RequestDataMapper/AkbankPosRequestDataMapper.php
+			count: 2
+			path: src/DataMapper/RequestDataMapper/InterPosRequestDataMapper.php
 
 		-
-			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestDataMapper\\EstPosRequestDataMapper\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', string given\.$#'
+			message: '#^Parameter \#1 \$cardType of method Mews\\Pos\\DataMapper\\RequestValueMapper\\RequestValueMapperInterface\:\:mapCardType\(\) expects ''amex''\|''master''\|''troy''\|''visa'', ''amex''\|''master''\|''troy''\|''visa''\|null given\.$#'
 			identifier: argument.type
 			count: 1
-			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
+			path: src/DataMapper/RequestDataMapper/KuveytPosRequestDataMapper.php
+
+		-
+			message: '#^Parameter \#1 \$installment of method Mews\\Pos\\DataMapper\\RequestValueFormatter\\ParamPosRequestValueFormatter\:\:formatInstallment\(\) expects int\<0, max\>, int given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/DataMapper/RequestDataMapper/ParamPosRequestDataMapper.php
 
 		-
 			message: '#^Default value of the parameter \#7 \$extraData \(array\{\}\) of method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayFlexCPV4PosRequestDataMapper\:\:create3DFormData\(\) is incompatible with type array\{CommonPaymentUrl\: string, PaymentToken\: string\}\.$#'
@@ -57,6 +63,12 @@ parameters:
 		-
 			message: '#^Method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayFlexV4PosRequestDataMapper\:\:create3DEnrollmentCheckRequestData\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
+			count: 1
+			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
+
+		-
+			message: '#^Parameter \#1 \$cardType of method Mews\\Pos\\DataMapper\\RequestValueMapper\\RequestValueMapperInterface\:\:mapCardType\(\) expects ''amex''\|''master''\|''troy''\|''visa'', ''amex''\|''master''\|''troy''\|''visa''\|null given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
 
@@ -93,12 +105,6 @@ parameters:
 		-
 			message: '#^Cannot assign offset ''orderID'' to array\<string, mixed\>\|string\.$#'
 			identifier: offsetAssign.dimType
-			count: 1
-			path: src/DataMapper/RequestDataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: '#^Method Mews\\Pos\\DataMapper\\RequestDataMapper\\PosNetRequestDataMapper\:\:create3DEnrollmentCheckRequestData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PosNetRequestDataMapper.php
 

@@ -23,15 +23,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     /** @var string */
     public const API_VERSION = '512';
 
-    /** @var string */
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
-
-    /** @var string */
-    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
-
-    /** @var string */
-    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
-
     /**
      * MotoInd; işlemin MAilOrder bir işlem olup olmadığı bilgisinin gönderildiği alandır.
      * Y (also E) ise işlem mail order bir işlemdir.
@@ -39,35 +30,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
      * @var string
      */
     private const MOTO = 'N';
-
-    /**
-     * {@inheritDoc}
-     */
-    protected array $secureTypeMappings = [
-        PosInterface::MODEL_3D_SECURE => '3D',
-        PosInterface::MODEL_3D_PAY    => '3D_PAY',
-    ];
-
-    /**
-     * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => 'sales',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'preauth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'postauth',
-        PosInterface::TX_TYPE_CANCEL         => 'void',
-        PosInterface::TX_TYPE_REFUND         => 'refund',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => 'refund',
-        PosInterface::TX_TYPE_ORDER_HISTORY  => 'orderhistoryinq',
-        PosInterface::TX_TYPE_HISTORY        => 'orderlistinq',
-        PosInterface::TX_TYPE_STATUS         => 'orderinq',
-    ];
-
-    protected array $recurringOrderFrequencyMapping = [
-        'DAY'   => 'D',
-        'WEEK'  => 'W',
-        'MONTH' => 'M',
-    ];
 
     /** @var GarantiPosCrypt */
     protected CryptInterface $crypt;
@@ -93,7 +55,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
             ],
             'Transaction' => [
                 'Type'                  => $responseData['txntype'],
-                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
+                'InstallmentCnt'        => $this->valueFormatter->formatInstallment($order['installment']),
                 'Amount'                => $responseData['txnamount'],
                 'CurrencyCode'          => $responseData['txncurrencycode'],
                 'CardholderPresentCode' => '13', //13 for 3D secure payment
@@ -137,10 +99,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType($txType),
-                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
-                'Amount'                => $this->formatAmount($order['amount']),
-                'CurrencyCode'          => $this->mapCurrency($order['currency']),
+                'Type'                  => $this->valueMapper->mapTxType($txType),
+                'InstallmentCnt'        => $this->valueFormatter->formatInstallment($order['installment']),
+                'Amount'                => $this->valueFormatter->formatAmount($order['amount']),
+                'CurrencyCode'          => $this->valueMapper->mapCurrency($order['currency']),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
             ],
@@ -175,9 +137,9 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'              => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
-                'Amount'            => $this->formatAmount($order['amount']),
-                'CurrencyCode'      => $this->mapCurrency($order['currency']),
+                'Type'              => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
+                'Amount'            => $this->valueFormatter->formatAmount($order['amount']),
+                'CurrencyCode'      => $this->valueMapper->mapCurrency($order['currency']),
                 'OriginalRetrefNum' => $order['ref_ret_num'],
             ],
         ];
@@ -207,10 +169,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_STATUS),
-                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
-                'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
-                'CurrencyCode'          => $this->mapCurrency($order['currency']),
+                'Type'                  => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_STATUS),
+                'InstallmentCnt'        => $this->valueFormatter->formatInstallment($order['installment']),
+                'Amount'                => $this->valueFormatter->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
+                'CurrencyCode'          => $this->valueMapper->mapCurrency($order['currency']),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
             ],
@@ -241,10 +203,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
-                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
-                'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
-                'CurrencyCode'          => $this->mapCurrency($order['currency']),
+                'Type'                  => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL),
+                'InstallmentCnt'        => $this->valueFormatter->formatInstallment($order['installment']),
+                'Amount'                => $this->valueFormatter->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
+                'CurrencyCode'          => $this->valueMapper->mapCurrency($order['currency']),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
                 'OriginalRetrefNum'     => $order['ref_ret_num'],
@@ -276,10 +238,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType($refundTxType),
-                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
-                'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek,
-                'CurrencyCode'          => $this->mapCurrency($order['currency']),
+                'Type'                  => $this->valueMapper->mapTxType($refundTxType),
+                'InstallmentCnt'        => $this->valueFormatter->formatInstallment($order['installment']),
+                'Amount'                => $this->valueFormatter->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek,
+                'CurrencyCode'          => $this->valueMapper->mapCurrency($order['currency']),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
                 'OriginalRetrefNum'     => $order['ref_ret_num'],
@@ -311,10 +273,10 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'OrderID' => $order['id'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_ORDER_HISTORY),
-                'InstallmentCnt'        => $this->mapInstallment($order['installment']),
-                'Amount'                => $this->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
-                'CurrencyCode'          => $this->mapCurrency($order['currency']),
+                'Type'                  => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_ORDER_HISTORY),
+                'InstallmentCnt'        => $this->valueFormatter->formatInstallment($order['installment']),
+                'Amount'                => $this->valueFormatter->formatAmount($order['amount']), //sabit olarak amount 100 gonderilecek
+                'CurrencyCode'          => $this->valueMapper->mapCurrency($order['currency']),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
             ],
@@ -345,8 +307,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'GroupID'     => null,
                 'Description' => null,
                 // Başlangıç ve bitiş tarihleri arasında en fazla 30 gün olabilir
-                'StartDate'   => $this->formatRequestDateTime($order['start_date']),
-                'EndDate'     => $this->formatRequestDateTime($order['end_date']),
+                'StartDate'   => $this->valueFormatter->formatDateTime($order['start_date'], 'StartDate'),
+                'EndDate'     => $this->valueFormatter->formatDateTime($order['end_date'], 'EndDate'),
                 /**
                  * 500 adetten fazla işlem olması durumunda ListPageNum alanında diğer 500 lü grupların görüntülenmesi
                  * için sayfa numarası yazılır.
@@ -354,9 +316,9 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
                 'ListPageNum' => $order['page'],
             ],
             'Transaction' => [
-                'Type'                  => $this->mapTxType(PosInterface::TX_TYPE_HISTORY),
-                'Amount'                => $this->formatAmount(1), //sabit olarak amount 100 gonderilecek
-                'CurrencyCode'          => $this->mapCurrency(PosInterface::CURRENCY_TRY),
+                'Type'                  => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_HISTORY),
+                'Amount'                => $this->valueFormatter->formatAmount(1), //sabit olarak amount 100 gonderilecek
+                'CurrencyCode'          => $this->valueMapper->mapCurrency(PosInterface::CURRENCY_TRY),
                 'CardholderPresentCode' => '0',
                 'MotoInd'               => self::MOTO,
             ],
@@ -380,17 +342,17 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $inputs = [
-            'secure3dsecuritylevel' => $this->secureTypeMappings[$paymentModel],
+            'secure3dsecuritylevel' => $this->valueMapper->mapSecureType($paymentModel),
             'mode'                  => $this->getMode(),
             'apiversion'            => self::API_VERSION,
             'terminalprovuserid'    => $posAccount->getUsername(),
             'terminaluserid'        => $posAccount->getUsername(),
             'terminalmerchantid'    => $posAccount->getClientId(),
             'terminalid'            => $posAccount->getTerminalId(),
-            'txntype'               => $this->mapTxType($txType),
-            'txnamount'             => (string) $this->formatAmount($order['amount']),
-            'txncurrencycode'       => $this->mapCurrency($order['currency']),
-            'txninstallmentcount'   => $this->mapInstallment($order['installment']),
+            'txntype'               => $this->valueMapper->mapTxType($txType),
+            'txnamount'             => (string) $this->valueFormatter->formatAmount($order['amount']),
+            'txncurrencycode'       => (string) $this->valueMapper->mapCurrency($order['currency']),
+            'txninstallmentcount'   => (string) $this->valueFormatter->formatInstallment($order['installment']),
             'orderid'               => (string) $order['id'],
             'successurl'            => (string) $order['success_url'],
             'errorurl'              => (string) $order['fail_url'],
@@ -399,8 +361,8 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
 
         if ($creditCard instanceof CreditCardInterface) {
             $inputs['cardnumber']          = $creditCard->getNumber();
-            $inputs['cardexpiredatemonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['cardexpiredateyear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
+            $inputs['cardexpiredatemonth'] = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'cardexpiredatemonth');
+            $inputs['cardexpiredateyear']  = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'cardexpiredateyear');
             $inputs['cardcvv2']            = $creditCard->getCvv();
         }
 
@@ -441,40 +403,6 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
         }
 
         return $requestData;
-    }
-
-    /**
-     * 0 => ''
-     * 1 => ''
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '';
-    }
-
-    /**
-     * Amount Formatter
-     * converts 100 to 10000, or 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
-     */
-    protected function formatAmount(float $amount): int
-    {
-        return (int) (\round($amount, 2) * 100);
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return string
-     */
-    protected function mapCurrency(string $currency): string
-    {
-        return (string) ($this->currencyMappings[$currency] ?? $currency);
     }
 
     /**
@@ -614,7 +542,7 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     {
         return [
             'Number'     => $creditCard->getNumber(),
-            'ExpireDate' => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+            'ExpireDate' => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'ExpireDate'),
             'CVV2'       => $creditCard->getCvv(),
         ];
     }
@@ -644,20 +572,11 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     {
         return [
             'TotalPaymentNum'   => (string) $recurringData['installment'], //kac kere tekrarlanacak
-            'FrequencyType'     => $this->mapRecurringFrequency($recurringData['frequencyType']), //Monthly, weekly, daily
+            'FrequencyType'     => $this->valueMapper->mapRecurringFrequency($recurringData['frequencyType']), //Monthly, weekly, daily
             'FrequencyInterval' => (string) $recurringData['frequency'],
             'Type'              => 'R', // R:Sabit Tutarli   G:Degisken Tuta
+            //todo use formatter
             'StartDate'         => isset($recurringData['startDate']) ? $recurringData['startDate']->format('Ymd') : '',
         ];
-    }
-
-    /**
-     * @param \DateTimeInterface $dateTime
-     *
-     * @return string example 01/12/2010 11:11
-     */
-    private function formatRequestDateTime(\DateTimeInterface $dateTime): string
-    {
-        return $dateTime->format('d/m/Y H:i');
     }
 }

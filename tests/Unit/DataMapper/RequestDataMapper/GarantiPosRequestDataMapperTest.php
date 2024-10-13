@@ -8,10 +8,11 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\GarantiPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\GarantiPosRequestValueMapper;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\GarantiPos;
@@ -38,6 +39,9 @@ class GarantiPosRequestDataMapperTest extends TestCase
     /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
+    private GarantiPosRequestValueFormatter $valueFormatter;
+    private GarantiPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -54,75 +58,21 @@ class GarantiPosRequestDataMapperTest extends TestCase
             '123qweASD/'
         );
 
-        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new GarantiPosRequestDataMapper($this->dispatcher, $this->crypt);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new GarantiPosRequestValueFormatter();
+        $this->valueMapper    = new GarantiPosRequestValueMapper();
+
+        $this->requestDataMapper = new GarantiPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
+
         $this->requestDataMapper->setTestMode(true);
 
         $this->card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
-    }
-
-    /**
-     * @testWith ["pay", "sales"]
-     * ["pre", "preauth"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
-    {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @testWith ["sales"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
-
-    /**
-     * @return void
-     */
-    public function testFormatAmount(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('formatAmount');
-        $method->setAccessible(true);
-        $this->assertSame(100000, $method->invokeArgs($this->requestDataMapper, [1000]));
-        $this->assertSame(100000, $method->invokeArgs($this->requestDataMapper, [1000.00]));
-        $this->assertSame(100001, $method->invokeArgs($this->requestDataMapper, [1000.01]));
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", ""]
-     *           ["1", ""]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
     }
 
     /**

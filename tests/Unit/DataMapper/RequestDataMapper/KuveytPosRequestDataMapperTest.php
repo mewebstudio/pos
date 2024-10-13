@@ -9,9 +9,10 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 use Generator;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\KuveytPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\KuveytPosRequestValueMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\PosInterface;
@@ -37,6 +38,9 @@ class KuveytPosRequestDataMapperTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
+    private KuveytPosRequestValueFormatter $valueFormatter;
+    private KuveytPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -49,8 +53,6 @@ class KuveytPosRequestDataMapperTest extends TestCase
             'Api123'
         );
 
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-
         $this->card = CreditCardFactory::create(
             '4155650100416111',
             25,
@@ -60,71 +62,17 @@ class KuveytPosRequestDataMapperTest extends TestCase
             CreditCardInterface::CARD_TYPE_VISA
         );
 
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new KuveytPosRequestDataMapper($this->dispatcher, $this->crypt);
-    }
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new KuveytPosRequestValueFormatter();
+        $this->valueMapper    = new KuveytPosRequestValueMapper();
 
-    /**
-     * @testWith ["pay", "Sale"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
-    {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @testWith ["Sale"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
-
-    /**
-     * @return void
-     */
-    public function testFormatAmount(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('formatAmount');
-        $method->setAccessible(true);
-        $this->assertSame(0, $method->invokeArgs($this->requestDataMapper, [0]));
-        $this->assertSame(0, $method->invokeArgs($this->requestDataMapper, [0.0]));
-        $this->assertSame(1025, $method->invokeArgs($this->requestDataMapper, [10.25]));
-        $this->assertSame(1000, $method->invokeArgs($this->requestDataMapper, [10.00]));
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('0949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('0978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", "0"]
-     *           ["1", "0"]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
+        $this->requestDataMapper = new KuveytPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
     }
 
     /**

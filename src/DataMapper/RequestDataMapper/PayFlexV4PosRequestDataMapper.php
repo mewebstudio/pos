@@ -19,44 +19,6 @@ use Mews\Pos\PosInterface;
  */
 class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
 {
-    /** @var string */
-    public const CREDIT_CARD_EXP_DATE_LONG_FORMAT = 'Ym';
-
-    /** @var string */
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
-
-    /**
-     * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => 'Sale',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'Auth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'Capture',
-        PosInterface::TX_TYPE_CANCEL         => 'Cancel',
-        PosInterface::TX_TYPE_REFUND         => 'Refund',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => 'Refund',
-        PosInterface::TX_TYPE_STATUS         => 'status',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $cardTypeMapping = [
-        CreditCardInterface::CARD_TYPE_VISA       => '100',
-        CreditCardInterface::CARD_TYPE_MASTERCARD => '200',
-        CreditCardInterface::CARD_TYPE_TROY       => '300',
-        CreditCardInterface::CARD_TYPE_AMEX       => '400',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $recurringOrderFrequencyMapping = [
-        'DAY'   => 'Day',
-        'MONTH' => 'Month',
-        'YEAR'  => 'Year',
-    ];
-
     /**
      * @param PayFlexAccount                                                      $posAccount
      * @param array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $responseData
@@ -72,10 +34,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'TransactionType'         => $this->mapTxType($txType),
+                'TransactionType'         => $this->valueMapper->mapTxType($txType),
                 'TransactionId'           => (string) $order['id'],
-                'CurrencyAmount'          => $this->formatAmount($order['amount']),
-                'CurrencyCode'            => $this->mapCurrency($order['currency']),
+                'CurrencyAmount'          => $this->valueFormatter->formatAmount($order['amount']),
+                'CurrencyCode'            => $this->valueMapper->mapCurrency($order['currency']),
                 'ECI'                     => $responseData['Eci'],
                 'CAVV'                    => $responseData['Cavv'],
                 'MpiTransactionId'        => $responseData['VerifyEnrollmentRequestId'],
@@ -85,11 +47,11 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
                 'CardHoldersName'         => $creditCard->getHolderName(),
                 'Cvv'                     => $creditCard->getCvv(),
                 'Pan'                     => $creditCard->getNumber(),
-                'Expiry'                  => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
+                'Expiry'                  => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'Expiry'),
             ];
 
         if ($order['installment']) {
-            $requestData['NumberOfInstallments'] = $this->mapInstallment($order['installment']);
+            $requestData['NumberOfInstallments'] = $this->valueFormatter->formatInstallment($order['installment']);
         }
 
         return $requestData;
@@ -110,18 +72,18 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId'                => $posAccount->getClientId(),
             'MerchantPassword'          => $posAccount->getPassword(),
             'MerchantType'              => $posAccount->getMerchantType(),
-            'PurchaseAmount'            => $this->formatAmount($order['amount']),
+            'PurchaseAmount'            => $this->valueFormatter->formatAmount($order['amount']),
             'VerifyEnrollmentRequestId' => $this->crypt->generateRandomString(),
-            'Currency'                  => $this->mapCurrency($order['currency']),
+            'Currency'                  => $this->valueMapper->mapCurrency($order['currency']),
             'SuccessUrl'                => $order['success_url'],
             'FailureUrl'                => $order['fail_url'],
             'Pan'                       => $creditCard->getNumber(),
-            'ExpiryDate'                => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-            'BrandName'                 => $creditCard->getType() !== null ? $this->cardTypeMapping[$creditCard->getType()] : null,
+            'ExpiryDate'                => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'ExpiryDate'),
+            'BrandName'                 => $creditCard->getType() !== null ? $this->valueMapper->mapCardType($creditCard->getType()) : null,
             'IsRecurring'               => 'false',
         ];
         if ($order['installment']) {
-            $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
+            $requestData['InstallmentCount'] = $this->valueFormatter->formatInstallment($order['installment']);
         }
 
         if ($posAccount->isSubBranch()) {
@@ -144,14 +106,14 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'TransactionType'         => $this->mapTxType($txType),
+                'TransactionType'         => $this->valueMapper->mapTxType($txType),
                 'OrderId'                 => (string) $order['id'],
-                'CurrencyAmount'          => $this->formatAmount($order['amount']),
-                'CurrencyCode'            => $this->mapCurrency($order['currency']),
+                'CurrencyAmount'          => $this->valueFormatter->formatAmount($order['amount']),
+                'CurrencyCode'            => $this->valueMapper->mapCurrency($order['currency']),
                 'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0',
                 'Pan'                     => $creditCard->getNumber(),
-                'Expiry'                  => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
+                'Expiry'                  => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'Expiry'),
                 'Cvv'                     => $creditCard->getCvv(),
             ];
     }
@@ -176,10 +138,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
+                'TransactionType'        => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'ReferenceTransactionId' => (string) $order['transaction_id'],
-                'CurrencyAmount'         => $this->formatAmount($order['amount']),
-                'CurrencyCode'           => $this->mapCurrency($order['currency']),
+                'CurrencyAmount'         => (string) $this->valueFormatter->formatAmount($order['amount']),
+                'CurrencyCode'           => (string) $this->valueMapper->mapCurrency($order['currency']),
                 'ClientIp'               => (string) $order['ip'],
             ];
     }
@@ -224,7 +186,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'MerchantId'             => $posAccount->getClientId(),
             'Password'               => $posAccount->getPassword(),
-            'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
+            'TransactionType'        => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL),
             'ReferenceTransactionId' => (string) $order['transaction_id'],
             'ClientIp'               => (string) $order['ip'],
         ];
@@ -242,10 +204,10 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'MerchantId'             => $posAccount->getClientId(),
             'Password'               => $posAccount->getPassword(),
-            'TransactionType'        => $this->mapTxType($refundTxType),
+            'TransactionType'        => $this->valueMapper->mapTxType($refundTxType),
             'ReferenceTransactionId' => (string) $order['transaction_id'],
             'ClientIp'               => (string) $order['ip'],
-            'CurrencyAmount'         => $this->formatAmount($order['amount']),
+            'CurrencyAmount'         => (string) $this->valueFormatter->formatAmount($order['amount']),
         ];
     }
 
@@ -296,29 +258,6 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'method'  => 'POST',
             'inputs'  => $inputs,
         ];
-    }
-
-    /**
-     * Amount Formatter
-     *
-     * @param float $amount
-     *
-     * @return string ex: 10.1 => 10.10
-     */
-    protected function formatAmount(float $amount): string
-    {
-        return \number_format($amount, 2, '.', '');
-    }
-
-    /**
-     * 0 => '0'
-     * 1 => '0'
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '0';
     }
 
     /**
@@ -382,16 +321,6 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
-     *
-     * @return string
-     */
-    protected function mapCurrency(string $currency): string
-    {
-        return (string) ($this->currencyMappings[$currency] ?? $currency);
-    }
-
-    /**
      * @param PayFlexAccount $posAccount
      *
      * @return array{MerchantId: string, Password: string, TerminalNo: string}
@@ -428,14 +357,16 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
         return [
             'IsRecurring'               => 'true',
             'RecurringFrequency'        => (string) $recurringData['frequency'], // Periyodik İşlem Frekansı
-            'RecurringFrequencyType'    => $this->mapRecurringFrequency($recurringData['frequencyType']), // Day|Month|Year
+            'RecurringFrequencyType'    => $this->valueMapper->mapRecurringFrequency($recurringData['frequencyType']), // Day|Month|Year
             // recurring işlemin toplamda kaç kere tekrar edeceği bilgisini içerir
             'RecurringInstallmentCount' => (string) $recurringData['installment'],
             /**
              * Bu alandaki tarih, kartın son kullanma tarihinden büyükse ACS sunucusu işlemi reddeder.
              */
-            'RecurringEndDate'          => $recurringData['endDate']->format('Ymd'),
-            'TriggerDate'               => isset($recurringData['startDate']) ? $recurringData['startDate']->format('Ymd') : '',
+            'RecurringEndDate'          => $this->valueFormatter->formatDateTime($recurringData['endDate'], 'RecurringEndDate'),
+            'TriggerDate'               => isset($recurringData['startDate'])
+                ? $this->valueFormatter->formatDateTime($recurringData['startDate'], 'TriggerDate')
+                : '',
         ];
     }
 }

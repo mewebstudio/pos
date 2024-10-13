@@ -20,36 +20,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
 {
     /**
      * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => 'Sale',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'Auth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'Capture',
-        PosInterface::TX_TYPE_CANCEL         => 'Cancel',
-        PosInterface::TX_TYPE_REFUND         => 'Refund',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => 'Refund',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $cardTypeMapping = [
-        CreditCardInterface::CARD_TYPE_VISA       => '100',
-        CreditCardInterface::CARD_TYPE_MASTERCARD => '200',
-        CreditCardInterface::CARD_TYPE_TROY       => '300',
-        CreditCardInterface::CARD_TYPE_AMEX       => '400',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $langMappings = [
-        PosInterface::LANG_TR => 'tr-TR',
-        PosInterface::LANG_EN => 'en-US',
-    ];
-
-    /**
-     * {@inheritDoc}
      *
      * @param PayFlexAccount $posAccount
      */
@@ -95,9 +65,9 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
             'HostMerchantId'       => $posAccount->getClientId(),
             'MerchantPassword'     => $posAccount->getPassword(),
             'HostTerminalId'       => $posAccount->getTerminalId(),
-            'TransactionType'      => $this->mapTxType($txType),
-            'AmountCode'           => $this->mapCurrency($order['currency']),
-            'Amount'               => $this->formatAmount($order['amount']),
+            'TransactionType'      => $this->valueMapper->mapTxType($txType),
+            'AmountCode'           => (string) $this->valueMapper->mapCurrency($order['currency']),
+            'Amount'               => (string) $this->valueFormatter->formatAmount($order['amount']),
             'OrderID'              => (string) $order['id'],
             'IsSecure'             => 'true', // Işlemin 3D yapılıp yapılmayacağına dair flag, alabileceği değerler: 'true', 'false'
             /**
@@ -127,17 +97,17 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
 
         if ($creditCard instanceof CreditCardInterface) {
             $requestData += [
-                'BrandNumber'     => $creditCard->getType() !== null ? $this->cardTypeMapping[$creditCard->getType()] : '',
+                'BrandNumber'     => $creditCard->getType() !== null ? $this->valueMapper->mapCardType($creditCard->getType()) : '',
                 'CVV'             => $creditCard->getCvv(),
                 'PAN'             => $creditCard->getNumber(),
-                'ExpireMonth'     => $creditCard->getExpireMonth(),
-                'ExpireYear'      => $creditCard->getExpireYear(),
+                'ExpireMonth'     => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'ExpireMonth'),
+                'ExpireYear'      => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'ExpireYear'),
                 'CardHoldersName' => (string) $creditCard->getHolderName(),
             ];
         }
 
         if ($order['installment']) {
-            $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
+            $requestData['InstallmentCount'] = (string) $this->valueFormatter->formatInstallment($order['installment']);
         }
 
         $requestData['HashedData'] = $this->crypt->createHash($posAccount, $requestData);
@@ -235,39 +205,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
                 'Ptkn' => $extraData['PaymentToken'],
             ],
         ];
-    }
-
-    /**
-     * Amount Formatter
-     *
-     * @param float $amount
-     *
-     * @return string ex: 10.1 => 10.10
-     */
-    protected function formatAmount(float $amount): string
-    {
-        return \number_format($amount, 2, '.', '');
-    }
-
-    /**
-     * 0 => '0'
-     * 1 => '0'
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '0';
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return string
-     */
-    protected function mapCurrency(string $currency): string
-    {
-        return (string) ($this->currencyMappings[$currency] ?? $currency);
     }
 
     /**

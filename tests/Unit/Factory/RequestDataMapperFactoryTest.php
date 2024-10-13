@@ -6,6 +6,8 @@
 
 namespace Mews\Pos\Tests\Unit\Factory;
 
+use Mews\Pos\DataMapper\RequestValueFormatter\RequestValueFormatterInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Factory\RequestDataMapperFactory;
 use PHPUnit\Framework\TestCase;
 
@@ -19,29 +21,33 @@ class RequestDataMapperFactoryTest extends TestCase
      */
     public function testCreateGatewayRequestMapper(string $gatewayClass, string $mapperClass): void
     {
+        $valueMapper     = $this->createMock(RequestValueMapperInterface::class);
+        $valueFormatter  = $this->createMock(RequestValueFormatterInterface::class);
         $eventDispatcher = $this->createMock(\Psr\EventDispatcher\EventDispatcherInterface::class);
         $crypt           = $this->createMock(\Mews\Pos\Crypt\CryptInterface::class);
-        $currencies      = [];
         $mapper          = RequestDataMapperFactory::createGatewayRequestMapper(
             $gatewayClass,
+            $valueMapper,
+            $valueFormatter,
             $eventDispatcher,
             $crypt,
-            $currencies
         );
         $this->assertInstanceOf($mapperClass, $mapper);
     }
 
     public function testCreateGatewayRequestMapperUnsupported(): void
     {
+        $valueMapper     = $this->createMock(RequestValueMapperInterface::class);
+        $valueFormatter  = $this->createMock(RequestValueFormatterInterface::class);
         $eventDispatcher = $this->createMock(\Psr\EventDispatcher\EventDispatcherInterface::class);
         $crypt           = $this->createMock(\Mews\Pos\Crypt\CryptInterface::class);
-        $currencies      = [];
         $this->expectException(\DomainException::class);
         RequestDataMapperFactory::createGatewayRequestMapper(
             \stdClass::class,
+            $valueMapper,
+            $valueFormatter,
             $eventDispatcher,
             $crypt,
-            $currencies
         );
     }
 

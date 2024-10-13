@@ -25,7 +25,7 @@ class EstV3PosRequestDataMapper extends EstPosRequestDataMapper
 
         $data = $this->create3DFormDataCommon($posAccount, $order, $paymentModel, $txType, $gatewayURL, $creditCard);
 
-        $data['inputs']['TranType'] = $this->mapTxType($txType);
+        $data['inputs']['TranType'] = $this->valueMapper->mapTxType($txType);
         unset($data['inputs']['islemtipi']);
 
         $data['inputs']['hashAlgorithm'] = 'ver3';
