@@ -29,7 +29,7 @@ class GarantiPosCrypt extends AbstractCrypt
             $requestData['txntype'],
             $requestData['txninstallmentcount'],
             $posAccount->getStoreKey(),
-            $this->createSecurityData($posAccount, $requestData['txntype']),
+            $this->createSecurityData($posAccount, (string) $requestData['txntype']),
         ];
 
         return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map), self::HASH_ALGORITHM);

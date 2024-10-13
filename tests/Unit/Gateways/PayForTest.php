@@ -8,6 +8,7 @@ namespace Mews\Pos\Tests\Unit\Gateways;
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\PayForPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -63,6 +64,7 @@ class PayForTest extends TestCase
     private MockObject $serializerMock;
 
     private CreditCardInterface $card;
+    private PayForPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void
     {
@@ -87,6 +89,7 @@ class PayForTest extends TestCase
             '12345678'
         );
 
+        $this->requestValueMapper  = new PayForPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
@@ -102,6 +105,7 @@ class PayForTest extends TestCase
         $this->pos = new PayForPos(
             $this->config,
             $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
@@ -128,12 +132,9 @@ class PayForTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
-            ->method('getCurrencyMappings')
-            ->willReturn([PosInterface::CURRENCY_TRY => '949']);
+        $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
-        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
         $this->assertSame($this->config['gateway_endpoints']['gateway_3d_host'], $this->pos->get3DHostGatewayURL());
         $this->assertSame($this->config['gateway_endpoints']['gateway_3d'], $this->pos->get3DGatewayURL());
         $this->assertSame($this->config['gateway_endpoints']['payment_api'], $this->pos->getApiURL());

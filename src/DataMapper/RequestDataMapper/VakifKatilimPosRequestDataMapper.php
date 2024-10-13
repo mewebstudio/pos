@@ -20,34 +20,6 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
     /** @var string */
     public const API_VERSION = '1.0.0';
 
-    /** @var string */
-    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
-
-    /** @var string */
-    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $secureTypeMappings = [
-        PosInterface::MODEL_3D_SECURE  => '3',
-        PosInterface::MODEL_NON_SECURE => '5',
-    ];
-
-    /**
-     * Currency mapping
-     *
-     * {@inheritdoc}
-     */
-    protected array $currencyMappings = [
-        PosInterface::CURRENCY_TRY => '0949',
-        PosInterface::CURRENCY_USD => '0840',
-        PosInterface::CURRENCY_EUR => '0978',
-        PosInterface::CURRENCY_GBP => '0826',
-        PosInterface::CURRENCY_JPY => '0392',
-        PosInterface::CURRENCY_RUB => '0810',
-    ];
-
     /** @var KuveytPosCrypt */
     protected CryptInterface $crypt;
 
@@ -74,10 +46,10 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
                         ],
                     ],
                 ],
-                'InstallmentCount'    => $this->mapInstallment($order['installment']),
-                'Amount'              => $this->formatAmount($order['amount']),
+                'InstallmentCount'    => $this->valueFormatter->formatInstallment($order['installment']),
+                'Amount'              => $this->valueFormatter->formatAmount($order['amount']),
                 'MerchantOrderId'     => $responseData['MerchantOrderId'],
-                'TransactionSecurity' => $this->secureTypeMappings[PosInterface::MODEL_3D_SECURE],
+                'TransactionSecurity' => $this->valueMapper->mapSecureType(PosInterface::MODEL_3D_SECURE),
             ];
 
         $result['HashData'] = $this->crypt->create3DHash($posAccount, $result);
@@ -104,11 +76,11 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
         $inputs = $this->getRequestAccountData($kuveytPosAccount) + [
                 'APIVersion'          => self::API_VERSION,
                 'HashPassword'        => $this->crypt->hashString($kuveytPosAccount->getStoreKey() ?? ''),
-                'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
-                'InstallmentCount'    => $this->mapInstallment($order['installment']),
-                'Amount'              => $this->formatAmount($order['amount']),
-                'DisplayAmount'       => $this->formatAmount($order['amount']),
-                'FECCurrencyCode'     => $this->mapCurrency($order['currency']),
+                'TransactionSecurity' => $this->valueMapper->mapSecureType($paymentModel),
+                'InstallmentCount'    => $this->valueFormatter->formatInstallment($order['installment']),
+                'Amount'              => $this->valueFormatter->formatAmount($order['amount']),
+                'DisplayAmount'       => $this->valueFormatter->formatAmount($order['amount']),
+                'FECCurrencyCode'     => $this->valueMapper->mapCurrency($order['currency']),
                 'MerchantOrderId'     => $order['id'],
                 'OkUrl'               => $order['success_url'],
                 'FailUrl'             => $order['fail_url'],
@@ -117,8 +89,8 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
         if ($creditCard instanceof CreditCardInterface) {
             $inputs['CardHolderName']      = $creditCard->getHolderName();
             $inputs['CardNumber']          = $creditCard->getNumber();
-            $inputs['CardExpireDateYear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $inputs['CardExpireDateMonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
+            $inputs['CardExpireDateYear']  = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateYear');
+            $inputs['CardExpireDateMonth'] = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateMonth');
             $inputs['CardCVV2']            = $creditCard->getCvv();
         }
 
@@ -161,14 +133,14 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
                 'APIVersion'          => self::API_VERSION,
                 'HashPassword'        => $this->crypt->hashString($posAccount->getStoreKey() ?? ''),
                 'MerchantOrderId'     => $order['id'],
-                'InstallmentCount'    => $this->mapInstallment($order['installment']),
-                'Amount'              => $this->formatAmount($order['amount']),
-                'FECCurrencyCode'     => $this->mapCurrency($order['currency']),
-                'CurrencyCode'        => $this->mapCurrency($order['currency']),
-                'TransactionSecurity' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'InstallmentCount'    => $this->valueFormatter->formatInstallment($order['installment']),
+                'Amount'              => $this->valueFormatter->formatAmount($order['amount']),
+                'FECCurrencyCode'     => $this->valueMapper->mapCurrency($order['currency']),
+                'CurrencyCode'        => $this->valueMapper->mapCurrency($order['currency']),
+                'TransactionSecurity' => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
                 'CardNumber'          => $creditCard->getNumber(),
-                'CardExpireDateYear'  => $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT),
-                'CardExpireDateMonth' => $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT),
+                'CardExpireDateYear'  => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateYear'),
+                'CardExpireDateMonth' => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateMonth'),
                 'CardCVV2'            => $creditCard->getCvv(),
                 'CardHolderName'      => $creditCard->getHolderName(),
             ];
@@ -211,7 +183,7 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
             ];
 
         if (!isset($order['transaction_type']) || PosInterface::TX_TYPE_PAY_PRE_AUTH !== $order['transaction_type']) {
-            $result['Amount'] = $this->formatAmount($order['amount']);
+            $result['Amount'] = $this->valueFormatter->formatAmount($order['amount']);
         }
 
         $result['HashData'] = $this->crypt->createHash($posAccount, $result);
@@ -257,8 +229,8 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
                 'HashPassword'    => $this->crypt->hashString($posAccount->getStoreKey() ?? ''),
                 'MerchantId'      => $posAccount->getClientId(),
                 'MerchantOrderId' => (string) $order['id'],
-                'Amount'          => $this->formatAmount($order['amount']),
-                'FECCurrencyCode' => $this->mapCurrency($order['currency']),
+                'Amount'          => $this->valueFormatter->formatAmount($order['amount']),
+                'FECCurrencyCode' => $this->valueMapper->mapCurrency($order['currency']),
                 'OkUrl'           => $order['success_url'],
                 'FailUrl'         => $order['fail_url'],
                 'PaymentType'     => '1',
@@ -285,8 +257,8 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
                 /**
                  * Tarih aralığı maksimum 90 gün olabilir.
                  */
-                'StartDate'   => $data['start_date']->format('Y-m-d'),
-                'EndDate'     => $data['end_date']->format('Y-m-d'),
+                'StartDate'   => $this->valueFormatter->formatDateTime($data['start_date'], 'StartDate', PosInterface::TX_TYPE_HISTORY),
+                'EndDate'     => $this->valueFormatter->formatDateTime($data['end_date'], 'EndDate', PosInterface::TX_TYPE_HISTORY),
                 'LowerLimit'  => ($data['page'] - 1) * $data['page_size'],
                 'UpperLimit'  => $data['page_size'],
                 'ProvNumber'  => null,
@@ -310,8 +282,8 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareOrderHistoryOrder($order);
 
         $result = $this->getRequestAccountData($posAccount) + [
-                'StartDate'   => $order['start_date']->format('Y-m-d'),
-                'EndDate'     => $order['end_date']->format('Y-m-d'),
+                'StartDate'   => $this->valueFormatter->formatDateTime($order['start_date'], 'StartDate', PosInterface::TX_TYPE_ORDER_HISTORY),
+                'EndDate'     => $this->valueFormatter->formatDateTime($order['end_date'], 'EndDate', PosInterface::TX_TYPE_ORDER_HISTORY),
                 'LowerLimit'  => 0,
                 'UpperLimit'  => 100,
                 'ProvNumber'  => $order['auth_code'],
@@ -323,30 +295,6 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
         $result['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
-    }
-
-    /**
-     * Amount Formatter
-     * converts 100 to 10000, or 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
-     */
-    protected function formatAmount(float $amount): int
-    {
-        return (int) (\round($amount, 2) * 100);
-    }
-
-    /**
-     * 0 => '0'
-     * 1 => '0'
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '0';
     }
 
     /**

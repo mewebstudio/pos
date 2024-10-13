@@ -18,50 +18,6 @@ use Mews\Pos\PosInterface;
  */
 class EstPosRequestDataMapper extends AbstractRequestDataMapper
 {
-    /** @var string */
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'm/y';
-
-    /** @var string */
-    public const CREDIT_CARD_EXP_MONTH_FORMAT = 'm';
-
-    /** @var string */
-    public const CREDIT_CARD_EXP_YEAR_FORMAT = 'y';
-
-    /**
-     * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => 'Auth',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'PreAuth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'PostAuth',
-        PosInterface::TX_TYPE_CANCEL         => 'Void',
-        PosInterface::TX_TYPE_REFUND         => 'Credit',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => 'Credit',
-        PosInterface::TX_TYPE_STATUS         => 'ORDERSTATUS',
-        PosInterface::TX_TYPE_HISTORY        => 'ORDERHISTORY',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $recurringOrderFrequencyMapping = [
-        'DAY'   => 'D',
-        'WEEK'  => 'W',
-        'MONTH' => 'M',
-        'YEAR'  => 'Y',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $secureTypeMappings = [
-        PosInterface::MODEL_3D_SECURE      => '3d',
-        PosInterface::MODEL_3D_PAY         => '3d_pay',
-        PosInterface::MODEL_3D_PAY_HOSTING => '3d_pay_hosting',
-        PosInterface::MODEL_3D_HOST        => '3d_host',
-        PosInterface::MODEL_NON_SECURE     => 'regular',
-    ];
-
     /**
      * {@inheritDoc}
      *
@@ -72,12 +28,12 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'Type'                    => $this->mapTxType($txType),
+                'Type'                    => $this->valueMapper->mapTxType($txType),
                 'IPAddress'               => (string) $order['ip'],
                 'OrderId'                 => (string) $order['id'],
-                'Total'                   => (string) $order['amount'],
-                'Currency'                => $this->mapCurrency($order['currency']),
-                'Taksit'                  => $this->mapInstallment((int) $order['installment']),
+                'Total'                   => $this->valueFormatter->formatAmount($order['amount']),
+                'Currency'                => $this->valueMapper->mapCurrency($order['currency']),
+                'Taksit'                  => $this->valueFormatter->formatInstallment($order['installment']),
                 'Number'                  => $responseData['md'],
                 'PayerTxnId'              => $responseData['xid'],
                 'PayerSecurityLevel'      => $responseData['eci'],
@@ -101,14 +57,14 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'Type'      => $this->mapTxType($txType),
+                'Type'      => $this->valueMapper->mapTxType($txType),
                 'IPAddress' => (string) $order['ip'],
                 'OrderId'   => (string) $order['id'],
-                'Total'     => (string) $order['amount'],
-                'Currency'  => $this->mapCurrency($order['currency']),
-                'Taksit'    => $this->mapInstallment((int) $order['installment']),
+                'Total'     => (string) $this->valueFormatter->formatAmount($order['amount']),
+                'Currency'  => (string) $this->valueMapper->mapCurrency($order['currency']),
+                'Taksit'    => (string) $this->valueFormatter->formatInstallment($order['installment']),
                 'Number'    => $creditCard->getNumber(),
-                'Expires'   => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'Expires'   => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'Expires'),
                 'Cvv2Val'   => $creditCard->getCvv(),
                 'Mode'      => 'P',
             ];
@@ -123,21 +79,21 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      *
-     * @return array{Type: string, OrderId: string, Name: string, Password: string, ClientId: string, Total: float|null}
+     * @return array{Type: string, OrderId: string, Name: string, Password: string, ClientId: string, Total: string|null}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order = $this->preparePostPaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'Type'    => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
+                'Type'    => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'OrderId' => (string) $order['id'],
-                'Total'   => isset($order['amount']) ? (float) $this->formatAmount($order['amount']) : null,
+                'Total'   => isset($order['amount']) ? (string) $this->valueFormatter->formatAmount($order['amount']) : null,
             ];
 
         if (isset($order['amount'], $order['pre_auth_amount']) && $order['pre_auth_amount'] < $order['amount']) {
             // when amount < pre_auth_amount then we need to send PREAMT value
-            $requestData['Extra']['PREAMT'] = $order['pre_auth_amount'];
+            $requestData['Extra']['PREAMT'] = (string) $this->valueFormatter->formatAmount($order['pre_auth_amount']);
         }
 
         return $requestData;
@@ -150,7 +106,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $statusRequestData = $this->getRequestAccountData($posAccount) + [
                 'Extra' => [
-                    $this->mapTxType(PosInterface::TX_TYPE_STATUS) => 'QUERY',
+                    $this->valueMapper->mapTxType(PosInterface::TX_TYPE_STATUS) => 'QUERY',
                 ],
             ];
 
@@ -192,7 +148,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($posAccount) + [
                 'OrderId' => $order['id'],
-                'Type'    => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
+                'Type'    => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL),
             ];
     }
 
@@ -206,12 +162,12 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = [
             'OrderId'  => (string) $order['id'],
-            'Currency' => $this->mapCurrency($order['currency']),
-            'Type'     => $this->mapTxType($refundTxType),
+            'Currency' => (string) $this->valueMapper->mapCurrency($order['currency']),
+            'Type'     => $this->valueMapper->mapTxType($refundTxType),
         ];
 
         if (isset($order['amount'])) {
-            $requestData['Total'] = (string) $order['amount'];
+            $requestData['Total'] = (string) $this->valueFormatter->formatAmount($order['amount']);
         }
 
         return $this->getRequestAccountData($posAccount) + $requestData;
@@ -228,7 +184,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $requestData = [
             'OrderId' => (string) $order['id'],
             'Extra'   => [
-                $this->mapTxType(PosInterface::TX_TYPE_HISTORY) => 'QUERY',
+                $this->valueMapper->mapTxType(PosInterface::TX_TYPE_HISTORY) => 'QUERY',
             ],
         ];
 
@@ -286,22 +242,22 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $inputs = [
             'clientid'    => $posAccount->getClientId(),
-            'storetype'   => $this->secureTypeMappings[$paymentModel],
-            'amount'      => (string) $order['amount'],
+            'storetype'   => $this->valueMapper->mapSecureType($paymentModel),
+            'amount'      => (string) $this->valueFormatter->formatAmount($order['amount']),
             'oid'         => (string) $order['id'],
             'okUrl'       => (string) $order['success_url'],
             'failUrl'     => (string) $order['fail_url'],
             'rnd'         => $this->crypt->generateRandomString(),
             'lang'        => $this->getLang($posAccount, $order),
-            'currency'    => $this->mapCurrency((string) $order['currency']),
-            'taksit'      => $this->mapInstallment((int) $order['installment']),
-            'islemtipi'   => $this->mapTxType($txType),
+            'currency'    => (string) $this->valueMapper->mapCurrency($order['currency']),
+            'taksit'      => (string) $this->valueFormatter->formatInstallment($order['installment']),
+            'islemtipi'   => $this->valueMapper->mapTxType($txType),
         ];
 
         if ($creditCard instanceof CreditCardInterface) {
             $inputs['pan']                             = $creditCard->getNumber();
-            $inputs['Ecom_Payment_Card_ExpDate_Month'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['Ecom_Payment_Card_ExpDate_Year']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
+            $inputs['Ecom_Payment_Card_ExpDate_Month'] = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'Ecom_Payment_Card_ExpDate_Month');
+            $inputs['Ecom_Payment_Card_ExpDate_Year']  = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'Ecom_Payment_Card_ExpDate_Year');
             $inputs['cv2']                             = $creditCard->getCvv();
         }
 
@@ -312,16 +268,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         ];
     }
 
-    /**
-     * 0 => ''
-     * 1 => ''
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '';
-    }
 
     /**
      * @inheritDoc
@@ -370,16 +316,6 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
-     *
-     * @return string
-     */
-    protected function mapCurrency(string $currency): string
-    {
-        return (string) $this->currencyMappings[$currency] ?? $currency;
-    }
-
-    /**
      * @param AbstractPosAccount $posAccount
      *
      * @return array{Name: string, Password: string, ClientId: string}
@@ -406,7 +342,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
                 // Periyodik İşlem Frekansı
                 'OrderFrequencyInterval' => (string) $recurringData['frequency'],
                 // D|M|Y
-                'OrderFrequencyCycle'    => $this->mapRecurringFrequency($recurringData['frequencyType']),
+                'OrderFrequencyCycle'    => $this->valueMapper->mapRecurringFrequency($recurringData['frequencyType']),
                 'TotalNumberPayments'    => (string) $recurringData['installment'],
             ],
         ];
