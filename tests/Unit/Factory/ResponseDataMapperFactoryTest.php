@@ -6,6 +6,7 @@
 namespace Mews\Pos\Tests\Unit\Factory;
 
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Factory\ResponseDataMapperFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -21,7 +22,7 @@ class ResponseDataMapperFactoryTest extends TestCase
      */
     public function testCreateGatewayResponseMapper(string $gatewayClass, string $mapperClass): void
     {
-        $requestDataMapper = $this->createMock(RequestDataMapperInterface::class);
+        $requestDataMapper = $this->createMock(RequestValueMapperInterface::class);
         $logger            = $this->createMock(LoggerInterface::class);
         $mapper            = ResponseDataMapperFactory::createGatewayResponseMapper(
             $gatewayClass,
@@ -33,7 +34,7 @@ class ResponseDataMapperFactoryTest extends TestCase
 
     public function testCreateGatewayResponseMapperUnsupported(): void
     {
-        $requestDataMapper = $this->createMock(RequestDataMapperInterface::class);
+        $requestDataMapper = $this->createMock(RequestValueMapperInterface::class);
         $logger            = $this->createMock(LoggerInterface::class);
         $this->expectException(\DomainException::class);
         ResponseDataMapperFactory::createGatewayResponseMapper(

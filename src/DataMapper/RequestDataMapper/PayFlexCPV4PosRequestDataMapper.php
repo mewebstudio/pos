@@ -17,41 +17,6 @@ use Mews\Pos\PosInterface;
  */
 class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
 {
-    /** @var string */
-    public const CREDIT_CARD_EXP_DATE_LONG_FORMAT = 'Ym';
-
-    /**
-     * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => 'Sale',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'Auth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'Capture',
-        PosInterface::TX_TYPE_CANCEL         => 'Cancel',
-        PosInterface::TX_TYPE_REFUND         => 'Refund',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => 'Refund',
-        PosInterface::TX_TYPE_HISTORY        => 'TxnHistory',
-        PosInterface::TX_TYPE_STATUS         => 'OrderInquiry',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $cardTypeMapping = [
-        CreditCardInterface::CARD_TYPE_VISA       => '100',
-        CreditCardInterface::CARD_TYPE_MASTERCARD => '200',
-        CreditCardInterface::CARD_TYPE_TROY       => '300',
-        CreditCardInterface::CARD_TYPE_AMEX       => '400',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $langMappings = [
-        PosInterface::LANG_TR => 'tr-TR',
-        PosInterface::LANG_EN => 'en-US',
-    ];
-
     /**
      * {@inheritDoc}
      *
@@ -101,9 +66,9 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
             'HostMerchantId'       => $posAccount->getClientId(),
             'MerchantPassword'     => $posAccount->getPassword(),
             'HostTerminalId'       => $posAccount->getTerminalId(),
-            'TransactionType'      => $this->mapTxType($txType),
-            'AmountCode'           => $this->mapCurrency($order['currency']),
-            'Amount'               => $this->formatAmount($order['amount']),
+            'TransactionType'      => $this->valueMapper->mapTxType($txType),
+            'AmountCode'           => (string) $this->valueMapper->mapCurrency($order['currency']),
+            'Amount'               => (string) $this->valueFormatter->formatAmount($order['amount']),
             'OrderID'              => (string) $order['id'],
             'IsSecure'             => 'true', // Işlemin 3D yapılıp yapılmayacağına dair flag, alabileceği değerler: 'true', 'false'
             /**
@@ -133,17 +98,17 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
 
         if ($creditCard instanceof CreditCardInterface) {
             $requestData += [
-                'BrandNumber'     => $this->cardTypeMapping[$creditCard->getType()],
+                'BrandNumber'     => $this->valueMapper->mapCardType($creditCard->getType()),
                 'CVV'             => $creditCard->getCvv(),
                 'PAN'             => $creditCard->getNumber(),
-                'ExpireMonth'     => $creditCard->getExpireMonth(),
-                'ExpireYear'      => $creditCard->getExpireYear(),
+                'ExpireMonth'     => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'ExpireMonth'),
+                'ExpireYear'      => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'ExpireYear'),
                 'CardHoldersName' => (string) $creditCard->getHolderName(),
             ];
         }
 
         if ($order['installment']) {
-            $requestData['InstallmentCount'] = $this->mapInstallment($order['installment']);
+            $requestData['InstallmentCount'] = (string) $this->valueFormatter->formatInstallment($order['installment']);
         }
 
         $requestData['HashedData'] = $this->crypt->create3DHash($posAccount, $requestData);
@@ -163,14 +128,14 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'TransactionType'         => $this->mapTxType($txType),
+                'TransactionType'         => $this->valueMapper->mapTxType($txType),
                 'OrderId'                 => (string) $order['id'],
-                'CurrencyAmount'          => $this->formatAmount($order['amount']),
-                'CurrencyCode'            => $this->mapCurrency($order['currency']),
+                'CurrencyAmount'          => (string) $this->valueFormatter->formatAmount($order['amount']),
+                'CurrencyCode'            => (string) $this->valueMapper->mapCurrency($order['currency']),
                 'ClientIp'                => (string) $order['ip'],
                 'TransactionDeviceSource' => '0',
                 'Pan'                     => $creditCard->getNumber(),
-                'Expiry'                  => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_LONG_FORMAT),
+                'Expiry'                  => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'Expiry'),
                 'Cvv'                     => $creditCard->getCvv(),
             ];
     }
@@ -190,10 +155,10 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
+                'TransactionType'        => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
                 'ReferenceTransactionId' => (string) $order['id'],
-                'CurrencyAmount'         => $this->formatAmount($order['amount']),
-                'CurrencyCode'           => $this->mapCurrency($order['currency']),
+                'CurrencyAmount'         => (string) $this->valueFormatter->formatAmount($order['amount']),
+                'CurrencyCode'           => (string) $this->valueMapper->mapCurrency($order['currency']),
                 'ClientIp'               => (string) $order['ip'],
             ];
     }
@@ -219,7 +184,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareCancelOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
+                'TransactionType'        => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL),
                 'ReferenceTransactionId' => (string) $order['transaction_id'],
                 'ClientIp'               => (string) $order['ip'],
             ];
@@ -238,10 +203,10 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareRefundOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'TransactionType'        => $this->mapTxType($refundTxType),
+                'TransactionType'        => $this->valueMapper->mapTxType($refundTxType),
                 'ReferenceTransactionId' => (string) $order['transaction_id'],
                 'ClientIp'               => (string) $order['ip'],
-                'CurrencyAmount'         => $this->formatAmount($order['amount']),
+                'CurrencyAmount'         => (string) $this->valueFormatter->formatAmount($order['amount']),
             ];
     }
 
@@ -285,39 +250,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
                 'Ptkn' => $extraData['PaymentToken'],
             ],
         ];
-    }
-
-    /**
-     * Amount Formatter
-     *
-     * @param float $amount
-     *
-     * @return string ex: 10.1 => 10.10
-     */
-    protected function formatAmount(float $amount): string
-    {
-        return \number_format($amount, 2, '.', '');
-    }
-
-    /**
-     * 0 => '0'
-     * 1 => '0'
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '0';
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return string
-     */
-    protected function mapCurrency(string $currency): string
-    {
-        return (string) $this->currencyMappings[$currency] ?? $currency;
     }
 
     /**

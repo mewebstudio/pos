@@ -19,72 +19,8 @@ use Mews\Pos\PosInterface;
  */
 class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
 {
-    /** @var string */
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
 
     public const API_VERSION = '1.00';
-
-    /**
-     * Not: Güvenli Ödeme 3D Model isteklerinde opsiyonel
-     * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => [
-            PosInterface::MODEL_NON_SECURE => '1000',
-            PosInterface::MODEL_3D_SECURE  => '3000',
-            PosInterface::MODEL_3D_PAY     => '3000',
-            PosInterface::MODEL_3D_HOST    => '3000',
-        ],
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
-            PosInterface::MODEL_NON_SECURE => '1004',
-            PosInterface::MODEL_3D_SECURE  => '3004',
-            PosInterface::MODEL_3D_PAY     => '3004',
-            PosInterface::MODEL_3D_HOST    => '3004',
-        ],
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => '1005',
-        PosInterface::TX_TYPE_REFUND         => '1002',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => '1002',
-        PosInterface::TX_TYPE_CANCEL         => '1003',
-        PosInterface::TX_TYPE_ORDER_HISTORY  => '1010',
-        PosInterface::TX_TYPE_HISTORY        => '1009',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $recurringOrderFrequencyMapping = [
-        'DAY'   => 'D',
-        'WEEK'  => 'W',
-        'MONTH' => 'M',
-        'YEAR'  => 'Y',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $secureTypeMappings = [
-        PosInterface::MODEL_3D_SECURE  => '3D',
-        PosInterface::MODEL_3D_PAY     => '3D_PAY',
-        PosInterface::MODEL_3D_HOST    => '3D_PAY_HOSTING',
-        PosInterface::MODEL_NON_SECURE => 'PAY_HOSTING',
-    ];
-
-    /** @var array<PosInterface::LANG_*, string> */
-    protected array $langMappings = [
-        PosInterface::LANG_TR => 'TR',
-        PosInterface::LANG_EN => 'EN',
-    ];
-
-    /**
-     * @var non-empty-array<PosInterface::CURRENCY_*, int>
-     */
-    protected array $currencyMappings = [
-        PosInterface::CURRENCY_TRY => 949,
-        PosInterface::CURRENCY_USD => 840,
-        PosInterface::CURRENCY_EUR => 978,
-        PosInterface::CURRENCY_JPY => 392,
-        PosInterface::CURRENCY_RUB => 643,
-    ];
 
     /**
      * @param AkbankPosAccount $posAccount
@@ -97,17 +33,17 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($posAccount) + [
                 'version'           => self::API_VERSION,
-                'txnCode'           => $this->mapTxType($txType, PosInterface::MODEL_NON_SECURE),
-                'requestDateTime'   => $this->formatRequestDateTime($order['transaction_time']),
+                'txnCode'           => $this->valueMapper->mapTxType($txType, PosInterface::MODEL_NON_SECURE),
+                'requestDateTime'   => $this->valueFormatter->formatDateTime($order['transaction_time'], 'requestDateTime'),
                 'randomNumber'      => $this->crypt->generateRandomString(),
                 'order'             => [
                     'orderId' => (string) $order['id'],
                 ],
                 'transaction'       => [
-                    'amount'       => $this->formatAmount($order['amount']),
-                    'currencyCode' => $this->mapCurrency((string) $order['currency']),
+                    'amount'       => $this->valueFormatter->formatAmount($order['amount']),
+                    'currencyCode' => $this->valueMapper->mapCurrency($order['currency']),
                     'motoInd'      => 0,
-                    'installCount' => $this->mapInstallment((int) $order['installment']),
+                    'installCount' => $this->valueFormatter->formatInstallment($order['installment']),
                 ],
                 'secureTransaction' => [
                     'secureId'      => $responseData['secureId'],
@@ -132,19 +68,19 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = $this->getRequestAccountData($posAccount) + [
                 'version'         => self::API_VERSION,
-                'txnCode'         => $this->mapTxType($txType, PosInterface::MODEL_NON_SECURE),
-                'requestDateTime' => $this->formatRequestDateTime($order['transaction_time']),
+                'txnCode'         => $this->valueMapper->mapTxType($txType, PosInterface::MODEL_NON_SECURE),
+                'requestDateTime' => $this->valueFormatter->formatDateTime($order['transaction_time'], 'requestDateTime'),
                 'randomNumber'    => $this->crypt->generateRandomString(),
                 'card'            => [
                     'cardNumber' => $creditCard->getNumber(),
                     'cvv2'       => $creditCard->getCvv(),
-                    'expireDate' => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                    'expireDate' => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'expireDate'),
                 ],
                 'transaction'     => [
-                    'amount'       => $this->formatAmount($order['amount']),
-                    'currencyCode' => $this->mapCurrency((string) $order['currency']),
+                    'amount'       => $this->valueFormatter->formatAmount($order['amount']),
+                    'currencyCode' => $this->valueMapper->mapCurrency($order['currency']),
                     'motoInd'      => 0,
-                    'installCount' => $this->mapInstallment((int) $order['installment']),
+                    'installCount' => $this->valueFormatter->formatInstallment($order['installment']),
                 ],
                 'customer'        => [
                     'ipAddress' => $order['ip'],
@@ -180,15 +116,15 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($posAccount) + [
                 'version'         => self::API_VERSION,
-                'txnCode'         => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
-                'requestDateTime' => $this->formatRequestDateTime($order['transaction_time']),
+                'txnCode'         => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
+                'requestDateTime' => $this->valueFormatter->formatDateTime($order['transaction_time'], 'requestDateTime'),
                 'randomNumber'    => $this->crypt->generateRandomString(),
                 'order'           => [
                     'orderId' => (string) $order['id'],
                 ],
                 'transaction'     => [
-                    'amount'       => $this->formatAmount($order['amount']),
-                    'currencyCode' => $this->mapCurrency((string) $order['currency']),
+                    'amount'       => $this->valueFormatter->formatAmount($order['amount']),
+                    'currencyCode' => $this->valueMapper->mapCurrency($order['currency']),
                 ],
                 'customer'        => [
                     'ipAddress' => $order['ip'],
@@ -216,9 +152,9 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareCancelOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'txnCode'         => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
+                'txnCode'         => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL),
                 'version'         => self::API_VERSION,
-                'requestDateTime' => $this->formatRequestDateTime($order['transaction_time']),
+                'requestDateTime' => $this->valueFormatter->formatDateTime($order['transaction_time'], 'requestDateTime'),
                 'randomNumber'    => $this->crypt->generateRandomString(),
             ];
 
@@ -268,12 +204,12 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData = $this->getRequestAccountData($posAccount) + [
                 'version'         => self::API_VERSION,
-                'txnCode'         => $this->mapTxType($refundTxType),
-                'requestDateTime' => $this->formatRequestDateTime($order['transaction_time']),
+                'txnCode'         => $this->valueMapper->mapTxType($refundTxType),
+                'requestDateTime' => $this->valueFormatter->formatDateTime($order['transaction_time'], 'requestDateTime'),
                 'randomNumber'    => $this->crypt->generateRandomString(),
                 'transaction'     => [
-                    'amount'       => $this->formatAmount($order['amount']),
-                    'currencyCode' => $this->mapCurrency((string) $order['currency']),
+                    'amount'       => $this->valueFormatter->formatAmount($order['amount']),
+                    'currencyCode' => $this->valueMapper->mapCurrency($order['currency']),
                 ],
             ];
 
@@ -309,8 +245,8 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
 
         $result = $this->getRequestAccountData($posAccount) + [
                 'version'         => self::API_VERSION,
-                'txnCode'         => $this->mapTxType(PosInterface::TX_TYPE_ORDER_HISTORY, PosInterface::MODEL_NON_SECURE),
-                'requestDateTime' => $this->formatRequestDateTime($order['transaction_time']),
+                'txnCode'         => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_ORDER_HISTORY, PosInterface::MODEL_NON_SECURE),
+                'requestDateTime' => $this->valueFormatter->formatDateTime($order['transaction_time'], 'requestDateTime'),
                 'randomNumber'    => $this->crypt->generateRandomString(),
                 'order'           => [],
             ];
@@ -346,8 +282,8 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
             ];
         } elseif (isset($order['start_date'], $order['end_date'])) {
             $requestData['report'] = [
-                'startDateTime' => $this->formatRequestDateTime($order['start_date']),
-                'endDateTime'   => $this->formatRequestDateTime($order['end_date']),
+                'startDateTime' => $this->valueFormatter->formatDateTime($order['start_date'], 'startDateTime'),
+                'endDateTime'   => $this->valueFormatter->formatDateTime($order['end_date'], 'endDateTime'),
             ];
         }
 
@@ -364,19 +300,19 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $inputs = [
-            'paymentModel'    => $this->secureTypeMappings[$paymentModel],
-            'txnCode'         => $this->mapTxType($txType, $paymentModel),
+            'paymentModel'    => $this->valueMapper->mapSecureType($paymentModel),
+            'txnCode'         => $this->valueMapper->mapTxType($txType, $paymentModel),
             'merchantSafeId'  => $posAccount->getClientId(),
             'terminalSafeId'  => $posAccount->getTerminalId(),
             'orderId'         => (string) $order['id'],
             'lang'            => $this->getLang($posAccount, $order),
-            'amount'          => (string) $order['amount'],
-            'currencyCode'    => (string) $this->mapCurrency((string) $order['currency']),
-            'installCount'    => (string) $this->mapInstallment((int) $order['installment']),
+            'amount'          => (string) $this->valueFormatter->formatAmount($order['amount']),
+            'currencyCode'    => (string) $this->valueMapper->mapCurrency($order['currency']),
+            'installCount'    => (string) $this->valueFormatter->formatInstallment($order['installment']),
             'okUrl'           => (string) $order['success_url'],
             'failUrl'         => (string) $order['fail_url'],
             'randomNumber'    => $this->crypt->generateRandomString(),
-            'requestDateTime' => $this->formatRequestDateTime($order['transaction_time']),
+            'requestDateTime' => $this->valueFormatter->formatDateTime($order['transaction_time'], 'requestDateTime'),
         ];
 
         if (null !== $posAccount->getSubMerchantId()) {
@@ -385,7 +321,7 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
 
         if ($creditCard instanceof CreditCardInterface) {
             $inputs['creditCard']  = $creditCard->getNumber();
-            $inputs['expiredDate'] = $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
+            $inputs['expiredDate'] = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'expiredDate');
             $inputs['cvv']         = $creditCard->getCvv();
         }
 
@@ -408,17 +344,6 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
         $data['inputs']['hash'] = $this->crypt->create3DHash($posAccount, $data['inputs']);
 
         return $data;
-    }
-
-    /**
-     * 0 => 1
-     * 1 => 1
-     * 2 => 2
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): int
-    {
-        return \max($installment, 1);
     }
 
     /**
@@ -497,16 +422,6 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @inheritDoc
-     *
-     * @return int
-     */
-    protected function mapCurrency(string $currency): int
-    {
-        return $this->currencyMappings[$currency];
-    }
-
-    /**
      * prepares history request
      *
      * @param array<string, mixed> $data
@@ -563,7 +478,7 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
                 // Periyodik İşlem Frekansı
                 'frequencyInterval' => $recurringData['frequency'],
                 // D|W|M|Y
-                'frequencyCycle'    => $this->mapRecurringFrequency($recurringData['frequencyType']),
+                'frequencyCycle'    => $this->valueMapper->mapRecurringFrequency($recurringData['frequencyType']),
                 'numberOfPayments'  => $recurringData['installment'],
             ],
         ];
@@ -575,15 +490,5 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
     private function createDateTime(): \DateTimeImmutable
     {
         return new \DateTimeImmutable('now', new \DateTimeZone('Europe/Istanbul'));
-    }
-
-    /**
-     * @param DateTimeInterface $dateTime
-     *
-     * @return string example 2024-04-14T16:45:30.000
-     */
-    private function formatRequestDateTime(\DateTimeInterface $dateTime): string
-    {
-        return $dateTime->format('Y-m-d\TH:i:s').'.000';
     }
 }
