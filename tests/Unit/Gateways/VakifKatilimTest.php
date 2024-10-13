@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Gateways;
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueMapper\VakifKatilimPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -67,6 +68,7 @@ class VakifKatilimTest extends TestCase
 
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
+    private VakifKatilimPosRequestValueMapper $requestValueMapper;
 
     /**
      * @return void
@@ -103,6 +105,7 @@ class VakifKatilimTest extends TestCase
             'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
         ];
 
+        $this->requestValueMapper  = new VakifKatilimPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(VakifKatilimPosRequestDataMapper::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
@@ -118,6 +121,7 @@ class VakifKatilimTest extends TestCase
         $this->pos = new VakifKatilimPos(
             $this->config,
             $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
@@ -142,10 +146,7 @@ class VakifKatilimTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
-            ->method('getCurrencyMappings')
-            ->willReturn([PosInterface::CURRENCY_TRY => '0949']);
-        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
+        $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
         $this->assertFalse($this->pos->isTestMode());

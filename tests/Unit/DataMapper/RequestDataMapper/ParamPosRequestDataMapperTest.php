@@ -8,10 +8,11 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\ParamPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\ParamPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\ParamPosRequestValueMapper;
 use Mews\Pos\Entity\Account\ParamPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\PosInterface;
@@ -36,6 +37,10 @@ class ParamPosRequestDataMapperTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
+    private ParamPosRequestValueFormatter $valueFormatter;
+
+    private ParamPosRequestValueMapper $valueMapper;
+
     private ParamPosRequestDataMapper $requestDataMapper;
 
     public static function setUpBeforeClass(): void
@@ -55,73 +60,17 @@ class ParamPosRequestDataMapperTest extends TestCase
             '0c13d406-873b-403b-9c09-a5766840d98c'
         );
 
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new ParamPosRequestValueFormatter();
+        $this->valueMapper    = new ParamPosRequestValueMapper();
 
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new ParamPosRequestDataMapper($this->dispatcher, $this->crypt);
-    }
-
-    /**
-     * @testWith ["1"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
-
-    /**
-     * @testWith ["pre", null]
-     */
-    public function testMapTxTypeInvArgException(string $txType, ?string $paymentModel): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->requestDataMapper->mapTxType($txType, $paymentModel);
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('1000', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('1001', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_USD]));
-        $this->assertSame('1002', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", "1"]
-     *           ["1", "1"]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
-    }
-
-    /**
-     * @testWith [10.0, "10,00"]
-     *            [1000.0, "1000,00"]
-     *            [1000.5, "1000,50"]
-     */
-    public function testFormatAmount(float $amount, string $formattedAmount): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('formatAmount');
-        $method->setAccessible(true);
-        $this->assertSame($formattedAmount, $method->invokeArgs($this->requestDataMapper, [$amount]));
+        $this->requestDataMapper = new ParamPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
     }
 
     /**
@@ -586,7 +535,7 @@ class ParamPosRequestDataMapperTest extends TestCase
                             '@xmlns'     => 'https://turkpos.com.tr/',
                             'Durum'      => 'IPTAL',
                             'Siparis_ID' => 'id-12',
-                            'Tutar'      => 10.0,
+                            'Tutar'      => '10.00',
                         ],
                     ],
                 ],
@@ -639,7 +588,7 @@ class ParamPosRequestDataMapperTest extends TestCase
                             '@xmlns'     => 'https://turkpos.com.tr/',
                             'Durum'      => 'IADE',
                             'Siparis_ID' => 'id-12',
-                            'Tutar'      => 1.02,
+                            'Tutar'      => '1.02',
                         ],
                     ],
                 ],

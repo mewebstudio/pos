@@ -23,6 +23,8 @@ use Mews\Pos\DataMapper\RequestDataMapper\PosNetV1PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\RequestValueFormatterInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
@@ -46,15 +48,21 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 class RequestDataMapperFactory
 {
     /**
-     * @param class-string<PosInterface>              $gatewayClass
-     * @param EventDispatcherInterface                $eventDispatcher
-     * @param CryptInterface                          $crypt
-     * @param array<PosInterface::CURRENCY_*, string> $currencies
+     * @param class-string<PosInterface>     $gatewayClass
+     * @param RequestValueMapperInterface    $valueMapper
+     * @param RequestValueFormatterInterface $valueFormatter
+     * @param EventDispatcherInterface       $eventDispatcher
+     * @param CryptInterface                 $crypt
      *
      * @return RequestDataMapperInterface
      */
-    public static function createGatewayRequestMapper(string $gatewayClass, EventDispatcherInterface $eventDispatcher, CryptInterface $crypt, array $currencies = []): RequestDataMapperInterface
-    {
+    public static function createGatewayRequestMapper(
+        string                         $gatewayClass,
+        RequestValueMapperInterface    $valueMapper,
+        RequestValueFormatterInterface $valueFormatter,
+        EventDispatcherInterface       $eventDispatcher,
+        CryptInterface                 $crypt
+    ): RequestDataMapperInterface {
         $classMappings = [
             AkbankPos::class       => AkbankPosRequestDataMapper::class,
             EstPos::class          => EstPosRequestDataMapper::class,
@@ -72,7 +80,7 @@ class RequestDataMapperFactory
             VakifKatilimPos::class => VakifKatilimPosRequestDataMapper::class,
         ];
         if (isset($classMappings[$gatewayClass])) {
-            return new $classMappings[$gatewayClass]($eventDispatcher, $crypt, $currencies);
+            return new $classMappings[$gatewayClass]($valueMapper, $valueFormatter, $eventDispatcher, $crypt);
         }
 
         throw new DomainException(\sprintf('Request data mapper not found for the gateway %s', $gatewayClass));

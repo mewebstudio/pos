@@ -18,49 +18,11 @@ use Mews\Pos\PosInterface;
  */
 class InterPosRequestDataMapper extends AbstractRequestDataMapper
 {
-    /** @var string */
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
-
     /**
      * MOTO (Mail Order Telephone Order) 0 for false, 1 for true
      * @var string
      */
     protected const MOTO = '0';
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $secureTypeMappings = [
-        PosInterface::MODEL_3D_SECURE  => '3DModel',
-        PosInterface::MODEL_3D_PAY     => '3DPay',
-        PosInterface::MODEL_3D_HOST    => '3DHost',
-        PosInterface::MODEL_NON_SECURE => 'NonSecure',
-    ];
-
-    /**
-     * Transaction Types
-     *
-     * {@inheritdoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => 'Auth',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'PreAuth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'PostAuth',
-        PosInterface::TX_TYPE_CANCEL         => 'Void',
-        PosInterface::TX_TYPE_REFUND         => 'Refund',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => 'Refund',
-        PosInterface::TX_TYPE_STATUS         => 'StatusHistory',
-    ];
-
-    /**
-     * {@inheritdoc}
-     */
-    protected array $cardTypeMapping = [
-        CreditCardInterface::CARD_TYPE_VISA       => '0',
-        CreditCardInterface::CARD_TYPE_MASTERCARD => '1',
-        CreditCardInterface::CARD_TYPE_AMEX       => '2',
-        CreditCardInterface::CARD_TYPE_TROY       => '3',
-    ];
 
     /**
      *  TODO tekrarlanan odemeler icin daha fazla bilgi lazim, Deniz bank dokumantasyonunda hic bir aciklama yok
@@ -77,12 +39,12 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'TxnType'                 => $this->mapTxType($txType),
-                'SecureType'              => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'TxnType'                 => $this->valueMapper->mapTxType($txType),
+                'SecureType'              => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
                 'OrderId'                 => (string) $order['id'],
-                'PurchAmount'             => (string) $order['amount'],
-                'Currency'                => $this->mapCurrency($order['currency']),
-                'InstallmentCount'        => $this->mapInstallment($order['installment']),
+                'PurchAmount'             => $this->valueFormatter->formatAmount($order['amount']),
+                'Currency'                => $this->valueMapper->mapCurrency($order['currency']),
+                'InstallmentCount'        => $this->valueFormatter->formatInstallment($order['installment']),
                 'MD'                      => $responseData['MD'],
                 'PayerTxnId'              => $responseData['PayerTxnId'],
                 'Eci'                     => $responseData['Eci'],
@@ -100,17 +62,17 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'TxnType'          => $this->mapTxType($txType),
-                'SecureType'       => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'TxnType'          => $this->valueMapper->mapTxType($txType),
+                'SecureType'       => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
                 'OrderId'          => $order['id'],
-                'PurchAmount'      => $order['amount'],
-                'Currency'         => $this->mapCurrency($order['currency']),
-                'InstallmentCount' => $this->mapInstallment((int) $order['installment']),
+                'PurchAmount'      => $this->valueFormatter->formatAmount($order['amount']),
+                'Currency'         => $this->valueMapper->mapCurrency($order['currency']),
+                'InstallmentCount' => $this->valueFormatter->formatInstallment($order['installment']),
                 'MOTO'             => self::MOTO,
                 'Lang'             => $this->getLang($posAccount, $order),
-                'CardType'         => $creditCard->getType() !== null ? $this->cardTypeMapping[$creditCard->getType()] : null,
+                'CardType'         => $creditCard->getType() !== null ? $this->valueMapper->mapCardType($creditCard->getType()) : null,
                 'Pan'              => $creditCard->getNumber(),
-                'Expiry'           => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'Expiry'           => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'Expiry'),
                 'Cvv2'             => $creditCard->getCvv(),
             ];
     }
@@ -124,12 +86,12 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'TxnType'     => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
-                'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'TxnType'     => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
+                'SecureType'  => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
                 'OrderId'     => null,
                 'orgOrderId'  => (string) $order['id'],
-                'PurchAmount' => (string) $order['amount'],
-                'Currency'    => $this->mapCurrency($order['currency']),
+                'PurchAmount' => $this->valueFormatter->formatAmount($order['amount']),
+                'Currency'    => (string) $this->valueMapper->mapCurrency($order['currency']),
                 'MOTO'        => self::MOTO,
             ];
     }
@@ -145,8 +107,8 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($posAccount) + [
                 'OrderId'    => null, //todo buraya hangi deger verilecek?
                 'orgOrderId' => (string) $order['id'],
-                'TxnType'    => $this->mapTxType(PosInterface::TX_TYPE_STATUS),
-                'SecureType' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'TxnType'    => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_STATUS),
+                'SecureType' => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
                 'Lang'       => $this->getLang($posAccount, $order),
             ];
     }
@@ -162,8 +124,8 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($posAccount) + [
                 'OrderId'    => null, //todo buraya hangi deger verilecek?
                 'orgOrderId' => (string) $order['id'],
-                'TxnType'    => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
-                'SecureType' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'TxnType'    => $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL),
+                'SecureType' => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
                 'Lang'       => $this->getLang($posAccount, $order),
             ];
     }
@@ -179,9 +141,9 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         return $this->getRequestAccountData($posAccount) + [
                 'OrderId'     => null,
                 'orgOrderId'  => (string) $order['id'],
-                'PurchAmount' => (string) $order['amount'],
-                'TxnType'     => $this->mapTxType($refundTxType),
-                'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
+                'PurchAmount' => (string) $this->valueFormatter->formatAmount($order['amount']),
+                'TxnType'     => $this->valueMapper->mapTxType($refundTxType),
+                'SecureType'  => $this->valueMapper->mapSecureType(PosInterface::MODEL_NON_SECURE),
                 'Lang'        => $this->getLang($posAccount, $order),
                 'MOTO'        => self::MOTO,
             ];
@@ -214,22 +176,22 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
 
         $inputs = [
             'ShopCode'         => $posAccount->getClientId(),
-            'TxnType'          => $this->mapTxType($txType),
-            'SecureType'       => $this->secureTypeMappings[$paymentModel],
-            'PurchAmount'      => $order['amount'],
-            'OrderId'          => $order['id'],
-            'OkUrl'            => $order['success_url'],
-            'FailUrl'          => $order['fail_url'],
+            'TxnType'          => $this->valueMapper->mapTxType($txType),
+            'SecureType'       => $this->valueMapper->mapSecureType($paymentModel),
+            'PurchAmount'      => (string) $this->valueFormatter->formatAmount($order['amount']),
+            'OrderId'          => (string) $order['id'],
+            'OkUrl'            => (string) $order['success_url'],
+            'FailUrl'          => (string) $order['fail_url'],
             'Rnd'              => $this->crypt->generateRandomString(),
             'Lang'             => $this->getLang($posAccount, $order),
-            'Currency'         => $this->mapCurrency($order['currency']),
-            'InstallmentCount' => $this->mapInstallment((int) $order['installment']),
+            'Currency'         => (string) $this->valueMapper->mapCurrency($order['currency']),
+            'InstallmentCount' => (string) $this->valueFormatter->formatInstallment($order['installment']),
         ];
 
         if ($creditCard instanceof CreditCardInterface) {
-            $inputs['CardType'] = $creditCard->getType() !== null ? $this->cardTypeMapping[$creditCard->getType()] : '';
+            $inputs['CardType'] = $creditCard->getType() !== null ? $this->valueMapper->mapCardType($creditCard->getType()) : '';
             $inputs['Pan']      = $creditCard->getNumber();
-            $inputs['Expiry']   = $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
+            $inputs['Expiry']   = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'Expiry');
             $inputs['Cvv2']     = $creditCard->getCvv();
         }
 
@@ -258,27 +220,6 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
     {
         return $requestData + $this->getRequestAccountData($posAccount);
-    }
-
-    /**
-     * 0 => ''
-     * 1 => ''
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        return $installment > 1 ? (string) $installment : '';
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return string
-     */
-    protected function mapCurrency(string $currency): string
-    {
-        return (string) ($this->currencyMappings[$currency] ?? $currency);
     }
 
     /**

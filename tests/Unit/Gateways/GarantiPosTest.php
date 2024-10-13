@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Gateways;
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\GarantiPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
@@ -66,6 +67,7 @@ class GarantiPosTest extends TestCase
     private PosInterface $pos;
 
     private CreditCardInterface $card;
+    private GarantiPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void
     {
@@ -92,6 +94,7 @@ class GarantiPosTest extends TestCase
             '123qweASD/'
         );
 
+        $this->requestValueMapper  = new GarantiPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
@@ -122,6 +125,7 @@ class GarantiPosTest extends TestCase
         return new GarantiPos(
             $config,
             $account ?? $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
@@ -136,10 +140,7 @@ class GarantiPosTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
-            ->method('getCurrencyMappings')
-            ->willReturn([PosInterface::CURRENCY_TRY => '949']);
-        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
+        $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
         $this->assertFalse($this->pos->isTestMode());

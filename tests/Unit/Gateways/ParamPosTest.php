@@ -10,6 +10,7 @@ use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\ParamPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\ParamPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ParamPosAccount;
@@ -68,6 +69,8 @@ class ParamPosTest extends TestCase
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
 
+    /** @var ParamPosRequestValueMapper & MockObject */
+    private ParamPosRequestValueMapper $requestValueMapperMock;
     private CreditCardInterface $card;
 
     protected function setUp(): void
@@ -92,6 +95,7 @@ class ParamPosTest extends TestCase
             '0c13d406-873b-403b-9c09-a5766840d98c'
         );
 
+        $this->requestValueMapperMock   = $this->createMock(ParamPosRequestValueMapper::class);
         $this->requestMapperMock   = $this->createMock(ParamPosRequestDataMapper::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
@@ -122,12 +126,13 @@ class ParamPosTest extends TestCase
         return new ParamPos(
             $config,
             $account ?? $this->account,
+            $this->requestValueMapperMock,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
             $this->eventDispatcherMock,
             $this->httpClientMock,
-            $this->loggerMock,
+            $this->loggerMock
         );
     }
 
@@ -136,7 +141,7 @@ class ParamPosTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
+        $this->requestValueMapperMock->expects(self::once())
             ->method('getCurrencyMappings')
             ->willReturn([PosInterface::CURRENCY_TRY => '1000']);
         $this->assertSame($this->config, $this->pos->getConfig());

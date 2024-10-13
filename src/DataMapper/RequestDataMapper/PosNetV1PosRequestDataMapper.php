@@ -6,7 +6,8 @@
 
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
-use InvalidArgumentException;
+use Mews\Pos\DataMapper\RequestValueFormatter\PosNetV1PosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueFormatter\RequestValueFormatterInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -23,54 +24,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
     /** @var string */
     public const API_VERSION = 'V100';
 
-    /** @var string */
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'ym';
-
     /**
-     * PosNet requires order id with specific length
-     * @var int
+     * @var PosNetV1PosRequestValueFormatter
      */
-    private const ORDER_ID_LENGTH = 20;
-
-    /**
-     * order id total length including prefix;
-     * @var int
-     */
-    private const ORDER_ID_TOTAL_LENGTH = 24;
-
-    /** @var string */
-    private const ORDER_ID_3D_PREFIX = 'TDS_';
-
-    /** @var string */
-    private const ORDER_ID_3D_PAY_PREFIX = ''; //?
-
-    /** @var string */
-    private const ORDER_ID_REGULAR_PREFIX = ''; //?
-
-    /**
-     * {@inheritDoc}
-     */
-    protected array $txTypeMappings = [
-        PosInterface::TX_TYPE_PAY_AUTH       => 'Sale',
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => 'Auth',
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => 'Capture',
-        PosInterface::TX_TYPE_CANCEL         => 'Reverse',
-        PosInterface::TX_TYPE_REFUND         => 'Return',
-        PosInterface::TX_TYPE_REFUND_PARTIAL => 'Return',
-        PosInterface::TX_TYPE_STATUS         => 'TransactionInquiry',
-    ];
-
-    /**
-     * {@inheritDoc}
-     */
-    protected array $currencyMappings = [
-        PosInterface::CURRENCY_TRY => 'TL',
-        PosInterface::CURRENCY_USD => 'US',
-        PosInterface::CURRENCY_EUR => 'EU',
-        PosInterface::CURRENCY_GBP => 'GB',
-        PosInterface::CURRENCY_JPY => 'JP',
-        PosInterface::CURRENCY_RUB => 'RU',
-    ];
+    protected RequestValueFormatterInterface $valueFormatter;
 
     /**
      * @param PosNetAccount $posAccount
@@ -98,11 +55,11 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
                 'MD'                  => $responseData['MD'],
             ],
             'MACParams'             => 'MerchantNo:TerminalNo:SecureTransactionId:CavvData:Eci:MdStatus',
-            'Amount'                => $this->formatAmount($order['amount']),
-            'CurrencyCode'          => $this->mapCurrency($order['currency']),
+            'Amount'                => $this->valueFormatter->formatAmount($order['amount']),
+            'CurrencyCode'          => $this->valueMapper->mapCurrency($order['currency']),
             'PointAmount'           => 0,
-            'OrderId'               => self::formatOrderId($order['id']),
-            'InstallmentCount'      => $this->mapInstallment($order['installment']),
+            'OrderId'               => $this->valueFormatter->formatOrderId($order['id']),
+            'InstallmentCount'      => $this->valueFormatter->formatInstallment($order['installment']),
             'InstallmentType'       => 'N',
         ];
 
@@ -137,7 +94,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'AdditionalInfoData'     => null,
             'CardInformationData'    => [
                 'CardNo'         => $creditCard->getNumber(),
-                'ExpireDate'     => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'ExpireDate'     => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'ExpireDate'),
                 'Cvc2'           => $creditCard->getCvv(),
                 'CardHolderName' => $creditCard->getHolderName(),
             ],
@@ -146,10 +103,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'IsTDSecureMerchant'     => null,
             'PaymentInstrumentType'  => 'CARD',
             'ThreeDSecureData'       => null,
-            'Amount'                 => $this->formatAmount($order['amount']),
-            'CurrencyCode'           => $this->mapCurrency($order['currency']),
-            'OrderId'                => self::formatOrderId($order['id']),
-            'InstallmentCount'       => $this->mapInstallment($order['installment']),
+            'Amount'                 => $this->valueFormatter->formatAmount($order['amount']),
+            'CurrencyCode'           => $this->valueMapper->mapCurrency($order['currency']),
+            'OrderId'                => $this->valueFormatter->formatOrderId($order['id']),
+            'InstallmentCount'       => $this->valueFormatter->formatInstallment($order['installment']),
             'InstallmentType'        => 'N',
             'KOICode'                => null,
             'MerchantMessageData'    => null,
@@ -188,10 +145,10 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'DealerData'             => null,
             'IsEncrypted'            => null,
             'PaymentFacilitatorData' => null,
-            'Amount'                 => $this->formatAmount($order['amount']),
-            'CurrencyCode'           => $this->mapCurrency($order['currency']),
+            'Amount'                 => $this->valueFormatter->formatAmount($order['amount']),
+            'CurrencyCode'           => $this->valueMapper->mapCurrency($order['currency']),
             'ReferenceCode'          => $order['ref_ret_num'],
-            'InstallmentCount'       => $this->mapInstallment($order['installment']),
+            'InstallmentCount'       => $this->valueFormatter->formatInstallment($order['installment']),
             'InstallmentType'        => 'N',
         ];
 
@@ -227,7 +184,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'DealerData'             => null,
             'IsEncrypted'            => 'N',
             'PaymentFacilitatorData' => null,
-            'OrderId'                => self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']),
+            'OrderId'                => $this->valueFormatter->formatOrderId($order['id'], PosInterface::TX_TYPE_STATUS, $order['payment_model']),
         ];
         if (null === $posAccount->getStoreKey()) {
             throw new \LogicException('Account storeKey eksik!');
@@ -259,13 +216,13 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'PaymentFacilitatorData' => null,
             'ReferenceCode'          => null,
             'OrderId'                => null,
-            'TransactionType'        => $this->mapTxType($order['transaction_type']),
+            'TransactionType'        => $this->valueMapper->mapTxType($order['transaction_type']),
         ];
 
         if (isset($order['ref_ret_num'])) {
             $requestData['ReferenceCode'] = $order['ref_ret_num'];
         } else {
-            $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']);
+            $requestData['OrderId'] = $this->valueFormatter->formatOrderId($order['id'], PosInterface::TX_TYPE_CANCEL, $order['payment_model']);
         }
 
         if (null === $posAccount->getStoreKey()) {
@@ -298,18 +255,18 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'PaymentFacilitatorData' => null,
             'ReferenceCode'          => null,
             'OrderId'                => null,
-            'TransactionType'        => $this->mapTxType($order['transaction_type']),
+            'TransactionType'        => $this->valueMapper->mapTxType($order['transaction_type']),
         ];
 
         if (isset($order['ref_ret_num'])) {
             $requestData['ReferenceCode'] = $order['ref_ret_num'];
         } else {
-            $requestData['OrderId'] = self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']);
+            $requestData['OrderId'] = $this->valueFormatter->formatOrderId($order['id'], $refundTxType, $order['payment_model']);
         }
 
         if ($order['payment_model'] === PosInterface::MODEL_NON_SECURE) {
-            $requestData['Amount']       = $this->formatAmount($order['amount']);
-            $requestData['CurrencyCode'] = $this->mapCurrency($order['currency']);
+            $requestData['Amount']       = $this->valueFormatter->formatAmount($order['amount']);
+            $requestData['CurrencyCode'] = $this->valueMapper->mapCurrency($order['currency']);
         }
 
         if (null === $posAccount->getStoreKey()) {
@@ -378,12 +335,12 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantNo'        => $posAccount->getClientId(),
             'TerminalNo'        => $posAccount->getTerminalId(),
             'PosnetID'          => $posAccount->getPosNetId(),
-            'TransactionType'   => $this->mapTxType($txType),
-            'OrderId'           => self::formatOrderId($order['id']),
-            'Amount'            => (string) $this->formatAmount($order['amount']),
-            'CurrencyCode'      => (string) $this->mapCurrency($order['currency']),
+            'TransactionType'   => $this->valueMapper->mapTxType($txType),
+            'OrderId'           => $this->valueFormatter->formatOrderId($order['id']),
+            'Amount'            => (string) $this->valueFormatter->formatAmount($order['amount']),
+            'CurrencyCode'      => (string) $this->valueMapper->mapCurrency($order['currency']),
             'MerchantReturnURL' => (string) $order['success_url'],
-            'InstallmentCount'  => $this->mapInstallment($order['installment']),
+            'InstallmentCount'  => $this->valueFormatter->formatInstallment($order['installment']),
             'Language'          => $this->getLang($posAccount, $order),
             'TxnState'          => 'INITIAL',
             'OpenNewWindow'     => '0',
@@ -394,7 +351,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
                 'CardNo'         => $creditCard->getNumber(),
                 // Kod calisiyor ancak burda bir tutarsizlik var: ExpireDate vs ExpiredDate
                 // MacParams icinde ExpireDate olarak geciyor, gonderidigimizde ise ExpiredDate olarak istiyor.
-                'ExpiredDate'    => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
+                'ExpiredDate'    => $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'ExpiredDate'),
                 'Cvv'            => $creditCard->getCvv(),
                 'CardHolderName' => (string) $creditCard->getHolderName(),
 
@@ -432,86 +389,6 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
             'inputs'  => $inputs,
         ];
     }
-
-    /**
-     * Get PrefixedOrderId
-     * To check the status of an order or cancel/refund order PosNet
-     * - requires the order length to be 24
-     * - and order id prefix which is "TDS_" for 3D payments
-     *
-     * @param string $orderId
-     * @param string $accountModel
-     *
-     * @return string
-     */
-    public static function mapOrderIdToPrefixedOrderId(string $orderId, string $accountModel): string
-    {
-        $prefix = self::ORDER_ID_REGULAR_PREFIX;
-        if (PosInterface::MODEL_3D_SECURE === $accountModel) {
-            $prefix = self::ORDER_ID_3D_PREFIX;
-        } elseif (PosInterface::MODEL_3D_PAY === $accountModel) {
-            $prefix = self::ORDER_ID_3D_PAY_PREFIX;
-        }
-
-        return $prefix.self::formatOrderId($orderId, self::ORDER_ID_TOTAL_LENGTH - strlen($prefix));
-    }
-
-
-    /**
-     * formats order id by adding 0 pad to the left
-     *
-     * @param string   $orderId
-     * @param int|null $padLength
-     *
-     * @return string
-     */
-    public static function formatOrderId(string $orderId, int $padLength = null): string
-    {
-        if (null === $padLength) {
-            $padLength = self::ORDER_ID_LENGTH;
-        }
-
-        if (\strlen($orderId) > $padLength) {
-            throw new InvalidArgumentException(\sprintf(
-                // Banka tarafindan belirlenen kisitlama
-                "Saglanan siparis ID'nin (%s) uzunlugu %d karakter. Siparis ID %d karakterden uzun olamaz!",
-                $orderId,
-                \strlen($orderId),
-                $padLength
-            ));
-        }
-
-        return \str_pad($orderId, $padLength, '0', STR_PAD_LEFT);
-    }
-
-    /**
-     * Get amount
-     * formats 10.01 to 1001
-     *
-     * @param float $amount
-     *
-     * @return int
-     */
-    protected function formatAmount(float $amount): int
-    {
-        return (int) (\round($amount, 2) * 100);
-    }
-
-    /**
-     * 0 => '0'
-     * 1 => '0'
-     * 2 => '2'
-     * @inheritDoc
-     */
-    protected function mapInstallment(int $installment): string
-    {
-        if ($installment > 1) {
-            return (string) $installment;
-        }
-
-        return '0';
-    }
-
 
     /**
      * @inheritDoc

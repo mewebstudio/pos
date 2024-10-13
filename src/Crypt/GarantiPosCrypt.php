@@ -30,7 +30,11 @@ class GarantiPosCrypt extends AbstractCrypt
             $formInputs['txntype'],
             $formInputs['txninstallmentcount'],
             $posAccount->getStoreKey(),
-            $this->createSecurityData($posAccount, $formInputs['terminalid'], $formInputs['txntype']),
+            $this->createSecurityData(
+                $posAccount,
+                (string) $formInputs['terminalid'],
+                (string) $formInputs['txntype']
+            ),
         ];
 
         return $this->hashStringUpperCase(\implode(static::HASH_SEPARATOR, $map), self::HASH_ALGORITHM);

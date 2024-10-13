@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Gateways;
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\PosNetV1PosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
@@ -67,6 +68,7 @@ class PosNetV1PosTest extends TestCase
 
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
+    private PosNetV1PosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void
     {
@@ -90,6 +92,7 @@ class PosNetV1PosTest extends TestCase
             '10,10,10,10,10,10,10,10'
         );
 
+        $this->requestValueMapper  = new PosNetV1PosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
@@ -112,6 +115,7 @@ class PosNetV1PosTest extends TestCase
         return new PosNetV1Pos(
             $config,
             $account ?? $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
@@ -126,10 +130,7 @@ class PosNetV1PosTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
-            ->method('getCurrencyMappings')
-            ->willReturn([PosInterface::CURRENCY_TRY => '949']);
-        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
+        $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
         $this->assertFalse($this->pos->isTestMode());
@@ -140,18 +141,18 @@ class PosNetV1PosTest extends TestCase
      */
     public function testGetApiURL(string $txType, string $mappedTxType, string $expected): void
     {
-        $this->requestMapperMock->expects(self::once())
-            ->method('mapTxType')
-            ->with($txType)
-            ->willReturn($mappedTxType);
+        //        $this->requestValueMapper->expects(self::once())
+        //            ->method('mapTxType')
+        //            ->with($txType)
+        //            ->willReturn($mappedTxType);
 
         $this->assertSame($expected, $this->pos->getApiURL($txType));
     }
 
     public function testGetApiURLException(): void
     {
-        $this->requestMapperMock->expects(self::never())
-            ->method('mapTxType');
+        //        $this->requestValueMapper->expects(self::never())
+        //            ->method('mapTxType');
 
         $this->expectException(\InvalidArgumentException::class);
         $this->pos->getApiURL();
@@ -238,10 +239,10 @@ class PosNetV1PosTest extends TestCase
             'create3DPaymentRequestData',
         ];
         if ($is3DSuccess) {
-            $this->requestMapperMock->expects(self::once())
-                ->method('mapTxType')
-                ->with($txType)
-                ->willReturn('Sale');
+            //            $this->requestMapperMock->expects(self::once())
+            //                ->method('mapTxType')
+            //                ->with($txType)
+            //                ->willReturn('Sale');
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
                 ->with($this->account, $order, $txType, $request->request->all())
@@ -249,7 +250,7 @@ class PosNetV1PosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
+                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Auth',
                 $create3DPaymentRequestData,
                 'request-body',
                 'response-body',
@@ -322,10 +323,10 @@ class PosNetV1PosTest extends TestCase
             'create3DPaymentRequestData',
         ];
         if ($is3DSuccess) {
-            $this->requestMapperMock->expects(self::once())
-                ->method('mapTxType')
-                ->with($txType)
-                ->willReturn('Sale');
+            //            $this->requestMapperMock->expects(self::once())
+            //                ->method('mapTxType')
+            //                ->with($txType)
+            //                ->willReturn('Sale');
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
                 ->with($this->account, $order, $txType, $request->request->all())
@@ -333,7 +334,7 @@ class PosNetV1PosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
+                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Auth',
                 $create3DPaymentRequestData,
                 'request-body',
                 'response-body',
@@ -423,10 +424,10 @@ class PosNetV1PosTest extends TestCase
         $card        = $this->card;
         $requestData = ['createNonSecurePaymentRequestData'];
 
-        $this->requestMapperMock->expects(self::once())
-            ->method('mapTxType')
-            ->with($txType)
-            ->willReturn($mappedTxType);
+        //        $this->requestMapperMock->expects(self::once())
+        //            ->method('mapTxType')
+        //            ->with($txType)
+        //            ->willReturn($mappedTxType);
 
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePaymentRequestData')
@@ -462,10 +463,10 @@ class PosNetV1PosTest extends TestCase
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
         $requestData = ['createNonSecurePostAuthPaymentRequestData'];
 
-        $this->requestMapperMock->expects(self::once())
-            ->method('mapTxType')
-            ->with($txType)
-            ->willReturn('Capture');
+        //        $this->requestMapperMock->expects(self::once())
+        //            ->method('mapTxType')
+        //            ->with($txType)
+        //            ->willReturn('Capture');
 
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePostAuthPaymentRequestData')
@@ -502,10 +503,10 @@ class PosNetV1PosTest extends TestCase
         $txType      = PosInterface::TX_TYPE_STATUS;
         $requestData = ['createStatusRequestData'];
 
-        $this->requestMapperMock->expects(self::once())
-            ->method('mapTxType')
-            ->with($txType)
-            ->willReturn('TransactionInquiry');
+        //        $this->requestMapperMock->expects(self::once())
+        //            ->method('mapTxType')
+        //            ->with($txType)
+        //            ->willReturn('TransactionInquiry');
 
         $this->requestMapperMock->expects(self::once())
             ->method('createStatusRequestData')
@@ -541,10 +542,10 @@ class PosNetV1PosTest extends TestCase
         $txType      = PosInterface::TX_TYPE_CANCEL;
         $requestData = ['createCancelRequestData'];
 
-        $this->requestMapperMock->expects(self::once())
-            ->method('mapTxType')
-            ->with($txType)
-            ->willReturn('Reverse');
+        //        $this->requestMapperMock->expects(self::once())
+        //            ->method('mapTxType')
+        //            ->with($txType)
+        //            ->willReturn('Reverse');
 
         $this->requestMapperMock->expects(self::once())
             ->method('createCancelRequestData')
@@ -579,11 +580,11 @@ class PosNetV1PosTest extends TestCase
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_REFUND;
         $requestData = ['createRefundRequestData'];
-
-        $this->requestMapperMock->expects(self::once())
-            ->method('mapTxType')
-            ->with($txType)
-            ->willReturn('Return');
+        //
+        //        $this->requestMapperMock->expects(self::once())
+        //            ->method('mapTxType')
+        //            ->with($txType)
+        //            ->willReturn('Return');
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')

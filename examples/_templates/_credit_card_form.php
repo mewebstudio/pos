@@ -27,7 +27,7 @@
                 <select name="month" id="month" class="form-select input-lg">
                     <option value="">Month</option>
                     <?php for ($i = 1; $i <= 12; $i++) : ?>
-                        <option value="<?= $i; ?>" <?= $i == $card->getExpireMonth()  ? 'selected': null ?>><?= str_pad($i, 2, 0, STR_PAD_LEFT); ?></option>
+                        <option value="<?= $i; ?>" <?= $i == $card->getExpirationDate()->format('m')  ? 'selected': null ?>><?= str_pad($i, 2, 0, STR_PAD_LEFT); ?></option>
                     <?php endfor; ?>
                 </select>
             </div>
@@ -36,7 +36,7 @@
                 <select name="year" id="year" class="form-select input-lg">
                     <option value="">Year</option>
                     <?php for ($i = date('Y'); $i <= date('Y') + 30; $i++) : ?>
-                        <option value="<?= $i; ?>" <?= $i == $card->getExpireYear('Y') ? 'selected': null ?>><?= $i; ?></option>
+                        <option value="<?= $i; ?>" <?= $i == $card->getExpirationDate()->format('Y') ? 'selected': null ?>><?= $i; ?></option>
                     <?php endfor; ?>
                 </select>
             </div>

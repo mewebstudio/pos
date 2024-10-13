@@ -25,22 +25,10 @@ parameters:
 			path: src/Crypt/PosNetV1PosCrypt.php
 
 		-
-			message: '#^Offset ''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular''\|null might not exist on array\<''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular'', string\>\.$#'
-			identifier: offsetAccess.notFound
-			count: 1
-			path: src/DataMapper/RequestDataMapper/AbstractRequestDataMapper.php
-
-		-
-			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestDataMapper\\AkbankPosRequestDataMapper\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', string given\.$#'
+			message: '#^Parameter \#1 \$installment of method Mews\\Pos\\DataMapper\\RequestValueFormatter\\ParamPosRequestValueFormatter\:\:formatInstallment\(\) expects int\<0, max\>, int given\.$#'
 			identifier: argument.type
-			count: 5
-			path: src/DataMapper/RequestDataMapper/AkbankPosRequestDataMapper.php
-
-		-
-			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestDataMapper\\EstPosRequestDataMapper\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
+			count: 3
+			path: src/DataMapper/RequestDataMapper/ParamPosRequestDataMapper.php
 
 		-
 			message: '#^Default value of the parameter \#7 \$extraData \(array\{\}\) of method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayFlexCPV4PosRequestDataMapper\:\:create3DFormData\(\) is incompatible with type array\{CommonPaymentUrl\: string, PaymentToken\: string\}\.$#'
@@ -97,16 +85,16 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/PosNetRequestDataMapper.php
 
 		-
-			message: '#^Method Mews\\Pos\\DataMapper\\RequestDataMapper\\PosNetRequestDataMapper\:\:create3DEnrollmentCheckRequestData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
-			count: 1
-			path: src/DataMapper/RequestDataMapper/PosNetRequestDataMapper.php
-
-		-
 			message: '#^Method Mews\\Pos\\DataMapper\\RequestDataMapper\\PosNetV1PosRequestDataMapper\:\:create3DFormData\(\) has parameter \$extraData with no type specified\.$#'
 			identifier: missingType.parameter
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PosNetV1PosRequestDataMapper.php
+
+		-
+			message: '#^Offset ''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular''\|null might not exist on array\<''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular'', string\>\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/DataMapper/RequestValueMapper/AbstractRequestValueMapper.php
 
 		-
 			message: '#^Argument of an invalid type array\<mixed, mixed\>\|object supplied for foreach, only iterables are supported\.$#'
@@ -143,12 +131,6 @@ parameters:
 			identifier: assign.propertyType
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
-
-		-
-			message: '#^Property Mews\\Pos\\DataMapper\\ResponseDataMapper\\AbstractResponseDataMapper\:\:\$currencyMappings \(array\<string, ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD''\>\) does not accept non\-empty\-array\<392\|643\|826\|840\|949\|978\|string, ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD''\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/PosNetV1PosResponseDataMapper.php
 
 		-
 			message: '#^Strict comparison using \=\=\= between ''3d_host'' and ''3d_host'' will always evaluate to true\.$#'

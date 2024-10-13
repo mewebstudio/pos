@@ -6,13 +6,11 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\Crypt\CryptInterface;
-use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueMapper\PayForPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -31,15 +29,13 @@ class PayForPosResponseDataMapperTest extends TestCase
         parent::setUp();
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestDataMapper        = new PayForPosRequestDataMapper(
-            $this->createMock(EventDispatcherInterface::class),
-            $this->createMock(CryptInterface::class),
-        );
+        $requestValueMapper = new PayForPosRequestValueMapper();
+
         $this->responseDataMapper = new PayForPosResponseDataMapper(
-            $requestDataMapper->getCurrencyMappings(),
-            $requestDataMapper->getTxTypeMappings(),
-            $requestDataMapper->getSecureTypeMappings(),
-            $this->logger,
+            $requestValueMapper->getCurrencyMappings(),
+            $requestValueMapper->getTxTypeMappings(),
+            $requestValueMapper->getSecureTypeMappings(),
+            $this->logger
         );
     }
 

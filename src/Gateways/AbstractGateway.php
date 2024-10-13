@@ -9,6 +9,7 @@ namespace Mews\Pos\Gateways;
 use LogicException;
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -57,6 +58,8 @@ abstract class AbstractGateway implements PosInterface
     protected ?array $data;
 
     protected HttpClient $client;
+
+    protected RequestValueMapperInterface $valueMapper;
 
     protected RequestDataMapperInterface $requestDataMapper;
 
@@ -112,6 +115,7 @@ abstract class AbstractGateway implements PosInterface
     public function __construct(
         array                          $config,
         AbstractPosAccount             $posAccount,
+        RequestValueMapperInterface    $valueMapper,
         RequestDataMapperInterface     $requestDataMapper,
         ResponseDataMapperInterface    $responseDataMapper,
         SerializerInterface            $serializer,
@@ -119,6 +123,7 @@ abstract class AbstractGateway implements PosInterface
         HttpClient                     $httpClient,
         LoggerInterface                $logger
     ) {
+        $this->valueMapper        = $valueMapper;
         $this->requestDataMapper  = $requestDataMapper;
         $this->responseDataMapper = $responseDataMapper;
         $this->serializer         = $serializer;
@@ -147,7 +152,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getCurrencies(): array
     {
-        return \array_keys($this->requestDataMapper->getCurrencyMappings());
+        return \array_keys($this->valueMapper->getCurrencyMappings());
     }
 
     /**
@@ -645,7 +650,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getCardTypeMapping(): array
     {
-        return $this->requestDataMapper->getCardTypeMapping();
+        return $this->valueMapper->getCardTypeMappings();
     }
 
     /**
@@ -653,7 +658,7 @@ abstract class AbstractGateway implements PosInterface
      */
     public function getLanguages(): array
     {
-        return [PosInterface::LANG_TR, PosInterface::LANG_EN];
+        return \array_keys($this->valueMapper->getLangMappings());
     }
 
     /**

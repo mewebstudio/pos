@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Gateways;
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\ToslaPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueMapper\ToslaPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
@@ -69,6 +70,7 @@ class ToslaPosTest extends TestCase
 
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
+    private ToslaPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void
     {
@@ -91,6 +93,7 @@ class ToslaPosTest extends TestCase
             'POS_ENT_Test_001!*!*',
         );
 
+        $this->requestValueMapper  = new ToslaPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(ToslaPosRequestDataMapper::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
@@ -113,6 +116,7 @@ class ToslaPosTest extends TestCase
         return new ToslaPos(
             $config,
             $account ?? $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,

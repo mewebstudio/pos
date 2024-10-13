@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\EstPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\EstPosRequestValueMapper;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
@@ -21,6 +23,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @covers \Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper
+ * @covers \Mews\Pos\DataMapper\RequestDataMapper\AbstractRequestDataMapper
  */
 class EstV3PosRequestDataMapperTest extends TestCase
 {
@@ -35,7 +38,8 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
-
+    private EstPosRequestValueFormatter $valueFormatter;
+    private EstPosRequestValueMapper $valueMapper;
     protected function setUp(): void
     {
         parent::setUp();
@@ -49,11 +53,19 @@ class EstV3PosRequestDataMapperTest extends TestCase
             '123456'
         );
 
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new EstPosRequestValueFormatter();
+        $this->valueMapper    = new EstPosRequestValueMapper();
 
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new EstV3PosRequestDataMapper($this->dispatcher, $this->crypt);
-        $this->card              = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+        $this->requestDataMapper = new EstV3PosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt
+        );
+
+        $this->card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
     /**

@@ -66,22 +66,26 @@ class PosFactory
             );
         }
 
-        $currencies = [];
-        if (isset($config['currencies'])) {
-            $currencies = $config['currencies'];
-        }
-
         $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
 
         $crypt              = CryptFactory::createGatewayCrypt($class, $logger);
-        $requestDataMapper  = RequestDataMapperFactory::createGatewayRequestMapper($class, $eventDispatcher, $crypt, $currencies);
-        $responseDataMapper = ResponseDataMapperFactory::createGatewayResponseMapper($class, $requestDataMapper, $logger);
+        $valueMapper        = RequestValueMapperFactory::createForGateway($class);
+        $valueFormatter     = RequestValueFormatterFactory::createForGateway($class);
+        $requestDataMapper  = RequestDataMapperFactory::createGatewayRequestMapper(
+            $class,
+            $valueMapper,
+            $valueFormatter,
+            $eventDispatcher,
+            $crypt,
+        );
+        $responseDataMapper = ResponseDataMapperFactory::createGatewayResponseMapper($class, $valueMapper, $logger);
         $serializer         = SerializerFactory::createGatewaySerializer($class);
 
         // Create Bank Class Instance
         return new $class(
             $config['banks'][$posAccount->getBank()],
             $posAccount,
+            $valueMapper,
             $requestDataMapper,
             $responseDataMapper,
             $serializer,
