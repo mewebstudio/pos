@@ -6,11 +6,12 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestValueMapper\EstPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseValueFormatter\EstPosResponseValueFormatter;
-use Mews\Pos\DataMapper\ResponseValueMapper\EstPosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Factory\RequestValueMapperFactory;
+use Mews\Pos\Factory\ResponseValueFormatterFactory;
+use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -33,13 +34,9 @@ class EstPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = new EstPosRequestValueMapper();
-        $responseValueFormatter = new EstPosResponseValueFormatter();
-        $responseValueMapper    = new EstPosResponseValueMapper(
-            $requestValueMapper->getCurrencyMappings(),
-            $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings()
-        );
+        $requestValueMapper     = RequestValueMapperFactory::createForGateway(EstV3Pos::class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(EstV3Pos::class, $requestValueMapper);
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(EstV3Pos::class);
 
         $this->responseDataMapper = new EstPosResponseDataMapper(
             $responseValueFormatter,

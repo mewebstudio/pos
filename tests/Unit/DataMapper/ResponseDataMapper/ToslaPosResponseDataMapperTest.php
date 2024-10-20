@@ -6,11 +6,12 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestValueMapper\ToslaPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseValueFormatter\ToslaPosResponseValueFormatter;
-use Mews\Pos\DataMapper\ResponseValueMapper\ToslaPosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Factory\RequestValueMapperFactory;
+use Mews\Pos\Factory\ResponseValueFormatterFactory;
+use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -33,13 +34,9 @@ class ToslaPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = new ToslaPosRequestValueMapper();
-        $responseValueFormatter = new ToslaPosResponseValueFormatter();
-        $responseValueMapper    = new ToslaPosResponseValueMapper(
-            $requestValueMapper->getCurrencyMappings(),
-            $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings()
-        );
+        $requestValueMapper     = RequestValueMapperFactory::createForGateway(ToslaPos::class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(ToslaPos::class, $requestValueMapper);
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(ToslaPos::class);
 
         $this->responseDataMapper = new ToslaPosResponseDataMapper(
             $responseValueFormatter,
