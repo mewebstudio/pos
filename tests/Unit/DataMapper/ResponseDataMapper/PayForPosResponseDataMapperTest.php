@@ -5,10 +5,11 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestValueMapper\PayForPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseValueFormatter\BasicResponseValueFormatter;
-use Mews\Pos\DataMapper\ResponseValueMapper\PayForPosResponseValueMapper;
+use Mews\Pos\Factory\RequestValueMapperFactory;
+use Mews\Pos\Factory\ResponseValueFormatterFactory;
+use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -30,13 +31,9 @@ class PayForPosResponseDataMapperTest extends TestCase
         parent::setUp();
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = new PayForPosRequestValueMapper();
-        $responseValueFormatter = new BasicResponseValueFormatter();
-        $responseValueMapper    = new PayForPosResponseValueMapper(
-            $requestValueMapper->getCurrencyMappings(),
-            $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings()
-        );
+        $requestValueMapper     = RequestValueMapperFactory::createForGateway(PayForPos::class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(PayForPos::class, $requestValueMapper);
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(PayForPos::class);
 
         $this->responseDataMapper = new PayForPosResponseDataMapper(
             $responseValueFormatter,
