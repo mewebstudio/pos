@@ -6,11 +6,12 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestValueMapper\GarantiPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseValueFormatter\GarantiPosResponseValueFormatter;
-use Mews\Pos\DataMapper\ResponseValueMapper\GarantiPosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Factory\RequestValueMapperFactory;
+use Mews\Pos\Factory\ResponseValueFormatterFactory;
+use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -33,13 +34,9 @@ class GarantiPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = new GarantiPosRequestValueMapper();
-        $responseValueFormatter = new GarantiPosResponseValueFormatter();
-        $responseValueMapper    = new GarantiPosResponseValueMapper(
-            $requestValueMapper->getCurrencyMappings(),
-            $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings()
-        );
+        $requestValueMapper     = RequestValueMapperFactory::createForGateway(GarantiPos::class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(GarantiPos::class, $requestValueMapper);
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(GarantiPos::class);
 
         $this->responseDataMapper = new GarantiPosResponseDataMapper(
             $responseValueFormatter,

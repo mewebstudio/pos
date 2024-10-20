@@ -6,11 +6,12 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestValueMapper\InterPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseValueFormatter\InterPosResponseValueFormatter;
-use Mews\Pos\DataMapper\ResponseValueMapper\InterPosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Factory\RequestValueMapperFactory;
+use Mews\Pos\Factory\ResponseValueFormatterFactory;
+use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -33,13 +34,9 @@ class InterPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper = new InterPosRequestValueMapper();
-        $responseValueFormatter = new InterPosResponseValueFormatter();
-        $responseValueMapper    = new InterPosResponseValueMapper(
-            $requestValueMapper->getCurrencyMappings(),
-            $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings()
-        );
+        $requestValueMapper     = RequestValueMapperFactory::createForGateway(InterPos::class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(InterPos::class, $requestValueMapper);
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(InterPos::class);
 
         $this->responseDataMapper = new InterPosResponseDataMapper(
             $responseValueFormatter,
