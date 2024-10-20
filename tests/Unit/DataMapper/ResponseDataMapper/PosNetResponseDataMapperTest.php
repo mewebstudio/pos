@@ -6,11 +6,12 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestValueMapper\PosNetRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseValueFormatter\PosNetResponseValueFormatter;
-use Mews\Pos\DataMapper\ResponseValueMapper\PosNetResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Factory\RequestValueMapperFactory;
+use Mews\Pos\Factory\ResponseValueFormatterFactory;
+use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -32,13 +33,9 @@ class PosNetResponseDataMapperTest extends TestCase
         parent::setUp();
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = new PosNetRequestValueMapper();
-        $responseValueFormatter = new PosNetResponseValueFormatter();
-        $responseValueMapper    = new PosNetResponseValueMapper(
-            $requestValueMapper->getCurrencyMappings(),
-            $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings()
-        );
+        $requestValueMapper     = RequestValueMapperFactory::createForGateway(PosNet::class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(PosNet::class, $requestValueMapper);
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(PosNet::class);
 
         $this->responseDataMapper = new PosNetResponseDataMapper(
             $responseValueFormatter,

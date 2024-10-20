@@ -6,10 +6,11 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestValueMapper\AkbankPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\AkbankPosResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseValueFormatter\BasicResponseValueFormatter;
-use Mews\Pos\DataMapper\ResponseValueMapper\AkbankPosResponseValueMapper;
+use Mews\Pos\Factory\RequestValueMapperFactory;
+use Mews\Pos\Factory\ResponseValueFormatterFactory;
+use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -32,13 +33,9 @@ class AkbankPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = new AkbankPosRequestValueMapper();
-        $responseValueFormatter = new BasicResponseValueFormatter();
-        $responseValueMapper    = new AkbankPosResponseValueMapper(
-            $requestValueMapper->getCurrencyMappings(),
-            $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings()
-        );
+        $requestValueMapper     = RequestValueMapperFactory::createForGateway(AkbankPos::class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(AkbankPos::class, $requestValueMapper);
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(AkbankPos::class);
 
         $this->responseDataMapper = new AkbankPosResponseDataMapper(
             $responseValueFormatter,

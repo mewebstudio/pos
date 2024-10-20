@@ -6,11 +6,12 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestValueMapper\PayFlexV4PosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
-use Mews\Pos\DataMapper\ResponseValueFormatter\BasicResponseValueFormatter;
-use Mews\Pos\DataMapper\ResponseValueMapper\PayFlexV4PosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Factory\RequestValueMapperFactory;
+use Mews\Pos\Factory\ResponseValueFormatterFactory;
+use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -33,13 +34,9 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = new PayFlexV4PosRequestValueMapper();
-        $responseValueFormatter = new BasicResponseValueFormatter();
-        $responseValueMapper    = new PayFlexV4PosResponseValueMapper(
-            $requestValueMapper->getCurrencyMappings(),
-            $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings()
-        );
+        $requestValueMapper     = RequestValueMapperFactory::createForGateway(PayFlexV4Pos::class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(PayFlexV4Pos::class, $requestValueMapper);
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(PayFlexV4Pos::class);
 
         $this->responseDataMapper = new PayFlexV4PosResponseDataMapper(
             $responseValueFormatter,
