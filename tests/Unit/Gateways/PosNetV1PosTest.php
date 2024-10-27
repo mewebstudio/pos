@@ -135,19 +135,11 @@ class PosNetV1PosTest extends TestCase
      */
     public function testGetApiURL(string $txType, string $mappedTxType, string $expected): void
     {
-//        $this->requestValueMapper->expects(self::once())
-//            ->method('mapTxType')
-//            ->with($txType)
-//            ->willReturn($mappedTxType);
-
         $this->assertSame($expected, $this->pos->getApiURL($txType));
     }
 
     public function testGetApiURLException(): void
     {
-//        $this->requestValueMapper->expects(self::never())
-//            ->method('mapTxType');
-
         $this->expectException(\InvalidArgumentException::class);
         $this->pos->getApiURL();
     }
@@ -216,10 +208,6 @@ class PosNetV1PosTest extends TestCase
             'create3DPaymentRequestData',
         ];
         if ($is3DSuccess) {
-//            $this->requestMapperMock->expects(self::once())
-//                ->method('mapTxType')
-//                ->with($txType)
-//                ->willReturn('Sale');
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
                 ->with($this->account, $order, $txType, $request->request->all())
@@ -227,7 +215,7 @@ class PosNetV1PosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Auth',
+                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
                 $create3DPaymentRequestData,
                 'request-body',
                 'response-body',
@@ -317,11 +305,6 @@ class PosNetV1PosTest extends TestCase
         $card        = $this->card;
         $requestData = ['createNonSecurePaymentRequestData'];
 
-//        $this->requestMapperMock->expects(self::once())
-//            ->method('mapTxType')
-//            ->with($txType)
-//            ->willReturn($mappedTxType);
-
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePaymentRequestData')
             ->with($account, $order, $txType, $card)
@@ -355,11 +338,6 @@ class PosNetV1PosTest extends TestCase
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
         $requestData = ['createNonSecurePostAuthPaymentRequestData'];
-
-//        $this->requestMapperMock->expects(self::once())
-//            ->method('mapTxType')
-//            ->with($txType)
-//            ->willReturn('Capture');
 
         $this->requestMapperMock->expects(self::once())
             ->method('createNonSecurePostAuthPaymentRequestData')
@@ -396,11 +374,6 @@ class PosNetV1PosTest extends TestCase
         $txType      = PosInterface::TX_TYPE_STATUS;
         $requestData = ['createStatusRequestData'];
 
-//        $this->requestMapperMock->expects(self::once())
-//            ->method('mapTxType')
-//            ->with($txType)
-//            ->willReturn('TransactionInquiry');
-
         $this->requestMapperMock->expects(self::once())
             ->method('createStatusRequestData')
             ->with($account, $order)
@@ -435,11 +408,6 @@ class PosNetV1PosTest extends TestCase
         $txType      = PosInterface::TX_TYPE_CANCEL;
         $requestData = ['createCancelRequestData'];
 
-//        $this->requestMapperMock->expects(self::once())
-//            ->method('mapTxType')
-//            ->with($txType)
-//            ->willReturn('Reverse');
-
         $this->requestMapperMock->expects(self::once())
             ->method('createCancelRequestData')
             ->with($account, $order)
@@ -473,11 +441,6 @@ class PosNetV1PosTest extends TestCase
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_REFUND;
         $requestData = ['createRefundRequestData'];
-//
-//        $this->requestMapperMock->expects(self::once())
-//            ->method('mapTxType')
-//            ->with($txType)
-//            ->willReturn('Return');
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
