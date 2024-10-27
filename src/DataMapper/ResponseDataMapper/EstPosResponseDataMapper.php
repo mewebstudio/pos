@@ -130,7 +130,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
             'amount'               => null !== $raw3DAuthResponseData['amount'] ? $this->formatAmount($raw3DAuthResponseData['amount']) : null,
-            'currency'             => $this->mapCurrency($raw3DAuthResponseData['currency']),
+            'currency'             => '*' === $raw3DAuthResponseData['currency'] ? null : $this->mapCurrency($raw3DAuthResponseData['currency']),
             'installment_count'    => $this->mapInstallment($raw3DAuthResponseData['taksit']),
             'eci'                  => null,
             'tx_status'            => null,

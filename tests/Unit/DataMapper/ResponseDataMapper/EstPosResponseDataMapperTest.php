@@ -546,7 +546,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'auth_code'            => null,
                     'batch_num'            => null,
                     'cavv'                 => null,
-                    'currency'             => '*',
+                    'currency'             => null,
                     'eci'                  => null,
                     'error_code'           => 'HPP-1001',
                     'error_message'        => 'Girilen kart numarası doğru formatta değildir. Kart numarasını kontrol ederek tekrar işlem deneyiniz.',
