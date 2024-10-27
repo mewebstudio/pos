@@ -37,7 +37,7 @@ $testCards = [
     'visa_isbank_imece' => [
         /**
          * IMECE kartlar isbankin tarima destek icin ozel kampanyalari olan kartlardir.
-         * https://www.isbank.com.tr/is-ticari/imece-kart
+         * @link https://www.isbank.com.tr/is-ticari/imece-kart
          *
          * bu karti test edebilmek icin bu kartlarla odemeyi destekleyen Isbank Pos hesabi lazim.
          */

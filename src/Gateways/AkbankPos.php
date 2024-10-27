@@ -15,7 +15,7 @@ use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * https://sanalpos-prep.akbank.com/#entry
+ * @link https://sanalpos-prep.akbank.com/#entry
  */
 class AkbankPos extends AbstractGateway
 {

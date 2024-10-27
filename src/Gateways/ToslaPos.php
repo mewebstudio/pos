@@ -21,7 +21,8 @@ use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * Documentation: https://tosla.com/isim-icin/gelistirici-merkezi
+ * Documentation:
+ * @link https://tosla.com/isim-icin/gelistirici-merkezi
  */
 class ToslaPos extends AbstractGateway
 {
