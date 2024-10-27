@@ -169,6 +169,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             $paymentModel
         );
         $defaultPaymentResponse['status'] = $paymentStatus;
+        $defaultPaymentResponse['all']    = $raw3DAuthResponseData;
 
         if (self::TX_APPROVED === $threeDAuthStatus) {
             $threeDAuthResult['auth_code']      = $raw3DAuthResponseData['authcode'];

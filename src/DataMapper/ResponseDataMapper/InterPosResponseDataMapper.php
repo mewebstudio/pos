@@ -52,6 +52,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $result['error_message']    = $rawPaymentResponseData['ErrorMessage'];
         $result['currency']         = $order['currency'];
         $result['amount']           = $order['amount'];
+        $result['all']              = $rawPaymentResponseData;
 
         if (self::TX_APPROVED === $status) {
             $result['transaction_time'] = new \DateTimeImmutable($rawPaymentResponseData['TRXDATE'] ?? null);

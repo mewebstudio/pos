@@ -112,10 +112,12 @@ class KuveytPosResponseDataMapperTest extends TestCase
     public function testMapRefundResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
+
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
         $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         ksort($actualData);
         ksort($expectedData);
         $this->assertSame($expectedData, $actualData);
@@ -127,10 +129,12 @@ class KuveytPosResponseDataMapperTest extends TestCase
     public function testMapCancelResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
+
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
         $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         ksort($actualData);
         ksort($expectedData);
         $this->assertSame($expectedData, $actualData);
@@ -179,7 +183,17 @@ class KuveytPosResponseDataMapperTest extends TestCase
         }
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        if ([] !== $paymentResponse) {
+            $this->assertIsArray($actualData['all']);
+            $this->assertNotEmpty($actualData['all']);
+        }
+        $this->assertArrayHasKey('3d_all', $actualData);
+        $this->assertIsArray($actualData['3d_all']);
+        $this->assertNotEmpty($actualData['3d_all']);
         unset($actualData['all'], $actualData['3d_all']);
+
         \ksort($actualData);
         \ksort($expectedData);
         $this->assertSame($expectedData, $actualData);

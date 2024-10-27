@@ -83,7 +83,17 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
         );
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        if ([] !== $paymentResponse) {
+            $this->assertIsArray($actualData['all']);
+            $this->assertNotEmpty($actualData['all']);
+        }
+        $this->assertArrayHasKey('3d_all', $actualData);
+        $this->assertIsArray($actualData['3d_all']);
+        $this->assertNotEmpty($actualData['3d_all']);
         unset($actualData['all'], $actualData['3d_all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -97,7 +107,12 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, []);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -109,7 +124,12 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     public function testMapCancelResponse(array $paymentResponse, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapCancelResponse($paymentResponse);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -119,7 +139,12 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     public function testMapRefundResponse(array $paymentResponse, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($paymentResponse);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -133,7 +158,12 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
         $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
         unset($actualData['refund_time'], $expectedData['refund_time']);
         unset($actualData['cancel_time'], $expectedData['cancel_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);

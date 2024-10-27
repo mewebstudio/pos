@@ -150,6 +150,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'status_detail'    => $this->getStatusDetail($procReturnCode),
             'error_code'       => (self::TX_APPROVED !== $status) ? $procReturnCode : null,
             'error_message'    => (self::TX_APPROVED !== $status) ? $raw3DAuthResponseData['ErrMsg'] : null,
+            'all'              => $raw3DAuthResponseData,
         ];
 
         $commonThreeDResponseData = $this->map3DCommonResponseData($raw3DAuthResponseData);

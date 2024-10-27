@@ -32,7 +32,7 @@ class InterPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestDataMapper        = new InterPosRequestDataMapper(
+        $requestDataMapper = new InterPosRequestDataMapper(
             $this->createMock(EventDispatcherInterface::class),
             $this->createMock(CryptInterface::class),
         );
@@ -82,8 +82,14 @@ class InterPosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
         $this->assertArrayHasKey('all', $actualData);
+        if ([] !== $responseData) {
+            $this->assertIsArray($actualData['all']);
+            $this->assertNotEmpty($actualData['all']);
+        }
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -108,10 +114,17 @@ class InterPosResponseDataMapperTest extends TestCase
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
+        $this->assertArrayHasKey('all', $actualData);
+        if ([] !== $paymentResponse) {
+            $this->assertIsArray($actualData['all']);
+            $this->assertNotEmpty($actualData['all']);
+        }
+
         $this->assertArrayHasKey('3d_all', $actualData);
         $this->assertIsArray($actualData['3d_all']);
         $this->assertNotEmpty($actualData['3d_all']);
         unset($actualData['all'], $actualData['3d_all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -123,7 +136,12 @@ class InterPosResponseDataMapperTest extends TestCase
     public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -135,7 +153,12 @@ class InterPosResponseDataMapperTest extends TestCase
     public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -156,6 +179,9 @@ class InterPosResponseDataMapperTest extends TestCase
         unset($actualData['refund_time'], $expectedData['refund_time']);
         unset($actualData['cancel_time'], $expectedData['cancel_time']);
 
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
 
         \ksort($expectedData);
@@ -169,7 +195,12 @@ class InterPosResponseDataMapperTest extends TestCase
     public function testMapRefundResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -179,7 +210,12 @@ class InterPosResponseDataMapperTest extends TestCase
     public function testMapCancelResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         $this->assertSame($expectedData, $actualData);
     }
 

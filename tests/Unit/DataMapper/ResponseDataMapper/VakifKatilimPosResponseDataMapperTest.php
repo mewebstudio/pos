@@ -93,7 +93,12 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
         }
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -117,7 +122,17 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
         }
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        if ([] !== $paymentResponse) {
+            $this->assertIsArray($actualData['all']);
+            $this->assertNotEmpty($actualData['all']);
+        }
+        $this->assertArrayHasKey('3d_all', $actualData);
+        $this->assertIsArray($actualData['3d_all']);
+        $this->assertNotEmpty($actualData['3d_all']);
         unset($actualData['all'], $actualData['3d_all']);
+
         ksort($expectedData);
         ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -137,7 +152,11 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -155,7 +174,12 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
     public function testMapRefundResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -165,7 +189,12 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
     public function testMapCancelResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -184,7 +213,11 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
         unset($actualData['refund_time'], $expectedData['refund_time']);
         unset($actualData['cancel_time'], $expectedData['cancel_time']);
 
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -218,7 +251,11 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
             \ksort($expectedData['transactions'][$key]);
         }
 
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -277,7 +314,11 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
             \ksort($expectedData['transactions'][$key]);
         }
 
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         $this->assertSame($expectedData, $actualData);
     }
 

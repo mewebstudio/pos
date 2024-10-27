@@ -76,8 +76,12 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
         $actualData = $this->responseDataMapper->map3DPayResponseData($bankResponse, $txType, $order);
         $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
         $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);

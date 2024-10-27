@@ -86,7 +86,12 @@ class ToslaPosResponseDataMapperTest extends TestCase
         }
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -106,7 +111,12 @@ class ToslaPosResponseDataMapperTest extends TestCase
         }
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -125,7 +135,12 @@ class ToslaPosResponseDataMapperTest extends TestCase
         }
 
         unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -149,7 +164,11 @@ class ToslaPosResponseDataMapperTest extends TestCase
             unset($actualData['cancel_time'], $expectedData['cancel_time']);
         }
 
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($actualData);
         \ksort($expectedData);
         $this->assertSame($expectedData, $actualData);
@@ -161,7 +180,12 @@ class ToslaPosResponseDataMapperTest extends TestCase
     public function testMapRefundResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -171,7 +195,12 @@ class ToslaPosResponseDataMapperTest extends TestCase
     public function testMapCancelResponse(array $responseData, array $expectedData): void
     {
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -206,7 +235,11 @@ class ToslaPosResponseDataMapperTest extends TestCase
             }
         }
 
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
+
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
@@ -253,7 +286,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'ref_ret_num'       => null,
-                'batch_num'            => null,
+                'batch_num'         => null,
                 'proc_return_code'  => '00',
                 'status'            => 'approved',
                 'status_detail'     => 'approved',
@@ -288,7 +321,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'ref_ret_num'       => null,
-                'batch_num'            => null,
+                'batch_num'         => null,
                 'proc_return_code'  => '00',
                 'status'            => 'approved',
                 'status_detail'     => 'approved',
@@ -323,7 +356,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'ref_ret_num'       => null,
-                'batch_num'            => null,
+                'batch_num'         => null,
                 'proc_return_code'  => null,
                 'status'            => 'declined',
                 'status_detail'     => 'transaction_not_found',
@@ -359,7 +392,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
                 'currency'          => 'TRY',
                 'amount'            => 1.01,
                 'ref_ret_num'       => null,
-                'batch_num'            => null,
+                'batch_num'         => null,
                 'proc_return_code'  => null,
                 'status'            => 'declined',
                 'status_detail'     => null,
