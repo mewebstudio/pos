@@ -163,7 +163,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
 
         $paymentModel = $this->mapSecurityType($raw3DAuthResponseData['secure3dsecuritylevel']);
         /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
-        $txType                           = $this->mapTxType($raw3DAuthResponseData['txntype']) ?? $txType;
+        $txType                           = $threeDAuthResult['transaction_type'] ?? $txType;
         $defaultPaymentResponse           = $this->getDefaultPaymentResponse(
             $txType,
             $paymentModel

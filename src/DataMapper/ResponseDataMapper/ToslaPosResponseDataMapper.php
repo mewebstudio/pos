@@ -259,8 +259,7 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['refund_amount'] = $rawResponseData['RefundedAmount'] > 0 ? $this->formatAmount($rawResponseData['RefundedAmount']) : null;
 
             if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode && $isPaymentTransaction) {
-                $captureAmount                     = (float) $rawResponseData['MerchantCommissionAmount'] + (float) $rawResponseData['NetAmount'];
-                $defaultResponse['capture_amount'] = $this->formatAmount((string) $captureAmount);
+                $defaultResponse['capture_amount'] = $defaultResponse['first_amount'];
                 $defaultResponse['capture']        = $defaultResponse['first_amount'] <= $defaultResponse['capture_amount'];
                 $defaultResponse['capture_time']   = $defaultResponse['transaction_time'];
             }

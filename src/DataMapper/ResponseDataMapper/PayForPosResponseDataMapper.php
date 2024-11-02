@@ -98,7 +98,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $txType = $mapped3DResponseData['transaction_type'] ?? $txType;
 
         /** @var PosInterface::MODEL_3D_* $paymentModel */
-        $paymentModel = $this->mapSecurityType($raw3DAuthResponseData['SecureType']);
+        $paymentModel = $mapped3DResponseData['payment_model'] ?? PosInterface::MODEL_3D_SECURE;
         if (self::TX_APPROVED === $threeDAuthStatus && null !== $rawPaymentResponseData) {
             $paymentResponseData = $this->map3DPaymentResponseCommon($rawPaymentResponseData, $txType, $paymentModel);
         }
@@ -254,7 +254,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
                 true
             )) {
                 $defaultResponse['capture']        = true;
-                $defaultResponse['capture_amount'] = $this->formatAmount($rawResponseData['PurchAmount']);
+                $defaultResponse['capture_amount'] = $defaultResponse['first_amount'];
                 $defaultResponse['capture_time']   = $defaultResponse['transaction_time'];
                 $orderStatus                       = PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED;
             }

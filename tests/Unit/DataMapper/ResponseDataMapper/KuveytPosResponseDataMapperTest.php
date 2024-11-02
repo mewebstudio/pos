@@ -1468,7 +1468,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
                 'auth_code'        => null,
                 'proc_return_code' => '28',
                 'transaction_id'   => '298460',
-                'currency'         => PosInterface::CURRENCY_TRY,
+                'currency'         => null,
                 'error_message'    => 'İptal Edilen İşlem İade Yapılamaz',
                 'ref_ret_num'      => '319013298460',
                 'status'           => 'declined',

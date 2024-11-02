@@ -502,7 +502,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['auth_code']         = $rawTx['ProvNumber'] ?? null;
             $defaultResponse['installment_count'] = $this->mapInstallment($rawTx['InstallmentCount']);
             $defaultResponse['masked_number']     = $rawTx['CardNumber'];
-            $defaultResponse['first_amount']      = (float) $rawTx['FirstAmount'];
+            $defaultResponse['first_amount']      = null === $rawTx['FirstAmount'] ? null : (float) $rawTx['FirstAmount'];
             $defaultResponse['order_status']      = $this->orderStatusMappings[$rawTx['LastOrderStatus']] ?? $rawTx['LastOrderStatusDescription'];
             $initialOrderStatus                   = $this->orderStatusMappings[$rawTx['OrderStatus']] ?? null;
 

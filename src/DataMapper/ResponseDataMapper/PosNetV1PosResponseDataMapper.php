@@ -251,9 +251,9 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['order_status']     = $this->orderStatusMappings[$defaultResponse['transaction_type']] ?? null;
 
             if (PosInterface::TX_TYPE_REFUND === $defaultResponse['transaction_type']) {
-                $defaultResponse['refund_time'] = new \DateTimeImmutable($rawTx['TransactionDate']);
+                $defaultResponse['refund_time'] = $defaultResponse['transaction_time'];
             } elseif (PosInterface::TX_TYPE_CANCEL === $defaultResponse['transaction_type']) {
-                $defaultResponse['cancel_time'] = new \DateTimeImmutable($rawTx['TransactionDate']);
+                $defaultResponse['cancel_time'] = $defaultResponse['transaction_time'];
             }
         }
 

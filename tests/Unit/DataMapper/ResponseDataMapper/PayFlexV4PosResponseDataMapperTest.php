@@ -628,7 +628,7 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
                     'status_detail'        => null,
                     'error_code'           => '1105',
                     'error_message'        => 'Üye isyeri IP si sistemde tanimli degil',
-                    'amount'               => 100.0,
+                    'amount'               => null,
                     'currency'             => 'TRY',
                     'payment_model'        => null,
                     'installment_count'    => 0,

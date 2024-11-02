@@ -44,7 +44,6 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         $result['proc_return_code'] = $procReturnCode;
         $result['status']           = $status;
         $result['status_detail']    = $this->getStatusDetail($procReturnCode);
-        $result['all']              = $rawPaymentResponseData;
         $result['order_id']         = $rawPaymentResponseData['OrderId'];
         $result['transaction_id']   = $rawPaymentResponseData['TransId'];
         $result['auth_code']        = $rawPaymentResponseData['AuthCode'];
@@ -107,26 +106,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapRefundResponse(array $rawResponseData): array
     {
-        $rawResponseData = $this->emptyStringsToNull($rawResponseData);
-        $procReturnCode  = $this->getProcReturnCode($rawResponseData);
-        $status          = self::TX_DECLINED;
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
-            $status = self::TX_APPROVED;
-        }
-
-        return [
-            'order_id'         => $rawResponseData['OrderId'],
-            'group_id'         => null,
-            'auth_code'        => null,
-            'ref_ret_num'      => null,
-            'proc_return_code' => $procReturnCode,
-            'transaction_id'   => $rawResponseData['TransId'],
-            'error_code'       => $rawResponseData['ErrorCode'],
-            'error_message'    => $rawResponseData['ErrorMessage'],
-            'status'           => $status,
-            'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'all'              => $rawResponseData,
-        ];
+        return $this->mapCancelResponse($rawResponseData);
     }
 
     /**
@@ -135,8 +115,8 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
     public function mapCancelResponse($rawResponseData): array
     {
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
-        $status          = self::TX_DECLINED;
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
+        $status          = self::TX_DECLINED;
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
             $status = self::TX_APPROVED;
         }
@@ -359,7 +339,7 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
             'year'                 => null,
             'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
             'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
-            'transaction_time'     => isset($raw3DAuthResponseData['TRXDATE']) ? new \DateTimeImmutable($raw3DAuthResponseData['TRXDATE']) : null,
+            'transaction_time'     => !isset($paymentResponseData['transaction_time']) && isset($raw3DAuthResponseData['TRXDATE']) ? new \DateTimeImmutable($raw3DAuthResponseData['TRXDATE']) : null,
             'eci'                  => $raw3DAuthResponseData['Eci'],
              /**
              * TxnStat 3D doğrulama sonucunu belirtir :

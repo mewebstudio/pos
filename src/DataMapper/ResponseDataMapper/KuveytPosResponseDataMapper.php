@@ -176,13 +176,13 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['ref_ret_num']       = $orderContract['RRN'];
             $defaultResponse['transaction_id']    = $orderContract['Stan'];
             $defaultResponse['currency']          = $this->mapCurrency($orderContract['FEC']);
-            $defaultResponse['first_amount']      = (float) $orderContract['FirstAmount'];
+            $defaultResponse['first_amount']      = null === $orderContract['FirstAmount'] ? null : (float) $orderContract['FirstAmount'];
             $defaultResponse['masked_number']     = $orderContract['CardNumber'];
             $defaultResponse['transaction_time']  = new \DateTimeImmutable($orderContract['OrderDate']);
             $defaultResponse['installment_count'] = $this->mapInstallment($orderContract['InstallmentCount']);
             if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $defaultResponse['order_status']) {
-                $defaultResponse['capture_amount'] = null !== $orderContract['FirstAmount'] ? (float) $orderContract['FirstAmount'] : null;
-                $defaultResponse['capture']        = $defaultResponse['first_amount'] > 0 && $defaultResponse['first_amount'] === $defaultResponse['capture_amount'];
+                $defaultResponse['capture_amount'] = $defaultResponse['first_amount'];
+                $defaultResponse['capture']        = $defaultResponse['first_amount'] > 0;
                 if ($defaultResponse['capture']) {
                     $defaultResponse['capture_time'] = new \DateTimeImmutable($orderContract['UpdateSystemDate']);
                 }
@@ -247,9 +247,9 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         $result['order_id']         = $value['MerchantOrderId'];
         $result['remote_order_id']  = (string) $value['OrderId'];
         $result['status']           = $status;
-        $result['currency']         = $this->mapCurrency($value['CurrencyCode']);
 
         if (self::TX_APPROVED === $status) {
+            $result['currency']  = $this->mapCurrency($value['CurrencyCode']);
             $result['auth_code'] = $value['ProvisionNumber'];
         } else {
             $result['error_code']    = $procReturnCode;
