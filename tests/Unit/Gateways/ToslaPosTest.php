@@ -588,8 +588,8 @@ class ToslaPosTest extends TestCase
             'requestData'         => ToslaPosRequestDataMapperTest::cancelRequestDataProvider()[0]['expected'],
             'encodedRequestData'  => \json_encode(ToslaPosRequestDataMapperTest::cancelRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
             'responseData'        => \json_encode(ToslaPosResponseDataMapperTest::cancelDataProvider()['success1']['responseData'], JSON_THROW_ON_ERROR),
-            'decodedResponseData' => ToslaPosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'],
-            'mappedResponse'      => ToslaPosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['expectedData'],
+            'decodedResponseData' => ToslaPosResponseDataMapperTest::cancelDataProvider()['success1']['responseData'],
+            'mappedResponse'      => ToslaPosResponseDataMapperTest::cancelDataProvider()['success1']['expectedData'],
             'isSuccess'           => true,
         ];
     }
