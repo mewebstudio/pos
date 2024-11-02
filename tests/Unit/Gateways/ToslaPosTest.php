@@ -570,13 +570,14 @@ class ToslaPosTest extends TestCase
 
     public static function statusDataProvider(): iterable
     {
+        $statusResponses = iterator_to_array(ToslaPosResponseDataMapperTest::statusResponseDataProvider());
         yield [
             'order'               => ToslaPosRequestDataMapperTest::statusRequestDataProvider()[0]['order'],
             'requestData'         => ToslaPosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'],
             'encodedRequestData'  => \json_encode(ToslaPosRequestDataMapperTest::statusRequestDataProvider()[0]['expected'], JSON_THROW_ON_ERROR),
-            'responseData'        => \json_encode(ToslaPosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'], JSON_THROW_ON_ERROR),
-            'decodedResponseData' => ToslaPosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['responseData'],
-            'mappedResponse'      => ToslaPosResponseDataMapperTest::statusResponseDataProvider()['success_pay']['expectedData'],
+            'responseData'        => \json_encode($statusResponses['success_pay']['responseData'], JSON_THROW_ON_ERROR),
+            'decodedResponseData' => $statusResponses['success_pay']['responseData'],
+            'mappedResponse'      => $statusResponses['success_pay']['expectedData'],
             'isSuccess'           => true,
         ];
     }
