@@ -30,8 +30,6 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         PosInterface::TX_TYPE_CANCEL         => 'Cancel',
         PosInterface::TX_TYPE_REFUND         => 'Refund',
         PosInterface::TX_TYPE_REFUND_PARTIAL => 'Refund',
-        PosInterface::TX_TYPE_HISTORY        => 'TxnHistory',
-        PosInterface::TX_TYPE_STATUS         => 'OrderInquiry',
     ];
 
     /**
