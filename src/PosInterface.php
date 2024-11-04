@@ -52,6 +52,9 @@ interface PosInterface
     public const TX_TYPE_HISTORY = 'history';
 
     /** @var string */
+    public const TX_TYPE_CUSTOM_QUERY = 'custom_query';
+
+    /** @var string */
     public const MODEL_3D_SECURE = '3d';
 
     /** @var string */
@@ -283,6 +286,24 @@ interface PosInterface
      * @throws ClientExceptionInterface
      */
     public function history(array $data): PosInterface;
+
+
+    /**
+     * Kütüphanenin desteği olmadığı özel istekleri bu methodla yapabilirsiniz.
+     * requestData içinde API hesap bilgileri, hash verisi ve bazi sabit değerler
+     * eğer zaten bulunmuyorsa kütüphane otomatik ekler.
+     *
+     * Bankadan dönen cevap array'e dönüştürülür,
+     * ancak diğer transaction'larda olduğu gibi mapping/normalization yapılmaz.
+     *
+     * @param array<string, mixed>  $requestData API'a gönderilecek veri.
+     * @param non-empty-string|null $apiUrl
+     *
+     * @return PosInterface
+     *
+     * @throws ClientExceptionInterface
+     */
+    public function customQuery(array $requestData, string $apiUrl = null): PosInterface;
 
     /**
      * Is success

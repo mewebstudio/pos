@@ -81,32 +81,32 @@ class PayFlexCPV4PosSerializerTest extends TestCase
     public static function encodeDataProvider(): Generator
     {
         yield 'test1' => [
-            'input' => [
-                'MerchantId' => '000000000111111',
-                'Password' => '3XTgER89as',
-                'TransactionType' => 'Sale',
-                'OrderId' => 'order222',
-                'CurrencyAmount' => '100.00',
-                'CurrencyCode' => '949',
-                'ClientIp' => '127.0.0.1',
+            'input'    => [
+                'MerchantId'              => '000000000111111',
+                'Password'                => '3XTgER89as',
+                'TransactionType'         => 'Sale',
+                'OrderId'                 => 'order222',
+                'CurrencyAmount'          => '100.00',
+                'CurrencyCode'            => '949',
+                'ClientIp'                => '127.0.0.1',
                 'TransactionDeviceSource' => '0',
-                'Pan' => '5555444433332222',
-                'Expiry' => '202112',
-                'Cvv' => '122',
+                'Pan'                     => '5555444433332222',
+                'Expiry'                  => '202112',
+                'Cvv'                     => '122',
             ],
-            'txType' => PosInterface::TX_TYPE_PAY_AUTH,
+            'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
             'expected' => [
-                'MerchantId' => '000000000111111',
-                'Password' => '3XTgER89as',
-                'TransactionType' => 'Sale',
-                'OrderId' => 'order222',
-                'CurrencyAmount' => '100.00',
-                'CurrencyCode' => '949',
-                'ClientIp' => '127.0.0.1',
+                'MerchantId'              => '000000000111111',
+                'Password'                => '3XTgER89as',
+                'TransactionType'         => 'Sale',
+                'OrderId'                 => 'order222',
+                'CurrencyAmount'          => '100.00',
+                'CurrencyCode'            => '949',
+                'ClientIp'                => '127.0.0.1',
                 'TransactionDeviceSource' => '0',
-                'Pan' => '5555444433332222',
-                'Expiry' => '202112',
-                'Cvv' => '122',
+                'Pan'                     => '5555444433332222',
+                'Expiry'                  => '202112',
+                'Cvv'                     => '122',
             ],
         ];
     }
@@ -114,32 +114,42 @@ class PayFlexCPV4PosSerializerTest extends TestCase
     public static function encodeNonPaymentDataProvider(): Generator
     {
         yield 'test1' => [
-            'input' => [
-                'MerchantId' => '000000000111111',
-                'Password' => '3XTgER89as',
-                'TransactionType' => 'Sale',
-                'OrderId' => 'order222',
-                'CurrencyAmount' => '100.00',
-                'CurrencyCode' => '949',
-                'ClientIp' => '127.0.0.1',
+            'input'    => [
+                'MerchantId'              => '000000000111111',
+                'Password'                => '3XTgER89as',
+                'TransactionType'         => 'Sale',
+                'OrderId'                 => 'order222',
+                'CurrencyAmount'          => '100.00',
+                'CurrencyCode'            => '949',
+                'ClientIp'                => '127.0.0.1',
                 'TransactionDeviceSource' => '0',
-                'Pan' => '5555444433332222',
-                'Expiry' => '202112',
-                'Cvv' => '122',
+                'Pan'                     => '5555444433332222',
+                'Expiry'                  => '202112',
+                'Cvv'                     => '122',
             ],
-            'txType' => PosInterface::TX_TYPE_CANCEL,
+            'txType'   => PosInterface::TX_TYPE_CANCEL,
             'expected' => '<VposRequest><MerchantId>000000000111111</MerchantId><Password>3XTgER89as</Password><TransactionType>Sale</TransactionType><OrderId>order222</OrderId><CurrencyAmount>100.00</CurrencyAmount><CurrencyCode>949</CurrencyCode><ClientIp>127.0.0.1</ClientIp><TransactionDeviceSource>0</TransactionDeviceSource><Pan>5555444433332222</Pan><Expiry>202112</Expiry><Cvv>122</Cvv></VposRequest>',
+        ];
+
+        yield 'custom_query' => [
+            'input'    => [
+                'MerchantId' => '000000000111111',
+                'Password'   => '3XTgER89as',
+                'abc'        => 'abc',
+            ],
+            'txType'   => PosInterface::TX_TYPE_CUSTOM_QUERY,
+            'expected' => '<VposRequest><MerchantId>000000000111111</MerchantId><Password>3XTgER89as</Password><abc>abc</abc></VposRequest>',
         ];
     }
 
     public static function decodeExceptionDataProvider(): Generator
     {
         yield 'test1' => [
-            'input'    => "<html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>Your support ID is: 11795445874629392419<br><br><a href='javascript:history.back();'>[Go Back]</a></body></html>",
+            'input'                    => "<html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>Your support ID is: 11795445874629392419<br><br><a href='javascript:history.back();'>[Go Back]</a></body></html>",
             'expected_exception_class' => \Exception::class,
         ];
         yield 'test2' => [
-            'input'    => '',
+            'input'                    => '',
             'expected_exception_class' => NotEncodableValueException::class,
         ];
     }

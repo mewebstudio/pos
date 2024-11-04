@@ -238,6 +238,48 @@ class InterPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createHistoryRequestData($this->account, []);
     }
 
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data' => [
+            'request_data' => [
+                'abc' => '124',
+            ],
+            'expected'     => [
+                'abc'      => '124',
+                'ShopCode' => '3123',
+                'UserCode' => 'InterTestApi',
+                'UserPass' => '3',
+            ],
+        ];
+
+        yield 'with_account_data' => [
+            'request_data' => [
+                'abc'      => '124',
+                'ShopCode' => '31231',
+                'UserCode' => 'InterTestApi1',
+                'UserPass' => '31',
+            ],
+            'expected'     => [
+                'abc'      => '124',
+                'ShopCode' => '31231',
+                'UserCode' => 'InterTestApi1',
+                'UserPass' => '31',
+            ],
+        ];
+    }
+
     public static function create3DPaymentRequestDataDataProvider(): array
     {
         return [

@@ -41,6 +41,7 @@ class AkbankPos extends AbstractGateway
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_ORDER_HISTORY  => true,
         PosInterface::TX_TYPE_HISTORY        => true,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
 
     /**

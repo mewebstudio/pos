@@ -247,6 +247,48 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createHistoryRequestData($this->account, []);
     }
 
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data_campaign_search' => [
+            'request_data' => [
+                'TransactionType' => 'CampaignSearch',
+            ],
+            'expected' => [
+                'MerchantId'      => '000000000111111',
+                'Password'        => '3XTgER89as',
+                'TerminalNo'      => 'VP999999',
+                'TransactionType' => 'CampaignSearch',
+            ],
+        ];
+
+        yield 'with_account_data_campaign_search' => [
+            'request_data' => [
+                'MerchantId'      => '000000000111111zz',
+                'Password'        => '3XTgER89aszzz',
+                'TerminalNo'      => 'VP999999zz',
+                'TransactionType' => 'CampaignSearchzz',
+            ],
+            'expected'     => [
+                'MerchantId'      => '000000000111111zz',
+                'Password'        => '3XTgER89aszzz',
+                'TerminalNo'      => 'VP999999zz',
+                'TransactionType' => 'CampaignSearchzz',
+            ],
+        ];
+    }
+
     public static function createStatusRequestDataDataProvider(): array
     {
         return [

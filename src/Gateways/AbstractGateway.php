@@ -520,6 +520,47 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    {
+        $txType             = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $updatedRequestData = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        $event = new RequestDataPreparedEvent(
+            $updatedRequestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $requestData,
+            PosInterface::MODEL_NON_SECURE
+        );
+
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
+        if ($updatedRequestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $updatedRequestData = $event->getRequestData();
+        }
+
+        $data           = $this->serializer->encode($updatedRequestData, $txType);
+        $apiUrl         = $apiUrl ?? $this->getQueryAPIUrl($txType);
+        $this->response = $this->send(
+            $data,
+            $txType,
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl
+        );
+
+        return $this;
+    }
+
+    /**
      * @param bool $testMode
      *
      * @return $this

@@ -586,6 +586,57 @@ class VakifKatilimTest extends TestCase
         $this->pos->orderHistory($order);
     }
 
+    /**
+     * @dataProvider customQueryRequestDataProvider
+     */
+    public function testCustomQueryRequest(array $requestData, string $apiUrl, string $expectedApiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
+
+        $updatedRequestData = $requestData + [
+                'abc' => 'def',
+            ];
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCustomQueryRequestData')
+            ->with($account, $requestData)
+            ->willReturn($updatedRequestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $expectedApiUrl,
+            $updatedRequestData,
+            'request-body',
+            'response-body',
+            ['decodedResponse'],
+            $requestData,
+            PosInterface::MODEL_NON_SECURE
+        );
+
+        $this->pos->customQuery($requestData, $apiUrl);
+    }
+
+
+    public function testCustomQueryRequestWithoutAPIurl(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->pos->customQuery(['ac' => 'aas']);
+    }
+
+    public static function customQueryRequestDataProvider(): array
+    {
+        return [
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/MailOrderSale',
+                'expected_api_url' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/MailOrderSale',
+            ],
+        ];
+    }
+
     public static function make3DPaymentDataProvider(): array
     {
         return [

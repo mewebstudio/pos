@@ -297,4 +297,34 @@ class EstV3PosTest extends TestCase
         $this->assertArrayHasKey('test_input', $formData['inputs']);
         $this->assertTrue($eventIsThrown);
     }
+
+    public function testCustomQuery(): void
+    {
+        $customQuery = [
+            'Type'     => 'Query',
+            'Number'   => '4242424242424242',
+            'Expires'  => '10.2028',
+            'Extra'    => [
+                'IMECECARDQUERY' => null,
+            ],
+        ];
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->customQuery($customQuery);
+
+        $response = $this->pos->getResponse();
+
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertArrayHasKey('ProcReturnCode', $response);
+        $this->assertTrue($eventIsThrown);
+    }
 }

@@ -166,4 +166,15 @@ interface RequestDataMapperInterface
      * @throws UnsupportedTransactionTypeException
      */
     public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array;
+
+
+    /**
+     * Adds account information, constant values, calculated hash into $requestData if it is not already set.
+     *
+     * @param AbstractPosAccount   $posAccount
+     * @param array<string, mixed> $requestData user generated request data
+     *
+     * @return array<string, mixed>
+     */
+    public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array;
 }

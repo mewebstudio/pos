@@ -30,7 +30,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
 
     private KuveytPosRequestDataMapper $requestDataMapper;
 
-    /** @var CryptInterface|MockObject */
+    /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
     /** @var EventDispatcherInterface & MockObject */
@@ -326,6 +326,67 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
         $this->requestDataMapper->createHistoryRequestData($this->account, []);
     }
+
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        if (!isset($requestData['VPosMessage']['HashData'])) {
+            $this->crypt->expects(self::once())
+                ->method('createHash')
+                ->willReturn($expectedData['VPosMessage']['HashData']);
+        }
+
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data' => [
+            'request_data' => [
+                'abc' => 'abc',
+            ],
+            'expected'     => [
+                'abc'         => 'abc',
+                'VPosMessage' => [
+                    'MerchantId' => '80',
+                    'CustomerId' => '400235',
+                    'UserName'   => 'apiuser',
+                    'APIVersion' => 'TDV2.0.0',
+                    'HashData'   => 'hasshhh',
+                ],
+            ],
+        ];
+
+        yield 'with_account_data' => [
+            'request_data' => [
+                'abc'         => 'abc',
+                'VPosMessage' => [
+                    'MerchantId' => '802',
+                    'CustomerId' => '4002352',
+                    'UserName'   => 'apiuser2',
+                    'APIVersion' => 'TDV1.0.0',
+                    'HashData'   => 'hasshhh22',
+                ],
+            ],
+            'expected'     => [
+                'abc'         => 'abc',
+                'VPosMessage' => [
+                    'MerchantId' => '802',
+                    'CustomerId' => '4002352',
+                    'UserName'   => 'apiuser2',
+                    'APIVersion' => 'TDV1.0.0',
+                    'HashData'   => 'hasshhh22',
+                ],
+            ],
+        ];
+    }
+
 
     public static function createCancelRequestDataProvider(): iterable
     {

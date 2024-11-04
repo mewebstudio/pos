@@ -253,6 +253,67 @@ class PayForPosRequestDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actual);
     }
 
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data_point_inquiry' => [
+            'request_data' => [
+                'SecureType'     => 'Inquiry',
+                'TxnType'        => 'ParaPuanInquiry',
+                'Pan'            => '4155650100416111',
+                'Expiry'         => '0125',
+                'Cvv2'           => '123',
+            ],
+            'expected'     => [
+                'Cvv2'           => '123',
+                'Expiry'         => '0125',
+                'MbrId'          => '5',
+                'MerchantId'     => '085300000009704',
+                'Pan'            => '4155650100416111',
+                'SecureType'     => 'Inquiry',
+                'TxnType'        => 'ParaPuanInquiry',
+                'UserCode'       => 'QNB_API_KULLANICI_3DPAY',
+                'UserPass'       => 'UcBN0',
+            ],
+        ];
+
+        yield 'with_account_data_point_inquiry' => [
+            'request_data' => [
+                'Cvv2'           => '123',
+                'Expiry'         => '0125',
+                'MbrId'          => '5',
+                'MerchantId'     => '085300000009704',
+                'Pan'            => '4155650100416111',
+                'SecureType'     => 'Inquiry',
+                'TxnType'        => 'ParaPuanInquiry',
+                'UserCode'       => 'QNB_API_KULLANICI_3DPAYxxx',
+                'UserPass'       => 'UcBN0xxx',
+            ],
+            'expected'     => [
+                'Cvv2'           => '123',
+                'Expiry'         => '0125',
+                'MbrId'          => '5',
+                'MerchantId'     => '085300000009704',
+                'Pan'            => '4155650100416111',
+                'SecureType'     => 'Inquiry',
+                'TxnType'        => 'ParaPuanInquiry',
+                'UserCode'       => 'QNB_API_KULLANICI_3DPAYxxx',
+                'UserPass'       => 'UcBN0xxx',
+            ],
+        ];
+    }
+
     public static function create3DPaymentRequestDataDataProvider(): array
     {
         return [

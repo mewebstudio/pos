@@ -225,4 +225,29 @@ class ToslaPosTest extends TestCase
 
         return $lastResponse;
     }
+
+    public function testCustomQuery(): void
+    {
+        $customQuery = [
+            'bin' => 415956,
+        ];
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->customQuery($customQuery, 'https://prepentegrasyon.tosla.com/api/Payment/GetCommissionAndInstallmentInfo');
+
+        $response = $this->pos->getResponse();
+        dump($response);
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertArrayHasKey('BankCode', $response);
+        $this->assertTrue($eventIsThrown);
+    }
 }

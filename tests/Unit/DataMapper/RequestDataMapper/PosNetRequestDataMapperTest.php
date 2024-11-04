@@ -312,6 +312,73 @@ class PosNetRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createOrderHistoryRequestData($this->account, []);
     }
 
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data_point_inquiry' => [
+            'request_data' => [
+                'pointUsage' => [
+                    'amount'       => '250',
+                    'lpAmount'     => '40',
+                    'ccno'         => '4048090000000001',
+                    'currencyCode' => 'TL',
+                    'expDate'      => '2411',
+                    'orderID'      => 'PKPPislemleriNT000000001',
+                ],
+            ],
+            'expected'     => [
+                'mid'        => '6706598320',
+                'tid'        => '67005551',
+                'pointUsage' => [
+                    'amount'       => '250',
+                    'lpAmount'     => '40',
+                    'ccno'         => '4048090000000001',
+                    'currencyCode' => 'TL',
+                    'expDate'      => '2411',
+                    'orderID'      => 'PKPPislemleriNT000000001',
+                ],
+            ],
+        ];
+
+        yield 'with_account_data_point_inquiry' => [
+            'request_data' => [
+                'mid'        => '6706598320xxx',
+                'tid'        => '67005551xxx',
+                'pointUsage' => [
+                    'amount'       => '250',
+                    'lpAmount'     => '40',
+                    'ccno'         => '4048090000000001',
+                    'currencyCode' => 'TL',
+                    'expDate'      => '2411',
+                    'orderID'      => 'PKPPislemleriNT000000001',
+                ],
+            ],
+            'expected'     => [
+                'mid'        => '6706598320xxx',
+                'tid'        => '67005551xxx',
+                'pointUsage' => [
+                    'amount'       => '250',
+                    'lpAmount'     => '40',
+                    'ccno'         => '4048090000000001',
+                    'currencyCode' => 'TL',
+                    'expDate'      => '2411',
+                    'orderID'      => 'PKPPislemleriNT000000001',
+                ],
+            ],
+        ];
+    }
+
     public static function threeDFormDataDataProvider(): array
     {
         return [

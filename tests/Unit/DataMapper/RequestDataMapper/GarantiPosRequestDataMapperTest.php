@@ -346,6 +346,138 @@ class GarantiPosRequestDataMapperTest extends TestCase
         );
     }
 
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        if (!isset($requestData['Terminal']['HashData'])) {
+            $this->crypt->expects(self::once())
+                ->method('createHash')
+                ->willReturn($expectedData['Terminal']['HashData']);
+        }
+
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual['Terminal']);
+        \ksort($expectedData['Terminal']);
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data_bin_inquiry' => [
+            'request_data' => [
+                'Version'     => 'v0.00',
+                'Customer'    => [
+                    'IPAddress'    => '1.1.111.111',
+                    'EmailAddress' => 'Cem@cem.com',
+                ],
+                'Order'       => [
+                    'OrderID'     => 'SISTD5A61F1682E745B28871872383ABBEB1',
+                    'GroupID'     => '',
+                    'Description' => '',
+                ],
+                'Transaction' => [
+                    'Type'   => 'bininq',
+                    'Amount' => '1',
+                    'BINInq' => [
+                        'Group'    => 'A',
+                        'CardType' => 'A',
+                    ],
+                ],
+            ],
+            'expected'     => [
+                'Customer'    => [
+                    'IPAddress'    => '1.1.111.111',
+                    'EmailAddress' => 'Cem@cem.com',
+                ],
+                'Mode'        => 'TEST',
+                'Order'       => [
+                    'OrderID'     => 'SISTD5A61F1682E745B28871872383ABBEB1',
+                    'GroupID'     => '',
+                    'Description' => '',
+                ],
+                'Terminal'    => [
+                    'ProvUserID' => 'PROVAUT',
+                    'UserID'     => 'PROVAUT',
+                    'HashData'   => '',
+                    'ID'         => '30691298',
+                    'MerchantID' => '7000679',
+                ],
+                'Transaction' => [
+                    'Type'   => 'bininq',
+                    'Amount' => '1',
+                    'BINInq' => [
+                        'Group'    => 'A',
+                        'CardType' => 'A',
+                    ],
+                ],
+                'Version'     => 'v0.00',
+            ],
+        ];
+
+        yield 'with_account_data_bin_inquiry' => [
+            'request_data' => [
+                'Customer'    => [
+                    'IPAddress'    => '1.1.111.111',
+                    'EmailAddress' => 'Cem@cem.com',
+                ],
+                'Mode'        => 'TEST',
+                'Order'       => [
+                    'OrderID'     => 'SISTD5A61F1682E745B28871872383ABBEB1',
+                    'GroupID'     => '',
+                    'Description' => '',
+                ],
+                'Terminal'    => [
+                    'ProvUserID' => 'PROVAUT2',
+                    'UserID'     => 'PROVAUT2',
+                    'ID'         => '306912982',
+                    'MerchantID' => '70006792',
+                ],
+                'Transaction' => [
+                    'Type'   => 'bininq',
+                    'Amount' => '1',
+                    'BINInq' => [
+                        'Group'    => 'A',
+                        'CardType' => 'A',
+                    ],
+                ],
+                'Version'     => 'v0.00',
+            ],
+            'expected'     => [
+                'Customer'    => [
+                    'IPAddress'    => '1.1.111.111',
+                    'EmailAddress' => 'Cem@cem.com',
+                ],
+                'Mode'        => 'TEST',
+                'Order'       => [
+                    'OrderID'     => 'SISTD5A61F1682E745B28871872383ABBEB1',
+                    'GroupID'     => '',
+                    'Description' => '',
+                ],
+                'Terminal'    => [
+                    'ProvUserID' => 'PROVAUT2',
+                    'UserID'     => 'PROVAUT2',
+                    'HashData'   => 'ljflsjflds',
+                    'ID'         => '306912982',
+                    'MerchantID' => '70006792',
+                ],
+                'Transaction' => [
+                    'Type'   => 'bininq',
+                    'Amount' => '1',
+                    'BINInq' => [
+                        'Group'    => 'A',
+                        'CardType' => 'A',
+                    ],
+                ],
+                'Version'     => 'v0.00',
+            ],
+        ];
+    }
+
     public static function threeDFormDataProvider(): array
     {
         $order = [

@@ -55,6 +55,7 @@ class KuveytPos extends AbstractGateway
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_HISTORY        => false,
         PosInterface::TX_TYPE_ORDER_HISTORY  => false,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
 
     /** @return KuveytPosAccount */
@@ -78,6 +79,7 @@ class KuveytPos extends AbstractGateway
                 PosInterface::TX_TYPE_REFUND_PARTIAL,
                 PosInterface::TX_TYPE_STATUS,
                 PosInterface::TX_TYPE_CANCEL,
+                PosInterface::TX_TYPE_CUSTOM_QUERY,
             ],
             true
         )) {
@@ -220,6 +222,7 @@ class KuveytPos extends AbstractGateway
             PosInterface::TX_TYPE_REFUND_PARTIAL,
             PosInterface::TX_TYPE_STATUS,
             PosInterface::TX_TYPE_CANCEL,
+            PosInterface::TX_TYPE_CUSTOM_QUERY,
         ], true)) {
             if (!\is_array($contents)) {
                 throw new InvalidArgumentException(\sprintf('Invalid data type provided for %s transaction!', $txType));
@@ -242,7 +245,7 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_STATUS|PosInterface::TX_TYPE_REFUND|PosInterface::TX_TYPE_REFUND_PARTIAL|PosInterface::TX_TYPE_CANCEL $txType
+     * @phpstan-param PosInterface::TX_TYPE_STATUS|PosInterface::TX_TYPE_REFUND|PosInterface::TX_TYPE_REFUND_PARTIAL|PosInterface::TX_TYPE_CANCEL|PosInterface::TX_TYPE_CUSTOM_QUERY $txType
      *
      * @param array<string, mixed> $contents
      * @param string               $txType

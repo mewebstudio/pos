@@ -123,6 +123,12 @@ class KuveytPosSerializerTest extends TestCase
             'expected' => ['abc' => 1],
         ];
 
+        yield 'test_custom_query' => [
+            'input'    => ['abc' => 1],
+            'txType'   => PosInterface::TX_TYPE_CUSTOM_QUERY,
+            'expected' => ['abc' => 1],
+        ];
+
         yield 'test_pay' => [
             'input'    => ['abc' => 1],
             'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
@@ -277,6 +283,11 @@ HTML;
         yield 'test_status' => [
             'input'    => '{"abc": 1}',
             'txType'   => PosInterface::TX_TYPE_STATUS,
+            'expected' => ['abc' => 1],
+        ];
+        yield 'test_custom_query' => [
+            'input'    => '{"abc": 1}',
+            'txType'   => PosInterface::TX_TYPE_CUSTOM_QUERY,
             'expected' => ['abc' => 1],
         ];
     }

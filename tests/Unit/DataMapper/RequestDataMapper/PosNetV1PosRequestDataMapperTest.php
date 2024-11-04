@@ -310,6 +310,124 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        if (!isset($requestData['MAC'])) {
+            $this->crypt->expects(self::once())
+                ->method('hashFromParams')
+                ->willReturn($expectedData['MAC']);
+        }
+
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data_point_inquiry' => [
+            'request_data' => [
+                'MACParams'             => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate',
+                'CipheredData'          => null,
+                'DealerData'            => null,
+                'IsEncrypted'           => 'N',
+                'PaymentFacilitatorData'=> null,
+                'AdditionalInfoData'    => null,
+                'CardInformationData'   => [
+                    'CardHolderName' => 'deneme deneme',
+                    'CardNo'         => '5400619360964581',
+                    'Cvc2'           => '056',
+                    'ExpireDate'     => '2001',
+                ],
+                'IsMailOrder'           => null,
+                'IsRecurring'           => null,
+                'IsTDSecureMerchant'    => 'Y',
+                'PaymentInstrumentType' => 'CARD',
+                'ThreeDSecureData'      => null,
+            ],
+            'expected'     => [
+                'AdditionalInfoData'     => null,
+                'ApiType'                => 'JSON',
+                'ApiVersion'             => 'V100',
+                'CardInformationData'    => [
+                    'CardHolderName' => 'deneme deneme',
+                    'CardNo'         => '5400619360964581',
+                    'Cvc2'           => '056',
+                    'ExpireDate'     => '2001',
+                ],
+                'CipheredData'           => null,
+                'DealerData'             => null,
+                'IsEncrypted'            => 'N',
+                'IsMailOrder'            => null,
+                'IsRecurring'            => null,
+                'IsTDSecureMerchant'     => 'Y',
+                'MAC'                    => 'jlksjfjldsf',
+                'MACParams'              => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate',
+                'MerchantNo'             => '6700950031',
+                'PaymentFacilitatorData' => null,
+                'PaymentInstrumentType'  => 'CARD',
+                'TerminalNo'             => '67540050',
+                'ThreeDSecureData'       => null,
+            ],
+        ];
+
+        yield 'with_account_data_point_inquiry' => [
+            'request_data' => [
+                'AdditionalInfoData'     => null,
+                'ApiType'                => 'JSON',
+                'ApiVersion'             => 'V100',
+                'CardInformationData'    => [
+                    'CardHolderName' => 'deneme deneme',
+                    'CardNo'         => '5400619360964581',
+                    'Cvc2'           => '056',
+                    'ExpireDate'     => '2001',
+                ],
+                'CipheredData'           => null,
+                'DealerData'             => null,
+                'IsEncrypted'            => 'N',
+                'IsMailOrder'            => null,
+                'IsRecurring'            => null,
+                'IsTDSecureMerchant'     => 'Y',
+                'MAC'                    => 'jlksjfjldsfxxx',
+                'MACParams'              => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate',
+                'MerchantNo'             => '6700950031xxx',
+                'TerminalNo'             => '67540050xxx',
+                'PaymentFacilitatorData' => null,
+                'PaymentInstrumentType'  => 'CARD',
+                'ThreeDSecureData'       => null,
+            ],
+            'expected'     => [
+                'AdditionalInfoData'     => null,
+                'ApiType'                => 'JSON',
+                'ApiVersion'             => 'V100',
+                'CardInformationData'    => [
+                    'CardHolderName' => 'deneme deneme',
+                    'CardNo'         => '5400619360964581',
+                    'Cvc2'           => '056',
+                    'ExpireDate'     => '2001',
+                ],
+                'CipheredData'           => null,
+                'DealerData'             => null,
+                'IsEncrypted'            => 'N',
+                'IsMailOrder'            => null,
+                'IsRecurring'            => null,
+                'IsTDSecureMerchant'     => 'Y',
+                'MAC'                    => 'jlksjfjldsfxxx',
+                'MACParams'              => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate',
+                'MerchantNo'             => '6700950031xxx',
+                'TerminalNo'             => '67540050xxx',
+                'PaymentFacilitatorData' => null,
+                'PaymentInstrumentType'  => 'CARD',
+                'ThreeDSecureData'       => null,
+            ],
+        ];
+    }
+
+    /**
      * @return array
      */
     public static function threeDFormDataTestProvider(): iterable

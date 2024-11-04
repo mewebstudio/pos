@@ -421,6 +421,120 @@ class AkbankPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createStatusRequestData($this->account, []);
     }
 
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expectedData['randomNumber']);
+
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+        $this->assertSame(23, \strlen($actual['requestDateTime']));
+        unset($actual['requestDateTime']);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data_link_creation_request' => [
+            'request_data' => [
+                'txnCode'     => '1020',
+                'order'       => [
+                    'orderTrackId' => 'ae15a6c8-467e-45de-b24c-b98821a42667',
+                ],
+                'payByLink'   => [
+                    'linkTxnCode'       => '3000',
+                    'linkTransferType'  => 'SMS',
+                    'mobilePhoneNumber' => '5321234567',
+                ],
+                'transaction' => [
+                    'amount'       => 1.00,
+                    'currencyCode' => 949,
+                    'motoInd'      => 0,
+                    'installCount' => 1,
+                ],
+            ],
+            'expected'     => [
+                'version'      => '1.00',
+                'txnCode'      => '1020',
+                'randomNumber' => 'rand_134',
+                'terminal'     => [
+                    'merchantSafeId' => '2023090417500272654BD9A49CF07574',
+                    'terminalSafeId' => '2023090417500284633D137A249DBBEB',
+                ],
+                'order'        => [
+                    'orderTrackId' => 'ae15a6c8-467e-45de-b24c-b98821a42667',
+                ],
+                'payByLink'    => [
+                    'linkTxnCode'       => '3000',
+                    'linkTransferType'  => 'SMS',
+                    'mobilePhoneNumber' => '5321234567',
+                ],
+                'transaction'  => [
+                    'amount'       => 1.00,
+                    'currencyCode' => 949,
+                    'motoInd'      => 0,
+                    'installCount' => 1,
+                ],
+            ],
+        ];
+
+        yield 'with_account_data' => [
+            'request_data' => [
+                'version'         => 'VERSION_11',
+                'txnCode'         => '1020',
+                'requestDateTime' => '2024-04-14T16:45:30.000',
+                'randomNumber'    => 'random_123',
+                'terminal'        => [
+                    'merchantSafeId' => 'MERCH_SAFE_ID',
+                    'terminalSafeId' => 'TERM_SAFE_ID',
+                ],
+                'order'           => [
+                    'orderTrackId' => 'ae15a6c8-467e-45de-b24c-b98821a42667',
+                ],
+                'payByLink'       => [
+                    'linkTxnCode'       => '3000',
+                    'linkTransferType'  => 'SMS',
+                    'mobilePhoneNumber' => '5321234567',
+                ],
+                'transaction'     => [
+                    'amount'       => 1.00,
+                    'currencyCode' => 949,
+                    'motoInd'      => 0,
+                    'installCount' => 1,
+                ],
+            ],
+            'expected'     => [
+                'version'      => 'VERSION_11',
+                'txnCode'      => '1020',
+                'randomNumber' => 'random_123',
+                'terminal'     => [
+                    'merchantSafeId' => 'MERCH_SAFE_ID',
+                    'terminalSafeId' => 'TERM_SAFE_ID',
+                ],
+                'order'        => [
+                    'orderTrackId' => 'ae15a6c8-467e-45de-b24c-b98821a42667',
+                ],
+                'payByLink'    => [
+                    'linkTxnCode'       => '3000',
+                    'linkTransferType'  => 'SMS',
+                    'mobilePhoneNumber' => '5321234567',
+                ],
+                'transaction'  => [
+                    'amount'       => 1.00,
+                    'currencyCode' => 949,
+                    'motoInd'      => 0,
+                    'installCount' => 1,
+                ],
+            ],
+        ];
+    }
+
     public static function historyRequestDataProvider(): array
     {
         return [

@@ -420,6 +420,26 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param GarantiPosAccount $posAccount
+     *
+     * @inheritDoc
+     */
+    public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
+    {
+        $requestData += [
+            'Mode'     => $this->getMode(),
+            'Version'  => self::API_VERSION,
+            'Terminal' => $this->getTerminalData($posAccount),
+        ];
+
+        if (!isset($requestData['Terminal']['HashData']) || '' === $requestData['Terminal']['HashData']) {
+            $requestData['Terminal']['HashData'] = $this->crypt->createHash($posAccount, $requestData);
+        }
+
+        return $requestData;
+    }
+
+    /**
      * 0 => ''
      * 1 => ''
      * 2 => '2'
