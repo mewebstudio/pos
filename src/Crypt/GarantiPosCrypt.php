@@ -74,7 +74,7 @@ class GarantiPosCrypt extends AbstractCrypt
             $posAccount->getTerminalId(),
             $requestData['Card']['Number'] ?? null,
             $requestData['Transaction']['Amount'],
-            $requestData['Transaction']['CurrencyCode'],
+            $requestData['Transaction']['CurrencyCode'] ?? null,
             $this->createSecurityData($posAccount, $requestData['Transaction']['Type']),
         ];
 

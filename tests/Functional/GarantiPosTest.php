@@ -284,4 +284,46 @@ class GarantiPosTest extends TestCase
         $this->assertTrue($eventIsThrown);
         $this->assertNotEmpty($response['transactions']);
     }
+
+    public function testCustomQuery(): void
+    {
+        $customQuery = [
+            'Version'     => 'v0.00',
+            'Customer'    => [
+                'IPAddress'    => '1.1.111.111',
+                'EmailAddress' => 'Cem@cem.com',
+            ],
+            'Order'       => [
+                'OrderID'     => 'SISTD5A61F1682E745B28871872383ABBEB1',
+                'GroupID'     => '',
+                'Description' => '',
+            ],
+            'Transaction' => [
+                'Type'   => 'bininq',
+                'Amount' => '1',
+                'BINInq' => [
+                    'Group'    => 'A',
+                    'CardType' => 'A',
+                ],
+            ],
+        ];
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->customQuery($customQuery);
+
+        $response = $this->pos->getResponse();
+
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertArrayHasKey('Transaction', $response);
+        $this->assertTrue($eventIsThrown);
+    }
 }

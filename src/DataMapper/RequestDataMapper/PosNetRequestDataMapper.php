@@ -348,6 +348,21 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param PosNetAccount $posAccount
+     *
+     * @inheritDoc
+     */
+    public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
+    {
+        $requestData += [
+            'mid' => $posAccount->getClientId(),
+            'tid' => $posAccount->getTerminalId(),
+        ];
+
+        return $requestData;
+    }
+
+    /**
      * Get PrefixedOrderId
      * To check the status of an order or cancel/refund order Yapikredi
      * - requires the order length to be 24

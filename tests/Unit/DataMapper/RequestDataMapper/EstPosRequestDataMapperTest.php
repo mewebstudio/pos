@@ -247,6 +247,67 @@ class EstPosRequestDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actual);
     }
 
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data' => [
+            'request_data' => [
+                'Type'     => 'Query',
+                'Number'   => '4111111111111111',
+                'Expires'  => '10.2025',
+                'Extra'    => [
+                    'IMECECARDQUERY' => null,
+                ],
+            ],
+            'expected' => [
+                'Name'     => 'ISBANKAPI',
+                'Password' => 'ISBANK07',
+                'ClientId' => '700655000200',
+                'Type'     => 'Query',
+                'Number'   => '4111111111111111',
+                'Expires'  => '10.2025',
+                'Extra'    => [
+                    'IMECECARDQUERY' => null,
+                ],
+            ],
+        ];
+
+        yield 'with_account_data' => [
+            'request_data' => [
+                'Name'     => 'ACCOUNTNAME',
+                'Password' => 'ACCOUNTPASSWORD',
+                'ClientId' => 'ACCCOUNTCLIENTID',
+                'Type'     => 'Query',
+                'Number'   => '4111111111111111',
+                'Expires'  => '10.2025',
+                'Extra'    => [
+                    'IMECECARDQUERY' => null,
+                ],
+            ],
+            'expected' => [
+                'Name'     => 'ACCOUNTNAME',
+                'Password' => 'ACCOUNTPASSWORD',
+                'ClientId' => 'ACCCOUNTCLIENTID',
+                'Type'     => 'Query',
+                'Number'   => '4111111111111111',
+                'Expires'  => '10.2025',
+                'Extra'    => [
+                    'IMECECARDQUERY' => null,
+                ],
+            ],
+        ];
+    }
 
     public static function threeDPaymentRequestDataDataProvider(): \Generator
     {
@@ -678,7 +739,7 @@ class EstPosRequestDataMapperTest extends TestCase
                     'ClientId' => '700655000200',
                     'Extra'    => [
                         'ORDERSTATUS' => 'QUERY',
-                        'RECURRINGID'  => '22303O8EA19252',
+                        'RECURRINGID' => '22303O8EA19252',
                     ],
                 ],
             ],

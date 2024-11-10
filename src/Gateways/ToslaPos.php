@@ -57,6 +57,7 @@ class ToslaPos extends AbstractGateway
         PosInterface::TX_TYPE_REFUND         => true,
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_STATUS         => true,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
 
 
@@ -159,6 +160,18 @@ class ToslaPos extends AbstractGateway
         }
 
         return $this->requestDataMapper->create3DFormData($this->account, $data, $paymentModel, $txType, $gatewayUrl, $creditCard);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    {
+        if (null === $apiUrl) {
+            throw new \InvalidArgumentException('API URL is required for custom query');
+        }
+
+        return parent::customQuery($requestData, $apiUrl);
     }
 
     /**

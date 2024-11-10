@@ -210,6 +210,18 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @inheritDoc
+     */
+    public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
+    {
+        $requestData += $this->getRequestAccountData($posAccount) + [
+                'MbrId' => self::MBR_ID,
+            ];
+
+        return $requestData;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array

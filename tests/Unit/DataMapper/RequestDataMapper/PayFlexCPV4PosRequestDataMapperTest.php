@@ -186,6 +186,46 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createOrderHistoryRequestData($this->account, []);
     }
 
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data_bin_inquiry' => [
+            'request_data' => [
+                'abc' => 'abc',
+            ],
+            'expected'     => [
+                'abc'        => 'abc',
+                'MerchantId' => '000000000111111',
+                'Password'   => '3XTgER89as',
+            ],
+        ];
+
+        yield 'with_account_data_bin_inquiry' => [
+            'request_data' => [
+                'abc'        => 'abc',
+                'MerchantId' => '000000000111111xxx',
+                'Password'   => '3XTgER89asxxx',
+            ],
+            'expected'     => [
+                'abc'        => 'abc',
+                'MerchantId' => '000000000111111xxx',
+                'Password'   => '3XTgER89asxxx',
+            ],
+        ];
+    }
+
+
     public static function registerDataProvider(): iterable
     {
         $account = AccountFactory::createPayFlexAccount(

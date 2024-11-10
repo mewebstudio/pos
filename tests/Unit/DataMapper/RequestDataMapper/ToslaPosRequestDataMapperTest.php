@@ -268,6 +268,64 @@ class ToslaPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createHistoryRequestData($this->account);
     }
 
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        $this->crypt->expects(self::once())
+            ->method('generateRandomString')
+            ->willReturn($expectedData['rnd']);
+        if (!isset($requestData['hash'])) {
+            $this->crypt->expects(self::once())
+                ->method('createHash')
+                ->willReturn($expectedData['hash']);
+        }
+
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+        $this->assertSame(14, \strlen($actual['timeSpan']));
+        unset($actual['timeSpan'], $expectedData['timeSpan']);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data_installment_option_inquiry' => [
+            'request_data' => [
+                'bin' => 415956,
+            ],
+            'expected'     => [
+                'apiUser'  => 'POS_ENT_Test_001',
+                'bin'      => 415956,
+                'clientId' => '1000000494',
+                'hash'     => '12fsdfdsfsfs',
+                'rnd'      => 'rndsfldfls',
+                'timeSpan' => '20241103144302',
+            ],
+        ];
+
+        yield 'with_account_data_installment_option_inquiry' => [
+            'request_data' => [
+                'apiUser'  => 'POS_ENT_Test_001xxx',
+                'bin'      => 415956,
+                'clientId' => '1000000494xx',
+                'hash'     => '12fsdfdsfsfsxxx',
+                'rnd'      => 'rndsfldfls',
+                'timeSpan' => '20241103144302',
+            ],
+            'expected'     => [
+                'apiUser'  => 'POS_ENT_Test_001xxx',
+                'bin'      => 415956,
+                'clientId' => '1000000494xx',
+                'hash'     => '12fsdfdsfsfsxxx',
+                'rnd'      => 'rndsfldfls',
+                'timeSpan' => '20241103144302',
+            ],
+        ];
+    }
 
     public static function statusRequestDataProvider(): array
     {

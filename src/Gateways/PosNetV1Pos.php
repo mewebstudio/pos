@@ -48,6 +48,7 @@ class PosNetV1Pos extends AbstractGateway
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_HISTORY        => false,
         PosInterface::TX_TYPE_ORDER_HISTORY  => false,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
 
     /** @return PosNetAccount */
@@ -150,6 +151,18 @@ class PosNetV1Pos extends AbstractGateway
         $this->logger->debug('preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), $creditCard);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    {
+        if (null === $apiUrl) {
+            throw new InvalidArgumentException('API URL is required for custom query');
+        }
+
+        return parent::customQuery($requestData, $apiUrl);
     }
 
     /**

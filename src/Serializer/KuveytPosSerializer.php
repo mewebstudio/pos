@@ -26,6 +26,7 @@ class KuveytPosSerializer implements SerializerInterface
         PosInterface::TX_TYPE_REFUND_PARTIAL,
         PosInterface::TX_TYPE_STATUS,
         PosInterface::TX_TYPE_CANCEL,
+        PosInterface::TX_TYPE_CUSTOM_QUERY,
     ];
 
     private Serializer $serializer;

@@ -249,6 +249,18 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param PayFlexAccount $posAccount
+     *
+     * @inheritDoc
+     */
+    public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
+    {
+        $requestData += $this->getRequestAccountData($posAccount);
+
+        return $requestData;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array

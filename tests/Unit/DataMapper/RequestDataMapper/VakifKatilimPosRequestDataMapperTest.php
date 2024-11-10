@@ -333,7 +333,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData(KuveytPosAccount $kuveytPosAccount, array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $hashCalculationData = $expectedData;
+        $hashCalculationData             = $expectedData;
         $hashCalculationData['HashData'] = '';
 
         $this->crypt->expects(self::once())
@@ -348,6 +348,174 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actual);
     }
 
+    /**
+     * @dataProvider createCustomQueryRequestDataDataProvider
+     */
+    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    {
+        if (!isset($requestData['HashData'])) {
+            $this->crypt->expects(self::once())
+                ->method('createHash')
+                ->willReturn($expectedData['HashData']);
+        }
+
+        $this->crypt->expects(self::once())
+            ->method('hashString')
+            ->with($this->account->getStoreKey())
+            ->willReturn($expectedData['HashPassword']);
+
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        \ksort($actual);
+        \ksort($expectedData);
+        $this->assertSame($expectedData, $actual);
+    }
+
+    public static function createCustomQueryRequestDataDataProvider(): \Generator
+    {
+        yield 'without_account_data_mail_order_sale' => [
+            'request_data' => [
+                'MerchantOrderId'                  => '2126497214',
+                'InstallmentCount'                 => '0',
+                'Amount'                           => '120',
+                'DisplayAmount'                    => '120',
+                'FECAmount'                        => '0',
+                'FECCurrencyCode'                  => '0949',
+                'Addresses'                        => [
+                    'VPosAddressContract' => [
+                        'Type'        => '1',
+                        'Name'        => 'Mahmut Sami YAZAR',
+                        'PhoneNumber' => '324234234234',
+                        'OrderId'     => '0',
+                        'AddressId'   => '12',
+                        'Email'       => 'mahmutsamiyazar@hotmail.com',
+                    ],
+                ],
+                'CardNumber'                       => '5353550000958906',
+                'CardExpireDateYear'               => '23',
+                'CardExpireDateMonth'              => '01',
+                'CardCVV2'                         => '741',
+                'CardHolderName'                   => 'Hasan Karacan',
+                'DebtId'                           => '0',
+                'SurchargeAmount'                  => '0',
+                'SGKDebtAmount'                    => '0',
+                'InstallmentMaturityCommisionFlag' => '0',
+                'TransactionSecurity'              => '1',
+                'CardGuid'                         => 'AA9588EF350C480FBE5CAD40A463AF00',
+            ],
+            'expected'     => [
+                'APIVersion'                       => '1.0.0',
+                'Addresses'                        => [
+                    'VPosAddressContract' => [
+                        'Type'        => '1',
+                        'Name'        => 'Mahmut Sami YAZAR',
+                        'PhoneNumber' => '324234234234',
+                        'OrderId'     => '0',
+                        'AddressId'   => '12',
+                        'Email'       => 'mahmutsamiyazar@hotmail.com',
+                    ],
+                ],
+                'Amount'                           => '120',
+                'CardCVV2'                         => '741',
+                'CardExpireDateMonth'              => '01',
+                'CardExpireDateYear'               => '23',
+                'CardGuid'                         => 'AA9588EF350C480FBE5CAD40A463AF00',
+                'CardHolderName'                   => 'Hasan Karacan',
+                'CardNumber'                       => '5353550000958906',
+                'CustomerId'                       => '11111',
+                'DebtId'                           => '0',
+                'DisplayAmount'                    => '120',
+                'FECAmount'                        => '0',
+                'FECCurrencyCode'                  => '0949',
+                'HashData'                         => 'fskfjslfjss',
+                'HashPassword'                     => 'lf;slkddskf;sa',
+                'InstallmentCount'                 => '0',
+                'InstallmentMaturityCommisionFlag' => '0',
+                'MerchantId'                       => '1',
+                'MerchantOrderId'                  => '2126497214',
+                'SGKDebtAmount'                    => '0',
+                'SubMerchantId'                    => '0',
+                'SurchargeAmount'                  => '0',
+                'TransactionSecurity'              => '1',
+                'UserName'                         => 'APIUSER',
+            ],
+        ];
+
+        yield 'with_account_data_mail_order_sale' => [
+            'request_data' => [
+                'APIVersion'                       => '1.0.0',
+                'Addresses'                        => [
+                    'VPosAddressContract' => [
+                        'Type'        => '1',
+                        'Name'        => 'Mahmut Sami YAZAR',
+                        'PhoneNumber' => '324234234234',
+                        'OrderId'     => '0',
+                        'AddressId'   => '12',
+                        'Email'       => 'mahmutsamiyazar@hotmail.com',
+                    ],
+                ],
+                'Amount'                           => '120',
+                'CardCVV2'                         => '741',
+                'CardExpireDateMonth'              => '01',
+                'CardExpireDateYear'               => '23',
+                'CardGuid'                         => 'AA9588EF350C480FBE5CAD40A463AF00',
+                'CardHolderName'                   => 'Hasan Karacan',
+                'CardNumber'                       => '5353550000958906',
+                'DebtId'                           => '0',
+                'DisplayAmount'                    => '120',
+                'FECAmount'                        => '0',
+                'FECCurrencyCode'                  => '0949',
+                'InstallmentCount'                 => '0',
+                'InstallmentMaturityCommisionFlag' => '0',
+                'MerchantOrderId'                  => '2126497214',
+                'SGKDebtAmount'                    => '0',
+                'SurchargeAmount'                  => '0',
+                'TransactionSecurity'              => '1',
+                'SubMerchantId'                    => '0',
+                'CustomerId'                       => '11111xxx',
+                'HashPassword'                     => 'lf;slkddskf;saxxx',
+                'MerchantId'                       => '1xxx',
+                'UserName'                         => 'APIUSERXXX',
+                'HashData'                         => 'fskfjslfjsszzzz',
+            ],
+            'expected'     => [
+                'APIVersion'                       => '1.0.0',
+                'Addresses'                        => [
+                    'VPosAddressContract' => [
+                        'Type'        => '1',
+                        'Name'        => 'Mahmut Sami YAZAR',
+                        'PhoneNumber' => '324234234234',
+                        'OrderId'     => '0',
+                        'AddressId'   => '12',
+                        'Email'       => 'mahmutsamiyazar@hotmail.com',
+                    ],
+                ],
+                'Amount'                           => '120',
+                'CardCVV2'                         => '741',
+                'CardExpireDateMonth'              => '01',
+                'CardExpireDateYear'               => '23',
+                'CardGuid'                         => 'AA9588EF350C480FBE5CAD40A463AF00',
+                'CardHolderName'                   => 'Hasan Karacan',
+                'CardNumber'                       => '5353550000958906',
+                'DebtId'                           => '0',
+                'DisplayAmount'                    => '120',
+                'FECAmount'                        => '0',
+                'FECCurrencyCode'                  => '0949',
+                'InstallmentCount'                 => '0',
+                'InstallmentMaturityCommisionFlag' => '0',
+                'MerchantOrderId'                  => '2126497214',
+                'SGKDebtAmount'                    => '0',
+                'SurchargeAmount'                  => '0',
+                'TransactionSecurity'              => '1',
+                'SubMerchantId'                    => '0',
+                'CustomerId'                       => '11111xxx',
+                'HashPassword'                     => 'lf;slkddskf;saxxx',
+                'MerchantId'                       => '1xxx',
+                'UserName'                         => 'APIUSERXXX',
+                'HashData'                         => 'fskfjslfjsszzzz',
+            ],
+        ];
+    }
 
     public static function createCancelRequestDataProvider(): iterable
     {

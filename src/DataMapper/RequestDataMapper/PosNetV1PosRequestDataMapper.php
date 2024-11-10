@@ -322,6 +322,31 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param PosNetAccount $posAccount
+     *
+     * @inheritDoc
+     */
+    public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
+    {
+        $requestData += [
+            'ApiType'    => 'JSON',
+            'ApiVersion' => self::API_VERSION,
+            'MerchantNo' => $posAccount->getClientId(),
+            'TerminalNo' => $posAccount->getTerminalId(),
+        ];
+
+        if (!isset($requestData['MAC'])) {
+            if (null === $posAccount->getStoreKey()) {
+                throw new \LogicException('Account storeKey eksik!');
+            }
+
+            $requestData['MAC'] = $this->crypt->hashFromParams($posAccount->getStoreKey(), $requestData, 'MACParams', ':');
+        }
+
+        return $requestData;
+    }
+
+    /**
      * {@inheritDoc}
      */
     public function createHistoryRequestData(AbstractPosAccount $posAccount, array $data = []): array

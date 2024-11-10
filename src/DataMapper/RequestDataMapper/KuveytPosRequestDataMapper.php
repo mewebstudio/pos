@@ -354,6 +354,26 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param KuveytPosAccount $posAccount
+     *
+     * @inheritDoc
+     */
+    public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
+    {
+        $requestData += [
+            'VPosMessage' => $this->getRequestAccountData($posAccount) + [
+                    'APIVersion' => self::API_VERSION,
+                ],
+        ];
+
+        if (!isset($requestData['VPosMessage']['HashData'])) {
+            $requestData['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $requestData['VPosMessage']);
+        }
+
+        return $requestData;
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @param array<string, string> $order Kuveyt bank'tan donen HTML cevaptan parse edilen form inputlar

@@ -54,6 +54,7 @@ class VakifKatilimPos extends AbstractGateway
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_HISTORY        => true,
         PosInterface::TX_TYPE_ORDER_HISTORY  => true,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
 
     /** @return KuveytPosAccount */
@@ -158,6 +159,18 @@ class VakifKatilimPos extends AbstractGateway
         return $this;
     }
 
+
+    /**
+     * @inheritDoc
+     */
+    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    {
+        if (null === $apiUrl) {
+            throw new \InvalidArgumentException('API URL is required for custom query');
+        }
+
+        return parent::customQuery($requestData, $apiUrl);
+    }
 
     /**
      * @inheritDoc

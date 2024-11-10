@@ -239,6 +239,25 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param KuveytPosAccount $posAccount
+     *
+     * @inheritDoc
+     */
+    public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
+    {
+        $requestData += $this->getRequestAccountData($posAccount) + [
+                'APIVersion'   => self::API_VERSION,
+                'HashPassword' => $this->crypt->hashString($posAccount->getStoreKey() ?? ''),
+            ];
+
+        if (!isset($requestData['HashData'])) {
+            $requestData['HashData'] = $this->crypt->createHash($posAccount, $requestData);
+        }
+
+        return $requestData;
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @param array<string, string> $order Vakif Katilim bank'tan donen HTML cevaptan parse edilen form inputlar yada
