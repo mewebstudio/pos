@@ -353,13 +353,17 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
     {
-        $dateTime = $requestData['requestDateTime'] ?? $this->createDateTime();
+        if (isset($requestData['requestDateTime'])) {
+            $dateTime = $requestData['requestDateTime'];
+        } else {
+            $dateTime = $this->valueFormatter->formatDateTime($this->createDateTime(), 'requestDateTime');
+        }
 
         return $requestData
             + $this->getRequestAccountData($posAccount)
             + [
                 'version'         => self::API_VERSION,
-                'requestDateTime' => $this->valueFormatter->formatDateTime($dateTime, 'requestDateTime'),
+                'requestDateTime' => $dateTime,
                 'randomNumber'    => $this->crypt->generateRandomString(),
             ];
     }

@@ -175,7 +175,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $requestData += $this->getRequestAccountData($posAccount) + [
                 'rnd'      => $this->crypt->generateRandomString(),
-                'timeSpan' => $this->newTimeSpan(),
+                'timeSpan' => $this->valueFormatter->formatDateTime($this->newTimeSpan(), 'timeSpan'),
             ];
 
         if (!isset($requestData['hash'])) {

@@ -264,7 +264,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 'clientId' => '1000000494',
                 'hash'     => '12fsdfdsfsfs',
                 'rnd'      => 'rndsfldfls',
-                'timeSpan' => '20241103144302',
+                'timeSpan' => new \DateTimeImmutable('2024-11-03 14:43:02'),
             ],
         ];
 
@@ -275,7 +275,6 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 'clientId' => '1000000494xx',
                 'hash'     => '12fsdfdsfsfsxxx',
                 'rnd'      => 'rndsfldfls',
-                'timeSpan' => '20241103144302',
             ],
             'expected'     => [
                 'apiUser'  => 'POS_ENT_Test_001xxx',
@@ -283,7 +282,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
                 'clientId' => '1000000494xx',
                 'hash'     => '12fsdfdsfsfsxxx',
                 'rnd'      => 'rndsfldfls',
-                'timeSpan' => '20241103144302',
+                'timeSpan' => new \DateTimeImmutable('2024-11-03 14:43:02'),
             ],
         ];
     }
