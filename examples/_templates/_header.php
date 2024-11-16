@@ -74,7 +74,7 @@
         </nav>
 </header>
 <div id="wrapper">
-    <div class="container" style="max-width: 640px;">
+    <div class="container" style="max-width: 720px;">
         <h2 class="text-center"><?= $templateTitle; ?></h2>
         <hr>
         <?php if (isset($posClass)): ?>
@@ -131,6 +131,11 @@
                             <?php if ($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_HISTORY, \Mews\Pos\PosInterface::MODEL_NON_SECURE)): ?>
                                 <li class="nav-item">
                                     <a class="nav-link <?= $transaction === \Mews\Pos\PosInterface::TX_TYPE_HISTORY ? 'active' : ''; ?>" href="<?= $bankTestsUrl ?>/regular/history.php">History</a>
+                                </li>
+                            <?php endif; ?>
+                            <?php if ($posClass::isSupportedTransaction(\Mews\Pos\PosInterface::TX_TYPE_CUSTOM_QUERY, \Mews\Pos\PosInterface::MODEL_NON_SECURE)): ?>
+                                <li class="nav-item">
+                                    <a class="nav-link <?= $transaction === \Mews\Pos\PosInterface::TX_TYPE_CUSTOM_QUERY ? 'active' : ''; ?>" href="<?= $bankTestsUrl ?>/regular/custom_query.php">Custom Query</a>
                                 </li>
                             <?php endif; ?>
                         </ul>

@@ -157,10 +157,10 @@ class EstPosTest extends TestCase
     public function testGet3DFormData(
         bool $isWithCard
     ): void {
-        $card = $isWithCard ? $this->card : null;
-        $order = ['id' => '124'];
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
-        $txType = PosInterface::TX_TYPE_PAY_AUTH;
+        $card         = $isWithCard ? $this->card : null;
+        $paymentModel = $isWithCard ? PosInterface::MODEL_3D_SECURE : PosInterface::MODEL_3D_HOST;
+        $order        = ['id' => '124'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DFormData')
@@ -177,6 +177,24 @@ class EstPosTest extends TestCase
         $actual = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
         $this->assertSame(['formData'], $actual);
+    }
+
+    /**
+     * @dataProvider threeDFormDataBadInputsProvider
+     */
+    public function testGet3DFormDataWithBadInputs(
+        array  $order,
+        string $paymentModel,
+        string $txType,
+        bool   $isWithCard,
+        string $expectedExceptionClass
+    ): void
+    {
+        $card = $isWithCard ? $this->card : null;
+
+        $this->expectException($expectedExceptionClass);
+
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
     }
 
     /**
@@ -600,6 +618,56 @@ class EstPosTest extends TestCase
         $this->pos->makeRegularPostPayment($order);
     }
 
+    /**
+     * @dataProvider customQueryRequestDataProvider
+     */
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    {
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+
+        $updatedRequestData = $requestData + [
+                'abc' => 'def',
+            ];
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCustomQueryRequestData')
+            ->with($account, $requestData)
+            ->willReturn($updatedRequestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $expectedApiUrl,
+            $updatedRequestData,
+            'request-body',
+            'response-body',
+            ['decodedResponse'],
+            $requestData,
+            PosInterface::MODEL_NON_SECURE
+        );
+
+        $this->pos->customQuery($requestData, $apiUrl);
+    }
+
+    public static function customQueryRequestDataProvider(): array
+    {
+        return [
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => 'https://entegrasyon.asseco-see.com.tr/fim/api/xxxx',
+                'expected_api_url' => 'https://entegrasyon.asseco-see.com.tr/fim/api/xxxx',
+            ],
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => null,
+                'expected_api_url' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
+            ],
+        ];
+    }
+
     public static function make3DPaymentDataProvider(): array
     {
         return [
@@ -752,6 +820,26 @@ class EstPosTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+            ],
+        ];
+    }
+
+    public static function threeDFormDataBadInputsProvider(): array
+    {
+        return [
+            '3d_secure_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_SECURE,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            '3d_pay_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
             ],
         ];
     }

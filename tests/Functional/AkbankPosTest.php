@@ -435,4 +435,43 @@ class AkbankPosTest extends TestCase
         $this->assertTrue($eventIsThrown);
         $this->assertNotEmpty($response['transactions']);
     }
+
+    public function testCustomQuery(): void
+    {
+        $customQuery = [
+            'txnCode'     => '1020',
+            'order'       => [
+                'orderTrackId' => 'ae15a6c8-467e-45de-b24c-b98821a42667',
+            ],
+            'payByLink'   => [
+                'linkTxnCode'       => '3000',
+                'linkTransferType'  => 'SMS',
+                'mobilePhoneNumber' => '5321234567',
+            ],
+            'transaction' => [
+                'amount'       => 1.00,
+                'currencyCode' => 949,
+                'motoInd'      => 0,
+                'installCount' => 1,
+            ],
+        ];
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(8, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->customQuery($customQuery);
+
+        $response = $this->pos->getResponse();
+
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertArrayHasKey('responseCode', $response);
+        $this->assertTrue($eventIsThrown);
+    }
 }

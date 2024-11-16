@@ -52,6 +52,7 @@ class PayFlexCPV4Pos extends AbstractGateway
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_HISTORY        => false,
         PosInterface::TX_TYPE_ORDER_HISTORY  => false,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
 
     /** @return PayFlexAccount */
@@ -175,6 +176,8 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
+        $this->check3DFormInputs($paymentModel, $txType, $creditCard);
+
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $data */
         $data = $this->registerPayment($order, $txType, $paymentModel, $creditCard);
 

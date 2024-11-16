@@ -141,19 +141,27 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
+     * @param PosInterface::MODEL_3D_* $paymentModel
+     *
      * @return non-empty-string
      */
-    public function get3DGatewayURL(): string
+    public function get3DGatewayURL(string $paymentModel = PosInterface::MODEL_3D_SECURE): string
     {
+        if (PosInterface::MODEL_3D_HOST === $paymentModel && isset($this->config['gateway_endpoints']['gateway_3d_host'])) {
+            return $this->config['gateway_endpoints']['gateway_3d_host'];
+        }
+
         return $this->config['gateway_endpoints']['gateway_3d'];
     }
 
     /**
+     * @deprecated use get3DGatewayURL() instead
+     *
      * @return non-empty-string
      */
     public function get3DHostGatewayURL(): string
     {
-        return $this->config['gateway_endpoints']['gateway_3d_host'] ?? $this->get3DGatewayURL();
+        return $this->get3DGatewayURL(PosInterface::MODEL_3D_HOST);
     }
 
     /**
@@ -525,6 +533,47 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
+     * @inheritDoc
+     */
+    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    {
+        $txType             = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $updatedRequestData = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+
+        $event = new RequestDataPreparedEvent(
+            $updatedRequestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $requestData,
+            PosInterface::MODEL_NON_SECURE
+        );
+
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
+        if ($updatedRequestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $updatedRequestData = $event->getRequestData();
+        }
+
+        $data           = $this->serializer->encode($updatedRequestData, $txType);
+        $apiUrl         = $apiUrl ?? $this->getQueryAPIUrl($txType);
+        $this->response = $this->send(
+            $data,
+            $txType,
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl
+        );
+
+        return $this;
+    }
+
+    /**
      * @param bool $testMode
      *
      * @return $this
@@ -605,5 +654,23 @@ abstract class AbstractGateway implements PosInterface
         $this->logger->error('3d auth fail', ['md_status' => $mdStatus]);
 
         return false;
+    }
+
+    /**
+     * @param PosInterface::MODEL_3D_*                                          $paymentModel
+     * @param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
+     * @param CreditCardInterface|null                                          $card
+     *
+     * @throws \InvalidArgumentException when inputs are not valid
+     */
+    protected function check3DFormInputs(string $paymentModel, string $txType, CreditCardInterface $card = null): void
+    {
+        if (!self::isSupportedTransaction($txType, $paymentModel)) {
+            throw new \LogicException('Bu banka altyapısı sağlanan ödeme modelini ya da işlem tipini desteklenmiyor.');
+        }
+
+        if ((PosInterface::MODEL_3D_SECURE === $paymentModel || PosInterface::MODEL_3D_PAY === $paymentModel) && null === $card) {
+            throw new \InvalidArgumentException('Bu ödeme modeli için kart bilgileri zorunlu!');
+        }
     }
 }

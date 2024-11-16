@@ -310,6 +310,21 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param PosNetAccount $posAccount
+     *
+     * @inheritDoc
+     */
+    public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
+    {
+        $requestData += [
+            'mid' => $posAccount->getClientId(),
+            'tid' => $posAccount->getTerminalId(),
+        ];
+
+        return $requestData;
+    }
+
+    /**
      * @inheritDoc
      */
     protected function preparePaymentOrder(array $order): array

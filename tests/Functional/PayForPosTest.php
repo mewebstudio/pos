@@ -310,4 +310,33 @@ class PayForPosTest extends TestCase
 
         return $lastResponse;
     }
+
+    public function testCustomQuery(): void
+    {
+        $customQuery = [
+            'SecureType'     => 'Inquiry',
+            'TxnType'        => 'ParaPuanInquiry',
+            'Pan'            => '4155650100416111',
+            'Expiry'         => '0125',
+            'Cvv2'           => '123',
+        ];
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(9, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->customQuery($customQuery);
+
+        $response = $this->pos->getResponse();
+
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertArrayHasKey('ProcReturnCode', $response);
+        $this->assertTrue($eventIsThrown);
+    }
 }

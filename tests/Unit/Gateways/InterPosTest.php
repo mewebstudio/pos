@@ -153,10 +153,11 @@ class InterPosTest extends TestCase
     public function testGet3DFormData(
         bool $isWithCard
     ): void {
-        $card = $isWithCard ? $this->card : null;
-        $order = ['id' => '124'];
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
-        $txType = PosInterface::TX_TYPE_PAY_AUTH;
+        $card         = $isWithCard ? $this->card : null;
+        $paymentModel = $isWithCard ? PosInterface::MODEL_3D_SECURE : PosInterface::MODEL_3D_HOST;
+        $gatewayUrl   = $isWithCard ? 'https://test.inter-vpos.com.tr/mpi/Default.aspx' : 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx';
+        $order        = ['id' => '124'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DFormData')
@@ -165,7 +166,7 @@ class InterPosTest extends TestCase
                 $order,
                 $paymentModel,
                 $txType,
-                'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                $gatewayUrl,
                 $card
             )
             ->willReturn(['formData']);
@@ -173,6 +174,24 @@ class InterPosTest extends TestCase
         $actual = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
         $this->assertSame(['formData'], $actual);
+    }
+
+    /**
+     * @dataProvider threeDFormDataBadInputsProvider
+     */
+    public function testGet3DFormDataWithBadInputs(
+        array  $order,
+        string $paymentModel,
+        string $txType,
+        bool   $isWithCard,
+        string $expectedExceptionClass
+    ): void
+    {
+        $card = $isWithCard ? $this->card : null;
+
+        $this->expectException($expectedExceptionClass);
+
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
     }
 
     /**
@@ -515,6 +534,56 @@ class InterPosTest extends TestCase
         $this->pos->refund($order);
     }
 
+    /**
+     * @dataProvider customQueryRequestDataProvider
+     */
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    {
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+
+        $updatedRequestData = $requestData + [
+                'abc' => 'def',
+            ];
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCustomQueryRequestData')
+            ->with($account, $requestData)
+            ->willReturn($updatedRequestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $expectedApiUrl,
+            $updatedRequestData,
+            $updatedRequestData,
+            'response-body',
+            ['decodedResponse'],
+            $requestData,
+            PosInterface::MODEL_NON_SECURE
+        );
+
+        $this->pos->customQuery($requestData, $apiUrl);
+    }
+
+    public static function customQueryRequestDataProvider(): array
+    {
+        return [
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => 'https://test.inter-vpos.com.tr/mpi/Default.aspx/xxxx',
+                'expected_api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx/xxxx',
+            ],
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => null,
+                'expected_api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+            ],
+        ];
+    }
+
     public static function make3DPaymentDataProvider(): array
     {
         return [
@@ -606,6 +675,33 @@ class InterPosTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+            ],
+        ];
+    }
+
+    public static function threeDFormDataBadInputsProvider(): array
+    {
+        return [
+            '3d_secure_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_SECURE,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            '3d_pay_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            'unsupported_payment_model' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY_HOSTING,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \LogicException::class,
             ],
         ];
     }

@@ -146,15 +146,14 @@ class PosNetV1PosTest extends TestCase
 
     /**
      * @testWith [true]
-     * [false]
      */
     public function testGet3DFormData(
         bool $isWithCard
     ): void
     {
         $card         = $isWithCard ? $this->card : null;
+        $paymentModel = $isWithCard ? PosInterface::MODEL_3D_SECURE : PosInterface::MODEL_3D_HOST;
         $order        = ['id' => '124'];
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->requestMapperMock->expects(self::once())
@@ -172,6 +171,24 @@ class PosNetV1PosTest extends TestCase
         $actual = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
         $this->assertSame(['formData'], $actual);
+    }
+
+    /**
+     * @dataProvider threeDFormDataBadInputsProvider
+     */
+    public function testGet3DFormDataWithBadInputs(
+        array  $order,
+        string $paymentModel,
+        string $txType,
+        bool   $isWithCard,
+        string $expectedExceptionClass
+    ): void
+    {
+        $card = $isWithCard ? $this->card : null;
+
+        $this->expectException($expectedExceptionClass);
+
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
     }
 
     /**
@@ -479,6 +496,57 @@ class PosNetV1PosTest extends TestCase
         $this->pos->orderHistory([]);
     }
 
+    /**
+     * @dataProvider customQueryRequestDataProvider
+     */
+    public function testCustomQueryRequest(array $requestData, string $apiUrl, string $expectedApiUrl): void
+    {
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
+
+        $updatedRequestData = $requestData + [
+                'abc' => 'def',
+            ];
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCustomQueryRequestData')
+            ->with($account, $requestData)
+            ->willReturn($updatedRequestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $expectedApiUrl,
+            $updatedRequestData,
+            'request-body',
+            'response-body',
+            ['decodedResponse'],
+            $requestData,
+            PosInterface::MODEL_NON_SECURE
+        );
+
+        $this->pos->customQuery($requestData, $apiUrl);
+    }
+
+
+    public function testCustomQueryRequestWithoutAPIurl(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->pos->customQuery(['ac' => 'aas']);
+    }
+
+    public static function customQueryRequestDataProvider(): array
+    {
+        return [
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/xxx',
+                'expected_api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/xxx',
+            ],
+        ];
+    }
+
     public static function getApiURLDataProvider(): iterable
     {
         yield [
@@ -603,6 +671,26 @@ class PosNetV1PosTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Return',
+            ],
+        ];
+    }
+
+    public static function threeDFormDataBadInputsProvider(): array
+    {
+        return [
+            '3d_secure_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_SECURE,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            'unsupported_payment_model' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_HOST,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \LogicException::class,
             ],
         ];
     }

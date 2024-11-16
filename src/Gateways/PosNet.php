@@ -6,7 +6,6 @@
 namespace Mews\Pos\Gateways;
 
 use InvalidArgumentException;
-use LogicException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
@@ -53,6 +52,7 @@ class PosNet extends AbstractGateway
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_HISTORY        => false,
         PosInterface::TX_TYPE_ORDER_HISTORY  => false,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
 
     /**
@@ -166,9 +166,7 @@ class PosNet extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
-        if (!$creditCard instanceof CreditCardInterface) {
-            throw new LogicException('Kredi kartı veya sipariş bilgileri eksik!');
-        }
+        $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
         $data = $this->getOosTransactionData($order, $txType, $paymentModel, $creditCard);
 
@@ -179,7 +177,15 @@ class PosNet extends AbstractGateway
 
         $this->logger->debug('preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), null, $data['oosRequestDataResponse']);
+        return $this->requestDataMapper->create3DFormData(
+            $this->account,
+            $order,
+            $paymentModel,
+            $txType,
+            $this->get3DGatewayURL($paymentModel),
+            null,
+            $data['oosRequestDataResponse']
+        );
     }
 
     /** @return PosNetAccount */

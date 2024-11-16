@@ -401,6 +401,24 @@ class AkbankPosTest extends TestCase
     }
 
     /**
+     * @dataProvider threeDFormDataBadInputsProvider
+     */
+    public function testGet3DFormDataWithBadInputs(
+        array  $order,
+        string $paymentModel,
+        string $txType,
+        bool   $isWithCard,
+        string $expectedExceptionClass
+    ): void
+    {
+        $card = $isWithCard ? $this->card : null;
+
+        $this->expectException($expectedExceptionClass);
+
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+    }
+
+    /**
      * @dataProvider historyRequestDataProvider
      */
     public function testHistoryRequest(array $order, string $apiUrl): void
@@ -643,6 +661,56 @@ class AkbankPosTest extends TestCase
         $this->pos->refund($order);
     }
 
+    /**
+     * @dataProvider customQueryRequestDataProvider
+     */
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    {
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+
+        $updatedRequestData = $requestData + [
+                'abc' => 'def',
+            ];
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCustomQueryRequestData')
+            ->with($account, $requestData)
+            ->willReturn($updatedRequestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $expectedApiUrl,
+            $updatedRequestData,
+            'request-body',
+            'response-body',
+            ['decodedResponse'],
+            $requestData,
+            PosInterface::MODEL_NON_SECURE
+        );
+
+        $this->pos->customQuery($requestData, $apiUrl);
+    }
+
+    public static function customQueryRequestDataProvider(): array
+    {
+        return [
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => 'https://apipre.akbank.com/api/v1/payment/virtualpos/xxxx',
+                'expected_api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/xxxx',
+            ],
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => null,
+                'expected_api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
+            ],
+        ];
+    }
+
     public static function getApiUrlDataProvider(): array
     {
         return [
@@ -803,6 +871,33 @@ class AkbankPosTest extends TestCase
         ];
     }
 
+    public static function threeDFormDataBadInputsProvider(): array
+    {
+        return [
+            '3d_secure_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_SECURE,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            '3d_pay_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            'unsupported_payment_model' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY_HOSTING,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \LogicException::class,
+            ],
+        ];
+    }
+
     public static function threeDFormDataProvider(): iterable
     {
         yield '3d_host' => [
@@ -818,7 +913,7 @@ class AkbankPosTest extends TestCase
             'order'        => AkbankPosRequestDataMapperTest::threeDFormDataProvider()['3d_pay_form_data']['order'],
             'paymentModel' => PosInterface::MODEL_3D_PAY,
             'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-            'isWithCard'   => false,
+            'isWithCard'   => true,
             'formData'     => AkbankPosRequestDataMapperTest::threeDFormDataProvider()['3d_pay_form_data']['expected'],
             'gateway_url'  => 'https://virtualpospaymentgateway.akbank.com/securepay',
         ];
@@ -827,7 +922,7 @@ class AkbankPosTest extends TestCase
             'order'        => AkbankPosRequestDataMapperTest::threeDFormDataProvider()['3d_form_data']['order'],
             'paymentModel' => PosInterface::MODEL_3D_SECURE,
             'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-            'isWithCard'   => false,
+            'isWithCard'   => true,
             'formData'     => AkbankPosRequestDataMapperTest::threeDFormDataProvider()['3d_form_data']['expected'],
             'gateway_url'  => 'https://virtualpospaymentgateway.akbank.com/securepay',
         ];

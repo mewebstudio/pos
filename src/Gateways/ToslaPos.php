@@ -57,6 +57,7 @@ class ToslaPos extends AbstractGateway
         PosInterface::TX_TYPE_REFUND         => true,
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_STATUS         => true,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
 
 
@@ -83,10 +84,16 @@ class ToslaPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @param string $threeDSessionId
      */
-    public function get3DHostGatewayURL(string $threeDSessionId = null): string
+    public function get3DGatewayURL(string $paymentModel = PosInterface::MODEL_3D_SECURE, string $threeDSessionId = null): string
     {
-        return parent::get3DHostGatewayURL().'/'.$threeDSessionId;
+        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
+            return parent::get3DGatewayURL($paymentModel).'/'.$threeDSessionId;
+        }
+
+        return parent::get3DGatewayURL($paymentModel);
     }
 
     /**
@@ -138,9 +145,7 @@ class ToslaPos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
-        if (PosInterface::MODEL_3D_HOST !== $paymentModel && !$creditCard instanceof CreditCardInterface) {
-            throw new \LogicException('Kredi kart bilgileri eksik!');
-        }
+        $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
         $data = $this->registerPayment($order, $paymentModel, $txType);
 
@@ -153,12 +158,27 @@ class ToslaPos extends AbstractGateway
         }
 
         $this->logger->debug('preparing 3D form data');
-        $gatewayUrl = $this->get3DGatewayURL();
-        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            $gatewayUrl = $this->get3DHostGatewayURL($data['ThreeDSessionId']);
+
+        return $this->requestDataMapper->create3DFormData(
+            $this->account,
+            $data,
+            $paymentModel,
+            $txType,
+            $this->get3DGatewayURL($paymentModel, $data['ThreeDSessionId'] ?? null),
+            $creditCard
+        );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    {
+        if (null === $apiUrl) {
+            throw new \InvalidArgumentException('API URL is required for custom query');
         }
 
-        return $this->requestDataMapper->create3DFormData($this->account, $data, $paymentModel, $txType, $gatewayUrl, $creditCard);
+        return parent::customQuery($requestData, $apiUrl);
     }
 
     /**

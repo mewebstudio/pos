@@ -301,4 +301,34 @@ class KuveytPosTest extends TestCase
 
         return $lastResponse;
     }
+
+    public function testCustomQuery(): void
+    {
+        $customQuery = [
+            'SecureType'     => 'Inquiry',
+            'TxnType'        => 'ParaPuanInquiry',
+            'Pan'            => $card->getNumber(),
+            'Expiry'         => $card->getExpirationDate(\Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper::CREDIT_CARD_EXP_DATE_FORMAT),
+            'Cvv2'           => $card->getCvv(),
+        ];
+
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
+            });
+
+        $this->pos->customQuery($customQuery);
+
+        $response = $this->pos->getResponse();
+
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertArrayHasKey('Transaction', $response);
+        $this->assertTrue($eventIsThrown);
+    }
 }

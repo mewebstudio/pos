@@ -52,6 +52,9 @@ interface PosInterface
     public const TX_TYPE_HISTORY = 'history';
 
     /** @var string */
+    public const TX_TYPE_CUSTOM_QUERY = 'custom_query';
+
+    /** @var string */
     public const MODEL_3D_SECURE = '3d';
 
     /** @var string */
@@ -108,7 +111,7 @@ interface PosInterface
     /**
      * returns form data, key values, necessary for 3D payment
      *
-     * @phpstan-param PosInterface::MODEL_3D_*                      $paymentModel
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, mixed>     $order
@@ -119,7 +122,9 @@ interface PosInterface
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      *
      * @throws \RuntimeException when request to the bank to get 3D form data failed
-     * @throws \LogicException when card data is not provided when it is required for the given payment model
+     * @throws ClientExceptionInterface when request to the bank to get 3D form data failed
+     * @throws \InvalidArgumentException when card data is not provided when it is required for the given payment model
+     * @throws \LogicException when given payment model or transaction type is not supported
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
@@ -283,6 +288,24 @@ interface PosInterface
      * @throws ClientExceptionInterface
      */
     public function history(array $data): PosInterface;
+
+
+    /**
+     * Kütüphanenin desteği olmadığı özel istekleri bu methodla yapabilirsiniz.
+     * requestData içinde API hesap bilgileri, hash verisi ve bazi sabit değerler
+     * eğer zaten bulunmuyorsa kütüphane otomatik ekler.
+     *
+     * Bankadan dönen cevap array'e dönüştürülür,
+     * ancak diğer transaction'larda olduğu gibi mapping/normalization yapılmaz.
+     *
+     * @param array<string, mixed>  $requestData API'a gönderilecek veri.
+     * @param non-empty-string|null $apiUrl
+     *
+     * @return PosInterface
+     *
+     * @throws ClientExceptionInterface
+     */
+    public function customQuery(array $requestData, string $apiUrl = null): PosInterface;
 
     /**
      * Is success

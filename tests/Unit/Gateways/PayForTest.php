@@ -135,7 +135,7 @@ class PayForTest extends TestCase
         $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
-        $this->assertSame($this->config['gateway_endpoints']['gateway_3d_host'], $this->pos->get3DHostGatewayURL());
+        $this->assertSame($this->config['gateway_endpoints']['gateway_3d_host'], $this->pos->get3DGatewayURL(PosInterface::MODEL_3D_HOST));
         $this->assertSame($this->config['gateway_endpoints']['gateway_3d'], $this->pos->get3DGatewayURL());
         $this->assertSame($this->config['gateway_endpoints']['payment_api'], $this->pos->getApiURL());
     }
@@ -153,7 +153,6 @@ class PayForTest extends TestCase
 
     /**
      * @testWith [true, "3d", "https://vpostest.qnbfinansbank.com/Gateway/Default.aspx"]
-     * [false, "3d", "https://vpostest.qnbfinansbank.com/Gateway/Default.aspx"]
      * [false, "3d_host", "https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx"]
      */
     public function testGet3DFormData(
@@ -180,6 +179,24 @@ class PayForTest extends TestCase
         $actual = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
         $this->assertSame(['formData'], $actual);
+    }
+
+    /**
+     * @dataProvider threeDFormDataBadInputsProvider
+     */
+    public function testGet3DFormDataWithBadInputs(
+        array  $order,
+        string $paymentModel,
+        string $txType,
+        bool   $isWithCard,
+        string $expectedExceptionClass
+    ): void
+    {
+        $card = $isWithCard ? $this->card : null;
+
+        $this->expectException($expectedExceptionClass);
+
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
     }
 
     /**
@@ -581,6 +598,56 @@ class PayForTest extends TestCase
         $this->pos->orderHistory($order);
     }
 
+    /**
+     * @dataProvider customQueryRequestDataProvider
+     */
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    {
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+
+        $updatedRequestData = $requestData + [
+                'abc' => 'def',
+            ];
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCustomQueryRequestData')
+            ->with($account, $requestData)
+            ->willReturn($updatedRequestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $expectedApiUrl,
+            $updatedRequestData,
+            'request-body',
+            'response-body',
+            ['decodedResponse'],
+            $requestData,
+            PosInterface::MODEL_NON_SECURE
+        );
+
+        $this->pos->customQuery($requestData, $apiUrl);
+    }
+
+    public static function customQueryRequestDataProvider(): array
+    {
+        return [
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx/xxxx',
+                'expected_api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx/xxxx',
+            ],
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => null,
+                'expected_api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
+            ],
+        ];
+    }
+
     public static function make3DPaymentDataProvider(): array
     {
         return [
@@ -714,6 +781,33 @@ class PayForTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
+            ],
+        ];
+    }
+
+    public static function threeDFormDataBadInputsProvider(): array
+    {
+        return [
+            '3d_secure_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_SECURE,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            '3d_pay_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            'unsupported_payment_model' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY_HOSTING,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \LogicException::class,
             ],
         ];
     }

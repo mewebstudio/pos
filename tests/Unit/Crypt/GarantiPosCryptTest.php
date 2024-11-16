@@ -195,6 +195,29 @@ class GarantiPosCryptTest extends TestCase
                 ],
                 'expected' => '0F97D922001221B9C90AA692CF5D4082FF6D3EB38BE863A47F9C08E63CD87312270D6F298E5FBBC320654861DA1C6EE826E0C83E904916351A9D3032FA426BAA',
             ],
+            'bininq' => [
+                'requestData' => [
+                    'Version'     => 'v0.00',
+                    'Customer'    => [
+                        'IPAddress'    => '1.1.111.111',
+                        'EmailAddress' => 'Cem@cem.com',
+                    ],
+                    'Order'       => [
+                        'OrderID'     => 'SISTD5A61F1682E745B28871872383ABBEB1',
+                        'GroupID'     => '',
+                        'Description' => '',
+                    ],
+                    'Transaction' => [
+                        'Type'   => 'bininq',
+                        'Amount' => '1',
+                        'BINInq' => [
+                            'Group'    => 'A',
+                            'CardType' => 'A',
+                        ],
+                    ],
+                ],
+                'expected' => 'B129BF998FF8C97C42D3FC923AA4271656B112549665FA130ACF631EA3EB73D917AEB3D646481564CACE38D1687F7744F82E5A1DBB6966F1512E0AF29B4C067B',
+            ],
         ];
     }
 }

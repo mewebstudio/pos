@@ -184,19 +184,22 @@ class PosNetTest extends TestCase
         $this->pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $txType, $this->card);
     }
 
-    public function testGet3DFormDataWithoutCard(): void
+    /**
+     * @dataProvider threeDFormDataBadInputsProvider
+     */
+    public function testGet3DFormDataWithBadInputs(
+        array  $order,
+        string $paymentModel,
+        string $txType,
+        bool   $isWithCard,
+        string $expectedExceptionClass
+    ): void
     {
-        $this->requestMapperMock->expects(self::never())
-            ->method('create3DEnrollmentCheckRequestData');
+        $card = $isWithCard ? $this->card : null;
 
-        $this->httpClientMock->expects(self::never())
-            ->method('post');
+        $this->expectException($expectedExceptionClass);
 
-        $this->requestMapperMock->expects(self::never())
-            ->method('create3DFormData');
-
-        $this->expectException(\LogicException::class);
-        $this->pos->get3DFormData([], PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
     }
 
     /**
@@ -651,6 +654,56 @@ class PosNetTest extends TestCase
         $this->pos->orderHistory([]);
     }
 
+    /**
+     * @dataProvider customQueryRequestDataProvider
+     */
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    {
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+
+        $updatedRequestData = $requestData + [
+                'abc' => 'def',
+            ];
+        $this->requestMapperMock->expects(self::once())
+            ->method('createCustomQueryRequestData')
+            ->with($account, $requestData)
+            ->willReturn($updatedRequestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $expectedApiUrl,
+            $updatedRequestData,
+            'request-body',
+            'response-body',
+            ['decodedResponse'],
+            $requestData,
+            PosInterface::MODEL_NON_SECURE
+        );
+
+        $this->pos->customQuery($requestData, $apiUrl);
+    }
+
+    public static function customQueryRequestDataProvider(): array
+    {
+        return [
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => 'https://setmpos.ykb.com/PosnetWebService/XML/xxxx',
+                'expected_api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML/xxxx',
+            ],
+            [
+                'requestData'      => [
+                    'id' => '2020110828BC',
+                ],
+                'api_url'          => null,
+                'expected_api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
+            ],
+        ];
+    }
+
     public static function make3DPaymentDataProvider(): array
     {
         $resolveMerchantResponseData = [
@@ -757,6 +810,26 @@ class PosNetTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
+            ],
+        ];
+    }
+
+    public static function threeDFormDataBadInputsProvider(): array
+    {
+        return [
+            '3d_secure_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_SECURE,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            'unsupported_payment_model' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_HOST,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \LogicException::class,
             ],
         ];
     }

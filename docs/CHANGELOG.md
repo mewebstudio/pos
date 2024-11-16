@@ -1,4 +1,15 @@
 # Changelog
+## [1.5.0] - 2024-11-11
+
+### New Features
+- [Custom Query](./CUSTOM-QUERY-EXAMPLE.md) desteği eklendi. (issue #250)
+
+### Changed
+- **VakifKatilimPos** - sipariş detay sorgusunda mapping iyileştirilmesi.
+
+### Fixed
+- Bazı gatewaylarin response'larında bankadan gelen verinin yer almaması.
+
 ## [1.4.0] - 2024-07-02
 
 ### New Features

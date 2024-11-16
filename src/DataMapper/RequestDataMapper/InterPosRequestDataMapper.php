@@ -214,6 +214,16 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @inheritDoc
      */
+    public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
+    {
+        $requestData += $this->getRequestAccountData($posAccount);
+
+        return $requestData;
+    }
+
+    /**
+     * @inheritDoc
+     */
     protected function preparePaymentOrder(array $order): array
     {
         return array_merge($order, [
