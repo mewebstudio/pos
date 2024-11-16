@@ -153,10 +153,11 @@ class InterPosTest extends TestCase
     public function testGet3DFormData(
         bool $isWithCard
     ): void {
-        $card = $isWithCard ? $this->card : null;
-        $order = ['id' => '124'];
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
-        $txType = PosInterface::TX_TYPE_PAY_AUTH;
+        $card         = $isWithCard ? $this->card : null;
+        $paymentModel = $isWithCard ? PosInterface::MODEL_3D_SECURE : PosInterface::MODEL_3D_HOST;
+        $gatewayUrl   = $isWithCard ? 'https://test.inter-vpos.com.tr/mpi/Default.aspx' : 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx';
+        $order        = ['id' => '124'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->requestMapperMock->expects(self::once())
             ->method('create3DFormData')
@@ -165,7 +166,7 @@ class InterPosTest extends TestCase
                 $order,
                 $paymentModel,
                 $txType,
-                'https://test.inter-vpos.com.tr/mpi/Default.aspx',
+                $gatewayUrl,
                 $card
             )
             ->willReturn(['formData']);

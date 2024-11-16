@@ -244,7 +244,6 @@ class ToslaPosTest extends TestCase
         $this->pos->customQuery($customQuery, 'https://prepentegrasyon.tosla.com/api/Payment/GetCommissionAndInstallmentInfo');
 
         $response = $this->pos->getResponse();
-        dump($response);
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertArrayHasKey('BankCode', $response);

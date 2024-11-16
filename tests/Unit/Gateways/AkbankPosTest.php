@@ -864,7 +864,7 @@ class AkbankPosTest extends TestCase
             'order'        => AkbankPosRequestDataMapperTest::threeDFormDataProvider()['3d_pay_form_data']['order'],
             'paymentModel' => PosInterface::MODEL_3D_PAY,
             'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-            'isWithCard'   => false,
+            'isWithCard'   => true,
             'formData'     => AkbankPosRequestDataMapperTest::threeDFormDataProvider()['3d_pay_form_data']['expected'],
             'gateway_url'  => 'https://virtualpospaymentgateway.akbank.com/securepay',
         ];
@@ -873,7 +873,7 @@ class AkbankPosTest extends TestCase
             'order'        => AkbankPosRequestDataMapperTest::threeDFormDataProvider()['3d_form_data']['order'],
             'paymentModel' => PosInterface::MODEL_3D_SECURE,
             'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-            'isWithCard'   => false,
+            'isWithCard'   => true,
             'formData'     => AkbankPosRequestDataMapperTest::threeDFormDataProvider()['3d_form_data']['expected'],
             'gateway_url'  => 'https://virtualpospaymentgateway.akbank.com/securepay',
         ];

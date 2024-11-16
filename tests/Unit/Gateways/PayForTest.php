@@ -152,7 +152,6 @@ class PayForTest extends TestCase
 
     /**
      * @testWith [true, "3d", "https://vpostest.qnbfinansbank.com/Gateway/Default.aspx"]
-     * [false, "3d", "https://vpostest.qnbfinansbank.com/Gateway/Default.aspx"]
      * [false, "3d_host", "https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx"]
      */
     public function testGet3DFormData(

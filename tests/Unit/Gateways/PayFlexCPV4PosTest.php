@@ -154,7 +154,7 @@ class PayFlexCPV4PosTest extends TestCase
     {
         $enrollmentResponse = PayFlexCPV4PosRequestDataMapperTest::threeDFormDataProvider()->current()['queryParams'];
         $txType             = PosInterface::TX_TYPE_PAY_AUTH;
-        $paymentModel       = PosInterface::MODEL_3D_SECURE;
+        $paymentModel       = PosInterface::MODEL_3D_PAY;
         $requestData        = ['request-data'];
         $card               = $this->card;
         $order              = $this->order;
@@ -207,7 +207,7 @@ class PayFlexCPV4PosTest extends TestCase
     public function testGet3DFormDataEnrollmentFail(): void
     {
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $paymentModel = PosInterface::MODEL_3D_PAY;
         $card         = $this->card;
         $order        = $this->order;
         $requestData  = ['request-data'];
