@@ -136,19 +136,27 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
+     * @param PosInterface::MODEL_3D_* $paymentModel
+     *
      * @return non-empty-string
      */
-    public function get3DGatewayURL(): string
+    public function get3DGatewayURL(string $paymentModel = PosInterface::MODEL_3D_SECURE): string
     {
+        if (PosInterface::MODEL_3D_HOST === $paymentModel && isset($this->config['gateway_endpoints']['gateway_3d_host'])) {
+            return $this->config['gateway_endpoints']['gateway_3d_host'];
+        }
+
         return $this->config['gateway_endpoints']['gateway_3d'];
     }
 
     /**
+     * @deprecated use get3DGatewayURL() instead
+     *
      * @return non-empty-string
      */
     public function get3DHostGatewayURL(): string
     {
-        return $this->config['gateway_endpoints']['gateway_3d_host'] ?? $this->get3DGatewayURL();
+        return $this->get3DGatewayURL(PosInterface::MODEL_3D_HOST);
     }
 
     /**

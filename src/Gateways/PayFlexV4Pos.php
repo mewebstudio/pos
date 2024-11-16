@@ -188,7 +188,15 @@ class PayFlexV4Pos extends AbstractGateway
 
         $this->logger->debug('preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, null, $paymentModel, $txType, '', null, $data['Message']['VERes']);
+        return $this->requestDataMapper->create3DFormData(
+            $this->account,
+            null,
+            $paymentModel,
+            $txType,
+            '',
+            null,
+            $data['Message']['VERes']
+        );
     }
 
     /**

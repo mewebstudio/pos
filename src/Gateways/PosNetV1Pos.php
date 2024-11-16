@@ -152,7 +152,14 @@ class PosNetV1Pos extends AbstractGateway
 
         $this->logger->debug('preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), $creditCard);
+        return $this->requestDataMapper->create3DFormData(
+            $this->account,
+            $order,
+            $paymentModel,
+            $txType,
+            $this->get3DGatewayURL($paymentModel),
+            $creditCard
+        );
     }
 
     /**

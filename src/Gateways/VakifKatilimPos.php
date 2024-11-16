@@ -106,13 +106,32 @@ class VakifKatilimPos extends AbstractGateway
         $this->logger->debug('preparing 3D form data');
 
         if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DHostGatewayURL());
+            return $this->requestDataMapper->create3DFormData(
+                $this->account,
+                $order,
+                $paymentModel,
+                $txType,
+                $this->get3DGatewayURL($paymentModel)
+            );
         }
 
-        $gatewayUrl = $this->get3DGatewayURL();
-        $response   = $this->sendEnrollmentRequest($this->account, $order, $paymentModel, $txType, $gatewayUrl, $creditCard);
+        $response = $this->sendEnrollmentRequest(
+            $this->account,
+            $order,
+            $paymentModel,
+            $txType,
+            $this->get3DGatewayURL($paymentModel),
+            $creditCard
+        );
 
-        return $this->requestDataMapper->create3DFormData($this->account, $response['form_inputs'], $paymentModel, $txType, $response['gateway'], $creditCard);
+        return $this->requestDataMapper->create3DFormData(
+            $this->account,
+            $response['form_inputs'],
+            $paymentModel,
+            $txType,
+            $response['gateway'],
+            $creditCard
+        );
     }
 
     /**

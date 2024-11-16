@@ -136,11 +136,16 @@ class KuveytPos extends AbstractGateway
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
-        $gatewayUrl = $this->get3DGatewayURL();
-
         $this->logger->debug('preparing 3D form data');
 
-        return $this->getCommon3DFormData($this->account, $order, $paymentModel, $txType, $gatewayUrl, $creditCard);
+        return $this->getCommon3DFormData(
+            $this->account,
+            $order,
+            $paymentModel,
+            $txType,
+            $this->get3DGatewayURL($paymentModel),
+            $creditCard
+        );
     }
 
     /**

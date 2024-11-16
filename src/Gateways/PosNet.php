@@ -182,7 +182,7 @@ class PosNet extends AbstractGateway
             $order,
             $paymentModel,
             $txType,
-            $this->get3DGatewayURL(),
+            $this->get3DGatewayURL($paymentModel),
             null,
             $data['oosRequestDataResponse']
         );

@@ -84,10 +84,16 @@ class ToslaPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @param string $threeDSessionId
      */
-    public function get3DHostGatewayURL(string $threeDSessionId = null): string
+    public function get3DGatewayURL(string $paymentModel = PosInterface::MODEL_3D_SECURE, string $threeDSessionId = null): string
     {
-        return parent::get3DHostGatewayURL().'/'.$threeDSessionId;
+        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
+            return parent::get3DGatewayURL($paymentModel).'/'.$threeDSessionId;
+        }
+
+        return parent::get3DGatewayURL($paymentModel);
     }
 
     /**
@@ -152,12 +158,15 @@ class ToslaPos extends AbstractGateway
         }
 
         $this->logger->debug('preparing 3D form data');
-        $gatewayUrl = $this->get3DGatewayURL();
-        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            $gatewayUrl = $this->get3DHostGatewayURL($data['ThreeDSessionId']);
-        }
 
-        return $this->requestDataMapper->create3DFormData($this->account, $data, $paymentModel, $txType, $gatewayUrl, $creditCard);
+        return $this->requestDataMapper->create3DFormData(
+            $this->account,
+            $data,
+            $paymentModel,
+            $txType,
+            $this->get3DGatewayURL($paymentModel, $data['ThreeDSessionId'] ?? null),
+            $creditCard
+        );
     }
 
     /**

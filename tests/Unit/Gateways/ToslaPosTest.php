@@ -155,7 +155,7 @@ class ToslaPosTest extends TestCase
     public function testGet3DHostGatewayURL(): void
     {
         $sessionId = 'A2A6E942BD2AE4A68BC42FE99D1BC917D67AFF54AB2BA44EBA675843744187708';
-        $actual    = $this->pos->get3DHostGatewayURL($sessionId);
+        $actual    = $this->pos->get3DGatewayURL(PosInterface::MODEL_3D_HOST, $sessionId);
 
         $this->assertSame(
             'https://ent.akodepos.com/api/Payment/threeDSecure/A2A6E942BD2AE4A68BC42FE99D1BC917D67AFF54AB2BA44EBA675843744187708',

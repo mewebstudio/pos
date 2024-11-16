@@ -164,14 +164,12 @@ class AkbankPos extends AbstractGateway
 
         $this->logger->debug('preparing 3D form data');
 
-        $gatewayUrl = PosInterface::MODEL_3D_HOST === $paymentModel ? $this->get3DHostGatewayURL() : $this->get3DGatewayURL();
-
         return $this->requestDataMapper->create3DFormData(
             $this->account,
             $order,
             $paymentModel,
             $txType,
-            $gatewayUrl,
+            $this->get3DGatewayURL($paymentModel),
             $creditCard
         );
     }
