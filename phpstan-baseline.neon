@@ -166,11 +166,21 @@ parameters:
 			path: src/Gateways/PayFlexCPV4Pos.php
 
 		-
+			message: "#^Parameter \\#2 \\$creditCard of method Mews\\\\Pos\\\\Gateways\\\\PayFlexV4Pos\\:\\:sendEnrollmentRequest\\(\\) expects Mews\\\\Pos\\\\Entity\\\\Card\\\\CreditCardInterface, Mews\\\\Pos\\\\Entity\\\\Card\\\\CreditCardInterface\\|null given\\.$#"
+			count: 1
+			path: src/Gateways/PayFlexV4Pos.php
+
+		-
 			message: "#^Method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:getOosTransactionData\\(\\) should return array\\{approved\\: string, respCode\\: string, respText\\: string, oosRequestDataResponse\\?\\: array\\{data1\\: string, data2\\: string, sign\\: string\\}\\} but returns array\\<string, mixed\\>\\.$#"
 			count: 1
 			path: src/Gateways/PosNet.php
 
 		-
 			message: "#^Offset 'oosRequestDataRespo…' does not exist on array\\{approved\\: string, respCode\\: string, respText\\: string, oosRequestDataResponse\\?\\: array\\{data1\\: string, data2\\: string, sign\\: string\\}\\}\\.$#"
+			count: 1
+			path: src/Gateways/PosNet.php
+
+		-
+			message: "#^Parameter \\#4 \\$creditCard of method Mews\\\\Pos\\\\Gateways\\\\PosNet\\:\\:getOosTransactionData\\(\\) expects Mews\\\\Pos\\\\Entity\\\\Card\\\\CreditCardInterface, Mews\\\\Pos\\\\Entity\\\\Card\\\\CreditCardInterface\\|null given\\.$#"
 			count: 1
 			path: src/Gateways/PosNet.php

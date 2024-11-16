@@ -161,13 +161,11 @@ class InterPos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
-        $gatewayUrl = $this->get3DHostGatewayURL();
-
-        if (PosInterface::MODEL_3D_SECURE === $paymentModel || PosInterface::MODEL_3D_PAY === $paymentModel) {
-            $gatewayUrl = $this->get3DGatewayURL();
-        }
+        $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
         $this->logger->debug('preparing 3D form data');
+
+        $gatewayUrl = PosInterface::MODEL_3D_HOST === $paymentModel ? $this->get3DHostGatewayURL() : $this->get3DGatewayURL();
 
         return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $gatewayUrl, $creditCard);
     }

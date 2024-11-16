@@ -165,6 +165,12 @@ $eventDispatcher->addListener(
 try {
     $formData = $pos->get3DFormData($order, $paymentModel, $transaction, $card);
     //dd($formData);
+} catch (\InvalidArgumentException $e) {
+    // örneğin kart bilgisi sağlanmadığında bu exception'i alırsınız.
+    dd($e);
+} catch (\LogicException $e) {
+    // ödeme modeli veya işlem tipi desteklenmiyorsa bu exception'i alırsınız.
+    dd($e);
 } catch (\Throwable $e) {
     dd($e);
 }

@@ -248,6 +248,24 @@ class PayFlexCPV4PosTest extends TestCase
         $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
     }
 
+    /**
+     * @dataProvider threeDFormDataBadInputsProvider
+     */
+    public function testGet3DFormDataWithBadInputs(
+        array  $order,
+        string $paymentModel,
+        string $txType,
+        bool   $isWithCard,
+        string $expectedExceptionClass
+    ): void
+    {
+        $card = $isWithCard ? $this->card : null;
+
+        $this->expectException($expectedExceptionClass);
+
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+    }
+
     public function testMake3DPayment(): void
     {
         $request = Request::create('', 'POST');
@@ -617,6 +635,26 @@ class PayFlexCPV4PosTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
+            ],
+        ];
+    }
+
+    public static function threeDFormDataBadInputsProvider(): array
+    {
+        return [
+            '3d_pay_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            'unsupported_payment_model' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_SECURE,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \LogicException::class,
             ],
         ];
     }

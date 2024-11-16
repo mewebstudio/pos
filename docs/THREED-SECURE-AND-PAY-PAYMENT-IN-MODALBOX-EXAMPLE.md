@@ -143,6 +143,12 @@ try {
         $transactionType,
         $card
     );
+} catch (\InvalidArgumentException $e) {
+    // örneğin kart bilgisi sağlanmadığında bu exception'i alırsınız.
+    var_dump($e);
+} catch (\LogicException $e) {
+    // ödeme modeli veya işlem tipi desteklenmiyorsa bu exception'i alırsınız.
+    var_dump($e);
 } catch (\Throwable $e) {
     var_dump($e);
     exit;

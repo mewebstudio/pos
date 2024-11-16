@@ -184,19 +184,22 @@ class PayFlexV4PosTest extends TestCase
         $this->pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $txType, $this->card);
     }
 
-    public function testGet3DFormDataWithoutCard(): void
+    /**
+     * @dataProvider threeDFormDataBadInputsProvider
+     */
+    public function testGet3DFormDataWithBadInputs(
+        array  $order,
+        string $paymentModel,
+        string $txType,
+        bool   $isWithCard,
+        string $expectedExceptionClass
+    ): void
     {
-        $this->requestMapperMock->expects(self::never())
-            ->method('create3DEnrollmentCheckRequestData');
+        $card = $isWithCard ? $this->card : null;
 
-        $this->httpClientMock->expects(self::never())
-            ->method('post');
+        $this->expectException($expectedExceptionClass);
 
-        $this->requestMapperMock->expects(self::never())
-            ->method('create3DFormData');
-
-        $this->expectException(\LogicException::class);
-        $this->pos->get3DFormData([], PosInterface::MODEL_3D_SECURE, PosInterface::TX_TYPE_PAY_AUTH);
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
     }
 
     /**
@@ -693,6 +696,26 @@ class PayFlexV4PosTest extends TestCase
                 'expected'           => PayFlexV4PosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
                 'is3DSuccess'        => true,
                 'isSuccess'          => true,
+            ],
+        ];
+    }
+
+    public static function threeDFormDataBadInputsProvider(): array
+    {
+        return [
+            '3d_secure_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_SECURE,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            'unsupported_payment_model' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \LogicException::class,
             ],
         ];
     }

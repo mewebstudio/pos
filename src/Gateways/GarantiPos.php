@@ -127,6 +127,8 @@ class GarantiPos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
+        $this->check3DFormInputs($paymentModel, $txType, $creditCard);
+
         $this->logger->debug('preparing 3D form data');
 
         return $this->requestDataMapper->create3DFormData($this->account, $order, $paymentModel, $txType, $this->get3DGatewayURL(), $creditCard);

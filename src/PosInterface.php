@@ -111,7 +111,7 @@ interface PosInterface
     /**
      * returns form data, key values, necessary for 3D payment
      *
-     * @phpstan-param PosInterface::MODEL_3D_*                      $paymentModel
+     * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      *
      * @param array<string, mixed>     $order
@@ -122,7 +122,9 @@ interface PosInterface
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      *
      * @throws \RuntimeException when request to the bank to get 3D form data failed
-     * @throws \LogicException when card data is not provided when it is required for the given payment model
+     * @throws ClientExceptionInterface when request to the bank to get 3D form data failed
+     * @throws \InvalidArgumentException when card data is not provided when it is required for the given payment model
+     * @throws \LogicException when given payment model or transaction type is not supported
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */

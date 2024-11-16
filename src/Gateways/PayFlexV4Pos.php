@@ -5,7 +5,6 @@
 namespace Mews\Pos\Gateways;
 
 use Exception;
-use LogicException;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
@@ -159,9 +158,7 @@ class PayFlexV4Pos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
-        if (!$creditCard instanceof CreditCardInterface) {
-            throw new LogicException('Kredi kartı bilgileri eksik!');
-        }
+        $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
         $data = $this->sendEnrollmentRequest($order, $creditCard, $txType, $paymentModel);
 

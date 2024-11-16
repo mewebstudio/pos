@@ -176,6 +176,8 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
+        $this->check3DFormInputs($paymentModel, $txType, $creditCard);
+
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $data */
         $data = $this->registerPayment($order, $txType, $paymentModel, $creditCard);
 

@@ -179,6 +179,24 @@ class EstPosTest extends TestCase
     }
 
     /**
+     * @dataProvider threeDFormDataBadInputsProvider
+     */
+    public function testGet3DFormDataWithBadInputs(
+        array  $order,
+        string $paymentModel,
+        string $txType,
+        bool   $isWithCard,
+        string $expectedExceptionClass
+    ): void
+    {
+        $card = $isWithCard ? $this->card : null;
+
+        $this->expectException($expectedExceptionClass);
+
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+    }
+
+    /**
      * @return void
      */
     public function testMake3DHostPaymentSuccess(): void
@@ -801,6 +819,26 @@ class EstPosTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+            ],
+        ];
+    }
+
+    public static function threeDFormDataBadInputsProvider(): array
+    {
+        return [
+            '3d_secure_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_SECURE,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
+            ],
+            '3d_pay_without_card' => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \InvalidArgumentException::class,
             ],
         ];
     }

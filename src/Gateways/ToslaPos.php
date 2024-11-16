@@ -139,9 +139,7 @@ class ToslaPos extends AbstractGateway
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
     {
-        if (PosInterface::MODEL_3D_HOST !== $paymentModel && !$creditCard instanceof CreditCardInterface) {
-            throw new \LogicException('Kredi kart bilgileri eksik!');
-        }
+        $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
         $data = $this->registerPayment($order, $paymentModel, $txType);
 
