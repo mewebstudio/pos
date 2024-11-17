@@ -12,7 +12,7 @@ $account = \Mews\Pos\Factory\AccountFactory::createKuveytPosAccount(
     'apitest',
     '400235',
     'api123',
-    PosInterface::MODEL_3D_SECURE
+    PosInterface::MODEL_NON_SECURE
 );
 
 $pos = getGateway($account, $eventDispatcher);

@@ -161,7 +161,7 @@ class KuveytPosTest extends TestCase
 
         $response = $this->pos->getResponse();
 
-        $this->assertTrue($this->pos->isSuccess());
+        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
 
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
