@@ -143,7 +143,7 @@ class PayForTest extends TestCase
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
         $this->assertFalse($this->pos->isTestMode());
-        $this->assertSame($this->config['gateway_endpoints']['gateway_3d_host'], $this->pos->get3DHostGatewayURL());
+        $this->assertSame($this->config['gateway_endpoints']['gateway_3d_host'], $this->pos->get3DGatewayURL(PosInterface::MODEL_3D_HOST));
         $this->assertSame($this->config['gateway_endpoints']['gateway_3d'], $this->pos->get3DGatewayURL());
         $this->assertSame($this->config['gateway_endpoints']['payment_api'], $this->pos->getApiURL());
     }
