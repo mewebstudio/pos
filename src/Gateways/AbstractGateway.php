@@ -557,7 +557,7 @@ abstract class AbstractGateway implements PosInterface
         }
 
         $data           = $this->serializer->encode($updatedRequestData, $txType);
-        $apiUrl         = $apiUrl ?? $this->getQueryAPIUrl($txType);
+        $apiUrl         ??= $this->getQueryAPIUrl($txType);
         $this->response = $this->send(
             $data,
             $txType,
@@ -664,7 +664,8 @@ abstract class AbstractGateway implements PosInterface
             throw new \LogicException('Bu banka altyapısı sağlanan ödeme modelini ya da işlem tipini desteklenmiyor.');
         }
 
-        if ((PosInterface::MODEL_3D_SECURE === $paymentModel || PosInterface::MODEL_3D_PAY === $paymentModel) && null === $card) {
+        if ((PosInterface::MODEL_3D_SECURE === $paymentModel || PosInterface::MODEL_3D_PAY === $paymentModel)
+            && !$card instanceof \Mews\Pos\Entity\Card\CreditCardInterface) {
             throw new \InvalidArgumentException('Bu ödeme modeli için kart bilgileri zorunlu!');
         }
     }

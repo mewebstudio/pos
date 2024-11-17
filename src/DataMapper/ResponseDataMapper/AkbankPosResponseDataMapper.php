@@ -295,7 +295,7 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         if (!$isRecurringOrder) {
-            \usort($transactions, static function (array $tx1, array $tx2) {
+            \usort($transactions, static function (array $tx1, array $tx2): int {
                 if (null !== $tx1['transaction_time'] && null === $tx2['transaction_time']) {
                     return 1;
                 }

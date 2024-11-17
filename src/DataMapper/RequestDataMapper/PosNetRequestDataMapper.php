@@ -354,12 +354,10 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
     {
-        $requestData += [
+        return $requestData + [
             'mid' => $posAccount->getClientId(),
             'tid' => $posAccount->getTerminalId(),
         ];
-
-        return $requestData;
     }
 
     /**

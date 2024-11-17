@@ -20,19 +20,17 @@ return RectorConfig::configure()
         LevelSetList::UP_TO_PHP_74,
     ])
     ->withSkip([
-        \Rector\Php73\Rector\FuncCall\JsonThrowOnErrorRector::class,
         \Rector\DeadCode\Rector\ClassMethod\RemoveUselessReturnTagRector::class,
         \Rector\DeadCode\Rector\ClassMethod\RemoveUselessParamTagRector::class,
         \Rector\Php74\Rector\Property\RestoreDefaultNullToNullableTypePropertyRector::class,
-        \Rector\Php74\Rector\LNumber\AddLiteralSeparatorToNumberRector::class,
 
         \Rector\Naming\Rector\Class_\RenamePropertyToMatchTypeRector::class,
+        \Rector\Naming\Rector\ClassMethod\RenameParamToMatchTypeRector::class,
         \Rector\Naming\Rector\ClassMethod\RenameVariableToMatchNewTypeRector::class,
         \Rector\Naming\Rector\Assign\RenameVariableToMatchMethodCallReturnTypeRector::class,
         \Rector\Naming\Rector\Foreach_\RenameForeachValueVariableToMatchExprVariableRector::class,
 
         \Rector\TypeDeclaration\Rector\ClassMethod\NumericReturnTypeFromStrictScalarReturnsRector::class,
-        \Rector\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictScalarReturnExprRector::class,
         \Rector\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromStrictParamRector::class,
     ])
     ->withPreparedSets(

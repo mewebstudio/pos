@@ -88,6 +88,7 @@ class InterPosResponseDataMapperTest extends TestCase
             $this->assertIsArray($actualData['all']);
             $this->assertNotEmpty($actualData['all']);
         }
+
         unset($actualData['all']);
 
         \ksort($expectedData);

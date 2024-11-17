@@ -258,7 +258,7 @@ class PosNetTest extends TestCase
 
             $this->serializerMock->expects($matcher)
                 ->method('encode')
-                ->with($this->callback(function ($requestData) use ($matcher, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2) {
+                ->with($this->callback(function ($requestData) use ($matcher, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2): bool {
                     if ($matcher->getInvocationCount() === 1) {
                         return $updatedRequestDataPreparedEvent1->getRequestData() === $requestData;
                     }
@@ -268,13 +268,12 @@ class PosNetTest extends TestCase
                     }
 
                     return true;
-                }), $this->callback(function ($txT) use ($txType) {
-                    return $txT === $txType;
-                }))
-                ->willReturnCallback(function () use ($matcher) {
+                }), $this->callback(fn($txT): bool => $txT === $txType))
+                ->willReturnCallback(function () use ($matcher): ?string {
                     if ($matcher->getInvocationCount() === 1) {
                         return 'resolveMerchantRequestData-body';
                     }
+
                     if ($matcher->getInvocationCount() === 2) {
                         return 'payment-request-body';
                     }
@@ -339,7 +338,7 @@ class PosNetTest extends TestCase
                         $matcher2,
                         &$updatedRequestDataPreparedEvent1,
                         &$updatedRequestDataPreparedEvent2
-                    ) {
+                    ): bool {
                         if ($matcher2->getInvocationCount() === 1) {
                             $updatedRequestDataPreparedEvent1 = $dispatchedEvent;
 
@@ -370,6 +369,7 @@ class PosNetTest extends TestCase
 
                         return $updatedRequestDataPreparedEvent1;
                     }
+
                     if ($matcher2->getInvocationCount() === 2) {
                         $updatedRequestData = $updatedRequestDataPreparedEvent2->getRequestData();
                         $updatedRequestData['test-update-request-data-with-event'] = true;
@@ -872,7 +872,7 @@ class PosNetTest extends TestCase
             ->method('dispatch')
             ->with($this->logicalAnd(
                 $this->isInstanceOf(RequestDataPreparedEvent::class),
-                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent): bool {
                     $updatedRequestDataPreparedEvent = $dispatchedEvent;
 
                     return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
@@ -882,7 +882,7 @@ class PosNetTest extends TestCase
                         && $paymentModel === $dispatchedEvent->getPaymentModel();
                 }
                 )))
-            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent) {
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
                 $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);

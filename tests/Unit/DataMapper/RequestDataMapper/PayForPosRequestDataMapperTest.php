@@ -34,8 +34,6 @@ class PayForPosRequestDataMapperTest extends TestCase
     /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
-    private array $order;
-
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
@@ -51,16 +49,6 @@ class PayForPosRequestDataMapperTest extends TestCase
             PosInterface::MODEL_3D_SECURE,
             '12345678'
         );
-
-        $this->order = [
-            'id'          => '2020110828BC',
-            'amount'      => 100.01,
-            'installment' => '0',
-            'currency'    => PosInterface::CURRENCY_TRY,
-            'success_url' => 'http://localhost/finansbank-payfor/3d/response.php',
-            'fail_url'    => 'http://localhost/finansbank-payfor/3d/response.php',
-            'lang'        => PosInterface::LANG_TR,
-        ];
 
         $this->crypt      = $this->createMock(CryptInterface::class);
         $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
