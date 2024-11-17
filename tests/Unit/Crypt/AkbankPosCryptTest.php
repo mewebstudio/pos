@@ -89,9 +89,6 @@ class AkbankPosCryptTest extends TestCase
         $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
-    /**
-     * @dataProvider threeDHashCheckDataProvider
-     */
     public function testCheck3DHashException(): void
     {
         $account = $this->createMock(AbstractPosAccount::class);
@@ -100,7 +97,7 @@ class AkbankPosCryptTest extends TestCase
     }
 
 
-    public function threeDHashCheckDataProvider(): array
+    public static function threeDHashCheckDataProvider(): array
     {
         return [
             [

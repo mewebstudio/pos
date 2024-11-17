@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\EstV3PosCrypt;
 use Mews\Pos\Entity\Account\EstPosAccount;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -98,7 +99,13 @@ class EstV3PosCryptTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
-    public function threeDHashCheckDataProvider(): array
+    public function testCreateHash(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->crypt->createHash($this->account, []);
+    }
+
+    public static function threeDHashCheckDataProvider(): array
     {
         return [
             [

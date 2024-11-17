@@ -6,7 +6,9 @@
 namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\EstPosCrypt;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -87,7 +89,20 @@ class EstPosCryptTest extends TestCase
         $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
-    public function threeDHashCheckDataProvider(): array
+    public function testCheck3DHashException(): void
+    {
+        $account = $this->createMock(AbstractPosAccount::class);
+        $this->expectException(\LogicException::class);
+        $this->crypt->check3DHash($account, []);
+    }
+
+    public function testCreateHash(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->crypt->createHash($this->account, []);
+    }
+
+    public static function threeDHashCheckDataProvider(): array
     {
         return [
             [

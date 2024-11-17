@@ -6,6 +6,7 @@
 namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\ToslaPosCrypt;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
@@ -66,7 +67,14 @@ class ToslaPosCryptTest extends TestCase
         $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
-    public function threeDHashCheckDataProvider(): array
+    public function testCheck3DHashException(): void
+    {
+        $account = $this->createMock(AbstractPosAccount::class);
+        $this->expectException(\LogicException::class);
+        $this->crypt->check3DHash($account, []);
+    }
+
+    public static function threeDHashCheckDataProvider(): array
     {
         return [
             [

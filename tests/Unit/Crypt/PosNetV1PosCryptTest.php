@@ -5,6 +5,7 @@
 namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\PosNetV1PosCrypt;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
@@ -83,6 +84,13 @@ class PosNetV1PosCryptTest extends TestCase
     public function testCheck3DHash(bool $expected, array $responseData): void
     {
         $this->assertSame($expected, $this->crypt->check3DHash($this->account, $responseData));
+    }
+
+    public function testCheck3DHashException(): void
+    {
+        $account = $this->createMock(AbstractPosAccount::class);
+        $this->expectException(\LogicException::class);
+        $this->crypt->check3DHash($account, []);
     }
 
     public static function threeDHashCreateDataProvider(): array

@@ -6,6 +6,7 @@
 namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\GarantiPosCrypt;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
@@ -53,6 +54,13 @@ class GarantiPosCryptTest extends TestCase
         $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
+    public function testCheck3DHashException(): void
+    {
+        $account = $this->createMock(AbstractPosAccount::class);
+        $this->expectException(\LogicException::class);
+        $this->crypt->check3DHash($account, []);
+    }
+
     /**
      * @return void
      */
@@ -83,7 +91,7 @@ class GarantiPosCryptTest extends TestCase
         $this->assertSame($expected, $actual);
     }
 
-    public function threeDHashCheckDataProvider(): array
+    public static function threeDHashCheckDataProvider(): array
     {
         return [
             [
@@ -139,7 +147,7 @@ class GarantiPosCryptTest extends TestCase
         ];
     }
 
-    public function hashCreateDataProvider(): array
+    public static function hashCreateDataProvider(): array
     {
         return [
             [
