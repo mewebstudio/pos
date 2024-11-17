@@ -35,7 +35,6 @@ class AkbankPosCryptTest extends TestCase
             '2023090417500284633D137A249DBBEB',
             '3230323330393034313735303032363031353172675f357637355f3273387373745f7233725f73323333383737335f323272383774767276327672323531355f',
             PosInterface::LANG_TR,
-            'sub-2023090417500272654BD9A49CF07574'
         );
 
         $logger      = $this->createMock(LoggerInterface::class);
@@ -142,7 +141,7 @@ class AkbankPosCryptTest extends TestCase
                     'expiredDate'     => '1135',
                     'cvv'             => '665',
                 ],
-                'expected'    => 'N0iWnWjG93R20newWV7hJgpPaKmt2W4TwMP9BdvKSwcFVtJF+3JRlP7cxAcQMFe1XKQJNd1rYO4jsX65zrKUDg==',
+                'expected'    => 'ilR2mCExklKEti+2x61A8pcOfzJ5z5M6xMYmmU8ClaKaDuxKooFuH3v7XW/ba25xlTDqGN1H//i0zTiJl5YnfA==',
             ],
             '3d_host'   => [
                 'requestData' => [
@@ -165,7 +164,7 @@ class AkbankPosCryptTest extends TestCase
                     'randomNumber'    => 'AEDDD8688E11A3DC588DAB2ED59B2F64D45E798761CEFF17F4DB47581072697890180C4195986250F89C2C67A04A3B96F0AC66AE99B49BB7BEE618FBD621C4CD',
                     'requestDateTime' => '2024-04-04T21:11:41.000',
                 ],
-                'expected'    => '8dWHFFeUZ17Q5uEPKtIxJBDCTBJ11aPQpYdpsIISSjSUPRbXrax35kLVpqK4Hv6YpXFfA7ltqrp/yv7WwenvxQ==',
+                'expected'    => '36uUlZFNi+Fs928RPt9CUfKfq+2hTWKK6idWFXjwnO47Qz4pVk6bliSUY+4RGw8Fzcqz+MUWQQ2Grz2zk4l9og==',
             ],
         ];
     }
