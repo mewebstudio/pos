@@ -7,6 +7,7 @@ namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\ToslaPosCrypt;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -38,14 +39,8 @@ class ToslaPosCryptTest extends TestCase
 
     public function testCreate3DHash(): void
     {
-        $requestData = [
-            'timeSpan' => '20231209201121',
-            'rnd'      => 'rand',
-        ];
-        $expected    = 'BwZ05tt0aNgIgtrrqmlTwSIaeetpQyyGLH6xTsQbHae7ANCIVKmLHPxYWk5XP3Li5fr4La1bZS9/43OihP0dig==';
-
-        $actual = $this->crypt->create3DHash($this->account, $requestData);
-        $this->assertSame($expected, $actual);
+        $this->expectException(NotImplementedException::class);
+        $this->crypt->create3DHash($this->account, []);
     }
 
     public function testCreateHash(): void

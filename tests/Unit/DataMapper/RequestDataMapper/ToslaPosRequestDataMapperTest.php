@@ -129,7 +129,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
             ->method('generateRandomString')
             ->willReturn($expected['rnd']);
         $this->crypt->expects(self::once())
-            ->method('create3DHash')
+            ->method('createHash')
             ->willReturn($expected['hash']);
 
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order);

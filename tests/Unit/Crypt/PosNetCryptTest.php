@@ -6,6 +6,7 @@ namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\PosNetCrypt;
 use Mews\Pos\Entity\Account\PosNetAccount;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -38,13 +39,19 @@ class PosNetCryptTest extends TestCase
         $this->crypt = new PosNetCrypt($logger);
     }
 
+    public function testCreate3DHashException(): void
+    {
+        $this->expectException(NotImplementedException::class);
+
+        $this->crypt->create3DHash($this->account, []);
+    }
 
     /**
-     * @dataProvider threeDHashCreateDataProvider
+     * @dataProvider hashCreateDataProvider
      */
-    public function testCreate3DHash(array $requestData, string $expected): void
+    public function testCreateHash(array $requestData, string $expected): void
     {
-        $actual = $this->crypt->create3DHash($this->account, $requestData);
+        $actual = $this->crypt->createHash($this->account, $requestData);
 
         $this->assertSame($expected, $actual);
     }
@@ -68,19 +75,19 @@ class PosNetCryptTest extends TestCase
         $this->assertSame('c1PPl+2UcdixyhgLYnf4VfJyFGaNQNOwE0uMkci7Uag=', $this->crypt->createSecurityData($this->account));
     }
 
-    public function threeDHashCreateDataProvider(): array
+    public static function hashCreateDataProvider(): array
     {
         return [
             [
                 'requestData' => [
-                    'id' => 'TST_190620093100_024',
-                    'amount' => 175,
-                      'installment' => 0,
-                      'currency' => 'TL',
-                      'success_url' => 'https://domain.com/success',
-                      'fail_url' => 'https://domain.com/fail_url',
-                      'rand' => '0.43625700 1604831630',
-                      'lang' => 'tr',
+                    'id'          => 'TST_190620093100_024',
+                    'amount'      => 175,
+                    'installment' => 0,
+                    'currency'    => 'TL',
+                    'success_url' => 'https://domain.com/success',
+                    'fail_url'    => 'https://domain.com/fail_url',
+                    'rand'        => '0.43625700 1604831630',
+                    'lang'        => 'tr',
 
                 ],
                 'expected'    => 'nyeFSQ4J9NZVeCcEGCDomM8e2YIvoeIa/IDh2D3qaL4=',
@@ -88,25 +95,24 @@ class PosNetCryptTest extends TestCase
         ];
     }
 
-    public function threeDHashCheckDataProvider(): array
+    public static function threeDHashCheckDataProvider(): array
     {
         return [
             [
                 'expectedResult' => true,
                 'responseData'   => [
-                    'xid' => '00000000000000000895',
-                    'amount' => '100',
-                    'currency' => 'TL',
-                    'installment' => '00',
-                    'point' => '0',
-                    'pointAmount' => '0',
-                    'txStatus' => 'N',
-                    'mdStatus' => '9',
+                    'xid'            => '00000000000000000895',
+                    'amount'         => '100',
+                    'currency'       => 'TL',
+                    'installment'    => '00',
+                    'point'          => '0',
+                    'pointAmount'    => '0',
+                    'txStatus'       => 'N',
+                    'mdStatus'       => '9',
                     'mdErrorMessage' => 'None 3D - Secure Transaction',
-                    'mac'        => '7I9ojRm7yzvZZTFNOYWocGIGSTv2Vmq23STR6X6X+c0=',
+                    'mac'            => '7I9ojRm7yzvZZTFNOYWocGIGSTv2Vmq23STR6X6X+c0=',
                 ],
             ],
         ];
     }
-
 }

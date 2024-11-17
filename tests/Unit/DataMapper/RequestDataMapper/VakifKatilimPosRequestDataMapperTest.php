@@ -209,7 +209,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
         unset($hashCalculationData['HashData']);
 
         $this->crypt->expects(self::once())
-            ->method('create3DHash')
+            ->method('createHash')
             ->with($account, $hashCalculationData)
             ->willReturn($expectedData['HashData']);
 
@@ -337,7 +337,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
         $hashCalculationData['HashData'] = '';
 
         $this->crypt->expects(self::once())
-            ->method('create3DHash')
+            ->method('createHash')
             ->with($kuveytPosAccount, $hashCalculationData)
             ->willReturn($expectedData['HashData']);
 

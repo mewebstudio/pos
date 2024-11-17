@@ -195,7 +195,7 @@ class PosNetRequestDataMapperTest extends TestCase
     public function testCreate3DPaymentRequestData(array $order, array $mappedOrder, string $txType, array $responseData, array $expected): void
     {
         $this->crypt->expects(self::once())
-            ->method('create3DHash')
+            ->method('createHash')
             ->with($this->account, $mappedOrder)
             ->willReturn($expected['oosTranData']['mac']);
 
@@ -230,7 +230,7 @@ class PosNetRequestDataMapperTest extends TestCase
     public function testCreate3DResolveMerchantRequestData(array $order, array $mappedOrder, array $responseData, array $expectedData): void
     {
         $this->crypt->expects(self::once())
-            ->method('create3DHash')
+            ->method('createHash')
             ->with($this->account, $mappedOrder)
             ->willReturn($expectedData['oosResolveMerchantData']['mac']);
 

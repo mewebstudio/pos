@@ -18,22 +18,11 @@ class PosNetCrypt extends AbstractCrypt
     protected const HASH_SEPARATOR = ';';
 
     /**
-     * @param PosNetAccount $posAccount
-     *
      * {@inheritDoc}
      */
     public function create3DHash(AbstractPosAccount $posAccount, array $requestData, ?string $txType = null): string
     {
-        $secondHashData = [
-            $requestData['id'],
-            $requestData['amount'],
-            $requestData['currency'],
-            $posAccount->getClientId(),
-            $this->createSecurityData($posAccount),
-        ];
-        $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
-
-        return $this->hashString($hashStr);
+        throw new NotImplementedException();
     }
 
     /**
@@ -69,11 +58,22 @@ class PosNetCrypt extends AbstractCrypt
     }
 
     /**
+     * @param PosNetAccount $posAccount
+     *
      * @inheritdoc
      */
     public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        throw new NotImplementedException();
+        $hashData = [
+            $requestData['id'],
+            $requestData['amount'],
+            $requestData['currency'],
+            $posAccount->getClientId(),
+            $this->createSecurityData($posAccount),
+        ];
+        $hashStr  = implode(static::HASH_SEPARATOR, $hashData);
+
+        return $this->hashString($hashStr);
     }
 
     /**

@@ -82,7 +82,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         $mappedOrder['amount']   = $this->formatAmount($order['amount']);
         $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
-        $hash = $this->crypt->create3DHash($posAccount, $mappedOrder);
+        $hash = $this->crypt->createHash($posAccount, $mappedOrder);
 
         return [
             'mid'         => $posAccount->getClientId(),
@@ -333,7 +333,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         $mappedOrder['amount']   = $this->formatAmount($order['amount']);
         $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
 
-        $hash = $this->crypt->create3DHash($posAccount, $mappedOrder);
+        $hash = $this->crypt->createHash($posAccount, $mappedOrder);
 
         return [
             'mid'                    => $posAccount->getClientId(),

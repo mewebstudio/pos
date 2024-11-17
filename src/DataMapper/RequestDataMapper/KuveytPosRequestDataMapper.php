@@ -122,7 +122,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $inputs = $this->getRequestAccountData($kuveytPosAccount) + [
+        $requestData = $this->getRequestAccountData($kuveytPosAccount) + [
                 'APIVersion'          => self::API_VERSION,
                 'TransactionType'     => $this->mapTxType($txType),
                 'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
@@ -140,17 +140,17 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             ];
 
         if ($creditCard instanceof CreditCardInterface) {
-            $inputs['CardHolderName']      = $creditCard->getHolderName();
-            $inputs['CardType']            = $this->cardTypeMapping[$creditCard->getType()];
-            $inputs['CardNumber']          = $creditCard->getNumber();
-            $inputs['CardExpireDateYear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $inputs['CardExpireDateMonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['CardCVV2']            = $creditCard->getCvv();
+            $requestData['CardHolderName']      = $creditCard->getHolderName();
+            $requestData['CardType']            = $this->cardTypeMapping[$creditCard->getType()];
+            $requestData['CardNumber']          = $creditCard->getNumber();
+            $requestData['CardExpireDateYear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
+            $requestData['CardExpireDateMonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
+            $requestData['CardCVV2']            = $creditCard->getCvv();
         }
 
-        $inputs['HashData'] = $this->crypt->create3DHash($kuveytPosAccount, $inputs);
+        $requestData['HashData'] = $this->crypt->createHash($kuveytPosAccount, $requestData);
 
-        return $inputs;
+        return $requestData;
     }
 
     /**

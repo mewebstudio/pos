@@ -51,7 +51,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
             'timeSpan'         => $order['time_span'],
         ];
 
-        $requestData['hash'] = $this->crypt->create3DHash($posAccount, $requestData);
+        $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
         return $this->getRequestAccountData($posAccount) + $requestData;
     }

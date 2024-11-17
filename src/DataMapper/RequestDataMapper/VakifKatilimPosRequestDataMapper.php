@@ -80,7 +80,7 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
                 'TransactionSecurity' => $this->secureTypeMappings[PosInterface::MODEL_3D_SECURE],
             ];
 
-        $result['HashData'] = $this->crypt->create3DHash($posAccount, $result);
+        $result['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
     }
@@ -101,7 +101,7 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $inputs = $this->getRequestAccountData($kuveytPosAccount) + [
+        $requestData = $this->getRequestAccountData($kuveytPosAccount) + [
                 'APIVersion'          => self::API_VERSION,
                 'HashPassword'        => $this->crypt->hashString($kuveytPosAccount->getStoreKey() ?? ''),
                 'TransactionSecurity' => $this->secureTypeMappings[$paymentModel],
@@ -115,16 +115,16 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
             ];
 
         if ($creditCard instanceof CreditCardInterface) {
-            $inputs['CardHolderName']      = $creditCard->getHolderName();
-            $inputs['CardNumber']          = $creditCard->getNumber();
-            $inputs['CardExpireDateYear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
-            $inputs['CardExpireDateMonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
-            $inputs['CardCVV2']            = $creditCard->getCvv();
+            $requestData['CardHolderName']      = $creditCard->getHolderName();
+            $requestData['CardNumber']          = $creditCard->getNumber();
+            $requestData['CardExpireDateYear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
+            $requestData['CardExpireDateMonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);
+            $requestData['CardCVV2']            = $creditCard->getCvv();
         }
 
-        $inputs['HashData'] = $this->crypt->create3DHash($kuveytPosAccount, $inputs);
+        $requestData['HashData'] = $this->crypt->createHash($kuveytPosAccount, $requestData);
 
-        return $inputs;
+        return $requestData;
     }
 
     /**

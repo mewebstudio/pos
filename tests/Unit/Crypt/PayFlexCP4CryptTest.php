@@ -40,20 +40,21 @@ class PayFlexCP4CryptTest extends TestCase
     }
 
 
-    /**
-     * @dataProvider threeDHashCreateDataProvider
-     */
-    public function testCreate3DHash(array $requestData, string $expected): void
-    {
-        $actual = $this->crypt->create3DHash($this->account, $requestData);
-
-        $this->assertSame($expected, $actual);
-    }
-
-    public function testCreateHash(): void
+    public function testCreate3DHash(): void
     {
         $this->expectException(NotImplementedException::class);
-        $this->crypt->createHash($this->account, []);
+
+        $this->crypt->create3DHash($this->account, []);
+    }
+
+    /**
+     * @dataProvider hashCreateDataProvider
+     */
+    public function testCreateHash(array $requestData, string $expected): void
+    {
+        $actual = $this->crypt->createHash($this->account, $requestData);
+
+        $this->assertSame($expected, $actual);
     }
 
     public function testCheck3DHash(): void
@@ -64,21 +65,6 @@ class PayFlexCP4CryptTest extends TestCase
     }
 
     public static function hashCreateDataProvider(): array
-    {
-        return [
-            [
-                'requestData' => [
-                    'id'          => 'ORDER-123',
-                    'amount'      => 7256,
-                    'currency'    => PosInterface::CURRENCY_TRY,
-                    'installment' => '0',
-                ],
-                'expected'    => 'Bf+hZf2c1gf1pTXnEaSGxDpGRr0=',
-            ],
-        ];
-    }
-
-    public static function threeDHashCreateDataProvider(): array
     {
         return [
             [

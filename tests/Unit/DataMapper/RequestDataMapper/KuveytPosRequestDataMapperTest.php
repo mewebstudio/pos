@@ -135,7 +135,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
         $card    = $this->card;
 
         $this->crypt->expects(self::once())
-            ->method('create3DHash')
+            ->method('createHash')
             ->willReturn('request-3d-hash');
 
         $actualData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(

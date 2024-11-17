@@ -6,6 +6,7 @@
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Exceptions\NotImplementedException;
 
 class ToslaPosCrypt extends AbstractCrypt
 {
@@ -17,17 +18,7 @@ class ToslaPosCrypt extends AbstractCrypt
      */
     public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        $hashData = [
-            $posAccount->getStoreKey(),
-            $posAccount->getClientId(),
-            $posAccount->getUsername(),
-            $requestData['rnd'],
-            $requestData['timeSpan'],
-        ];
-
-        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
-
-        return $this->hashString($hashStr);
+        throw new NotImplementedException();
     }
 
     /**
@@ -67,7 +58,17 @@ class ToslaPosCrypt extends AbstractCrypt
      */
     public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        return $this->create3DHash($posAccount, $requestData);
+        $hashData = [
+            $posAccount->getStoreKey(),
+            $posAccount->getClientId(),
+            $posAccount->getUsername(),
+            $requestData['rnd'],
+            $requestData['timeSpan'],
+        ];
+
+        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
+
+        return $this->hashString($hashStr);
     }
 
     /**
