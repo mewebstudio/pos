@@ -700,7 +700,7 @@ class PayFlexCPV4PosTest extends TestCase
             ->method('dispatch')
             ->with($this->logicalAnd(
                 $this->isInstanceOf(RequestDataPreparedEvent::class),
-                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent) {
+                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent): bool {
                     $updatedRequestDataPreparedEvent = $dispatchedEvent;
 
                     return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
@@ -710,7 +710,7 @@ class PayFlexCPV4PosTest extends TestCase
                         && $paymentModel === $dispatchedEvent->getPaymentModel();
                 }
                 )))
-            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent) {
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
                 $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);

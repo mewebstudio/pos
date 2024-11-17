@@ -217,9 +217,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
     {
-        $requestData += $this->getRequestAccountData($posAccount);
-
-        return $requestData;
+        return $requestData + $this->getRequestAccountData($posAccount);
     }
 
     /**

@@ -318,6 +318,7 @@ class KuveytPosResponseDataMapperTest extends TestCase
             $this->assertIsArray($actualData['all']);
             $this->assertNotEmpty($actualData['all']);
         }
+
         $this->assertArrayHasKey('3d_all', $actualData);
         $this->assertIsArray($actualData['3d_all']);
         $this->assertNotEmpty($actualData['3d_all']);
