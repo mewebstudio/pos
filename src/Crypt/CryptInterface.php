@@ -31,11 +31,11 @@ interface CryptInterface
      * creates hash for 3D form data
      *
      * @param AbstractPosAccount    $posAccount
-     * @param array<string, string> $requestData
+     * @param array<string, string> $formInputs
      *
      * @return string
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string;
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string;
 
     /**
      * create hash for API requests

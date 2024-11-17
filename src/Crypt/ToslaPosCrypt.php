@@ -16,7 +16,7 @@ class ToslaPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string
     {
         throw new NotImplementedException();
     }
@@ -51,10 +51,7 @@ class ToslaPosCrypt extends AbstractCrypt
     }
 
     /**
-     * @param AbstractPosAccount   $posAccount
-     * @param array<string, mixed> $requestData
-     *
-     * @return string
+     * @inheritDoc
      */
     public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {

@@ -13,17 +13,17 @@ class EstPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string
     {
         $hashData = [
             $posAccount->getClientId(),
-            $requestData['oid'],
-            $requestData['amount'],
-            $requestData['okUrl'],
-            $requestData['failUrl'],
-            $requestData['islemtipi'],
-            $requestData['taksit'],
-            $requestData['rnd'],
+            $formInputs['oid'],
+            $formInputs['amount'],
+            $formInputs['okUrl'],
+            $formInputs['failUrl'],
+            $formInputs['islemtipi'],
+            $formInputs['taksit'],
+            $formInputs['rnd'],
             $posAccount->getStoreKey(),
         ];
 
@@ -59,10 +59,7 @@ class EstPosCrypt extends AbstractCrypt
     }
 
     /**
-     * @param AbstractPosAccount   $posAccount
-     * @param array<string, mixed> $requestData
-     *
-     * @return string
+     * @inheritDoc
      */
     public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {

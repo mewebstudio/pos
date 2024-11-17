@@ -17,19 +17,19 @@ class GarantiPosCrypt extends AbstractCrypt
      * @param GarantiPosAccount $posAccount
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string
     {
         $map = [
             $posAccount->getTerminalId(),
-            $requestData['orderid'],
-            $requestData['txnamount'],
-            $requestData['txncurrencycode'],
-            $requestData['successurl'],
-            $requestData['errorurl'],
-            $requestData['txntype'],
-            $requestData['txninstallmentcount'],
+            $formInputs['orderid'],
+            $formInputs['txnamount'],
+            $formInputs['txncurrencycode'],
+            $formInputs['successurl'],
+            $formInputs['errorurl'],
+            $formInputs['txntype'],
+            $formInputs['txninstallmentcount'],
             $posAccount->getStoreKey(),
-            $this->createSecurityData($posAccount, $requestData['txntype']),
+            $this->createSecurityData($posAccount, $formInputs['txntype']),
         ];
 
         return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map), self::HASH_ALGORITHM);

@@ -13,17 +13,17 @@ class InterPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string
     {
         $hashData = [
             $posAccount->getClientId(),
-            $requestData['OrderId'],
-            $requestData['PurchAmount'],
-            $requestData['OkUrl'],
-            $requestData['FailUrl'],
-            $requestData['TxnType'],
-            $requestData['InstallmentCount'],
-            $requestData['Rnd'],
+            $formInputs['OrderId'],
+            $formInputs['PurchAmount'],
+            $formInputs['OkUrl'],
+            $formInputs['FailUrl'],
+            $formInputs['TxnType'],
+            $formInputs['InstallmentCount'],
+            $formInputs['Rnd'],
             $posAccount->getStoreKey(),
         ];
 

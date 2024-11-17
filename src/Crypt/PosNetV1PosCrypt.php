@@ -21,17 +21,17 @@ class PosNetV1PosCrypt extends AbstractCrypt
      *
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs, ?string $txType = null): string
     {
         $hashData = [
             $posAccount->getClientId(),
             $posAccount->getTerminalId(),
             // no card data for 3D host payment
-            $requestData['CardNo'] ?? null,
-            $requestData['Cvv'] ?? null,
-            $requestData['ExpiredDate'] ?? null,
+            $formInputs['CardNo'] ?? null,
+            $formInputs['Cvv'] ?? null,
+            $formInputs['ExpiredDate'] ?? null,
 
-            $requestData['Amount'],
+            $formInputs['Amount'],
             $posAccount->getStoreKey(),
         ];
         $hashStr  = \implode(static::HASH_SEPARATOR, $hashData);

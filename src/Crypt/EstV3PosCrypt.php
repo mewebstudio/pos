@@ -19,10 +19,10 @@ class EstV3PosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string
     {
-        \ksort($requestData, SORT_NATURAL | SORT_FLAG_CASE);
-        foreach (\array_keys($requestData) as $key) {
+        \ksort($formInputs, SORT_NATURAL | SORT_FLAG_CASE);
+        foreach (\array_keys($formInputs) as $key) {
             /**
              * this part is needed only to create hash from the bank response
              *
@@ -31,13 +31,13 @@ class EstV3PosCrypt extends AbstractCrypt
              *  Payten tarafından hash içerisinde olmaması gerektiği teyidi alındı.
              */
             if (\in_array(\strtolower($key), ['hash', 'encoding' , 'nationalidno']))  {
-                unset($requestData[$key]);
+                unset($formInputs[$key]);
             }
         }
 
-        $requestData[] = $posAccount->getStoreKey();
+        $formInputs[] = $posAccount->getStoreKey();
         // escape | and \ characters
-        $data = \str_replace("\\", "\\\\", \array_values($requestData));
+        $data = \str_replace("\\", "\\\\", \array_values($formInputs));
         $data = \str_replace(self::HASH_SEPARATOR, "\\".self::HASH_SEPARATOR, $data);
 
         $hashStr = \implode(self::HASH_SEPARATOR, $data);
@@ -68,10 +68,7 @@ class EstV3PosCrypt extends AbstractCrypt
     }
 
     /**
-     * @param AbstractPosAccount   $posAccount
-     * @param array<string, mixed> $requestData
-     *
-     * @return string
+     * @inheritDoc
      */
     public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {

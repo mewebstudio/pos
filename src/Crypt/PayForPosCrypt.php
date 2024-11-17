@@ -13,17 +13,17 @@ class PayForPosCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string
     {
         $hashData = [
-            $requestData['MbrId'],
-            $requestData['OrderId'],
-            $requestData['PurchAmount'],
-            $requestData['OkUrl'],
-            $requestData['FailUrl'],
-            $requestData['TxnType'],
-            $requestData['InstallmentCount'],
-            $requestData['Rnd'],
+            $formInputs['MbrId'],
+            $formInputs['OrderId'],
+            $formInputs['PurchAmount'],
+            $formInputs['OkUrl'],
+            $formInputs['FailUrl'],
+            $formInputs['TxnType'],
+            $formInputs['InstallmentCount'],
+            $formInputs['Rnd'],
             $posAccount->getStoreKey(),
         ];
         $hashStr = implode(static::HASH_SEPARATOR, $hashData);

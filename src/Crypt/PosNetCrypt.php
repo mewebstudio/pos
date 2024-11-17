@@ -20,7 +20,7 @@ class PosNetCrypt extends AbstractCrypt
     /**
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs, ?string $txType = null): string
     {
         throw new NotImplementedException();
     }
