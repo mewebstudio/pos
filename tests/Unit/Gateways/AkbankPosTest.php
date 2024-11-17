@@ -154,7 +154,7 @@ class AkbankPosTest extends TestCase
 
     public function testGet3DHostGatewayURL(): void
     {
-        $actual = $this->pos->get3DHostGatewayURL();
+        $actual = $this->pos->get3DGatewayURL(PosInterface::MODEL_3D_HOST);
 
         $this->assertSame(
             'https://virtualpospaymentgateway.akbank.com/payhosting',
