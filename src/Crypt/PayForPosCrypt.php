@@ -26,7 +26,7 @@ class PayForPosCrypt extends AbstractCrypt
             $formInputs['Rnd'],
             $posAccount->getStoreKey(),
         ];
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }
@@ -47,7 +47,7 @@ class PayForPosCrypt extends AbstractCrypt
             $posAccount->getUsername(),
         ];
 
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
 
         $hash = $this->hashString($hashStr);
 

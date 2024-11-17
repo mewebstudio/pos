@@ -129,6 +129,7 @@ class InterPosCryptTest extends TestCase
         return [
             [
                 'requestData' => [
+                    'ShopCode'         => '3123',
                     'OrderId'          => 'order222',
                     'PurchAmount'      => '100.25',
                     'TxnType'          => 'Auth',

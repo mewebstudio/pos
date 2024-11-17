@@ -69,8 +69,10 @@ class PayFlexCP4CryptTest extends TestCase
         return [
             [
                 'requestData' => [
-                    'AmountCode' => '949',
-                    'Amount'     => '10.10',
+                    'HostMerchantId'   => '000000000111111',
+                    'MerchantPassword' => '3XTgER89as',
+                    'AmountCode'       => '949',
+                    'Amount'           => '10.10',
                 ],
                 'expected'    => '/MfLewtkUjpN5e/RY2iuIoT72hk=',
             ],

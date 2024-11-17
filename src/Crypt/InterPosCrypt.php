@@ -16,7 +16,7 @@ class InterPosCrypt extends AbstractCrypt
     public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string
     {
         $hashData = [
-            $posAccount->getClientId(),
+            $formInputs['ShopCode'],
             $formInputs['OrderId'],
             $formInputs['PurchAmount'],
             $formInputs['OkUrl'],
@@ -27,7 +27,7 @@ class InterPosCrypt extends AbstractCrypt
             $posAccount->getStoreKey(),
         ];
 
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }

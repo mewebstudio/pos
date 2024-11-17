@@ -32,13 +32,17 @@ class PosNetCrypt extends AbstractCrypt
      */
     public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
+        if (null === $posAccount->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
+
         $secondHashData = [
             $data['mdStatus'],
             $data['xid'],
             $data['amount'],
             $data['currency'],
             $posAccount->getClientId(),
-            $this->createSecurityData($posAccount),
+            $this->createSecurityData($posAccount->getStoreKey(), $posAccount->getTerminalId()),
         ];
         $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
 
@@ -58,20 +62,24 @@ class PosNetCrypt extends AbstractCrypt
     }
 
     /**
-     * @param PosNetAccount $posAccount
+     * @param array{amount: int, currency: string, id: string} $order
      *
      * @inheritdoc
      */
-    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData, array $order = []): string
     {
+        if (null === $posAccount->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
+
         $hashData = [
-            $requestData['id'],
-            $requestData['amount'],
-            $requestData['currency'],
-            $posAccount->getClientId(),
-            $this->createSecurityData($posAccount),
+            $order['id'],
+            $order['amount'],
+            $order['currency'],
+            $requestData['mid'],
+            $this->createSecurityData($posAccount->getStoreKey(), $requestData['tid']),
         ];
-        $hashStr  = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr  = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }
@@ -79,17 +87,18 @@ class PosNetCrypt extends AbstractCrypt
     /**
      * Make Security Data
      *
-     * @param PosNetAccount $posAccount
+     * @param string $storeKey
+     * @param string $terminalId
      *
      * @return string
      */
-    public function createSecurityData(AbstractPosAccount $posAccount): string
+    private function createSecurityData(string $storeKey, string $terminalId): string
     {
         $hashData = [
-            $posAccount->getStoreKey(),
-            $posAccount->getTerminalId(),
+            $storeKey,
+            $terminalId,
         ];
-        $hashStr  = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr  = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }

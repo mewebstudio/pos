@@ -44,30 +44,11 @@ class EstPosCryptTest extends TestCase
     public function testCreate3DHash(): void
     {
         $requestData = [
+            'clientid'  => '700655000200',
             'oid'       => 'order222',
             'amount'    => '100.25',
             'taksit'    => '',
             'islemtipi' => 'Auth',
-            'okUrl'     => 'https://domain.com/success',
-            'failUrl'   => 'https://domain.com/fail_url',
-            'rnd'       => 'rand',
-        ];
-        $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
-
-        $actual = $this->crypt->create3DHash($this->account, $requestData);
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DHashFor3DPay(): void
-    {
-        $requestData = [
-            'oid'       => 'order222',
-            'amount'    => '100.25',
-            'islemtipi' => 'Auth',
-            'taksit'    => '',
             'okUrl'     => 'https://domain.com/success',
             'failUrl'   => 'https://domain.com/fail_url',
             'rnd'       => 'rand',

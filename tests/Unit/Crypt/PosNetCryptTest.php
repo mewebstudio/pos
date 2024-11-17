@@ -2,9 +2,11 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\PosNetCrypt;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
@@ -46,14 +48,28 @@ class PosNetCryptTest extends TestCase
         $this->crypt->create3DHash($this->account, []);
     }
 
+    public function testCreateHashException(): void
+    {
+        $account = $this->createMock(AbstractPosAccount::class);
+        $this->expectException(\LogicException::class);
+        $this->crypt->createHash($account, []);
+    }
+
     /**
      * @dataProvider hashCreateDataProvider
      */
-    public function testCreateHash(array $requestData, string $expected): void
+    public function testCreateHash(array $requestData, array $order, string $expected): void
     {
-        $actual = $this->crypt->createHash($this->account, $requestData);
+        $actual = $this->crypt->createHash($this->account, $requestData, $order);
 
         $this->assertSame($expected, $actual);
+    }
+
+    public function testCheck3DHashException(): void
+    {
+        $account = $this->createMock(AbstractPosAccount::class);
+        $this->expectException(\LogicException::class);
+        $this->crypt->check3DHash($account, []);
     }
 
     /**
@@ -67,28 +83,19 @@ class PosNetCryptTest extends TestCase
         $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
-    /**
-     * @return void
-     */
-    public function testCreateSecurityData(): void
-    {
-        $this->assertSame('c1PPl+2UcdixyhgLYnf4VfJyFGaNQNOwE0uMkci7Uag=', $this->crypt->createSecurityData($this->account));
-    }
-
     public static function hashCreateDataProvider(): array
     {
         return [
             [
                 'requestData' => [
+                    'mid' => '6706598320',
+                    'tid' => '67005551',
+                ],
+                'order'       => [
                     'id'          => 'TST_190620093100_024',
                     'amount'      => 175,
                     'installment' => 0,
                     'currency'    => 'TL',
-                    'success_url' => 'https://domain.com/success',
-                    'fail_url'    => 'https://domain.com/fail_url',
-                    'rand'        => '0.43625700 1604831630',
-                    'lang'        => 'tr',
-
                 ],
                 'expected'    => 'nyeFSQ4J9NZVeCcEGCDomM8e2YIvoeIa/IDh2D3qaL4=',
             ],

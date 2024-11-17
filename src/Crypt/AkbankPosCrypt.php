@@ -6,7 +6,6 @@
 namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Entity\Account\AkbankPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 
 class AkbankPosCrypt extends AbstractCrypt
@@ -24,7 +23,6 @@ class AkbankPosCrypt extends AbstractCrypt
     }
 
     /**
-     * @param AkbankPosAccount $posAccount
      * {@inheritDoc}
      */
     public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string
@@ -32,8 +30,8 @@ class AkbankPosCrypt extends AbstractCrypt
         $hashData = [
             $formInputs['paymentModel'],
             $formInputs['txnCode'],
-            $posAccount->getClientId(),
-            $posAccount->getTerminalId(),
+            $formInputs['merchantSafeId'],
+            $formInputs['terminalSafeId'],
             $formInputs['orderId'],
             $formInputs['lang'],
             $formInputs['amount'],
@@ -45,7 +43,7 @@ class AkbankPosCrypt extends AbstractCrypt
             $formInputs['okUrl'],
             $formInputs['failUrl'],
             $formInputs['emailAddress'] ?? '',
-            $posAccount->getSubMerchantId() ?? '',
+            $formInputs['subMerchantId'] ?? '',
 
             // 3D hosting model does not have credit card information
             $formInputs['creditCard'] ?? '',

@@ -20,7 +20,7 @@ class GarantiPosCrypt extends AbstractCrypt
     public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string
     {
         $map = [
-            $posAccount->getTerminalId(),
+            $formInputs['terminalid'],
             $formInputs['orderid'],
             $formInputs['txnamount'],
             $formInputs['txncurrencycode'],
@@ -29,10 +29,10 @@ class GarantiPosCrypt extends AbstractCrypt
             $formInputs['txntype'],
             $formInputs['txninstallmentcount'],
             $posAccount->getStoreKey(),
-            $this->createSecurityData($posAccount, $formInputs['txntype']),
+            $this->createSecurityData($posAccount, $formInputs['terminalid'], $formInputs['txntype']),
         ];
 
-        return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map), self::HASH_ALGORITHM);
+        return $this->hashStringUpperCase(\implode(static::HASH_SEPARATOR, $map), self::HASH_ALGORITHM);
     }
 
     /**
@@ -71,14 +71,14 @@ class GarantiPosCrypt extends AbstractCrypt
     {
         $map = [
             $requestData['Order']['OrderID'],
-            $posAccount->getTerminalId(),
+            $requestData['Terminal']['ID'],
             $requestData['Card']['Number'] ?? null,
             $requestData['Transaction']['Amount'],
             $requestData['Transaction']['CurrencyCode'] ?? null,
-            $this->createSecurityData($posAccount, $requestData['Transaction']['Type']),
+            $this->createSecurityData($posAccount, $requestData['Terminal']['ID'], $requestData['Transaction']['Type']),
         ];
 
-        return $this->hashStringUpperCase(implode(static::HASH_SEPARATOR, $map), self::HASH_ALGORITHM);
+        return $this->hashStringUpperCase(\implode(static::HASH_SEPARATOR, $map), self::HASH_ALGORITHM);
     }
 
     /**
@@ -93,17 +93,18 @@ class GarantiPosCrypt extends AbstractCrypt
      * Make Security Data
      *
      * @param GarantiPosAccount $posAccount
+     * @param string            $terminalId
      * @param string|null       $txType
      *
      * @return string
      */
-    private function createSecurityData(AbstractPosAccount $posAccount, ?string $txType = null): string
+    private function createSecurityData(AbstractPosAccount $posAccount, string $terminalId, ?string $txType = null): string
     {
-        $password = 'void' === $txType || 'refund' === $txType ? $posAccount->getRefundPassword() : $posAccount->getPassword();
+        $password = ('void' === $txType || 'refund' === $txType) ? $posAccount->getRefundPassword() : $posAccount->getPassword();
 
         $map = [
             $password,
-            \str_pad($posAccount->getTerminalId(), 9, '0', STR_PAD_LEFT),
+            \str_pad($terminalId, 9, '0', STR_PAD_LEFT),
         ];
 
         return $this->hashStringUpperCase(\implode(static::HASH_SEPARATOR, $map), 'sha1');
@@ -116,6 +117,6 @@ class GarantiPosCrypt extends AbstractCrypt
      */
     private function hashStringUpperCase(string $str, string $algorithm): string
     {
-        return strtoupper(hash($algorithm, $str));
+        return strtoupper(\hash($algorithm, $str));
     }
 }

@@ -82,6 +82,8 @@ class KuveytPosCryptTest extends TestCase
         return [
             [
                 'requestData' => [
+                    'MerchantId'      => '80',
+                    'UserName'        => 'apiuser',
                     'MerchantOrderId' => 'ORDER-123',
                     'Amount'          => 7256,
                 ],
@@ -89,6 +91,8 @@ class KuveytPosCryptTest extends TestCase
             ],
             [
                 'requestData' => [
+                    'MerchantId'      => '80',
+                    'UserName'        => 'apiuser',
                     'MerchantOrderId' => 'ORDER-123',
                     'Amount'          => 7256,
                     'OkUrl'           => 'http://localhost:44785/Home/Success',

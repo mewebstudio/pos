@@ -57,8 +57,8 @@ class ToslaPosCrypt extends AbstractCrypt
     {
         $hashData = [
             $posAccount->getStoreKey(),
-            $posAccount->getClientId(),
-            $posAccount->getUsername(),
+            $requestData['clientId'],
+            $requestData['apiUser'],
             $requestData['rnd'],
             $requestData['timeSpan'],
         ];

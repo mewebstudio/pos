@@ -47,6 +47,8 @@ class ToslaPosCryptTest extends TestCase
     public function testCreateHash(): void
     {
         $requestData = [
+            'clientId' => '1000000494',
+            'apiUser'  => 'POS_ENT_Test_001',
             'timeSpan' => '20231209201121',
             'rnd'      => 'rand',
         ];

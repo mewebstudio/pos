@@ -11,6 +11,11 @@ parameters:
 			path: src/Client/HttpClient.php
 
 		-
+			message: "#^Default value of the parameter \\#3 \\$order \\(array\\{\\}\\) of method Mews\\\\Pos\\\\Crypt\\\\PosNetCrypt\\:\\:createHash\\(\\) is incompatible with type array\\{amount\\: int, currency\\: string, id\\: string\\}\\.$#"
+			count: 1
+			path: src/Crypt/PosNetCrypt.php
+
+		-
 			message: "#^Parameter \\#1 \\$currency of method Mews\\\\Pos\\\\DataMapper\\\\RequestDataMapper\\\\AkbankPosRequestDataMapper\\:\\:mapCurrency\\(\\) expects 'EUR'\\|'GBP'\\|'JPY'\\|'RUB'\\|'TRY'\\|'USD', string given\\.$#"
 			count: 5
 			path: src/DataMapper/RequestDataMapper/AkbankPosRequestDataMapper.php

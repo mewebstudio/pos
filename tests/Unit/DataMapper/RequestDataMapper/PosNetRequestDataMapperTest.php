@@ -194,9 +194,12 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreate3DPaymentRequestData(array $order, array $mappedOrder, string $txType, array $responseData, array $expected): void
     {
+        $requestDataWithoutHash = $expected;
+        unset($requestDataWithoutHash['oosTranData']['mac']);
+
         $this->crypt->expects(self::once())
             ->method('createHash')
-            ->with($this->account, $mappedOrder)
+            ->with($this->account, $requestDataWithoutHash, $mappedOrder)
             ->willReturn($expected['oosTranData']['mac']);
 
         $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $responseData);
@@ -229,9 +232,12 @@ class PosNetRequestDataMapperTest extends TestCase
      */
     public function testCreate3DResolveMerchantRequestData(array $order, array $mappedOrder, array $responseData, array $expectedData): void
     {
+        $requestDataWithoutMac = $expectedData;
+        unset($requestDataWithoutMac['oosResolveMerchantData']['mac']);
+
         $this->crypt->expects(self::once())
             ->method('createHash')
-            ->with($this->account, $mappedOrder)
+            ->with($this->account, $requestDataWithoutMac,  $mappedOrder)
             ->willReturn($expectedData['oosResolveMerchantData']['mac']);
 
         $actualData = $this->requestDataMapper->create3DResolveMerchantRequestData($this->account, $order, $responseData);
@@ -430,7 +436,6 @@ class PosNetRequestDataMapperTest extends TestCase
                 'mapped_order' => [
                     'id'          => '000000002020110828BC',
                     'amount'      => 10001,
-                    'installment' => '0',
                     'currency'    => 'TL',
                 ],
                 'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
@@ -687,7 +692,6 @@ class PosNetRequestDataMapperTest extends TestCase
                 'mapped_order'  => [
                     'id'          => '000000002020110828BC',
                     'amount'      => 10001,
-                    'installment' => '0',
                     'currency'    => 'TL',
                 ],
                 'response_data' => [

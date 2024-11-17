@@ -6,6 +6,8 @@
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use InvalidArgumentException;
+use Mews\Pos\Crypt\CryptInterface;
+use Mews\Pos\Crypt\PosNetCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -67,6 +69,9 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         PosInterface::CURRENCY_RUB => 'RU',
     ];
 
+    /** @var PosNetCrypt  */
+    protected CryptInterface $crypt;
+
     /**
      * @param PosNetAccount                                                     $posAccount
      * @param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType kullanilmiyor
@@ -77,14 +82,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder             = $order;
+        $mappedOrder             = [];
         $mappedOrder['id']       = self::formatOrderId($order['id']);
         $mappedOrder['amount']   = $this->formatAmount($order['amount']);
-        $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
+        $mappedOrder['currency'] = (string) $this->mapCurrency($order['currency']);
 
-        $hash = $this->crypt->createHash($posAccount, $mappedOrder);
-
-        return [
+        $requestData = [
             'mid'         => $posAccount->getClientId(),
             'tid'         => $posAccount->getTerminalId(),
             'oosTranData' => [
@@ -92,9 +95,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'merchantData' => $responseData['MerchantPacket'],
                 'sign'         => $responseData['Sign'],
                 'wpAmount'     => 0,
-                'mac'          => $hash,
             ],
         ];
+
+        $requestData['oosTranData']['mac'] = $this->crypt->createHash($posAccount, $requestData, $mappedOrder);
+
+        return $requestData;
     }
 
     /**
@@ -328,23 +334,24 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder             = $order;
+        $mappedOrder             = [];
         $mappedOrder['id']       = self::formatOrderId($order['id']);
         $mappedOrder['amount']   = $this->formatAmount($order['amount']);
-        $mappedOrder['currency'] = $this->mapCurrency($order['currency']);
+        $mappedOrder['currency'] = (string) $this->mapCurrency($order['currency']);
 
-        $hash = $this->crypt->createHash($posAccount, $mappedOrder);
-
-        return [
+        $requestData = [
             'mid'                    => $posAccount->getClientId(),
             'tid'                    => $posAccount->getTerminalId(),
             'oosResolveMerchantData' => [
                 'bankData'     => $responseData['BankPacket'],
                 'merchantData' => $responseData['MerchantPacket'],
                 'sign'         => $responseData['Sign'],
-                'mac'          => $hash,
             ],
         ];
+
+        $requestData['oosResolveMerchantData']['mac'] = $this->crypt->createHash($posAccount, $requestData, $mappedOrder);
+
+        return $requestData;
     }
 
     /**

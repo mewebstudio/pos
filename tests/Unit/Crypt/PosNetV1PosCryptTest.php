@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\PosNetV1PosCrypt;
@@ -114,28 +115,28 @@ class PosNetV1PosCryptTest extends TestCase
     {
         return [
             [
-                'storeKey'  => '10,10,10,10,10,10,10,10',
-                'data '     => [
+                'storeKey' => '10,10,10,10,10,10,10,10',
+                'data '    => [
                     'MACParams'     => 'MerchantNo:TerminalNo:ReferenceCode:OrderId',
                     'MerchantNo'    => '6700950031',
                     'TerminalNo'    => '67540050',
                     'ReferenceCode' => '021459486690000191',
                     'OrderId'       => null,
                 ],
-                'expected'  => 'qhLo/2Ro+vT81i0SMV/VHifDV9VzQQgK+7d8hlId9YM=',
+                'expected' => 'qhLo/2Ro+vT81i0SMV/VHifDV9VzQQgK+7d8hlId9YM=',
             ],
             [
-                'storeKey'  => '10,10,10,10,10,10,10,10',
+                'storeKey'    => '10,10,10,10,10,10,10,10',
                 'requestData' => [
-                    'MerchantNo'  => '6700950031',
-                    'TerminalNo'  => '67540050',
-                    'MACParams' => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount',
+                    'MerchantNo'          => '6700950031',
+                    'TerminalNo'          => '67540050',
+                    'MACParams'           => 'MerchantNo:TerminalNo:CardNo:Cvc2:ExpireDate:Amount',
                     'CardInformationData' => [
-                        'Amount'      => '175',
-                        'CardNo'      => '5400619360964581',
+                        'Amount'     => '175',
+                        'CardNo'     => '5400619360964581',
                         'ExpireDate' => '2001',
-                        'Cvc2'         => '056',
-                    ]
+                        'Cvc2'       => '056',
+                    ],
                 ],
                 'expected'    => 'xuhPbpcPJ6kVs7JeIXS8f06Cv0mb9cNPMfjp1HiB7Ew=',
             ],
@@ -181,6 +182,8 @@ class PosNetV1PosCryptTest extends TestCase
         return [
             [
                 'requestData' => [
+                    'MerchantNo'       => '6700950031',
+                    'TerminalNo'       => '67540050',
                     'ThreeDSecureData' => [
                         'MerchantNo'          => '6700950031',
                         'TerminalNo'          => '67540050',
@@ -194,6 +197,8 @@ class PosNetV1PosCryptTest extends TestCase
             ],
             [
                 'requestData' => [
+                    'MerchantNo'       => '6700950031',
+                    'TerminalNo'       => '67540050',
                     'ThreeDSecureData' => [
                         'MerchantNo'          => '6700950031',
                         'TerminalNo'          => '67540050',

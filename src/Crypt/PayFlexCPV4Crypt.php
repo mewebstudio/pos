@@ -35,15 +35,15 @@ class PayFlexCPV4Crypt extends AbstractCrypt
     public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
         $hashData = [
-            $posAccount->getClientId(),
+            $requestData['HostMerchantId'],
             $requestData['AmountCode'],
             $requestData['Amount'],
-            $posAccount->getPassword(),
+            $requestData['MerchantPassword'],
             '',
             'VBank3DPay2014', // todo
         ];
 
-        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }
