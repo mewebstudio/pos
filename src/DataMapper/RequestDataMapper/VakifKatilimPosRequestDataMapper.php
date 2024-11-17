@@ -52,7 +52,7 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
                 'TransactionSecurity' => $this->valueMapper->mapSecureType(PosInterface::MODEL_3D_SECURE),
             ];
 
-        $result['HashData'] = $this->crypt->create3DHash($posAccount, $result);
+        $result['HashData'] = $this->crypt->createHash($posAccount, $result);
 
         return $result;
     }
@@ -94,7 +94,7 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
             $inputs['CardCVV2']            = $creditCard->getCvv();
         }
 
-        $inputs['HashData'] = $this->crypt->create3DHash($kuveytPosAccount, $inputs);
+        $inputs['HashData'] = $this->crypt->createHash($kuveytPosAccount, $inputs);
 
         return $inputs;
     }

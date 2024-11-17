@@ -60,6 +60,11 @@ class KuveytPosCrypt extends AbstractCrypt
             // non-payment request may not have MerchantOrderId and Amount fields
             $requestData['MerchantOrderId'] ?? '',
             $requestData['Amount'] ?? '',
+
+            // non 3d payments does not have OkUrl and FailUrl fields
+            $requestData['OkUrl'] ?? '',
+            $requestData['FailUrl'] ?? '',
+
             $posAccount->getUsername(),
             $hashedPassword,
         ];

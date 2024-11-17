@@ -67,7 +67,17 @@ class ToslaPosCrypt extends AbstractCrypt
      */
     public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        return $this->create3DHash($posAccount, $requestData);
+        $hashData = [
+            $posAccount->getStoreKey(),
+            $posAccount->getClientId(),
+            $posAccount->getUsername(),
+            $requestData['rnd'],
+            $requestData['timeSpan'],
+        ];
+
+        $hashStr = \implode(static::HASH_SEPARATOR, $hashData);
+
+        return $this->hashString($hashStr);
     }
 
     /**

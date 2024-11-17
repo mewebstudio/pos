@@ -41,10 +41,24 @@ class PayFlexCPV4Crypt extends AbstractCrypt
     }
 
     /**
-     * @inheritdoc
+     * todo "ErrorCode" => "5029"
+     * "ResponseMessage" => "Geçersiz İstek" hash ile istek gonderince hatasi aliyoruz.
+     *
+     * {@inheritDoc}
      */
     public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        throw new NotImplementedException();
+        $hashData = [
+            $posAccount->getClientId(),
+            $requestData['AmountCode'],
+            $requestData['Amount'],
+            $posAccount->getPassword(),
+            '',
+            'VBank3DPay2014', // todo
+        ];
+
+        $hashStr = implode(static::HASH_SEPARATOR, $hashData);
+
+        return $this->hashString($hashStr);
     }
 }

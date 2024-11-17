@@ -73,7 +73,16 @@ class PosNetCrypt extends AbstractCrypt
      */
     public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        throw new NotImplementedException();
+        $secondHashData = [
+            $requestData['id'],
+            $requestData['amount'],
+            $requestData['currency'],
+            $posAccount->getClientId(),
+            $this->createSecurityData($posAccount),
+        ];
+        $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
+
+        return $this->hashString($hashStr);
     }
 
     /**
