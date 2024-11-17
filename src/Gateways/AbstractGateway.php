@@ -155,16 +155,6 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @deprecated use get3DGatewayURL() instead
-     *
-     * @return non-empty-string
-     */
-    public function get3DHostGatewayURL(): string
-    {
-        return $this->get3DGatewayURL(PosInterface::MODEL_3D_HOST);
-    }
-
-    /**
      * @phpstan-param self::TX_TYPE_* $txType
      * @phpstan-param self::TX_TYPE_PAY_* $orderTxType
      *
