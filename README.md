@@ -12,7 +12,7 @@ sistemlerinin kullanılabilmesidir.
 
 | Gateway                                                                                                                | Desktekleyen<br/>bankalar                                                      | Desteklenen<br/>Ödeme Tipleri                                                                               | Desteklenen Sorgular                                                                                               |
 |------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| Tosla (AKÖde)                                                                                                          | ?                                                                              | NonSecure<br/>3DPay<br/>3DHost                                                                              | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama<br/>Özel Sorgu                                |
+| Tosla<br><sup>(eski AKÖde)</sup>                                                                                       | ?                                                                              | NonSecure<br/>3DPay<br/>3DHost                                                                              | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama<br/>Özel Sorgu                                |
 | AkbankPos <br/><sup>(Akbankın yeni altyapısı)</sup>                                                                    | Akbank                                                                         | NonSecure<br/>3DSecur<br/>3DPay<br/>3DHost<br/>Tekrarlanan Ödeme                                            | İptal<br/>İade<br/>Sipariş Tarihçesini sorgulama<br/>Geçmiş İşlemleri sorgulama<br/>Özel Sorgu                     |
 | EST POS<br/><sup>(Asseco/Payten)<br/>_deprecated_</sup>                                                                | Akbank<br/>TEB<br/>İşbank<br/>Şekerbank<br/>Halkbank<br/>Finansbank<br/>Ziraat | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost<br/>3DPayHost<br/>Tekrarlanan Ödeme                             | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama<br/>Özel Sorgu                                |
 | EST V3 POS<br/><br/><sup>EstPos altyapının<br/>daha güvenli<br/>(sha512) hash<br/>algoritmasıyla<br/>uygulaması.</sup> | -----"-----                                                                    | -----"-----                                                                                                 | -----"-----                                                                                                        |
@@ -29,7 +29,7 @@ sistemlerinin kullanılabilmesidir.
 ### Ana başlıklar
 
 - [Özellikler](#ozellikler)
-- [Latest updates](#latest-updates)
+- [Changelog](./docs/CHANGELOG.md)
 - [Minimum Gereksinimler](#minimum-gereksinimler)
 - [Kurulum](#kurulum)
 - [Farklı Banka Sanal Poslarını Eklemek](#farkli-banka-sanal-poslarini-eklemek)
@@ -77,10 +77,6 @@ sistemlerinin kullanılabilmesidir.
   Yani kod güncellemenize gerek yok.
 * Aynı tip işlem için farklı Gateway'lere gönderilecek değerler de genel olarak
   aynı formatta olacak şekilde normalize edilmiştir.
-
-### Latest updates
-
-Son yapılan değişiklikler için [`CHANGELOG`](./docs/CHANGELOG.md).
 
 ### Minimum Gereksinimler
 

@@ -108,7 +108,10 @@ $order = [
     'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
 
-
+/**
+ * NOT! kod örneği basit tutma amaçlı order'i (ve diğer verileri) session'a kaydediyoruz.
+ * Siz veri tabanı ya da farklı bir storage mediumda kullanabilirsiniz.
+ */
 $session->set('order', $order);
 
 // Kredi kartı bilgileri
