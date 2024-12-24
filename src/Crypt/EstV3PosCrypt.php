@@ -35,7 +35,7 @@ class EstV3PosCrypt extends AbstractCrypt
             }
         }
 
-        $formInputs[] = $posAccount->getStoreKey();
+        $formInputs[] = $posAccount->getStoreKey() ?? '';
         // escape | and \ characters
         $data = \str_replace("\\", "\\\\", \array_values($formInputs));
         $data = \str_replace(self::HASH_SEPARATOR, "\\".self::HASH_SEPARATOR, $data);

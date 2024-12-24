@@ -20,6 +20,8 @@ use Symfony\Component\Serializer\Serializer;
 
 class KuveytPosSerializer implements SerializerInterface
 {
+    use SerializerUtilTrait;
+
     /** @var string[] */
     private array $nonPaymentTransactions = [
         PosInterface::TX_TYPE_REFUND,
@@ -86,16 +88,6 @@ class KuveytPosSerializer implements SerializerInterface
 
             throw new \RuntimeException($data, $notEncodableValueException->getCode(), $notEncodableValueException);
         }
-    }
-
-    /**
-     * @param string $str
-     *
-     * @return bool returns true if string is a HTML document.
-     */
-    private function isHTML(string $str): bool
-    {
-        return $str !== \strip_tags($str);
     }
 
     /**

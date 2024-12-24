@@ -655,13 +655,18 @@ abstract class AbstractGateway implements PosInterface
      * @param PosInterface::MODEL_3D_*                                          $paymentModel
      * @param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
      * @param CreditCardInterface|null                                          $card
+     * @param bool                                                              $createWithoutCard
      *
      * @throws \InvalidArgumentException when inputs are not valid
      */
-    protected function check3DFormInputs(string $paymentModel, string $txType, CreditCardInterface $card = null): void
+    protected function check3DFormInputs(string $paymentModel, string $txType, CreditCardInterface $card = null, bool $createWithoutCard = false): void
     {
         if (!self::isSupportedTransaction($txType, $paymentModel)) {
             throw new \LogicException('Bu banka altyapısı sağlanan ödeme modelini ya da işlem tipini desteklenmiyor.');
+        }
+
+        if ($createWithoutCard) {
+            return;
         }
 
         if ((PosInterface::MODEL_3D_SECURE === $paymentModel || PosInterface::MODEL_3D_PAY === $paymentModel)

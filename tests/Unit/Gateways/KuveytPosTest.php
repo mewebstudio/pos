@@ -29,7 +29,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * @covers \Mews\Pos\Gateways\KuveytPos
+ * @covers  \Mews\Pos\Gateways\KuveytPos
  * @covers  \Mews\Pos\Gateways\AbstractGateway
  */
 class KuveytPosTest extends TestCase
@@ -243,6 +243,7 @@ class KuveytPosTest extends TestCase
         string $paymentModel,
         string $txType,
         bool   $isWithCard,
+        bool   $createWithoutCard,
         string $expectedExceptionClass
     ): void
     {
@@ -250,7 +251,7 @@ class KuveytPosTest extends TestCase
 
         $this->expectException($expectedExceptionClass);
 
-        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card, $createWithoutCard);
     }
 
     /**
@@ -283,7 +284,7 @@ class KuveytPosTest extends TestCase
         $create3DPaymentRequestData = [
             'create3DPaymentRequestData',
         ];
-        $encodedRequestData = 'request-body';
+        $encodedRequestData         = 'request-body';
 
 
         if ($is3DSuccess) {
@@ -317,8 +318,8 @@ class KuveytPosTest extends TestCase
                             && $paymentModel === $dispatchedEvent->getPaymentModel();
                     }
                     )))
-                ->willReturnCallback(function() use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                    $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
+                    $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                     $updatedRequestData['test-update-request-data-with-event'] = true;
                     $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 
@@ -599,11 +600,12 @@ class KuveytPosTest extends TestCase
     public static function threeDFormDataBadInputsProvider(): array
     {
         return [
-            '3d_secure_without_card' => [
+            '3d_secure_without_card'    => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_without_card'    => false,
                 'expectedExceptionClass' => \InvalidArgumentException::class,
             ],
             'unsupported_payment_model' => [
@@ -611,13 +613,15 @@ class KuveytPosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_HOST,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_without_card'    => true,
                 'expectedExceptionClass' => \LogicException::class,
             ],
-            'unsupported_tx' => [
+            'unsupported_tx'            => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'isWithCard'             => false,
+                'create_without_card'    => true,
                 'expectedExceptionClass' => \LogicException::class,
             ],
         ];
@@ -675,7 +679,7 @@ class KuveytPosTest extends TestCase
                 }
                 )))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 

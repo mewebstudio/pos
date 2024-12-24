@@ -352,6 +352,7 @@ class ToslaPosTest extends TestCase
         string $paymentModel,
         string $txType,
         bool   $isWithCard,
+        bool   $createWithoutCard,
         string $expectedExceptionClass
     ): void
     {
@@ -359,7 +360,7 @@ class ToslaPosTest extends TestCase
 
         $this->expectException($expectedExceptionClass);
 
-        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card, $createWithoutCard);
     }
 
     /**
@@ -1084,6 +1085,7 @@ class ToslaPosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_without_card'    => false,
                 'expectedExceptionClass' => \InvalidArgumentException::class,
             ],
             'unsupported_payment_model' => [
@@ -1091,6 +1093,7 @@ class ToslaPosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_without_card'    => true,
                 'expectedExceptionClass' => \LogicException::class,
             ],
         ];

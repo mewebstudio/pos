@@ -144,7 +144,8 @@ try {
         $order,
         $paymentModel,
         $transactionType,
-        $card
+        $card,
+        false
     );
 } catch (\InvalidArgumentException $e) {
     // örneğin kart bilgisi sağlanmadığında bu exception'i alırsınız.
