@@ -431,7 +431,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             $vPosMessage = $raw3DAuthResponseData['VPosMessage'];
             $orderId     = $vPosMessage['MerchantOrderId'];
         } else {
-            $orderId = $raw3DAuthResponseData['MerchantOrderId'];
+            $orderId = $raw3DAuthResponseData['MerchantOrderId'] ?? null;
         }
 
         $default = [
@@ -445,6 +445,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             'status_detail'        => $this->getStatusDetail($procReturnCode),
             'amount'               => null,
             'currency'             => null,
+            'masked_number'        => null,
             'tx_status'            => null,
             'error_code'           => self::TX_APPROVED !== $status ? $procReturnCode : null,
             'md_error_message'     => self::TX_APPROVED !== $status ? $raw3DAuthResponseData['ResponseMessage'] : null,
