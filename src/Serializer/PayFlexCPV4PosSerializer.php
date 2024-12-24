@@ -14,6 +14,8 @@ use Symfony\Component\Serializer\Serializer;
 
 class PayFlexCPV4PosSerializer implements SerializerInterface
 {
+    use SerializerUtilTrait;
+
     private Serializer $serializer;
 
     public function __construct()
@@ -77,18 +79,5 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
         }
 
         throw $notEncodableValueException;
-    }
-
-    /**
-     * must be called after making sure that $str does not contain XML string.
-     * Because for XML strings it will also return true.
-     *
-     * @param string $str
-     *
-     * @return bool
-     */
-    private function isHTML(string $str): bool
-    {
-        return $str !== \strip_tags($str);
     }
 }
