@@ -80,7 +80,7 @@ class PosNetV1PosCrypt extends AbstractCrypt
             $threeDSecureData['CavvData'],
             $threeDSecureData['Eci'],
             $threeDSecureData['MdStatus'],
-            $posAccount->getStoreKey(),
+            $posAccount->getStoreKey() ?? '',
         ];
 
         $hashStr = \implode(static::HASH_SEPARATOR, $hashData);

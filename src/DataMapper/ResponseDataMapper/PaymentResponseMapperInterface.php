@@ -16,7 +16,7 @@ interface PaymentResponseMapperInterface
      * @param string               $txType
      * @param array<string, mixed> $order
      *
-     * @return array<string, string|float|null>
+     * @return array<string, mixed>
      */
     public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array;
 
@@ -39,7 +39,7 @@ interface PaymentResponseMapperInterface
      * @param string                $txType
      * @param array<string, mixed>  $order
      *
-     * @return array<string, string|float|null>
+     * @return array<string, mixed>
      */
     public function map3DPayResponseData(array $raw3DAuthResponseData, string $txType, array $order): array;
 
@@ -50,7 +50,7 @@ interface PaymentResponseMapperInterface
      * @param string                $txType
      * @param array<string, mixed>  $order
      *
-     * @return array<string, string|float|null>
+     * @return array<string, mixed>
      */
     public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array;
 

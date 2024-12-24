@@ -95,7 +95,7 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
      * @param string                               $txType
      * @param CreditCardInterface|null             $creditCard
      *
-     * @return array<string, string>
+     * @return array<string, string|int>
      */
     public function create3DEnrollmentCheckRequestData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null): array
     {
@@ -109,13 +109,13 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
                 'Amount'              => $this->formatAmount($order['amount']),
                 'DisplayAmount'       => $this->formatAmount($order['amount']),
                 'FECCurrencyCode'     => $this->mapCurrency($order['currency']),
-                'MerchantOrderId'     => $order['id'],
-                'OkUrl'               => $order['success_url'],
-                'FailUrl'             => $order['fail_url'],
+                'MerchantOrderId'     => (string) $order['id'],
+                'OkUrl'               => (string) $order['success_url'],
+                'FailUrl'             => (string) $order['fail_url'],
             ];
 
         if ($creditCard instanceof CreditCardInterface) {
-            $requestData['CardHolderName']      = $creditCard->getHolderName();
+            $requestData['CardHolderName']      = (string) $creditCard->getHolderName();
             $requestData['CardNumber']          = $creditCard->getNumber();
             $requestData['CardExpireDateYear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
             $requestData['CardExpireDateMonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);

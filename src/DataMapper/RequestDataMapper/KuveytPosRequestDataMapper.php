@@ -114,7 +114,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
      * @param string                               $txType
      * @param CreditCardInterface|null             $creditCard
      *
-     * @return array<string, string>
+     * @return array<string, array<string, string>|int|string>
      *
      * @throws UnsupportedTransactionTypeException
      */
@@ -131,16 +131,16 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
                 'DisplayAmount'       => $this->formatAmount($order['amount']),
                 'CurrencyCode'        => $this->mapCurrency($order['currency']),
-                'MerchantOrderId'     => $order['id'],
-                'OkUrl'               => $order['success_url'],
-                'FailUrl'             => $order['fail_url'],
+                'MerchantOrderId'     => (string) $order['id'],
+                'OkUrl'               => (string) $order['success_url'],
+                'FailUrl'             => (string) $order['fail_url'],
                 'DeviceData'          => [
-                    'ClientIP' => $order['ip'],
+                    'ClientIP' => (string) $order['ip'],
                 ],
             ];
 
         if ($creditCard instanceof CreditCardInterface) {
-            $requestData['CardHolderName']      = $creditCard->getHolderName();
+            $requestData['CardHolderName']      = (string) $creditCard->getHolderName();
             $requestData['CardType']            = $this->cardTypeMapping[$creditCard->getType()];
             $requestData['CardNumber']          = $creditCard->getNumber();
             $requestData['CardExpireDateYear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);

@@ -426,7 +426,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @param array<string, string> $raw3DAuthResponseData
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     protected function map3DCommonResponseData(array $raw3DAuthResponseData): array
     {
@@ -527,7 +527,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
      * @param string               $txType
      * @param array<string, mixed> $order
      *
-     * @return array<string, string|float|null>
+     * @return array<string, mixed>
      */
     private function map3DPaymentPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
     {

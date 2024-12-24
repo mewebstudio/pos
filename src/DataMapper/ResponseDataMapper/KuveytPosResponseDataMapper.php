@@ -413,7 +413,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
      *
      * @param array<string, string> $raw3DAuthResponseData
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     protected function map3DCommonResponseData(array $raw3DAuthResponseData): array
     {
