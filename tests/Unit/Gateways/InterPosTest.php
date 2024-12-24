@@ -2,6 +2,7 @@
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Mews\Pos\Client\HttpClient;
@@ -184,6 +185,7 @@ class InterPosTest extends TestCase
         string $paymentModel,
         string $txType,
         bool   $isWithCard,
+        bool   $createWithoutCard,
         string $expectedExceptionClass
     ): void
     {
@@ -191,7 +193,7 @@ class InterPosTest extends TestCase
 
         $this->expectException($expectedExceptionClass);
 
-        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card, $createWithoutCard);
     }
 
     /**
@@ -682,18 +684,20 @@ class InterPosTest extends TestCase
     public static function threeDFormDataBadInputsProvider(): array
     {
         return [
-            '3d_secure_without_card' => [
+            '3d_secure_without_card'    => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_with_card'       => false,
                 'expectedExceptionClass' => \InvalidArgumentException::class,
             ],
-            '3d_pay_without_card' => [
+            '3d_pay_without_card'       => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_with_card'       => false,
                 'expectedExceptionClass' => \InvalidArgumentException::class,
             ],
             'unsupported_payment_model' => [
@@ -701,6 +705,7 @@ class InterPosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_PAY_HOSTING,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_with_card'       => false,
                 'expectedExceptionClass' => \LogicException::class,
             ],
         ];

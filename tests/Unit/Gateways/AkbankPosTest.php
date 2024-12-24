@@ -404,6 +404,7 @@ class AkbankPosTest extends TestCase
         string $paymentModel,
         string $txType,
         bool   $isWithCard,
+        bool   $createWithoutCard,
         string $expectedExceptionClass
     ): void
     {
@@ -411,7 +412,7 @@ class AkbankPosTest extends TestCase
 
         $this->expectException($expectedExceptionClass);
 
-        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card, $createWithoutCard);
     }
 
     /**
@@ -875,6 +876,7 @@ class AkbankPosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_with_card'       => false,
                 'expectedExceptionClass' => \InvalidArgumentException::class,
             ],
             '3d_pay_without_card' => [
@@ -882,6 +884,7 @@ class AkbankPosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_with_card'       => false,
                 'expectedExceptionClass' => \InvalidArgumentException::class,
             ],
             'unsupported_payment_model' => [
@@ -889,6 +892,7 @@ class AkbankPosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_PAY_HOSTING,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_with_card'       => true,
                 'expectedExceptionClass' => \LogicException::class,
             ],
         ];
