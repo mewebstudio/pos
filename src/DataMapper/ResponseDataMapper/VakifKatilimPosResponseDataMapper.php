@@ -437,7 +437,7 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $orderId = $raw3DAuthResponseData['MerchantOrderId'];
+        $orderId = $raw3DAuthResponseData['MerchantOrderId'] ?? null;
 
         return [
             'order_id'             => $orderId,
