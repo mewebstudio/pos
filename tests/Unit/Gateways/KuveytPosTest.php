@@ -29,7 +29,7 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * @covers \Mews\Pos\Gateways\KuveytPos
+ * @covers  \Mews\Pos\Gateways\KuveytPos
  * @covers  \Mews\Pos\Gateways\AbstractGateway
  */
 class KuveytPosTest extends TestCase
@@ -284,7 +284,7 @@ class KuveytPosTest extends TestCase
         $create3DPaymentRequestData = [
             'create3DPaymentRequestData',
         ];
-        $encodedRequestData = 'request-body';
+        $encodedRequestData         = 'request-body';
 
 
         if ($is3DSuccess) {
@@ -318,8 +318,8 @@ class KuveytPosTest extends TestCase
                             && $paymentModel === $dispatchedEvent->getPaymentModel();
                     }
                     )))
-                ->willReturnCallback(function() use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                    $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
+                    $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                     $updatedRequestData['test-update-request-data-with-event'] = true;
                     $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 
@@ -679,7 +679,7 @@ class KuveytPosTest extends TestCase
                 }
                 )))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 

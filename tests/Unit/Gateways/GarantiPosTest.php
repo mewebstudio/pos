@@ -29,7 +29,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\GarantiPos
- * @covers  \Mews\Pos\Gateways\AbstractGateway
+ * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class GarantiPosTest extends TestCase
 {
@@ -70,11 +70,11 @@ class GarantiPosTest extends TestCase
         parent::setUp();
 
         $this->config = [
-            'name'  => 'Garanti',
-            'class' => GarantiPos::class,
-            'gateway_endpoints'  => [
-                'payment_api'     => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-                'gateway_3d'      => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
+            'name'              => 'Garanti',
+            'class'             => GarantiPos::class,
+            'gateway_endpoints' => [
+                'payment_api' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+                'gateway_3d'  => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
             ],
         ];
 
@@ -144,7 +144,8 @@ class GarantiPosTest extends TestCase
      */
     public function testGet3DFormData(
         bool $isWithCard
-    ): void {
+    ): void
+    {
         $card         = $isWithCard ? $this->card : null;
         $paymentModel = $isWithCard ? PosInterface::MODEL_3D_SECURE : PosInterface::MODEL_3D_HOST;
         $order        = ['id' => '124'];
@@ -265,7 +266,7 @@ class GarantiPosTest extends TestCase
 
     public function testMake3DPaymentHashMismatchException(): void
     {
-        $data = GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData'];
+        $data    = GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['paymentFail1']['threeDResponseData'];
         $request = Request::create('', 'POST', $data);
 
         $this->cryptMock->expects(self::once())
@@ -309,9 +310,9 @@ class GarantiPosTest extends TestCase
             ->method('check3DHash');
 
         $responseData = ['$responseData'];
-        $request  = Request::create('', 'POST', $responseData);
-        $order    = ['id' => '123'];
-        $txType   = PosInterface::TX_TYPE_PAY_AUTH;
+        $request      = Request::create('', 'POST', $responseData);
+        $order        = ['id' => '123'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')
@@ -569,8 +570,8 @@ class GarantiPosTest extends TestCase
      */
     public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
 
         $updatedRequestData = $requestData + [
                 'abc' => 'def',
@@ -617,7 +618,7 @@ class GarantiPosTest extends TestCase
     public static function make3DPaymentDataProvider(): array
     {
         return [
-            '3d_auth_fail_1' => [
+            '3d_auth_fail_1'               => [
                 'order'           => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['order'],
                 'txType'          => GarantiPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail_1']['txType'],
                 'request'         => Request::create(
@@ -816,7 +817,7 @@ class GarantiPosTest extends TestCase
                 }
                 )))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 

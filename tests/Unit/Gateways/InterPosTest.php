@@ -72,9 +72,9 @@ class InterPosTest extends TestCase
         parent::setUp();
 
         $this->config = [
-            'name'  => 'DenizBank-InterPos',
-            'class' => InterPos::class,
-            'gateway_endpoints'  => [
+            'name'              => 'DenizBank-InterPos',
+            'class'             => InterPos::class,
+            'gateway_endpoints' => [
                 'payment_api'     => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
                 'gateway_3d'      => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
                 'gateway_3d_host' => 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx',
@@ -153,7 +153,8 @@ class InterPosTest extends TestCase
      */
     public function testGet3DFormData(
         bool $isWithCard
-    ): void {
+    ): void
+    {
         $card         = $isWithCard ? $this->card : null;
         $paymentModel = $isWithCard ? PosInterface::MODEL_3D_SECURE : PosInterface::MODEL_3D_HOST;
         $gatewayUrl   = $isWithCard ? 'https://test.inter-vpos.com.tr/mpi/Default.aspx' : 'https://test.inter-vpos.com.tr/mpi/3DHost.aspx';
@@ -208,7 +209,8 @@ class InterPosTest extends TestCase
         bool    $checkHash,
         bool    $is3DSuccess,
         bool    $isSuccess
-    ): void {
+    ): void
+    {
         if ($checkHash) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
@@ -308,9 +310,9 @@ class InterPosTest extends TestCase
             ->method('check3DHash');
 
         $responseData = ['$responseData'];
-        $request  = Request::create('', 'POST', $responseData);
-        $order    = ['id' => '123'];
-        $txType   = PosInterface::TX_TYPE_PAY_AUTH;
+        $request      = Request::create('', 'POST', $responseData);
+        $order        = ['id' => '123'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')
@@ -335,9 +337,9 @@ class InterPosTest extends TestCase
             ->method('check3DHash');
 
         $responseData = ['$responseData'];
-        $request  = Request::create('', 'POST', $responseData);
-        $order    = ['id' => '123'];
-        $txType   = PosInterface::TX_TYPE_PAY_AUTH;
+        $request      = Request::create('', 'POST', $responseData);
+        $order        = ['id' => '123'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DHostResponseData')
@@ -541,8 +543,8 @@ class InterPosTest extends TestCase
      */
     public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
 
         $updatedRequestData = $requestData + [
                 'abc' => 'def',
@@ -758,7 +760,7 @@ class InterPosTest extends TestCase
                 }
                 )))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 
