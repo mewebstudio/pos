@@ -82,9 +82,9 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
                 'TransactionType'     => $this->valueMapper->mapTxType($txType),
                 'TransactionSecurity' => $this->valueMapper->mapSecureType($paymentModel),
                 'InstallmentCount'    => $this->valueFormatter->formatInstallment($order['installment']),
-                'Amount'              => $this->valueFormatter->formatAmount($order['amount']),
+                'Amount'              => (int) $this->valueFormatter->formatAmount($order['amount']),
                 //DisplayAmount: Amount değeri ile aynı olacak şekilde gönderilmelidir.
-                'DisplayAmount'       => $this->valueFormatter->formatAmount($order['amount']),
+                'DisplayAmount'       => (int) $this->valueFormatter->formatAmount($order['amount']),
                 'CurrencyCode'        => $this->valueMapper->mapCurrency($order['currency']),
                 'MerchantOrderId'     => (string) $order['id'],
                 'OkUrl'               => (string) $order['success_url'],
@@ -95,12 +95,12 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             ];
 
         if ($creditCard instanceof CreditCardInterface) {
-            $inputs['CardHolderName']      = (string) $creditCard->getHolderName();
-            $inputs['CardType']            = $this->valueMapper->mapCardType($creditCard->getType());
-            $inputs['CardNumber']          = $creditCard->getNumber();
-            $inputs['CardExpireDateYear']  = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateYear');
-            $inputs['CardExpireDateMonth'] = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateMonth');
-            $inputs['CardCVV2']            = $creditCard->getCvv();
+            $requestData['CardHolderName']      = (string) $creditCard->getHolderName();
+            $requestData['CardType']            = $this->valueMapper->mapCardType($creditCard->getType());
+            $requestData['CardNumber']          = $creditCard->getNumber();
+            $requestData['CardExpireDateYear']  = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateYear');
+            $requestData['CardExpireDateMonth'] = $this->valueFormatter->formatCardExpDate($creditCard->getExpirationDate(), 'CardExpireDateMonth');
+            $requestData['CardCVV2']            = $creditCard->getCvv();
         }
 
         $requestData['HashData'] = $this->crypt->createHash($kuveytPosAccount, $requestData);

@@ -25,34 +25,28 @@ parameters:
 			path: src/Crypt/PosNetV1PosCrypt.php
 
 		-
-			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestDataMapper\\AkbankPosRequestDataMapper\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', string given\.$#'
-			identifier: argument.type
-			count: 5
-			path: src/DataMapper/RequestDataMapper/AkbankPosRequestDataMapper.php
-
-		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
-			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestDataMapper\\EstPosRequestDataMapper\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', string given\.$#'
+			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestValueMapper\\RequestValueMapperInterface\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', float\|int\|string\|null given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
+			message: '#^Parameter \#1 \$installment of method Mews\\Pos\\DataMapper\\RequestValueFormatter\\RequestValueFormatterInterface\:\:formatInstallment\(\) expects int\<0, max\>, float\|int\|string\|null given\.$#'
+			identifier: argument.type
 			count: 1
-			path: src/DataMapper/RequestDataMapper/GarantiPosRequestDataMapper.php
+			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
+			message: '#^Parameter \#1 \$cardType of method Mews\\Pos\\DataMapper\\RequestValueMapper\\RequestValueMapperInterface\:\:mapCardType\(\) expects ''amex''\|''master''\|''troy''\|''visa'', ''amex''\|''master''\|''troy''\|''visa''\|null given\.$#'
+			identifier: argument.type
+			count: 2
 			path: src/DataMapper/RequestDataMapper/InterPosRequestDataMapper.php
+
+		-
+			message: '#^Parameter \#1 \$cardType of method Mews\\Pos\\DataMapper\\RequestValueMapper\\RequestValueMapperInterface\:\:mapCardType\(\) expects ''amex''\|''master''\|''troy''\|''visa'', ''amex''\|''master''\|''troy''\|''visa''\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DataMapper/RequestDataMapper/KuveytPosRequestDataMapper.php
 
 		-
 			message: '#^Default value of the parameter \#7 \$extraData \(array\{\}\) of method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayFlexCPV4PosRequestDataMapper\:\:create3DFormData\(\) is incompatible with type array\{CommonPaymentUrl\: string, PaymentToken\: string\}\.$#'
@@ -61,8 +55,8 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/PayFlexCPV4PosRequestDataMapper.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
+			message: '#^Parameter \#1 \$cardType of method Mews\\Pos\\DataMapper\\RequestValueMapper\\RequestValueMapperInterface\:\:mapCardType\(\) expects ''amex''\|''master''\|''troy''\|''visa'', ''amex''\|''master''\|''troy''\|''visa''\|null given\.$#'
+			identifier: argument.type
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PayFlexCPV4PosRequestDataMapper.php
 
@@ -73,26 +67,20 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
-			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
 			message: '#^Method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayFlexV4PosRequestDataMapper\:\:create3DEnrollmentCheckRequestData\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
 
 		-
-			message: '#^Default value of the parameter \#2 \$data \(array\{\}\) of method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayForPosRequestDataMapper\:\:createHistoryRequestData\(\) is incompatible with type array\{transaction_date\: DateTimeInterface\}\.$#'
-			identifier: parameter.defaultValue
+			message: '#^Parameter \#1 \$cardType of method Mews\\Pos\\DataMapper\\RequestValueMapper\\RequestValueMapperInterface\:\:mapCardType\(\) expects ''amex''\|''master''\|''troy''\|''visa'', ''amex''\|''master''\|''troy''\|''visa''\|null given\.$#'
+			identifier: argument.type
 			count: 1
-			path: src/DataMapper/RequestDataMapper/PayForPosRequestDataMapper.php
+			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
+			message: '#^Default value of the parameter \#2 \$data \(array\{\}\) of method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayForPosRequestDataMapper\:\:createHistoryRequestData\(\) is incompatible with type array\{transaction_date\: DateTimeInterface\}\.$#'
+			identifier: parameter.defaultValue
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PayForPosRequestDataMapper.php
 
@@ -123,12 +111,6 @@ parameters:
 		-
 			message: '#^Cannot assign offset ''orderID'' to array\<string, mixed\>\|string\.$#'
 			identifier: offsetAssign.dimType
-			count: 1
-			path: src/DataMapper/RequestDataMapper/PosNetRequestDataMapper.php
-
-		-
-			message: '#^Method Mews\\Pos\\DataMapper\\RequestDataMapper\\PosNetRequestDataMapper\:\:create3DEnrollmentCheckRequestData\(\) return type has no value type specified in iterable type array\.$#'
-			identifier: missingType.iterableValue
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PosNetRequestDataMapper.php
 
@@ -167,18 +149,6 @@ parameters:
 			identifier: return.type
 			count: 1
 			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
-
-		-
-			message: '#^Property Mews\\Pos\\DataMapper\\ResponseDataMapper\\AbstractResponseDataMapper\:\:\$secureTypeMappings \(array\<string, ''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular''\>\) does not accept non\-empty\-array\<1\|2\|3\|string, ''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular''\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
-
-		-
-			message: '#^Property Mews\\Pos\\DataMapper\\ResponseDataMapper\\AbstractResponseDataMapper\:\:\$currencyMappings \(array\<string, ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD''\>\) does not accept non\-empty\-array\<392\|643\|826\|840\|949\|978\|string, ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD''\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/PosNetV1PosResponseDataMapper.php
 
 		-
 			message: '#^Method Mews\\Pos\\Factory\\PosFactory\:\:createPosGateway\(\) should return Mews\\Pos\\PosInterface but returns object\.$#'

@@ -251,7 +251,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
         $inputs = [
             'clientid'    => $posAccount->getClientId(),
             'storetype'   => $this->valueMapper->mapSecureType($paymentModel),
-            'amount'      => (string) $this->valueFormatter->formatAmount($order['amount']),
+            'amount'      => (string) $this->valueFormatter->formatAmount((float) $order['amount']),
             'oid'         => (string) $order['id'],
             'okUrl'       => (string) $order['success_url'],
             'failUrl'     => (string) $order['fail_url'],

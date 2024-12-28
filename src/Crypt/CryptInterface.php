@@ -30,8 +30,8 @@ interface CryptInterface
     /**
      * creates hash for 3D form data
      *
-     * @param AbstractPosAccount              $posAccount
-     * @param array<string, string|int|float> $formInputs
+     * @param AbstractPosAccount    $posAccount
+     * @param array<string, string> $formInputs
      *
      * @return string
      */

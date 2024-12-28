@@ -175,14 +175,14 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
             'ShopCode'         => $posAccount->getClientId(),
             'TxnType'          => $this->valueMapper->mapTxType($txType),
             'SecureType'       => $this->valueMapper->mapSecureType($paymentModel),
-            'PurchAmount'      => $this->valueFormatter->formatAmount($order['amount']),
-            'OrderId'          => $order['id'],
-            'OkUrl'            => $order['success_url'],
-            'FailUrl'          => $order['fail_url'],
+            'PurchAmount'      => (string) $this->valueFormatter->formatAmount($order['amount']),
+            'OrderId'          => (string) $order['id'],
+            'OkUrl'            => (string) $order['success_url'],
+            'FailUrl'          => (string) $order['fail_url'],
             'Rnd'              => $this->crypt->generateRandomString(),
             'Lang'             => $this->getLang($posAccount, $order),
-            'Currency'         => $this->valueMapper->mapCurrency($order['currency']),
-            'InstallmentCount' => $this->valueFormatter->formatInstallment($order['installment']),
+            'Currency'         => (string) $this->valueMapper->mapCurrency($order['currency']),
+            'InstallmentCount' => (string) $this->valueFormatter->formatInstallment($order['installment']),
         ];
 
         if ($creditCard instanceof CreditCardInterface) {

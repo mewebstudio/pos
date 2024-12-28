@@ -40,10 +40,10 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder             = $order;
+        $mappedOrder             = [];
         $mappedOrder['id']       = $this->valueFormatter->formatOrderId($order['id']);
         $mappedOrder['amount']   = $this->valueFormatter->formatAmount($order['amount']);
-        $mappedOrder['currency'] = $this->valueMapper->mapCurrency($order['currency']);
+        $mappedOrder['currency'] = (string) $this->valueMapper->mapCurrency($order['currency']);
 
         $requestData = [
             'mid'         => $posAccount->getClientId(),
@@ -296,10 +296,10 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $mappedOrder             = $order;
+        $mappedOrder             = [];
         $mappedOrder['id']       = $this->valueFormatter->formatOrderId($order['id']);
         $mappedOrder['amount']   = $this->valueFormatter->formatAmount($order['amount']);
-        $mappedOrder['currency'] = $this->valueMapper->mapCurrency($order['currency']);
+        $mappedOrder['currency'] = (string) $this->valueMapper->mapCurrency($order['currency']);
 
         $requestData = [
             'mid'                    => $posAccount->getClientId(),
