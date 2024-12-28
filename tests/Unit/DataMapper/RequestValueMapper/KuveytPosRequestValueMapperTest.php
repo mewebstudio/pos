@@ -18,7 +18,7 @@ class KuveytPosRequestValueMapperTest extends TestCase
 {
     private KuveytPosRequestValueMapper $valueMapper;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->valueMapper = new KuveytPosRequestValueMapper();
@@ -92,7 +92,7 @@ class KuveytPosRequestValueMapperTest extends TestCase
         $this->assertCount(5, $this->valueMapper->getTxTypeMappings());
     }
 
-    public function testGetSecureTypeMappings()
+    public function testGetSecureTypeMappings(): void
     {
         $this->assertCount(2, $this->valueMapper->getSecureTypeMappings());
     }

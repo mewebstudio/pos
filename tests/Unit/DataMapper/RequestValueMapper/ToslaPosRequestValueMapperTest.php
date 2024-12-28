@@ -18,7 +18,7 @@ class ToslaPosRequestValueMapperTest extends TestCase
 
     private ToslaPosRequestValueMapper $valueMapper;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->valueMapper = new ToslaPosRequestValueMapper();
@@ -89,7 +89,7 @@ class ToslaPosRequestValueMapperTest extends TestCase
         $this->assertCount(6, $this->valueMapper->getTxTypeMappings());
     }
 
-    public function testGetSecureTypeMappings()
+    public function testGetSecureTypeMappings(): void
     {
         $this->assertCount(0, $this->valueMapper->getSecureTypeMappings());
     }

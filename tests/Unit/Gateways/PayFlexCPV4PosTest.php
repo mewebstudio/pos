@@ -71,6 +71,7 @@ class PayFlexCPV4PosTest extends TestCase
 
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
+
     private PayFlexCPV4PosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void

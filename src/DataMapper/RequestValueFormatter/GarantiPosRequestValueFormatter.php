@@ -57,10 +57,6 @@ class GarantiPosRequestValueFormatter implements RequestValueFormatterInterface
      */
     public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null, string $txType = null): string
     {
-        if (PosInterface::TX_TYPE_HISTORY === $txType && ('StartDate' === $fieldName || 'EndDate' === $fieldName)) {
-            return $dateTime->format('d/m/Y H:i');
-        }
-
         return $dateTime->format('d/m/Y H:i');
     }
 }

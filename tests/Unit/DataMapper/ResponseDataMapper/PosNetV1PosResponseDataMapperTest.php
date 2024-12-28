@@ -120,6 +120,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 ->with($threeDResponseData['CurrencyCode'], $txType)
                 ->willReturn($expectedData['currency']);
         }
+
         if ($expectedData['status'] === $this->responseDataMapper::TX_APPROVED) {
             $this->responseValueFormatter->expects($this->once())
                 ->method('formatInstallment')
@@ -171,6 +172,7 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
                 }
             }
         }
+
         if (null !== $rawTx) {
             $txType = PosInterface::TX_TYPE_STATUS;
             $this->responseValueFormatter->expects($this->once())

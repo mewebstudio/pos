@@ -286,10 +286,11 @@ class PayForPosResponseDataMapperTest extends TestCase
             $dateTimeMatcher = $this->atLeastOnce();
             $this->responseValueFormatter->expects($dateTimeMatcher)
                 ->method('formatDateTime')
-                ->with($this->callback(function ($dateTime) use ($dateTimeMatcher, $responseData) {
+                ->with($this->callback(function ($dateTime) use ($dateTimeMatcher, $responseData): bool {
                     if ($dateTimeMatcher->getInvocationCount() === 1) {
                         return $dateTime === $responseData['InsertDatetime'];
                     }
+
                     if ($responseData['VoidDate'] > 0) {
                         return $dateTime === $responseData['VoidDate'].'T'.$responseData['VoidTime'];
                     }
@@ -301,6 +302,7 @@ class PayForPosResponseDataMapperTest extends TestCase
                         if ($dateTimeMatcher->getInvocationCount() === 1) {
                             return $expectedData['transaction_time'];
                         }
+
                         if ($dateTimeMatcher->getInvocationCount() === 2) {
                             return $expectedData['cancel_time'];
                         }

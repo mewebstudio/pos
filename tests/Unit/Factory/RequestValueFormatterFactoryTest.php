@@ -35,6 +35,11 @@ use PHPUnit\Framework\TestCase;
  */
 class RequestValueFormatterFactoryTest extends TestCase
 {
+    /**
+     * @var \Mews\Pos\Factory\RequestValueFormatterFactory
+     */
+    public $factory;
+
     protected function setUp(): void
     {
         parent::setUp();

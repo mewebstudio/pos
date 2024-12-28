@@ -37,8 +37,11 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
+
     private EstPosRequestValueFormatter $valueFormatter;
+
     private EstPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();

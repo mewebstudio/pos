@@ -67,6 +67,7 @@ class VakifKatilimTest extends TestCase
 
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
+
     private VakifKatilimPosRequestValueMapper $requestValueMapper;
 
     /**

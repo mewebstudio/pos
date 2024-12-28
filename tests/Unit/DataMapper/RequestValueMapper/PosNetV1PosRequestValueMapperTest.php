@@ -17,7 +17,7 @@ class PosNetV1PosRequestValueMapperTest extends TestCase
 {
     private PosNetV1PosRequestValueMapper $valueMapper;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->valueMapper = new PosNetV1PosRequestValueMapper();
@@ -87,7 +87,7 @@ class PosNetV1PosRequestValueMapperTest extends TestCase
         $this->assertCount(7, $this->valueMapper->getTxTypeMappings());
     }
 
-    public function testGetSecureTypeMappings()
+    public function testGetSecureTypeMappings(): void
     {
         $this->assertCount(0, $this->valueMapper->getSecureTypeMappings());
     }

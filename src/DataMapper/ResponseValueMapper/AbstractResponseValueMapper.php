@@ -38,6 +38,7 @@ abstract class AbstractResponseValueMapper implements ResponseValueMapperInterfa
         if ([] !== $txTypeMappings) {
             $this->txTypeMappings = $txTypeMappings;
         }
+
         if ([] !== $secureTypeMappings) {
             $this->secureTypeMappings = \array_flip($secureTypeMappings);
         }

@@ -84,7 +84,7 @@ abstract class AbstractRequestValueMapper implements RequestValueMapperInterface
      */
     public function mapSecureType(string $paymentModel): string
     {
-        if (0 === count($this->secureTypeMappings)) {
+        if ([] === $this->secureTypeMappings) {
             throw new \LogicException('Security type mappings are not supported.');
         }
 
@@ -120,7 +120,7 @@ abstract class AbstractRequestValueMapper implements RequestValueMapperInterface
      */
     public function mapRecurringFrequency(string $period): string
     {
-        if (0 === count($this->recurringOrderFrequencyMappings)) {
+        if ([] === $this->recurringOrderFrequencyMappings) {
             throw new \LogicException('Recurring frequency mappings are not supported.');
         }
 
@@ -132,7 +132,7 @@ abstract class AbstractRequestValueMapper implements RequestValueMapperInterface
      */
     public function mapLang(string $lang): string
     {
-        if (0 === count($this->langMappings)) {
+        if ([] === $this->langMappings) {
             throw new \LogicException('Language mappings are not supported.');
         }
 
@@ -160,7 +160,7 @@ abstract class AbstractRequestValueMapper implements RequestValueMapperInterface
      */
     public function mapCardType(string $cardType): string
     {
-        if (0 === count($this->cardTypeMappings)) {
+        if ([] === $this->cardTypeMappings) {
             throw new \LogicException('Card type mappings are not supported.');
         }
 

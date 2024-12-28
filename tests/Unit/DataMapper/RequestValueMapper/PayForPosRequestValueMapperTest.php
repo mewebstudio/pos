@@ -17,7 +17,7 @@ class PayForPosRequestValueMapperTest extends TestCase
 {
     private PayForPosRequestValueMapper $valueMapper;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->valueMapper = new PayForPosRequestValueMapper();
@@ -90,7 +90,7 @@ class PayForPosRequestValueMapperTest extends TestCase
         $this->assertCount(8, $this->valueMapper->getTxTypeMappings());
     }
 
-    public function testGetSecureTypeMappings()
+    public function testGetSecureTypeMappings(): void
     {
         $this->assertCount(4, $this->valueMapper->getSecureTypeMappings());
     }

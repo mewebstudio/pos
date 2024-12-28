@@ -37,6 +37,11 @@ use PHPUnit\Framework\TestCase;
  */
 class RequestValueMapperFactoryTest extends TestCase
 {
+    /**
+     * @var \Mews\Pos\Factory\RequestValueMapperFactory
+     */
+    public $factory;
+
     protected function setUp(): void
     {
         parent::setUp();
