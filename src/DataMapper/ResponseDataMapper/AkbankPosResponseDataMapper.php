@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -466,13 +467,13 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
             $transaction['auth_code']    = $rawTx['authCode'];
             if (PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED === $transaction['order_status']) {
                 if (\in_array(
-                        $transaction['transaction_type'],
-                        [
+                    $transaction['transaction_type'],
+                    [
                             PosInterface::TX_TYPE_PAY_AUTH,
                             PosInterface::TX_TYPE_PAY_POST_AUTH,
                         ],
-                        true,
-                    )
+                    true,
+                )
                 ) {
                     $transaction['capture_amount'] = null === $rawTx['amount'] ? null : $this->formatAmount($rawTx['amount']);
                     $transaction['capture']        = $transaction['first_amount'] === $transaction['capture_amount'];

@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\PayForPosCrypt;

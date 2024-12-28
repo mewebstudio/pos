@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -71,7 +72,8 @@ class EstV3PosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(13, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -104,7 +106,8 @@ class EstV3PosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_STATUS, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(5, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->status($statusOrder);
 
@@ -132,7 +135,8 @@ class EstV3PosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(5, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->cancel($cancelOrder);
 
@@ -161,7 +165,8 @@ class EstV3PosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_PRE_AUTH, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(13, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -199,7 +204,8 @@ class EstV3PosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_POST_AUTH, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -232,7 +238,8 @@ class EstV3PosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_REFUND_PARTIAL, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->refund($refundOrder);
 
@@ -260,7 +267,8 @@ class EstV3PosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(5, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->orderHistory($historyOrder);
 
@@ -285,7 +293,8 @@ class EstV3PosTest extends TestCase
                 $formInputs = $before3DFormHashCalculatedEvent->getFormInputs();
                 $formInputs['test_input'] = 'test_value';
                 $before3DFormHashCalculatedEvent->setFormInputs($formInputs);
-            });
+            }
+        );
 
         $formData = $this->pos->get3DFormData(
             $order,
@@ -316,7 +325,8 @@ class EstV3PosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->customQuery($customQuery);
 

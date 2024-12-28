@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -30,7 +31,7 @@ class EstV3PosCrypt extends AbstractCrypt
              *  Hash string içine dahil edildiğinde hataya sebep oluyor,
              *  Payten tarafından hash içerisinde olmaması gerektiği teyidi alındı.
              */
-            if (\in_array(\strtolower($key), ['hash', 'encoding' , 'nationalidno']))  {
+            if (\in_array(\strtolower($key), ['hash', 'encoding' , 'nationalidno'])) {
                 unset($formInputs[$key]);
             }
         }

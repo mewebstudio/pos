@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -21,8 +22,7 @@ trait PaymentTestTrait
         float  $amount = 10.01,
         int    $installment = 0,
         bool   $tekrarlanan = false
-    ): array
-    {
+    ): array {
         if ($tekrarlanan && $this->pos instanceof \Mews\Pos\Gateways\AkbankPos) {
             // AkbankPos'ta recurring odemede orderTrackId/orderId en az 36 karakter olmasi gerekiyor
             $orderId = date('Ymd').strtoupper(substr(uniqid(sha1(time())), 0, 28));
@@ -286,10 +286,10 @@ trait PaymentTestTrait
                 'start_date' => $txTime->modify('-23 hour'),
                 'end_date'   => $txTime,
             ];
-//        ya da batch number ile (batch number odeme isleminden alinan response'da bulunur):
-//        $order  = [
-//            'batch_num' => 24,
-//        ];
+            //        ya da batch number ile (batch number odeme isleminden alinan response'da bulunur):
+            //        $order  = [
+            //            'batch_num' => 24,
+            //        ];
         }
 
         return [];

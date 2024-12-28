@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -73,7 +74,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(9, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -106,7 +108,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->cancel($statusOrder);
 
@@ -133,7 +136,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->orderHistory($historyOrder);
 
@@ -155,7 +159,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_HISTORY, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(3, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->history($historyOrder);
 
@@ -181,7 +186,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_PRE_AUTH, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(9, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -214,7 +220,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_POST_AUTH, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(8, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -245,7 +252,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_REFUND, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->refund($refundOrder);
 
@@ -274,7 +282,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(10, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->recurringPos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -311,7 +320,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->recurringPos->cancel($statusOrder);
 
@@ -342,7 +352,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->recurringPos->cancel($statusOrder);
 
@@ -373,7 +384,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->recurringPos->cancel($statusOrder);
 
@@ -400,7 +412,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->recurringPos->orderHistory($historyOrder);
 
@@ -425,7 +438,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_HISTORY, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(3, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->recurringPos->history($historyOrder);
 
@@ -463,7 +477,8 @@ class AkbankPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(8, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->customQuery($customQuery);
 

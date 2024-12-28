@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Tests\Unit\Factory;
 
 use Mews\Pos\Entity\Card\CreditCardInterface;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -65,8 +66,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
         string $paymentModel,
         bool   $isWithCard,
         array  $expected
-    ): void
-    {
+    ): void {
         $this->crypt->expects(self::once())
             ->method('create3DHash')
             ->willReturn($expected['inputs']['hash']);
@@ -77,7 +77,7 @@ class EstV3PosRequestDataMapperTest extends TestCase
 
         $this->dispatcher->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(static fn($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+            ->with($this->callback(static fn ($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
                 && EstV3Pos::class === $dispatchedEvent->getGatewayClass()
                 && $txType === $dispatchedEvent->getTxType()
                 && $paymentModel === $dispatchedEvent->getPaymentModel()

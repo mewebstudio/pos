@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -250,11 +251,10 @@ class GarantiPosRequestDataMapperTest extends TestCase
         string $paymentModel,
         bool   $isWithCard,
         array  $expected
-    ): void
-    {
+    ): void {
         $this->dispatcher->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(static fn($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+            ->with($this->callback(static fn ($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
                 && GarantiPos::class === $dispatchedEvent->getGatewayClass()
                 && $txType === $dispatchedEvent->getTxType()
                 && $paymentModel === $dispatchedEvent->getPaymentModel()

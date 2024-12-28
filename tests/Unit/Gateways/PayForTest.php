@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -190,8 +191,7 @@ class PayForTest extends TestCase
         bool   $isWithCard,
         bool   $createWithoutCard,
         string $expectedExceptionClass
-    ): void
-    {
+    ): void {
         $card = $isWithCard ? $this->card : null;
 
         $this->expectException($expectedExceptionClass);
@@ -210,8 +210,7 @@ class PayForTest extends TestCase
         array   $expectedResponse,
         bool    $is3DSuccess,
         bool    $isSuccess
-    ): void
-    {
+    ): void {
         if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
@@ -824,8 +823,7 @@ class PayForTest extends TestCase
         array  $decodedResponse,
         array  $order,
         string $paymentModel
-    ): void
-    {
+    ): void {
         $updatedRequestDataPreparedEvent = null;
 
         $this->serializerMock->expects(self::once())
@@ -862,7 +860,8 @@ class PayForTest extends TestCase
                         && $requestData === $dispatchedEvent->getRequestData()
                         && $order === $dispatchedEvent->getOrder()
                         && $paymentModel === $dispatchedEvent->getPaymentModel();
-                })))
+                })
+            ))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
                 $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;

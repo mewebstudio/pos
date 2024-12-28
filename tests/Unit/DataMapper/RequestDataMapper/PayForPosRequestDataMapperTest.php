@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -7,7 +8,6 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
@@ -187,8 +187,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         string $paymentModel,
         bool   $isWithCard,
         array  $expected
-    ): void
-    {
+    ): void {
         $card = $isWithCard ? $this->card : null;
 
         $this->crypt->expects(self::once())
@@ -201,7 +200,7 @@ class PayForPosRequestDataMapperTest extends TestCase
 
         $this->dispatcher->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(static fn($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+            ->with($this->callback(static fn ($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
                 && PayForPos::class === $dispatchedEvent->getGatewayClass()
                 && $txType === $dispatchedEvent->getTxType()
                 && $paymentModel === $dispatchedEvent->getPaymentModel()

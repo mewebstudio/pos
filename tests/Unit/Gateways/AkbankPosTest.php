@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -171,8 +172,7 @@ class AkbankPosTest extends TestCase
         Request $request,
         array   $expectedResponse,
         bool    $isSuccess
-    ): void
-    {
+    ): void {
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
             ->with($this->pos->getAccount(), $request->request->all())
@@ -221,8 +221,7 @@ class AkbankPosTest extends TestCase
         Request $request,
         array   $expectedResponse,
         bool    $isSuccess
-    ): void
-    {
+    ): void {
         $this->cryptMock->expects(self::once())
             ->method('check3DHash')
             ->with($this->account, $request->request->all())
@@ -273,8 +272,7 @@ class AkbankPosTest extends TestCase
         array   $expectedResponse,
         bool    $is3DSuccess,
         bool    $isSuccess
-    ): void
-    {
+    ): void {
         if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
@@ -375,8 +373,7 @@ class AkbankPosTest extends TestCase
         bool   $isWithCard,
         array  $formData,
         string $gatewayUrl
-    ): void
-    {
+    ): void {
         $card = $isWithCard ? $this->card : null;
 
         $this->requestMapperMock->expects(self::once())
@@ -406,8 +403,7 @@ class AkbankPosTest extends TestCase
         bool   $isWithCard,
         bool   $createWithoutCard,
         string $expectedExceptionClass
-    ): void
-    {
+    ): void {
         $card = $isWithCard ? $this->card : null;
 
         $this->expectException($expectedExceptionClass);
@@ -460,8 +456,7 @@ class AkbankPosTest extends TestCase
         array  $decodedResponse,
         array  $mappedResponse,
         bool   $isSuccess
-    ): void
-    {
+    ): void {
         $account = $this->pos->getAccount();
         $txType  = PosInterface::TX_TYPE_ORDER_HISTORY;
 
@@ -999,8 +994,7 @@ class AkbankPosTest extends TestCase
         array  $order,
         string $paymentModel,
         ?int   $statusCode = null
-    ): void
-    {
+    ): void {
         $updatedRequestDataPreparedEvent = null;
 
         $this->cryptMock->expects(self::once())
@@ -1036,16 +1030,18 @@ class AkbankPosTest extends TestCase
             ->method('dispatch')
             ->with($this->logicalAnd(
                 $this->isInstanceOf(RequestDataPreparedEvent::class),
-                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent): bool {
-                    $updatedRequestDataPreparedEvent = $dispatchedEvent;
+                $this->callback(
+                    function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent): bool {
+                        $updatedRequestDataPreparedEvent = $dispatchedEvent;
 
-                    return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                        && $txType === $dispatchedEvent->getTxType()
-                        && $requestData === $dispatchedEvent->getRequestData()
-                        && $order === $dispatchedEvent->getOrder()
-                        && $paymentModel === $dispatchedEvent->getPaymentModel();
-                }
-                )))
+                        return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                            && $txType === $dispatchedEvent->getTxType()
+                            && $requestData === $dispatchedEvent->getRequestData()
+                            && $order === $dispatchedEvent->getOrder()
+                            && $paymentModel === $dispatchedEvent->getPaymentModel();
+                    }
+                )
+            ))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
                 $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;

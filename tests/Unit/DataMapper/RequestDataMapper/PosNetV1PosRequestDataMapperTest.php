@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -213,7 +214,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $this->dispatcher->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(static fn($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+            ->with($this->callback(static fn ($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
                 && PosNetV1Pos::class === $dispatchedEvent->getGatewayClass()
                 && $txType === $dispatchedEvent->getTxType()
                 && $paymentModel === $dispatchedEvent->getPaymentModel()
@@ -335,7 +336,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
                 'CipheredData'          => null,
                 'DealerData'            => null,
                 'IsEncrypted'           => 'N',
-                'PaymentFacilitatorData'=> null,
+                'PaymentFacilitatorData' => null,
                 'AdditionalInfoData'    => null,
                 'CardInformationData'   => [
                     'CardHolderName' => 'deneme deneme',

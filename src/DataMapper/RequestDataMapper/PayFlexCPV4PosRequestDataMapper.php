@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -284,8 +285,8 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
         ?string              $txType,
         ?string              $gatewayURL,
         ?CreditCardInterface $creditCard = null,
-        array                $extraData = []): array
-    {
+        array                $extraData = []
+    ): array {
         return [
             'gateway' => $extraData['CommonPaymentUrl'],
             'method'  => 'GET',

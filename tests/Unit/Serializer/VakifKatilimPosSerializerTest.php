@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -276,7 +277,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
  <ResponseMessage />
 </VPosTransactionResponseContract>
 A_WRAP
-;
+        ;
         yield 'test_utf_16' => [
             'input'    => $testUtf16,
             'txType'   => PosInterface::TX_TYPE_PAY_AUTH,

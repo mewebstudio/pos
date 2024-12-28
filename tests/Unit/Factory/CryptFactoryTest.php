@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -14,7 +15,6 @@ use Psr\Log\LoggerInterface;
  */
 class CryptFactoryTest extends TestCase
 {
-
     /**
      * @dataProvider createGatewayCryptDataProvider
      */

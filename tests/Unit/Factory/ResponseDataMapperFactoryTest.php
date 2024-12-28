@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -15,7 +16,6 @@ use Psr\Log\LoggerInterface;
  */
 class ResponseDataMapperFactoryTest extends TestCase
 {
-
     /**
      * @dataProvider createGatewayResponseMapperDataProvider
      */

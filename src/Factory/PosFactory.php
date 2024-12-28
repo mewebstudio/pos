@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -39,8 +40,7 @@ class PosFactory
         EventDispatcherInterface $eventDispatcher,
         ?HttpClient              $httpClient = null,
         ?LoggerInterface         $logger = null
-    ): PosInterface
-    {
+    ): PosInterface {
         if (!$logger instanceof \Psr\Log\LoggerInterface) {
             $logger = new NullLogger();
         }

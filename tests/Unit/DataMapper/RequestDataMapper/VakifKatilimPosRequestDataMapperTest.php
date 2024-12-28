@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -114,8 +115,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
         string $txType,
         string $paymentModel,
         array  $expected
-    ): void
-    {
+    ): void {
         if (PosInterface::MODEL_3D_HOST === $paymentModel) {
             $hashCalculationData = $expected['inputs'];
             unset($hashCalculationData['HashPassword']);

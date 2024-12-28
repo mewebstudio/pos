@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -72,8 +73,7 @@ abstract class AbstractGateway implements PosInterface
         EventDispatcherInterface       $eventDispatcher,
         HttpClient                     $httpClient,
         LoggerInterface                $logger
-    )
-    {
+    ) {
         $this->requestDataMapper  = $requestDataMapper;
         $this->responseDataMapper = $responseDataMapper;
         $this->serializer         = $serializer;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -13,7 +14,6 @@ use PHPUnit\Framework\TestCase;
  */
 class SerializerFactoryTest extends TestCase
 {
-
     /**
      * @dataProvider createGatewaySerializerDataProvider
      */

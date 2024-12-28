@@ -13,7 +13,6 @@ use PHPUnit\Framework\TestCase;
  */
 class PosFactoryTest extends TestCase
 {
-
     /**
      * @dataProvider createPosGatewayDataProvider
      */

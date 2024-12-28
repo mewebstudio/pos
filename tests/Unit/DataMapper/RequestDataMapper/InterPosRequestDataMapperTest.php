@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -172,8 +173,7 @@ class InterPosRequestDataMapperTest extends TestCase
         string $paymentModel,
         bool   $isWithCard,
         array  $expected
-    ): void
-    {
+    ): void {
         $card = $isWithCard ? $this->card : null;
 
         $this->crypt->expects(self::once())
@@ -186,7 +186,7 @@ class InterPosRequestDataMapperTest extends TestCase
 
         $this->dispatcher->expects(self::once())
             ->method('dispatch')
-            ->with($this->callback(static fn($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
+            ->with($this->callback(static fn ($dispatchedEvent): bool => $dispatchedEvent instanceof Before3DFormHashCalculatedEvent
                 && InterPos::class === $dispatchedEvent->getGatewayClass()
                 && $txType === $dispatchedEvent->getTxType()
                 && $paymentModel === $dispatchedEvent->getPaymentModel()

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * NOT! Bu dosya örnek amaçlıdır. Canlı ortamda kopyasını oluşturup, kopyasını kullanınız!
  */

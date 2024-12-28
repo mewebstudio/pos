@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -237,7 +238,7 @@ class PosNetRequestDataMapperTest extends TestCase
 
         $this->crypt->expects(self::once())
             ->method('createHash')
-            ->with($this->account, $requestDataWithoutMac,  $mappedOrder)
+            ->with($this->account, $requestDataWithoutMac, $mappedOrder)
             ->willReturn($expectedData['oosResolveMerchantData']['mac']);
 
         $actualData = $this->requestDataMapper->create3DResolveMerchantRequestData($this->account, $order, $responseData);

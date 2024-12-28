@@ -1,7 +1,9 @@
 <?php
+
 /**
  * @license MIT
  */
+
 namespace Mews\Pos\Gateways;
 
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;

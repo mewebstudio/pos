@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -74,7 +75,8 @@ class GarantiPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -107,7 +109,8 @@ class GarantiPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_STATUS, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->status($statusOrder);
 
@@ -135,7 +138,8 @@ class GarantiPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->cancel($statusOrder);
 
@@ -162,7 +166,8 @@ class GarantiPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_PRE_AUTH, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -195,7 +200,8 @@ class GarantiPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_POST_AUTH, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
@@ -224,7 +230,8 @@ class GarantiPosTest extends TestCase
                 $formInputs = $before3DFormHashCalculatedEvent->getFormInputs();
                 $formInputs['test_input'] = 'test_value';
                 $before3DFormHashCalculatedEvent->setFormInputs($formInputs);
-            });
+            }
+        );
 
         $formData = $this->pos->get3DFormData(
             $order,
@@ -251,7 +258,8 @@ class GarantiPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->orderHistory($historyOrder);
 
@@ -275,7 +283,8 @@ class GarantiPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_HISTORY, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->history($historyOrder);
 
@@ -315,7 +324,8 @@ class GarantiPosTest extends TestCase
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
                 $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            });
+            }
+        );
 
         $this->pos->customQuery($customQuery);
 

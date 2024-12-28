@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @license MIT
  */
@@ -192,8 +193,7 @@ class PosNetTest extends TestCase
         string $txType,
         bool   $isWithCard,
         string $expectedExceptionClass
-    ): void
-    {
+    ): void {
         $card = $isWithCard ? $this->card : null;
 
         $this->expectException($expectedExceptionClass);
@@ -213,8 +213,7 @@ class PosNetTest extends TestCase
         array   $expectedResponse,
         bool    $is3DSuccess,
         bool    $isSuccess
-    ): void
-    {
+    ): void {
         if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
@@ -268,7 +267,7 @@ class PosNetTest extends TestCase
                     }
 
                     return true;
-                }), $this->callback(fn($txT): bool => $txT === $txType))
+                }), $this->callback(fn ($txT): bool => $txT === $txType))
                 ->willReturnCallback(function () use ($matcher): ?string {
                     if ($matcher->getInvocationCount() === 1) {
                         return 'resolveMerchantRequestData-body';
@@ -360,7 +359,8 @@ class PosNetTest extends TestCase
                         }
 
                         return false;
-                    })))
+                    })
+                ))
                 ->willReturnCallback(function () use ($matcher2, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2) {
                     if ($matcher2->getInvocationCount() === 1) {
                         $updatedRequestData = $updatedRequestDataPreparedEvent1->getRequestData();
@@ -842,8 +842,7 @@ class PosNetTest extends TestCase
         array  $decodedResponse,
         array  $order,
         string $paymentModel
-    ): void
-    {
+    ): void {
         $updatedRequestDataPreparedEvent = null;
 
         $this->serializerMock->expects(self::once())
@@ -872,16 +871,18 @@ class PosNetTest extends TestCase
             ->method('dispatch')
             ->with($this->logicalAnd(
                 $this->isInstanceOf(RequestDataPreparedEvent::class),
-                $this->callback(function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent): bool {
-                    $updatedRequestDataPreparedEvent = $dispatchedEvent;
+                $this->callback(
+                    function (RequestDataPreparedEvent $dispatchedEvent) use ($requestData, $txType, $order, $paymentModel, &$updatedRequestDataPreparedEvent): bool {
+                        $updatedRequestDataPreparedEvent = $dispatchedEvent;
 
-                    return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
-                        && $txType === $dispatchedEvent->getTxType()
-                        && $requestData === $dispatchedEvent->getRequestData()
-                        && $order === $dispatchedEvent->getOrder()
-                        && $paymentModel === $dispatchedEvent->getPaymentModel();
-                }
-                )))
+                        return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                            && $txType === $dispatchedEvent->getTxType()
+                            && $requestData === $dispatchedEvent->getRequestData()
+                            && $order === $dispatchedEvent->getOrder()
+                            && $paymentModel === $dispatchedEvent->getPaymentModel();
+                    }
+                )
+            ))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
                 $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
