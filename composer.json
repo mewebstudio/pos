@@ -51,7 +51,7 @@
         "symfony/var-dumper": "^5.1"
     },
     "suggest": {
-        "ext-soap": "KuveytPos ile iptal/iade gibi ödeme olmayan işlemleri yapacaksanız."
+        "ext-soap": "ParamPos kullanacaksanız veya KuveytPos ile iptal/iade gibi ödeme olmayan işlemleri yapacaksanız."
     },
     "config": {
         "sort-packages": true,

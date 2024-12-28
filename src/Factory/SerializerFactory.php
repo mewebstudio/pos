@@ -12,6 +12,7 @@ use Mews\Pos\Serializer\EstPosSerializer;
 use Mews\Pos\Serializer\GarantiPosSerializer;
 use Mews\Pos\Serializer\InterPosSerializer;
 use Mews\Pos\Serializer\KuveytPosSerializer;
+use Mews\Pos\Serializer\ParamPosSerializer;
 use Mews\Pos\Serializer\PayFlexCPV4PosSerializer;
 use Mews\Pos\Serializer\PayFlexV4PosSerializer;
 use Mews\Pos\Serializer\PayForPosSerializer;
@@ -46,6 +47,7 @@ class SerializerFactory
             PosNetV1PosSerializer::class,
             ToslaPosSerializer::class,
             VakifKatilimPosSerializer::class,
+            ParamPosSerializer::class,
         ];
 
         /** @var class-string<SerializerInterface> $serializer */

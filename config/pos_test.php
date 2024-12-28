@@ -11,6 +11,13 @@ return [
                 'gateway_3d_host' => 'https://virtualpospaymentgatewaypre.akbank.com/payhosting',
             ],
         ],
+        'param-pos'           => [
+            'name'              => 'TURK Elektronik Para A.Ş',
+            'class'             => Mews\Pos\Gateways\ParamPos::class,
+            'gateway_endpoints' => [
+                'payment_api'     => 'https://testposws.param.com.tr/turkpos.ws/service_turkpos_prod.asmx',
+            ],
+        ],
         'payten_v3_hash'       => [
             'name'              => 'AKBANK T.A.S.',
             'class'             => Mews\Pos\Gateways\EstV3Pos::class,

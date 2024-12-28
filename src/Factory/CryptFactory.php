@@ -14,6 +14,7 @@ use Mews\Pos\Crypt\GarantiPosCrypt;
 use Mews\Pos\Crypt\InterPosCrypt;
 use Mews\Pos\Crypt\KuveytPosCrypt;
 use Mews\Pos\Crypt\NullCrypt;
+use Mews\Pos\Crypt\ParamPosCrypt;
 use Mews\Pos\Crypt\PayFlexCPV4Crypt;
 use Mews\Pos\Crypt\PayForPosCrypt;
 use Mews\Pos\Crypt\PosNetCrypt;
@@ -25,6 +26,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\Gateways\PosNet;
@@ -53,6 +55,7 @@ class CryptFactory
             GarantiPos::class      => GarantiPosCrypt::class,
             InterPos::class        => InterPosCrypt::class,
             KuveytPos::class       => KuveytPosCrypt::class,
+            ParamPos::class        => ParamPosCrypt::class,
             PayFlexCPV4Pos::class  => PayFlexCPV4Crypt::class,
             PayForPos::class       => PayForPosCrypt::class,
             PosNet::class          => PosNetCrypt::class,
