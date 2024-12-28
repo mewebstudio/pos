@@ -37,6 +37,7 @@
     },
     "require-dev": {
         "escapestudios/symfony2-coding-standard": "^3.11",
+        "friendsofphp/php-cs-fixer": "^3.65",
         "monolog/monolog": "^2.8",
         "php-http/curl-client": "^2.2",
         "phpstan/phpstan": "^2.0",
@@ -62,6 +63,8 @@
         "test": "./vendor/bin/phpunit --testsuite=unit",
         "phpstan": "./vendor/bin/phpstan",
         "baseline": "./vendor/bin/phpstan --generate-baseline",
-        "rector": "./vendor/bin/rector"
+        "rector": "./vendor/bin/rector",
+        "cs-fix": "./vendor/bin/php-cs-fixer fix",
+        "cs-check": "./vendor/bin/php-cs-fixer fix --dry-run --diff"
     }
 }

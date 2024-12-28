@@ -18,7 +18,10 @@ jobs:
         run: composer install --no-progress --no-suggest
 
       - name: PHPStan
-        run: vendor/bin/phpstan
+        run: composer phpstan
+
+      - name: CS check
+        run: composer cs-check
 
       - name: Run test suite
-        run: vendor/bin/phpunit --testsuite=unit
+        run: composer test
