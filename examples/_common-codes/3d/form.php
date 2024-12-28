@@ -163,7 +163,7 @@ $eventDispatcher->addListener(
 // ============================================================================================
 
 try {
-    $formData = $pos->get3DFormData($order, $paymentModel, $transaction, $card);
+    $formData = $pos->get3DFormData($order, $paymentModel, $transaction, $card, false);
     //dd($formData);
 } catch (\InvalidArgumentException $e) {
     // örneğin kart bilgisi sağlanmadığında bu exception'i alırsınız.

@@ -6,6 +6,7 @@ namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\PayForPosCrypt;
 use Mews\Pos\Entity\Account\PayForAccount;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -60,7 +61,13 @@ class PayForPosCryptTest extends TestCase
         $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
-    public function threeDHashCreateDataProvider(): array
+    public function testCreateHash(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->crypt->createHash($this->account, []);
+    }
+
+    public static function threeDHashCreateDataProvider(): array
     {
         return [
             [
@@ -79,7 +86,7 @@ class PayForPosCryptTest extends TestCase
         ];
     }
 
-    public function threeDHashCheckDataProvider(): array
+    public static function threeDHashCheckDataProvider(): array
     {
         return [
             [

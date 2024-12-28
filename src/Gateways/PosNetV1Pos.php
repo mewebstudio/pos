@@ -146,9 +146,9 @@ class PosNetV1Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {
-        $this->check3DFormInputs($paymentModel, $txType, $creditCard);
+        $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
         $this->logger->debug('preparing 3D form data');
 

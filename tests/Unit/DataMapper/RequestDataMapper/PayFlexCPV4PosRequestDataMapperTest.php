@@ -73,7 +73,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         unset($hashCalculationData['HashedData']);
 
         $this->crypt->expects(self::once())
-            ->method('create3DHash')
+            ->method('createHash')
             ->with($this->account, $hashCalculationData)
             ->willReturn($expectedData['HashedData']);
 

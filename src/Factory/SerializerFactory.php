@@ -32,7 +32,6 @@ class SerializerFactory
      */
     public static function createGatewaySerializer(string $gatewayClass): SerializerInterface
     {
-        /** @var SerializerInterface[] $serializers */
         $serializers = [
             AkbankPosSerializer::class,
             EstPosSerializer::class,
@@ -48,6 +47,7 @@ class SerializerFactory
             VakifKatilimPosSerializer::class,
         ];
 
+        /** @var class-string<SerializerInterface> $serializer */
         foreach ($serializers as $serializer) {
             if ($serializer::supports($gatewayClass)) {
                 return new $serializer();

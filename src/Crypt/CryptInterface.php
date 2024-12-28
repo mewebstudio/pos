@@ -28,17 +28,17 @@ interface CryptInterface
     public function check3DHash(AbstractPosAccount $posAccount, array $data): bool;
 
     /**
-     * creates hash for 3D secure payments
+     * creates hash for 3D form data
      *
      * @param AbstractPosAccount              $posAccount
-     * @param array<string, string|int|float> $requestData
+     * @param array<string, string|int|float> $formInputs
      *
      * @return string
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData): string;
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs): string;
 
     /**
-     * create hash for non-3D actions
+     * create hash for API requests
      *
      * @param AbstractPosAccount   $posAccount
      * @param array<string, mixed> $requestData

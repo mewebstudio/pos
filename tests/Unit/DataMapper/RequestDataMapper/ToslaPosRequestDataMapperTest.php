@@ -70,11 +70,15 @@ class ToslaPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expected): void
     {
+        $requestDataWithoutHash = $expected;
+        unset($requestDataWithoutHash['hash']);
+
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expected['rnd']);
         $this->crypt->expects(self::once())
             ->method('createHash')
+            ->with($this->account, $requestDataWithoutHash)
             ->willReturn($expected['hash']);
 
         $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
@@ -86,11 +90,15 @@ class ToslaPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DEnrollmentCheckRequestData(array $order, string $paymentModel, string $txType, array $expected): void
     {
+        $requestDataWithoutHash = $expected;
+        unset($requestDataWithoutHash['hash']);
+
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expected['rnd']);
         $this->crypt->expects(self::once())
-            ->method('create3DHash')
+            ->method('createHash')
+            ->with($this->account, $requestDataWithoutHash)
             ->willReturn($expected['hash']);
 
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order);
@@ -102,11 +110,15 @@ class ToslaPosRequestDataMapperTest extends TestCase
      */
     public function testCreateNonSecurePaymentRequestData(array $order, string $txType, array $expected): void
     {
+        $requestDataWithoutHash = $expected;
+        unset($requestDataWithoutHash['hash']);
+
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expected['rnd']);
         $this->crypt->expects(self::once())
             ->method('createHash')
+            ->with($this->account, $requestDataWithoutHash)
             ->willReturn($expected['hash']);
 
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $this->card);
@@ -118,11 +130,15 @@ class ToslaPosRequestDataMapperTest extends TestCase
      */
     public function testCreateCancelRequestData(array $order, array $expected): void
     {
+        $requestDataWithoutHash = $expected;
+        unset($requestDataWithoutHash['hash']);
+
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expected['rnd']);
         $this->crypt->expects(self::once())
             ->method('createHash')
+            ->with($this->account, $requestDataWithoutHash)
             ->willReturn($expected['hash']);
 
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
@@ -135,11 +151,15 @@ class ToslaPosRequestDataMapperTest extends TestCase
      */
     public function testCreateOrderHistoryRequestData(array $order, array $expected): void
     {
+        $requestDataWithoutHash = $expected;
+        unset($requestDataWithoutHash['hash']);
+
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expected['rnd']);
         $this->crypt->expects(self::once())
             ->method('createHash')
+            ->with($this->account, $requestDataWithoutHash)
             ->willReturn($expected['hash']);
 
         $actual = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
@@ -181,11 +201,15 @@ class ToslaPosRequestDataMapperTest extends TestCase
      */
     public function testCreateStatusRequestData(array $order, array $expected): void
     {
+        $requestDataWithoutHash = $expected;
+        unset($requestDataWithoutHash['hash']);
+
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expected['rnd']);
         $this->crypt->expects(self::once())
             ->method('createHash')
+            ->with($this->account, $requestDataWithoutHash)
             ->willReturn($expected['hash']);
 
         $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
@@ -198,11 +222,15 @@ class ToslaPosRequestDataMapperTest extends TestCase
      */
     public function testCreateRefundRequestData(array $order, string $txType, array $expected): void
     {
+        $requestDataWithoutHash = $expected;
+        unset($requestDataWithoutHash['hash']);
+
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($expected['rnd']);
         $this->crypt->expects(self::once())
             ->method('createHash')
+            ->with($this->account, $requestDataWithoutHash)
             ->willReturn($expected['hash']);
 
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);

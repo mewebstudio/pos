@@ -6,6 +6,8 @@
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use InvalidArgumentException;
+use Mews\Pos\Crypt\CryptInterface;
+use Mews\Pos\Crypt\PosNetCrypt;
 use Mews\Pos\DataMapper\RequestValueFormatter\PosNetRequestValueFormatter;
 use Mews\Pos\DataMapper\RequestValueFormatter\RequestValueFormatterInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
@@ -25,6 +27,9 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      */
     protected RequestValueFormatterInterface $valueFormatter;
 
+    /** @var PosNetCrypt  */
+    protected CryptInterface $crypt;
+
     /**
      * @param PosNetAccount                                                     $posAccount
      * @param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType kullanilmiyor
@@ -40,9 +45,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         $mappedOrder['amount']   = $this->valueFormatter->formatAmount($order['amount']);
         $mappedOrder['currency'] = $this->valueMapper->mapCurrency($order['currency']);
 
-        $hash = $this->crypt->createHash($posAccount, $mappedOrder);
-
-        return [
+        $requestData = [
             'mid'         => $posAccount->getClientId(),
             'tid'         => $posAccount->getTerminalId(),
             'oosTranData' => [
@@ -50,9 +53,12 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'merchantData' => $responseData['MerchantPacket'],
                 'sign'         => $responseData['Sign'],
                 'wpAmount'     => 0,
-                'mac'          => $hash,
             ],
         ];
+
+        $requestData['oosTranData']['mac'] = $this->crypt->createHash($posAccount, $requestData, $mappedOrder);
+
+        return $requestData;
     }
 
     /**
@@ -295,18 +301,19 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         $mappedOrder['amount']   = $this->valueFormatter->formatAmount($order['amount']);
         $mappedOrder['currency'] = $this->valueMapper->mapCurrency($order['currency']);
 
-        $hash = $this->crypt->createHash($posAccount, $mappedOrder);
-
-        return [
+        $requestData = [
             'mid'                    => $posAccount->getClientId(),
             'tid'                    => $posAccount->getTerminalId(),
             'oosResolveMerchantData' => [
                 'bankData'     => $responseData['BankPacket'],
                 'merchantData' => $responseData['MerchantPacket'],
                 'sign'         => $responseData['Sign'],
-                'mac'          => $hash,
             ],
         ];
+
+        $requestData['oosResolveMerchantData']['mac'] = $this->crypt->createHash($posAccount, $requestData, $mappedOrder);
+
+        return $requestData;
     }
 
     /**

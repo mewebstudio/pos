@@ -18,22 +18,11 @@ class PosNetCrypt extends AbstractCrypt
     protected const HASH_SEPARATOR = ';';
 
     /**
-     * @param PosNetAccount $posAccount
-     *
      * {@inheritDoc}
      */
-    public function create3DHash(AbstractPosAccount $posAccount, array $requestData, ?string $txType = null): string
+    public function create3DHash(AbstractPosAccount $posAccount, array $formInputs, ?string $txType = null): string
     {
-        $secondHashData = [
-            $requestData['id'],
-            $requestData['amount'],
-            $requestData['currency'],
-            $posAccount->getClientId(),
-            $this->createSecurityData($posAccount),
-        ];
-        $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
-
-        return $this->hashString($hashStr);
+        throw new NotImplementedException();
     }
 
     /**
@@ -43,13 +32,17 @@ class PosNetCrypt extends AbstractCrypt
      */
     public function check3DHash(AbstractPosAccount $posAccount, array $data): bool
     {
+        if (null === $posAccount->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
+
         $secondHashData = [
             $data['mdStatus'],
             $data['xid'],
             $data['amount'],
             $data['currency'],
             $posAccount->getClientId(),
-            $this->createSecurityData($posAccount),
+            $this->createSecurityData($posAccount->getStoreKey(), $posAccount->getTerminalId()),
         ];
         $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
 
@@ -69,18 +62,24 @@ class PosNetCrypt extends AbstractCrypt
     }
 
     /**
+     * @param array{amount: int, currency: string, id: string} $order
+     *
      * @inheritdoc
      */
-    public function createHash(AbstractPosAccount $posAccount, array $requestData): string
+    public function createHash(AbstractPosAccount $posAccount, array $requestData, array $order = []): string
     {
-        $secondHashData = [
-            $requestData['id'],
-            $requestData['amount'],
-            $requestData['currency'],
-            $posAccount->getClientId(),
-            $this->createSecurityData($posAccount),
+        if (null === $posAccount->getStoreKey()) {
+            throw new \LogicException('Account storeKey eksik!');
+        }
+
+        $hashData = [
+            $order['id'],
+            $order['amount'],
+            $order['currency'],
+            $requestData['mid'],
+            $this->createSecurityData($posAccount->getStoreKey(), $requestData['tid']),
         ];
-        $hashStr        = implode(static::HASH_SEPARATOR, $secondHashData);
+        $hashStr  = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }
@@ -88,17 +87,18 @@ class PosNetCrypt extends AbstractCrypt
     /**
      * Make Security Data
      *
-     * @param PosNetAccount $posAccount
+     * @param string $storeKey
+     * @param string $terminalId
      *
      * @return string
      */
-    public function createSecurityData(AbstractPosAccount $posAccount): string
+    private function createSecurityData(string $storeKey, string $terminalId): string
     {
         $hashData = [
-            $posAccount->getStoreKey(),
-            $posAccount->getTerminalId(),
+            $storeKey,
+            $terminalId,
         ];
-        $hashStr  = implode(static::HASH_SEPARATOR, $hashData);
+        $hashStr  = \implode(static::HASH_SEPARATOR, $hashData);
 
         return $this->hashString($hashStr);
     }

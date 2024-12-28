@@ -40,7 +40,6 @@ class AkbankPosRequestDataMapperTest extends TestCase
 
     private array $order;
 
-    /** @var MockObject|EventDispatcherInterface */
     private EventDispatcherInterface $dispatcher;
     private AkbankPosRequestValueFormatter $valueFormatter;
     private AkbankPosRequestValueMapper $valueMapper;

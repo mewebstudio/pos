@@ -255,6 +255,7 @@ class VakifKatilimTest extends TestCase
         string $paymentModel,
         string $txType,
         bool   $isWithCard,
+        bool   $createWithoutCard,
         string $expectedExceptionClass
     ): void
     {
@@ -262,7 +263,7 @@ class VakifKatilimTest extends TestCase
 
         $this->expectException($expectedExceptionClass);
 
-        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card, $createWithoutCard);
     }
 
     /**
@@ -909,11 +910,12 @@ class VakifKatilimTest extends TestCase
     public static function threeDFormDataBadInputsProvider(): array
     {
         return [
-            '3d_secure_without_card' => [
+            '3d_secure_without_card'    => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_with_card'       => false,
                 'expectedExceptionClass' => \InvalidArgumentException::class,
             ],
             'unsupported_payment_model' => [
@@ -921,20 +923,23 @@ class VakifKatilimTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_with_card'       => true,
                 'expectedExceptionClass' => \LogicException::class,
             ],
-            'unsupported_3d_secure_tx' => [
+            'unsupported_3d_secure_tx'  => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'isWithCard'             => false,
+                'create_with_card'       => true,
                 'expectedExceptionClass' => \LogicException::class,
             ],
-            'unsupported_3d_host_tx' => [
+            'unsupported_3d_host_tx'    => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_HOST,
                 'txType'                 => PosInterface::TX_TYPE_PAY_PRE_AUTH,
                 'isWithCard'             => false,
+                'create_with_card'       => true,
                 'expectedExceptionClass' => \LogicException::class,
             ],
         ];
@@ -990,7 +995,7 @@ class VakifKatilimTest extends TestCase
                 }
                 )))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 

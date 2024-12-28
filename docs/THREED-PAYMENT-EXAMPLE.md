@@ -133,6 +133,12 @@ if (\Mews\Pos\PosInterface::MODEL_3D_HOST !== $paymentModel) {
 // OZEL DURUMLAR ICIN KODLAR START
 // ============================================================================================
 try {
+    /**
+     * NOT!!! event listenerin çalışması için $eventDispatcher objesi $pos objesi oluştururken
+     * kullandığınız $eventDıspatcher ile aynısi olması gerekiyor!
+     * $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher);
+     * $eventDispatcher'i tekrardan oluşturursanız, listener çalışmaz!
+     */
     /** @var \Symfony\Component\EventDispatcher\EventDispatcher $eventDispatcher */
     $eventDispatcher->addListener(RequestDataPreparedEvent::class, function (RequestDataPreparedEvent $event) {
         /**
@@ -219,7 +225,8 @@ try {
         $order,
         $paymentModel,
         $transactionType,
-        $card
+        $card,
+        false
     );
 } catch (\InvalidArgumentException $e) {
     // örneğin kart bilgisi sağlanmadığında bu exception'i alırsınız.

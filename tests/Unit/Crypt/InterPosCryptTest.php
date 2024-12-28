@@ -73,9 +73,6 @@ class InterPosCryptTest extends TestCase
         $this->crypt->createHash($this->account, []);
     }
 
-    /**
-     * @dataProvider threeDHashCheckDataProvider
-     */
     public function testCheck3DHashException(): void
     {
         $account = $this->createMock(AbstractPosAccount::class);
@@ -83,7 +80,7 @@ class InterPosCryptTest extends TestCase
         $this->crypt->check3DHash($account, []);
     }
 
-    public function threeDHashCheckDataProvider(): array
+    public static function threeDHashCheckDataProvider(): array
     {
         return [
             [
@@ -127,11 +124,12 @@ class InterPosCryptTest extends TestCase
         ];
     }
 
-    public function threeDHashCreateDataProvider(): array
+    public static function threeDHashCreateDataProvider(): array
     {
         return [
             [
                 'requestData' => [
+                    'ShopCode'         => '3123',
                     'OrderId'          => 'order222',
                     'PurchAmount'      => '100.25',
                     'TxnType'          => 'Auth',

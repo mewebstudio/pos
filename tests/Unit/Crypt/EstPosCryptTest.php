@@ -6,7 +6,9 @@
 namespace Mews\Pos\Tests\Unit\Crypt;
 
 use Mews\Pos\Crypt\EstPosCrypt;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -42,30 +44,11 @@ class EstPosCryptTest extends TestCase
     public function testCreate3DHash(): void
     {
         $requestData = [
+            'clientid'  => '700655000200',
             'oid'       => 'order222',
             'amount'    => '100.25',
             'taksit'    => '',
             'islemtipi' => 'Auth',
-            'okUrl'     => 'https://domain.com/success',
-            'failUrl'   => 'https://domain.com/fail_url',
-            'rnd'       => 'rand',
-        ];
-        $expected = 'S7UxUAohxaxzl35WxHyDfuQx0sg=';
-
-        $actual = $this->crypt->create3DHash($this->account, $requestData);
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testCreate3DHashFor3DPay(): void
-    {
-        $requestData = [
-            'oid'       => 'order222',
-            'amount'    => '100.25',
-            'islemtipi' => 'Auth',
-            'taksit'    => '',
             'okUrl'     => 'https://domain.com/success',
             'failUrl'   => 'https://domain.com/fail_url',
             'rnd'       => 'rand',
@@ -87,7 +70,20 @@ class EstPosCryptTest extends TestCase
         $this->assertFalse($this->crypt->check3DHash($this->account, $responseData));
     }
 
-    public function threeDHashCheckDataProvider(): array
+    public function testCheck3DHashException(): void
+    {
+        $account = $this->createMock(AbstractPosAccount::class);
+        $this->expectException(\LogicException::class);
+        $this->crypt->check3DHash($account, []);
+    }
+
+    public function testCreateHash(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->crypt->createHash($this->account, []);
+    }
+
+    public static function threeDHashCheckDataProvider(): array
     {
         return [
             [

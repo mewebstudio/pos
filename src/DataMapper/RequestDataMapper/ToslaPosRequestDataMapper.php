@@ -26,7 +26,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $requestData = [
+        $requestData = $this->getRequestAccountData($posAccount) + [
             'callbackUrl'      => (string) $order['success_url'],
             'orderId'          => (string) $order['id'],
             'amount'           => $this->valueFormatter->formatAmount($order['amount']),
@@ -38,7 +38,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($posAccount) + $requestData;
+        return $requestData;
     }
 
     /**
@@ -56,7 +56,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePaymentOrder($order);
 
-        $requestData = [
+        $requestData = $this->getRequestAccountData($posAccount) + [
             'orderId'          => (string) $order['id'],
             'amount'           => $this->valueFormatter->formatAmount($order['amount']),
             'currency'         => $this->valueMapper->mapCurrency($order['currency']),
@@ -71,7 +71,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($posAccount) + $requestData;
+        return $requestData;
     }
 
     /**
@@ -81,7 +81,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->preparePostPaymentOrder($order);
 
-        $requestData = [
+        $requestData = $this->getRequestAccountData($posAccount) + [
             'orderId'  => (string) $order['id'],
             'amount'   => $this->valueFormatter->formatAmount($order['amount']),
             'rnd'      => $this->crypt->generateRandomString(),
@@ -90,7 +90,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($posAccount) + $requestData;
+        return $requestData;
     }
 
     /**
@@ -100,7 +100,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->prepareStatusOrder($order);
 
-        $requestData = [
+        $requestData = $this->getRequestAccountData($posAccount) + [
             'orderId'  => (string) $order['id'],
             'rnd'      => $this->crypt->generateRandomString(),
             'timeSpan' => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
@@ -108,7 +108,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($posAccount) + $requestData;
+        return $requestData;
     }
 
     /**
@@ -118,7 +118,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->prepareCancelOrder($order);
 
-        $requestData = [
+        $requestData = $this->getRequestAccountData($posAccount) + [
             'orderId'  => (string) $order['id'],
             'rnd'      => $this->crypt->generateRandomString(),
             'timeSpan' => $this->valueFormatter->formatDateTime($order['time_span'], 'timeSpan'),
@@ -126,7 +126,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($posAccount) + $requestData;
+        return $requestData;
     }
 
     /**
@@ -136,7 +136,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     {
         $order = $this->prepareRefundOrder($order);
 
-        $requestData = [
+        $requestData = $this->getRequestAccountData($posAccount) + [
             'orderId'  => (string) $order['id'],
             'rnd'      => $this->crypt->generateRandomString(),
             'amount'   => $this->valueFormatter->formatAmount($order['amount']),
@@ -145,7 +145,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($posAccount) + $requestData;
+        return $requestData;
     }
 
     /**
@@ -154,7 +154,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
     public function createOrderHistoryRequestData(AbstractPosAccount $posAccount, array $order): array
     {
         $order       = $this->prepareOrderHistoryOrder($order);
-        $requestData = [
+        $requestData = $this->getRequestAccountData($posAccount) + [
             'orderId'         => (string) $order['id'],
             'transactionDate' => $this->valueFormatter->formatDateTime($order['transaction_date'], 'transactionDate'),
             'page'            => $order['page'],
@@ -165,7 +165,7 @@ class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData['hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->getRequestAccountData($posAccount) + $requestData;
+        return $requestData;
     }
 
     /**
