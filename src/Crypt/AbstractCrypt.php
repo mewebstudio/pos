@@ -59,12 +59,7 @@ abstract class AbstractCrypt implements CryptInterface
          */
         $hashParamsArr = \explode($paramSeparator, $hashParams);
 
-        $paramsVal = '';
-        foreach ($hashParamsArr as $paramKey) {
-            $paramsVal .= $this->recursiveFind($data, $paramKey);
-        }
-
-        $hashVal = $this->concatenateHashKey($storeKey, $paramsVal);
+        $hashVal = $this->buildHashString($data, $hashParamsArr, '', $storeKey);
 
         return $this->hashString($hashVal, $storeKey);
     }
@@ -86,6 +81,41 @@ abstract class AbstractCrypt implements CryptInterface
     protected function concatenateHashKey(string $hashKey, string $hashString): string
     {
         return $hashString.$hashKey;
+    }
+
+    /**
+     * @param array<string, mixed> $data       data from which the hash string will be built
+     * @param string[]             $paramNames parameter names that will be used in hash calculation
+     * @param string               $separator  separator between the parameter values
+     * @param string|null          $storeKey   secret key of the API, will be attached to the hash string if provided
+     *
+     * @return string string data to be hashed
+     */
+    protected function buildHashString(array $data, array $paramNames, string $separator = '', ?string $storeKey = null): string
+    {
+        $paramsVal = \implode($separator, $this->buildHashData($data, $paramNames));
+
+        if (null !== $storeKey) {
+            $paramsVal = $this->concatenateHashKey($storeKey, $paramsVal);
+        }
+
+        return $paramsVal;
+    }
+
+    /**
+     * @param array<string, mixed> $data       data from which the hash string will be built
+     * @param string[]             $paramNames parameter names that will be used in hash calculation
+     *
+     * @return string[]
+     */
+    protected function buildHashData(array $data, array $paramNames): array
+    {
+        $paramsVal = [];
+        foreach ($paramNames as $paramKey) {
+            $paramsVal[] = $this->recursiveFind($data, $paramKey);
+        }
+
+        return $paramsVal;
     }
 
     /**
