@@ -44,9 +44,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
         'V'    => PosInterface::PAYMENT_STATUS_CANCELED,
     ];
 
-    // todo
     /**
-     * @param PaymentStatusModel $rawPaymentResponseData
      * {@inheritDoc}
      */
     public function mapPaymentResponse(array $rawPaymentResponseData, string $txType, array $order): array
@@ -60,29 +58,28 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
 
         $rawPaymentResponseData = $this->emptyStringsToNull($rawPaymentResponseData);
 
-        $procReturnCode = $this->getProcReturnCode($rawPaymentResponseData);
+        $payResult = $rawPaymentResponseData['TP_WMD_PayResponse']['TP_WMD_PayResult'];
+
+        $procReturnCode = $this->getProcReturnCode($payResult);
         $status         = self::TX_DECLINED;
-        if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
+        if ($procReturnCode > 0 && $payResult['Dekont_ID'] > 0) {
             $status = self::TX_APPROVED;
         }
 
-        $extra = $rawPaymentResponseData['Extra'];
-
         $mappedResponse = [
-            'order_id'         => $rawPaymentResponseData['OrderId'],
+            'order_id'         => $payResult['Siparis_ID'],
+            'transaction_id'   => $payResult['Bank_Trans_ID'],
+            'auth_code'   => $payResult['Bank_AuthCode'],
+            'ref_ret_num'      => $payResult['Bank_HostRefNum'],
             'currency'         => $order['currency'],
-            'amount'           => $order['amount'],
-            'group_id'         => $rawPaymentResponseData['GroupId'],
-            'transaction_id'   => $rawPaymentResponseData['TransId'],
-            'transaction_time' => self::TX_APPROVED === $status ? new \DateTimeImmutable($extra['TRXDATE']) : null,
-            'auth_code'        => $rawPaymentResponseData['AuthCode'] ?? null,
-            'ref_ret_num'      => $rawPaymentResponseData['HostRefNum'],
+            'amount'           => null,
+
             'proc_return_code' => $procReturnCode,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'error_code'       => self::TX_APPROVED === $status ? null : $extra['ERRORCODE'],
-            'error_message'    => self::TX_APPROVED === $status ? null : $rawPaymentResponseData['ErrMsg'],
-            'recurring_id'     => $extra['RECURRINGID'] ?? null, // set when recurring payment is made
+            'error_code'       => self::TX_APPROVED === $status ? null : $procReturnCode,
+            'error_message'    => self::TX_APPROVED === $status ? null : $rawPaymentResponseData['Bank_HostMsg'],
+            'transaction_time' => new \DateTimeImmutable(),
             'all'              => $rawPaymentResponseData,
         ];
 
@@ -93,7 +90,6 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
 
     // todo
     /**
-     * @param PaymentStatusModel|null $rawPaymentResponseData
      * {@inheritdoc}
      */
     public function map3DPaymentData(array $raw3DAuthResponseData, ?array $rawPaymentResponseData, string $txType, array $order): array
@@ -103,7 +99,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
             'provision_response' => $rawPaymentResponseData,
         ]);
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $paymentModel          = $this->mapSecurityType($raw3DAuthResponseData['storetype']);
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
         $paymentResponseData   = $this->getDefaultPaymentResponse($txType, $paymentModel);
         $mdStatus              = $this->extractMdStatus($raw3DAuthResponseData);
         if (null !== $rawPaymentResponseData) {
@@ -111,34 +107,24 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $threeDResponse = [
-            'transaction_security' => null === $mdStatus ? null : $this->mapResponseTransactionSecurity($mdStatus),
+            'transaction_security' => null,
             'md_status'            => $mdStatus,
-            'order_id'             => $raw3DAuthResponseData['oid'],
-            'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
-            'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
-            'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
-            'amount'               => null !== $raw3DAuthResponseData['amount'] ? $this->formatAmount($raw3DAuthResponseData['amount']) : null,
-            'currency'             => '*' === $raw3DAuthResponseData['currency'] ? null : $this->mapCurrency($raw3DAuthResponseData['currency']),
-            'installment_count'    => $this->mapInstallment($raw3DAuthResponseData['taksit']),
-            'eci'                  => null,
-            'tx_status'            => null,
-            'cavv'                 => null,
+            'order_id'             => $raw3DAuthResponseData['orderId'],
+            'amount'               => null !== $raw3DAuthResponseData['transactionAmount'] ? $this->formatAmount($raw3DAuthResponseData['transactionAmount']) : null,
+            'currency'             => $order['currency'],
+            'installment_count'    => null,
             'md_error_message'     => null,
             '3d_all'               => $raw3DAuthResponseData,
         ];
 
         if (null !== $mdStatus) {
             if (!$this->is3dAuthSuccess($mdStatus)) {
-                $threeDResponse['md_error_message'] = $raw3DAuthResponseData['mdErrorMsg'];
+                $threeDResponse['md_error_message'] = null; //todo
             }
         } else {
-            $threeDResponse['error_code'] = $raw3DAuthResponseData['ErrorCode'];
-            $threeDResponse['error_message'] = $raw3DAuthResponseData['ErrMsg'];
-        }
-
-        if ($this->is3dAuthSuccess($mdStatus)) {
-            $threeDResponse['eci']  = $raw3DAuthResponseData['eci'];
-            $threeDResponse['cavv'] = $raw3DAuthResponseData['cavv'];
+            //todo
+//            $threeDResponse['error_code'] = $raw3DAuthResponseData['ErrorCode'];
+//            $threeDResponse['error_message'] = $raw3DAuthResponseData['ErrMsg'];
         }
 
         $result                  = $this->mergeArraysPreferNonNullValues($threeDResponse, $paymentResponseData);
@@ -249,12 +235,10 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
 
     // todo
     /**
-     * @param PaymentStatusModel $rawResponseData
      * {@inheritdoc}
      */
     public function mapRefundResponse(array $rawResponseData): array
     {
-        /** @var PaymentStatusModel $rawResponseData */
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
         $status          = self::TX_DECLINED;
@@ -290,13 +274,10 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
 
     // todo
     /**
-     * @param PaymentStatusModel $rawResponseData
-     *
      * {@inheritdoc}
      */
     public function mapCancelResponse(array $rawResponseData): array
     {
-        /** @var PaymentStatusModel $rawResponseData */
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
         $status          = self::TX_DECLINED;
@@ -344,7 +325,6 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
 
     // todo
     /**
-     * @param PaymentStatusModel $rawResponseData
      * {@inheritdoc}
      */
     public function mapStatusResponse(array $rawResponseData): array
@@ -425,8 +405,6 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
 
     // todo
     /**
-     * @param PaymentStatusModel $rawResponseData
-     *
      * {@inheritDoc}
      */
     public function mapOrderHistoryResponse(array $rawResponseData): array
@@ -447,7 +425,6 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         return [
-            /** @var PaymentStatusModel $rawResponseData */
             'order_id'         => $rawResponseData['OrderId'],
             'proc_return_code' => $procReturnCode,
             'error_message'    => $rawResponseData['ErrMsg'],
@@ -518,23 +495,19 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
         return $this->codes[$procReturnCode] ?? null;
     }
 
-    // todo
     /**
-     * Get ProcReturnCode
-     *
      * @param array<string, mixed> $response
      *
-     * @return string|null
+     * @return int|null
      */
-    protected function getProcReturnCode(array $response): ?string
+    protected function getProcReturnCode(array $response): ?int
     {
-        return $response['ProcReturnCode'] ?? null;
+        return $response['Sonuc'] ?? null;
     }
 
-    // todo
+    // todo test with amount 1000.01
     /**
-     * "100001" => 1000.01 odeme durum sorgulandiginda gelen amount format
-     * "1000.01" => 1000.01 odeme yapildiginda gelen amount format
+     * "1000,01" => 1000.01 odeme durum sorgulandiginda gelen amount format
      *
      * @param string $amount
      *
@@ -542,7 +515,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
      */
     protected function formatAmount(string $amount): float
     {
-        return ((float) \str_replace('.', '', $amount)) / 100;
+        return ((float) \str_replace(',', '.', $amount));
     }
 
     // todo

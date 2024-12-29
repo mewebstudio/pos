@@ -21,6 +21,7 @@ use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
 use SoapFault;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\VarExporter\VarExporter;
 
 /**
  * Documentation:
@@ -109,7 +110,64 @@ class ParamPos extends AbstractGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        throw new UnsupportedPaymentModelException();
+        $request = $request->request;
+
+        if (!$this->is3DAuthSuccess($request->all())) {
+            $this->response = $this->responseDataMapper->map3DPaymentData(
+                $request->all(),
+                null,
+                $txType,
+                $order
+            );
+
+            return $this;
+        }
+
+        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+            throw new HashMismatchException();
+        }
+        dump($request->all());
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_3D_SECURE
+        );
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $contents          = $this->serializer->encode($requestData, 'TP_WMD_Pay');
+        $provisionResponse = $this->send(
+            $contents,
+            $txType,
+            PosInterface::MODEL_3D_SECURE,
+            $this->getApiURL($txType)
+        );
+        echo VarExporter::export($provisionResponse);
+        //dd($provisionResponse);
+
+        $this->response = $this->responseDataMapper->map3DPaymentData(
+            $request->all(),
+            $provisionResponse,
+            $txType,
+            $order
+        );
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
+
+        return $this;
     }
 
     // todo
@@ -154,30 +212,51 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): string
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
         $data = $this->registerPayment($order, $paymentModel, $txType, $creditCard);
+        dump($data);
+        if (isset($data['soap:Fault'])) {
+            $this->logger->error('soap error response', $data['soap:Fault']);
 
-        $status = $data['Code'];
-
-        if (0 !== $status) {
-            $this->logger->error('payment register failed', $data);
-
-            throw new \RuntimeException($data['Message'], $data['Code']);
+            throw new \RuntimeException('Bankaya istek başarısız!');
         }
+        //^ array:1 [▼
+        //  "TP_WMD_UCDResponse" => array:1 [▼
+        //    "TP_WMD_UCDResult" => array:4 [▼
+        //      "Islem_ID" => "0"
+        //      "Sonuc" => "-112"
+        //      "Sonuc_Str" => "Tutar formatı geçersiz. Nokta kullanmayınız. Kuruş formatında virgüllü gönderiniz."
+        //      "Banka_Sonuc_Kod" => "0"
+        //    ]
+        //  ]
+        //]
+        $result = $data['TP_WMD_UCDResponse']['TP_WMD_UCDResult'];
+        if ($result['Sonuc'] < 1) {
+            $this->logger->error('soap error response', $result);
+
+            throw new \RuntimeException($result['Sonuc_Str'], $result['Sonuc']);
+        }
+       // dd($data);
+        // todo check response code
+//        xdebug_break();
+//            $html = $data['soap:Body']['TP_WMD_UCDResponse']['TP_WMD_UCDResult']['UCD_HTML'];
+//            echo $html;
+//            exit();
+//        dd($data['soap:Body']['TP_WMD_UCDResponse']['TP_WMD_UCDResult']['UCD_HTML']);
+//        $status = $data['Code'];
+//
+//        if (0 !== $status) {
+//            $this->logger->error('payment register failed', $data);
+//
+//            throw new \RuntimeException($data['Message'], $data['Code']);
+//        }
 
         $this->logger->debug('preparing 3D form data');
 
-        return $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $data,
-            $paymentModel,
-            $txType,
-            $this->get3DGatewayURL($paymentModel, $data['ThreeDSessionId'] ?? null),
-            $creditCard
-        );
+        return $result['UCD_HTML'];
     }
 
     // todo
@@ -210,26 +289,36 @@ class ParamPos extends AbstractGateway
      */
     protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
+       // dump($contents);
+//        $contents = <<<HTML
+/*<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body>$contents</soap:Body></soap:Envelope>*/
+//HTML;
+        //dd($contents);
+        //$contents = str_replace(['<TP_WMD_UCD>'], '<TP_WMD_UCD xmlns="https://turkpos.com.tr/">', $contents);
+        //dump($contents);
         $this->logger->debug('sending request', ['url' => $url]);
 
-        return $this->data = $this->sendSoapRequest($contents, $txType, $url);
-//        $response = $this->client->post($url, [
-//            'headers' => [
-//                'Content-Type' => 'application/json',
-//            ],
-//            'body'    => $contents,
-//        ]);
+//        return $this->data = $this->sendSoapRequest($contents, $txType, $url);
+        $response = $this->client->post($url, [
+            'headers' => [
+                'Content-Type' => 'text/xml',
+                //'Content-Length'  => strlen($contents),
+            ],
+            'body'    => $contents,
+        ]);
 
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
-        if ($response->getStatusCode() === 204) {
-            $this->logger->warning('response from api is empty');
-
-            return $this->data = [];
-        }
+//        if ($response->getStatusCode() === 204) {
+//            $this->logger->warning('response from api is empty');
+//
+//            return $this->data = [];
+//        }
 
         $responseContent = $response->getBody()->getContents();
 
+        dump('$responseContent', $responseContent);
+        //dd($response->getStatusCode(), $responseContent);
         return $this->data = $this->serializer->decode($responseContent, $txType);
     }
 
@@ -275,11 +364,16 @@ class ParamPos extends AbstractGateway
 
         $client = new \SoapClient($url, $options);
         try {
+            //$contents = json_decode(json_encode($contents));
+            dump($url, $contents);
+//            $result = $client->TP_WMD_UCD($contents);
             $result = $client->__soapCall(
+                //'Pos_Odeme',
                 'TP_WMD_UCD',
                 [$contents]
                 //['parameters' => ['request' => $contents]]
             );
+            dd($result);
         } catch (SoapFault $soapFault) {
             $this->logger->error('soap error response', [
                 'message' => $soapFault->getMessage(),
@@ -353,7 +447,7 @@ class ParamPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $requestData = $this->serializer->encode($requestData, $txType);
+        $requestData = $this->serializer->encode($requestData, 'TP_WMD_UCD'); //todo TP_WMD_UCD
 
         return $this->send(
             $requestData,

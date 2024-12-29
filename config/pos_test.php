@@ -15,7 +15,12 @@ return [
             'name'              => 'TURK Elektronik Para A.Ş',
             'class'             => Mews\Pos\Gateways\ParamPos::class,
             'gateway_endpoints' => [
-                'payment_api'     => 'https://testposws.param.com.tr/turkpos.ws/service_turkpos_prod.asmx',
+                //'payment_api'     => 'https://testposws.param.com.tr/turkpos.ws/service_turkpos_prod.asmx',
+                //'payment_api'     => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx?wsdl',
+               // 'payment_api'     => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx?wsdl',
+                'payment_api'     => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx', //xml
+                //'payment_api'     => 'https://test-dmz.param.com.tr:4443/turkpos.ws/service_turkpos_test.asmx?WSDL',
+                //prod: 'payment_api'     => 'https://posws.param.com.tr/turkpos.ws/service_turkpos_prod.asmx?wsdl',
             ],
         ],
         'payten_v3_hash'       => [

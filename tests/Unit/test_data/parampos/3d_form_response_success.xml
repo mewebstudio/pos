@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><TP_WMD_UCDResponse xmlns="https://turkpos.com.tr/"><TP_WMD_UCDResult><Islem_ID>6021840768</Islem_ID><Islem_GUID>d68ac15c-17ca-4b7d-a046-10700291b249</Islem_GUID><UCD_HTML>&lt;!DOCTYPE html SYSTEM "about:legacy-compat"&gt;
+    &lt;html class="no-js" lang="en" xmlns="http://www.w3.org/1999/xhtml"&gt;
+    &lt;head&gt;
+    &lt;meta http-equiv="Content-Type" content="text/html; charset=utf-8"/&gt;
+    &lt;meta charset="utf-8"/&gt;
+    &lt;title&gt;3-D Secure Processing&lt;/title&gt;
+    &lt;link href="https://testvpos.asseco-see.com.tr/mdpaympi/static/mpi.css" rel="stylesheet" type="text/css"/&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+    &lt;div id="main"&gt;
+    &lt;div id="content"&gt;
+    &lt;div id="order"&gt;
+    &lt;h2&gt;3-D Secure Processing&lt;/h2&gt;
+    &lt;div style="padding-bottom: 15px"&gt;
+    &lt;img src="https://testvpos.asseco-see.com.tr/mdpaympi/static/preloader.gif" alt="Please wait.."/&gt;
+    &lt;/div&gt;
+    &lt;img src="https://testvpos.asseco-see.com.tr/mdpaympi/static/verifiedbyvisa.png" alt="Verified by VISA"/&gt;
+    &lt;iframe id="tdsMmethodTgtFrame" name="tdsMmethodTgtFrame" style="width: 1px; height: 1px; visibility: hidden;" src="javascript:false;" xmlns="http://www.w3.org/1999/xhtml"&gt;
+    &lt;!--.--&gt;
+    &lt;/iframe&gt;&lt;form id="tdsMmethodForm" name="tdsMmethodForm" action="https://3ds-acs.test.modirum.com/mdpayacs/3ds-method" method="post" target="tdsMmethodTgtFrame" xmlns="http://www.w3.org/1999/xhtml"&gt;
+    &lt;input type="hidden" name="3DSMethodData" value="eyAidGhyZWVEU1NlcnZlclRyYW5zSUQiIDogImViZjRkNTlkLWY1NDMtNWZkMi04MDAwLTAwMDAwMWVkYzc5NSIsICJ0aHJlZURTTWV0aG9kTm90aWZpY2F0aW9uVVJMIiA6ICJodHRwczovL3Rlc3R2cG9zLmFzc2Vjby1zZWUuY29tLnRyL21kcGF5bXBpL01lcmNoYW50U2VydmVyP21uPVkmdHhpZD0zMjM2MDM0MSZkaWdlc3Q9a21jeFpjN3Z6dnNnJTJGZjJXQVRwcldGMnNYMTA3d1JqYkZNaDE2UEwlMkJJMUElM0QiIH0"/&gt;
+    &lt;input type="hidden" name="threeDSMethodData" value="eyAidGhyZWVEU1NlcnZlclRyYW5zSUQiIDogImViZjRkNTlkLWY1NDMtNWZkMi04MDAwLTAwMDAwMWVkYzc5NSIsICJ0aHJlZURTTWV0aG9kTm90aWZpY2F0aW9uVVJMIiA6ICJodHRwczovL3Rlc3R2cG9zLmFzc2Vjby1zZWUuY29tLnRyL21kcGF5bXBpL01lcmNoYW50U2VydmVyP21uPVkmdHhpZD0zMjM2MDM0MSZkaWdlc3Q9a21jeFpjN3Z6dnNnJTJGZjJXQVRwcldGMnNYMTA3d1JqYkZNaDE2UEwlMkJJMUElM0QiIH0"/&gt;
+    &lt;/form&gt;&lt;script type="text/javascript" xmlns="http://www.w3.org/1999/xhtml"&gt;
+    document.getElementById("tdsMmethodForm").submit();
+    &lt;/script&gt;
+    &lt;div id="formdiv"&gt;
+    &lt;script type="text/javascript"&gt;
+    function hideAndSubmitTimed(formid)
+    {
+    var timer=setTimeout("hideAndSubmit('"+formid+"');",2500);
+    }
+
+    function hideAndSubmit(formid)
+    {
+    var formx=document.getElementById(formid);
+    if (formx!=null)
+    {
+    formx.style.visibility="hidden";
+    formx.submit();
+    }
+    }
+    &lt;/script&gt;
+    &lt;div&gt;
+    &lt;form id="webform0" name="ddcoll" method="POST" action="https://testvpos.asseco-see.com.tr/mdpaympi/MerchantServer" accept_charset="UTF-8"&gt;
+    &lt;input type="hidden" name="txid" value="32360341"/&gt;
+    &lt;input type="hidden" name="TDS2_Navigator_language" value=""/&gt;
+    &lt;input type="hidden" name="TDS2_Navigator_javaEnabled" value=""/&gt;
+    &lt;input type="hidden" name="TDS2_Navigator_jsEnabled" value=""/&gt;
+    &lt;input type="hidden" name="TDS2_Screen_colorDepth" value=""/&gt;
+    &lt;input type="hidden" name="TDS2_Screen_height" value=""/&gt;
+    &lt;input type="hidden" name="TDS2_Screen_width" value=""/&gt;
+    &lt;input type="hidden" name="TDS2_Screen_PixelDepth" value=""/&gt;
+    &lt;input type="hidden" name="TDS2_TimezoneOffset" value=""/&gt;
+    &lt;input type="text" name="digest" value="gr3kz8S943+/9q8M3Dw9lsKMFirZ7tFLqGGRaQOKnyU=" readonly="true" style="display:none;"/&gt;
+    &lt;input type="hidden" name="transientData" value="MosNOirpqxod2A0BdoPpFNf7E/hJX2pKvt8hunrQF2RSrggeWpNj9p+XDEgRdWfGdtGMHF5A7X/uVbJTb3cCN5LGcG2JsGd69bXc7yYBGGw/VMFTcHDObj+cVR6fP2k1s531ozcBEFN1hv+fwBH80YGHP2a6xbRujYzME2iPuPgCdr7wkoSWcZvwB5M73bFow3Jx3vqkwceaPUO6dat7m5Uv1dKmbp+py3yOR0nVaFGnKTmIB4JIAIuP24hCU2MJi+hvKDf7+IJIEl5cjotiUx/J0AINoeuIGrklDAZ8JRA7pxYXpZLwc3ZX60VpWvfS7sSOdayadMBOvltQSdRrPPhJztVNmkztgUe7s3rbpdVr4Fc/KzGtPa5PZLnpkXszhOO4g+pw0A3KuFsqTdFuuu25CqBTX/aG4yZ4VO7UKfG27cTgRaObKsU+YiwOhH/VgGODvd5qrR02gOY8f9Xqtw=="/&gt;
+    &lt;noscript&gt;
+    &lt;input type="submit" name="submitBtn" value="Please click here to continue"/&gt;
+    &lt;/noscript&gt;
+    &lt;/form&gt;
+    &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;script type="text/javascript"&gt;
+    hideAndSubmitTimed('webform0');
+    &lt;/script&gt;
+    &lt;noscript&gt;
+    &lt;div align="center"&gt;
+    &lt;b&gt;Javascript is turned off or not supported!&lt;/b&gt;
+    &lt;br/&gt;
+    &lt;/div&gt;
+    &lt;/noscript&gt;
+    &lt;script type="text/javascript"&gt;
+    function populateData()
+    {
+    var form = document.getElementById("webform0");
+    if (form != null)
+    {
+    if (form["TDS2_Navigator_language"]!=null)
+    {
+    form["TDS2_Navigator_language"].value=(navigator.language || '');
+    }
+    if (form["TDS2_Navigator_jsEnabled"]!=null)
+    {
+    // if this scipt runs js is enabled
+    form["TDS2_Navigator_jsEnabled"].value="true";
+    }
+    if (form["TDS2_Navigator_javaEnabled"]!=null)
+    {
+    form["TDS2_Navigator_javaEnabled"].value=navigator.javaEnabled();
+    }
+    if (form["TDS2_Screen_colorDepth"]!=null)
+    {
+    form["TDS2_Screen_colorDepth"].value=screen.colorDepth;
+    }
+    if (form["TDS2_Screen_height"]!=null)
+    {
+    form["TDS2_Screen_height"].value=screen.height;
+    }
+    if (form["TDS2_Screen_width"]!=null)
+    {
+    form["TDS2_Screen_width"].value=screen.width;
+    }
+    if (form["TDS2_Screen_pixelDepth"]!=null)
+    {
+    form["TDS2_Screen_pixelDepth"].value=screen.pixelDepth;
+    }
+
+    var timezoneOffsetField = form["TDS2_TimezoneOffset"];
+    if (timezoneOffsetField!=null)
+    {
+    timezoneOffsetField.value=new Date().getTimezoneOffset();
+    }
+    }
+    }
+    populateData();
+    &lt;/script&gt;
+    &lt;/div&gt;
+    &lt;div id="content-footer"/&gt;
+    &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;/body&gt;
+    &lt;/html&gt;
+
+</UCD_HTML><UCD_MD>MosNOirpqxod2A0BdoPpFNf7E/hJX2pKvt8hunrQF2RSrggeWpNj9p+XDEgRdWfGdtGMHF5A7X/uVbJTb3cCN5LGcG2JsGd69bXc7yYBGGw/VMFTcHDObj+cVR6fP2k1s531ozcBEFN1hv+fwBH80YGHP2a6xbRujYzME2iPuPgCdr7wkoSWcZvwB5M73bFow3Jx3vqkwceaPUO6dat7m5Uv1dKmbp+py3yOR0nVaFGnKTmIB4JIAIuP24hCU2MJi+hvKDf7+IJIEl5cjotiUx/J0AINoeuIGrklDAZ8JRA7pxYXpZLwc3ZX60VpWvfS7sSOdayadMBOvltQSdRrPPhJztVNmkztgUe7s3rbpdVr4Fc/KzGtPa5PZLnpkXszhOO4g+pw0A3KuFsqTdFuuu25CqBTX/aG4yZ4VO7UKfG27cTgRaObKsU+YiwOhH/VgGODvd5qrR02gOY8f9Xqtw==</UCD_MD><Sonuc>1</Sonuc><Sonuc_Str>İşlem Başarılı</Sonuc_Str><Banka_Sonuc_Kod>0</Banka_Sonuc_Kod><Siparis_ID>20241229D2FF</Siparis_ID></TP_WMD_UCDResult></TP_WMD_UCDResponse></soap:Body></soap:Envelope>

@@ -8,6 +8,7 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Symfony\Component\VarExporter\VarExporter;
 
 class ParamPosCrypt extends AbstractCrypt
 {
@@ -43,9 +44,18 @@ class ParamPosCrypt extends AbstractCrypt
             throw new \LogicException('Account storeKey eksik!');
         }
 
-        $actualHash = $this->hashFromParams($posAccount->getStoreKey(), $data, 'HASHPARAMS', ':');
+        $hashParamsArr = [
+            'islemGUID',
+            'md',
+            'mdStatus',
+            'orderId',
+        ];
 
-        if ($data['HASH'] === $actualHash) {
+        $hashStr = $this->buildHashString($data, $hashParamsArr, '', $posAccount->getStoreKey());
+
+        $actualHash = $this->hashString($hashStr);
+
+        if ($data['islemHash'] === $actualHash) {
             $this->logger->debug('hash check is successful');
 
             return true;
@@ -54,7 +64,7 @@ class ParamPosCrypt extends AbstractCrypt
         $this->logger->error('hash check failed', [
             'data'           => $data,
             'generated_hash' => $actualHash,
-            'expected_hash'  => $data['HASH'],
+            'expected_hash'  => $data['islemHash'],
         ]);
 
         return false;
@@ -72,8 +82,8 @@ class ParamPosCrypt extends AbstractCrypt
             $requestData['Islem_Tutar'],
             $requestData['Toplam_Tutar'],
             $requestData['Siparis_ID'],
-            $requestData['Hata_URL'] ?? '',
-            $requestData['Basarili_URL'] ?? '',
+//            $requestData['Hata_URL'] ?? '', //todo
+//            $requestData['Basarili_URL'] ?? '',
         ];
 
         $hashStr = \implode(static::HASH_SEPARATOR, $map);

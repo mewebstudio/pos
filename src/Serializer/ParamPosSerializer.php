@@ -8,6 +8,7 @@ namespace Mews\Pos\Serializer;
 
 use Mews\Pos\Gateways\ParamPos;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
+use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Serializer;
 
 class ParamPosSerializer implements SerializerInterface
@@ -16,7 +17,11 @@ class ParamPosSerializer implements SerializerInterface
 
     public function __construct()
     {
-        $this->serializer = new Serializer([], [new JsonEncoder()]);
+        $encoder = new XmlEncoder([
+            XmlEncoder::ROOT_NODE_NAME => 'soap:Envelope',
+            XmlEncoder::ENCODING       => 'utf-8',
+        ]);
+        $this->serializer = new Serializer([], [$encoder, new JsonEncoder()]);
     }
 
     /**
@@ -30,9 +35,19 @@ class ParamPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null): array
+    public function encode(array $data, ?string $txType = null) //todo
     {
-        return $data;
+        $data['@xmlns'] = 'https://turkpos.com.tr/';
+        $wrapper = [
+            '@xmlns:xsi' => 'http://www.w3.org/2001/XMLSchema-instance',
+            '@xmlns:xsd' => 'http://www.w3.org/2001/XMLSchema',
+            '@xmlns:soap' => 'http://schemas.xmlsoap.org/soap/envelope/',
+            'soap:Body' => [
+                $txType => $data,
+            ],
+        ];
+
+        return $this->serializer->encode($wrapper, XmlEncoder::FORMAT);
     }
 
     /**
@@ -40,7 +55,16 @@ class ParamPosSerializer implements SerializerInterface
      */
     public function decode(string $data, ?string $txType = null): array
     {
-        dd($data);
-        return $this->serializer->decode($data, JsonEncoder::FORMAT);
+        // example fail response:
+        // ^ array:1 [▼
+        //  "soap:Fault" => array:3 [▼
+        //    "faultcode" => "soap:Server"
+        //    "faultstring" => "Server was unable to process request. ---> Object reference not set to an instance of an object."
+        //    "detail" => ""
+        //  ]
+        //dd($data);
+        $result = $this->serializer->decode($data, XmlEncoder::FORMAT);
+
+        return $result['soap:Body'];
     }
 }

@@ -75,29 +75,21 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      *
-     * @param array{md: string, xid: string, eci: string, cavv: string} $responseData
+     * @param array{UCD_MD: string, Islem_GUID: string, Siparis_ID: string, cavv: string, G: array{CLIENT_CODE: string, CLIENT_USERNAME: string, CLIENT_PASSWORD: string}} $responseData
      */
     public function create3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData): array
     {
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'Type'                    => $this->mapTxType($txType),
-                'IPAddress'               => (string) $order['ip'],
-                'OrderId'                 => (string) $order['id'],
-                'Total'                   => (string) $order['amount'],
-                'Currency'                => $this->mapCurrency($order['currency']),
-                'Taksit'                  => $this->mapInstallment((int) $order['installment']),
-                'Number'                  => $responseData['md'],
-                'PayerTxnId'              => $responseData['xid'],
-                'PayerSecurityLevel'      => $responseData['eci'],
-                'PayerAuthenticationCode' => $responseData['cavv'],
-                'Mode'                    => 'P',
+                'UCD_MD'     => (string) $responseData['md'],
+                'Islem_GUID' => (string) $responseData['islemGUID'],
+                'Siparis_ID' => (string) $responseData['orderId'],
             ];
-
-        if (isset($order['recurring'])) {
-            $requestData += $this->createRecurringData($order['recurring']);
-        }
+// //todo
+//        if (isset($order['recurring'])) {
+//            $requestData += $this->createRecurringData($order['recurring']);
+//        }
 
         return $requestData;
     }
@@ -118,17 +110,25 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
                 'Islem_ID'           => $this->crypt->generateRandomString(),
                 'IPAdr'              => (string) $order['ip'],
                 'Siparis_ID'         => (string) $order['id'],
-                'Islem_Tutar'        => (string) $order['amount'],
-                'Toplam_Tutar'       => (string) $order['amount'], //todo
+                'Islem_Tutar'        => $this->formatAmount($order['amount']),
+                'Toplam_Tutar'        => $this->formatAmount($order['amount']), //todo
                 'Basarili_URL'       => (string) $order['success_url'],
                 'Hata_URL'           => (string) $order['fail_url'],
-                'Currency'           => $this->mapCurrency($order['currency']),
+                //'Currency'           => $this->mapCurrency($order['currency']), //todo
                 'Taksit'             => $this->mapInstallment((int) $order['installment']),
                 'KK_Sahibi'          => $creditCard->getHolderName(),
                 'KK_No'              => $creditCard->getNumber(),
                 'KK_SK_Ay'           => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_MONTH_FORMAT),
                 'KK_SK_Yil'          => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_YEAR_FORMAT),
                 'KK_CVC'             => $creditCard->getCvv(),
+                'KK_Sahibi_GSM'             => '', //optional olmasina ragmen hic gonderilmeyince hata aliniyor.
+               // 'Siparis_Aciklama'             => '',
+                //'Ref_URL'             => 'https://dev.param.com.tr/tr',
+//                'Data1'             => '',
+//                'Data2'             => '',
+//                'Data3'             => '',
+//                'Data4'             => '',
+//                'Data5'             => '',
             ];
 
         $requestData['Islem_Hash'] = $this->crypt->createHash($posAccount, $requestData);
@@ -136,6 +136,11 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 //        if (isset($order['recurring'])) {
 //            $requestData += $this->createRecurringData($order['recurring']);
 //        }
+
+//        return [
+//            'TP_WMD_UCD' => $requestData,
+//            '@xmlns'     => 'https://turkpos.com.tr/',
+//        ];
 
         return $requestData;
     }
@@ -318,25 +323,9 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
+    public function create3DFormData(?AbstractPosAccount $posAccount, ?array $order, string $paymentModel, string $txType, ?string $gatewayURL = null, ?CreditCardInterface $creditCard = null, array $extraData = []): array
     {
-        $preparedOrder = $this->preparePaymentOrder($order);
-
-        $data = $this->create3DFormDataCommon($posAccount, $preparedOrder, $paymentModel, $txType, $gatewayURL, $creditCard);
-
-        $event = new Before3DFormHashCalculatedEvent(
-            $data['inputs'],
-            $posAccount->getBank(),
-            $txType,
-            $paymentModel,
-            EstPos::class
-        );
-        $this->eventDispatcher->dispatch($event);
-        $data['inputs'] = $event->getFormInputs();
-
-        $data['inputs']['hash'] = $this->crypt->create3DHash($posAccount, $data['inputs']);
-
-        return $data;
+        throw new NotImplementedException();
     }
 
     //todo
@@ -475,6 +464,18 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
     protected function mapCurrency(string $currency): string
     {
         return (string) $this->currencyMappings[$currency] ?? $currency;
+    }
+
+    /**
+     * 10.0 => 10,00
+     * 1000.5 => 1000,50
+     * @param float $amount
+     *
+     * @return string
+     */
+    protected function formatAmount(float $amount): string
+    {
+        return \number_format($amount, 2, ',', '');
     }
 
     /**

@@ -14,8 +14,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 // ornegin /examples/finansbank-payfor/3d/_config.php
 require '_config.php';
 
-require '../../_templates/_header.php';
-
 if ($request->getMethod() !== 'POST') {
     echo new RedirectResponse($baseUrl.'index.php');
     exit();
@@ -165,6 +163,10 @@ $eventDispatcher->addListener(
 try {
     $formData = $pos->get3DFormData($order, $paymentModel, $transaction, $card, false);
     //dd($formData);
+    if (is_string($formData)) {
+        echo $formData;
+        exit();
+    }
 } catch (\InvalidArgumentException $e) {
     // örneğin kart bilgisi sağlanmadığında bu exception'i alırsınız.
     dd($e);
@@ -215,7 +217,7 @@ if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
 // OZEL DURUMLAR ICIN KODLAR END
 // ============================================================================================
 
-
+require '../../_templates/_header.php';
 $flowType = $request->get('payment_flow_type');
 ?>
 
