@@ -12,7 +12,6 @@ use Mews\Pos\DataMapper\RequestDataMapper\ParamPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\ParamPosAccount;
-use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
@@ -77,7 +76,7 @@ class ParamPosTest extends TestCase
             'name'              => 'param-pos',
             'class'             => ParamPos::class,
             'gateway_endpoints' => [
-                'payment_api'     => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
+                'payment_api' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             ],
         ];
 
@@ -165,7 +164,8 @@ class ParamPosTest extends TestCase
         string $responseData,
         array  $decodedResponseData,
         string $formData
-    ): void {
+    ): void
+    {
 
         $card = $isWithCard ? $this->card : null;
         $this->requestMapperMock->expects(self::once())
@@ -200,14 +200,12 @@ class ParamPosTest extends TestCase
         array  $order,
         string $paymentModel,
         string $txType,
-        bool   $isWithCard,
         array  $requestData,
         string $encodedRequestData,
         string $responseData,
-        array  $decodedResponseData,
-        string $formData
-    ): void {
-        $card = $isWithCard ? $this->card : null;
+        array  $decodedResponseData
+    ): void
+    {
         $this->requestMapperMock->expects(self::once())
             ->method('create3DEnrollmentCheckRequestData')
             ->with($this->pos->getAccount(), $order)
@@ -228,9 +226,8 @@ class ParamPosTest extends TestCase
         $this->requestMapperMock->expects(self::never())
             ->method('create3DFormData');
 
-        $actual = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
-
-        $this->assertSame($actual, $formData);
+        $this->expectException(\RuntimeException::class);
+        $actual = $this->pos->get3DFormData($order, $paymentModel, $txType, $this->card);
     }
 
     /**
@@ -243,7 +240,8 @@ class ParamPosTest extends TestCase
         bool   $isWithCard,
         bool   $createWithoutCard,
         string $expectedExceptionClass
-    ): void {
+    ): void
+    {
         $card = $isWithCard ? $this->card : null;
 
         $this->expectException($expectedExceptionClass);
@@ -262,7 +260,8 @@ class ParamPosTest extends TestCase
         array   $expectedResponse,
         bool    $is3DSuccess,
         bool    $isSuccess
-    ): void {
+    ): void
+    {
         if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
@@ -330,7 +329,7 @@ class ParamPosTest extends TestCase
 
     public function testMake3DPaymentHashMismatchException(): void
     {
-        $data = ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'];
+        $data    = ParamPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'];
         $request = Request::create('', 'POST', $data);
 
         $this->cryptMock->expects(self::once())
@@ -366,9 +365,9 @@ class ParamPosTest extends TestCase
             ->method('check3DHash');
 
         $responseData = ['$responseData'];
-        $request  = Request::create('', 'POST', $responseData);
-        $order    = ['id' => '123'];
-        $txType   = PosInterface::TX_TYPE_PAY_AUTH;
+        $request      = Request::create('', 'POST', $responseData);
+        $order        = ['id' => '123'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')
@@ -393,9 +392,9 @@ class ParamPosTest extends TestCase
             ->method('check3DHash');
 
         $responseData = ['$responseData'];
-        $request  = Request::create('', 'POST', $responseData);
-        $order    = ['id' => '123'];
-        $txType   = PosInterface::TX_TYPE_PAY_AUTH;
+        $request      = Request::create('', 'POST', $responseData);
+        $order        = ['id' => '123'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DHostResponseData')
@@ -654,8 +653,8 @@ class ParamPosTest extends TestCase
      */
     public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
 
         $updatedRequestData = $requestData + [
                 'abc' => 'def',
@@ -839,7 +838,7 @@ class ParamPosTest extends TestCase
     public static function threeDFormDataBadInputsProvider(): array
     {
         return [
-            '3d_secure_without_card' => [
+            '3d_secure_without_card'    => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
@@ -847,7 +846,7 @@ class ParamPosTest extends TestCase
                 'create_without_card'    => false,
                 'expectedExceptionClass' => \InvalidArgumentException::class,
             ],
-            '3d_pay_without_card' => [
+            '3d_pay_without_card'       => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
@@ -876,7 +875,8 @@ class ParamPosTest extends TestCase
         array  $decodedResponse,
         array  $order,
         string $paymentModel
-    ): void {
+    ): void
+    {
         $updatedRequestDataPreparedEvent = null;
 
         $this->serializerMock->expects(self::once())
@@ -916,12 +916,33 @@ class ParamPosTest extends TestCase
                 })
             ))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 
                 return $updatedRequestDataPreparedEvent;
             });
+    }
+
+    public static function threeDFormDataFailResponseProvider(): iterable
+    {
+        $responseTestData = \iterator_to_array(ParamPosSerializerTest::decodeDataProvider());
+        yield 'bad_request' => [
+            'order'               => ParamPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['order'],
+            'paymentModel'        => PosInterface::MODEL_3D_PAY,
+            'txType'              => PosInterface::TX_TYPE_PAY_AUTH,
+            'requestData'         => ParamPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
+            'encodedRequestData'  => 'encoded-request-data',
+            'responseData'        => $responseTestData['3d_form_success']['input'],
+            'decodedResponseData' => [
+                "soap:Fault" => [
+                    "faultcode"   => "soap:Client",
+                    "faultstring" => "Unable to handle request without a valid action parameter. Please supply a valid soap action.",
+                    "detail"      => "",
+                ],
+            ],
+        ];
+
     }
 
     public static function threeDFormDataProvider(): iterable

@@ -67,28 +67,27 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $mappedResponse = [
-            'order_id'         => $payResult['Siparis_ID'],
-            'transaction_id'   => $payResult['Bank_Trans_ID'],
-            'auth_code'   => $payResult['Bank_AuthCode'],
-            'ref_ret_num'      => $payResult['Bank_HostRefNum'],
-            'currency'         => $order['currency'],
-            'amount'           => null,
-
             'proc_return_code' => $procReturnCode,
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
             'error_code'       => self::TX_APPROVED === $status ? null : $procReturnCode,
-            'error_message'    => self::TX_APPROVED === $status ? null : $rawPaymentResponseData['Bank_HostMsg'],
-            'transaction_time' => new \DateTimeImmutable(),
+            'error_message'    => self::TX_APPROVED === $status ? null : ($payResult['Sonuc_Ack'] ?? $payResult['Bank_HostMsg']),
             'all'              => $rawPaymentResponseData,
         ];
-
+        if (self::TX_APPROVED === $status) {
+            $mappedResponse['order_id']         = $payResult['Siparis_ID'];
+            $mappedResponse['transaction_id']   = $payResult['Bank_Trans_ID'];
+            $mappedResponse['auth_code']        = $payResult['Bank_AuthCode'];
+            $mappedResponse['currency']         = $order['currency'];
+            $mappedResponse['transaction_time'] = new \DateTimeImmutable();
+        }
         $this->logger->debug('mapped payment response', $mappedResponse);
 
         return $this->mergeArraysPreferNonNullValues($defaultResponse, $mappedResponse);
     }
 
     // todo
+
     /**
      * {@inheritdoc}
      */
@@ -99,7 +98,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
             'provision_response' => $rawPaymentResponseData,
         ]);
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $paymentModel          = PosInterface::MODEL_3D_SECURE;
         $paymentResponseData   = $this->getDefaultPaymentResponse($txType, $paymentModel);
         $mdStatus              = $this->extractMdStatus($raw3DAuthResponseData);
         if (null !== $rawPaymentResponseData) {
@@ -134,6 +133,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * {@inheritdoc}
      */
@@ -186,6 +186,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * {@inheritdoc}
      */
@@ -234,6 +235,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * {@inheritdoc}
      */
@@ -273,6 +275,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * {@inheritdoc}
      */
@@ -324,6 +327,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * {@inheritdoc}
      */
@@ -372,6 +376,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
 // todo
+
     /**
      * @param array<string, string|int> $rawResponseData
      *
@@ -404,6 +409,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * {@inheritDoc}
      */
@@ -438,6 +444,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * {@inheritDoc}
      */
@@ -447,6 +454,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * @inheritDoc
      */
@@ -456,6 +464,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * @inheritDoc
      */
@@ -465,6 +474,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * @param string $mdStatus
      *
@@ -483,6 +493,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * Get Status Detail Text
      *
@@ -506,6 +517,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo test with amount 1000.01
+
     /**
      * "1000,01" => 1000.01 odeme durum sorgulandiginda gelen amount format
      *
@@ -519,6 +531,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     // todo
+
     /**
      * @param array<int, string> $rawTx
      *

@@ -208,7 +208,6 @@ class ParamPos extends AbstractGateway
         return $this;
     }
 
-    // todo
     /**
      * @inheritDoc
      */
@@ -217,44 +216,19 @@ class ParamPos extends AbstractGateway
         $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
         $data = $this->registerPayment($order, $paymentModel, $txType, $creditCard);
-        dump($data);
+
         if (isset($data['soap:Fault'])) {
             $this->logger->error('soap error response', $data['soap:Fault']);
 
-            throw new \RuntimeException('Bankaya istek başarısız!');
+            throw new \RuntimeException($data['soap:Fault']['faultstring']);
         }
-        //^ array:1 [▼
-        //  "TP_WMD_UCDResponse" => array:1 [▼
-        //    "TP_WMD_UCDResult" => array:4 [▼
-        //      "Islem_ID" => "0"
-        //      "Sonuc" => "-112"
-        //      "Sonuc_Str" => "Tutar formatı geçersiz. Nokta kullanmayınız. Kuruş formatında virgüllü gönderiniz."
-        //      "Banka_Sonuc_Kod" => "0"
-        //    ]
-        //  ]
-        //]
+
         $result = $data['TP_WMD_UCDResponse']['TP_WMD_UCDResult'];
-        if ($result['Sonuc'] < 1) {
+        if ($result['Sonuc'] < 0) {
             $this->logger->error('soap error response', $result);
 
             throw new \RuntimeException($result['Sonuc_Str'], $result['Sonuc']);
         }
-       // dd($data);
-        // todo check response code
-//        xdebug_break();
-//            $html = $data['soap:Body']['TP_WMD_UCDResponse']['TP_WMD_UCDResult']['UCD_HTML'];
-//            echo $html;
-//            exit();
-//        dd($data['soap:Body']['TP_WMD_UCDResponse']['TP_WMD_UCDResult']['UCD_HTML']);
-//        $status = $data['Code'];
-//
-//        if (0 !== $status) {
-//            $this->logger->error('payment register failed', $data);
-//
-//            throw new \RuntimeException($data['Message'], $data['Code']);
-//        }
-
-        $this->logger->debug('preparing 3D form data');
 
         return $result['UCD_HTML'];
     }
