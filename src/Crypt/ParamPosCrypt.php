@@ -75,16 +75,28 @@ class ParamPosCrypt extends AbstractCrypt
      */
     public function createHash(AbstractPosAccount $posAccount, array $requestData): string
     {
-        $map = [
-            $requestData['G']['CLIENT_CODE'],
-            $requestData['GUID'],
-            $requestData['Taksit'] ?? '',
-            $requestData['Islem_Tutar'],
-            $requestData['Toplam_Tutar'],
-            $requestData['Siparis_ID'],
-//            $requestData['Hata_URL'] ?? '', //todo
-//            $requestData['Basarili_URL'] ?? '',
-        ];
+        if (isset($requestData['Doviz_Kodu']) && '1000' !== $requestData['Doviz_Kodu']) {
+            // doviz odemeler icin farkli hash
+            $map = [
+                $requestData['G']['CLIENT_CODE'],
+                $requestData['GUID'],
+                $requestData['Islem_Tutar'],
+                $requestData['Toplam_Tutar'],
+                $requestData['Siparis_ID'],
+                $requestData['Hata_URL'] ?? '',
+                $requestData['Basarili_URL'] ?? '',
+            ];
+        } else {
+            // TRY odemeler icin hash
+            $map = [
+                $requestData['G']['CLIENT_CODE'],
+                $requestData['GUID'],
+                $requestData['Taksit'] ?? '',
+                $requestData['Islem_Tutar'],
+                $requestData['Toplam_Tutar'],
+                $requestData['Siparis_ID'],
+            ];
+        }
 
         $hashStr = \implode(static::HASH_SEPARATOR, $map);
         $hashStr = mb_convert_encoding($hashStr, 'ISO-8859-9');

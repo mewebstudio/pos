@@ -70,6 +70,16 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
         PosInterface::MODEL_NON_SECURE     => 'NS',
     ];
 
+    /**
+     * {@inheritdoc}
+     */
+    protected array $currencyMappings = [
+        PosInterface::CURRENCY_TRY => '1000',
+        PosInterface::CURRENCY_USD => '1001',
+        PosInterface::CURRENCY_EUR => '1002',
+        PosInterface::CURRENCY_GBP => '1003',
+    ];
+
     //todo
 
     /**
@@ -79,8 +89,6 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function create3DPaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, array $responseData): array
     {
-        $order = $this->preparePaymentOrder($order);
-
         $requestData = $this->getRequestAccountData($posAccount) + [
                 'UCD_MD'     => (string) $responseData['md'],
                 'Islem_GUID' => (string) $responseData['islemGUID'],
@@ -111,36 +119,29 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
                 'IPAdr'              => (string) $order['ip'],
                 'Siparis_ID'         => (string) $order['id'],
                 'Islem_Tutar'        => $this->formatAmount($order['amount']),
-                'Toplam_Tutar'        => $this->formatAmount($order['amount']), //todo
+                'Toplam_Tutar'       => $this->formatAmount($order['amount']), //todo
                 'Basarili_URL'       => (string) $order['success_url'],
                 'Hata_URL'           => (string) $order['fail_url'],
-                //'Currency'           => $this->mapCurrency($order['currency']), //todo
                 'Taksit'             => $this->mapInstallment((int) $order['installment']),
                 'KK_Sahibi'          => $creditCard->getHolderName(),
                 'KK_No'              => $creditCard->getNumber(),
                 'KK_SK_Ay'           => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_MONTH_FORMAT),
                 'KK_SK_Yil'          => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_YEAR_FORMAT),
                 'KK_CVC'             => $creditCard->getCvv(),
-                'KK_Sahibi_GSM'             => '', //optional olmasina ragmen hic gonderilmeyince hata aliniyor.
-               // 'Siparis_Aciklama'             => '',
-                //'Ref_URL'             => 'https://dev.param.com.tr/tr',
-//                'Data1'             => '',
-//                'Data2'             => '',
-//                'Data3'             => '',
-//                'Data4'             => '',
-//                'Data5'             => '',
+                'KK_Sahibi_GSM'      => '', //optional olmasina ragmen hic gonderilmeyince hata aliniyor.
             ];
+
+        if (PosInterface::CURRENCY_TRY === $order['currency']) {
+            $requestData['Taksit'] = $this->mapInstallment((int) $order['installment']);
+        } else {
+            $requestData['Doviz_Kodu'] = $this->mapCurrency($order['currency']);
+        }
 
         $requestData['Islem_Hash'] = $this->crypt->createHash($posAccount, $requestData);
 // todo
 //        if (isset($order['recurring'])) {
 //            $requestData += $this->createRecurringData($order['recurring']);
 //        }
-
-//        return [
-//            'TP_WMD_UCD' => $requestData,
-//            '@xmlns'     => 'https://turkpos.com.tr/',
-//        ];
 
         return $requestData;
     }
@@ -157,22 +158,28 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $requestData = $this->getRequestAccountData($posAccount) + [
-                'Islem_Guvenlik_Tip' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE], //todo
+                'Islem_Guvenlik_Tip' => $this->secureTypeMappings[PosInterface::MODEL_3D_SECURE], //todo
                 'Islem_ID'           => $this->crypt->generateRandomString(),
                 'IPAdr'              => (string) $order['ip'],
                 'Siparis_ID'         => (string) $order['id'],
-                'Islem_Tutar'        => (string) $order['amount'],
-                'Toplam_Tutar'       => (string) $order['amount'], //todo
+                'Islem_Tutar'        => $this->formatAmount($order['amount']),
+                'Toplam_Tutar'       => $this->formatAmount($order['amount']), //todo
                 'Basarili_URL'       => (string) $order['success_url'],
                 'Hata_URL'           => (string) $order['fail_url'],
-                'Currency'           => $this->mapCurrency($order['currency']),
                 'Taksit'             => $this->mapInstallment((int) $order['installment']),
                 'KK_Sahibi'          => $creditCard->getHolderName(),
                 'KK_No'              => $creditCard->getNumber(),
                 'KK_SK_Ay'           => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_MONTH_FORMAT),
                 'KK_SK_Yil'          => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_YEAR_FORMAT),
                 'KK_CVC'             => $creditCard->getCvv(),
+                'KK_Sahibi_GSM'      => '', //optional olmasina ragmen hic gonderilmeyince hata aliniyor.
             ];
+
+        if (PosInterface::CURRENCY_TRY === $order['currency']) {
+            $requestData['Taksit'] = $this->mapInstallment((int) $order['installment']);
+        } else {
+            $requestData['Doviz_Kodu'] = $this->mapCurrency($order['currency']);
+        }
 
         $requestData['Islem_Hash'] = $this->crypt->createHash($posAccount, $requestData);
 // todo
@@ -318,14 +325,20 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
         throw new NotImplementedException();
     }
 
-    //todo
-
     /**
      * {@inheritDoc}
      */
-    public function create3DFormData(?AbstractPosAccount $posAccount, ?array $order, string $paymentModel, string $txType, ?string $gatewayURL = null, ?CreditCardInterface $creditCard = null, array $extraData = []): array
+    public function create3DFormData(?AbstractPosAccount $posAccount, ?array $order, string $paymentModel, string $txType, ?string $gatewayURL = null, ?CreditCardInterface $creditCard = null, array $extraData = [])
     {
-        throw new NotImplementedException();
+        if (isset($extraData['UCD_URL'])) {
+            return [
+                'gateway' => $extraData['UCD_URL'],
+                'method'  => 'POST',
+                'inputs'  => [],
+            ];
+        }
+
+        return $extraData['UCD_HTML'];
     }
 
     //todo

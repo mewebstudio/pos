@@ -88,8 +88,9 @@ class ParamPosRequestDataMapperTest extends TestCase
         $class  = new \ReflectionObject($this->requestDataMapper);
         $method = $class->getMethod('mapCurrency');
         $method->setAccessible(true);
-        $this->assertSame('949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
+        $this->assertSame('1000', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
+        $this->assertSame('1001', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_USD]));
+        $this->assertSame('1002', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
     }
 
     /**

@@ -211,7 +211,7 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): string
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true) //todo
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
@@ -223,14 +223,22 @@ class ParamPos extends AbstractGateway
             throw new \RuntimeException($data['soap:Fault']['faultstring']);
         }
 
-        $result = $data['TP_WMD_UCDResponse']['TP_WMD_UCDResult'];
+        $result = $data['TP_WMD_UCDResponse']['TP_WMD_UCDResult'] ?? $data['TP_Islem_Odeme_WDResponse']['TP_Islem_Odeme_WDResult'] ?? null;
         if ($result['Sonuc'] < 0) {
             $this->logger->error('soap error response', $result);
 
             throw new \RuntimeException($result['Sonuc_Str'], $result['Sonuc']);
         }
 
-        return $result['UCD_HTML'];
+        return $this->requestDataMapper->create3DFormData(
+            $this->account,
+            [],
+            $paymentModel,
+            $txType,
+            null,
+            null,
+            $result
+        );
     }
 
     // todo
@@ -421,7 +429,9 @@ class ParamPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $requestData = $this->serializer->encode($requestData, 'TP_WMD_UCD'); //todo TP_WMD_UCD
+        $currency    = $order['currency'] ?? PosInterface::CURRENCY_TRY;
+        $soapAction  = PosInterface::CURRENCY_TRY === $currency ? 'TP_WMD_UCD' : 'TP_Islem_Odeme_WD';
+        $requestData = $this->serializer->encode($requestData, $soapAction); //todo TP_WMD_UCD
 
         return $this->send(
             $requestData,
