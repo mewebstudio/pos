@@ -77,14 +77,6 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
         return $this->secureTypeMappings[$securityType] ?? null;
     }
 
-
-    /**
-     * @param string $mdStatus
-     *
-     * @return string
-     */
-    abstract protected function mapResponseTransactionSecurity(string $mdStatus): string;
-
     /**
      * "1000.01" => 1000.01
      * @param string $amount
