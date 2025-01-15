@@ -23,8 +23,6 @@ class KuveytPosTest extends TestCase
     /** @var \Mews\Pos\Gateways\KuveytPos */
     private PosInterface $pos;
 
-    private array $lastResponse;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -43,8 +41,6 @@ class KuveytPosTest extends TestCase
         $this->eventDispatcher = new EventDispatcher();
 
         $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
-
-        $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
@@ -174,7 +170,7 @@ class KuveytPosTest extends TestCase
     }
 
     /**
-     * @depends testFullRefundFail
+     * @depends testStatusSuccess
      */
     public function testCancelSuccess(array $lastResponse): array
     {
@@ -306,36 +302,5 @@ class KuveytPosTest extends TestCase
         $this->assertTrue($eventIsThrown);
 
         return $lastResponse;
-    }
-
-    public function testCustomQuery(): void
-    {
-        $customQuery = [
-            'SecureType'     => 'Inquiry',
-            'TxnType'        => 'ParaPuanInquiry',
-            'Pan'            => $card->getNumber(),
-            'Expiry'         => $card->getExpirationDate(\Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper::CREDIT_CARD_EXP_DATE_FORMAT),
-            'Cvv2'           => $card->getCvv(),
-        ];
-
-
-        $eventIsThrown = false;
-        $this->eventDispatcher->addListener(
-            RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
-                $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            }
-        );
-
-        $this->pos->customQuery($customQuery);
-
-        $response = $this->pos->getResponse();
-
-        $this->assertIsArray($response);
-        $this->assertNotEmpty($response);
-        $this->assertArrayHasKey('Transaction', $response);
-        $this->assertTrue($eventIsThrown);
     }
 }

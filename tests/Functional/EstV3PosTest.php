@@ -28,8 +28,6 @@ class EstV3PosTest extends TestCase
     /** @var EstV3Pos */
     private PosInterface $pos;
 
-    private array $lastResponse;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -47,8 +45,6 @@ class EstV3PosTest extends TestCase
         $this->eventDispatcher = new EventDispatcher();
 
         $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
-
-        $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
