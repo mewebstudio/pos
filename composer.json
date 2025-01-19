@@ -48,7 +48,8 @@
         "squizlabs/php_codesniffer": "^3.5",
         "symfony/event-dispatcher": "^5.4",
         "symfony/http-client": "^5.4",
-        "symfony/var-dumper": "^5.1"
+        "symfony/var-dumper": "^5.1",
+        "symfony/var-exporter": "^5.4"
     },
     "suggest": {
         "ext-soap": "KuveytPos ile iptal/iade gibi ödeme olmayan işlemleri yapacaksanız."
@@ -61,10 +62,16 @@
     },
     "scripts": {
         "test": "./vendor/bin/phpunit --testsuite=unit",
+        "coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit",
         "phpstan": "./vendor/bin/phpstan",
         "baseline": "./vendor/bin/phpstan --generate-baseline",
         "rector": "./vendor/bin/rector",
         "cs-fix": "./vendor/bin/php-cs-fixer fix",
-        "cs-check": "./vendor/bin/php-cs-fixer fix --dry-run --diff"
+        "cs-check": "./vendor/bin/php-cs-fixer fix --dry-run --diff",
+        "do-checks": [
+            "@cs-check",
+            "@phpstan",
+            "@test"
+        ]
     }
 }

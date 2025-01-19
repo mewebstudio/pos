@@ -121,7 +121,7 @@ interface PosInterface
      * @param CreditCardInterface|null $creditCard
      * @param bool                     $createWithoutCard 3D ve 3D_PAY ödemelerde kart bilgisi olmadan 3D formu oluşturulmasına izin verir.
      *
-     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
+     * @return non-empty-string|array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>} Banka response'u HTML olduğu durumda string döner.
      *
      * @throws \RuntimeException when request to the bank to get 3D form data failed
      * @throws ClientExceptionInterface when request to the bank to get 3D form data failed
@@ -130,7 +130,7 @@ interface PosInterface
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array;
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true);
 
     /**
      * Regular Payment

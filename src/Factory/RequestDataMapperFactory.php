@@ -14,6 +14,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\ParamPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper;
@@ -28,6 +29,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\Gateways\PayForPos;
@@ -60,6 +62,7 @@ class RequestDataMapperFactory
             GarantiPos::class      => GarantiPosRequestDataMapper::class,
             InterPos::class        => InterPosRequestDataMapper::class,
             KuveytPos::class       => KuveytPosRequestDataMapper::class,
+            ParamPos::class        => ParamPosRequestDataMapper::class,
             PayFlexCPV4Pos::class  => PayFlexCPV4PosRequestDataMapper::class,
             PayFlexV4Pos::class    => PayFlexV4PosRequestDataMapper::class,
             PayForPos::class       => PayForPosRequestDataMapper::class,

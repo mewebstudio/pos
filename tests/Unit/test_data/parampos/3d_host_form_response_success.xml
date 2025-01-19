@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <soap:Header>
+        <ServiceSecuritySoapHeader xmlns="https://turkodeme.com.tr/">
+            <CLIENT_CODE>10738</CLIENT_CODE>
+            <CLIENT_USERNAME>Test</CLIENT_USERNAME>
+            <CLIENT_PASSWORD>Test</CLIENT_PASSWORD>
+        </ServiceSecuritySoapHeader>
+    </soap:Header>
+    <soap:Body>
+        <TO_Pre_Encrypting_OOSResponse xmlns="https://turkodeme.com.tr/">
+            <TO_Pre_Encrypting_OOSResult>ImBuIu4mlRqIABImnjl/ikGHMe5ZOjZjP3wx61Wa7FxC3XrjnDTCsn7PngJ8DPdEV840PmqT+jVgsm+KaWcIZQq/lcJQKD3TdM99+MUcOKLxxFyByUJP3DkY9zZ4/2TJ7Px2HzZdfccockhMooHuM+A8PxjHKdK8z4pOvW/tpo/U4i6/jJPT9ZnhHL4GdRNOtu9l6sGtPHeKYC/FHYAZpGNXjR9+RCZGP/xTeFgC+Gl1o7dpRZaibII6PdPK1CNMdF8O1d1QI+PDCq/TxDSQxyyJgqovzYfBHT5mWjOx+WhiajrswNzVirR9hpii+Hq3sk+LnH90Psobh5db3F4BPpgUIuS6moVERKgq5HIhLkR4fe5TMfxcvOhj3Pg0RBQR</TO_Pre_Encrypting_OOSResult>
+        </TO_Pre_Encrypting_OOSResponse>
+    </soap:Body>
+</soap:Envelope>

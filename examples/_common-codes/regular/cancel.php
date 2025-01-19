@@ -22,6 +22,10 @@ function createCancelOrder(string $gatewayClass, array $lastResponse, string $ip
 
     if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
         $cancelOrder['amount'] = $lastResponse['amount'];
+    } elseif (\Mews\Pos\Gateways\ParamPos::class === $gatewayClass) {
+        $cancelOrder['amount'] = $lastResponse['amount'];
+        // on otorizasyon islemin iptali icin PosInterface::TX_TYPE_PAY_PRE_AUTH saglanmasi gerekiyor
+        $cancelOrder['transaction_type'] = $lastResponse['transaction_type'] ?? PosInterface::TX_TYPE_PAY_AUTH;
     } elseif (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
         $cancelOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
         $cancelOrder['auth_code']       = $lastResponse['auth_code'];

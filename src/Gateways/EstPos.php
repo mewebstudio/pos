@@ -6,6 +6,8 @@
 
 namespace Mews\Pos\Gateways;
 
+use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -28,6 +30,9 @@ class EstPos extends AbstractGateway
 
     /** @var EstPosAccount */
     protected AbstractPosAccount $account;
+
+    /** @var EstPosRequestDataMapper */
+    protected RequestDataMapperInterface $requestDataMapper;
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
@@ -84,7 +89,10 @@ class EstPos extends AbstractGateway
             throw new HashMismatchException();
         }
 
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+        /** @var array{md: string, xid: string, eci: string, cavv: string} $bankPostData */
+        $bankPostData = $request->all();
+
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $bankPostData);
 
         $event = new RequestDataPreparedEvent(
             $requestData,
@@ -155,6 +163,8 @@ class EstPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {

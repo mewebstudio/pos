@@ -14,6 +14,7 @@ use PHPUnit\Framework\TestCase;
  * @covers \Mews\Pos\Factory\AccountFactory
  * @covers \Mews\Pos\Entity\Account\KuveytPosAccount
  * @covers \Mews\Pos\Entity\Account\AkbankPosAccount
+ * @covers \Mews\Pos\Entity\Account\ParamPosAccount
  */
 class AccountFactoryTest extends TestCase
 {
@@ -53,5 +54,22 @@ class AccountFactoryTest extends TestCase
         $this->assertSame('kdsnsksl', $account->getStoreKey());
         $this->assertSame('SUB1', $account->getSubMerchantId());
         $this->assertSame(PosInterface::LANG_EN, $account->getLang());
+    }
+
+    public function testCreateParamPosAccount(): void
+    {
+        $account = AccountFactory::createParamPosAccount(
+            'param-pos',
+            '12345',
+            'APIUSER',
+            'kdsnsksl',
+            'guid123',
+        );
+
+        $this->assertSame('12345', $account->getClientId());
+        $this->assertSame('APIUSER', $account->getUsername());
+        $this->assertSame('kdsnsksl', $account->getPassword());
+        $this->assertSame('guid123', $account->getStoreKey());
+        $this->assertSame(PosInterface::LANG_TR, $account->getLang());
     }
 }

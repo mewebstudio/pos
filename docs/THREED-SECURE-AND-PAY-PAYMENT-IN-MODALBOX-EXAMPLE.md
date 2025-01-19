@@ -58,7 +58,7 @@ try {
 ```
 
 **_iframe_form.php** (form.php icinde kullanilacak)
-```html
+```php
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -158,9 +158,13 @@ try {
     exit;
 }
 
-ob_start();
-include('_iframe_form.php');
-$renderedForm = ob_get_clean();
+if (is_string($formData)) {
+    $renderedForm = $formData;
+} else {
+    ob_start();
+    include('_iframe_form.php');
+    $renderedForm = ob_get_clean();
+}
 ?>
 
 

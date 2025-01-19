@@ -43,6 +43,8 @@ $order = createPostPayOrder(
     $postAuthAmount
 );
 
+dump($order);
+
 $transaction = PosInterface::TX_TYPE_PAY_POST_AUTH;
 
 require '../../_templates/_finish_non_secure_post_auth_payment.php';

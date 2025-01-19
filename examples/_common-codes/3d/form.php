@@ -14,8 +14,6 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 // ornegin /examples/finansbank-payfor/3d/_config.php
 require '_config.php';
 
-require '../../_templates/_header.php';
-
 if ($request->getMethod() !== 'POST') {
     echo new RedirectResponse($baseUrl.'index.php');
     exit();
@@ -75,7 +73,7 @@ $eventDispatcher->addListener(
         }
         // KuveytPos TDV2.0.0 icin zorunlu eklenmesi gereken ekstra alanlar:
         $additionalRequestDataForKuveyt = [
-            'DeviceData' => [
+            'DeviceData'     => [
                 /**
                  * DeviceChannel : DeviceData alanı içerisinde gönderilmesi beklenen işlemin yapıldığı cihaz bilgisi.
                  * 2 karakter olmalıdır. 01-Mobil, 02-Web Browser için kullanılmalıdır.
@@ -87,18 +85,18 @@ $eventDispatcher->addListener(
                  * BillAddrCity: Kullanılan kart ile ilişkili kart hamilinin fatura adres şehri.
                  * Maksimum 50 karakter uzunluğunda olmalıdır.
                  */
-                'BillAddrCity' => 'İstanbul',
+                'BillAddrCity'     => 'İstanbul',
                 /**
                  * BillAddrCountry Kullanılan kart ile ilişkili kart hamilinin fatura adresindeki ülke kodu.
                  * Maksimum 3 karakter uzunluğunda olmalıdır.
                  * ISO 3166-1 sayısal üç haneli ülke kodu standardı kullanılmalıdır.
                  */
-                'BillAddrCountry' => '792',
+                'BillAddrCountry'  => '792',
                 /**
                  * BillAddrLine1: Kullanılan kart ile ilişkili kart hamilinin teslimat adresinde yer alan sokak vb. bilgileri içeren açık adresi.
                  * Maksimum 150 karakter uzunluğunda olmalıdır.
                  */
-                'BillAddrLine1' => 'XXX Mahallesi XXX Caddesi No 55 Daire 1',
+                'BillAddrLine1'    => 'XXX Mahallesi XXX Caddesi No 55 Daire 1',
                 /**
                  * BillAddrPostCode: Kullanılan kart ile ilişkili kart hamilinin fatura adresindeki posta kodu.
                  */
@@ -107,17 +105,17 @@ $eventDispatcher->addListener(
                  * BillAddrState: CardHolderData alanı içerisinde gönderilmesi beklenen ödemede kullanılan kart ile ilişkili kart hamilinin fatura adresindeki il veya eyalet bilgisi kodu.
                  * ISO 3166-2'de tanımlı olan il/eyalet kodu olmalıdır.
                  */
-                'BillAddrState' => '40',
+                'BillAddrState'    => '40',
                 /**
                  * Email: Kullanılan kart ile ilişkili kart hamilinin iş yerinde oluşturduğu hesapta kullandığı email adresi.
                  * Maksimum 254 karakter uzunluğunda olmalıdır.
                  */
-                'Email' => 'xxxxx@gmail.com',
-                'MobilePhone' => [
+                'Email'            => 'xxxxx@gmail.com',
+                'MobilePhone'      => [
                     /**
                      * Cc: Kullanılan kart ile ilişkili kart hamilinin cep telefonuna ait ülke kodu. 1-3 karakter uzunluğunda olmalıdır.
                      */
-                    'Cc' => '90',
+                    'Cc'         => '90',
                     /**
                      * Subscriber: Kullanılan kart ile ilişkili kart hamilinin cep telefonuna ait abone numarası.
                      * Maksimum 15 karakter uzunluğunda olmalıdır.
@@ -126,18 +124,19 @@ $eventDispatcher->addListener(
                 ],
             ],
         ];
+
         $requestData = $requestDataPreparedEvent->getRequestData();
         $requestData = array_merge_recursive($requestData, $additionalRequestDataForKuveyt);
         $requestDataPreparedEvent->setRequestData($requestData);
     });
 
-    /**
-     * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
-     * Eger ekleyeceginiz veri hash hesaplamada kullanilmiyorsa form verisi olusturduktan sonra da ekleyebilirsiniz.
-     */
-    $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event): void {
-        if ($event->getGatewayClass() === \Mews\Pos\Gateways\EstPos::class || $event->getGatewayClass() === \Mews\Pos\Gateways\EstV3Pos::class) {
-            //Örnek 1: İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
+/**
+ * Bu Event'i dinleyerek 3D formun hash verisi hesaplanmadan önce formun input array içireğini güncelleyebilirsiniz.
+ * Eger ekleyeceginiz veri hash hesaplamada kullanilmiyorsa form verisi olusturduktan sonra da ekleyebilirsiniz.
+ */
+$eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (Before3DFormHashCalculatedEvent $event): void {
+    if ($event->getGatewayClass() === \Mews\Pos\Gateways\EstPos::class || $event->getGatewayClass() === \Mews\Pos\Gateways\EstV3Pos::class) {
+        //Örnek 1: İşbank İmece Kart ile ödeme yaparken aşağıdaki verilerin eklenmesi gerekiyor:
 //                $supportedPaymentModels = [
 //                    \Mews\Pos\PosInterface::MODEL_3D_PAY,
 //                    \Mews\Pos\PosInterface::MODEL_3D_PAY_HOSTING,
@@ -149,22 +148,21 @@ $eventDispatcher->addListener(
 //                    $formInputs['FDONEM'] = '5'; // Ödemenin faizsiz ertelenmesini istediğiniz dönem sayısı.
 //                    $event->setFormInputs($formInputs);
 //                }
-        }
-        if ($event->getGatewayClass() === \Mews\Pos\Gateways\EstV3Pos::class) {
+    }
+    if ($event->getGatewayClass() === \Mews\Pos\Gateways\EstV3Pos::class) {
 //                // Örnek 2: callbackUrl eklenmesi
 //                $formInputs                = $event->getFormInputs();
 //                $formInputs['callbackUrl'] = $formInputs['failUrl'];
 //                $formInputs['refreshTime'] = '10'; // birim: saniye; callbackUrl sisteminin doğru çalışması için eklenmesi gereken parametre
 //                $event->setFormInputs($formInputs);
-        }
-    });
+    }
+});
 // ============================================================================================
 // OZEL DURUMLAR ICIN KODLAR END
 // ============================================================================================
 
 try {
     $formData = $pos->get3DFormData($order, $paymentModel, $transaction, $card, false);
-    //dd($formData);
 } catch (\InvalidArgumentException $e) {
     // örneğin kart bilgisi sağlanmadığında bu exception'i alırsınız.
     dd($e);
@@ -215,7 +213,6 @@ if ($pos instanceof \Mews\Pos\Gateways\PosNet) {
 // OZEL DURUMLAR ICIN KODLAR END
 // ============================================================================================
 
-
 $flowType = $request->get('payment_flow_type');
 ?>
 
@@ -232,32 +229,36 @@ $flowType = $request->get('payment_flow_type');
     <!------------------------------------------------------------------------------------------------------------->
 
 <?php if ('by_redirection' === $flowType) : ?>
-<!--
-    Sık kullanılan yöntem, 3D form verisini bir HTML form içine basıp JS ile otomatik submit ediyoruz.
-    Submit sonucu kullanıcı banka sayfasıne yönlendirilir, işlem sonucundan ise duruma göre websitinizin
-    success veya fail URL'na geri yönlendilir.
--->
-    <?php require '../../_templates/_redirect_form.php'; ?>
-    <script>
-        // Formu JS ile otomatik submit ederek kullaniciyi banka gatewayine yonlendiriyoruz.
-        let redirectForm = document.querySelector('form.redirect-form');
-        if (redirectForm) {
-            redirectForm.submit();
-        }
-    </script>
-
-
-
-
-<?php elseif ('by_iframe' === $flowType || 'by_popup_window' === $flowType) :
-    ob_start();
-    include('../../_templates/_redirect_iframe_or_popup_window_form.php');
-    $renderedForm = ob_get_clean();
+    <?php if (is_string($formData)) : ?>
+        <?= $formData; ?>
+    <?php else: ?>
+        <!--
+        Sık kullanılan yöntem, 3D form verisini bir HTML form içine basıp JS ile otomatik submit ediyoruz.
+        Submit sonucu kullanıcı banka sayfasıne yönlendirilir, işlem sonucundan ise duruma göre websitinizin
+        success veya fail URL'na geri yönlendilir.
+    -->
+        <?php require '../../_templates/_redirect_form.php'; ?>
+        <script>
+            // Formu JS ile otomatik submit ederek kullaniciyi banka gatewayine yonlendiriyoruz.
+            let redirectForm = document.querySelector('form.redirect-form');
+            if (redirectForm) {
+                redirectForm.submit();
+            }
+        </script>
+    <?php endif; ?>
+<?php elseif ('by_iframe' === $flowType || 'by_popup_window' === $flowType):
+    if (is_string($formData)) {
+        $renderedForm = $formData;
+    } else {
+        ob_start();
+        include('../../_templates/_redirect_iframe_or_popup_window_form.php');
+        $renderedForm = ob_get_clean();
+    }
     ?>
-<!--
-    $renderedForm içinde 3D formun verileriyle oluşturulan HTML form bulunur.
-    alttaki kodlar ise bu $renderedForm verisini seçilen $flowType'a göre iframe modal box içine veya pop up window içine basar.
--->
+    <!--
+        $renderedForm içinde 3D formun verileriyle oluşturulan HTML form bulunur.
+        alttaki kodlar ise bu $renderedForm verisini seçilen $flowType'a göre iframe modal box içine veya pop up window içine basar.
+    -->
     <div class="alert alert-dismissible" role="alert" id="result-alert">
         <!-- buraya odeme basarili olup olmadini alttaki JS kodlariyla basiyoruz. -->
     </div>
@@ -293,8 +294,6 @@ $flowType = $request->get('payment_flow_type');
 <?php endif; ?>
 
 
-
-
 <?php if ('by_iframe' === $flowType) : ?>
     <div class="modal fade" tabindex="-1" role="dialog" id="iframe-modal" data-keyboard="false" data-backdrop="static">
         <div class="modal-dialog" role="document" style="width: 426px;">
@@ -302,7 +301,7 @@ $flowType = $request->get('payment_flow_type');
                 <div class="modal-header">
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body"  id="iframe-modal-body">
+                <div class="modal-body" id="iframe-modal-body">
                 </div>
             </div>
         </div>
@@ -347,8 +346,6 @@ $flowType = $request->get('payment_flow_type');
             }
         });
     </script>
-
-
 
 
 <?php elseif ('by_popup_window' === $flowType) : ?>

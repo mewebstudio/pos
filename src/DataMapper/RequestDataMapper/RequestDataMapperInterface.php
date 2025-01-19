@@ -71,11 +71,11 @@ interface RequestDataMapperInterface
      * @param string                               $gatewayURL
      * @param CreditCardInterface|null             $creditCard
      *
-     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
+     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}|non-empty-string
      *
      * @throws UnsupportedTransactionTypeException
      */
-    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array;
+    public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null);
 
     /**
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType

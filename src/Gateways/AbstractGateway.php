@@ -23,7 +23,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 abstract class AbstractGateway implements PosInterface
 {
-    /** @var array{gateway_endpoints: array{payment_api: non-empty-string, gateway_3d: non-empty-string, gateway_3d_host?: non-empty-string, query_api?: non-empty-string}} */
+    /** @var array{gateway_endpoints: array{payment_api: non-empty-string, payment_api_2?: non-empty-string, gateway_3d: non-empty-string, gateway_3d_host?: non-empty-string, query_api?: non-empty-string}} */
     protected array $config;
 
     protected AbstractPosAccount $account;

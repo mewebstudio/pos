@@ -29,6 +29,9 @@
                             <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\AkbankPos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/akbankpos/index.php">Akbank POS</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\ParamPos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/parampos/index.php">Param POS</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\EstV3Pos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/payten/index.php">Payten V3</a>
                         </li>
                         <li class="nav-item">

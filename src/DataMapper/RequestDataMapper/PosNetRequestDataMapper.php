@@ -254,6 +254,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
      * @param PosNetAccount $posAccount
      * @param array{data1: string, data2: string, sign: string} $extraData
      *
+     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
+     *
      * {@inheritDoc}
      *
      * @throws InvalidArgumentException

@@ -34,6 +34,7 @@ body:
         - GarantiPos
         - InterPos
         - KuveytPos
+        - ParamPos
         - PayFlexCPV4Pos
         - PayFlexV4Pos
         - PayForPos

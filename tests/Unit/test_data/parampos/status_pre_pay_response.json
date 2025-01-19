@@ -1,0 +1,30 @@
+{
+  "TP_Islem_Sorgulama4Response": {
+    "TP_Islem_Sorgulama4Result": {
+      "DT_Bilgi": {
+        "Odeme_Sonuc": "1",
+        "Odeme_Sonuc_Aciklama": "\u0130\u015flem Ba\u015far\u0131l\u0131",
+        "Dekont_ID": "6021842617",
+        "Siparis_ID": "20250105F546",
+        "Islem_ID": "79910D3EAD3C10A9769A9BE0",
+        "Durum": "SUCCESS",
+        "Tarih": "05.01.2025 16:14:18",
+        "Toplam_Tutar": "10.01",
+        "Komisyon_Oran": "1.75",
+        "Komisyon_Tutar": "0.18",
+        "Banka_Sonuc_Aciklama": "",
+        "Taksit": "1",
+        "Ext_Data": "||||",
+        "Toplam_Iade_Tutar": "0",
+        "KK_No": "581877******2285",
+        "Bank_Extra": "<Extra>\n    <AUTH_CODE>308452<\/AUTH_CODE>\n    <AUTH_DTTM>2025-01-05 16:14:18.699<\/AUTH_DTTM>\n    <CAPTURE_AMT><\/CAPTURE_AMT>\n    <CAPTURE_DTTM><\/CAPTURE_DTTM>\n    <CAVV_3D><\/CAVV_3D>\n    <CHARGE_TYPE_CD>S<\/CHARGE_TYPE_CD>\n    <ECI_3D><\/ECI_3D>\n    <HOSTDATE>0105-161418<\/HOSTDATE>\n    <HOST_REF_NUM>500516472750<\/HOST_REF_NUM>\n    <MDSTATUS><\/MDSTATUS>\n    <NUMCODE>0<\/NUMCODE>\n    <ORDERSTATUS>ORD_ID:10126021842617\tCHARGE_TYPE_CD:S\tORIG_TRANS_AMT:1001\tCAPTURE_AMT:\tTRANS_STAT:A\tAUTH_DTTM:2025-01-05 16:14:18.699\tCAPTURE_DTTM:\tAUTH_CODE:308452\tTRANS_ID:25005QOSI13750<\/ORDERSTATUS>\n    <ORD_ID>10126021842617<\/ORD_ID>\n    <ORIG_TRANS_AMT>1001<\/ORIG_TRANS_AMT>\n    <PAN>5818 77** **** 2285<\/PAN>\n    <PROC_RET_CD>00<\/PROC_RET_CD>\n    <SETTLEID><\/SETTLEID>\n    <TRANS_ID>25005QOSI13750<\/TRANS_ID>\n    <TRANS_STAT>A<\/TRANS_STAT>\n    <XID_3D><\/XID_3D>\n  <\/Extra>",
+        "Islem_Tip": "PRE_AUTH",
+        "Bank_Trans_ID": "25005QOSI13750",
+        "Bank_AuthCode": "308452",
+        "Bank_HostRefNum": "500516472750"
+      },
+      "Sonuc": "1",
+      "Sonuc_Str": "Ba\u015far\u0131l\u0131"
+    }
+  }
+}

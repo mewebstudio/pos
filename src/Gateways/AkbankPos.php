@@ -6,6 +6,8 @@
 
 namespace Mews\Pos\Gateways;
 
+use Mews\Pos\DataMapper\RequestDataMapper\AkbankPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\AkbankPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -25,6 +27,9 @@ class AkbankPos extends AbstractGateway
 
     /** @var AkbankPosAccount */
     protected AbstractPosAccount $account;
+
+    /** @var AkbankPosRequestDataMapper */
+    protected RequestDataMapperInterface $requestDataMapper;
 
     /** @inheritdoc */
     protected static array $supportedTransactions = [
@@ -158,6 +163,8 @@ class AkbankPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {
