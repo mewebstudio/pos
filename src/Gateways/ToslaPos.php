@@ -22,6 +22,8 @@ use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
+ * @since 1.0.0
+ *
  * Documentation:
  * @link https://tosla.com/isim-icin/gelistirici-merkezi
  */

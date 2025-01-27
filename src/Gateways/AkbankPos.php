@@ -18,6 +18,8 @@ use Mews\Pos\PosInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
+ * @since 1.1.0
+ *
  * @link https://sanalpos-prep.akbank.com/#entry
  */
 class AkbankPos extends AbstractGateway

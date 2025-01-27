@@ -66,7 +66,11 @@ $eventDispatcher->addListener(Before3DFormHashCalculatedEvent::class, function (
 });
 
 try {
-    $formData = $pos->get3DFormData($order, PosInterface::MODEL_3D_HOST, $transaction);
+    $formData = $pos->get3DFormData(
+        $order,
+        PosInterface::MODEL_3D_HOST,
+        $transaction
+    );
 } catch (\LogicException $e) {
     // ödeme modeli veya işlem tipi desteklenmiyorsa bu exception'i alırsınız.
     dd($e);
