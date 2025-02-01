@@ -192,13 +192,16 @@ class PosNetTest extends TestCase
         string $paymentModel,
         string $txType,
         bool   $isWithCard,
-        string $expectedExceptionClass
+        bool   $createWithoutCard,
+        string $expectedExceptionClass,
+        string $expectedExceptionMsg
     ): void {
         $card = $isWithCard ? $this->card : null;
 
         $this->expectException($expectedExceptionClass);
+        $this->expectExceptionMessage($expectedExceptionMsg);
 
-        $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+        $this->pos->get3DFormData($order, $paymentModel, $txType, $card, $createWithoutCard);
     }
 
     /**
@@ -816,19 +819,41 @@ class PosNetTest extends TestCase
     public static function threeDFormDataBadInputsProvider(): array
     {
         return [
-            '3d_secure_without_card' => [
+            '3d_secure_without_card'           => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
-                'expectedExceptionClass' => \InvalidArgumentException::class,
+                'create_without_card'    => false,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Bu ödeme modeli için kart bilgileri zorunlu!',
             ],
             'unsupported_payment_model' => [
                 'order'                  => ['id' => '2020110828BC'],
-                'paymentModel'           => PosInterface::MODEL_3D_HOST,
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
+                'create_without_card'    => false,
                 'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Mews\Pos\Gateways\PosNet ödeme altyapıda [pay] işlem tipi [3d, regular] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay].',
+            ],
+            'non_payment_tx_type'              => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_STATUS,
+                'isWithCard'             => false,
+                'create_with_card'       => false,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay, pre]',
+            ],
+            'post_auth_tx_type'                => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_POST_AUTH,
+                'isWithCard'             => true,
+                'create_with_card'       => false,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay, pre]',
             ],
         ];
     }

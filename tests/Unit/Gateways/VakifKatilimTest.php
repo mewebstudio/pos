@@ -256,11 +256,13 @@ class VakifKatilimTest extends TestCase
         string $txType,
         bool   $isWithCard,
         bool   $createWithoutCard,
-        string $expectedExceptionClass
+        string $expectedExceptionClass,
+        string $expectedExceptionMsg
     ): void {
         $card = $isWithCard ? $this->card : null;
 
         $this->expectException($expectedExceptionClass);
+        $this->expectExceptionMessage($expectedExceptionMsg);
 
         $this->pos->get3DFormData($order, $paymentModel, $txType, $card, $createWithoutCard);
     }
@@ -914,7 +916,8 @@ class VakifKatilimTest extends TestCase
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
                 'create_with_card'       => false,
-                'expectedExceptionClass' => \InvalidArgumentException::class,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Bu ödeme modeli için kart bilgileri zorunlu!',
             ],
             'unsupported_payment_model' => [
                 'order'                  => ['id' => '2020110828BC'],
@@ -923,6 +926,7 @@ class VakifKatilimTest extends TestCase
                 'isWithCard'             => false,
                 'create_with_card'       => true,
                 'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Mews\Pos\Gateways\VakifKatilimPos ödeme altyapıda [pay] işlem tipi [regular, 3d, 3d_host] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay].',
             ],
             'unsupported_3d_secure_tx'  => [
                 'order'                  => ['id' => '2020110828BC'],
@@ -931,6 +935,7 @@ class VakifKatilimTest extends TestCase
                 'isWithCard'             => false,
                 'create_with_card'       => true,
                 'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay].',
             ],
             'unsupported_3d_host_tx'    => [
                 'order'                  => ['id' => '2020110828BC'],
@@ -939,6 +944,25 @@ class VakifKatilimTest extends TestCase
                 'isWithCard'             => false,
                 'create_with_card'       => true,
                 'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay].',
+            ],
+            'non_payment_tx_type'       => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_STATUS,
+                'isWithCard'             => false,
+                'create_with_card'       => false,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay]',
+            ],
+            'post_auth_tx_type'         => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_POST_AUTH,
+                'isWithCard'             => true,
+                'create_with_card'       => false,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay]',
             ],
         ];
     }

@@ -190,11 +190,13 @@ class PayForTest extends TestCase
         string $txType,
         bool   $isWithCard,
         bool   $createWithoutCard,
-        string $expectedExceptionClass
+        string $expectedExceptionClass,
+        string $expectedExceptionMessage
     ): void {
         $card = $isWithCard ? $this->card : null;
 
         $this->expectException($expectedExceptionClass);
+        $this->expectExceptionMessage($expectedExceptionMessage);
 
         $this->pos->get3DFormData($order, $paymentModel, $txType, $card, $createWithoutCard);
     }
@@ -793,23 +795,44 @@ class PayForTest extends TestCase
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
                 'create_without_card'    => false,
-                'expectedExceptionClass' => \InvalidArgumentException::class,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Bu ödeme modeli için kart bilgileri zorunlu!',
             ],
-            '3d_pay_without_card' => [
+            '3d_pay_without_card'    => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
                 'create_without_card'    => false,
-                'expectedExceptionClass' => \InvalidArgumentException::class,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Bu ödeme modeli için kart bilgileri zorunlu!',
             ],
             'unsupported_payment_model' => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_PAY_HOSTING,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
-                'create_without_card'    => true,
+                'create_without_card'    => false,
                 'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Mews\Pos\Gateways\PayForPos ödeme altyapıda [pay] işlem tipi [3d, 3d_pay, 3d_host, regular] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay_hosting].',
+            ],
+            'non_payment_tx_type'    => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_STATUS,
+                'isWithCard'             => false,
+                'create_with_card'       => false,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay, pre]',
+            ],
+            'post_auth_tx_type'      => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_POST_AUTH,
+                'isWithCard'             => true,
+                'create_with_card'       => false,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay, pre]',
             ],
         ];
     }

@@ -42,7 +42,10 @@ class PosNetV1Pos extends AbstractGateway
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_NON_SECURE,
         ],
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => true,
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::MODEL_NON_SECURE,
+        ],
         PosInterface::TX_TYPE_PAY_POST_AUTH  => true,
         PosInterface::TX_TYPE_STATUS         => true,
         PosInterface::TX_TYPE_CANCEL         => true,
