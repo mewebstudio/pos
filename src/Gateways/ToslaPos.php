@@ -22,6 +22,8 @@ use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
+ * @since 1.0.0
+ *
  * Documentation:
  * @link https://tosla.com/isim-icin/gelistirici-merkezi
  */
@@ -143,6 +145,8 @@ class ToslaPos extends AbstractGateway
 
     /**
      * @inheritDoc
+     *
+     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {

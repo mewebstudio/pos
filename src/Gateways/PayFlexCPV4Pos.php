@@ -45,7 +45,11 @@ class PayFlexCPV4Pos extends AbstractGateway
             PosInterface::MODEL_3D_HOST,
             PosInterface::MODEL_NON_SECURE,
         ],
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => true,
+        PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
+            PosInterface::MODEL_3D_PAY,
+            PosInterface::MODEL_3D_HOST,
+            PosInterface::MODEL_NON_SECURE,
+        ],
         PosInterface::TX_TYPE_PAY_POST_AUTH  => true,
         PosInterface::TX_TYPE_STATUS         => false,
         PosInterface::TX_TYPE_CANCEL         => true,
@@ -174,6 +178,8 @@ class PayFlexCPV4Pos extends AbstractGateway
 
     /**
      * {@inheritDoc}
+     *
+     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {

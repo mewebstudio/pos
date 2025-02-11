@@ -28,8 +28,6 @@ class GarantiPosTest extends TestCase
     /** @var GarantiPos */
     private PosInterface $pos;
 
-    private array $lastResponse;
-
     protected function setUp(): void
     {
         parent::setUp();

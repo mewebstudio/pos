@@ -226,6 +226,11 @@ try {
         $paymentModel,
         $transactionType,
         $card,
+        /**
+         * MODEL_3D_SECURE veya MODEL_3D_PAY ödemelerde kredi kart verileri olmadan
+         * form verisini oluşturmak için true yapabilirsiniz.
+         * Yine de bazı gatewaylerde kartsız form verisi oluşturulamıyor.
+         */
         false
     );
 } catch (\InvalidArgumentException $e) {
@@ -239,8 +244,8 @@ try {
     exit;
 }
 ```
-```html
-<!-- $formData içeriği HTML forma render ediyoruz ve kullanıcıyı banka gateway'ine yönlendiriyoruz. -->
+```php
+// $formData içeriği HTML forma render ediyoruz ve kullanıcıyı banka gateway'ine yönlendiriyoruz.
 <form method="<?= $formData['method']; ?>" action="<?= $formData['gateway']; ?>"  class="redirect-form" role="form">
     <?php foreach ($formData['inputs'] as $key => $value) : ?>
         <input type="hidden" name="<?= $key; ?>" value="<?= $value; ?>">

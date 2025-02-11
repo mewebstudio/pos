@@ -70,7 +70,8 @@ $order = [
     // lang degeri verilmezse account (EstPosAccount) dili kullanılacak
     'lang' => \Mews\Pos\Gateways\PosInterface::LANG_TR, // Kullanıcının yönlendirileceği banka gateway sayfasının ve gateway'den dönen mesajların dili.
 ];
-    if (in_array($paymentModel, [
+    if ($pos instanceof \Mews\Pos\Gateways\ParamPos
+        || in_array($paymentModel, [
         PosInterface::MODEL_3D_SECURE,
         PosInterface::MODEL_3D_PAY,
         PosInterface::MODEL_3D_HOST,
@@ -123,18 +124,22 @@ try {
     exit;
 }
 ```
-```html
-<!-- $formData içeriği HTML forma render ediyoruz ve kullanıcıyı banka gateway'ine yönlendiriyoruz. -->
-<form method="<?= $formData['method']; ?>" action="<?= $formData['gateway']; ?>"  class="redirect-form" role="form">
-    <?php foreach ($formData['inputs'] as $key => $value) : ?>
-        <input type="hidden" name="<?= $key; ?>" value="<?= $value; ?>">
-    <?php endforeach; ?>
-    <div class="text-center">Redirecting...</div>
-    <hr>
-    <div class="form-group text-center">
-        <button type="submit" class="btn btn-lg btn-block btn-success">Submit</button>
-    </div>
-</form>
+```php
+<?php if (is_string($formData)): ?>
+    <?= $formData ?>
+<?php else: ?>
+    <!-- $formData içeriği HTML forma render ediyoruz ve kullanıcıyı banka gateway'ine yönlendiriyoruz. -->
+    <form method="<?= $formData['method']; ?>" action="<?= $formData['gateway']; ?>"  class="redirect-form" role="form">
+        <?php foreach ($formData['inputs'] as $key => $value) : ?>
+            <input type="hidden" name="<?= $key; ?>" value="<?= $value; ?>">
+        <?php endforeach; ?>
+        <div class="text-center">Redirecting...</div>
+        <hr>
+        <div class="form-group text-center">
+            <button type="submit" class="btn btn-lg btn-block btn-success">Submit</button>
+        </div>
+    </form>
+<?php endif; ?>
 ```
 **response.php (gateway'den döndükten sonra çalışacak kod)**
 

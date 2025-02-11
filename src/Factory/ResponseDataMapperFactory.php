@@ -13,6 +13,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ParamPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper;
@@ -27,6 +28,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\Gateways\PayForPos;
@@ -57,6 +59,7 @@ class ResponseDataMapperFactory
             GarantiPos::class      => GarantiPosResponseDataMapper::class,
             InterPos::class        => InterPosResponseDataMapper::class,
             KuveytPos::class       => KuveytPosResponseDataMapper::class,
+            ParamPos::class        => ParamPosResponseDataMapper::class,
             PayFlexCPV4Pos::class  => PayFlexCPV4PosResponseDataMapper::class,
             PayFlexV4Pos::class    => PayFlexV4PosResponseDataMapper::class,
             PayForPos::class       => PayForPosResponseDataMapper::class,

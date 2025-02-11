@@ -28,8 +28,6 @@ class AkbankPosTest extends TestCase
     /** @var \Mews\Pos\Gateways\AkbankPos */
     private PosInterface $recurringPos;
 
-    private array $lastResponse;
-
     protected function setUp(): void
     {
         parent::setUp();

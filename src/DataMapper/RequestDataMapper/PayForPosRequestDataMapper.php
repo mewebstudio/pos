@@ -222,6 +222,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     *
+     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
     public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {

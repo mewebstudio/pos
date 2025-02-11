@@ -11,15 +11,16 @@ require '../../_templates/_header.php';
 
 function createHistoryOrder(string $gatewayClass, array $extraData, string $ip): array
 {
-    $order  = [];
     $txTime = new \DateTimeImmutable();
     if (\Mews\Pos\Gateways\PayForPos::class === $gatewayClass) {
-        $order = [
+        return [
             // odeme tarihi
             'transaction_date' => $extraData['transaction_date'] ?? $txTime,
         ];
-    } elseif (\Mews\Pos\Gateways\VakifKatilimPos::class === $gatewayClass) {
-        $order  = [
+    }
+
+    if (\Mews\Pos\Gateways\VakifKatilimPos::class === $gatewayClass) {
+        return [
             'page'       => 1,
             'page_size'  => 20,
             /**
@@ -28,8 +29,10 @@ function createHistoryOrder(string $gatewayClass, array $extraData, string $ip):
             'start_date' => $txTime->modify('-1 day'),
             'end_date'   => $txTime->modify('+1 day'),
         ];
-    } elseif (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
-        $order = [
+    }
+
+    if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
+        return [
             'ip'         => $ip,
             'currency'   => \Mews\Pos\PosInterface::CURRENCY_USD,
             'page'       => 1, //optional
@@ -37,8 +40,10 @@ function createHistoryOrder(string $gatewayClass, array $extraData, string $ip):
             'start_date' => $txTime,
             'end_date'   => $txTime->modify('+1 day'),
         ];
-    } elseif (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
-        $order  = [
+    }
+
+    if (\Mews\Pos\Gateways\AkbankPos::class === $gatewayClass) {
+        return [
             // Gün aralığı 1 günden fazla girilemez
             'start_date' => $txTime->modify('-23 hour'),
             'end_date'   => $txTime,
@@ -49,7 +54,20 @@ function createHistoryOrder(string $gatewayClass, array $extraData, string $ip):
 //        ];
     }
 
-    return $order;
+    if (\Mews\Pos\Gateways\ParamPos::class === $gatewayClass) {
+        return [
+            // Gün aralığı 7 günden fazla girilemez
+            'start_date' => $txTime->modify('-23 hour'),
+            'end_date'   => $txTime,
+
+            // optional:
+            // Bu değerler gönderilince API nedense hata veriyor.
+//            'transaction_type' => \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH, // TX_TYPE_CANCEL, TX_TYPE_REFUND
+//            'order_status' => 'Başarılı', // Başarılı, Başarısız
+        ];
+    }
+
+    return [];
 }
 
 $order = createHistoryOrder(get_class($pos), [], $ip);

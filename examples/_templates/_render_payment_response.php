@@ -23,18 +23,18 @@
     </dl>
     <hr>
     <dl class="row">
-        <dt class="col-sm-3">RetRefNum (iade, iptal, durum soruglama icin kullnilacak numara):</dt>
+        <dt class="col-sm-3">RetRefNum <small>(iade, iptal, durum sorgulama icin kullanilacak numara)</small>:</dt>
         <dd class="col-sm-9"><?= $response['ref_ret_num'] ?: '-'; ?></dd>
+    </dl>
+    <hr>
+    <dl class="row">
+        <dt class="col-sm-3">Transaction ID <small>(iade, iptal, durum sorgulama icin kullanilacak numara)</small>:</dt>
+        <dd class="col-sm-9"><?= $response['transaction_id'] ?: '-'; ?></dd>
     </dl>
     <hr>
     <dl class="row">
         <dt class="col-sm-3">ProcReturnCode:</dt>
         <dd class="col-sm-9"><?= $response['proc_return_code'] ?: '-'; ?></dd>
-    </dl>
-    <hr>
-    <dl class="row">
-        <dt class="col-sm-3">Transaction ID:</dt>
-        <dd class="col-sm-9"><?= $response['transaction_id'] ?: '-'; ?></dd>
     </dl>
     <hr>
     <dl class="row">

@@ -38,12 +38,13 @@ trait PaymentTestTrait
             'ip'          => '127.0.0.1',
         ];
 
-        if (\in_array($paymentModel, [
-            PosInterface::MODEL_3D_SECURE,
-            PosInterface::MODEL_3D_PAY,
-            PosInterface::MODEL_3D_HOST,
-            PosInterface::MODEL_3D_PAY_HOSTING,
-        ], true)) {
+        if ($this->pos instanceof \Mews\Pos\Gateways\ParamPos
+            || \in_array($paymentModel, [
+                PosInterface::MODEL_3D_SECURE,
+                PosInterface::MODEL_3D_PAY,
+                PosInterface::MODEL_3D_HOST,
+                PosInterface::MODEL_3D_PAY_HOSTING,
+            ], true)) {
             $order['success_url'] = 'http:localhost/response.php';
             $order['fail_url']    = 'http:localhost/response.php';
         }
@@ -153,6 +154,10 @@ trait PaymentTestTrait
 
         if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
             $cancelOrder['amount'] = $lastResponse['amount'];
+        } elseif (\Mews\Pos\Gateways\ParamPos::class === $gatewayClass) {
+            $cancelOrder['amount'] = $lastResponse['amount'];
+            // on otorizasyon islemin iptali icin PosInterface::TX_TYPE_PAY_PRE_AUTH saglanmasi gerekiyor
+            $cancelOrder['transaction_type'] = $lastResponse['transaction_type'] ?? PosInterface::TX_TYPE_PAY_AUTH;
         } elseif (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
             $cancelOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
             $cancelOrder['auth_code']       = $lastResponse['auth_code'];
@@ -290,6 +295,19 @@ trait PaymentTestTrait
             //        $order  = [
             //            'batch_num' => 24,
             //        ];
+        }
+
+        if (\Mews\Pos\Gateways\ParamPos::class === $gatewayClass) {
+            return [
+                // Gün aralığı 7 günden fazla girilemez
+                'start_date' => $txTime->modify('-5 hour'),
+                'end_date'   => $txTime,
+
+                // optional:
+                // Bu değerler gönderilince API nedense hata veriyor.
+//            'transaction_type' => \Mews\Pos\PosInterface::TX_TYPE_PAY_AUTH, // TX_TYPE_CANCEL, TX_TYPE_REFUND
+//            'order_status' => 'Başarılı', // Başarılı, Başarısız
+            ];
         }
 
         return [];

@@ -193,11 +193,13 @@ class PayFlexV4PosTest extends TestCase
         string $paymentModel,
         string $txType,
         bool   $isWithCard,
-        string $expectedExceptionClass
+        string $expectedExceptionClass,
+        string $expectedExceptionMsg
     ): void {
         $card = $isWithCard ? $this->card : null;
 
         $this->expectException($expectedExceptionClass);
+        $this->expectExceptionMessage($expectedExceptionMsg);
 
         $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
     }
@@ -702,12 +704,13 @@ class PayFlexV4PosTest extends TestCase
     public static function threeDFormDataBadInputsProvider(): array
     {
         return [
-            '3d_secure_without_card' => [
+            '3d_secure_without_card'    => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
-                'expectedExceptionClass' => \InvalidArgumentException::class,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Bu ödeme modeli için kart bilgileri zorunlu!',
             ],
             'unsupported_payment_model' => [
                 'order'                  => ['id' => '2020110828BC'],
@@ -715,6 +718,23 @@ class PayFlexV4PosTest extends TestCase
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
                 'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Mews\Pos\Gateways\PayFlexV4Pos ödeme altyapıda [pay] işlem tipi [3d, regular] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay].',
+            ],
+            'non_payment_tx_type'       => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_SECURE,
+                'txType'                 => PosInterface::TX_TYPE_STATUS,
+                'isWithCard'             => false,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay, pre]',
+            ],
+            'post_auth_tx_type'         => [
+                'order'                  => ['id' => '2020110828BC'],
+                'paymentModel'           => PosInterface::MODEL_3D_PAY,
+                'txType'                 => PosInterface::TX_TYPE_PAY_POST_AUTH,
+                'isWithCard'             => true,
+                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay, pre]',
             ],
         ];
     }

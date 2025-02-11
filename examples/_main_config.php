@@ -136,12 +136,13 @@ function createPaymentOrder(
         'ip'          => filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4 ) ? $ip : '127.0.0.1',
     ];
 
-    if (in_array($paymentModel, [
-        PosInterface::MODEL_3D_SECURE,
-        PosInterface::MODEL_3D_PAY,
-        PosInterface::MODEL_3D_HOST,
-        PosInterface::MODEL_3D_PAY_HOSTING,
-    ], true)) {
+    if ($pos instanceof \Mews\Pos\Gateways\ParamPos
+        || in_array($paymentModel, [
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::MODEL_3D_PAY,
+            PosInterface::MODEL_3D_HOST,
+            PosInterface::MODEL_3D_PAY_HOSTING,
+        ], true)) {
         $order['success_url'] = $baseUrl.'response.php';
         $order['fail_url']    = $baseUrl.'response.php';
     }

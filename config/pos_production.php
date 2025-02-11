@@ -176,5 +176,15 @@ return [
                 'gateway_3d_host' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/CommonPaymentPage/CommonPaymentPage',
             ],
         ],
+        'param-pos'            => [
+            'name'              => 'TURK Elektronik Para A.Ş',
+            'class'             => Mews\Pos\Gateways\ParamPos::class,
+            'gateway_endpoints' => [
+                'payment_api'     => 'https://posws.param.com.tr/turkpos.ws/service_turkpos_prod.asmx',
+                // API URL for 3D host payment
+                'payment_api_2'   => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
+                'gateway_3d_host' => 'https://test-pos.param.com.tr/default.aspx',
+            ],
+        ],
     ],
 ];

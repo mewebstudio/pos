@@ -58,7 +58,7 @@ try {
 ```
 
 **_iframe_form.php** (form.php icinde kullanilacak)
-```html
+```php
 <!DOCTYPE HTML>
 <html>
 <head>
@@ -145,6 +145,11 @@ try {
         $paymentModel,
         $transactionType,
         $card,
+        /**
+         * MODEL_3D_SECURE veya MODEL_3D_PAY ödemelerde kredi kart verileri olmadan
+         * form verisini oluşturmak için true yapabilirsiniz.
+         * Yine de bazı gatewaylerde kartsız form verisi oluşturulamıyor.
+         */
         false
     );
 } catch (\InvalidArgumentException $e) {
@@ -158,9 +163,13 @@ try {
     exit;
 }
 
-ob_start();
-include('_iframe_form.php');
-$renderedForm = ob_get_clean();
+if (is_string($formData)) {
+    $renderedForm = $formData;
+} else {
+    ob_start();
+    include('_iframe_form.php');
+    $renderedForm = ob_get_clean();
+}
 ?>
 
 

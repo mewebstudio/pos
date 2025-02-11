@@ -28,8 +28,6 @@ class PayForPosTest extends TestCase
     /** @var PayForPos */
     private PosInterface $pos;
 
-    private array $lastResponse;
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -47,7 +45,6 @@ class PayForPosTest extends TestCase
         $this->eventDispatcher = new EventDispatcher();
 
         $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
-        $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,

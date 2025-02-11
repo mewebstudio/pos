@@ -12,7 +12,6 @@ use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 
@@ -367,9 +366,9 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param PosNetAccount $posAccount
      *
-     * {@inheritDoc}
+     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      *
-     * @throws UnsupportedTransactionTypeException
+     * {@inheritDoc}
      */
     public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null, $extraData = null): array
     {

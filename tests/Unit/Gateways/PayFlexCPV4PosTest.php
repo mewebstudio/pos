@@ -648,7 +648,7 @@ class PayFlexCPV4PosTest extends TestCase
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
                 'create_without_card'    => false,
-                'expectedExceptionClass' => \InvalidArgumentException::class,
+                'expectedExceptionClass' => \LogicException::class,
             ],
             'unsupported_payment_model' => [
                 'order'                  => ['id' => '2020110828BC'],

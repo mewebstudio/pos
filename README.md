@@ -13,6 +13,7 @@ sistemlerinin kullanılabilmesidir.
 | Gateway                                                                                                                | Desktekleyen<br/>bankalar                                                      | Desteklenen<br/>Ödeme Tipleri                                                                               | Desteklenen Sorgular                                                                                               |
 |------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
 | Tosla<br><sup>(eski AKÖde)</sup>                                                                                       | ?                                                                              | NonSecure<br/>3DPay<br/>3DHost                                                                              | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama<br/>Özel Sorgu                                |
+| ParamPos                                                                                                               | ?                                                                              | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost <sup>(test edilmesi gerekiyor)</sup>                            | İptal<br/>İade<br/>Durum sorgulama<br/>Geçmiş İşlemleri sorgulama<br/>Özel Sorgu                                   |
 | AkbankPos <br/><sup>(Akbankın yeni altyapısı)</sup>                                                                    | Akbank                                                                         | NonSecure<br/>3DSecur<br/>3DPay<br/>3DHost<br/>Tekrarlanan Ödeme                                            | İptal<br/>İade<br/>Sipariş Tarihçesini sorgulama<br/>Geçmiş İşlemleri sorgulama<br/>Özel Sorgu                     |
 | EST POS<br/><sup>(Asseco/Payten)<br/>_deprecated_</sup>                                                                | Akbank<br/>TEB<br/>İşbank<br/>Şekerbank<br/>Halkbank<br/>Finansbank<br/>Ziraat | NonSecure<br/>3DSecure<br/>3DPay<br/>3DHost<br/>3DPayHost<br/>Tekrarlanan Ödeme                             | İptal<br/>İade<br/>Durum sorgulama<br/>Sipariş Tarihçesini sorgulama<br/>Özel Sorgu                                |
 | EST V3 POS<br/><br/><sup>EstPos altyapının<br/>daha güvenli<br/>(sha512) hash<br/>algoritmasıyla<br/>uygulaması.</sup> | -----"-----                                                                    | -----"-----                                                                                                 | -----"-----                                                                                                        |
@@ -330,7 +331,7 @@ http://localhost/ URL projenin `examples` klasörünün içine bakar.
 Projenin root klasoründe bu satırı çalıştırmanız gerekiyor
 
 ```sh
-$ ./vendor/bin/phpunit
+$ composer test
 ```
 
 > Değerli yorum, öneri ve katkılarınızı
