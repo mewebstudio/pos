@@ -66,7 +66,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
             '3D'        => PosInterface::MODEL_3D_SECURE,
         ];
 
-        $this->currencyMappings += [
+        $this->currencyMappings = [
             'TRL' => PosInterface::CURRENCY_TRY,
             'TL'  => PosInterface::CURRENCY_TRY,
             'EUR' => PosInterface::CURRENCY_EUR,

@@ -384,8 +384,7 @@ class ParamPosTest extends TestCase
         $formData = $this->pos->get3DFormData(
             $order,
             PosInterface::MODEL_3D_HOST,
-            PosInterface::TX_TYPE_PAY_AUTH,
-            $this->card
+            PosInterface::TX_TYPE_PAY_AUTH
         );
 
         $this->assertIsArray($formData);

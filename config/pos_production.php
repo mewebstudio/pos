@@ -182,8 +182,8 @@ return [
             'gateway_endpoints' => [
                 'payment_api'     => 'https://posws.param.com.tr/turkpos.ws/service_turkpos_prod.asmx',
                 // API URL for 3D host payment
-                'payment_api_2'   => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
-                'gateway_3d_host' => 'https://test-pos.param.com.tr/default.aspx',
+                'payment_api_2'   => 'https://pos.param.com.tr/Tahsilat/to.ws/Service_Odeme.asmx',
+                'gateway_3d_host' => 'https://pos.param.com.tr/Tahsilat/Default.aspx',
             ],
         ],
     ],
