@@ -65,6 +65,7 @@ class PayForTest extends TestCase
     private MockObject $serializerMock;
 
     private CreditCardInterface $card;
+
     private PayForPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void

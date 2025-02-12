@@ -28,7 +28,7 @@ class VakifKatilimPosRequestValueFormatterTest extends TestCase
      *            [1, "0"]
      *            [2, "2"]
      */
-    public function testFormatInstallment($installment, string $expected): void
+    public function testFormatInstallment(int $installment, string $expected): void
     {
         $actual = $this->formatter->formatInstallment($installment);
         $this->assertSame($expected, $actual);
@@ -71,7 +71,7 @@ class VakifKatilimPosRequestValueFormatterTest extends TestCase
      */
     public function testFormatDateTime(\DateTimeInterface $dateTime, ?string $fieldName, ?string $txType, string $expected): void
     {
-        $actual = $this->formatter->formatDateTime($dateTime, $fieldName, $txType);
+        $actual = $this->formatter->formatDateTime($dateTime, $fieldName);
         $this->assertSame($expected, $actual);
     }
 
@@ -80,7 +80,7 @@ class VakifKatilimPosRequestValueFormatterTest extends TestCase
      * [null]
      * [""]
      */
-    public function testFormatDateTimeUnsupportedField($fieldName): void
+    public function testFormatDateTimeUnsupportedField(?string $fieldName): void
     {
         $dateTime = new \DateTime('2024-04-14T16:45:30.000');
         $this->expectException(\InvalidArgumentException::class);

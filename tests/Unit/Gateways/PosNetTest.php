@@ -72,6 +72,7 @@ class PosNetTest extends TestCase
 
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
+
     private EstPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void

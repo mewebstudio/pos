@@ -107,6 +107,7 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
                 if ('0001-01-01T00:00:00' !== $responseData['TransactionTime'] && '00010101T00:00:00' !== $responseData['TransactionTime']) {
                     $txTimeWith = $responseData['TransactionTime'];
                 }
+
                 $this->responseValueFormatterMock->expects($this->once())
                     ->method('formatDateTime')
                     ->with($txTimeWith, $txType)
@@ -155,6 +156,7 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
                     if ('0001-01-01T00:00:00' !== $paymentResponse['TransactionTime'] && '00010101T00:00:00' !== $paymentResponse['TransactionTime']) {
                         $txTimeWith = $paymentResponse['TransactionTime'];
                     }
+
                     $this->responseValueFormatterMock->expects($this->once())
                         ->method('formatDateTime')
                         ->with($txTimeWith, $txType)
@@ -257,10 +259,11 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
             $orderContract = $responseData['VPosOrderData']['OrderContract'];
             $this->responseValueFormatterMock->expects($amountMatcher)
                 ->method('formatAmount')
-                ->with($this->callback(function ($amount) use ($amountMatcher, $orderContract) {
+                ->with($this->callback(function ($amount) use ($amountMatcher, $orderContract): bool {
                     if ($amountMatcher->getInvocationCount() === 1) {
                         return $amount === $orderContract['FirstAmount'];
                     }
+
                     if ($amountMatcher->getInvocationCount() === 2) {
                         return $amount === $orderContract['TranAmount'];
                     }
@@ -272,6 +275,7 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
                         if ($amountMatcher->getInvocationCount() === 1) {
                             return $expectedData['first_amount'];
                         }
+
                         if ($amountMatcher->getInvocationCount() === 2) {
                             return $expectedData['capture_amount'];
                         }
@@ -283,11 +287,12 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
             $statusMatcher = $this->atLeastOnce();
             $this->responseValueMapperMock->expects($statusMatcher)
                 ->method('mapOrderStatus')
-                ->with($this->callback(function ($amount) use ($statusMatcher, $orderContract) {
+                ->with($this->callback(function ($amount) use ($statusMatcher, $orderContract): bool {
                     if ($statusMatcher->getInvocationCount() === 1) {
                         return $amount === ($orderContract['LastOrderStatus']
                                 ?? $orderContract['LastOrderStatusDescription']);
                     }
+
                     if ($statusMatcher->getInvocationCount() === 2) {
                         return $amount === $orderContract['OrderStatus'];
                     }
@@ -299,6 +304,7 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
                         if ($statusMatcher->getInvocationCount() === 1) {
                             return $expectedData['order_status'];
                         }
+
                         if ($statusMatcher->getInvocationCount() === 2) {
                             return $this->responseValueMapper->mapOrderStatus($orderContract['OrderStatus']);
                         }

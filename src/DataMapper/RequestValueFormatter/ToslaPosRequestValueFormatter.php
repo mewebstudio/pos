@@ -55,6 +55,7 @@ class ToslaPosRequestValueFormatter implements RequestValueFormatterInterface
         if ('timeSpan' === $fieldName) {
             return $dateTime->format('YmdHis');
         }
+
         if ('transactionDate' === $fieldName) {
             return $dateTime->format('Ymd');
         }

@@ -66,6 +66,7 @@ class GarantiPosTest extends TestCase
     private PosInterface $pos;
 
     private CreditCardInterface $card;
+
     private GarantiPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void
