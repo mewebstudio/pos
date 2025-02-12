@@ -19,7 +19,7 @@ class AkbankPosRequestValueMapperTest extends TestCase
 {
     private AkbankPosRequestValueMapper $valueMapper;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->valueMapper = new AkbankPosRequestValueMapper();
@@ -97,7 +97,7 @@ class AkbankPosRequestValueMapperTest extends TestCase
         $this->assertCount(8, $this->valueMapper->getTxTypeMappings());
     }
 
-    public function testGetSecureTypeMappings()
+    public function testGetSecureTypeMappings(): void
     {
         $this->assertCount(4, $this->valueMapper->getSecureTypeMappings());
     }

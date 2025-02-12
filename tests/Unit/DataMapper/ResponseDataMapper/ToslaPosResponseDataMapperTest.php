@@ -189,10 +189,11 @@ class ToslaPosResponseDataMapperTest extends TestCase
             $amountMatcher = $this->atLeastOnce();
             $this->responseValueFormatter->expects($amountMatcher)
                 ->method('formatAmount')
-                ->with($this->callback(function ($amount) use ($amountMatcher, $responseData) {
+                ->with($this->callback(function ($amount) use ($amountMatcher, $responseData): bool {
                     if ($amountMatcher->getInvocationCount() === 1) {
                         return $amount === $responseData['Amount'];
                     }
+
                     if ($amountMatcher->getInvocationCount() === 2) {
                         return $amount === $responseData['RefundedAmount'];
                     }
@@ -204,6 +205,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
                         if ($amountMatcher->getInvocationCount() === 1) {
                             return $expectedData['first_amount'];
                         }
+
                         if ($amountMatcher->getInvocationCount() === 2) {
                             return $expectedData['refund_amount'];
                         }
@@ -217,6 +219,7 @@ class ToslaPosResponseDataMapperTest extends TestCase
                 ->with($responseData['CreateDate'], $txType)
                 ->willReturn($expectedData['transaction_time']);
         }
+
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
 
         $this->assertArrayHasKey('all', $actualData);

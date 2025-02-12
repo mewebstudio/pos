@@ -18,8 +18,11 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
 {
     protected EventDispatcherInterface $eventDispatcher;
+
     protected RequestValueMapperInterface $valueMapper;
+
     protected RequestValueFormatterInterface $valueFormatter;
+
     protected CryptInterface $crypt;
 
     protected bool $testMode = false;

@@ -262,10 +262,11 @@ class EstPosResponseDataMapperTest extends TestCase
             $txType = PosInterface::TX_TYPE_STATUS;
             $this->responseValueFormatter->expects($amountMatcher)
                 ->method('formatAmount')
-                ->with($this->callback(function ($amount) use ($amountMatcher, $responseData) {
+                ->with($this->callback(function ($amount) use ($amountMatcher, $responseData): bool {
                     if ($amountMatcher->getInvocationCount() === 1) {
                         return $amount === $responseData['Extra']['ORIG_TRANS_AMT'];
                     }
+
                     if ($amountMatcher->getInvocationCount() === 2) {
                         return $amount === $responseData['Extra']['CAPTURE_AMT'];
                     }
@@ -277,6 +278,7 @@ class EstPosResponseDataMapperTest extends TestCase
                         if ($amountMatcher->getInvocationCount() === 1) {
                             return $expectedData['first_amount'];
                         }
+
                         if ($amountMatcher->getInvocationCount() === 2) {
                             return $expectedData['capture_amount'];
                         }
@@ -299,7 +301,7 @@ class EstPosResponseDataMapperTest extends TestCase
             $dates           = ['AUTH_DTTM', 'CAPTURE_DTTM', 'VOID_DTTM'];
             $this->responseValueFormatter->expects($dateTimeMatcher)
                 ->method('formatDateTime')
-                ->with($this->callback(function ($dateTime) use (&$dates, $responseData) {
+                ->with($this->callback(function ($dateTime) use (&$dates, $responseData): bool {
                     if (isset($responseData['Extra'][$dates[0]])) {
                         $dateKey = $dates[0];
                         $dates   = array_slice($dates, 1);
@@ -314,9 +316,11 @@ class EstPosResponseDataMapperTest extends TestCase
                         if ($dateTimeMatcher->getInvocationCount() === 1) {
                             return $expectedData['transaction_time'];
                         }
+
                         if ($dateTimeMatcher->getInvocationCount() === 2) {
                             return $expectedData['capture_time'];
                         }
+
                         if ($dateTimeMatcher->getInvocationCount() === 3) {
                             return $expectedData['cancel_time'];
                         }
