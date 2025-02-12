@@ -19,11 +19,9 @@ class GarantiPosResponseValueFormatter extends AbstractResponseValueFormatter
             return 0;
         }
 
-        if (PosInterface::TX_TYPE_HISTORY === $txType) {
-            // history response
-            if ('Pesin' === $installment || '1' === $installment) {
-                return 0;
-            }
+        // history response
+        if (PosInterface::TX_TYPE_HISTORY === $txType && ('Pesin' === $installment || '1' === $installment)) {
+            return 0;
         }
 
         return parent::formatInstallment($installment, $txType);

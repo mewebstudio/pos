@@ -47,7 +47,7 @@ class ParamPosResponseValueMapperTest extends TestCase
     ): void {
         $this->assertSame(
             $expected,
-            $this->mapper->mapOrderStatus($orderStatus, $preAuthStatus, $isRecurringOrder)
+            $this->mapper->mapOrderStatus($orderStatus)
         );
     }
 

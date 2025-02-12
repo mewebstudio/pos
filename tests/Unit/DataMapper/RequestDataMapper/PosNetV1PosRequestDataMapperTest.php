@@ -40,6 +40,7 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
     private CryptInterface $crypt;
 
     private PosNetV1PosRequestValueFormatter $valueFormatter;
+
     private PosNetV1PosRequestValueMapper $valueMapper;
 
     protected function setUp(): void

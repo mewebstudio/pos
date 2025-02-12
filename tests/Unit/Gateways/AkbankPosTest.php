@@ -68,6 +68,7 @@ class AkbankPosTest extends TestCase
 
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
+
     private AkbankPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void

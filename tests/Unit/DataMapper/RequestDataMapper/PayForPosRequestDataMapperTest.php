@@ -40,7 +40,9 @@ class PayForPosRequestDataMapperTest extends TestCase
 
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
+
     private PayForPosRequestValueFormatter $valueFormatter;
+
     private PayForPosRequestValueMapper $valueMapper;
 
     protected function setUp(): void

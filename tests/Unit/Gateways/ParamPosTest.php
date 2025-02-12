@@ -71,6 +71,7 @@ class ParamPosTest extends TestCase
 
     /** @var ParamPosRequestValueMapper & MockObject */
     private ParamPosRequestValueMapper $requestValueMapperMock;
+
     private CreditCardInterface $card;
 
     protected function setUp(): void

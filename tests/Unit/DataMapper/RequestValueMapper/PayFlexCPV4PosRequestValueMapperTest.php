@@ -19,7 +19,7 @@ class PayFlexCPV4PosRequestValueMapperTest extends TestCase
 {
     private PayFlexCPV4PosRequestValueMapper $valueMapper;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->valueMapper = new PayFlexCPV4PosRequestValueMapper();
@@ -91,7 +91,7 @@ class PayFlexCPV4PosRequestValueMapperTest extends TestCase
         $this->assertCount(8, $this->valueMapper->getTxTypeMappings());
     }
 
-    public function testGetSecureTypeMappings()
+    public function testGetSecureTypeMappings(): void
     {
         $this->assertCount(0, $this->valueMapper->getSecureTypeMappings());
     }

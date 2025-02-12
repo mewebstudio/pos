@@ -70,6 +70,7 @@ class ToslaPosTest extends TestCase
 
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
+
     private ToslaPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void

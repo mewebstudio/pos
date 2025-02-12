@@ -42,7 +42,9 @@ class AkbankPosRequestDataMapperTest extends TestCase
     private array $order;
 
     private EventDispatcherInterface $dispatcher;
+
     private AkbankPosRequestValueFormatter $valueFormatter;
+
     private AkbankPosRequestValueMapper $valueMapper;
 
     protected function setUp(): void

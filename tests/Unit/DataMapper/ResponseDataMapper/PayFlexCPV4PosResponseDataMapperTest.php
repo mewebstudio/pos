@@ -91,6 +91,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                     ->with($bankResponse['HostDate'], $txType)
                     ->willReturn($expectedData['transaction_time']);
             }
+
             $this->responseValueFormatter->expects($this->once())
                 ->method('formatAmount')
                 ->with($bankResponse['Amount'], $txType)
@@ -137,6 +138,7 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
                     ->with($bankResponse['HostDate'], $txType)
                     ->willReturn($expectedData['transaction_time']);
             }
+
             $this->responseValueFormatter->expects($this->once())
                 ->method('formatAmount')
                 ->with($bankResponse['Amount'], $txType)

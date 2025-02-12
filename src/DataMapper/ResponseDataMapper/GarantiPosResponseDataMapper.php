@@ -517,6 +517,7 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
             if (null !== $transTime) {
                 $defaultResponse['transaction_time'] = $this->valueFormatter->formatDateTime($transTime, $txType);
             }
+
             $defaultResponse['capture_time']     = null !== $rawTx['AuthDate'] ? $this->valueFormatter->formatDateTime($rawTx['AuthDate'], $txType) : null;
             $amount                              = $rawTx['AuthAmount'];
             $defaultResponse['capture_amount']   = null !== $amount ? $this->valueFormatter->formatAmount($amount, $txType) : null;

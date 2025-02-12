@@ -40,6 +40,7 @@ class GarantiPosRequestDataMapperTest extends TestCase
     private CryptInterface $crypt;
 
     private GarantiPosRequestValueFormatter $valueFormatter;
+
     private GarantiPosRequestValueMapper $valueMapper;
 
     protected function setUp(): void

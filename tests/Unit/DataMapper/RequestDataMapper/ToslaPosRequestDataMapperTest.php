@@ -38,6 +38,7 @@ class ToslaPosRequestDataMapperTest extends TestCase
     private ToslaPosRequestDataMapper $requestDataMapper;
 
     private ToslaPosRequestValueFormatter $valueFormatter;
+
     private ToslaPosRequestValueMapper $valueMapper;
 
     protected function setUp(): void

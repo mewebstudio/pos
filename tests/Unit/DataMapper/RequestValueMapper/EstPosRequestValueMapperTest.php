@@ -19,7 +19,7 @@ class EstPosRequestValueMapperTest extends TestCase
 {
     private EstPosRequestValueMapper $valueMapper;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->valueMapper = new EstPosRequestValueMapper();
@@ -99,7 +99,7 @@ class EstPosRequestValueMapperTest extends TestCase
         $this->assertCount(8, $this->valueMapper->getTxTypeMappings());
     }
 
-    public function testGetSecureTypeMappings()
+    public function testGetSecureTypeMappings(): void
     {
         $this->assertCount(5, $this->valueMapper->getSecureTypeMappings());
     }

@@ -39,6 +39,7 @@ class KuveytPosRequestDataMapperTest extends TestCase
     private EventDispatcherInterface $dispatcher;
 
     private KuveytPosRequestValueFormatter $valueFormatter;
+
     private KuveytPosRequestValueMapper $valueMapper;
 
     protected function setUp(): void

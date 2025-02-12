@@ -30,7 +30,7 @@ class PosNetRequestValueFormatterTest extends TestCase
      *            [2, "02"]
      *            [12, "12"]
      */
-    public function testFormatInstallment($installment, string $expected): void
+    public function testFormatInstallment(int $installment, string $expected): void
     {
         $actual = $this->formatter->formatInstallment($installment);
         $this->assertSame($expected, $actual);

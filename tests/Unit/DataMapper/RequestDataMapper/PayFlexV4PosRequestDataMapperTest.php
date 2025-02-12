@@ -38,6 +38,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
     private EventDispatcherInterface $dispatcher;
 
     private PayFlexV4PosRequestValueFormatter $valueFormatter;
+
     private PayFlexV4PosRequestValueMapper $valueMapper;
 
     protected function setUp(): void

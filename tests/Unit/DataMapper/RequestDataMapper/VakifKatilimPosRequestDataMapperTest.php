@@ -39,6 +39,7 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
     private CryptInterface $crypt;
 
     private VakifKatilimPosRequestValueFormatter $valueFormatter;
+
     private VakifKatilimPosRequestValueMapper $valueMapper;
 
     protected function setUp(): void

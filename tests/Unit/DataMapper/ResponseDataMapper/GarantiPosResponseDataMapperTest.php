@@ -117,6 +117,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                 ->with($paymentResponse['Transaction']['ProvDate'] ?? 'now', $txType)
                 ->willReturn($expectedData['transaction_time']);
         }
+
         $this->responseValueMapper->expects($this->once())
             ->method('mapTxType')
             ->with($threeDResponseData['txntype'])
@@ -241,10 +242,11 @@ class GarantiPosResponseDataMapperTest extends TestCase
 
             $this->responseValueFormatter->expects($amountMatcher)
                 ->method('formatAmount')
-                ->with($this->callback(function ($amount) use ($amountMatcher, $responseData) {
+                ->with($this->callback(function ($amount) use ($amountMatcher, $responseData): bool {
                     if ($amountMatcher->getInvocationCount() === 1) {
                         return $amount === $responseData['Order']['OrderInqResult']['AuthAmount'];
                     }
+
                     if ($amountMatcher->getInvocationCount() === 2) {
                         if ($responseData['Order']['OrderInqResult']['AuthAmount'] > 0) {
                             return $amount === $responseData['Order']['OrderInqResult']['AuthAmount'];
@@ -260,6 +262,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         if ($amountMatcher->getInvocationCount() === 1) {
                             return $expectedData['capture_amount'];
                         }
+
                         if ($amountMatcher->getInvocationCount() === 2) {
                             return $expectedData['first_amount'];
                         }
@@ -271,10 +274,11 @@ class GarantiPosResponseDataMapperTest extends TestCase
             $dateTimeMatcher = $this->atLeastOnce();
             $this->responseValueFormatter->expects($dateTimeMatcher)
                 ->method('formatDateTime')
-                ->with($this->callback(function ($dateTime) use ($dateTimeMatcher, $responseData) {
+                ->with($this->callback(function ($dateTime) use ($dateTimeMatcher, $responseData): bool {
                     if ($dateTimeMatcher->getInvocationCount() === 1) {
                         return $dateTime === ($responseData['Order']['OrderInqResult']['ProvDate'] ?? $responseData['Order']['OrderInqResult']['PreAuthDate']);
                     }
+
                     if ($dateTimeMatcher->getInvocationCount() === 2) {
                         return $dateTime === $responseData['Order']['OrderInqResult']['AuthDate'];
                     }
@@ -286,6 +290,7 @@ class GarantiPosResponseDataMapperTest extends TestCase
                         if ($dateTimeMatcher->getInvocationCount() === 1) {
                             return $expectedData['transaction_time'];
                         }
+
                         if ($dateTimeMatcher->getInvocationCount() === 2) {
                             return $expectedData['capture_time'];
                         }

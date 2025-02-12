@@ -20,7 +20,7 @@ class VakifKatilimPosRequestValueMapperTest extends TestCase
 {
     private VakifKatilimPosRequestValueMapper $valueMapper;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
         $this->valueMapper = new VakifKatilimPosRequestValueMapper();
@@ -82,7 +82,7 @@ class VakifKatilimPosRequestValueMapperTest extends TestCase
         $this->assertCount(0, $this->valueMapper->getTxTypeMappings());
     }
 
-    public function testGetSecureTypeMappings()
+    public function testGetSecureTypeMappings(): void
     {
         $this->assertCount(2, $this->valueMapper->getSecureTypeMappings());
     }

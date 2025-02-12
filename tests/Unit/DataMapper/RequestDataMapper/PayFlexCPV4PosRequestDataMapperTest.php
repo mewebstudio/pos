@@ -38,6 +38,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
     private CryptInterface $crypt;
 
     private PayFlexCPV4PosRequestValueFormatter $valueFormatter;
+
     private PayFlexCPV4PosRequestValueMapper $valueMapper;
 
     protected function setUp(): void

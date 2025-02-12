@@ -96,7 +96,7 @@ abstract class AbstractCrypt implements CryptInterface
         $paramsVal = \implode($separator, $this->buildHashData($data, $paramNames));
 
         if (null !== $storeKey) {
-            $paramsVal = $this->concatenateHashKey($storeKey, $paramsVal);
+            return $this->concatenateHashKey($storeKey, $paramsVal);
         }
 
         return $paramsVal;

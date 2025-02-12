@@ -69,6 +69,7 @@ class InterPosTest extends TestCase
     private array $config;
 
     private array $order;
+
     private InterPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void
