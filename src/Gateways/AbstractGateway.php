@@ -249,6 +249,7 @@ abstract class AbstractGateway implements PosInterface
         if (!\in_array($txType, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)) {
             throw new LogicException(\sprintf('Invalid transaction type "%s" provided', $txType));
         }
+
         $requestData = $this->requestDataMapper->createNonSecurePaymentRequestData($this->account, $order, $txType, $creditCard);
 
         $event = new RequestDataPreparedEvent(
@@ -674,7 +675,7 @@ abstract class AbstractGateway implements PosInterface
      */
     protected function check3DFormInputs(string $paymentModel, string $txType, CreditCardInterface $card = null, bool $createWithoutCard = false): void
     {
-        $paymentModels = self::getSupported3DPaymentModelsForPaymentTransaction($txType);
+        $paymentModels = $this->getSupported3DPaymentModelsForPaymentTransaction($txType);
         if (!self::isSupportedTransaction($txType, $paymentModel)) {
             throw new \LogicException(\sprintf(
                 '%s ödeme altyapıda [%s] işlem tipi [%s] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [%s].',
@@ -689,7 +690,7 @@ abstract class AbstractGateway implements PosInterface
             throw new \LogicException(\sprintf(
                 'Kart bilgileri ile form verisi oluşturmak icin [%s] ödeme modeli kullanmayınız! Yerine [%s] ödeme model(ler)ini kullanınız.',
                 $paymentModel,
-                \implode(', ', self::getSupported3DPaymentModelsForPaymentTransaction($txType, true))
+                \implode(', ', $this->getSupported3DPaymentModelsForPaymentTransaction($txType, true))
             ));
         }
 
@@ -698,7 +699,7 @@ abstract class AbstractGateway implements PosInterface
         }
 
         if ((PosInterface::MODEL_3D_SECURE === $paymentModel || PosInterface::MODEL_3D_PAY === $paymentModel)
-            && null === $card
+            && !$card instanceof \Mews\Pos\Entity\Card\CreditCardInterface
         ) {
             throw new \LogicException('Bu ödeme modeli için kart bilgileri zorunlu!');
         }
@@ -707,7 +708,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @return array<int, PosInterface::TX_TYPE_*>
      */
-    private static function getSupport3DTxTypes(): array
+    private function getSupport3DTxTypes(): array
     {
         $threeDSupportedTxTypes = [];
         $txTypes                = [
@@ -730,9 +731,9 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return array<int, PosInterface::MODEL_*>
      */
-    private static function getSupported3DPaymentModelsForPaymentTransaction(string $txType, ?bool $withCard = null): array
+    private function getSupported3DPaymentModelsForPaymentTransaction(string $txType, ?bool $withCard = null): array
     {
-        $supported3DPaymentTxs = self::getSupport3DTxTypes();
+        $supported3DPaymentTxs = $this->getSupport3DTxTypes();
         if (!\in_array($txType, $supported3DPaymentTxs, true)) {
             throw new \LogicException(\sprintf(
                 'Hatalı işlem tipi! Desteklenen işlem tipleri: [%s].',
@@ -751,6 +752,7 @@ abstract class AbstractGateway implements PosInterface
         if (null === $withCard) {
             return $supportedPaymentModels;
         }
+
         if ($withCard) {
             return \array_intersect($supportedPaymentModels, self::$paymentModelsWithCard);
         }

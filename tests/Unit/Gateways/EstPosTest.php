@@ -69,6 +69,7 @@ class EstPosTest extends TestCase
     private CreditCardInterface $card;
 
     private array $order;
+
     private EstPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void

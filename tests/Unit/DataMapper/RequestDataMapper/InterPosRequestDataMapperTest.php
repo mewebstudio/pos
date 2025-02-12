@@ -40,6 +40,7 @@ class InterPosRequestDataMapperTest extends TestCase
     private EventDispatcherInterface $dispatcher;
 
     private InterPosRequestValueFormatter $valueFormatter;
+
     private InterPosRequestValueMapper $valueMapper;
 
     protected function setUp(): void

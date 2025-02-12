@@ -28,7 +28,7 @@ class InterPosRequestValueFormatterTest extends TestCase
      *            [1, ""]
      *            [2, "2"]
      */
-    public function testFormatInstallment($installment, string $expected): void
+    public function testFormatInstallment(int $installment, string $expected): void
     {
         $actual = $this->formatter->formatInstallment($installment);
         $this->assertSame($expected, $actual);

@@ -22,7 +22,9 @@ use Psr\Log\LoggerInterface;
 class ParamPosResponseDataMapperTest extends TestCase
 {
     private ParamPosResponseDataMapper $responseDataMapper;
+
     private ParamPosResponseValueFormatter $responseValueFormatter;
+
     private ParamPosResponseValueMapper $responseValueMapper;
 
     /** @var LoggerInterface&MockObject */
