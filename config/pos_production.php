@@ -25,7 +25,7 @@ return [
         ],
         'akbank'               => [
             'name'  => 'AKBANK T.A.S.',
-            'class' => Mews\Pos\Gateways\EstPos::class,
+            'class' => Mews\Pos\Gateways\EstV3Pos::class,
             'gateway_endpoints'  => [
                 'payment_api'     => 'https://www.sanalakpos.com/fim/api',
                 'gateway_3d'      => 'https://www.sanalakpos.com/fim/est3Dgate',
@@ -67,7 +67,7 @@ return [
         ],
         'isbank'               => [
             'name'  => 'İşbank T.A.S.',
-            'class' => Mews\Pos\Gateways\EstPos::class,
+            'class' => Mews\Pos\Gateways\EstV3Pos::class,
             'gateway_endpoints'  => [
                 'payment_api'     => 'https://sanalpos.isbank.com.tr/fim/api',
                 'gateway_3d'      => 'https://sanalpos.isbank.com.tr/fim/est3Dgate',

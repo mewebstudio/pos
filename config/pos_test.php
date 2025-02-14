@@ -31,7 +31,7 @@ return [
         ],
         'akbank'               => [
             'name'              => 'AKBANK T.A.S.',
-            'class'             => Mews\Pos\Gateways\EstPos::class,
+            'class'             => Mews\Pos\Gateways\EstV3Pos::class,
             'gateway_endpoints' => [
                 'payment_api' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
                 'gateway_3d'  => 'https://entegrasyon.asseco-see.com.tr/fim/est3Dgate',
