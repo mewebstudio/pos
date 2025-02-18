@@ -33,10 +33,13 @@ class InterPosSerializerTest extends TestCase
 
     public function testEncode(): void
     {
-        $data   = ['abc' => '1'];
+        $data = [
+            'abc' => '1',
+            'sa'  => 'aa',
+        ];
         $result = $this->serializer->encode($data);
 
-        $this->assertSame($data, $result);
+        $this->assertSame('abc=1&sa=aa', $result);
     }
 
     /**

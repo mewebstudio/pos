@@ -22,11 +22,11 @@ class InterPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      *
-     * @return array<string, mixed>
+     * @return string
      */
-    public function encode(array $data, ?string $txType = null): array
+    public function encode(array $data, ?string $txType = null): string
     {
-        return $data;
+        return \http_build_query($data);
     }
 
     /**

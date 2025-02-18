@@ -191,11 +191,17 @@ class InterPos extends AbstractGateway
     protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
-        if (!\is_array($contents)) {
-            throw new InvalidArgumentException(\sprintf('Argument type must be array, %s provided.', \gettype($contents)));
+        if (!\is_string($contents)) {
+            throw new InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
         }
 
-        $response = $this->client->post($url, ['form_params' => $contents]);
+        $response = $this->client->post($url, [
+            'headers' => [
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ],
+            'body'    => $contents,
+        ]);
+
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
