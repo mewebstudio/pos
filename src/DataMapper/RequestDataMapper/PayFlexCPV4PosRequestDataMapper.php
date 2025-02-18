@@ -68,10 +68,8 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     public function create3DPaymentStatusRequestData(AbstractPosAccount $posAccount, array $responseData): array
     {
         return $this->getRequestAccountData($posAccount) + [
-                'HostMerchantId' => $posAccount->getClientId(),
-                'Password'       => $posAccount->getPassword(),
-                'TransactionId'  => $responseData['TransactionId'],
-                'PaymentToken'   => $responseData['PaymentToken'],
+                'TransactionId' => $responseData['TransactionId'],
+                'PaymentToken'  => $responseData['PaymentToken'],
             ];
     }
 
@@ -287,13 +285,13 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param PayFlexAccount $posAccount
      *
-     * @return array{MerchantId: string, Password: string}
+     * @return array{HostMerchantId: string, Password: string}
      */
     private function getRequestAccountData(AbstractPosAccount $posAccount): array
     {
         return [
-            'MerchantId' => $posAccount->getClientId(),
-            'Password'   => $posAccount->getPassword(),
+            'HostMerchantId' => $posAccount->getClientId(),
+            'Password'       => $posAccount->getPassword(),
         ];
     }
 }

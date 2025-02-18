@@ -115,6 +115,18 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider create3DPaymentStatusRequestDataProvider
+     */
+    public function testCreate3DPaymentStatusRequestData(AbstractPosAccount $posAccount, array $postData, array $expectedData): void
+    {
+        $actual = $this->requestDataMapper->create3DPaymentStatusRequestData(
+            $posAccount,
+            $postData,
+        );
+        $this->assertSame($expectedData, $actual);
+    }
+
+    /**
      * @dataProvider registerDataProvider
      */
     public function testCreate3DEnrollmentCheckData(AbstractPosAccount $posAccount, array $order, string $txType, ?CreditCard $creditCard, array $expectedData): void
@@ -239,22 +251,22 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'abc' => 'abc',
             ],
             'expected'     => [
-                'abc'        => 'abc',
-                'MerchantId' => '000000000111111',
-                'Password'   => '3XTgER89as',
+                'abc'            => 'abc',
+                'HostMerchantId' => '000000000111111',
+                'Password'       => '3XTgER89as',
             ],
         ];
 
         yield 'with_account_data_bin_inquiry' => [
             'request_data' => [
-                'abc'        => 'abc',
-                'MerchantId' => '000000000111111xxx',
-                'Password'   => '3XTgER89asxxx',
+                'abc'            => 'abc',
+                'HostMerchantId' => '000000000111111xxx',
+                'Password'       => '3XTgER89asxxx',
             ],
             'expected'     => [
-                'abc'        => 'abc',
-                'MerchantId' => '000000000111111xxx',
-                'Password'   => '3XTgER89asxxx',
+                'abc'            => 'abc',
+                'HostMerchantId' => '000000000111111xxx',
+                'Password'       => '3XTgER89asxxx',
             ],
         ];
     }
@@ -333,6 +345,33 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'Extract'              => '',
                 'CustomItems'          => '',
                 'HashedData'           => 'apZ/1+eWzqCRk9qqACxN0bBZQ8g=',
+            ],
+        ];
+    }
+
+    public static function create3DPaymentStatusRequestDataProvider(): iterable
+    {
+        $account = AccountFactory::createPayFlexAccount(
+            'vakifbank-cp',
+            '000000000111111',
+            '3XTgER89as',
+            'VP999999',
+            PosInterface::MODEL_3D_SECURE
+        );
+
+        $postData = [
+            'TransactionId' => '3ee068d5b5a747ada65dafc0016d5887',
+            'PaymentToken'  => 'b35a56bf37334872a945afc0016d5887',
+        ];
+
+        yield 'with_card_1' => [
+            'account'  => $account,
+            'post_data'    => $postData,
+            'expected' => [
+                'HostMerchantId' => '000000000111111',
+                'Password'       => '3XTgER89as',
+                'TransactionId'  => '3ee068d5b5a747ada65dafc0016d5887',
+                'PaymentToken'   => 'b35a56bf37334872a945afc0016d5887',
             ],
         ];
     }
