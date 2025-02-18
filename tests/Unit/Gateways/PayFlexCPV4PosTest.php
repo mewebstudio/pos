@@ -34,7 +34,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\PayFlexCPV4Pos
- * @covers  \Mews\Pos\Gateways\AbstractGateway
+ * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class PayFlexCPV4PosTest extends TestCase
 {
@@ -80,9 +80,8 @@ class PayFlexCPV4PosTest extends TestCase
             'name'              => 'VakifBank-PayFlex-Common-Payment',
             'class'             => PayFlexCPV4Pos::class,
             'gateway_endpoints' => [
-                'payment_api' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
-                'gateway_3d'  => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
-                'query_api'   => 'https://cptest.vakifbank.com.tr/CommonPayment/SecurePayment',
+                'payment_api' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
+                'gateway_3d'  => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
             ],
         ];
 
@@ -157,6 +156,7 @@ class PayFlexCPV4PosTest extends TestCase
         $txType             = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel       = PosInterface::MODEL_3D_PAY;
         $requestData        = ['request-data'];
+        $encodedRequestData = 'encoded-request-data';
         $card               = $this->card;
         $order              = $this->order;
 
@@ -173,9 +173,9 @@ class PayFlexCPV4PosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $this->config['gateway_endpoints']['payment_api'],
+            $this->config['gateway_endpoints']['gateway_3d'],
             $requestData,
-            $requestData,
+            $encodedRequestData,
             'response-body',
             $enrollmentResponse,
             $order,
@@ -232,9 +232,9 @@ class PayFlexCPV4PosTest extends TestCase
         ];
         $this->configureClientResponse(
             $txType,
-            $this->config['gateway_endpoints']['payment_api'],
+            $this->config['gateway_endpoints']['gateway_3d'],
             $requestData,
-            $requestData,
+            'encoded-request-data',
             'response-body',
             $enrollmentResponse,
             $order,
@@ -309,13 +309,13 @@ class PayFlexCPV4PosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['query_api'],
+                $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentStatusRequestData,
-                $create3DPaymentStatusRequestData,
+                'encoded-request-data',
                 'response-body',
                 $paymentResponse,
                 $order,
-                PosInterface::MODEL_3D_PAY
+                PosInterface::MODEL_NON_SECURE
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -345,70 +345,84 @@ class PayFlexCPV4PosTest extends TestCase
     }
 
     /**
-     * @dataProvider makeRegularPaymentDataProvider
+     * @dataProvider make3DPayPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
-    {
-        $account     = $this->pos->getAccount();
-        $card        = $this->card;
-        $requestData = ['createNonSecurePaymentRequestData'];
-        $this->requestMapperMock->expects(self::once())
-            ->method('createNonSecurePaymentRequestData')
-            ->with($account, $order, $txType, $card)
-            ->willReturn($requestData);
+    public function testMake3DHostPayment(
+        array   $order,
+        string  $txType,
+        Request $request,
+        array   $paymentResponse,
+        array   $expectedResponse,
+        bool    $is3DSuccess,
+        bool    $isSuccess
+    ): void {
+        if ($is3DSuccess) {
+            $this->cryptMock->expects(self::never())
+                ->method('check3DHash');
+        }
 
-        $decodedResponse = ['decodedData'];
-        $this->configureClientResponse(
-            $txType,
-            $apiUrl,
-            $requestData,
-            'request-body',
-            'response-body',
-            $decodedResponse,
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
+        $this->responseMapperMock->expects(self::never())
+            ->method('extractMdStatus');
 
-        $this->responseMapperMock->expects(self::once())
-            ->method('mapPaymentResponse')
-            ->with($decodedResponse, $txType, $order)
-            ->willReturn(['result']);
+        $this->responseMapperMock->expects(self::never())
+            ->method('is3dAuthSuccess');
 
-        $this->pos->makeRegularPayment($order, $card, $txType);
+        $create3DPaymentStatusRequestData = [
+            'create3DPaymentStatusRequestData',
+        ];
+        if ($is3DSuccess) {
+            $this->requestMapperMock->expects(self::once())
+                ->method('create3DPaymentStatusRequestData')
+                ->with($this->account, $request->query->all())
+                ->willReturn($create3DPaymentStatusRequestData);
+
+            $this->configureClientResponse(
+                $txType,
+                $this->config['gateway_endpoints']['payment_api'],
+                $create3DPaymentStatusRequestData,
+                'encoded-request-data',
+                'response-body',
+                $paymentResponse,
+                $order,
+                PosInterface::MODEL_NON_SECURE
+            );
+
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DHostResponseData')
+                ->with($request->query->all(), $txType, $order)
+                ->willReturn($expectedResponse);
+        } else {
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DHostResponseData')
+                ->with($request->query->all(), $txType, $order)
+                ->willReturn($expectedResponse);
+            $this->requestMapperMock->expects(self::never())
+                ->method('create3DPaymentRequestData');
+            $this->serializerMock->expects(self::never())
+                ->method('encode');
+            $this->serializerMock->expects(self::never())
+                ->method('decode');
+            $this->eventDispatcherMock->expects(self::never())
+                ->method('dispatch');
+        }
+
+        $this->pos->make3DHostPayment($request, $order, $txType);
+
+        $result = $this->pos->getResponse();
+        $this->assertSame($expectedResponse, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
-    /**
-     * @dataProvider makeRegularPostAuthPaymentDataProvider
-     */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPayment(): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
-        $requestData = ['createNonSecurePostAuthPaymentRequestData'];
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->makeRegularPayment($this->order, $this->card, PosInterface::TX_TYPE_PAY_AUTH);
+    }
 
-        $this->requestMapperMock->expects(self::once())
-            ->method('createNonSecurePostAuthPaymentRequestData')
-            ->with($account, $order)
-            ->willReturn($requestData);
-
-        $decodedResponse = ['decodedData'];
-        $this->configureClientResponse(
-            $txType,
-            $apiUrl,
-            $requestData,
-            'request-body',
-            'response-body',
-            $decodedResponse,
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-
-        $this->responseMapperMock->expects(self::once())
-            ->method('mapPaymentResponse')
-            ->with($decodedResponse, $txType, $order)
-            ->willReturn(['result']);
-
-        $this->pos->makeRegularPostPayment($order);
+    public function testMakeRegularPostAuthPayment(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->makeRegularPostPayment([]);
     }
 
     public function testStatusRequest(): void
@@ -417,72 +431,16 @@ class PayFlexCPV4PosTest extends TestCase
         $this->pos->status([]);
     }
 
-    /**
-     * @dataProvider cancelRequestDataProvider
-     */
-    public function testCancelRequest(array $order, string $apiUrl): void
+    public function testCancelRequest(): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_CANCEL;
-        $requestData = ['createCancelRequestData'];
-
-        $this->requestMapperMock->expects(self::once())
-            ->method('createCancelRequestData')
-            ->with($account, $order)
-            ->willReturn($requestData);
-
-        $decodedResponse = ['decodedData'];
-        $this->configureClientResponse(
-            $txType,
-            $apiUrl,
-            $requestData,
-            'request-body',
-            'response-body',
-            $decodedResponse,
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-
-        $this->responseMapperMock->expects(self::once())
-            ->method('mapCancelResponse')
-            ->with($decodedResponse)
-            ->willReturn(['result']);
-
-        $this->pos->cancel($order);
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->cancel([]);
     }
 
-    /**
-     * @dataProvider refundRequestDataProvider
-     */
-    public function testRefundRequest(array $order, string $apiUrl): void
+    public function testRefundRequest(): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_REFUND;
-        $requestData = ['createRefundRequestData'];
-
-        $this->requestMapperMock->expects(self::once())
-            ->method('createRefundRequestData')
-            ->with($account, $order, $txType)
-            ->willReturn($requestData);
-
-        $decodedResponse = ['decodedData'];
-        $this->configureClientResponse(
-            $txType,
-            $apiUrl,
-            $requestData,
-            'request-body',
-            'response-body',
-            $decodedResponse,
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-
-        $this->responseMapperMock->expects(self::once())
-            ->method('mapRefundResponse')
-            ->with($decodedResponse)
-            ->willReturn(['result']);
-
-        $this->pos->refund($order);
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->refund([]);
     }
 
     public function testHistoryRequest(): void
@@ -542,7 +500,7 @@ class PayFlexCPV4PosTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url'          => null,
-                'expected_api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/SecurePayment',
+                'expected_api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
             ],
         ];
     }
@@ -556,7 +514,7 @@ class PayFlexCPV4PosTest extends TestCase
         return [
             'auth_fail'                    => [
                 'order'           => $testData['fail_response_from_gateway_1']['order'],
-                'txType'          => $testData['fail_response_from_gateway_1']['txType'],
+                'txType'          => PosInterface::TX_TYPE_STATUS,
                 'request'         => Request::create(
                     '',
                     'GET',
@@ -569,7 +527,7 @@ class PayFlexCPV4PosTest extends TestCase
             ],
             'success'                      => [
                 'order'           => $testData['success_response_from_gateway_1']['order'],
-                'txType'          => $testData['success_response_from_gateway_1']['txType'],
+                'txType'          => PosInterface::TX_TYPE_STATUS,
                 'request'         => Request::create(
                     '',
                     'GET',
@@ -579,62 +537,6 @@ class PayFlexCPV4PosTest extends TestCase
                 'expected'        => $testData['success_response_from_gateway_1']['expectedData'],
                 'is3DSuccess'     => true,
                 'isSuccess'       => true,
-            ],
-        ];
-    }
-
-    public static function makeRegularPaymentDataProvider(): array
-    {
-        return [
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
-            ],
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
-            ],
-        ];
-    }
-
-    public static function makeRegularPostAuthPaymentDataProvider(): array
-    {
-        return [
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
-            ],
-        ];
-    }
-
-    public static function cancelRequestDataProvider(): array
-    {
-        return [
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
-            ],
-        ];
-    }
-
-    public static function refundRequestDataProvider(): array
-    {
-        return [
-            [
-                'order'   => [
-                    'id' => '2020110828BC',
-                ],
-                'api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
             ],
         ];
     }
@@ -665,7 +567,7 @@ class PayFlexCPV4PosTest extends TestCase
         string $txType,
         string $apiUrl,
         array  $requestData,
-        $encodedRequestData,
+        string $encodedRequestData,
         string $responseContent,
         array  $decodedResponse,
         array  $order,
@@ -673,16 +575,10 @@ class PayFlexCPV4PosTest extends TestCase
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
-        if ($requestData === $encodedRequestData) {
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $encodedRequestData['test-update-request-data-with-event'] = true;
-        } else {
-            $this->serializerMock->expects(self::once())
-                ->method('encode')
-                ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-                ->willReturn($encodedRequestData);
-        }
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
+            ->willReturn($encodedRequestData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -693,7 +589,13 @@ class PayFlexCPV4PosTest extends TestCase
             $this->httpClientMock,
             $responseContent,
             $apiUrl,
-            is_string($encodedRequestData) ? ['body' => $encodedRequestData] : ['form_params' => $encodedRequestData],
+            [
+                'body'    => $encodedRequestData,
+                'headers' => [
+                    'Accept'       => 'text/xml',
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+            ],
         );
 
         $this->eventDispatcherMock->expects(self::once())

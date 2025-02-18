@@ -115,6 +115,18 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
     }
 
     /**
+     * @dataProvider create3DPaymentStatusRequestDataProvider
+     */
+    public function testCreate3DPaymentStatusRequestData(AbstractPosAccount $posAccount, array $postData, array $expectedData): void
+    {
+        $actual = $this->requestDataMapper->create3DPaymentStatusRequestData(
+            $posAccount,
+            $postData,
+        );
+        $this->assertSame($expectedData, $actual);
+    }
+
+    /**
      * @dataProvider registerDataProvider
      */
     public function testCreate3DEnrollmentCheckData(AbstractPosAccount $posAccount, array $order, string $txType, ?CreditCard $creditCard, array $expectedData): void
@@ -175,6 +187,39 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createStatusRequestData($this->account, []);
     }
 
+    public function testCreateCancelRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createCancelRequestData($this->account, []);
+    }
+
+    public function testCreateRefundRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createRefundRequestData($this->account, [], PosInterface::TX_TYPE_REFUND);
+    }
+
+    public function testCreateNonSecurePaymentRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $card = $this->createMock(CreditCardInterface::class);
+        $this->requestDataMapper->createNonSecurePaymentRequestData(
+            $this->account,
+            [],
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $card
+        );
+    }
+
+    public function testCreateNonSecurePostAuthPaymentRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData(
+            $this->account,
+            [],
+        );
+    }
+
     public function testCreateHistoryRequestData(): void
     {
         $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
@@ -206,22 +251,22 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'abc' => 'abc',
             ],
             'expected'     => [
-                'abc'        => 'abc',
-                'MerchantId' => '000000000111111',
-                'Password'   => '3XTgER89as',
+                'abc'            => 'abc',
+                'HostMerchantId' => '000000000111111',
+                'Password'       => '3XTgER89as',
             ],
         ];
 
         yield 'with_account_data_bin_inquiry' => [
             'request_data' => [
-                'abc'        => 'abc',
-                'MerchantId' => '000000000111111xxx',
-                'Password'   => '3XTgER89asxxx',
+                'abc'            => 'abc',
+                'HostMerchantId' => '000000000111111xxx',
+                'Password'       => '3XTgER89asxxx',
             ],
             'expected'     => [
-                'abc'        => 'abc',
-                'MerchantId' => '000000000111111xxx',
-                'Password'   => '3XTgER89asxxx',
+                'abc'            => 'abc',
+                'HostMerchantId' => '000000000111111xxx',
+                'Password'       => '3XTgER89asxxx',
             ],
         ];
     }
@@ -279,7 +324,9 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             ],
         ];
 
-        yield 'without_card_1_pre_pay' => [
+        $order['installment'] = 2;
+
+        yield 'without_card_1_pre_pay_and_with_installment' => [
             'account'  => $account,
             'order'    => $order,
             'txType'   => PosInterface::TX_TYPE_PAY_PRE_AUTH,
@@ -299,7 +346,35 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'RequestLanguage'      => 'tr-TR',
                 'Extract'              => '',
                 'CustomItems'          => '',
+                'InstallmentCount'     => '2',
                 'HashedData'           => 'apZ/1+eWzqCRk9qqACxN0bBZQ8g=',
+            ],
+        ];
+    }
+
+    public static function create3DPaymentStatusRequestDataProvider(): iterable
+    {
+        $account = AccountFactory::createPayFlexAccount(
+            'vakifbank-cp',
+            '000000000111111',
+            '3XTgER89as',
+            'VP999999',
+            PosInterface::MODEL_3D_SECURE
+        );
+
+        $postData = [
+            'TransactionId' => '3ee068d5b5a747ada65dafc0016d5887',
+            'PaymentToken'  => 'b35a56bf37334872a945afc0016d5887',
+        ];
+
+        yield 'with_card_1' => [
+            'account'  => $account,
+            'post_data'    => $postData,
+            'expected' => [
+                'HostMerchantId' => '000000000111111',
+                'Password'       => '3XTgER89as',
+                'TransactionId'  => '3ee068d5b5a747ada65dafc0016d5887',
+                'PaymentToken'   => 'b35a56bf37334872a945afc0016d5887',
             ],
         ];
     }
@@ -317,7 +392,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'gateway' => 'https://cptest.vakifbank.com.tr/CommonPayment/SecurePayment',
                 'method' => 'GET',
                 'inputs' => [
-                    'Ptkn' => 'c5e076e7bf234a339c40afc10166c06d'
+                    'Ptkn' => 'c5e076e7bf234a339c40afc10166c06d',
                 ],
             ],
         ];
