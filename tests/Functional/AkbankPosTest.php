@@ -55,10 +55,10 @@ class AkbankPosTest extends TestCase
 
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
-            '5218076007402834',
+            '4355093000315232',
             '40',
             '11',
-            '820',
+            '471',
         );
     }
 
@@ -323,8 +323,9 @@ class AkbankPosTest extends TestCase
 
         $this->recurringPos->cancel($statusOrder);
 
-        $this->assertTrue($this->recurringPos->isSuccess());
         $response = $this->recurringPos->getResponse();
+        $this->assertTrue($this->recurringPos->isSuccess(), $response['error_message'] ?? null);
+
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);

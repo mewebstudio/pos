@@ -182,7 +182,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                 'terminalSafeId' => '2023090417500284633D137A249DBBEB',
                 'orderId'        => '2020110828BC',
                 'lang'           => 'TR',
-                'amount'         => '1.1',
+                'amount'         => '1.10',
                 'currencyCode'   => '949',
                 'installCount'   => '1',
                 'okUrl'          => 'http:://localhost/success',
@@ -270,7 +270,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                 'orderId' => '2020110828BC',
             ],
             'transaction'       => [
-                'amount'       => 1.1,
+                'amount'       => '1.10',
                 'currencyCode' => 949,
                 'motoInd'      => 0,
                 'installCount' => 1,
@@ -679,7 +679,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'orderId' => '2020110828BC',
                     ],
                     'transaction'  => [
-                        'amount'       => 1.02,
+                        'amount'       => '1.02',
                         'currencyCode' => 949,
                     ],
                 ],
@@ -702,7 +702,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'orderTrackId' => '2020110828BC',
                     ],
                     'transaction'  => [
-                        'amount'       => 1.02,
+                        'amount'       => '1.02',
                         'currencyCode' => 949,
                     ],
                     'version'      => '1.00',
@@ -744,7 +744,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'orderId' => '2020110828BC',
                     ],
                     'transaction'  => [
-                        'amount'       => 1.1,
+                        'amount'       => '1.10',
                         'currencyCode' => 949,
                         'motoInd'      => 0,
                         'installCount' => 1,
@@ -780,7 +780,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'orderId' => '2020110828BC',
                     ],
                     'transaction'  => [
-                        'amount'       => 1.1,
+                        'amount'       => '1.10',
                         'currencyCode' => 949,
                         'motoInd'      => 0,
                         'installCount' => 2,
@@ -816,7 +816,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'orderId' => '2020110828BC',
                     ],
                     'transaction'  => [
-                        'amount'       => 1.1,
+                        'amount'       => '1.10',
                         'currencyCode' => 949,
                         'motoInd'      => 0,
                         'installCount' => 1,
@@ -856,7 +856,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'orderTrackId' => '2020110828BC',
                     ],
                     'transaction'  => [
-                        'amount'       => 1.1,
+                        'amount'       => '1.10',
                         'currencyCode' => 949,
                         'motoInd'      => 1,
                         'installCount' => 1,
@@ -896,7 +896,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'orderId' => '2020110828BC',
                     ],
                     'transaction'  => [
-                        'amount'       => 1.1,
+                        'amount'       => '1.10',
                         'currencyCode' => 949,
                     ],
                     'customer'     => [
@@ -953,7 +953,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
             '3d_host_form_data'    => [
                 'order'         => [
                     'id'          => '2020110828BC',
-                    'amount'      => 1.10,
+                    'amount'      => 10,
                     'ip'          => '127.0.0.1',
                     'installment' => 0,
                     'currency'    => PosInterface::CURRENCY_TRY,
@@ -974,7 +974,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'terminalSafeId' => '2023090417500284633D137A249DBBEB',
                         'orderId'        => '2020110828BC',
                         'lang'           => 'TR',
-                        'amount'         => '1.1',
+                        'amount'         => '10.00',
                         'currencyCode'   => '949',
                         'installCount'   => '1',
                         'okUrl'          => 'http:://localhost/success',
@@ -987,7 +987,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
             '3d_pay_form_data'     => [
                 'order'         => [
                     'id'          => '2020110828BC',
-                    'amount'      => 1.10,
+                    'amount'      => 1.1,
                     'ip'          => '127.0.0.1',
                     'installment' => 0,
                     'currency'    => PosInterface::CURRENCY_TRY,
@@ -1008,7 +1008,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'terminalSafeId' => '2023090417500284633D137A249DBBEB',
                         'orderId'        => '2020110828BC',
                         'lang'           => 'TR',
-                        'amount'         => '1.1',
+                        'amount'         => '1.10',
                         'currencyCode'   => '949',
                         'installCount'   => '1',
                         'okUrl'          => 'http:://localhost/success',
@@ -1024,7 +1024,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
             '3d_form_data'         => [
                 'order'         => [
                     'id'          => '2020110828BC',
-                    'amount'      => 1.10,
+                    'amount'      => 1.1,
                     'ip'          => '127.0.0.1',
                     'installment' => 0,
                     'currency'    => PosInterface::CURRENCY_TRY,
@@ -1045,7 +1045,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'terminalSafeId' => '2023090417500284633D137A249DBBEB',
                         'orderId'        => '2020110828BC',
                         'lang'           => 'TR',
-                        'amount'         => '1.1',
+                        'amount'         => '1.10',
                         'currencyCode'   => '949',
                         'installCount'   => '1',
                         'okUrl'          => 'http:://localhost/success',
@@ -1061,7 +1061,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
             '3d_pre_pay_form_data' => [
                 'order'         => [
                     'id'          => '2020110828BC',
-                    'amount'      => 1.10,
+                    'amount'      => 1000,
                     'ip'          => '127.0.0.1',
                     'installment' => 0,
                     'currency'    => PosInterface::CURRENCY_TRY,
@@ -1082,7 +1082,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                         'terminalSafeId' => '2023090417500284633D137A249DBBEB',
                         'orderId'        => '2020110828BC',
                         'lang'           => 'TR',
-                        'amount'         => '1.1',
+                        'amount'         => '1000.00',
                         'currencyCode'   => '949',
                         'installCount'   => '1',
                         'okUrl'          => 'http:://localhost/success',
@@ -1121,7 +1121,7 @@ class AkbankPosRequestDataMapperTest extends TestCase
                     'orderId' => '2020110828BC',
                 ],
                 'transaction'       => [
-                    'amount'       => 100.25,
+                    'amount'       => '100.25',
                     'currencyCode' => 949,
                     'motoInd'      => 0,
                     'installCount' => 1,
