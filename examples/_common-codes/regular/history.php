@@ -49,8 +49,8 @@ function createHistoryOrder(string $gatewayClass, array $extraData, string $ip):
             'end_date'   => $txTime,
         ];
 //        ya da batch number ile (batch number odeme isleminden alinan response'da bulunur):
-//        $order  = [
-//            'batch_num' => 24,
+//        return [
+//            'batch_num' => 396,
 //        ];
     }
 

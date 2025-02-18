@@ -373,7 +373,7 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
             'terminalSafeId'  => $posAccount->getTerminalId(),
             'orderId'         => (string) $order['id'],
             'lang'            => $this->getLang($posAccount, $order),
-            'amount'          => (string) $order['amount'],
+            'amount'          => $this->formatAmount($order['amount']),
             'currencyCode'    => (string) $this->mapCurrency((string) $order['currency']),
             'installCount'    => (string) $this->mapInstallment((int) $order['installment']),
             'okUrl'           => (string) $order['success_url'],
@@ -513,6 +513,16 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
             'recurring_id'     => $order['recurring_id'] ?? null,
             'transaction_time' => $this->createDateTime(),
         ]);
+    }
+
+    /**
+     * @param float $amount
+     *
+     * @return string
+     */
+    protected function formatAmount(float $amount): string
+    {
+        return \number_format($amount, 2, '.', '');
     }
 
     /**
