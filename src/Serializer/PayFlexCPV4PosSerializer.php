@@ -35,9 +35,9 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, string $txType)
+    public function encode(array $data, string $txType): string
     {
-        return $data;
+        return \http_build_query($data);
     }
 
     /**

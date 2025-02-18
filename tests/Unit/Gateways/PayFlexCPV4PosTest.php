@@ -156,6 +156,7 @@ class PayFlexCPV4PosTest extends TestCase
         $txType             = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel       = PosInterface::MODEL_3D_PAY;
         $requestData        = ['request-data'];
+        $encodedRequestData = 'encoded-request-data';
         $card               = $this->card;
         $order              = $this->order;
 
@@ -174,7 +175,7 @@ class PayFlexCPV4PosTest extends TestCase
             $txType,
             $this->config['gateway_endpoints']['gateway_3d'],
             $requestData,
-            $requestData,
+            $encodedRequestData,
             'response-body',
             $enrollmentResponse,
             $order,
@@ -233,7 +234,7 @@ class PayFlexCPV4PosTest extends TestCase
             $txType,
             $this->config['gateway_endpoints']['gateway_3d'],
             $requestData,
-            $requestData,
+            'encoded-request-data',
             'response-body',
             $enrollmentResponse,
             $order,
@@ -310,11 +311,11 @@ class PayFlexCPV4PosTest extends TestCase
                 $txType,
                 $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentStatusRequestData,
-                $create3DPaymentStatusRequestData,
+                'encoded-request-data',
                 'response-body',
                 $paymentResponse,
                 $order,
-                PosInterface::MODEL_3D_PAY
+                PosInterface::MODEL_NON_SECURE
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -444,7 +445,7 @@ class PayFlexCPV4PosTest extends TestCase
         return [
             'auth_fail'                    => [
                 'order'           => $testData['fail_response_from_gateway_1']['order'],
-                'txType'          => $testData['fail_response_from_gateway_1']['txType'],
+                'txType'          => PosInterface::TX_TYPE_STATUS,
                 'request'         => Request::create(
                     '',
                     'GET',
@@ -457,7 +458,7 @@ class PayFlexCPV4PosTest extends TestCase
             ],
             'success'                      => [
                 'order'           => $testData['success_response_from_gateway_1']['order'],
-                'txType'          => $testData['success_response_from_gateway_1']['txType'],
+                'txType'          => PosInterface::TX_TYPE_STATUS,
                 'request'         => Request::create(
                     '',
                     'GET',
@@ -497,7 +498,7 @@ class PayFlexCPV4PosTest extends TestCase
         string $txType,
         string $apiUrl,
         array  $requestData,
-        $encodedRequestData,
+        string $encodedRequestData,
         string $responseContent,
         array  $decodedResponse,
         array  $order,
@@ -505,42 +506,27 @@ class PayFlexCPV4PosTest extends TestCase
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
-        if ($requestData === $encodedRequestData) {
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $encodedRequestData['test-update-request-data-with-event'] = true;
-        } else {
-            $this->serializerMock->expects(self::once())
-                ->method('encode')
-                ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-                ->willReturn($encodedRequestData);
-        }
+        $this->serializerMock->expects(self::once())
+            ->method('encode')
+            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
+            ->willReturn($encodedRequestData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
             ->with($responseContent, $txType)
             ->willReturn($decodedResponse);
 
-        if (is_string($encodedRequestData)) {
-            $clientRequestData = [
-                'headers' => [
-                    'Accept' => 'text/xml',
-                ],
-                'body'    => $encodedRequestData,
-            ];
-        } else {
-            $clientRequestData = [
-                'headers'     => [
-                    'Accept' => 'text/xml',
-                ],
-                'form_params' => $encodedRequestData,
-            ];
-        }
         $this->prepareClient(
             $this->httpClientMock,
             $responseContent,
             $apiUrl,
-            $clientRequestData,
+            [
+                'body'    => $encodedRequestData,
+                'headers' => [
+                    'Accept'       => 'text/xml',
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+            ],
         );
 
         $this->eventDispatcherMock->expects(self::once())

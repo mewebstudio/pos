@@ -47,7 +47,7 @@ class PayFlexCPV4PosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $txType, array $expected): void
+    public function testEncode(array $data, string $txType, string $expected): void
     {
         $result = $this->serializer->encode($data, $txType);
 
@@ -71,19 +71,17 @@ class PayFlexCPV4PosSerializerTest extends TestCase
                 'Cvv'                     => '122',
             ],
             'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
-            'expected' => [
-                'MerchantId'              => '000000000111111',
-                'Password'                => '3XTgER89as',
-                'TransactionType'         => 'Sale',
-                'OrderId'                 => 'order222',
-                'CurrencyAmount'          => '100.00',
-                'CurrencyCode'            => '949',
-                'ClientIp'                => '127.0.0.1',
-                'TransactionDeviceSource' => '0',
-                'Pan'                     => '5555444433332222',
-                'Expiry'                  => '202112',
-                'Cvv'                     => '122',
+            'expected' => 'MerchantId=000000000111111&Password=3XTgER89as&TransactionType=Sale&OrderId=order222&CurrencyAmount=100.00&CurrencyCode=949&ClientIp=127.0.0.1&TransactionDeviceSource=0&Pan=5555444433332222&Expiry=202112&Cvv=122',
+        ];
+
+        yield 'custom_query' => [
+            'input'    => [
+                'MerchantId' => '000000000111111',
+                'Password'   => '3XTgER89as',
+                'abc'        => 'abc',
             ],
+            'txType'   => PosInterface::TX_TYPE_CUSTOM_QUERY,
+            'expected' => 'MerchantId=000000000111111&Password=3XTgER89as&abc=abc',
         ];
     }
 

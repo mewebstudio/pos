@@ -95,7 +95,7 @@ class PayFlexCPV4Pos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_PAY
+            PosInterface::MODEL_NON_SECURE
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -108,6 +108,8 @@ class PayFlexCPV4Pos extends AbstractGateway
             ]);
             $requestData = $event->getRequestData();
         }
+
+        $contents = $this->serializer->encode($requestData, $txType);
 
         /**
          * sending request to make sure that payment was successful
@@ -123,9 +125,9 @@ class PayFlexCPV4Pos extends AbstractGateway
          *     PaymentToken: string} $bankResponse
          */
         $bankResponse = $this->send(
-            $requestData,
-            PosInterface::TX_TYPE_PAY_AUTH,
-            PosInterface::MODEL_3D_SECURE,
+            $contents,
+            PosInterface::TX_TYPE_STATUS,
+            PosInterface::MODEL_NON_SECURE,
             $this->getApiURL()
         );
 
@@ -240,15 +242,18 @@ class PayFlexCPV4Pos extends AbstractGateway
     protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
+        if (!\is_string($contents)) {
+            throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
+        }
 
-        $isXML = \is_string($contents);
-        $body  = $isXML ? ['body' => $contents] : ['form_params' => $contents];
+        $response = $this->client->post($url, [
+            'headers' => [
+                'Accept'       => 'text/xml',
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ],
+            'body'    => $contents,
+        ]);
 
-        $response = $this->client->post($url, $body + [
-                'headers' => [
-                    'Accept' => 'text/xml',
-                ],
-            ]);
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         $responseContent = $response->getBody()->getContents();
@@ -307,9 +312,11 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
+        $contents = $this->serializer->encode($requestData, $txType);
+
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
         $response = $this->send(
-            $requestData,
+            $contents,
             $txType,
             $paymentModel,
             $this->get3DGatewayURL()
