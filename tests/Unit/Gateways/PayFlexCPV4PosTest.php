@@ -689,11 +689,26 @@ class PayFlexCPV4PosTest extends TestCase
             ->with($responseContent, $txType)
             ->willReturn($decodedResponse);
 
+        if (is_string($encodedRequestData)) {
+            $clientRequestData = [
+                'headers' => [
+                    'Accept' => 'text/xml',
+                ],
+                'body'    => $encodedRequestData,
+            ];
+        } else {
+            $clientRequestData = [
+                'headers'     => [
+                    'Accept' => 'text/xml',
+                ],
+                'form_params' => $encodedRequestData,
+            ];
+        }
         $this->prepareClient(
             $this->httpClientMock,
             $responseContent,
             $apiUrl,
-            is_string($encodedRequestData) ? ['body' => $encodedRequestData] : ['form_params' => $encodedRequestData],
+            $clientRequestData,
         );
 
         $this->eventDispatcherMock->expects(self::once())

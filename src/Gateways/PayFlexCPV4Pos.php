@@ -218,7 +218,11 @@ class PayFlexCPV4Pos extends AbstractGateway
         $isXML = \is_string($contents);
         $body  = $isXML ? ['body' => $contents] : ['form_params' => $contents];
 
-        $response = $this->client->post($url, $body);
+        $response = $this->client->post($url, $body + [
+                'headers' => [
+                    'Accept' => 'text/xml',
+                ],
+            ]);
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         $responseContent = $response->getBody()->getContents();
