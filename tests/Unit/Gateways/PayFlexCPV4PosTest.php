@@ -80,9 +80,8 @@ class PayFlexCPV4PosTest extends TestCase
             'name'              => 'VakifBank-PayFlex-Common-Payment',
             'class'             => PayFlexCPV4Pos::class,
             'gateway_endpoints' => [
-                'payment_api' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
-                'gateway_3d'  => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
-                'query_api'   => 'https://cptest.vakifbank.com.tr/CommonPayment/SecurePayment',
+                'payment_api' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
+                'gateway_3d'  => 'https://cptest.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
             ],
         ];
 
@@ -173,7 +172,7 @@ class PayFlexCPV4PosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $this->config['gateway_endpoints']['payment_api'],
+            $this->config['gateway_endpoints']['gateway_3d'],
             $requestData,
             $requestData,
             'response-body',
@@ -232,7 +231,7 @@ class PayFlexCPV4PosTest extends TestCase
         ];
         $this->configureClientResponse(
             $txType,
-            $this->config['gateway_endpoints']['payment_api'],
+            $this->config['gateway_endpoints']['gateway_3d'],
             $requestData,
             $requestData,
             'response-body',
@@ -309,7 +308,7 @@ class PayFlexCPV4PosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['query_api'],
+                $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentStatusRequestData,
                 $create3DPaymentStatusRequestData,
                 'response-body',
@@ -431,7 +430,7 @@ class PayFlexCPV4PosTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url'          => null,
-                'expected_api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/SecurePayment',
+                'expected_api_url' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
             ],
         ];
     }

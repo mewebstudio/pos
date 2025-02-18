@@ -126,7 +126,7 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData,
             PosInterface::TX_TYPE_PAY_AUTH,
             PosInterface::MODEL_3D_SECURE,
-            $this->getQueryAPIUrl()
+            $this->getApiURL()
         );
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse, $txType, $order);
@@ -312,7 +312,7 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData,
             $txType,
             $paymentModel,
-            $this->getApiURL()
+            $this->get3DGatewayURL()
         );
 
         return $response;

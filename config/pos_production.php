@@ -144,9 +144,8 @@ return [
             'name'  => 'VakifBank-PayFlex-Common-Payment',
             'class' => Mews\Pos\Gateways\PayFlexCPV4Pos::class,
             'gateway_endpoints'  => [
-                'payment_api' => 'https://cpweb.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
-                'gateway_3d'  => 'https://cpweb.vakifbank.com.tr/CommonPayment/SecurePayment',
-                'query_api'   => 'https://cpweb.vakifbank.com.tr/CommonPayment/api/VposTransaction',
+                'payment_api' => 'https://cpweb.vakifbank.com.tr/CommonPayment/api/VposTransaction',
+                'gateway_3d'  => 'https://cpweb.vakifbank.com.tr/CommonPayment/api/RegisterTransaction',
             ],
         ],
         'denizbank'            => [
