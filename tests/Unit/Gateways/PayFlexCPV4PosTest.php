@@ -34,7 +34,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\PayFlexCPV4Pos
- * @covers  \Mews\Pos\Gateways\AbstractGateway
+ * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class PayFlexCPV4PosTest extends TestCase
 {
@@ -338,6 +338,75 @@ class PayFlexCPV4PosTest extends TestCase
         }
 
         $this->pos->make3DPayPayment($request, $order, $txType);
+
+        $result = $this->pos->getResponse();
+        $this->assertSame($expectedResponse, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    /**
+     * @dataProvider make3DPayPaymentDataProvider
+     */
+    public function testMake3DHostPayment(
+        array   $order,
+        string  $txType,
+        Request $request,
+        array   $paymentResponse,
+        array   $expectedResponse,
+        bool    $is3DSuccess,
+        bool    $isSuccess
+    ): void {
+        if ($is3DSuccess) {
+            $this->cryptMock->expects(self::never())
+                ->method('check3DHash');
+        }
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('extractMdStatus');
+
+        $this->responseMapperMock->expects(self::never())
+            ->method('is3dAuthSuccess');
+
+        $create3DPaymentStatusRequestData = [
+            'create3DPaymentStatusRequestData',
+        ];
+        if ($is3DSuccess) {
+            $this->requestMapperMock->expects(self::once())
+                ->method('create3DPaymentStatusRequestData')
+                ->with($this->account, $request->query->all())
+                ->willReturn($create3DPaymentStatusRequestData);
+
+            $this->configureClientResponse(
+                $txType,
+                $this->config['gateway_endpoints']['payment_api'],
+                $create3DPaymentStatusRequestData,
+                'encoded-request-data',
+                'response-body',
+                $paymentResponse,
+                $order,
+                PosInterface::MODEL_NON_SECURE
+            );
+
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DHostResponseData')
+                ->with($request->query->all(), $txType, $order)
+                ->willReturn($expectedResponse);
+        } else {
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DHostResponseData')
+                ->with($request->query->all(), $txType, $order)
+                ->willReturn($expectedResponse);
+            $this->requestMapperMock->expects(self::never())
+                ->method('create3DPaymentRequestData');
+            $this->serializerMock->expects(self::never())
+                ->method('encode');
+            $this->serializerMock->expects(self::never())
+                ->method('decode');
+            $this->eventDispatcherMock->expects(self::never())
+                ->method('dispatch');
+        }
+
+        $this->pos->make3DHostPayment($request, $order, $txType);
 
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);

@@ -324,7 +324,9 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
             ],
         ];
 
-        yield 'without_card_1_pre_pay' => [
+        $order['installment'] = 2;
+
+        yield 'without_card_1_pre_pay_and_with_installment' => [
             'account'  => $account,
             'order'    => $order,
             'txType'   => PosInterface::TX_TYPE_PAY_PRE_AUTH,
@@ -344,6 +346,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'RequestLanguage'      => 'tr-TR',
                 'Extract'              => '',
                 'CustomItems'          => '',
+                'InstallmentCount'     => '2',
                 'HashedData'           => 'apZ/1+eWzqCRk9qqACxN0bBZQ8g=',
             ],
         ];

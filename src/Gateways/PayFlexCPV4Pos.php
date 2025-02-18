@@ -83,53 +83,7 @@ class PayFlexCPV4Pos extends AbstractGateway
             return $this;
         }
 
-        /** @var array{TransactionId: string, PaymentToken: string} $queryParams */
-        $queryParams = $request->query->all();
-
-        // Burda odemenin basarili olup olmadigini sorguluyoruz.
-        $requestData = $this->requestDataMapper->create3DPaymentStatusRequestData($this->account, $queryParams);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $contents = $this->serializer->encode($requestData, $txType);
-
-        /**
-         * sending request to make sure that payment was successful
-         * @var array{ErrorCode: string}|array{
-         *     Rc: string,
-         *     AuthCode: string,
-         *     TransactionId: string,
-         *     PaymentToken: string,
-         *     MaskedPan: string}|array{
-         *     Rc: string,
-         *     Message: string,
-         *     TransactionId: string,
-         *     PaymentToken: string} $bankResponse
-         */
-        $bankResponse = $this->send(
-            $contents,
-            PosInterface::TX_TYPE_STATUS,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL()
-        );
+        $bankResponse = $this->get3DPaymentStatus($request, $order);
 
         $this->response = $this->responseDataMapper->map3DPayResponseData($bankResponse, $txType, $order);
 
@@ -145,7 +99,21 @@ class PayFlexCPV4Pos extends AbstractGateway
      */
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        return $this->make3DPayPayment($request, $order, $txType);
+        $resultCode = $request->query->get('Rc');
+        if (null !== $resultCode && $this->responseDataMapper::PROCEDURE_SUCCESS_CODE !== $resultCode) {
+            $this->logger->error('received error response from the bank', $request->query->all());
+            $this->response = $this->responseDataMapper->map3DHostResponseData($request->query->all(), $txType, $order);
+
+            return $this;
+        }
+
+        $bankResponse = $this->get3DPaymentStatus($request, $order);
+
+        $this->response = $this->responseDataMapper->map3DHostResponseData($bankResponse, $txType, $order);
+
+        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
+
+        return $this;
     }
 
     /**
@@ -323,5 +291,67 @@ class PayFlexCPV4Pos extends AbstractGateway
         );
 
         return $response;
+    }
+
+    /**
+     * get 3D Payment status  to make sure that payment was successful
+     * @param Request              $request
+     * @param array<string, mixed> $order
+     *
+     * @return  array{ErrorCode: string}|array{
+     *      Rc: string,
+     *      AuthCode: string,
+     *      TransactionId: string,
+     *      PaymentToken: string,
+     *      MaskedPan: string}|array{
+     *      Rc: string,
+     *      Message: string,
+     *      TransactionId: string,
+     *      PaymentToken: string}
+     *
+     * @throws ClientExceptionInterface
+     */
+    private function get3DPaymentStatus(Request $request, array $order): array
+    {
+        $txType       = PosInterface::TX_TYPE_STATUS;
+        $paymentModel = PosInterface::MODEL_NON_SECURE;
+
+        /** @var array{TransactionId: string, PaymentToken: string} $queryParams */
+        $queryParams = $request->query->all();
+
+        // Burda odemenin basarili olup olmadigini sorguluyoruz.
+        $requestData = $this->requestDataMapper->create3DPaymentStatusRequestData($this->account, $queryParams);
+
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            $paymentModel
+        );
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $contents = $this->serializer->encode($requestData, $txType);
+
+        /**
+         * sending request to make sure that payment was successful
+         */
+        return $this->send(
+            $contents,
+            $txType,
+            $paymentModel,
+            $this->getApiURL()
+        );
     }
 }

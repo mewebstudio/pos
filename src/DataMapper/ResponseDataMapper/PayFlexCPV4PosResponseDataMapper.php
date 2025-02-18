@@ -72,6 +72,7 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
 
     /**
      * {@inheritdoc}
+     *
      * @param array{ErrorCode: string}|array{
      *     Rc: string,
      *     AuthCode: string,
@@ -85,7 +86,11 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        return $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
+        $response = $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
+
+        $response['payment_model'] = PosInterface::MODEL_3D_HOST;
+
+        return $response;
     }
 
     /**

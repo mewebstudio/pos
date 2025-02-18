@@ -193,6 +193,18 @@ parameters:
 			path: src/Gateways/GarantiPos.php
 
 		-
+			message: '#^Method Mews\\Pos\\Gateways\\PayFlexCPV4Pos\:\:get3DPaymentStatus\(\) should return array\{ErrorCode\: string\}\|array\{Rc\: string, AuthCode\: string, TransactionId\: string, PaymentToken\: string, MaskedPan\: string\}\|array\{Rc\: string, Message\: string, TransactionId\: string, PaymentToken\: string\} but returns array\<string, mixed\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Gateways/PayFlexCPV4Pos.php
+
+		-
+			message: '#^Parameter \#1 \$raw3DAuthResponseData of method Mews\\Pos\\DataMapper\\ResponseDataMapper\\PayFlexCPV4PosResponseDataMapper\:\:map3DHostResponseData\(\) expects array\{ErrorCode\: string\}\|array\{Rc\: string, AuthCode\: string, TransactionId\: string, PaymentToken\: string, MaskedPan\: string\}\|array\{Rc\: string, Message\: string, TransactionId\: string, PaymentToken\: string\}, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Gateways/PayFlexCPV4Pos.php
+
+		-
 			message: '#^Parameter \#1 \$raw3DAuthResponseData of method Mews\\Pos\\DataMapper\\ResponseDataMapper\\PayFlexCPV4PosResponseDataMapper\:\:map3DPayResponseData\(\) expects array\{ErrorCode\: string\}\|array\{Rc\: string, AuthCode\: string, TransactionId\: string, PaymentToken\: string, MaskedPan\: string\}\|array\{Rc\: string, Message\: string, TransactionId\: string, PaymentToken\: string\}, array given\.$#'
 			identifier: argument.type
 			count: 1

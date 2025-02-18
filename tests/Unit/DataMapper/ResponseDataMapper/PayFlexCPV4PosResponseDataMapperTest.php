@@ -89,6 +89,26 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
         $this->assertSame($expectedData, $actualData);
     }
 
+    /**
+     * @dataProvider threesDPayResponseDataProvider
+     */
+    public function testMap3DHostResponseData(array $order, string $txType, array $bankResponse, array $expectedData): void
+    {
+        $expectedData['payment_model'] = PosInterface::MODEL_3D_HOST;
+        $actualData = $this->responseDataMapper->map3DHostResponseData($bankResponse, $txType, $order);
+        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
+        unset($actualData['all']);
+
+        \ksort($expectedData);
+        \ksort($actualData);
+        $this->assertSame($expectedData, $actualData);
+    }
+
     public function testMap3DPaymentResponseData(): void
     {
         $this->expectException(NotImplementedException::class);
