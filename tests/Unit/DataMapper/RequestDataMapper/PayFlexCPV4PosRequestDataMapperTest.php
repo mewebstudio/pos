@@ -175,6 +175,39 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createStatusRequestData($this->account, []);
     }
 
+    public function testCreateCancelRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createCancelRequestData($this->account, []);
+    }
+
+    public function testCreateRefundRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createRefundRequestData($this->account, [], PosInterface::TX_TYPE_REFUND);
+    }
+
+    public function testCreateNonSecurePaymentRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $card = $this->createMock(CreditCardInterface::class);
+        $this->requestDataMapper->createNonSecurePaymentRequestData(
+            $this->account,
+            [],
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $card
+        );
+    }
+
+    public function testCreateNonSecurePostAuthPaymentRequestData(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData(
+            $this->account,
+            [],
+        );
+    }
+
     public function testCreateHistoryRequestData(): void
     {
         $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
@@ -317,7 +350,7 @@ class PayFlexCPV4PosRequestDataMapperTest extends TestCase
                 'gateway' => 'https://cptest.vakifbank.com.tr/CommonPayment/SecurePayment',
                 'method' => 'GET',
                 'inputs' => [
-                    'Ptkn' => 'c5e076e7bf234a339c40afc10166c06d'
+                    'Ptkn' => 'c5e076e7bf234a339c40afc10166c06d',
                 ],
             ],
         ];

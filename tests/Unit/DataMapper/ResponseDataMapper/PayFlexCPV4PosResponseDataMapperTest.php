@@ -10,6 +10,7 @@ use Generator;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
+use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -86,6 +87,48 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
         \ksort($expectedData);
         \ksort($actualData);
         $this->assertSame($expectedData, $actualData);
+    }
+
+    public function testMap3DPaymentResponseData(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->map3DPaymentData([], [], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
+    public function testMapPaymentResponse(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->responseDataMapper->mapPaymentResponse([], PosInterface::TX_TYPE_PAY_AUTH, []);
+    }
+
+    public function testMapRefundResponse(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->responseDataMapper->mapRefundResponse([]);
+    }
+
+    public function testMapCancelResponse(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->responseDataMapper->mapCancelResponse([]);
+    }
+
+    public function testMapStatusResponse(): void
+    {
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->responseDataMapper->mapStatusResponse([]);
+    }
+
+    public function testMapHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapHistoryResponse([]);
+    }
+
+    public function testMapOrderHistoryResponse(): void
+    {
+        $this->expectException(NotImplementedException::class);
+        $this->responseDataMapper->mapOrderHistoryResponse([]);
     }
 
     public static function threesDPayResponseDataProvider(): Generator

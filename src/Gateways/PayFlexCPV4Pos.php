@@ -43,18 +43,12 @@ class PayFlexCPV4Pos extends AbstractGateway
         PosInterface::TX_TYPE_PAY_AUTH       => [
             PosInterface::MODEL_3D_PAY,
             PosInterface::MODEL_3D_HOST,
-            PosInterface::MODEL_NON_SECURE,
         ],
-        PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
-            PosInterface::MODEL_3D_PAY,
-            PosInterface::MODEL_3D_HOST,
-            PosInterface::MODEL_NON_SECURE,
-        ],
-        PosInterface::TX_TYPE_PAY_POST_AUTH  => true,
+        PosInterface::TX_TYPE_PAY_POST_AUTH  => false,
         PosInterface::TX_TYPE_STATUS         => false,
-        PosInterface::TX_TYPE_CANCEL         => true,
-        PosInterface::TX_TYPE_REFUND         => true,
-        PosInterface::TX_TYPE_REFUND_PARTIAL => true,
+        PosInterface::TX_TYPE_CANCEL         => false,
+        PosInterface::TX_TYPE_REFUND         => false,
+        PosInterface::TX_TYPE_REFUND_PARTIAL => false,
         PosInterface::TX_TYPE_HISTORY        => false,
         PosInterface::TX_TYPE_ORDER_HISTORY  => false,
         PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
@@ -155,7 +149,39 @@ class PayFlexCPV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
+    public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface
+    {
+        throw new UnsupportedPaymentModelException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function makeRegularPostPayment(array $order): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function status(array $order): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function refund(array $order): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function cancel(array $order): PosInterface
     {
         throw new UnsupportedTransactionTypeException();
     }
