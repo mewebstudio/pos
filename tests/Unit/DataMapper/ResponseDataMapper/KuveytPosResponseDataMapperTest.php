@@ -7,11 +7,10 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Factory\RequestValueMapperFactory;
-use Mews\Pos\Factory\ResponseValueFormatterFactory;
-use Mews\Pos\Factory\ResponseValueMapperFactory;
-use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -28,19 +27,24 @@ class KuveytPosResponseDataMapperTest extends TestCase
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
 
+    /** @var ResponseValueFormatterInterface & MockObject */
+    private ResponseValueFormatterInterface $responseValueFormatter;
+
+    /** @var ResponseValueMapperInterface & MockObject */
+    private ResponseValueMapperInterface $responseValueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = RequestValueMapperFactory::createForGateway(KuveytPos::class);
-        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(KuveytPos::class, $requestValueMapper);
-        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(KuveytPos::class);
+        $this->responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $this->responseValueMapper    = $this->createMock(ResponseValueMapperInterface::class);
 
         $this->responseDataMapper = new KuveytPosResponseDataMapper(
-            $responseValueFormatter,
-            $responseValueMapper,
+            $this->responseValueFormatter,
+            $this->responseValueMapper,
             $this->logger
         );
     }
@@ -75,14 +79,32 @@ class KuveytPosResponseDataMapperTest extends TestCase
      */
     public function testMapPaymentResponse(string $txType, array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, []);
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        if (isset($responseData['VPosMessage'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatAmount')
+                ->with($responseData['VPosMessage']['Amount'], $txType)
+                ->willReturn($expectedData['amount']);
+
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatInstallment')
+                ->with($responseData['VPosMessage']['InstallmentCount'], $txType)
+                ->willReturn($expectedData['installment_count']);
+
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapCurrency')
+                ->with($responseData['VPosMessage']['CurrencyCode'], $txType)
+                ->willReturn($expectedData['currency']);
+
+            if (isset($expectedData['transaction_time'])) {
+                $this->responseValueFormatter->expects($this->once())
+                    ->method('formatDateTime')
+                    ->with('now', $txType)
+                    ->willReturn($expectedData['transaction_time']);
+            }
         }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, []);
+
         if ([] !== $responseData) {
             $this->assertArrayHasKey('all', $actualData);
             $this->assertIsArray($actualData['all']);
@@ -100,6 +122,16 @@ class KuveytPosResponseDataMapperTest extends TestCase
      */
     public function testMapRefundResponse(array $responseData, array $expectedData): void
     {
+        $txType         = PosInterface::TX_TYPE_REFUND;
+        $drawbackResult = $responseData['PartialDrawbackResult'] ?? $responseData['DrawBackResult'];
+
+        if ($expectedData['status'] === ResponseDataMapperInterface::TX_APPROVED) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapCurrency')
+                ->with($drawbackResult['Value']['CurrencyCode'], $txType)
+                ->willReturn($expectedData['currency']);
+        }
+
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
 
         $this->assertArrayHasKey('all', $actualData);
@@ -117,6 +149,14 @@ class KuveytPosResponseDataMapperTest extends TestCase
      */
     public function testMapCancelResponse(array $responseData, array $expectedData): void
     {
+        $txType = PosInterface::TX_TYPE_CANCEL;
+        if ($expectedData['status'] === ResponseDataMapperInterface::TX_APPROVED) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapCurrency')
+                ->with($responseData['SaleReversalResult']['Value']['CurrencyCode'], $txType)
+                ->willReturn($expectedData['currency']);
+        }
+
         $actualData = $this->responseDataMapper->mapCancelResponse($responseData);
 
         $this->assertArrayHasKey('all', $actualData);
@@ -134,15 +174,57 @@ class KuveytPosResponseDataMapperTest extends TestCase
      */
     public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
+        if ($expectedData['status'] === ResponseDataMapperInterface::TX_APPROVED) {
+            $txType        = PosInterface::TX_TYPE_STATUS;
+            $orderContract = $responseData['GetMerchantOrderDetailResult']['Value']['OrderContract'];
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapOrderStatus')
+                ->with($orderContract['LastOrderStatus'])
+                ->willReturn($expectedData['order_status']);
+
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapCurrency')
+                ->with($orderContract['FEC'], $txType)
+                ->willReturn($expectedData['currency']);
+
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatAmount')
+                ->with($orderContract['FirstAmount'], $txType)
+                ->willReturn($expectedData['first_amount']);
+
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatInstallment')
+                ->with($orderContract['InstallmentCount'], $txType)
+                ->willReturn($expectedData['installment_count']);
+
+            $dateTimeMatcher = $this->atLeastOnce();
+            $this->responseValueFormatter->expects($dateTimeMatcher)
+                ->method('formatDateTime')
+                ->with($this->callback(function ($dateTime) use ($dateTimeMatcher, $orderContract) {
+                    if ($dateTimeMatcher->getInvocationCount() === 1) {
+                        return $dateTime === $orderContract['OrderDate'];
+                    }
+                    if ($dateTimeMatcher->getInvocationCount() === 2) {
+                        return $dateTime === $orderContract['UpdateSystemDate'];
+                    }
+
+                    return false;
+                }), $txType)
+                ->willReturnCallback(
+                    function () use ($dateTimeMatcher, $expectedData) {
+                        if ($dateTimeMatcher->getInvocationCount() === 1) {
+                            return $expectedData['transaction_time'];
+                        }
+                        if ($dateTimeMatcher->getInvocationCount() === 2) {
+                            return $expectedData['capture_time'] ?? $expectedData['cancel_time'] ?? $expectedData['refund_time'];
+                        }
+
+                        return false;
+                    }
+                );
+        }
+
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
-        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
-        $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
-        $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
-        unset($actualData['capture_time'], $expectedData['capture_time']);
-        unset($actualData['refund_time'], $expectedData['refund_time']);
-        unset($actualData['cancel_time'], $expectedData['cancel_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -159,19 +241,78 @@ class KuveytPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData): void
     {
+        if (isset($threeDResponseData['VPosMessage']['TransactionType'])) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapTxType')
+                ->with($threeDResponseData['VPosMessage']['TransactionType'])
+                ->willReturn($expectedData['transaction_type']);
+        }
+
+        if ($threeDResponseData['ResponseCode'] === '00') {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapSecureType')
+                ->with($threeDResponseData['VPosMessage']['TransactionSecurity'], $txType)
+                ->willReturn($expectedData['payment_model']);
+
+            $amountMatcher = $this->atLeastOnce();
+            $this->responseValueFormatter->expects($amountMatcher)
+                ->method('formatAmount')
+                ->with($this->callback(function ($amount) use ($amountMatcher, $threeDResponseData, $paymentResponse) {
+                    if ($amountMatcher->getInvocationCount() === 1) {
+                        return $amount === $threeDResponseData['VPosMessage']['Amount'];
+                    }
+                    if ($amountMatcher->getInvocationCount() === 2) {
+                        return $amount === $paymentResponse['VPosMessage']['Amount'];
+                    }
+
+                    return false;
+                }), $txType)
+                ->willReturnCallback(
+                    function () use ($expectedData) {
+                        return $expectedData['amount'];
+                    }
+                );
+
+            $currencyMatcher = $this->atLeastOnce();
+            $this->responseValueMapper->expects($currencyMatcher)
+                ->method('mapCurrency')
+                ->with($this->callback(function ($amount) use ($currencyMatcher, $threeDResponseData, $paymentResponse) {
+                    if ($currencyMatcher->getInvocationCount() === 1) {
+                        return $amount === $threeDResponseData['VPosMessage']['CurrencyCode'];
+                    }
+                    if ($currencyMatcher->getInvocationCount() === 2) {
+                        return $amount === $paymentResponse['VPosMessage']['CurrencyCode'];
+                    }
+
+                    return false;
+                }), $txType)
+                ->willReturnCallback(
+                    function () use ($expectedData) {
+                        return $expectedData['currency'];
+                    }
+                );
+
+            if ($expectedData['status'] === ResponseDataMapperInterface::TX_APPROVED) {
+                $this->responseValueFormatter->expects($this->once())
+                    ->method('formatInstallment')
+                    ->with($paymentResponse['VPosMessage']['InstallmentCount'], $txType)
+                    ->willReturn($expectedData['installment_count']);
+            }
+        }
+
+        if (isset($expectedData['transaction_time'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with('now', $txType)
+                ->willReturn($expectedData['transaction_time']);
+        }
+
         $actualData = $this->responseDataMapper->map3DPaymentData(
             $threeDResponseData,
             $paymentResponse,
             $txType,
             $order
         );
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        }
-
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         if ([] !== $paymentResponse) {

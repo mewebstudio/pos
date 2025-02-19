@@ -7,6 +7,9 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueFormatterFactory;
@@ -28,19 +31,24 @@ class GarantiPosResponseDataMapperTest extends TestCase
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
 
+    /** @var ResponseValueFormatterInterface & MockObject */
+    private ResponseValueFormatterInterface $responseValueFormatter;
+
+    /** @var ResponseValueMapperInterface & MockObject */
+    private ResponseValueMapperInterface $responseValueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = RequestValueMapperFactory::createForGateway(GarantiPos::class);
-        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(GarantiPos::class, $requestValueMapper);
-        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(GarantiPos::class);
+        $this->responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $this->responseValueMapper    = $this->createMock(ResponseValueMapperInterface::class);
 
         $this->responseDataMapper = new GarantiPosResponseDataMapper(
-            $responseValueFormatter,
-            $responseValueMapper,
+            $this->responseValueFormatter,
+            $this->responseValueMapper,
             $this->logger
         );
     }
@@ -79,9 +87,14 @@ class GarantiPosResponseDataMapperTest extends TestCase
      */
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData): void
     {
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($responseData['Transaction']['ProvDate'] ?? 'now', $txType)
+                ->willReturn($expectedData['transaction_time']);
+        }
+
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
-        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -98,14 +111,43 @@ class GarantiPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData): void
     {
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($paymentResponse['Transaction']['ProvDate'] ?? 'now', $txType)
+                ->willReturn($expectedData['transaction_time']);
+        }
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapTxType')
+            ->with($threeDResponseData['txntype'])
+            ->willReturn($expectedData['transaction_type']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapSecureType')
+            ->with($threeDResponseData['secure3dsecuritylevel'], $txType)
+            ->willReturn($expectedData['payment_model']);
+
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatAmount')
+            ->with($threeDResponseData['txnamount'], $txType)
+            ->willReturn($expectedData['amount']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapCurrency')
+            ->with($threeDResponseData['txncurrencycode'], $txType)
+            ->willReturn($expectedData['currency']);
+
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatInstallment')
+            ->with($threeDResponseData['txninstallmentcount'], $txType)
+            ->willReturn($expectedData['installment_count']);
+
         $actualData = $this->responseDataMapper->map3DPaymentData(
             $threeDResponseData,
             $paymentResponse,
             $txType,
             $order
         );
-        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         if ([] !== $paymentResponse) {
@@ -134,14 +176,39 @@ class GarantiPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapTxType')
+            ->with($responseData['txntype'])
+            ->willReturn($expectedData['transaction_type']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapSecureType')
+            ->with($responseData['secure3dsecuritylevel'], $txType)
+            ->willReturn($expectedData['payment_model']);
+
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatAmount')
+            ->with($responseData['txnamount'], $txType)
+            ->willReturn($expectedData['amount']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapCurrency')
+            ->with($responseData['txncurrencycode'], $txType)
+            ->willReturn($expectedData['currency']);
+
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatInstallment')
+            ->with($responseData['txninstallmentcount'], $txType)
+            ->willReturn($expectedData['installment_count']);
+
+        if (isset($expectedData['transaction_time'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with('now', $txType)
+                ->willReturn($expectedData['transaction_time']);
         }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -158,15 +225,77 @@ class GarantiPosResponseDataMapperTest extends TestCase
      */
     public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
+        $txType = PosInterface::TX_TYPE_STATUS;
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatInstallment')
+            ->with($responseData['Order']['OrderInqResult']['InstallmentCnt'], $txType)
+            ->willReturn($expectedData['installment_count']);
+
+        if ($expectedData['status'] === ResponseDataMapperInterface::TX_APPROVED) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapOrderStatus')
+                ->with($responseData['Order']['OrderInqResult']['Status'])
+                ->willReturn($expectedData['order_status']);
+
+            $amountMatcher = $this->atLeastOnce();
+
+            $this->responseValueFormatter->expects($amountMatcher)
+                ->method('formatAmount')
+                ->with($this->callback(function ($amount) use ($amountMatcher, $responseData) {
+                    if ($amountMatcher->getInvocationCount() === 1) {
+                        return $amount === $responseData['Order']['OrderInqResult']['AuthAmount'];
+                    }
+                    if ($amountMatcher->getInvocationCount() === 2) {
+                        if ($responseData['Order']['OrderInqResult']['AuthAmount'] > 0) {
+                            return $amount === $responseData['Order']['OrderInqResult']['AuthAmount'];
+                        }
+
+                        return $amount === $responseData['Order']['OrderInqResult']['PreAuthAmount'];
+                    }
+
+                    return false;
+                }), $txType)
+                ->willReturnCallback(
+                    function () use ($amountMatcher, $expectedData) {
+                        if ($amountMatcher->getInvocationCount() === 1) {
+                            return $expectedData['capture_amount'];
+                        }
+                        if ($amountMatcher->getInvocationCount() === 2) {
+                            return $expectedData['first_amount'];
+                        }
+
+                        return false;
+                    }
+                );
+
+            $dateTimeMatcher = $this->atLeastOnce();
+            $this->responseValueFormatter->expects($dateTimeMatcher)
+                ->method('formatDateTime')
+                ->with($this->callback(function ($dateTime) use ($dateTimeMatcher, $responseData) {
+                    if ($dateTimeMatcher->getInvocationCount() === 1) {
+                        return $dateTime === ($responseData['Order']['OrderInqResult']['ProvDate'] ?? $responseData['Order']['OrderInqResult']['PreAuthDate']);
+                    }
+                    if ($dateTimeMatcher->getInvocationCount() === 2) {
+                        return $dateTime === $responseData['Order']['OrderInqResult']['AuthDate'];
+                    }
+
+                    return false;
+                }), $txType)
+                ->willReturnCallback(
+                    function () use ($dateTimeMatcher, $expectedData) {
+                        if ($dateTimeMatcher->getInvocationCount() === 1) {
+                            return $expectedData['transaction_time'];
+                        }
+                        if ($dateTimeMatcher->getInvocationCount() === 2) {
+                            return $expectedData['capture_time'];
+                        }
+
+                        return false;
+                    }
+                );
+        }
+
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
-        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
-        $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
-        $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
-        unset($actualData['capture_time'], $expectedData['capture_time']);
-        unset($actualData['refund_time'], $expectedData['refund_time']);
-        unset($actualData['cancel_time'], $expectedData['cancel_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -179,11 +308,19 @@ class GarantiPosResponseDataMapperTest extends TestCase
     }
 
     /**
+     * Doing integration test because of the iteration, sorting and conditional statements it is difficult to mock values.
      * @dataProvider orderHistoryTestDataProvider
      */
     public function testOrderMapHistoryResponse(array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
+        $requestValueMapper = RequestValueMapperFactory::createForGateway(GarantiPos::class);
+        $responseDataMapper = new GarantiPosResponseDataMapper(
+            ResponseValueFormatterFactory::createForGateway(GarantiPos::class),
+            ResponseValueMapperFactory::createForGateway(GarantiPos::class, $requestValueMapper),
+            $this->logger
+        );
+
+        $actualData = $responseDataMapper->mapOrderHistoryResponse($responseData);
         if (count($actualData['transactions']) > 1
             && null !== $actualData['transactions'][0]['transaction_time']
             && null !== $actualData['transactions'][1]['transaction_time']
@@ -218,7 +355,14 @@ class GarantiPosResponseDataMapperTest extends TestCase
      */
     public function testMapHistoryResponse(array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->mapHistoryResponse($responseData);
+        $requestValueMapper = RequestValueMapperFactory::createForGateway(GarantiPos::class);
+        $responseDataMapper = new GarantiPosResponseDataMapper(
+            ResponseValueFormatterFactory::createForGateway(GarantiPos::class),
+            ResponseValueMapperFactory::createForGateway(GarantiPos::class, $requestValueMapper),
+            $this->logger
+        );
+
+        $actualData = $responseDataMapper->mapHistoryResponse($responseData);
 
         if (count($actualData['transactions']) > 1
             && null !== $actualData['transactions'][0]['transaction_time']
