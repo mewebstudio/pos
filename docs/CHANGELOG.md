@@ -7,9 +7,11 @@
 ### Changed
 - Kütüphanenin bazı hatalı kullanım durumlarını önlemek için
   `\Mews\Pos\PosInterface::get3DFormData()` method'a yeni parametre eklendi.
+- `\Mews\Pos\PosInterface::get3DFormData()` method'u alt yapı göre artık HTML string dönebilir.
 - **Hash** hesaplama fonksiyonları ve fonksiyonların kullanıldığı yerler refactor edildi.
 - Bankadan gelen response'un XML'mi veya HTML'mi olduğu kontrolü iyileştirildi.
 - PayFlexCPV4 - `gateway_endpoints` konfigurasyonu değiştirildi ve `query_api` değer kaldırıldı.
+- PayFlexCPV4 - ödeme durum sorgulama, iptal, iade gibi bu alt yapı tarafından desteklenmeyen işlemlerin kodları kaldırıldı.
 
 ### Fixed
 - issue #254 - **KuveytPos** ve **VakifKatilim** undefined index _MerchantOrderId_ hatası.
