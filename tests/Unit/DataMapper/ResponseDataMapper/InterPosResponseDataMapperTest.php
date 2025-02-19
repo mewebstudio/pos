@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestValueMapper\InterPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\InterPosResponseValueFormatter;
+use Mews\Pos\DataMapper\ResponseValueMapper\InterPosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -32,11 +34,16 @@ class InterPosResponseDataMapperTest extends TestCase
         $this->logger = $this->createMock(LoggerInterface::class);
 
         $requestValueMapper = new InterPosRequestValueMapper();
-
-        $this->responseDataMapper = new InterPosResponseDataMapper(
+        $responseValueFormatter = new InterPosResponseValueFormatter();
+        $responseValueMapper    = new InterPosResponseValueMapper(
             $requestValueMapper->getCurrencyMappings(),
             $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings(),
+            $requestValueMapper->getSecureTypeMappings()
+        );
+
+        $this->responseDataMapper = new InterPosResponseDataMapper(
+            $responseValueFormatter,
+            $responseValueMapper,
             $this->logger
         );
     }

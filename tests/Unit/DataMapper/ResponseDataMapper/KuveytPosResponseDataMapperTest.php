@@ -6,9 +6,12 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestValueMapper\KuveytPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Factory\RequestValueMapperFactory;
+use Mews\Pos\Factory\ResponseValueFormatterFactory;
+use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -31,12 +34,13 @@ class KuveytPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper = new KuveytPosRequestValueMapper();
+        $requestValueMapper     = RequestValueMapperFactory::createForGateway(KuveytPos::class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(KuveytPos::class, $requestValueMapper);
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(KuveytPos::class);
 
         $this->responseDataMapper = new KuveytPosResponseDataMapper(
-            $requestValueMapper->getCurrencyMappings(),
-            $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings(),
+            $responseValueFormatter,
+            $responseValueMapper,
             $this->logger
         );
     }
@@ -64,18 +68,6 @@ class KuveytPosResponseDataMapperTest extends TestCase
     {
         $actual = $this->responseDataMapper->extractMdStatus($responseData);
         $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @return void
-     */
-    public function testFormatAmount(): void
-    {
-        $class  = new \ReflectionObject($this->responseDataMapper);
-        $method = $class->getMethod('formatAmount');
-        $method->setAccessible(true);
-        $this->assertSame(0.1, $method->invokeArgs($this->responseDataMapper, [10]));
-        $this->assertSame(1.01, $method->invokeArgs($this->responseDataMapper, [101]));
     }
 
     /**

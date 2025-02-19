@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestValueMapper\PosNetV1PosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\PosNetResponseValueFormatter;
+use Mews\Pos\DataMapper\ResponseValueMapper\PosNetV1PosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -32,12 +34,17 @@ class PosNetV1PosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper = new PosNetV1PosRequestValueMapper();
-
-        $this->responseDataMapper = new PosNetV1PosResponseDataMapper(
+        $requestValueMapper     = new PosNetV1PosRequestValueMapper();
+        $responseValueFormatter = new PosNetResponseValueFormatter();
+        $responseValueMapper    = new PosNetV1PosResponseValueMapper(
             $requestValueMapper->getCurrencyMappings(),
             $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings(),
+            $requestValueMapper->getSecureTypeMappings()
+        );
+
+        $this->responseDataMapper = new PosNetV1PosResponseDataMapper(
+            $responseValueFormatter,
+            $responseValueMapper,
             $this->logger
         );
     }

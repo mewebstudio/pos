@@ -31,14 +31,4 @@ class VakifKatilimPosRequestValueMapper extends AbstractRequestValueMapper
         PosInterface::MODEL_3D_SECURE  => '3',
         PosInterface::MODEL_NON_SECURE => '5',
     ];
-
-    /**
-     * @inheritDoc
-     *
-     * @return string
-     */
-    public function mapCurrency(string $currency): string
-    {
-        return (string) $this->currencyMappings[$currency];
-    }
 }

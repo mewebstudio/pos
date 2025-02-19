@@ -68,24 +68,27 @@ class PosFactory
 
         $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
 
-        $crypt              = CryptFactory::createGatewayCrypt($class, $logger);
-        $valueMapper        = RequestValueMapperFactory::createForGateway($class);
-        $valueFormatter     = RequestValueFormatterFactory::createForGateway($class);
-        $requestDataMapper  = RequestDataMapperFactory::createGatewayRequestMapper(
+        $crypt                 = CryptFactory::createGatewayCrypt($class, $logger);
+        $requestValueMapper    = RequestValueMapperFactory::createForGateway($class);
+        $requestValueFormatter = RequestValueFormatterFactory::createForGateway($class);
+        $requestDataMapper     = RequestDataMapperFactory::createGatewayRequestMapper(
             $class,
-            $valueMapper,
-            $valueFormatter,
+            $requestValueMapper,
+            $requestValueFormatter,
             $eventDispatcher,
             $crypt,
         );
-        $responseDataMapper = ResponseDataMapperFactory::createGatewayResponseMapper($class, $valueMapper, $logger);
-        $serializer         = SerializerFactory::createGatewaySerializer($class);
+
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway($class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway($class, $requestValueMapper);
+        $responseDataMapper     = ResponseDataMapperFactory::createGatewayResponseMapper($class, $responseValueFormatter, $responseValueMapper, $logger);
+        $serializer             = SerializerFactory::createGatewaySerializer($class);
 
         // Create Bank Class Instance
         return new $class(
             $config['banks'][$posAccount->getBank()],
             $posAccount,
-            $valueMapper,
+            $requestValueMapper,
             $requestDataMapper,
             $responseDataMapper,
             $serializer,

@@ -8,7 +8,6 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LoggerInterface;
 
 class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
 {
@@ -28,23 +27,6 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         '9039'                       => 'invalid_credentials',
         '9065'                       => 'invalid_credentials',
     ];
-
-    /**
-     * @param array<PosInterface::CURRENCY_*, string|int>                                 $currencyMappings
-     * @param array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>> $txTypeMappings
-     * @param array<PosInterface::MODEL_*, string>                                        $secureTypeMappings
-     * @param LoggerInterface                                                             $logger
-     */
-    public function __construct(array $currencyMappings, array $txTypeMappings, array $secureTypeMappings, LoggerInterface $logger)
-    {
-        parent::__construct($currencyMappings, $txTypeMappings, $secureTypeMappings, $logger);
-
-        $this->secureTypeMappings += [
-            '1' => PosInterface::MODEL_NON_SECURE,
-            '2' => PosInterface::MODEL_3D_SECURE,
-            '3' => PosInterface::MODEL_3D_PAY,
-        ];
-    }
 
     /**
      * {@inheritdoc}
@@ -71,8 +53,8 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             'auth_code'            => null,
             'order_id'             => $raw3DAuthResponseData['VerifyEnrollmentRequestId'],
             'status'               => $threeDAuthStatus,
-            'currency'             => $paymentResponseData['currency'] ?? $this->mapCurrency($raw3DAuthResponseData['PurchCurrency']),
-            'installment_count'    => $paymentResponseData['installment_count'] ?? $this->mapInstallment($raw3DAuthResponseData['InstallmentCount']),
+            'currency'             => $paymentResponseData['currency'] ?? $this->valueMapper->mapCurrency($raw3DAuthResponseData['PurchCurrency'], $txType),
+            'installment_count'    => $paymentResponseData['installment_count'] ?? $this->valueFormatter->formatInstallment($raw3DAuthResponseData['InstallmentCount'], $txType),
             'status_detail'        => null,
             'error_code'           => self::TX_DECLINED === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorCode'] : null,
             'error_message'        => self::TX_DECLINED === $threeDAuthStatus ? $raw3DAuthResponseData['ErrorMessage'] : null,
@@ -143,6 +125,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
+        $txType          = PosInterface::TX_TYPE_STATUS;
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         /**
          * @var array{ResponseCode: string, ResponseMessage: string, ResponseDateTime: string, Status: 'Success'|'Error'} $responseInfo
@@ -183,9 +166,9 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['transaction_id']   = $txResultInfo['TransactionId'];
         $defaultResponse['ref_ret_num']      = $txResultInfo['Rrn'];
         $defaultResponse['order_status']     = $orderStatus;
-        $defaultResponse['transaction_type'] = $this->mapTxType($txResultInfo['TransactionType']);
-        $defaultResponse['currency']         = $this->mapCurrency($txResultInfo['AmountCode']);
-        $defaultResponse['first_amount']     = $this->formatAmount($txResultInfo['CurrencyAmount'] ?? $txResultInfo['Amount']);
+        $defaultResponse['transaction_type'] = $this->valueMapper->mapTxType($txResultInfo['TransactionType']);
+        $defaultResponse['currency']         = $this->valueMapper->mapCurrency($txResultInfo['AmountCode'], $txType);
+        $defaultResponse['first_amount']     = $this->valueFormatter->formatAmount($txResultInfo['CurrencyAmount'] ?? $txResultInfo['Amount'], $txType);
         $defaultResponse['capture_amount']   = null;
         $defaultResponse['status']           = self::PROCEDURE_SUCCESS_CODE === $orderProcCode ? self::TX_APPROVED : self::TX_DECLINED;
         $defaultResponse['error_code']       = self::PROCEDURE_SUCCESS_CODE !== $orderProcCode ? $txResultInfo['HostResultCode'] : null;
@@ -203,18 +186,18 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         $rawPaymentResponseData             = $this->emptyStringsToNull($rawPaymentResponseData);
         $commonResponse                     = $this->getCommonPaymentResponse($rawPaymentResponseData, $txType);
         $commonResponse['order_id']         = $rawPaymentResponseData['OrderId'] ?? null;
-        $commonResponse['currency']         = isset($rawPaymentResponseData['CurrencyCode']) ? $this->mapCurrency($rawPaymentResponseData['CurrencyCode']) : null;
-        $commonResponse['amount']           = isset($rawPaymentResponseData['TLAmount']) ? $this->formatAmount($rawPaymentResponseData['TLAmount']) : null;
-        $commonResponse['transaction_type'] = isset($rawPaymentResponseData['TransactionType']) ? $this->mapTxType($rawPaymentResponseData['TransactionType']) : null;
+        $commonResponse['currency']         = isset($rawPaymentResponseData['CurrencyCode']) ? $this->valueMapper->mapCurrency($rawPaymentResponseData['CurrencyCode'], $txType) : null;
+        $commonResponse['amount']           = isset($rawPaymentResponseData['TLAmount']) ? $this->valueFormatter->formatAmount($rawPaymentResponseData['TLAmount'], $txType) : null;
+        $commonResponse['transaction_type'] = isset($rawPaymentResponseData['TransactionType']) ? $this->valueMapper->mapTxType($rawPaymentResponseData['TransactionType']) : null;
 
         if (self::TX_APPROVED === $commonResponse['status']) {
-            $commonResponse['transaction_id']   = $rawPaymentResponseData['TransactionId'];
-            $txTime                             = $rawPaymentResponseData['HostDate'];
+            $commonResponse['transaction_id'] = $rawPaymentResponseData['TransactionId'];
+            $txTime                           = $rawPaymentResponseData['HostDate'];
             if (\strlen($txTime) === 10) { // ziraat is sending host date without year
                 $txTime = date('Y').$txTime;
             }
 
-            $commonResponse['transaction_time'] = new \DateTimeImmutable($txTime);
+            $commonResponse['transaction_time'] = $this->valueFormatter->formatDateTime($txTime, $txType);
             $commonResponse['auth_code']        = $rawPaymentResponseData['AuthCode'];
             $commonResponse['ref_ret_num']      = $rawPaymentResponseData['TransactionId'];
             $commonResponse['batch_num']        = $rawPaymentResponseData['BatchNo'];
@@ -309,7 +292,7 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $paymentModel = isset($responseData['ThreeDSecureType']) ? $this->mapSecurityType($responseData['ThreeDSecureType']) : null;
+        $paymentModel = isset($responseData['ThreeDSecureType']) ? $this->valueMapper->mapSecureType($responseData['ThreeDSecureType'], $txType) : null;
         $response     = $this->getDefaultPaymentResponse($txType, $paymentModel);
 
         $response['proc_return_code'] = $resultCode;
