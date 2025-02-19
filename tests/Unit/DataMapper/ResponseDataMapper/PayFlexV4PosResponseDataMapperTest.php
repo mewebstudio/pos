@@ -7,11 +7,9 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Factory\RequestValueMapperFactory;
-use Mews\Pos\Factory\ResponseValueFormatterFactory;
-use Mews\Pos\Factory\ResponseValueMapperFactory;
-use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -28,19 +26,24 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
 
+    /** @var ResponseValueFormatterInterface & MockObject */
+    private ResponseValueFormatterInterface $responseValueFormatter;
+
+    /** @var ResponseValueMapperInterface & MockObject */
+    private ResponseValueMapperInterface $responseValueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = RequestValueMapperFactory::createForGateway(PayFlexV4Pos::class);
-        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(PayFlexV4Pos::class, $requestValueMapper);
-        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(PayFlexV4Pos::class);
+        $this->responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $this->responseValueMapper    = $this->createMock(ResponseValueMapperInterface::class);
 
         $this->responseDataMapper = new PayFlexV4PosResponseDataMapper(
-            $responseValueFormatter,
-            $responseValueMapper,
+            $this->responseValueFormatter,
+            $this->responseValueMapper,
             $this->logger
         );
     }
@@ -76,14 +79,55 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
      */
     public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData): void
     {
+        if (isset($paymentResponse['TLAmount'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatAmount')
+                ->with($paymentResponse['TLAmount'], $txType)
+                ->willReturn($expectedData['amount']);
+        }
+
+        if (isset($paymentResponse['TransactionType'])) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapTxType')
+                ->with($paymentResponse['TransactionType'])
+                ->willReturn($expectedData['transaction_type']);
+        }
+
+        if (isset($paymentResponse['ThreeDSecureType'])) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapSecureType')
+                ->with($paymentResponse['ThreeDSecureType'])
+                ->willReturn($expectedData['payment_model']);
+        }
+
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with(
+                    strlen($paymentResponse['HostDate']) === 10
+                        ? date('Y').$paymentResponse['HostDate']
+                        : $paymentResponse['HostDate'],
+                    $txType
+                )
+                ->willReturn($expectedData['transaction_time']);
+        }
+
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatInstallment')
+            ->with($threeDResponseData['InstallmentCount'], $txType)
+            ->willReturn($expectedData['installment_count']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapCurrency')
+            ->with($paymentResponse['CurrencyCode'] ?? $threeDResponseData['PurchCurrency'], $txType)
+            ->willReturn($expectedData['currency']);
+
         $actualData = $this->responseDataMapper->map3DPaymentData(
             $threeDResponseData,
             $paymentResponse,
             $txType,
             $order
         );
-        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         if ([] !== $paymentResponse) {
@@ -106,9 +150,47 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
      */
     public function testMapPaymentResponse(string $txType, array $responseData, array $expectedData): void
     {
+        if (isset($responseData['TLAmount'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatAmount')
+                ->with($responseData['TLAmount'], $txType)
+                ->willReturn($expectedData['amount']);
+        }
+
+        if (isset($responseData['TransactionType'])) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapTxType')
+                ->with($responseData['TransactionType'])
+                ->willReturn($expectedData['transaction_type']);
+        }
+
+        if (isset($responseData['ThreeDSecureType'])) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapSecureType')
+                ->with($responseData['ThreeDSecureType'])
+                ->willReturn($expectedData['payment_model']);
+        }
+
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with(
+                    strlen($responseData['HostDate']) === 10
+                        ? date('Y').$responseData['HostDate']
+                        : $responseData['HostDate'],
+                    $txType
+                )
+                ->willReturn($expectedData['transaction_time']);
+        }
+
+        if (isset($responseData['CurrencyCode'])) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapCurrency')
+                ->with($responseData['CurrencyCode'], $txType)
+                ->willReturn($expectedData['currency']);
+        }
+
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, []);
-        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -155,6 +237,25 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
      */
     public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
+        $txType = PosInterface::TX_TYPE_STATUS;
+        if ($expectedData['status'] === $this->responseDataMapper::TX_APPROVED) {
+            $txResultInfo = $responseData['TransactionSearchResultInfo']['TransactionSearchResultInfo'];
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapTxType')
+                ->with($txResultInfo['TransactionType'])
+                ->willReturn($expectedData['transaction_type']);
+
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapCurrency')
+                ->with($txResultInfo['AmountCode'], $txType)
+                ->willReturn($expectedData['currency']);
+
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatAmount')
+                ->with($txResultInfo['CurrencyAmount'] ?? $txResultInfo['Amount'], $txType)
+                ->willReturn($expectedData['first_amount']);
+        }
+
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
 
         $this->assertArrayHasKey('all', $actualData);
