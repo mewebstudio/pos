@@ -8,82 +8,9 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
-use Psr\Log\LoggerInterface;
 
 class ParamPosResponseDataMapper extends AbstractResponseDataMapper
 {
-    /**
-     * Response Codes
-     *
-     * @var array<int|string, string>
-     */
-    protected array $codes = [
-        self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
-    ];
-
-    /**
-     * @var array<string, PosInterface::PAYMENT_STATUS_*>
-     */
-    protected array $orderStatusMappings = [
-        'FAIL'           => PosInterface::PAYMENT_STATUS_ERROR,
-        'BANK_FAIL'      => PosInterface::PAYMENT_STATUS_ERROR,
-        'SUCCESS'        => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        'CANCEL'         => PosInterface::PAYMENT_STATUS_CANCELED,
-        'REFUND'         => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
-        'PARTIAL_REFUND' => PosInterface::PAYMENT_STATUS_PARTIALLY_REFUNDED,
-    ];
-
-    /**
-     * @var array<string, PosInterface::TX_TYPE_*>
-     */
-    private array $statusRequestTxMappings = [
-        'SALE'      => PosInterface::TX_TYPE_PAY_AUTH,
-        'PRE_AUTH'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-        'POST_AUTH' => PosInterface::TX_TYPE_PAY_POST_AUTH,
-    ];
-
-    /**
-     * @var array<string, PosInterface::TX_TYPE_*>
-     */
-    private array $historyRequestTxMappings = [
-        'Satış' => PosInterface::TX_TYPE_PAY_AUTH,
-        'İptal' => PosInterface::TX_TYPE_CANCEL,
-        'İade'  => PosInterface::TX_TYPE_REFUND,
-    ];
-
-    /**
-     * @param array<PosInterface::CURRENCY_*, string|int>                                 $currencyMappings
-     * @param array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>> $txTypeMappings
-     * @param array<PosInterface::MODEL_*, string>                                        $secureTypeMappings
-     * @param LoggerInterface                                                             $logger
-     */
-    public function __construct(array $currencyMappings, array $txTypeMappings, array $secureTypeMappings, LoggerInterface $logger)
-    {
-        parent::__construct($currencyMappings, $txTypeMappings, $secureTypeMappings, $logger);
-
-        $this->secureTypeMappings = [
-            'NONSECURE' => PosInterface::MODEL_NON_SECURE,
-            '3D'        => PosInterface::MODEL_3D_SECURE,
-        ];
-
-        $this->currencyMappings = [
-            'TRL' => PosInterface::CURRENCY_TRY,
-            'TL'  => PosInterface::CURRENCY_TRY,
-            'EUR' => PosInterface::CURRENCY_EUR,
-            'USD' => PosInterface::CURRENCY_USD,
-        ];
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function mapTxType($txType): ?string
-    {
-        return $this->statusRequestTxMappings[$txType]
-            ?? $this->historyRequestTxMappings[$txType]
-            ?? parent::mapTxType($txType);
-    }
-
     /**
      * {@inheritDoc}
      */
@@ -136,7 +63,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
 
             $mappedResponse['amount']           = $order['amount'];
             $mappedResponse['currency']         = $currency;
-            $mappedResponse['transaction_time'] = new \DateTimeImmutable();
+            $mappedResponse['transaction_time'] = $this->valueFormatter->formatDateTime('now', $txType);
         }
 
         $this->logger->debug('mapped payment response', $mappedResponse);
@@ -183,7 +110,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
             $mappedResponse['auth_code']        = $payResult['Bank_AuthCode'];
             $mappedResponse['ref_ret_num']      = $payResult['Bank_HostRefNum'];
             $mappedResponse['currency']         = $order['currency'];
-            $mappedResponse['transaction_time'] = new \DateTimeImmutable();
+            $mappedResponse['transaction_time'] = $this->valueFormatter->formatDateTime('now', $txType);
         }
 
         $this->logger->debug('mapped payment response', $mappedResponse);
@@ -213,7 +140,8 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
             'transaction_security' => null,
             'md_status'            => $mdStatus,
             'order_id'             => $raw3DAuthResponseData['orderId'],
-            'amount'               => null !== $raw3DAuthResponseData['transactionAmount'] ? $this->formatAmount($raw3DAuthResponseData['transactionAmount']) : null,
+            'amount'               => null !== $raw3DAuthResponseData['transactionAmount']
+                ? $this->valueFormatter->formatAmount($raw3DAuthResponseData['transactionAmount'], $txType) : null,
             'currency'             => $order['currency'],
             'installment_count'    => null,
             'md_error_message'     => null,
@@ -255,11 +183,22 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
         ];
         if (self::TX_APPROVED === $status) {
             $mappedResponse['order_id']          = $raw3DAuthResponseData['TURKPOS_RETVAL_Siparis_ID'];
-            $mappedResponse['amount']            = $this->formatAmount($raw3DAuthResponseData['TURKPOS_RETVAL_Tahsilat_Tutari']);
-            $mappedResponse['currency']          = $this->mapCurrency($raw3DAuthResponseData['TURKPOS_RETVAL_PB']);
-            $mappedResponse['installment_count'] = isset($raw3DAuthResponseData['TURKPOS_RETVAL_Taksit']) ? $this->mapInstallment($raw3DAuthResponseData['TURKPOS_RETVAL_Taksit']) : null;
+            $mappedResponse['amount']            = $this->valueFormatter->formatAmount(
+                $raw3DAuthResponseData['TURKPOS_RETVAL_Tahsilat_Tutari'],
+                $txType
+            );
+            $mappedResponse['currency']          = $this->valueMapper->mapCurrency(
+                $raw3DAuthResponseData['TURKPOS_RETVAL_PB'],
+                $txType
+            );
+            $mappedResponse['installment_count'] = isset($raw3DAuthResponseData['TURKPOS_RETVAL_Taksit'])
+                ? $this->valueFormatter->formatInstallment($raw3DAuthResponseData['TURKPOS_RETVAL_Taksit'], $txType)
+                : null;
             $mappedResponse['masked_number']     = $raw3DAuthResponseData['TURKPOS_RETVAL_KK_No'];
-            $mappedResponse['transaction_time']  = new \DateTimeImmutable($raw3DAuthResponseData['TURKPOS_RETVAL_Islem_Tarih']);
+            $mappedResponse['transaction_time']  = $this->valueFormatter->formatDateTime(
+                $raw3DAuthResponseData['TURKPOS_RETVAL_Islem_Tarih'],
+                $txType
+            );
         }
 
         $this->logger->debug('mapped payment response', $mappedResponse);
@@ -272,7 +211,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function map3DHostResponseData(array $raw3DAuthResponseData, string $txType, array $order): array
     {
-        $result = $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
+        $result                  = $this->map3DPayResponseData($raw3DAuthResponseData, $txType, $order);
         $result['payment_model'] = PosInterface::MODEL_3D_HOST;
 
         return $result;
@@ -329,6 +268,7 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
+        $txType          = PosInterface::TX_TYPE_STATUS;
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
 
         $statusResponse = $rawResponseData['TP_Islem_Sorgulama4Response']['TP_Islem_Sorgulama4Result'];
@@ -354,10 +294,10 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
             $result['auth_code']     = $dtBilgi['Bank_AuthCode'];
             $result['ref_ret_num']   = $dtBilgi['Bank_HostRefNum'];
             $result['masked_number'] = $dtBilgi['KK_No'];
-            $result['first_amount']  = (float) $dtBilgi['Toplam_Tutar'];
+            $result['first_amount']  = $this->valueFormatter->formatAmount($dtBilgi['Toplam_Tutar'], $txType);
 
-            $result['order_status']     = $this->orderStatusMappings[$dtBilgi['Durum']] ?? null;
-            $result['transaction_type'] = $this->mapTxType($dtBilgi['Islem_Tip']);
+            $result['order_status']     = $this->valueMapper->mapOrderStatus($dtBilgi['Durum']);
+            $result['transaction_type'] = $this->valueMapper->mapTxType($dtBilgi['Islem_Tip']);
 
             if (PosInterface::TX_TYPE_PAY_AUTH === $result['transaction_type']) {
                 $result['transaction_type'] = PosInterface::TX_TYPE_PAY_AUTH;
@@ -367,9 +307,9 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
                 $result['order_status'] = PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED;
             }
 
-            $txDate = isset($dtBilgi['Tarih']) ? new \DateTimeImmutable($dtBilgi['Tarih']) : null;
+            $txDate = isset($dtBilgi['Tarih']) ? $this->valueFormatter->formatDateTime($dtBilgi['Tarih'], $txType) : null;
             if ($dtBilgi['Toplam_Iade_Tutar'] > 0) {
-                $dtBilgi['refund_amount'] = $this->formatAmount($dtBilgi['Toplam_Iade_Tutar']);
+                $dtBilgi['refund_amount'] = $this->valueFormatter->formatAmount($dtBilgi['Toplam_Iade_Tutar'], $txType);
                 $dtBilgi['refund_time']   = $txDate;
             }
 
@@ -461,22 +401,13 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * @param string $amount
-     *
-     * @return float
-     */
-    protected function formatAmount(string $amount): float
-    {
-        return ((float) \str_replace(',', '.', $amount));
-    }
-
-    /**
      * @param array<int, string> $rawTx
      *
      * @return array<string, string|int|float|null>
      */
     private function mapSingleHistoryTransaction(array $rawTx): array
     {
+        $txType                          = PosInterface::TX_TYPE_HISTORY;
         $rawTx                           = $this->emptyStringsToNull($rawTx);
         $transaction                     = $this->getDefaultOrderHistoryTxResponse();
         $procReturnCode                  = $this->getProcReturnCode($rawTx);
@@ -485,21 +416,28 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
             $transaction['status'] = self::TX_APPROVED;
         }
 
-        $transaction['transaction_type'] = $this->mapTxType($rawTx['Tip_Str']);
+        $dateTime                        = $this->valueFormatter->formatDateTime($rawTx['Tarih'], $txType);
+        $transaction['transaction_type'] = $this->valueMapper->mapTxType($rawTx['Tip_Str']);
         if (self::TX_APPROVED === $transaction['status']) {
-            $transaction['currency'] = isset($rawTx['PB']) ? $this->mapCurrency($rawTx['PB']) : null;
-            $amount                  = null === $rawTx['Tutar'] ? null : $this->formatAmount($rawTx['Tutar']);
+            $transaction['currency'] = isset($rawTx['PB'])
+                ? $this->valueMapper->mapCurrency($rawTx['PB'], $txType)
+                : null;
+            $amount                  = null === $rawTx['Tutar']
+                ? null : $this->valueFormatter->formatAmount($rawTx['Tutar'], PosInterface::TX_TYPE_HISTORY);
             if (PosInterface::TX_TYPE_PAY_AUTH === $transaction['transaction_type']) {
                 $transaction['first_amount']   = $amount;
                 $transaction['capture_amount'] = $amount;
                 $transaction['capture']        = true;
-                $transaction['capture_time']   = new \DateTimeImmutable($rawTx['Tarih']);
+                $transaction['capture_time']   = $dateTime;
             } elseif (PosInterface::TX_TYPE_CANCEL === $transaction['transaction_type'] && $rawTx['Tutar'] < 0) {
                 $transaction['refund_amount'] = $transaction['first_amount'];
             }
 
             if ($rawTx['Toplam_Iade_Tutar'] > 0) {
-                $transaction['refund_amount'] = $this->formatAmount($rawTx['Toplam_Iade_Tutar']);
+                $transaction['refund_amount'] = $this->valueFormatter->formatAmount(
+                    $rawTx['Toplam_Iade_Tutar'],
+                    PosInterface::TX_TYPE_HISTORY
+                );
             }
         } else {
             $transaction['error_code']    = $procReturnCode;
@@ -507,8 +445,8 @@ class ParamPosResponseDataMapper extends AbstractResponseDataMapper
         }
 
         $transaction['order_id']         = $rawTx['ORJ_ORDER_ID'];
-        $transaction['payment_model']    = $this->mapSecurityType($rawTx['Islem_Guvenlik']);
-        $transaction['transaction_time'] = new \DateTimeImmutable($rawTx['Tarih']);
+        $transaction['payment_model']    = $this->valueMapper->mapSecureType($rawTx['Islem_Guvenlik'], $txType);
+        $transaction['transaction_time'] = $dateTime;
 
         return $transaction;
     }

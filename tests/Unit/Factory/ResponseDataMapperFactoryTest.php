@@ -6,7 +6,8 @@
 
 namespace Mews\Pos\Tests\Unit\Factory;
 
-use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Factory\ResponseDataMapperFactory;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -21,11 +22,13 @@ class ResponseDataMapperFactoryTest extends TestCase
      */
     public function testCreateGatewayResponseMapper(string $gatewayClass, string $mapperClass): void
     {
-        $requestDataMapper = $this->createMock(RequestValueMapperInterface::class);
-        $logger            = $this->createMock(LoggerInterface::class);
-        $mapper            = ResponseDataMapperFactory::createGatewayResponseMapper(
+        $responseDataMapper     = $this->createMock(ResponseValueMapperInterface::class);
+        $responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $logger                 = $this->createMock(LoggerInterface::class);
+        $mapper                 = ResponseDataMapperFactory::createGatewayResponseMapper(
             $gatewayClass,
-            $requestDataMapper,
+            $responseValueFormatter,
+            $responseDataMapper,
             $logger
         );
         $this->assertInstanceOf($mapperClass, $mapper);
@@ -33,12 +36,14 @@ class ResponseDataMapperFactoryTest extends TestCase
 
     public function testCreateGatewayResponseMapperUnsupported(): void
     {
-        $requestDataMapper = $this->createMock(RequestValueMapperInterface::class);
-        $logger            = $this->createMock(LoggerInterface::class);
+        $responseDataMapper     = $this->createMock(ResponseValueMapperInterface::class);
+        $responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $logger                 = $this->createMock(LoggerInterface::class);
         $this->expectException(\DomainException::class);
         ResponseDataMapperFactory::createGatewayResponseMapper(
             \stdClass::class,
-            $requestDataMapper,
+            $responseValueFormatter,
+            $responseDataMapper,
             $logger
         );
     }

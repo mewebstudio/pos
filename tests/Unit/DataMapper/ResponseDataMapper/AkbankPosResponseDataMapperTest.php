@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestValueMapper\AkbankPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\AkbankPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\BasicResponseValueFormatter;
+use Mews\Pos\DataMapper\ResponseValueMapper\AkbankPosResponseValueMapper;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -30,12 +32,17 @@ class AkbankPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper = new AkbankPosRequestValueMapper();
-
-        $this->responseDataMapper = new AkbankPosResponseDataMapper(
+        $requestValueMapper     = new AkbankPosRequestValueMapper();
+        $responseValueFormatter = new BasicResponseValueFormatter();
+        $responseValueMapper    = new AkbankPosResponseValueMapper(
             $requestValueMapper->getCurrencyMappings(),
             $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings(),
+            $requestValueMapper->getSecureTypeMappings()
+        );
+
+        $this->responseDataMapper = new AkbankPosResponseDataMapper(
+            $responseValueFormatter,
+            $responseValueMapper,
             $this->logger
         );
     }

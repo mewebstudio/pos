@@ -10,6 +10,8 @@ use Generator;
 use Mews\Pos\DataMapper\RequestValueMapper\PayFlexCPV4PosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\DataMapper\ResponseValueFormatter\BasicResponseValueFormatter;
+use Mews\Pos\DataMapper\ResponseValueMapper\PayFlexCPV4PosResponseValueMapper;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -32,12 +34,17 @@ class PayFlexCPV4PosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper = new PayFlexCPV4PosRequestValueMapper();
-
-        $this->responseDataMapper = new PayFlexCPV4PosResponseDataMapper(
+        $requestValueMapper     = new PayFlexCPV4PosRequestValueMapper();
+        $responseValueFormatter = new BasicResponseValueFormatter();
+        $responseValueMapper    = new PayFlexCPV4PosResponseValueMapper(
             $requestValueMapper->getCurrencyMappings(),
             $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings(),
+            $requestValueMapper->getSecureTypeMappings()
+        );
+
+        $this->responseDataMapper = new PayFlexCPV4PosResponseDataMapper(
+            $responseValueFormatter,
+            $responseValueMapper,
             $this->logger
         );
     }

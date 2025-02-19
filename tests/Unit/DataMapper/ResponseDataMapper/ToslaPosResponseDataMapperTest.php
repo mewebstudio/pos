@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestValueMapper\ToslaPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ToslaPosResponseValueFormatter;
+use Mews\Pos\DataMapper\ResponseValueMapper\ToslaPosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -31,12 +33,17 @@ class ToslaPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper = new ToslaPosRequestValueMapper();
-
-        $this->responseDataMapper = new ToslaPosResponseDataMapper(
+        $requestValueMapper     = new ToslaPosRequestValueMapper();
+        $responseValueFormatter = new ToslaPosResponseValueFormatter();
+        $responseValueMapper    = new ToslaPosResponseValueMapper(
             $requestValueMapper->getCurrencyMappings(),
             $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings(),
+            $requestValueMapper->getSecureTypeMappings()
+        );
+
+        $this->responseDataMapper = new ToslaPosResponseDataMapper(
+            $responseValueFormatter,
+            $responseValueMapper,
             $this->logger
         );
     }

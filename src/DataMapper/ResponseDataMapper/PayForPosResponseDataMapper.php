@@ -60,7 +60,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $mappedResponse = [
             'order_id'         => $rawPaymentResponseData['TransId'],
             'transaction_id'   => $rawPaymentResponseData['TransId'],
-            'transaction_time' => (self::TX_APPROVED === $status) ? new \DateTimeImmutable() : null,
+            'transaction_time' => (self::TX_APPROVED === $status) ? $this->valueFormatter->formatDateTime('now', $txType) : null,
             'auth_code'        => $rawPaymentResponseData['AuthCode'],
             'currency'         => $order['currency'],
             'amount'           => $order['amount'],
@@ -93,7 +93,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $threeDAuthStatus    = $this->is3dAuthSuccess($mdStatus) ? self::TX_APPROVED : self::TX_DECLINED;
         $paymentResponseData = [];
 
-        $mapped3DResponseData = $this->map3DCommonResponseData($raw3DAuthResponseData);
+        $mapped3DResponseData = $this->map3DCommonResponseData($raw3DAuthResponseData, $txType);
 
         /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
         $txType = $mapped3DResponseData['transaction_type'] ?? $txType;
@@ -154,7 +154,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             'all'              => $raw3DAuthResponseData,
         ];
 
-        $commonThreeDResponseData = $this->map3DCommonResponseData($raw3DAuthResponseData);
+        $commonThreeDResponseData = $this->map3DCommonResponseData($raw3DAuthResponseData, $txType);
         /** @var PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType */
         $txType = $commonThreeDResponseData['transaction_type'];
         /** @var PosInterface::MODEL_3D_* $paymentModel */
@@ -221,6 +221,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
+        $txType          = PosInterface::TX_TYPE_STATUS;
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
 
@@ -234,9 +235,9 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['proc_return_code']  = $procReturnCode;
         $defaultResponse['order_id']          = $rawResponseData['OrderId'];
         $defaultResponse['org_order_id']      = $rawResponseData['OrgOrderId'];
-        $defaultResponse['installment_count'] = $this->mapInstallment($rawResponseData['InstallmentCount']);
-        $defaultResponse['transaction_type']  = $this->mapTxType($rawResponseData['TxnType']);
-        $defaultResponse['currency']          = $this->mapCurrency($rawResponseData['Currency']);
+        $defaultResponse['installment_count'] = $this->valueFormatter->formatInstallment($rawResponseData['InstallmentCount'], $txType);
+        $defaultResponse['transaction_type']  = $this->valueMapper->mapTxType($rawResponseData['TxnType']);
+        $defaultResponse['currency']          = $this->valueMapper->mapCurrency($rawResponseData['Currency'], $txType);
         $defaultResponse['status']            = $status;
         $defaultResponse['status_detail']     = $this->getStatusDetail($procReturnCode);
 
@@ -246,8 +247,8 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
             $defaultResponse['ref_ret_num'] = $rawResponseData['HostRefNum'];
 
             $defaultResponse['masked_number']    = $rawResponseData['CardMask'];
-            $defaultResponse['first_amount']     = $this->formatAmount($rawResponseData['PurchAmount']);
-            $defaultResponse['transaction_time'] = new \DateTimeImmutable($rawResponseData['InsertDatetime']);
+            $defaultResponse['first_amount']     = $this->valueFormatter->formatAmount($rawResponseData['PurchAmount'], $txType);
+            $defaultResponse['transaction_time'] = $this->valueFormatter->formatDateTime($rawResponseData['InsertDatetime'], $txType);
             $defaultResponse['capture']          = false;
             if (\in_array(
                 $defaultResponse['transaction_type'],
@@ -264,11 +265,11 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
                 // ex:
                 // VoidDate: 20240119
                 // VoidTime: 213405
-                $defaultResponse['cancel_time'] = new \DateTimeImmutable($rawResponseData['VoidDate'].'T'.$rawResponseData['VoidTime']);
+                $defaultResponse['cancel_time'] = $this->valueFormatter->formatDateTime($rawResponseData['VoidDate'].'T'.$rawResponseData['VoidTime'], $txType);
             }
 
             if ($rawResponseData['RefundedAmount'] > 0) {
-                $defaultResponse['refund_amount'] = $this->formatAmount($rawResponseData['RefundedAmount']);
+                $defaultResponse['refund_amount'] = $this->valueFormatter->formatAmount($rawResponseData['RefundedAmount'], PosInterface::TX_TYPE_STATUS);
             }
 
 
@@ -485,11 +486,12 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
     /**
      * returns mapped data of the common response data among all 3d models.
      *
-     * @param array<string, string> $raw3DAuthResponseData
+     * @param array<string, string>       $raw3DAuthResponseData
+     * @param PosInterface::TX_TYPE_PAY_* $txType
      *
      * @return array<string, mixed>
      */
-    private function map3DCommonResponseData(array $raw3DAuthResponseData): array
+    private function map3DCommonResponseData(array $raw3DAuthResponseData, string $txType): array
     {
         $procReturnCode   = $this->getProcReturnCode($raw3DAuthResponseData);
         $mdStatus         = $this->extractMdStatus($raw3DAuthResponseData);
@@ -497,11 +499,11 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 
         $result = [
             'transaction_security' => null,
-            'transaction_type'     => $this->mapTxType($raw3DAuthResponseData['TxnType']),
-            'payment_model'        => $this->mapSecurityType($raw3DAuthResponseData['SecureType']),
+            'transaction_type'     => $this->valueMapper->mapTxType($raw3DAuthResponseData['TxnType']),
+            'payment_model'        => $this->valueMapper->mapSecureType($raw3DAuthResponseData['SecureType'], $txType),
             'masked_number'        => $raw3DAuthResponseData['CardMask'],
-            'amount'               => $this->formatAmount($raw3DAuthResponseData['PurchAmount']),
-            'currency'             => $this->mapCurrency($raw3DAuthResponseData['Currency']),
+            'amount'               => $this->valueFormatter->formatAmount($raw3DAuthResponseData['PurchAmount'], $txType),
+            'currency'             => $this->valueMapper->mapCurrency($raw3DAuthResponseData['Currency'], $txType),
             'tx_status'            => $raw3DAuthResponseData['TxnResult'],
             'md_status'            => $mdStatus,
             'md_error_code'        => (self::TX_DECLINED === $threeDAuthStatus) ? $procReturnCode : null,
@@ -511,8 +513,8 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         ];
 
         if (self::TX_APPROVED === $threeDAuthStatus) {
-            $result['installment_count'] = $this->mapInstallment($raw3DAuthResponseData['InstallmentCount']);
-            $result['transaction_time']  = new \DateTimeImmutable($raw3DAuthResponseData['TransactionDate']);
+            $result['installment_count'] = $this->valueFormatter->formatInstallment($raw3DAuthResponseData['InstallmentCount'], $txType);
+            $result['transaction_time']  = $this->valueFormatter->formatDateTime($raw3DAuthResponseData['TransactionDate'], $txType);
             $result['batch_num']         = $raw3DAuthResponseData['BatchNo'];
         }
 
@@ -530,6 +532,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
      */
     private function mapSingleOrderHistoryTransaction(array $rawTx): array
     {
+        $txType         = PosInterface::TX_TYPE_ORDER_HISTORY;
         $procReturnCode = $this->getProcReturnCode($rawTx);
         $status         = self::TX_DECLINED;
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
@@ -542,16 +545,16 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
         $defaultResponse['status']           = $status;
         $defaultResponse['status_detail']    = $this->getStatusDetail($procReturnCode);
         $defaultResponse['error_code']       = self::TX_APPROVED === $status ? null : $procReturnCode;
-        $defaultResponse['transaction_type'] = $this->mapTxType((string) $rawTx['TxnType']);
-        $defaultResponse['currency']         = null !== $rawTx['Currency'] ? $this->mapCurrency($rawTx['Currency']) : null;
+        $defaultResponse['transaction_type'] = $this->valueMapper->mapTxType((string) $rawTx['TxnType']);
+        $defaultResponse['currency']         = null !== $rawTx['Currency'] ? $this->valueMapper->mapCurrency($rawTx['Currency'], $txType) : null;
 
         if (self::TX_APPROVED === $status) {
             $orderStatus                         = null;
             $defaultResponse['auth_code']        = $rawTx['AuthCode'] ?? null;
             $defaultResponse['ref_ret_num']      = $rawTx['HostRefNum'] ?? null;
             $defaultResponse['masked_number']    = $rawTx['CardMask'];
-            $defaultResponse['first_amount']     = null !== $rawTx['PurchAmount'] ? $this->formatAmount($rawTx['PurchAmount']) : null;
-            $defaultResponse['transaction_time'] = null !== $rawTx['InsertDatetime'] ? new \DateTimeImmutable($rawTx['InsertDatetime']) : null;
+            $defaultResponse['first_amount']     = null !== $rawTx['PurchAmount'] ? $this->valueFormatter->formatAmount($rawTx['PurchAmount'], $txType) : null;
+            $defaultResponse['transaction_time'] = null !== $rawTx['InsertDatetime'] ? $this->valueFormatter->formatDateTime($rawTx['InsertDatetime'], $txType) : null;
             if (\in_array(
                 $defaultResponse['transaction_type'],
                 [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_POST_AUTH],
@@ -579,7 +582,7 @@ class PayForPosResponseDataMapper extends AbstractResponseDataMapper
      */
     private function mapSingleHistoryTransaction(array $rawTx): array
     {
-        $mappedTx = $this->mapSingleOrderHistoryTransaction($rawTx);
+        $mappedTx             = $this->mapSingleOrderHistoryTransaction($rawTx);
         $mappedTx['order_id'] = $rawTx['OrderId'];
 
         return $mappedTx;
