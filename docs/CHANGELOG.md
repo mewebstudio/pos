@@ -1,4 +1,23 @@
 # Changelog
+## [1.6.0] - 2025-02-19
+
+### New Features
+- Param POS altyapı desteği eklendi. (issue #258)
+
+### Changed
+- Kütüphanenin bazı hatalı kullanım durumlarını önlemek için
+  `\Mews\Pos\PosInterface::get3DFormData()` method'a yeni parametre eklendi.
+- **Hash** hesaplama fonksiyonları ve fonksiyonların kullanıldığı yerler refactor edildi.
+- Bankadan gelen response'un XML'mi veya HTML'mi olduğu kontrolü iyileştirildi.
+- PayFlexCPV4 - `gateway_endpoints` konfigurasyonu değiştirildi ve `query_api` değer kaldırıldı.
+
+### Fixed
+- issue #254 - **KuveytPos** ve **VakifKatilim** undefined index _MerchantOrderId_ hatası.
+- issue #249 - **AkbankPos** amount alanı patterne uymuyor hatası.
+- PayFlexCPV4 - response'i decode edememe sorunu.
+- PayFlexCPV4 - hatalı 3D ödemenin durumunu sorgulama isteği göndermesi.
+
+# Changelog
 ## [1.5.0] - 2024-11-11
 
 ### New Features
