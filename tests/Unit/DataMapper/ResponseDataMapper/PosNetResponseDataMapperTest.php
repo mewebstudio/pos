@@ -7,11 +7,9 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Factory\RequestValueMapperFactory;
-use Mews\Pos\Factory\ResponseValueFormatterFactory;
-use Mews\Pos\Factory\ResponseValueMapperFactory;
-use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -28,18 +26,24 @@ class PosNetResponseDataMapperTest extends TestCase
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
 
+    /** @var ResponseValueFormatterInterface & MockObject */
+    private ResponseValueFormatterInterface $responseValueFormatter;
+
+    /** @var ResponseValueMapperInterface & MockObject */
+    private ResponseValueMapperInterface $responseValueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
+
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = RequestValueMapperFactory::createForGateway(PosNet::class);
-        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(PosNet::class, $requestValueMapper);
-        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(PosNet::class);
+        $this->responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $this->responseValueMapper    = $this->createMock(ResponseValueMapperInterface::class);
 
         $this->responseDataMapper = new PosNetResponseDataMapper(
-            $responseValueFormatter,
-            $responseValueMapper,
+            $this->responseValueFormatter,
+            $this->responseValueMapper,
             $this->logger
         );
     }
@@ -77,20 +81,22 @@ class PosNetResponseDataMapperTest extends TestCase
      */
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        if (isset($expectedData['transaction_time'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with('now', $txType)
+                ->willReturn($expectedData['transaction_time']);
         }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
         $this->assertNotEmpty($actualData['all']);
         unset($actualData['all']);
 
+        \ksort($actualData);
+        \ksort($expectedData);
         $this->assertSame($expectedData, $actualData);
     }
 
@@ -99,19 +105,31 @@ class PosNetResponseDataMapperTest extends TestCase
      */
     public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData): void
     {
+        if (isset($threeDResponseData['oosResolveMerchantDataResponse'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatAmount')
+                ->with($threeDResponseData['oosResolveMerchantDataResponse']['amount'], $txType)
+                ->willReturn($expectedData['amount']);
+
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapCurrency')
+                ->with($threeDResponseData['oosResolveMerchantDataResponse']['currency'], $txType)
+                ->willReturn($expectedData['currency']);
+        }
+
+        if (isset($expectedData['transaction_time'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with('now', $txType)
+                ->willReturn($expectedData['transaction_time']);
+        }
+
         $actualData = $this->responseDataMapper->map3DPaymentData(
             $threeDResponseData,
             $paymentResponse,
             $txType,
             $order
         );
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        }
-
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         if ([] !== $paymentResponse) {
@@ -134,15 +152,30 @@ class PosNetResponseDataMapperTest extends TestCase
      */
     public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
+        if (isset($responseData['transactions']['transaction'])) {
+            $txType = PosInterface::TX_TYPE_STATUS;
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatAmount')
+                ->with($responseData['transactions']['transaction']['amount'], $txType)
+                ->willReturn($expectedData['first_amount']);
+
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapCurrency')
+                ->with($responseData['transactions']['transaction']['currencyCode'], $txType)
+                ->willReturn($expectedData['currency']);
+
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($responseData['transactions']['transaction']['tranDate'], $txType)
+                ->willReturn($expectedData['transaction_time']);
+
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapTxType')
+                ->with($responseData['transactions']['transaction']['state'])
+                ->willReturn($expectedData['transaction_type']);
+        }
+
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
-        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
-        $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
-        $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
-        unset($actualData['capture_time'], $expectedData['capture_time']);
-        unset($actualData['refund_time'], $expectedData['refund_time']);
-        unset($actualData['cancel_time'], $expectedData['cancel_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -159,6 +192,13 @@ class PosNetResponseDataMapperTest extends TestCase
      */
     public function testMapRefundResponse(array $responseData, array $expectedData): void
     {
+        if (isset($responseData['state'])) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapTxType')
+                ->with($responseData['state'])
+                ->willReturn($expectedData['transaction_type']);
+        }
+
         $actualData = $this->responseDataMapper->mapRefundResponse($responseData);
 
         $this->assertArrayHasKey('all', $actualData);

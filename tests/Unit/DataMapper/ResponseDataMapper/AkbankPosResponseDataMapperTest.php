@@ -7,6 +7,8 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\ResponseDataMapper\AkbankPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueFormatterFactory;
 use Mews\Pos\Factory\ResponseValueMapperFactory;
@@ -27,19 +29,24 @@ class AkbankPosResponseDataMapperTest extends TestCase
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
 
+    /** @var ResponseValueFormatterInterface & MockObject */
+    private ResponseValueFormatterInterface $responseValueFormatter;
+
+    /** @var ResponseValueMapperInterface & MockObject */
+    private ResponseValueMapperInterface $responseValueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = RequestValueMapperFactory::createForGateway(AkbankPos::class);
-        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(AkbankPos::class, $requestValueMapper);
-        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(AkbankPos::class);
+        $this->responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $this->responseValueMapper = $this->createMock(ResponseValueMapperInterface::class);
 
         $this->responseDataMapper = new AkbankPosResponseDataMapper(
-            $responseValueFormatter,
-            $responseValueMapper,
+            $this->responseValueFormatter,
+            $this->responseValueMapper,
             $this->logger
         );
     }
@@ -71,14 +78,19 @@ class AkbankPosResponseDataMapperTest extends TestCase
      */
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($responseData['txnDateTime'], $txType)
+                ->willReturn($expectedData['transaction_time']);
         }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapTxType')
+            ->with($responseData['txnCode'])
+            ->willReturn($expectedData['transaction_type']);
+
+        $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -95,19 +107,30 @@ class AkbankPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $responseData, array $expectedData): void
     {
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($responseData['txnDateTime'], $txType)
+                ->willReturn($expectedData['transaction_time']);
+        }
+
+        if (isset($responseData['txnCode'])) {
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapTxType')
+                ->with($responseData['txnCode'])
+                ->willReturn($expectedData['transaction_type']);
+        }
+
         $actualData = $this->responseDataMapper->map3DPaymentData(
             $threeDResponseData,
             $responseData,
             $txType,
             $order
         );
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
 
         $this->assertArrayHasKey('all', $actualData);
         if ([] !== $responseData) {
@@ -130,14 +153,22 @@ class AkbankPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($responseData['txnDateTime'], $txType)
+                ->willReturn($expectedData['transaction_time']);
         }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $this->responseValueMapper->expects($this->never())
+            ->method('mapTxType')
+            ->with($responseData['txnCode']);
+
+        $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
+
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -154,14 +185,22 @@ class AkbankPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($responseData['txnDateTime'], $txType)
+                ->willReturn($expectedData['transaction_time']);
         }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $this->responseValueMapper->expects($this->never())
+            ->method('mapTxType')
+            ->with($responseData['txnCode']);
+
+        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
+
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->assertSame($expectedData['transaction_time'], $actualData['transaction_time']);
+        }
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -208,11 +247,20 @@ class AkbankPosResponseDataMapperTest extends TestCase
     }
 
     /**
+     * Doing integration test because of the iteration, sorting and conditional statements it is difficult to mock values.
      * @dataProvider orderHistoryDataProvider
      */
     public function testMapOrderHistoryResponse(array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
+        $requestValueMapper = RequestValueMapperFactory::createForGateway(AkbankPos::class);
+        $responseDataMapper = new AkbankPosResponseDataMapper(
+            ResponseValueFormatterFactory::createForGateway(AkbankPos::class),
+            ResponseValueMapperFactory::createForGateway(AkbankPos::class, $requestValueMapper),
+            $this->logger
+        );
+
+        $actualData = $responseDataMapper->mapOrderHistoryResponse($responseData);
+
         if (isset($responseData['txnDetailList'])) {
             $this->assertCount($actualData['trans_count'], $actualData['transactions']);
 
@@ -310,7 +358,7 @@ class AkbankPosResponseDataMapperTest extends TestCase
                 'payment_model'     => 'regular',
                 'transaction_id'    => null,
                 'transaction_type'  => 'pay',
-                'transaction_time'  => new \DateTimeImmutable('2022-03-01T09:29:23.851'),
+                'transaction_time'  => new \DateTimeImmutable('2022-03-01T09:29:23'),
                 'auth_code'         => '064716',
                 'order_id'          => 'b9ebfdc5-304f-49c2-8065-a2c7481a5d1f',
                 'recurring_id'      => null,
@@ -2710,7 +2758,5 @@ class AkbankPosResponseDataMapperTest extends TestCase
             ],
             'expectedTxCount' => 0,
         ];
-
-
     }
 }

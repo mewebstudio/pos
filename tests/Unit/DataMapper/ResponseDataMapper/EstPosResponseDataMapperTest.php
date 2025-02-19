@@ -7,6 +7,9 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueFormatterFactory;
@@ -28,19 +31,24 @@ class EstPosResponseDataMapperTest extends TestCase
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
 
+    /** @var ResponseValueFormatterInterface & MockObject */
+    private ResponseValueFormatterInterface $responseValueFormatter;
+
+    /** @var ResponseValueMapperInterface & MockObject */
+    private ResponseValueMapperInterface $responseValueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper     = RequestValueMapperFactory::createForGateway(EstV3Pos::class);
-        $responseValueMapper    = ResponseValueMapperFactory::createForGateway(EstV3Pos::class, $requestValueMapper);
-        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway(EstV3Pos::class);
+        $this->responseValueFormatter = $this->createMock(ResponseValueFormatterInterface::class);
+        $this->responseValueMapper    = $this->createMock(ResponseValueMapperInterface::class);
 
         $this->responseDataMapper = new EstPosResponseDataMapper(
-            $responseValueFormatter,
-            $responseValueMapper,
+            $this->responseValueFormatter,
+            $this->responseValueMapper,
             $this->logger
         );
     }
@@ -79,9 +87,17 @@ class EstPosResponseDataMapperTest extends TestCase
      */
     public function testMapPaymentResponse(array $order, string $txType, array $responseData, array $expectedData): void
     {
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($responseData['Extra']['TRXDATE'], $txType)
+                ->willReturn($expectedData['transaction_time']);
+        }
+
+        $this->responseValueMapper->expects($this->never())
+            ->method('mapTxType');
+
         $actualData = $this->responseDataMapper->mapPaymentResponse($responseData, $txType, $order);
-        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -98,14 +114,39 @@ class EstPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DPaymentData(array $order, string $txType, array $threeDResponseData, array $paymentResponse, array $expectedData): void
     {
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatAmount')
+            ->with($threeDResponseData['amount'], $txType)
+            ->willReturn($expectedData['amount']);
+
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatInstallment')
+            ->with($threeDResponseData['taksit'], $txType)
+            ->willReturn($expectedData['installment_count']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapCurrency')
+            ->with($threeDResponseData['currency'], $txType)
+            ->willReturn($expectedData['currency']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapSecureType')
+            ->with($threeDResponseData['storetype'], $txType)
+            ->willReturn($expectedData['payment_model']);
+
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($paymentResponse['Extra']['TRXDATE'], $txType)
+                ->willReturn($expectedData['transaction_time']);
+        }
+
         $actualData = $this->responseDataMapper->map3DPaymentData(
             $threeDResponseData,
             $paymentResponse,
             $txType,
             $order,
         );
-        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         if ([] !== $paymentResponse) {
@@ -128,9 +169,34 @@ class EstPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DPayResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatAmount')
+            ->with($responseData['amount'], $txType)
+            ->willReturn($expectedData['amount']);
+
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatInstallment')
+            ->with($responseData['taksit'], $txType)
+            ->willReturn($expectedData['installment_count']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapCurrency')
+            ->with($responseData['currency'], $txType)
+            ->willReturn($expectedData['currency']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapSecureType')
+            ->with($responseData['storetype'], $txType)
+            ->willReturn($expectedData['payment_model']);
+
+        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with($responseData['EXTRA_TRXDATE'], $txType)
+                ->willReturn($expectedData['transaction_time']);
+        }
+
         $actualData = $this->responseDataMapper->map3DPayResponseData($responseData, $txType, $order);
-        $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -147,14 +213,34 @@ class EstPosResponseDataMapperTest extends TestCase
      */
     public function testMap3DHostResponseData(array $order, string $txType, array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
-        if ($expectedData['transaction_time'] instanceof \DateTimeImmutable && $actualData['transaction_time'] instanceof \DateTimeImmutable) {
-            $this->assertSame($expectedData['transaction_time']->format('Ymd'), $actualData['transaction_time']->format('Ymd'));
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatAmount')
+            ->with($responseData['amount'], $txType)
+            ->willReturn($expectedData['amount']);
+
+        $this->responseValueFormatter->expects($this->once())
+            ->method('formatInstallment')
+            ->with($responseData['taksit'], $txType)
+            ->willReturn($expectedData['installment_count']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapCurrency')
+            ->with($responseData['currency'], $txType)
+            ->willReturn($expectedData['currency']);
+
+        $this->responseValueMapper->expects($this->once())
+            ->method('mapSecureType')
+            ->with($responseData['storetype'], $txType)
+            ->willReturn($expectedData['payment_model']);
+
+        if (isset($expectedData['transaction_time'])) {
+            $this->responseValueFormatter->expects($this->once())
+                ->method('formatDateTime')
+                ->with('now', $txType)
+                ->willReturn($expectedData['transaction_time']);
         }
 
-        unset($actualData['transaction_time'], $expectedData['transaction_time']);
+        $actualData = $this->responseDataMapper->map3DHostResponseData($responseData, $txType, $order);
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -171,28 +257,114 @@ class EstPosResponseDataMapperTest extends TestCase
      */
     public function testMapStatusResponse(array $responseData, array $expectedData): void
     {
+        if (ResponseDataMapperInterface::TX_APPROVED === $expectedData['status']) {
+            $amountMatcher = $this->exactly($responseData['Extra']['CAPTURE_AMT'] ? 2 : 1);
+            $txType = PosInterface::TX_TYPE_STATUS;
+            $this->responseValueFormatter->expects($amountMatcher)
+                ->method('formatAmount')
+                ->with($this->callback(function ($amount) use ($amountMatcher, $responseData) {
+                    if ($amountMatcher->getInvocationCount() === 1) {
+                        return $amount === $responseData['Extra']['ORIG_TRANS_AMT'];
+                    }
+                    if ($amountMatcher->getInvocationCount() === 2) {
+                        return $amount === $responseData['Extra']['CAPTURE_AMT'];
+                    }
+
+                    return false;
+                }), $txType)
+                ->willReturnCallback(
+                    function () use ($amountMatcher, $expectedData) {
+                        if ($amountMatcher->getInvocationCount() === 1) {
+                            return $expectedData['first_amount'];
+                        }
+                        if ($amountMatcher->getInvocationCount() === 2) {
+                            return $expectedData['capture_amount'];
+                        }
+
+                        return false;
+                    }
+                );
+
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapTxType')
+                ->with($responseData['Extra']['CHARGE_TYPE_CD'])
+                ->willReturn($expectedData['transaction_type']);
+
+            $this->responseValueMapper->expects($this->once())
+                ->method('mapOrderStatus')
+                ->with($responseData['Extra']['TRANS_STAT'])
+                ->willReturn($expectedData['order_status']);
+
+            $dateTimeMatcher = $this->atLeastOnce();
+            $dates           = ['AUTH_DTTM', 'CAPTURE_DTTM', 'VOID_DTTM'];
+            $this->responseValueFormatter->expects($dateTimeMatcher)
+                ->method('formatDateTime')
+                ->with($this->callback(function ($dateTime) use (&$dates, $responseData) {
+                    if (isset($responseData['Extra'][$dates[0]])) {
+                        $dateKey = $dates[0];
+                        $dates   = array_slice($dates, 1);
+
+                        return $dateTime === $responseData['Extra'][$dateKey];
+                    }
+
+                    return false;
+                }), $txType)
+                ->willReturnCallback(
+                    function () use ($dateTimeMatcher, $expectedData) {
+                        if ($dateTimeMatcher->getInvocationCount() === 1) {
+                            return $expectedData['transaction_time'];
+                        }
+                        if ($dateTimeMatcher->getInvocationCount() === 2) {
+                            return $expectedData['capture_time'];
+                        }
+                        if ($dateTimeMatcher->getInvocationCount() === 3) {
+                            return $expectedData['cancel_time'];
+                        }
+
+                        return false;
+                    }
+                );
+        }
+
         $actualData = $this->responseDataMapper->mapStatusResponse($responseData);
 
-        if (isset($actualData['recurringOrders'])) {
-            foreach ($actualData['recurringOrders'] as $key => $actualRecurringOrder) {
-                $expectedRecurringOrder = $expectedData['recurringOrders'][$key];
-                \ksort($expectedData['recurringOrders'][$key]);
-                \ksort($actualData['recurringOrders'][$key]);
-                $this->assertEquals($expectedRecurringOrder['transaction_time'], $actualRecurringOrder['transaction_time']);
-                $this->assertEquals($expectedRecurringOrder['capture_time'], $actualRecurringOrder['capture_time']);
-                unset($actualData['recurringOrders'][$key]['transaction_time'], $expectedData['recurringOrders'][$key]['transaction_time']);
-                unset($actualData['recurringOrders'][$key]['capture_time'], $expectedData['recurringOrders'][$key]['capture_time']);
-            }
-        } else {
-            $this->assertEquals($expectedData['transaction_time'], $actualData['transaction_time']);
-            $this->assertEquals($expectedData['capture_time'], $actualData['capture_time']);
-            $this->assertEquals($expectedData['refund_time'], $actualData['refund_time']);
-            $this->assertEquals($expectedData['cancel_time'], $actualData['cancel_time']);
-            unset($actualData['transaction_time'], $expectedData['transaction_time']);
-            unset($actualData['capture_time'], $expectedData['capture_time']);
-            unset($actualData['cancel_time'], $expectedData['cancel_time']);
-            unset($actualData['refund_time'], $expectedData['refund_time']);
+        $this->assertArrayHasKey('all', $actualData);
+        $this->assertIsArray($actualData['all']);
+        $this->assertNotEmpty($actualData['all']);
+        unset($actualData['all']);
+
+        \ksort($expectedData);
+        \ksort($actualData);
+
+        $this->assertSame($expectedData, $actualData);
+    }
+
+
+    /**
+     * Doing integration test because of the iteration, and conditional statements it is difficult to mock values.
+     * @dataProvider statusRecurringOrderTestDataProvider
+     */
+    public function testMapStatusResponseRecurringOrder(array $responseData, array $expectedData): void
+    {
+        $requestValueMapper = RequestValueMapperFactory::createForGateway(EstV3Pos::class);
+        $responseDataMapper = new EstPosResponseDataMapper(
+            ResponseValueFormatterFactory::createForGateway(EstV3Pos::class),
+            ResponseValueMapperFactory::createForGateway(EstV3Pos::class, $requestValueMapper),
+            $this->logger
+        );
+
+        $actualData = $responseDataMapper->mapStatusResponse($responseData);
+
+        foreach ($actualData['recurringOrders'] as $key => $actualRecurringOrder) {
+            $expectedRecurringOrder = $expectedData['recurringOrders'][$key];
+            \ksort($expectedData['recurringOrders'][$key]);
+            \ksort($actualData['recurringOrders'][$key]);
+            $this->assertEquals($expectedRecurringOrder['transaction_time'], $actualRecurringOrder['transaction_time']);
+            $this->assertEquals($expectedRecurringOrder['capture_time'], $actualRecurringOrder['capture_time']);
+            unset($actualData['recurringOrders'][$key]['transaction_time'], $expectedData['recurringOrders'][$key]['transaction_time']);
+            unset($actualData['recurringOrders'][$key]['capture_time'], $expectedData['recurringOrders'][$key]['capture_time']);
         }
+
 
         $this->assertArrayHasKey('all', $actualData);
         $this->assertIsArray($actualData['all']);
@@ -236,11 +408,19 @@ class EstPosResponseDataMapperTest extends TestCase
     }
 
     /**
+     * Doing integration test because of the iteration, sorting and conditional statements it is difficult to mock values.
      * @dataProvider orderHistoryTestDataProvider
      */
     public function testMapOrderHistoryResponse(array $responseData, array $expectedData): void
     {
-        $actualData = $this->responseDataMapper->mapOrderHistoryResponse($responseData);
+        $requestValueMapper = RequestValueMapperFactory::createForGateway(EstV3Pos::class);
+        $responseDataMapper = new EstPosResponseDataMapper(
+            ResponseValueFormatterFactory::createForGateway(EstV3Pos::class),
+            ResponseValueMapperFactory::createForGateway(EstV3Pos::class, $requestValueMapper),
+            $this->logger
+        );
+
+        $actualData = $responseDataMapper->mapOrderHistoryResponse($responseData);
         if (count($responseData['Extra']) > 0) {
             if (count($actualData['transactions']) > 1
                 && null !== $actualData['transactions'][0]['transaction_time']
@@ -1281,7 +1461,7 @@ class EstPosResponseDataMapperTest extends TestCase
     public static function statusTestDataProvider(): array
     {
         return [
-            'success1'               => [
+            'success1'              => [
                 'responseData' => [
                     'ErrMsg'         => 'Record(s) found for 20221030FAC5',
                     'ProcReturnCode' => '00',
@@ -1337,7 +1517,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'installment_count' => null,
                 ],
             ],
-            'fail1'                  => [
+            'fail1'                 => [
                 'responseData' => [
                     'ErrMsg'         => 'No record found for 2022103088D22',
                     'ProcReturnCode' => '99',
@@ -1374,7 +1554,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'installment_count' => null,
                 ],
             ],
-            'pay_order_status'       => [
+            'pay_order_status'      => [
                 'responseData' => [
                     'ErrMsg'         => 'Record(s) found for 2024010354F1',
                     'ProcReturnCode' => '00',
@@ -1430,7 +1610,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'installment_count' => null,
                 ],
             ],
-            'pre_pay_order_status'   => [
+            'pre_pay_order_status'  => [
                 'responseData' => [
                     'ErrMsg'         => 'Record(s) found for 202401032AF3',
                     'ProcReturnCode' => '00',
@@ -1486,7 +1666,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'installment_count' => null,
                 ],
             ],
-            'canceled_order_status'  => [
+            'canceled_order_status' => [
                 'responseData' => [
                     'ErrMsg'         => 'Record(s) found for 20240103BBF9',
                     'ProcReturnCode' => '00',
@@ -1543,7 +1723,7 @@ class EstPosResponseDataMapperTest extends TestCase
                     'installment_count' => null,
                 ],
             ],
-            'refund_order_status'    => [
+            'refund_order_status'   => [
                 'responseData' => [
                     'ErrMsg'         => 'Record(s) found for 20240128C0B7',
                     'ProcReturnCode' => '00',
@@ -1599,6 +1779,12 @@ class EstPosResponseDataMapperTest extends TestCase
                     'installment_count' => null,
                 ],
             ],
+        ];
+    }
+
+    public static function statusRecurringOrderTestDataProvider(): array
+    {
+        return [
             'recurring_order_status' => [
                 'responseData' => [
                     'ErrMsg' => 'Record(s) found for 22303O8EA19252',
