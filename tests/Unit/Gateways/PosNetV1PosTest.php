@@ -245,7 +245,7 @@ class PosNetV1PosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Auth',
+                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
                 $create3DPaymentRequestData,
                 'request-body',
                 'response-body',
