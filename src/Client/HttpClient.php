@@ -14,7 +14,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 /**
- * @phpstan-type PostPayload array{body?: array<string, string>|string, headers?: array<string, string>, form_params?: array<string, string>}
+ * @phpstan-type PostPayload array{body: string, headers?: array<string, string>}
  * PSR18 HTTP Client wrapper
  */
 class HttpClient
@@ -41,32 +41,32 @@ class HttpClient
     }
 
     /**
-     * @phpstan-param PostPayload|null $payload
+     * @phpstan-param PostPayload $payload
      *
-     * @param string     $path
-     * @param array|null $payload
+     * @param string $path
+     * @param array  $payload
      *
      * @return ResponseInterface
      *
      * @throws ClientExceptionInterface
      */
-    public function post(string $path, ?array $payload = []): ResponseInterface
+    public function post(string $path, array $payload): ResponseInterface
     {
         return $this->send('POST', $path, $payload);
     }
 
     /**
-     * @phpstan-param PostPayload|null $payload
+     * @phpstan-param PostPayload $payload
      *
-     * @param string     $method
-     * @param string     $path
-     * @param array|null $payload
+     * @param string $method
+     * @param string $path
+     * @param array  $payload
      *
      * @return ResponseInterface
      *
      * @throws ClientExceptionInterface
      */
-    private function send(string $method, string $path, ?array $payload = []): ResponseInterface
+    private function send(string $method, string $path, array $payload): ResponseInterface
     {
         $request = $this->createRequest($method, $path, $payload);
 
@@ -74,26 +74,18 @@ class HttpClient
     }
 
     /**
-     * @phpstan-param PostPayload|null $payload
+     * @phpstan-param PostPayload $payload
      *
-     * @param array|null $payload
+     * @param array $payload
      *
      * @return RequestInterface
      */
-    private function createRequest(string $method, string $url, ?array $payload = []): RequestInterface
+    private function createRequest(string $method, string $url, array $payload): RequestInterface
     {
         $request = $this->requestFactory->createRequest($method, $url);
 
         if ('POST' === $method) {
-            $body = null;
-            if (isset($payload['form_params'])) {
-                $request         = $request->withHeader('Content-Type', 'application/x-www-form-urlencoded');
-                $payload['body'] = \http_build_query($payload['form_params']);
-            }
-
-            if (isset($payload['body'])) {
-                $body = $this->streamFactory->createStream($payload['body']);
-            }
+            $body = $this->streamFactory->createStream($payload['body']);
 
             $request = $request->withBody($body);
         }

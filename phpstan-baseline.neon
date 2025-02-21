@@ -1,18 +1,6 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Parameter \#1 \$body of method Psr\\Http\\Message\\MessageInterface\:\:withBody\(\) expects Psr\\Http\\Message\\StreamInterface, Psr\\Http\\Message\\StreamInterface\|null given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Client/HttpClient.php
-
-		-
-			message: '#^Parameter \#1 \$content of method Psr\\Http\\Message\\StreamFactoryInterface\:\:createStream\(\) expects string, array\<string, string\>\|string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: src/Client/HttpClient.php
-
-		-
 			message: '#^Default value of the parameter \#3 \$order \(array\{\}\) of method Mews\\Pos\\Crypt\\PosNetCrypt\:\:createHash\(\) is incompatible with type array\{amount\: int, currency\: string, id\: string\}\.$#'
 			identifier: parameter.defaultValue
 			count: 1

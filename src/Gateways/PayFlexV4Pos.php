@@ -18,6 +18,8 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
+use Mews\Pos\Serializer\SerializerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -211,15 +213,28 @@ class PayFlexV4Pos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
 
-        $isXML = \is_string($contents);
+        if ($encodedData->getFormat() !== SerializerInterface::FORMAT_FORM) {
+            $body = $this->serializer->encode(
+                ['prmstr' => $encodedData->getData()],
+                $txType,
+                SerializerInterface::FORMAT_FORM
+            )
+                ->getData();
+        } else {
+            $body = $encodedData->getData();
+        }
 
         $response = $this->client->post($url, [
-            'form_params' => $isXML ? ['prmstr' => $contents] : $contents,
+            'headers' => [
+                'Content-Type' => 'application/x-www-form-urlencoded',
+            ],
+            'body'    => $body,
         ]);
+
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
@@ -265,6 +280,8 @@ class PayFlexV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->send($requestData, $txType, PosInterface::MODEL_3D_SECURE, $this->get3DGatewayURL());
+        $encodedData = $this->serializer->encode($requestData, $txType, SerializerInterface::FORMAT_FORM);
+
+        return $this->send($encodedData, $txType, PosInterface::MODEL_3D_SECURE, $this->get3DGatewayURL());
     }
 }

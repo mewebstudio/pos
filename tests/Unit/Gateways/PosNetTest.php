@@ -24,6 +24,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\PosNetResponseDataMapperTest;
 use Mews\Pos\Tests\Unit\HttpClientTestTrait;
@@ -256,7 +257,7 @@ class PosNetTest extends TestCase
                 ->willReturn($create3DPaymentRequestData);
 
 
-            $matcher = self::exactly(2);
+            $matcher                          = self::exactly(2);
             $updatedRequestDataPreparedEvent1 = null;
             $updatedRequestDataPreparedEvent2 = null;
 
@@ -273,13 +274,13 @@ class PosNetTest extends TestCase
 
                     return true;
                 }), $this->callback(fn ($txT): bool => $txT === $txType))
-                ->willReturnCallback(function () use ($matcher): ?string {
+                ->willReturnCallback(function () use ($matcher): ?EncodedData {
                     if ($matcher->getInvocationCount() === 1) {
-                        return 'resolveMerchantRequestData-body';
+                        return new EncodedData('resolveMerchantRequestData-body', SerializerInterface::FORMAT_XML);
                     }
 
                     if ($matcher->getInvocationCount() === 2) {
-                        return 'payment-request-body';
+                        return new EncodedData('payment-request-body', SerializerInterface::FORMAT_XML);
                     }
 
                     return null;
@@ -315,13 +316,13 @@ class PosNetTest extends TestCase
                         'headers' => [
                             'Content-Type' => 'application/x-www-form-urlencoded',
                         ],
-                        'body'    => \sprintf('xmldata=%s', 'resolveMerchantRequestData-body'),
+                        'body'    => 'xmldata=resolveMerchantRequestData-body',
                     ],
                     [
                         'headers' => [
                             'Content-Type' => 'application/x-www-form-urlencoded',
                         ],
-                        'body'    => \sprintf('xmldata=%s', 'payment-request-body'),
+                        'body'    => 'xmldata=payment-request-body',
                     ],
                 ]
             );
@@ -368,7 +369,7 @@ class PosNetTest extends TestCase
                 ))
                 ->willReturnCallback(function () use ($matcher2, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2) {
                     if ($matcher2->getInvocationCount() === 1) {
-                        $updatedRequestData = $updatedRequestDataPreparedEvent1->getRequestData();
+                        $updatedRequestData                                        = $updatedRequestDataPreparedEvent1->getRequestData();
                         $updatedRequestData['test-update-request-data-with-event'] = true;
                         $updatedRequestDataPreparedEvent1->setRequestData($updatedRequestData);
 
@@ -376,7 +377,7 @@ class PosNetTest extends TestCase
                     }
 
                     if ($matcher2->getInvocationCount() === 2) {
-                        $updatedRequestData = $updatedRequestDataPreparedEvent2->getRequestData();
+                        $updatedRequestData                                        = $updatedRequestDataPreparedEvent2->getRequestData();
                         $updatedRequestData['test-update-request-data-with-event'] = true;
                         $updatedRequestDataPreparedEvent2->setRequestData($updatedRequestData);
 
@@ -421,7 +422,7 @@ class PosNetTest extends TestCase
     public function testMake3DPaymentHashMismatchException(): void
     {
         $resolveResponse = PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'];
-        $request = Request::create(
+        $request         = Request::create(
             '',
             'POST',
             $resolveResponse
@@ -663,8 +664,8 @@ class PosNetTest extends TestCase
      */
     public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
 
         $updatedRequestData = $requestData + [
                 'abc' => 'def',
@@ -821,7 +822,7 @@ class PosNetTest extends TestCase
     public static function threeDFormDataBadInputsProvider(): array
     {
         return [
-            '3d_secure_without_card'           => [
+            '3d_secure_without_card'    => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
@@ -839,7 +840,7 @@ class PosNetTest extends TestCase
                 'expectedExceptionClass' => \LogicException::class,
                 'expectedExceptionMsg'   => 'Mews\Pos\Gateways\PosNet ödeme altyapıda [pay] işlem tipi [3d, regular] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay].',
             ],
-            'non_payment_tx_type'              => [
+            'non_payment_tx_type'       => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_STATUS,
@@ -848,7 +849,7 @@ class PosNetTest extends TestCase
                 'expectedExceptionClass' => \LogicException::class,
                 'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay, pre]',
             ],
-            'post_auth_tx_type'                => [
+            'post_auth_tx_type'         => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_POST_AUTH,
@@ -870,12 +871,19 @@ class PosNetTest extends TestCase
         array  $order,
         string $paymentModel
     ): void {
-        $updatedRequestDataPreparedEvent = null;
+        $updatedRequestDataPreparedEvent                                            = null;
+        $updatedRequestDataPreparedEventData                                        = $requestData;
+        $updatedRequestDataPreparedEventData['test-update-request-data-with-event'] = true;
 
+        $xmlEncodedData = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_FORM);
         $this->serializerMock->expects(self::once())
             ->method('encode')
-            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+            ->with(
+                $updatedRequestDataPreparedEventData,
+                $txType,
+                null,
+            )
+        ->willReturn($xmlEncodedData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -890,7 +898,7 @@ class PosNetTest extends TestCase
                 'headers' => [
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 ],
-                'body'    => \sprintf('xmldata=%s', $encodedRequestData),
+                'body'    => \sprintf('xmldata=%s', $xmlEncodedData->getData()),
             ],
         );
 
@@ -910,10 +918,8 @@ class PosNetTest extends TestCase
                     }
                 )
             ))
-            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
-                $updatedRequestData['test-update-request-data-with-event'] = true;
-                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent, $updatedRequestDataPreparedEventData): ?\Mews\Pos\Event\RequestDataPreparedEvent {
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestDataPreparedEventData);
 
                 return $updatedRequestDataPreparedEvent;
             });
