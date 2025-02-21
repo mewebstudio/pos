@@ -35,9 +35,14 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, string $txType): string
+    public function encode(array $data, string $txType, ?string $format = self::FORMAT_FORM): EncodedData
     {
-        return \http_build_query($data);
+        $format ??= self::FORMAT_FORM;
+
+        return new EncodedData(
+            \http_build_query($data),
+            $format
+        );
     }
 
     /**

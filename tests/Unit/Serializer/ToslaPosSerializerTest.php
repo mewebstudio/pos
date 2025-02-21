@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Serializer;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Serializer\ToslaPosSerializer;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\ToslaPosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
@@ -42,11 +43,12 @@ class ToslaPosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $expected): void
+    public function testEncode(array $data, ?string $format, string $expectedFormat, $expected): void
     {
-        $result = $this->serializer->encode($data);
+        $result = $this->serializer->encode($data, null, $format);
 
-        $this->assertSame($expected, $result);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
 
@@ -64,8 +66,18 @@ class ToslaPosSerializerTest extends TestCase
     {
         return [
             [
-                'input'    => ToslaPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
-                'expected' => '{"clientId":"1000000494","apiUser":"POS_ENT_Test_001","callbackUrl":"https:\/\/domain.com\/success","orderId":"order222","amount":10025,"currency":949,"installmentCount":0,"rnd":"rand","timeSpan":"20231209214708","hash":"+XGO1qv+6W7nXZwSsYMaRrWXhi+99jffLvExGsFDodYyNadOG7OQKsygzly5ESDoNIS19oD2U+hSkVeT6UTAFA=="}',
+                'input'           => ToslaPosRequestDataMapperTest::paymentRegisterRequestDataProvider()[0]['expected'],
+                'format'          => null,
+                'expected_format' => SerializerInterface::FORMAT_JSON,
+                'expected'        => '{"clientId":"1000000494","apiUser":"POS_ENT_Test_001","callbackUrl":"https:\/\/domain.com\/success","orderId":"order222","amount":10025,"currency":949,"installmentCount":0,"rnd":"rand","timeSpan":"20231209214708","hash":"+XGO1qv+6W7nXZwSsYMaRrWXhi+99jffLvExGsFDodYyNadOG7OQKsygzly5ESDoNIS19oD2U+hSkVeT6UTAFA=="}',
+            ],
+            [
+                'input'           => [
+                    'an' => 'ac',
+                ],
+                'format'          => SerializerInterface::FORMAT_JSON,
+                'expected_format' => SerializerInterface::FORMAT_JSON,
+                'expected'        => '{"an":"ac"}',
             ],
         ];
     }

@@ -10,6 +10,7 @@ use Generator;
 use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\AkbankPosSerializer;
+use Mews\Pos\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -37,12 +38,12 @@ class AkbankPosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $expected): void
+    public function testEncode(array $data, ?string $format, string $expectedFormat, string $expected): void
     {
-        $result   = $this->serializer->encode($data);
-        $expected = str_replace(["\r"], '', $expected);
+        $result = $this->serializer->encode($data, null, $format);
 
-        $this->assertSame($expected, $result);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
     /**
@@ -89,8 +90,17 @@ class AkbankPosSerializerTest extends TestCase
     public static function encodeDataProvider(): Generator
     {
         yield 'test1' => [
-            'input'    => ['abc' => 1],
-            'expected' => '{"abc":1}',
+            'input'           => ['abc' => 1],
+            'format'          => null,
+            'expected_format' => SerializerInterface::FORMAT_JSON,
+            'expected'        => '{"abc":1}',
+        ];
+
+        yield 'test2' => [
+            'input'           => ['abc' => 1],
+            'format'          => SerializerInterface::FORMAT_JSON,
+            'expected_format' => SerializerInterface::FORMAT_JSON,
+            'expected'        => '{"abc":1}',
         ];
     }
 
