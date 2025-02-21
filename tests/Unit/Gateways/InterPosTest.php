@@ -20,6 +20,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\InterPosResponseDataMapperTest;
 use Mews\Pos\Tests\Unit\HttpClientTestTrait;
@@ -738,10 +739,12 @@ class InterPosTest extends TestCase
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
+        $formEncodedData = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_FORM);
+
         $this->serializerMock->expects(self::once())
             ->method('encode')
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+            ->willReturn($formEncodedData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -756,7 +759,7 @@ class InterPosTest extends TestCase
                 'headers' => [
                     'Content-Type' => 'application/x-www-form-urlencoded',
                 ],
-                'body' => $encodedRequestData,
+                'body' => $formEncodedData->getData(),
             ],
         );
 

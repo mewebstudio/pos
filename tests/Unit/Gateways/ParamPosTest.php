@@ -21,6 +21,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\ParamPosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\ParamPosResponseDataMapperTest;
@@ -1116,11 +1117,11 @@ class ParamPosTest extends TestCase
         string $paymentModel
     ): void {
         $updatedRequestDataPreparedEvent = null;
-
+        $xmlEncodedData                  = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_XML);
         $this->serializerMock->expects(self::once())
             ->method('encode')
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+            ->willReturn($xmlEncodedData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -1135,7 +1136,7 @@ class ParamPosTest extends TestCase
                 'headers' => [
                     'Content-Type' => 'text/xml',
                 ],
-                'body'    => $encodedRequestData,
+                'body'    => $xmlEncodedData->getData(),
             ],
         );
 

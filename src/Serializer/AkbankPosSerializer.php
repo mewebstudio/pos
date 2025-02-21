@@ -31,9 +31,14 @@ class AkbankPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null): string
+    public function encode(array $data, ?string $txType = null, ?string $format = self::FORMAT_JSON): EncodedData
     {
-        return $this->serializer->encode($data, JsonEncoder::FORMAT);
+        $format ??= self::FORMAT_JSON;
+
+        return new EncodedData(
+            $this->serializer->encode($data, $format),
+            $format
+        );
     }
 
     /**
