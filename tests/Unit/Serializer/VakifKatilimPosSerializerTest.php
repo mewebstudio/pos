@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Serializer;
 use Generator;
 use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Serializer\VakifKatilimPosSerializer;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapperTest;
 use PHPUnit\Framework\TestCase;
@@ -37,12 +38,13 @@ class VakifKatilimPosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $input, string $expected): void
+    public function testEncode(array $data, ?string $format, string $expectedFormat, $expected): void
     {
-        $actual   = $this->serializer->encode($input, PosInterface::TX_TYPE_PAY_AUTH);
+        $result   = $this->serializer->encode($data, PosInterface::TX_TYPE_PAY_AUTH, $format);
         $expected = str_replace(["\r"], '', $expected);
 
-        $this->assertSame($expected, $actual);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
     /**
@@ -276,8 +278,7 @@ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
  <ResponseCode>00</ResponseCode>
  <ResponseMessage />
 </VPosTransactionResponseContract>
-A_WRAP
-        ;
+A_WRAP;
         yield 'test_utf_16' => [
             'input'    => $testUtf16,
             'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
@@ -433,9 +434,21 @@ A_WRAP
     {
         return [
             [
-                'input'    => VakifKatilimPosRequestDataMapperTest::create3DPaymentRequestDataDataProvider()[0]['expected'],
-                'expected' => '<?xml version="1.0" encoding="ISO-8859-1"?>
+                'input'           => VakifKatilimPosRequestDataMapperTest::create3DPaymentRequestDataDataProvider()[0]['expected'],
+                'format'          => null,
+                'expected_format' => SerializerInterface::FORMAT_XML,
+                'expected'        => '<?xml version="1.0" encoding="ISO-8859-1"?>
 <VPosMessageContract><APIVersion>1.0.0</APIVersion><HashData>sFxxO809/N3Yif4p/js1UKFMRro=</HashData><MerchantId>1</MerchantId><CustomerId>11111</CustomerId><UserName>APIUSER</UserName><InstallmentCount>0</InstallmentCount><Amount>100</Amount><MerchantOrderId>2020110828BC</MerchantOrderId><TransactionSecurity>3</TransactionSecurity><SubMerchantId>0</SubMerchantId><OkUrl>http://localhost/finansbank-payfor/3d/response.php</OkUrl><FailUrl>http://localhost/finansbank-payfor/3d/response.php</FailUrl><AdditionalData><AdditionalDataList><VPosAdditionalData><Key>MD</Key><Data>67YtBfBRTZ0XBKnAHi8c/A==</Data></VPosAdditionalData></AdditionalDataList></AdditionalData></VPosMessageContract>
+',
+            ],
+            [
+                'input'           => [
+                    'ac' => 'ds',
+                ],
+                'format'          => SerializerInterface::FORMAT_XML,
+                'expected_format' => SerializerInterface::FORMAT_XML,
+                'expected'        => '<?xml version="1.0" encoding="ISO-8859-1"?>
+<VPosMessageContract><ac>ds</ac></VPosMessageContract>
 ',
             ],
         ];

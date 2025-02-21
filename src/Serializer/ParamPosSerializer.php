@@ -34,13 +34,18 @@ class ParamPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null): string
+    public function encode(array $data, ?string $txType = null, ?string $format = self::FORMAT_XML): EncodedData
     {
         $data['@xmlns:xsi']  = 'http://www.w3.org/2001/XMLSchema-instance';
         $data['@xmlns:xsd']  = 'http://www.w3.org/2001/XMLSchema';
         $data['@xmlns:soap'] = 'http://schemas.xmlsoap.org/soap/envelope/';
 
-        return $this->serializer->encode($data, XmlEncoder::FORMAT);
+        $format ??= self::FORMAT_XML;
+
+        return new EncodedData(
+            $this->serializer->encode($data, $format),
+            $format
+        );
     }
 
     /**

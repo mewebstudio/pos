@@ -15,6 +15,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -213,21 +214,18 @@ class AkbankPos extends AbstractGateway
      *
      * @throws \RuntimeException thrown when we get HTTP 400 error
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
-        if (!\is_string($contents)) {
-            throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
-        }
 
-        $hash = $this->requestDataMapper->getCrypt()->hashString($contents, $this->account->getStoreKey());
+        $hash = $this->requestDataMapper->getCrypt()->hashString($encodedData->getData(), $this->account->getStoreKey());
 
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/json',
                 'auth-hash'    => $hash,
             ],
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
         ]);
 
         if ($response->getStatusCode() === 400) {

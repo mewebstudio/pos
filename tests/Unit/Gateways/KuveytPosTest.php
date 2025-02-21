@@ -20,6 +20,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapperTest;
 use Mews\Pos\Tests\Unit\HttpClientTestTrait;
@@ -286,7 +287,7 @@ class KuveytPosTest extends TestCase
         $create3DPaymentRequestData = [
             'create3DPaymentRequestData',
         ];
-        $encodedRequestData         = 'request-body';
+        $encodedRequestData         = new EncodedData('encoded-request-data', SerializerInterface::FORMAT_XML);
 
 
         if ($is3DSuccess) {
@@ -299,7 +300,7 @@ class KuveytPosTest extends TestCase
                 'response-body',
                 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelProvisionGate',
                 [
-                    'body'    => $encodedRequestData,
+                    'body'    => $encodedRequestData->getData(),
                     'headers' => [
                         'Content-Type' => 'text/xml; charset=UTF-8',
                     ],
@@ -664,11 +665,11 @@ class KuveytPosTest extends TestCase
         ?int   $statusCode = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
-
+        $xmlEncodedData                  = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_XML);
         $this->serializerMock->expects(self::once())
             ->method('encode')
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+            ->willReturn($xmlEncodedData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -683,7 +684,7 @@ class KuveytPosTest extends TestCase
                 'headers' => [
                     'Content-Type' => 'text/xml; charset=UTF-8',
                 ],
-                'body'    => $encodedRequestData,
+                'body'    => $xmlEncodedData->getData(),
             ],
             $statusCode
         );

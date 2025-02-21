@@ -23,6 +23,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapperTest;
@@ -575,11 +576,12 @@ class PayFlexCPV4PosTest extends TestCase
         string $paymentModel
     ): void {
         $updatedRequestDataPreparedEvent = null;
+        $formEncodedData                 = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_FORM);
 
         $this->serializerMock->expects(self::once())
             ->method('encode')
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+            ->willReturn($formEncodedData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -591,7 +593,7 @@ class PayFlexCPV4PosTest extends TestCase
             $responseContent,
             $apiUrl,
             [
-                'body'    => $encodedRequestData,
+                'body'    => $formEncodedData->getData(),
                 'headers' => [
                     'Accept'       => 'text/xml',
                     'Content-Type' => 'application/x-www-form-urlencoded',

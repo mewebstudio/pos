@@ -6,7 +6,6 @@
 
 namespace Mews\Pos\Gateways;
 
-use InvalidArgumentException;
 use LogicException;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
@@ -19,6 +18,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use RuntimeException;
 use SoapClient;
@@ -218,33 +218,148 @@ class KuveytPos extends AbstractGateway
         return $this;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function refund(array $order): PosInterface
+    {
+        $txType = PosInterface::TX_TYPE_REFUND;
+        if (isset($order['order_amount']) && $order['amount'] < $order['order_amount']) {
+            $txType = PosInterface::TX_TYPE_REFUND_PARTIAL;
+        }
+
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
+
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_NON_SECURE
+        );
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $bankResponse   = $this->sendSoapRequest(
+            $requestData,
+            $txType,
+            $this->getApiURL(
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $order['transaction_type'] ?? null
+            ),
+        );
+        $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function cancel(array $order): PosInterface
+    {
+        $txType      = PosInterface::TX_TYPE_CANCEL;
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
+
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_NON_SECURE
+        );
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $bankResponse   = $this->sendSoapRequest(
+            $requestData,
+            $txType,
+            $this->getApiURL(
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $order['transaction_type'] ?? null
+            ),
+        );
+        $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function status(array $order): PosInterface
+    {
+        $txType      = PosInterface::TX_TYPE_STATUS;
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
+
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_NON_SECURE
+        );
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $bankResponse   = $this->sendSoapRequest(
+            $requestData,
+            $txType,
+            $this->getApiURL(
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $order['transaction_type'] ?? null
+            ),
+        );
+
+        $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
+
+        return $this;
+    }
+
 
     /**
      * @inheritDoc
      *
      * @return array<string, mixed>
-     *
-     * @throws SoapFault
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
-        if (\in_array($txType, [
-            PosInterface::TX_TYPE_REFUND,
-            PosInterface::TX_TYPE_REFUND_PARTIAL,
-            PosInterface::TX_TYPE_STATUS,
-            PosInterface::TX_TYPE_CANCEL,
-            PosInterface::TX_TYPE_CUSTOM_QUERY,
-        ], true)) {
-            if (!\is_array($contents)) {
-                throw new InvalidArgumentException(\sprintf('Invalid data type provided for %s transaction!', $txType));
-            }
-
-            return $this->data = $this->sendSoapRequest($contents, $txType, $url);
-        }
-
         $this->logger->debug('sending request', ['url' => $url]);
         $body     = [
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
             'headers' => [
                 'Content-Type' => 'text/xml; charset=UTF-8',
             ],

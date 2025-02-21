@@ -11,7 +11,7 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\KuveytPosSerializer;
-use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\KuveytPosRequestDataMapperTest;
+use Mews\Pos\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -38,14 +38,15 @@ class KuveytPosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $txType, $expected): void
+    public function testEncode(array $data, string $txType, ?string $format, string $expectedFormat, $expected): void
     {
-        $result = $this->serializer->encode($data, $txType);
+        $result = $this->serializer->encode($data, $txType, $format);
         if (is_string($expected)) {
             $expected = str_replace(["\r"], '', $expected);
         }
 
-        $this->assertSame($expected, $result);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
     public function testEncodeException(): void
@@ -99,41 +100,22 @@ class KuveytPosSerializerTest extends TestCase
 
     public static function encodeDataProvider(): Generator
     {
-        $refundTests = iterator_to_array(KuveytPosRequestDataMapperTest::createRefundRequestDataProvider());
-        yield 'test_refund' => [
-            'input'    => $refundTests[0]['expected'],
-            'txType'   => PosInterface::TX_TYPE_REFUND,
-            'expected' => $refundTests[0]['expected'],
-        ];
-
-        yield 'test_partial_refund' => [
-            'input'    => $refundTests[0]['expected'],
-            'txType'   => PosInterface::TX_TYPE_REFUND_PARTIAL,
-            'expected' => $refundTests[0]['expected'],
-        ];
-
-        yield 'test_cancel' => [
-            'input'    => ['abc' => 1],
-            'txType'   => PosInterface::TX_TYPE_CANCEL,
-            'expected' => ['abc' => 1],
-        ];
-
-        yield 'test_status' => [
-            'input'    => ['abc' => 1],
-            'txType'   => PosInterface::TX_TYPE_STATUS,
-            'expected' => ['abc' => 1],
-        ];
-
-        yield 'test_custom_query' => [
-            'input'    => ['abc' => 1],
-            'txType'   => PosInterface::TX_TYPE_CUSTOM_QUERY,
-            'expected' => ['abc' => 1],
-        ];
-
         yield 'test_pay' => [
-            'input'    => ['abc' => 1],
-            'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
-            'expected' => '<?xml version="1.0" encoding="ISO-8859-1"?>
+            'input'           => ['abc' => 1],
+            'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+            'format'          => null,
+            'expected_format' => SerializerInterface::FORMAT_XML,
+            'expected'        => '<?xml version="1.0" encoding="ISO-8859-1"?>
+<KuveytTurkVPosMessage><abc>1</abc></KuveytTurkVPosMessage>
+',
+        ];
+
+        yield 'test_pay_2' => [
+            'input'           => ['abc' => 1],
+            'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+            'format'          => SerializerInterface::FORMAT_XML,
+            'expected_format' => SerializerInterface::FORMAT_XML,
+            'expected'        => '<?xml version="1.0" encoding="ISO-8859-1"?>
 <KuveytTurkVPosMessage><abc>1</abc></KuveytTurkVPosMessage>
 ',
         ];

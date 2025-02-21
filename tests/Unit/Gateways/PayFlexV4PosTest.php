@@ -22,6 +22,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapperTest;
@@ -799,17 +800,36 @@ class PayFlexV4PosTest extends TestCase
         array  $order,
         string $paymentModel
     ): void {
-        $updatedRequestDataPreparedEvent = null;
+        $updatedRequestDataPreparedEvent                                            = null;
+        $updatedRequestDataPreparedEventData                                        = $requestData;
+        $updatedRequestDataPreparedEventData['test-update-request-data-with-event'] = true;
+
 
         if ($requestData === $encodedRequestData) {
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $encodedRequestData['test-update-request-data-with-event'] = true;
-        } else {
+            $formEncodedData = new EncodedData('form-encoded-data', SerializerInterface::FORMAT_FORM);
             $this->serializerMock->expects(self::once())
                 ->method('encode')
-                ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-                ->willReturn($encodedRequestData);
+                ->with($updatedRequestDataPreparedEventData, $txType, SerializerInterface::FORMAT_FORM)
+                ->willReturn($formEncodedData);
+        } else {
+            $xmlEncodedData = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_XML);
+            $formEncodedData = new EncodedData('form-encoded-data', SerializerInterface::FORMAT_FORM);
+            $this->serializerMock->expects(self::exactly(2))
+                ->method('encode')
+                ->willReturnMap([
+                    [
+                        $updatedRequestDataPreparedEventData,
+                        $txType,
+                        null,
+                        $xmlEncodedData,
+                    ],
+                    [
+                        ['prmstr' => $xmlEncodedData->getData()],
+                        $txType,
+                        SerializerInterface::FORMAT_FORM,
+                        $formEncodedData,
+                    ],
+                ]);
         }
 
         $this->serializerMock->expects(self::once())
@@ -822,7 +842,10 @@ class PayFlexV4PosTest extends TestCase
             $responseContent,
             $apiUrl,
             [
-                'form_params' => is_string($encodedRequestData) ? ['prmstr' => $encodedRequestData] : $encodedRequestData
+                'headers' => [
+                    'Content-Type' => 'application/x-www-form-urlencoded',
+                ],
+                'body'    => $formEncodedData->getData(),
             ]
         );
 
@@ -842,10 +865,8 @@ class PayFlexV4PosTest extends TestCase
                     }
                 )
             ))
-            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
-                $updatedRequestData['test-update-request-data-with-event'] = true;
-                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent, $updatedRequestDataPreparedEventData): ?\Mews\Pos\Event\RequestDataPreparedEvent {
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestDataPreparedEventData);
 
                 return $updatedRequestDataPreparedEvent;
             });

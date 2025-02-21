@@ -30,6 +30,8 @@ class KuveytPosSerializer implements SerializerInterface
         PosInterface::TX_TYPE_STATUS,
         PosInterface::TX_TYPE_CANCEL,
         PosInterface::TX_TYPE_CUSTOM_QUERY,
+        PosInterface::TX_TYPE_HISTORY,
+        PosInterface::TX_TYPE_ORDER_HISTORY,
     ];
 
     private Serializer $serializer;
@@ -55,19 +57,20 @@ class KuveytPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, string $txType)
+    public function encode(array $data, string $txType, ?string $format = self::FORMAT_XML): EncodedData
     {
-        if (PosInterface::TX_TYPE_HISTORY === $txType || PosInterface::TX_TYPE_ORDER_HISTORY === $txType) {
+        if (\in_array($txType, $this->nonPaymentTransactions, true)) {
             throw new UnsupportedTransactionTypeException(
                 \sprintf('Serialization of the transaction %s is not supported', $txType)
             );
         }
 
-        if (\in_array($txType, $this->nonPaymentTransactions, true)) {
-            return $data;
-        }
+        $format ??= self::FORMAT_XML;
 
-        return $this->serializer->encode($data, XmlEncoder::FORMAT);
+        return new EncodedData(
+            $this->serializer->encode($data, $format),
+            $format
+        );
     }
 
     /**

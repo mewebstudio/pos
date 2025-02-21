@@ -22,6 +22,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapperTest;
 use Mews\Pos\Tests\Unit\HttpClientTestTrait;
@@ -887,10 +888,11 @@ class PosNetV1PosTest extends TestCase
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
+        $jsonEncodedData = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_JSON);
         $this->serializerMock->expects(self::once())
             ->method('encode')
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+            ->willReturn($jsonEncodedData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -905,7 +907,7 @@ class PosNetV1PosTest extends TestCase
                 'headers' => [
                     'Content-Type' => 'application/json',
                 ],
-                'body'    => $encodedRequestData,
+                'body'    => $jsonEncodedData->getData(),
             ],
         );
 

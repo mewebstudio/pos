@@ -17,6 +17,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -203,13 +204,13 @@ class VakifKatilimPos extends AbstractGateway
      *
      * @throws UnsupportedTransactionTypeException
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url = null): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url = null): array
     {
         $url ??= $this->getApiURL($txType, $paymentModel);
 
         $this->logger->debug('sending request', ['url' => $url]);
         $body     = [
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
             'headers' => [
                 'Content-Type' => 'text/xml; charset=UTF-8',
             ],

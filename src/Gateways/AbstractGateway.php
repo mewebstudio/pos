@@ -16,6 +16,7 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Http\Client\ClientExceptionInterface;
@@ -674,16 +675,16 @@ abstract class AbstractGateway implements PosInterface
      * @phpstan-param PosInterface::TX_TYPE_* $txType
      * @phpstan-param PosInterface::MODEL_*   $paymentModel
      *
-     * @param array<string, mixed>|string $contents data to send
-     * @param string                      $txType
-     * @param string                      $paymentModel
-     * @param non-empty-string            $url      URL address of the API
+     * @param EncodedData      $encodedData data to send
+     * @param string           $txType
+     * @param string           $paymentModel
+     * @param non-empty-string $url         URL address of the API
      *
      * @return array<string, mixed>
      *
      * @throws ClientExceptionInterface
      */
-    abstract protected function send($contents, string $txType, string $paymentModel, string $url): array;
+    abstract protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array;
 
     /**
      * @param array<string, mixed> $responseData

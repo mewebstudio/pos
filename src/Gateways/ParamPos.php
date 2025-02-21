@@ -17,6 +17,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -259,16 +260,15 @@ class ParamPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
-
 
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'text/xml',
             ],
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
         ]);
 
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);

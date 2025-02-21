@@ -35,9 +35,21 @@ class PosNetSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null): string
+    public function encode(array $data, ?string $txType = null, ?string $format = self::FORMAT_FORM): EncodedData
     {
-        return $this->serializer->encode($data, XmlEncoder::FORMAT);
+        $format ??= self::FORMAT_XML;
+
+        if (self::FORMAT_FORM === $format) {
+            return new EncodedData(
+                \http_build_query($data),
+                $format
+            );
+        }
+
+        return new EncodedData(
+            $this->serializer->encode($data, $format),
+            $format
+        );
     }
 
     /**

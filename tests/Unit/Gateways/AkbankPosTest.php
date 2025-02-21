@@ -21,6 +21,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\AkbankPosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\AkbankPosResponseDataMapperTest;
@@ -1222,15 +1223,17 @@ class AkbankPosTest extends TestCase
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
+        $jsonEncodedData = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_JSON);
+
         $this->cryptMock->expects(self::once())
             ->method('hashString')
-            ->with($encodedRequestData, $this->account->getStoreKey())
+            ->with($jsonEncodedData->getData(), $this->account->getStoreKey())
             ->willReturn('request-body-hash');
 
         $this->serializerMock->expects(self::once())
             ->method('encode')
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+            ->willReturn($jsonEncodedData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -1246,7 +1249,7 @@ class AkbankPosTest extends TestCase
                     'Content-Type' => 'application/json',
                     'auth-hash'    => 'request-body-hash',
                 ],
-                'body'    => $encodedRequestData,
+                'body'    => $jsonEncodedData->getData(),
             ],
             $statusCode
         );

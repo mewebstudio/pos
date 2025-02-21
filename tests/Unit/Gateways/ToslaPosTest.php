@@ -22,6 +22,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\ToslaPosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapperTest;
@@ -1241,11 +1242,11 @@ class ToslaPosTest extends TestCase
         string $paymentModel
     ): void {
         $updatedRequestDataPreparedEvent = null;
-
+        $jsonEncodedData                 = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_JSON);
         $this->serializerMock->expects(self::once())
             ->method('encode')
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+            ->willReturn($jsonEncodedData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -1260,7 +1261,7 @@ class ToslaPosTest extends TestCase
                 'headers' => [
                     'Content-Type' => 'application/json',
                 ],
-                'body'    => $encodedRequestData,
+                'body'    => $jsonEncodedData->getData(),
             ],
         );
 
@@ -1281,7 +1282,7 @@ class ToslaPosTest extends TestCase
                 )
             ))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 
