@@ -16,6 +16,7 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -71,6 +72,7 @@ class PayForPos extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
 
         if (!$this->is3DAuthSuccess($request->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
@@ -91,7 +93,7 @@ class PayForPos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -105,12 +107,18 @@ class PayForPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+//        $contents     = $this->serializer->encode($requestData, $txType);
+//        $bankResponse = $this->send(
+//            $contents,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL()
+//        );
+        $bankResponse = $this->client2->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+            $requestData,
+            $order
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);
@@ -196,14 +204,14 @@ class PayForPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'text/xml; charset=UTF-8',
             ],
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
         ]);
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 

@@ -67,27 +67,43 @@ class PosFactory
             );
         }
 
-        $currencies = [];
-        if (isset($config['currencies'])) {
-            $currencies = $config['currencies'];
-        }
-
         $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
 
-        $crypt              = CryptFactory::createGatewayCrypt($class, $logger);
-        $requestDataMapper  = RequestDataMapperFactory::createGatewayRequestMapper($class, $eventDispatcher, $crypt, $currencies);
-        $responseDataMapper = ResponseDataMapperFactory::createGatewayResponseMapper($class, $requestDataMapper, $logger);
-        $serializer         = SerializerFactory::createGatewaySerializer($class);
+        $crypt                 = CryptFactory::createGatewayCrypt($class, $logger);
+        $requestValueMapper    = RequestValueMapperFactory::createForGateway($class);
+        $requestValueFormatter = RequestValueFormatterFactory::createForGateway($class);
+        $requestDataMapper     = RequestDataMapperFactory::createGatewayRequestMapper(
+            $class,
+            $requestValueMapper,
+            $requestValueFormatter,
+            $eventDispatcher,
+            $crypt,
+        );
+
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway($class);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway($class, $requestValueMapper);
+        $responseDataMapper     = ResponseDataMapperFactory::createGatewayResponseMapper($class, $responseValueFormatter, $responseValueMapper, $logger);
+        $serializer             = SerializerFactory::createGatewaySerializer($class);
+        $client = ClientFactory::createForGateway(
+            $class,
+            $config['banks'][$posAccount->getBank()]['gateway_endpoints'],
+            $serializer,
+            $crypt,
+            $requestValueMapper,
+            $logger
+        );
 
         // Create Bank Class Instance
         return new $class(
             $config['banks'][$posAccount->getBank()],
             $posAccount,
+            $requestValueMapper,
             $requestDataMapper,
             $responseDataMapper,
             $serializer,
             $eventDispatcher,
             $httpClient,
+            $client,
             $logger
         );
     }

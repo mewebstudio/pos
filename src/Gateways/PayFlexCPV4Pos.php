@@ -17,6 +17,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -207,19 +208,16 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
-        if (!\is_string($contents)) {
-            throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
-        }
 
         $response = $this->client->post($url, [
             'headers' => [
                 'Accept'       => 'text/xml',
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ],
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
         ]);
 
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
@@ -280,14 +278,23 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents = $this->serializer->encode($requestData, $txType);
+        //$contents = $this->serializer->encode($requestData, $txType);
+
+//        /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
+//        $response = $this->send(
+//            $contents,
+//            $txType,
+//            $paymentModel,
+//            $this->get3DGatewayURL()
+//        );
 
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
-        $response = $this->send(
-            $contents,
+        $response = $this->client2->request(
             $txType,
             $paymentModel,
-            $this->get3DGatewayURL()
+            $requestData,
+            $order,
+            $this->get3DGatewayURL(),
         );
 
         return $response;
@@ -342,16 +349,21 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents = $this->serializer->encode($requestData, $txType);
+       // $contents = $this->serializer->encode($requestData, $txType);
 
-        /**
-         * sending request to make sure that payment was successful
-         */
-        return $this->send(
-            $contents,
+
+//        return $this->send(
+//            $contents,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL()
+//        );
+
+        return $this->client2->request(
             $txType,
             $paymentModel,
-            $this->getApiURL()
+            $requestData,
+            $order
         );
     }
 }

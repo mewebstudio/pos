@@ -17,6 +17,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -135,13 +136,7 @@ class ParamPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
-            $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType)
-        );
+        $provisionResponse = $this->client2->request($txType, PosInterface::MODEL_3D_SECURE, $requestData, $order);
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
             $request->all(),
@@ -250,16 +245,15 @@ class ParamPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
-
 
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'text/xml',
             ],
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
         ]);
 
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
@@ -320,13 +314,6 @@ class ParamPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $requestData = $this->serializer->encode($requestData, $txType);
-
-        return $this->send(
-            $requestData,
-            $txType,
-            $paymentModel,
-            $this->getApiURL($txType, $paymentModel)
-        );
+        return $this->client2->request($txType, $paymentModel, $requestData, $order);
     }
 }

@@ -6,7 +6,6 @@
 
 namespace Mews\Pos\Gateways;
 
-use InvalidArgumentException;
 use LogicException;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
@@ -19,6 +18,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use RuntimeException;
 use SoapClient;
@@ -67,35 +67,6 @@ class KuveytPos extends AbstractGateway
 
     /**
      * @inheritDoc
-     *
-     * @throws UnsupportedTransactionTypeException
-     * @throws \InvalidArgumentException when transaction type is not provided
-     */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (\in_array(
-            $txType,
-            [
-                PosInterface::TX_TYPE_REFUND,
-                PosInterface::TX_TYPE_REFUND_PARTIAL,
-                PosInterface::TX_TYPE_STATUS,
-                PosInterface::TX_TYPE_CANCEL,
-                PosInterface::TX_TYPE_CUSTOM_QUERY,
-            ],
-            true
-        )) {
-            return $this->getQueryAPIUrl();
-        }
-
-        if (null !== $txType && null !== $paymentModel) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
-        }
-
-        throw new \InvalidArgumentException('Transaction type is required to generate API URL');
-    }
-
-    /**
-     * @inheritDoc
      */
     public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
@@ -130,12 +101,8 @@ class KuveytPos extends AbstractGateway
 
     /**
      * @inheritDoc
-     *
-     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
-     *
-     * @throws SoapFault
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): string
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
@@ -204,16 +171,145 @@ class KuveytPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+        $bankResponse = $this->client2->request(
             $txType,
             PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_3D_SECURE)
+            $requestData,
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function refund(array $order): PosInterface
+    {
+        $txType = PosInterface::TX_TYPE_REFUND;
+        if (isset($order['order_amount']) && $order['amount'] < $order['order_amount']) {
+            $txType = PosInterface::TX_TYPE_REFUND_PARTIAL;
+        }
+
+        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
+
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_NON_SECURE
+        );
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $bankResponse   = $this->sendSoapRequest(
+            $requestData,
+            $txType,
+            $this->getApiURL(
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $order['transaction_type'] ?? null
+            ),
+        );
+        $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function cancel(array $order): PosInterface
+    {
+        $txType      = PosInterface::TX_TYPE_CANCEL;
+        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
+
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_NON_SECURE
+        );
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $bankResponse   = $this->sendSoapRequest(
+            $requestData,
+            $txType,
+            $this->getApiURL(
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $order['transaction_type'] ?? null
+            ),
+        );
+        $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
+
+        return $this;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function status(array $order): PosInterface
+    {
+        $txType      = PosInterface::TX_TYPE_STATUS;
+        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
+
+        $event = new RequestDataPreparedEvent(
+            $requestData,
+            $this->account->getBank(),
+            $txType,
+            \get_class($this),
+            $order,
+            PosInterface::MODEL_NON_SECURE
+        );
+        /** @var RequestDataPreparedEvent $event */
+        $event = $this->eventDispatcher->dispatch($event);
+        if ($requestData !== $event->getRequestData()) {
+            $this->logger->debug('Request data is changed via listeners', [
+                'txType'      => $event->getTxType(),
+                'bank'        => $event->getBank(),
+                'initialData' => $requestData,
+                'updatedData' => $event->getRequestData(),
+            ]);
+            $requestData = $event->getRequestData();
+        }
+
+        $bankResponse   = $this->sendSoapRequest(
+            $requestData,
+            $txType,
+            $this->getApiURL(
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $order['transaction_type'] ?? null
+            ),
+        );
+
+        $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
 
         return $this;
     }
@@ -223,28 +319,12 @@ class KuveytPos extends AbstractGateway
      * @inheritDoc
      *
      * @return array<string, mixed>
-     *
-     * @throws SoapFault
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
-        if (\in_array($txType, [
-            PosInterface::TX_TYPE_REFUND,
-            PosInterface::TX_TYPE_REFUND_PARTIAL,
-            PosInterface::TX_TYPE_STATUS,
-            PosInterface::TX_TYPE_CANCEL,
-            PosInterface::TX_TYPE_CUSTOM_QUERY,
-        ], true)) {
-            if (!\is_array($contents)) {
-                throw new InvalidArgumentException(\sprintf('Invalid data type provided for %s transaction!', $txType));
-            }
-
-            return $this->data = $this->sendSoapRequest($contents, $txType, $url);
-        }
-
         $this->logger->debug('sending request', ['url' => $url]);
         $body     = [
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
             'headers' => [
                 'Content-Type' => 'text/xml; charset=UTF-8',
             ],
@@ -336,14 +416,12 @@ class KuveytPos extends AbstractGateway
      * @param non-empty-string                     $gatewayURL
      * @param CreditCardInterface|null             $creditCard
      *
-     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
+     * @return string HTML form
      *
      * @throws RuntimeException
      * @throws UnsupportedTransactionTypeException
-     * @throws SoapFault
-     * @throws ClientExceptionInterface
      */
-    private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
+    private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): string
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $kuveytPosAccount,
@@ -373,41 +451,14 @@ class KuveytPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $data = $this->serializer->encode($requestData, $txType);
-
-        /**
-         * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse
-         */
-        $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
-
-        return $this->requestDataMapper->create3DFormData($this->account, $decodedResponse['form_inputs'], $paymentModel, $txType, $decodedResponse['gateway'], $creditCard);
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     * @phpstan-param PosInterface::MODEL_*   $paymentModel
-     *
-     * @return string
-     *
-     * @throws UnsupportedTransactionTypeException
-     */
-    private function getRequestURIByTransactionType(string $txType, string $paymentModel): string
-    {
-        $arr = [
-            PosInterface::TX_TYPE_PAY_AUTH => [
-                PosInterface::MODEL_NON_SECURE => 'Non3DPayGate',
-                PosInterface::MODEL_3D_SECURE  => 'ThreeDModelProvisionGate',
-            ],
-        ];
-
-        if (!isset($arr[$txType])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        if (!isset($arr[$txType][$paymentModel])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        return $arr[$txType][$paymentModel];
+        return $this->client2->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
+            $gatewayURL,
+            true,
+            false
+        );
     }
 }

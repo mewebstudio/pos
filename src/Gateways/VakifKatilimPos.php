@@ -17,6 +17,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -143,7 +144,7 @@ class VakifKatilimPos extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $gatewayResponse = $request->request->all();
-
+        $paymentModel = self::MODEL_3D_SECURE;
         if (!$this->is3DAuthSuccess($gatewayResponse)) {
             $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, null, $txType, $order);
 
@@ -160,7 +161,7 @@ class VakifKatilimPos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -174,8 +175,14 @@ class VakifKatilimPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+//        $contents     = $this->serializer->encode($requestData, $txType);
+//        $bankResponse = $this->send($contents, $txType, $paymentModel);
+        $bankResponse = $this->client2->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
+        );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
@@ -203,13 +210,13 @@ class VakifKatilimPos extends AbstractGateway
      *
      * @throws UnsupportedTransactionTypeException
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url = null): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url = null): array
     {
         $url ??= $this->getApiURL($txType, $paymentModel);
 
         $this->logger->debug('sending request', ['url' => $url]);
         $body     = [
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
             'headers' => [
                 'Content-Type' => 'text/xml; charset=UTF-8',
             ],
@@ -259,13 +266,24 @@ class VakifKatilimPos extends AbstractGateway
             ]);
             $requestData = $event->getRequestData();
         }
-
-        $data = $this->serializer->encode($requestData, $txType);
+//
+//        $data = $this->serializer->encode($requestData, $txType);
+//
+//        /**
+//         * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse
+//         */
+//        $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
 
         /**
          * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse
          */
-        $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
+        $decodedResponse = $this->client2->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
+            $gatewayURL
+        );
 
         return $decodedResponse;
     }

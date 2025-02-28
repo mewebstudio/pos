@@ -15,6 +15,7 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -56,20 +57,6 @@ class AkbankPos extends AbstractGateway
         PosInterface::TX_TYPE_HISTORY        => true,
         PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
-
-    /**
-     * @inheritDoc
-     *
-     * @throws \InvalidArgumentException when transaction type is not provided
-     */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (null !== $txType) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType);
-        }
-
-        throw new \InvalidArgumentException('Transaction type is required to generate API URL');
-    }
 
     /** @return AkbankPosAccount */
     public function getAccount(): AbstractPosAccount
@@ -121,12 +108,11 @@ class AkbankPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
+        $provisionResponse = $this->client2->request(
             $txType,
             PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType)
+            $requestData,
+            $order
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
@@ -204,21 +190,18 @@ class AkbankPos extends AbstractGateway
      *
      * @throws \RuntimeException thrown when we get HTTP 400 error
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
-        if (!\is_string($contents)) {
-            throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
-        }
 
-        $hash = $this->requestDataMapper->getCrypt()->hashString($contents, $this->account->getStoreKey());
+        $hash = $this->requestDataMapper->getCrypt()->hashString($encodedData->getData(), $this->account->getStoreKey());
 
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/json',
                 'auth-hash'    => $hash,
             ],
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
         ]);
 
         if ($response->getStatusCode() === 400) {
@@ -232,21 +215,5 @@ class AkbankPos extends AbstractGateway
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     *
-     * @param string $txType
-     *
-     * @return string
-     */
-    private function getRequestURIByTransactionType(string $txType): string
-    {
-        $arr = [
-            PosInterface::TX_TYPE_HISTORY => 'portal/report/transaction',
-        ];
-
-        return $arr[$txType] ?? 'transaction/process';
     }
 }

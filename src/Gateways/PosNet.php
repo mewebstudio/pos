@@ -6,7 +6,6 @@
 
 namespace Mews\Pos\Gateways;
 
-use InvalidArgumentException;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
@@ -19,6 +18,8 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
+use Mews\Pos\Serializer\SerializerInterface;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -66,6 +67,7 @@ class PosNet extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
 
         $this->logger->debug('getting merchant request data');
         $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
@@ -94,12 +96,18 @@ class PosNet extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents           = $this->serializer->encode($requestData, $txType);
-        $userVerifyResponse = $this->send(
-            $contents,
+//        $contents           = $this->serializer->encode($requestData, $txType);
+//        $userVerifyResponse = $this->send(
+//            $contents,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL()
+//        );
+        $userVerifyResponse = $this->client2->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+            $requestData,
+            $order,
         );
 
         if (!$this->is3DAuthSuccess($userVerifyResponse)) {
@@ -135,12 +143,18 @@ class PosNet extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+//        $contents     = $this->serializer->encode($requestData, $txType);
+//        $bankResponse = $this->send(
+//            $contents,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL()
+//        );
+        $bankResponse = $this->client2->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+            $requestData,
+            $order,
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse, $txType, $order);
@@ -224,24 +238,20 @@ class PosNet extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
-
-        if (!\is_string($contents)) {
-            throw new InvalidArgumentException(
-                \sprintf(
-                    'Argument type must be XML string, %s provided.',
-                    \gettype($contents)
-                )
-            );
-        }
+        $formEncodedData = $this->serializer->encode(
+            ['xmldata' => $encodedData->getData()],
+            $txType,
+            SerializerInterface::FORMAT_FORM
+        );
 
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ],
-            'body'    => \sprintf('xmldata=%s', $contents),
+            'body'    => $formEncodedData->getData(),
         ]);
 
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
@@ -295,13 +305,20 @@ class PosNet extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $xml = $this->serializer->encode($requestData, $txType);
+//        $xml = $this->serializer->encode($requestData, $txType);
 
-        return $this->send(
-            $xml,
+//        return $this->send(
+//            $xml,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL()
+//        );
+
+        return $this->client2->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+            $requestData,
+            $order,
         );
     }
 }

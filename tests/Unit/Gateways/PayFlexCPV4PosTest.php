@@ -11,6 +11,7 @@ use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\PayFlexCPV4PosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\PayFlexAccount;
@@ -22,6 +23,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapperTest;
@@ -72,6 +74,8 @@ class PayFlexCPV4PosTest extends TestCase
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
 
+    private PayFlexCPV4PosRequestValueMapper $requestValueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -104,6 +108,7 @@ class PayFlexCPV4PosTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
+        $this->requestValueMapper  = new PayFlexCPV4PosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(PayFlexCPV4PosRequestDataMapper::class);
         $this->responseMapperMock  = $this->createMock(PayFlexCPV4PosResponseDataMapper::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
@@ -119,6 +124,7 @@ class PayFlexCPV4PosTest extends TestCase
         $this->pos = new PayFlexCPV4Pos(
             $this->config,
             $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
@@ -137,10 +143,7 @@ class PayFlexCPV4PosTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
-            ->method('getCurrencyMappings')
-            ->willReturn([PosInterface::CURRENCY_TRY => '949']);
-        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
+        $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
     }
@@ -574,11 +577,12 @@ class PayFlexCPV4PosTest extends TestCase
         string $paymentModel
     ): void {
         $updatedRequestDataPreparedEvent = null;
+        $formEncodedData                 = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_FORM);
 
         $this->serializerMock->expects(self::once())
             ->method('encode')
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+            ->willReturn($formEncodedData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -590,7 +594,7 @@ class PayFlexCPV4PosTest extends TestCase
             $responseContent,
             $apiUrl,
             [
-                'body'    => $encodedRequestData,
+                'body'    => $formEncodedData->getData(),
                 'headers' => [
                     'Accept'       => 'text/xml',
                     'Content-Type' => 'application/x-www-form-urlencoded',

@@ -18,6 +18,7 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -199,14 +200,14 @@ class ToslaPos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/json',
             ],
-            'body'    => $contents,
+            'body'    => $encodedData->getData(),
         ]);
 
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
@@ -268,13 +269,20 @@ class ToslaPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $requestData = $this->serializer->encode($requestData, $txType);
+//        $requestData = $this->serializer->encode($requestData, $txType);
+//
+//        return $this->send(
+//            $requestData,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL($txType, $paymentModel)
+//        );
 
-        return $this->send(
-            $requestData,
+        return $this->client2->request(
             $txType,
             $paymentModel,
-            $this->getApiURL($txType, $paymentModel)
+            $requestData,
+            $order
         );
     }
 

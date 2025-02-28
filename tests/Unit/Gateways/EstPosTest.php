@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Gateways;
 use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
+use Mews\Pos\DataMapper\RequestValueMapper\EstPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
@@ -19,6 +20,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\EstPosResponseDataMapperTest;
 use Mews\Pos\Tests\Unit\HttpClientTestTrait;
@@ -69,6 +71,8 @@ class EstPosTest extends TestCase
 
     private array $order;
 
+    private EstPosRequestValueMapper $requestValueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -101,6 +105,7 @@ class EstPosTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
+        $this->requestValueMapper  = new EstPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
@@ -116,6 +121,7 @@ class EstPosTest extends TestCase
         $this->pos = new EstPos(
             $this->config,
             $this->account,
+            $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
@@ -142,10 +148,7 @@ class EstPosTest extends TestCase
      */
     public function testInit(): void
     {
-        $this->requestMapperMock->expects(self::once())
-            ->method('getCurrencyMappings')
-            ->willReturn([PosInterface::CURRENCY_TRY => '949']);
-        $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
+        $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
     }
@@ -878,11 +881,12 @@ class EstPosTest extends TestCase
         string $paymentModel
     ): void {
         $updatedRequestDataPreparedEvent = null;
+        $xmlEncodedData = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_XML);
 
         $this->serializerMock->expects(self::once())
             ->method('encode')
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($encodedRequestData);
+            ->willReturn($xmlEncodedData);
 
         $this->serializerMock->expects(self::once())
             ->method('decode')
@@ -894,7 +898,7 @@ class EstPosTest extends TestCase
             $responseContent,
             $apiUrl,
             [
-                'body' => $encodedRequestData,
+                'body' => $xmlEncodedData->getData(),
             ],
         );
 

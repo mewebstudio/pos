@@ -19,6 +19,7 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Serializer\EncodedData;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
@@ -71,7 +72,7 @@ class PosNetV1Pos extends AbstractGateway
     public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType) {
-            return parent::getApiURL().'/'.$this->requestDataMapper->mapTxType($txType);
+            return parent::getApiURL().'/'.$this->valueMapper->mapTxType($txType);
         }
 
         throw new \InvalidArgumentException('Transaction type is required to generate API URL');
@@ -84,7 +85,7 @@ class PosNetV1Pos extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
-
+        $paymentModel = self::MODEL_3D_SECURE;
         if (!$this->is3DAuthSuccess($request->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
 
@@ -103,7 +104,7 @@ class PosNetV1Pos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -117,12 +118,18 @@ class PosNetV1Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
+//        $contents          = $this->serializer->encode($requestData, $txType);
+//        $provisionResponse = $this->send(
+//            $contents,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL($txType)
+//        );
+        $provisionResponse = $this->client2->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType)
+            $paymentModel,
+            $requestData,
+            $order,
         );
         $this->logger->debug('send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
 
@@ -202,21 +209,15 @@ class PosNetV1Pos extends AbstractGateway
      *
      * @return array<string, mixed>
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
+    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
     {
         $this->logger->debug('sending request', ['url' => $url]);
-
-        if (!\is_string($contents)) {
-            throw new InvalidArgumentException('Invalid data provided');
-        }
-
-        $body = $contents;
 
         $response = $this->client->post($url, [
             'headers' => [
                 'Content-Type' => 'application/json',
             ],
-            'body'    => $body,
+            'body'    => $encodedData->getData(),
         ]);
 
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
