@@ -105,12 +105,11 @@ class GarantiPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+        $bankResponse = $this->client2->request(
             $txType,
             PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $requestData,
+            $order
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);

@@ -278,14 +278,23 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents = $this->serializer->encode($requestData, $txType);
+        //$contents = $this->serializer->encode($requestData, $txType);
+
+//        /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
+//        $response = $this->send(
+//            $contents,
+//            $txType,
+//            $paymentModel,
+//            $this->get3DGatewayURL()
+//        );
 
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
-        $response = $this->send(
-            $contents,
+        $response = $this->client2->request(
             $txType,
             $paymentModel,
-            $this->get3DGatewayURL()
+            $requestData,
+            $order,
+            $this->get3DGatewayURL(),
         );
 
         return $response;
@@ -340,16 +349,21 @@ class PayFlexCPV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents = $this->serializer->encode($requestData, $txType);
+       // $contents = $this->serializer->encode($requestData, $txType);
 
-        /**
-         * sending request to make sure that payment was successful
-         */
-        return $this->send(
-            $contents,
+
+//        return $this->send(
+//            $contents,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL()
+//        );
+
+        return $this->client2->request(
             $txType,
             $paymentModel,
-            $this->getApiURL()
+            $requestData,
+            $order
         );
     }
 }

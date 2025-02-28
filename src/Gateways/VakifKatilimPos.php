@@ -144,7 +144,7 @@ class VakifKatilimPos extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $gatewayResponse = $request->request->all();
-
+        $paymentModel = self::MODEL_3D_SECURE;
         if (!$this->is3DAuthSuccess($gatewayResponse)) {
             $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, null, $txType, $order);
 
@@ -161,7 +161,7 @@ class VakifKatilimPos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -175,8 +175,14 @@ class VakifKatilimPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+//        $contents     = $this->serializer->encode($requestData, $txType);
+//        $bankResponse = $this->send($contents, $txType, $paymentModel);
+        $bankResponse = $this->client2->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
+        );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
@@ -260,13 +266,24 @@ class VakifKatilimPos extends AbstractGateway
             ]);
             $requestData = $event->getRequestData();
         }
-
-        $data = $this->serializer->encode($requestData, $txType);
+//
+//        $data = $this->serializer->encode($requestData, $txType);
+//
+//        /**
+//         * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse
+//         */
+//        $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
 
         /**
          * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse
          */
-        $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
+        $decodedResponse = $this->client2->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
+            $gatewayURL
+        );
 
         return $decodedResponse;
     }

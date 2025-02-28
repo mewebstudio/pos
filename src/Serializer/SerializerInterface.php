@@ -30,7 +30,7 @@ interface SerializerInterface
      * @phpstan-param PosInterface::TX_TYPE_* $txType
      *
      * @param array<string, mixed>          $data
-     * @param string                        $txType
+     * @param string                        $txType #todo do we need $txType?
      * @param SerializerInterface::FORMAT_* $format encoding format
      *
      * @return EncodedData

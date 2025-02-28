@@ -115,12 +115,11 @@ class EstPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
+        $provisionResponse = $this->client2->request(
             $txType,
             PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $requestData,
+            $order,
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(

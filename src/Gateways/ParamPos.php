@@ -136,13 +136,7 @@ class ParamPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
-            $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType)
-        );
+        $provisionResponse = $this->client2->request($txType, PosInterface::MODEL_3D_SECURE, $requestData, $order);
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
             $request->all(),
@@ -320,13 +314,6 @@ class ParamPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $requestData = $this->serializer->encode($requestData, $txType);
-
-        return $this->send(
-            $requestData,
-            $txType,
-            $paymentModel,
-            $this->getApiURL($txType, $paymentModel)
-        );
+        return $this->client2->request($txType, $paymentModel, $requestData, $order);
     }
 }

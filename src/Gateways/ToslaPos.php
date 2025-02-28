@@ -269,13 +269,20 @@ class ToslaPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $requestData = $this->serializer->encode($requestData, $txType);
+//        $requestData = $this->serializer->encode($requestData, $txType);
+//
+//        return $this->send(
+//            $requestData,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL($txType, $paymentModel)
+//        );
 
-        return $this->send(
-            $requestData,
+        return $this->client2->request(
             $txType,
             $paymentModel,
-            $this->getApiURL($txType, $paymentModel)
+            $requestData,
+            $order
         );
     }
 

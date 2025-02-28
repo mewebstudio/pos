@@ -58,20 +58,6 @@ class AkbankPos extends AbstractGateway
         PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
 
-    /**
-     * @inheritDoc
-     *
-     * @throws \InvalidArgumentException when transaction type is not provided
-     */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (null !== $txType) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType);
-        }
-
-        throw new \InvalidArgumentException('Transaction type is required to generate API URL');
-    }
-
     /** @return AkbankPosAccount */
     public function getAccount(): AbstractPosAccount
     {
@@ -122,12 +108,11 @@ class AkbankPos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
+        $provisionResponse = $this->client2->request(
             $txType,
             PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType)
+            $requestData,
+            $order
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
@@ -230,21 +215,5 @@ class AkbankPos extends AbstractGateway
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     *
-     * @param string $txType
-     *
-     * @return string
-     */
-    private function getRequestURIByTransactionType(string $txType): string
-    {
-        $arr = [
-            PosInterface::TX_TYPE_HISTORY => 'portal/report/transaction',
-        ];
-
-        return $arr[$txType] ?? 'transaction/process';
     }
 }

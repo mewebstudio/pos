@@ -85,7 +85,7 @@ class PosNetV1Pos extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
-
+        $paymentModel = self::MODEL_3D_SECURE;
         if (!$this->is3DAuthSuccess($request->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
 
@@ -104,7 +104,7 @@ class PosNetV1Pos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -118,12 +118,18 @@ class PosNetV1Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
+//        $contents          = $this->serializer->encode($requestData, $txType);
+//        $provisionResponse = $this->send(
+//            $contents,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL($txType)
+//        );
+        $provisionResponse = $this->client2->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType)
+            $paymentModel,
+            $requestData,
+            $order,
         );
         $this->logger->debug('send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
 

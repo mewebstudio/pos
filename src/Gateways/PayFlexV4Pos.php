@@ -74,7 +74,7 @@ class PayFlexV4Pos extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
-
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
         if (!$this->is3DAuthSuccess($request->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
 
@@ -92,7 +92,7 @@ class PayFlexV4Pos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -106,12 +106,18 @@ class PayFlexV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+//        $contents     = $this->serializer->encode($requestData, $txType);
+//        $bankResponse = $this->send(
+//            $contents,
+//            $txType,
+//            $paymentModel,
+//            $this->getApiURL()
+//        );
+        $bankResponse = $this->client2->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+            $requestData,
+            $order,
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);
@@ -280,8 +286,16 @@ class PayFlexV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $encodedData = $this->serializer->encode($requestData, $txType, SerializerInterface::FORMAT_FORM);
+        //$encodedData = $this->serializer->encode($requestData, $txType, SerializerInterface::FORMAT_FORM);
 
-        return $this->send($encodedData, $txType, PosInterface::MODEL_3D_SECURE, $this->get3DGatewayURL());
+        //return $this->send($encodedData, $txType, PosInterface::MODEL_3D_SECURE, $this->get3DGatewayURL());
+        $this->client2->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
+            $this->get3DGatewayURL(),
+            false
+        );
     }
 }

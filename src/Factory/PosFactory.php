@@ -84,6 +84,14 @@ class PosFactory
         $responseValueMapper    = ResponseValueMapperFactory::createForGateway($class, $requestValueMapper);
         $responseDataMapper     = ResponseDataMapperFactory::createGatewayResponseMapper($class, $responseValueFormatter, $responseValueMapper, $logger);
         $serializer             = SerializerFactory::createGatewaySerializer($class);
+        $client = ClientFactory::createForGateway(
+            $class,
+            $config['banks'][$posAccount->getBank()]['gateway_endpoints'],
+            $serializer,
+            $crypt,
+            $requestValueMapper,
+            $logger
+        );
 
         // Create Bank Class Instance
         return new $class(
@@ -95,6 +103,7 @@ class PosFactory
             $serializer,
             $eventDispatcher,
             $httpClient,
+            $client,
             $logger
         );
     }

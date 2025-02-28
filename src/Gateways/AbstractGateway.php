@@ -8,6 +8,7 @@ namespace Mews\Pos\Gateways;
 
 use LogicException;
 use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
@@ -45,6 +46,8 @@ abstract class AbstractGateway implements PosInterface
     protected ?array $data;
 
     protected HttpClient $client;
+
+    protected HttpClientInterface $client2;
 
     protected RequestValueMapperInterface $valueMapper;
 
@@ -96,6 +99,7 @@ abstract class AbstractGateway implements PosInterface
         SerializerInterface            $serializer,
         EventDispatcherInterface       $eventDispatcher,
         HttpClient                     $httpClient,
+        ?HttpClientInterface           $client2,
         LoggerInterface                $logger
     ) {
         $this->valueMapper        = $valueMapper;
@@ -108,6 +112,7 @@ abstract class AbstractGateway implements PosInterface
         $this->account = $posAccount;
         $this->client  = $httpClient;
         $this->logger  = $logger;
+        $this->client2 = $client2;
     }
 
     /**
@@ -273,13 +278,19 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $contents       = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $contents,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
-        );
+        if (\in_array(static::class, [
+            KuveytPos::class,
+        ], true)) {
+            $bankResponse = $this->client2->request($txType, PosInterface::MODEL_NON_SECURE, $requestData, $order);
+        } else {
+            $contents     = $this->serializer->encode($requestData, $txType);
+            $bankResponse = $this->send(
+                $contents,
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            );
+        }
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
 
         return $this;
@@ -318,13 +329,20 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $contents       = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $contents,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
-        );
+        if (\in_array(static::class, [
+            KuveytPos::class,
+        ], true)) {
+            $bankResponse = $this->client2->request($txType, PosInterface::MODEL_NON_SECURE, $requestData, $order);
+        } else {
+            $contents       = $this->serializer->encode($requestData, $txType);
+            $bankResponse   = $this->send(
+                $contents,
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            );
+        }
+
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
 
         return $this;
@@ -362,17 +380,24 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL(
+        if (\in_array(static::class, [
+            KuveytPos::class,
+        ], true)) {
+            $bankResponse = $this->client2->request($txType, PosInterface::MODEL_NON_SECURE, $requestData, $order);
+        } else {
+            $data           = $this->serializer->encode($requestData, $txType);
+            $bankResponse   = $this->send(
+                $data,
                 $txType,
                 PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            )
-        );
+                $this->getApiURL(
+                    $txType,
+                    PosInterface::MODEL_NON_SECURE,
+                    $order['transaction_type'] ?? null
+                )
+            );
+        }
+
         $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
 
         return $this;
@@ -406,17 +431,24 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL(
+        if (\in_array(static::class, [
+            KuveytPos::class,
+        ], true)) {
+            $bankResponse = $this->client2->request($txType, PosInterface::MODEL_NON_SECURE, $requestData, $order);
+        } else {
+            $data           = $this->serializer->encode($requestData, $txType);
+            $bankResponse   = $this->send(
+                $data,
                 $txType,
                 PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            )
-        );
+                $this->getApiURL(
+                    $txType,
+                    PosInterface::MODEL_NON_SECURE,
+                    $order['transaction_type'] ?? null
+                )
+            );
+        }
+
         $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
 
         return $this;
@@ -450,13 +482,20 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getQueryAPIUrl($txType)
-        );
+        if (\in_array(static::class, [
+            KuveytPos::class,
+        ], true)) {
+            $bankResponse = $this->client2->request($txType, PosInterface::MODEL_NON_SECURE, $requestData, $order);
+        } else {
+            $data           = $this->serializer->encode($requestData, $txType);
+            $bankResponse   = $this->send(
+                $data,
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $this->getApiURL($txType)
+            );
+        }
+
         $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
 
         return $this;
@@ -490,13 +529,20 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $encodedRequestData = $this->serializer->encode($requestData, $txType);
-        $bankResponse       = $this->send(
-            $encodedRequestData,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
-        );
+        if (\in_array(static::class, [
+            KuveytPos::class,
+        ], true)) {
+            $bankResponse = $this->client2->request($txType, PosInterface::MODEL_NON_SECURE, $requestData, $data);
+        } else {
+            $encodedRequestData = $this->serializer->encode($requestData, $txType);
+            $bankResponse       = $this->send(
+                $encodedRequestData,
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            );
+        }
+
         $this->response     = $this->responseDataMapper->mapHistoryResponse($bankResponse);
 
         return $this;
@@ -530,13 +576,20 @@ abstract class AbstractGateway implements PosInterface
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
-        );
+        if (\in_array(static::class, [
+            KuveytPos::class,
+        ], true)) {
+            $bankResponse = $this->client2->request($txType, PosInterface::MODEL_NON_SECURE, $requestData, $order);
+        } else {
+            $data           = $this->serializer->encode($requestData, $txType);
+            $bankResponse   = $this->send(
+                $data,
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            );
+        }
+
         $this->response = $this->responseDataMapper->mapOrderHistoryResponse($bankResponse);
 
         return $this;
@@ -571,14 +624,20 @@ abstract class AbstractGateway implements PosInterface
             $updatedRequestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($updatedRequestData, $txType);
-        $apiUrl         ??= $this->getQueryAPIUrl($txType);
-        $this->response = $this->send(
-            $data,
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $apiUrl
-        );
+        if (\in_array(static::class, [
+            KuveytPos::class,
+        ], true)) {
+            $this->response = $this->client2->request($txType, PosInterface::MODEL_NON_SECURE, $requestData, [], $apiUrl);
+        } else {
+            $data           = $this->serializer->encode($updatedRequestData, $txType);
+            $apiUrl         ??= $this->getQueryAPIUrl($txType);
+            $this->response = $this->send(
+                $data,
+                $txType,
+                PosInterface::MODEL_NON_SECURE,
+                $apiUrl
+            );
+        }
 
         return $this;
     }
@@ -592,6 +651,7 @@ abstract class AbstractGateway implements PosInterface
     {
         $this->testMode = $testMode;
         $this->requestDataMapper->setTestMode($testMode);
+        $this->client2->setTestMode($testMode);
         $this->logger->debug('switching mode', ['is_test_mode' => $this->isTestMode()]);
 
         return $this;
