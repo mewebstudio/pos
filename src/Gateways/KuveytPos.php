@@ -132,8 +132,6 @@ class KuveytPos extends AbstractGateway
      * @inheritDoc
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
-     *
-     * @throws SoapFault
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {
@@ -160,9 +158,7 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @inheritDoc
-     *
-     * @throws SoapFault
+     * @inheritDocs
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
@@ -455,7 +451,6 @@ class KuveytPos extends AbstractGateway
      *
      * @throws RuntimeException
      * @throws UnsupportedTransactionTypeException
-     * @throws SoapFault
      * @throws ClientExceptionInterface
      */
     private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
