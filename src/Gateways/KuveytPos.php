@@ -131,9 +131,9 @@ class KuveytPos extends AbstractGateway
     /**
      * @inheritDoc
      *
-     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
+     * @return string
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): string
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
@@ -447,13 +447,13 @@ class KuveytPos extends AbstractGateway
      * @param non-empty-string                     $gatewayURL
      * @param CreditCardInterface|null             $creditCard
      *
-     * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
+     * @return string HTML form
      *
      * @throws RuntimeException
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
+    private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): string
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $kuveytPosAccount,
@@ -485,12 +485,7 @@ class KuveytPos extends AbstractGateway
 
         $data = $this->serializer->encode($requestData, $txType);
 
-        /**
-         * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse
-         */
-        $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
-
-        return $this->requestDataMapper->create3DFormData($this->account, $decodedResponse['form_inputs'], $paymentModel, $txType, $decodedResponse['gateway'], $creditCard);
+        return $this->sendWithoutDecode($data, $gatewayURL);
     }
 
     /**
@@ -519,5 +514,28 @@ class KuveytPos extends AbstractGateway
         }
 
         return $arr[$txType][$paymentModel];
+    }
+
+    /**
+     * @param EncodedData $encodedData
+     * @param string      $url
+     *
+     * @return string
+     *
+     * @throws ClientExceptionInterface
+     */
+    private function sendWithoutDecode(EncodedData $encodedData, string $url): string
+    {
+        $this->logger->debug('sending request', ['url' => $url]);
+        $body     = [
+            'body'    => $encodedData->getData(),
+            'headers' => [
+                'Content-Type' => 'text/xml; charset=UTF-8',
+            ],
+        ];
+        $response = $this->client->post($url, $body);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
+
+        return $response->getBody()->getContents();
     }
 }

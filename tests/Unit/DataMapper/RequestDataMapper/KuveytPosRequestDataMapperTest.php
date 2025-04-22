@@ -235,28 +235,18 @@ class KuveytPosRequestDataMapperTest extends TestCase
 
     public function testGet3DFormData(): void
     {
-        $expected = [
-            'gateway' => 'https://bank-gateway.com',
-            'method'  => 'POST',
-            'inputs'  => [
-                'abc' => '123',
-            ],
-        ];
-
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel = PosInterface::MODEL_3D_SECURE;
-        $this->dispatcher->expects(self::never())
-            ->method('dispatch');
 
-        $actual = $this->requestDataMapper->create3DFormData(
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+
+        $this->requestDataMapper->create3DFormData(
             $this->account,
-            ['abc' => '123'],
+            ['id' => '123'],
             $paymentModel,
             $txType,
             'https://bank-gateway.com',
         );
-
-        $this->assertSame($expected, $actual);
     }
 
     public function testCreateNonSecurePostAuthPaymentRequestData(): void

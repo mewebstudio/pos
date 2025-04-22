@@ -24,7 +24,6 @@ use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapperTest;
 use Mews\Pos\Tests\Unit\HttpClientTestTrait;
-use Mews\Pos\Tests\Unit\Serializer\KuveytPosSerializerTest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -206,7 +205,7 @@ class KuveytPosTest extends TestCase
             $requestData,
             'encoded-request-data',
             $response,
-            ['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url'],
+            $response,
             $order,
             $paymentModel
         );
@@ -222,20 +221,12 @@ class KuveytPosTest extends TestCase
             )
             ->willReturn($requestData);
 
-        $this->requestMapperMock->expects(self::once())
-            ->method('create3DFormData')
-            ->with(
-                $this->pos->getAccount(),
-                ['form-inputs'],
-                $paymentModel,
-                $txType,
-                'form-action-url',
-                $card
-            )
-            ->willReturn(['3d-form-data']);
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
         $result = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
-        $this->assertSame(['3d-form-data'], $result);
+        $this->assertSame($response, $result);
     }
 
     /**
@@ -483,7 +474,7 @@ class KuveytPosTest extends TestCase
                 'request'         => Request::create(
                     '',
                     'POST',
-                    ['AuthenticationResponse' => KuveytPosSerializerTest::decodeHtmlDataProvider()['3d_auth_fail']['html']]
+                    ['AuthenticationResponse' => 'base64-encoded-xml']
                 ),
                 'decodedRequest'  => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['threeDResponseData'],
                 'paymentResponse' => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_fail']['paymentData'],
@@ -497,7 +488,7 @@ class KuveytPosTest extends TestCase
                 'request'         => Request::create(
                     '',
                     'POST',
-                    ['AuthenticationResponse' => KuveytPosSerializerTest::decodeHtmlDataProvider()['3d_auth_success_1']['html']]
+                    ['AuthenticationResponse' => 'base64-encoded-xml']
                 ),
                 'decodedRequest'  => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail_1']['threeDResponseData'],
                 'paymentResponse' => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['3d_auth_success_payment_fail_1']['paymentData'],
@@ -511,7 +502,7 @@ class KuveytPosTest extends TestCase
                 'request'         => Request::create(
                     '',
                     'POST',
-                    ['AuthenticationResponse' => KuveytPosSerializerTest::decodeHtmlDataProvider()['3d_auth_success_1']['html']]
+                    ['AuthenticationResponse' => 'base64-encoded-xml']
                 ),
                 'decodedRequest'  => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'],
                 'paymentResponse' => KuveytPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
@@ -659,7 +650,7 @@ class KuveytPosTest extends TestCase
         array  $requestData,
         string $encodedRequestData,
         string $responseContent,
-        array  $decodedResponse,
+        $decodedResponse,
         array  $order,
         string $paymentModel,
         ?int   $statusCode = null
@@ -671,10 +662,12 @@ class KuveytPosTest extends TestCase
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
             ->willReturn($xmlEncodedData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
+        if (is_array($decodedResponse)) {
+            $this->serializerMock->expects(self::once())
+                ->method('decode')
+                ->with($responseContent, $txType)
+                ->willReturn($decodedResponse);
+        }
 
         $this->prepareClient(
             $this->httpClientMock,
