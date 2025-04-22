@@ -133,7 +133,7 @@ class KuveytPosTest extends TestCase
             $this->card,
         );
 
-        $this->assertIsArray($formData);
+        $this->assertIsString($formData);
         $this->assertNotEmpty($formData);
         $this->assertTrue($eventIsThrown);
     }
