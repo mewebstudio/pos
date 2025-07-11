@@ -111,7 +111,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantPassword'          => $posAccount->getPassword(),
             'MerchantType'              => $posAccount->getMerchantType(),
             'PurchaseAmount'            => $this->formatAmount($order['amount']),
-            'VerifyEnrollmentRequestId' => $this->crypt->generateRandomString(),
+            'VerifyEnrollmentRequestId' => $order['id'],
             'Currency'                  => $this->mapCurrency($order['currency']),
             'SuccessUrl'                => $order['success_url'],
             'FailureUrl'                => $order['fail_url'],

@@ -118,7 +118,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'tid'                                 => $posAccount->getTerminalId(),
             'tranDateRequired'                    => '1',
             strtolower($this->mapTxType($txType)) => [
-                'orderID'      => self::formatOrderId($order['id']),
+                'orderID'      => $order['id'],
                 'installment'  => $this->mapInstallment($order['installment']),
                 'amount'       => $this->formatAmount($order['amount']),
                 'currencyCode' => $this->mapCurrency($order['currency']),
