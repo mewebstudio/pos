@@ -84,7 +84,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $mappedOrder             = [];
-        $mappedOrder['id']       = self::formatOrderId($order['id']);
+        $mappedOrder['id']       = ($order['id']);
         $mappedOrder['amount']   = $this->formatAmount($order['amount']);
         $mappedOrder['currency'] = (string) $this->mapCurrency($order['currency']);
 
@@ -166,7 +166,8 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
             'mid'   => $posAccount->getClientId(),
             'tid'   => $posAccount->getTerminalId(),
             $txType => [
-                'orderID' => self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']),
+                'orderID' => $order['id'],
+                'orderDate' => date('Ymd'),
             ],
         ];
     }
@@ -198,7 +199,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         if (isset($order['ref_ret_num'])) {
             $requestData[$txType]['hostLogKey'] = $order['ref_ret_num'];
         } else {
-            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']);
+            $requestData[$txType]['orderID'] = $order['id'];
         }
 
         return $requestData;
@@ -227,7 +228,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         if (isset($order['ref_ret_num'])) {
             $requestData[$txType]['hostLogKey'] = $order['ref_ret_num'];
         } else {
-            $requestData[$txType]['orderID'] = self::mapOrderIdToPrefixedOrderId($order['id'], $order['payment_model']);
+            $requestData[$txType]['orderID'] = $order['id'];
         }
 
         return $requestData;
@@ -319,7 +320,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
                 'amount'         => $this->formatAmount($order['amount']),
                 'currencyCode'   => $this->mapCurrency($order['currency']),
                 'installment'    => $this->mapInstallment($order['installment']),
-                'XID'            => self::formatOrderId($order['id']),
+                'XID'            => ($order['id']),
                 'cardHolderName' => $creditCard->getHolderName(),
                 'tranType'       => $this->mapTxType($txType),
             ],
@@ -338,7 +339,7 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $mappedOrder             = [];
-        $mappedOrder['id']       = self::formatOrderId($order['id']);
+        $mappedOrder['id']       = ($order['id']);
         $mappedOrder['amount']   = $this->formatAmount($order['amount']);
         $mappedOrder['currency'] = (string) $this->mapCurrency($order['currency']);
 
