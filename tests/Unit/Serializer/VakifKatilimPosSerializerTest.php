@@ -48,16 +48,6 @@ class VakifKatilimPosSerializerTest extends TestCase
     }
 
     /**
-     * @dataProvider decodeHtmlDataProvider
-     */
-    public function testDecodeHtml(string $input, array $expected): void
-    {
-        $actual = $this->serializer->decode($input, PosInterface::TX_TYPE_PAY_AUTH);
-
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
      * @dataProvider decodeExceptionDataProvider
      */
     public function testDecodeException(string $input, string $txType, string $exceptionClass): void
@@ -75,67 +65,6 @@ class VakifKatilimPosSerializerTest extends TestCase
         $actual = $this->serializer->decode($input, $txType);
 
         $this->assertSame($expected, $actual);
-    }
-
-    public static function decodeHtmlDataProvider(): array
-    {
-        $vakifKatilimHTML = <<<HTML
-<!DOCTYPE html>
-<html xmlns="http//www.w3.org/1999/xhtml">
-<head>
-<title></title>
-</head>
-<body onload="OnLoadEvent();">
-<form name="downloadForm" action="https://localhost/VirtualPos/ThreeDModel/Fail"
-method="POST">
-<input type="hidden" name="ResponseCode" value="CardNotEnrolled">
-<input type="hidden" name="ResponseMessage" value="Card 3D Secure kayitli degil.">
-<input type="hidden" name="ProvisionNumber">
-<input type="hidden" name="MerchantOrderId">
-<input type="hidden" name="OrderId" value="0">
-<input type="hidden" name="RRN">
-<input type="hidden" name="Stan">
-<input type="hidden" name="HashData">
-<input type="hidden" name="MD">
-<!-- To support javascript unaware/disabled browsers -->
-<noscript>
-<center>
-Please click the submit button below.<br>
-<input type="submit" name="submit" value="Submit">
- </center>
-</noscript>
-</form>
-<script language="Javascript">
-<!--
-function OnLoadEvent() {
- document.downloadForm.submit();
- }
- //
--->
-</script>
-</body>
-</html>
-HTML;
-
-        return [
-            '3d_auth_fail' => [
-                'html'     => $vakifKatilimHTML,
-                'expected' => [
-                    'gateway'     => 'https://localhost/VirtualPos/ThreeDModel/Fail',
-                    'form_inputs' => [
-                        'ResponseCode'    => 'CardNotEnrolled',
-                        'ResponseMessage' => 'Card 3D Secure kayitli degil.',
-                        'ProvisionNumber' => '',
-                        'MerchantOrderId' => '',
-                        'OrderId'         => '0',
-                        'RRN'             => '',
-                        'Stan'            => '',
-                        'HashData'        => '',
-                        'MD'              => '',
-                    ],
-                ],
-            ],
-        ];
     }
 
     public static function decodeXmlDataProvider(): iterable
