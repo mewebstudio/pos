@@ -18,7 +18,6 @@ use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EncodedData;
-use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -99,11 +98,11 @@ class VakifKatilimPos extends AbstractGateway
     }
 
     /**
+     * 3D Host Model'de array döner,
+     * 3D Model'de ise HTML form içeren string döner.
      * @inheritDoc
-     *
-     * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true)
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
@@ -119,21 +118,12 @@ class VakifKatilimPos extends AbstractGateway
             );
         }
 
-        $response = $this->sendEnrollmentRequest(
+        return $this->sendEnrollmentRequest(
             $this->account,
             $order,
             $paymentModel,
             $txType,
             $this->get3DGatewayURL($paymentModel),
-            $creditCard
-        );
-
-        return $this->requestDataMapper->create3DFormData(
-            $this->account,
-            $response['form_inputs'],
-            $paymentModel,
-            $txType,
-            $response['gateway'],
             $creditCard
         );
     }
@@ -221,6 +211,21 @@ class VakifKatilimPos extends AbstractGateway
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 
+    private function sendWithoutDecode(EncodedData $encodedData, string $url): string
+    {
+        $this->logger->debug('sending request', ['url' => $url]);
+        $body     = [
+            'body'    => $encodedData->getData(),
+            'headers' => [
+                'Content-Type' => 'text/xml; charset=UTF-8',
+            ],
+        ];
+        $response = $this->client->post($url, $body);
+        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
+
+        return $response->getBody()->getContents();
+    }
+
     /**
      * @phpstan-param PosInterface::MODEL_3D_*                                          $paymentModel
      * @phpstan-param PosInterface::TX_TYPE_PAY_AUTH|PosInterface::TX_TYPE_PAY_PRE_AUTH $txType
@@ -232,12 +237,11 @@ class VakifKatilimPos extends AbstractGateway
      * @param non-empty-string                     $gatewayURL
      * @param CreditCardInterface|null             $creditCard
      *
-     * @return array{gateway: string, form_inputs: array<string, string>}
+     * @return non-empty-string HTML string containing form inputs to be submitted to the bank
      *
      * @throws UnsupportedTransactionTypeException
-     * @throws ClientExceptionInterface
      */
-    private function sendEnrollmentRequest(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
+    private function sendEnrollmentRequest(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): string
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($kuveytPosAccount, $order, $paymentModel, $txType, $creditCard);
 
@@ -263,12 +267,8 @@ class VakifKatilimPos extends AbstractGateway
 
         $data = $this->serializer->encode($requestData, $txType);
 
-        /**
-         * @var array{form_inputs: array<string, string>, gateway: string} $decodedResponse
-         */
-        $decodedResponse = $this->send($data, $txType, $paymentModel, $gatewayURL);
-
-        return $decodedResponse;
+        /** @var non-empty-string */
+        return $this->sendWithoutDecode($data, $gatewayURL);
     }
 
 

@@ -233,29 +233,28 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      *
-     * @param array<string, string> $order Vakif Katilim bank'tan donen HTML cevaptan parse edilen form inputlar yada
-     *                                     3D Host odemede siparis bilgileri
-     *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
     public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
     {
-        $inputs = $order;
-        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            $order = $this->preparePaymentOrder($order);
-
-            $inputs             = [
-                'UserName'        => $posAccount->getUsername(),
-                'HashPassword'    => $this->crypt->hashString($posAccount->getStoreKey() ?? ''),
-                'MerchantId'      => $posAccount->getClientId(),
-                'MerchantOrderId' => (string) $order['id'],
-                'Amount'          => $this->valueFormatter->formatAmount($order['amount']),
-                'FECCurrencyCode' => $this->valueMapper->mapCurrency($order['currency']),
-                'OkUrl'           => $order['success_url'],
-                'FailUrl'         => $order['fail_url'],
-                'PaymentType'     => '1',
-            ];
+        if (PosInterface::MODEL_3D_HOST !== $paymentModel) {
+            throw new \LogicException('3D Form oluşturma sadece 3D Host modeli için desteklenmektedir!
+            Diğer modeller için banka API hazır HTML string döndürmektedir.');
         }
+
+        $order = $this->preparePaymentOrder($order);
+
+        $inputs             = [
+            'UserName'        => $posAccount->getUsername(),
+            'HashPassword'    => $this->crypt->hashString($posAccount->getStoreKey() ?? ''),
+            'MerchantId'      => $posAccount->getClientId(),
+            'MerchantOrderId' => (string) $order['id'],
+            'Amount'          => (string) $this->valueFormatter->formatAmount($order['amount']),
+            'FECCurrencyCode' => (string) $this->valueMapper->mapCurrency($order['currency']),
+            'OkUrl'           => (string) $order['success_url'],
+            'FailUrl'         => (string) $order['fail_url'],
+            'PaymentType'     => '1',
+        ];
 
         return [
             'gateway' => $gatewayURL,
