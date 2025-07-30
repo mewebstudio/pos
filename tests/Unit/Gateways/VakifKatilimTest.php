@@ -178,22 +178,22 @@ class VakifKatilimTest extends TestCase
     /**
      * @return void
      */
-    public function testGetCommon3DFormDataSuccessResponse(): void
+    public function testGet3DFormDataSuccessResponse(): void
     {
+        $response     = 'bank-api-html-response';
         $txType       = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel = PosInterface::MODEL_3D_SECURE;
         $card         = $this->card;
         $requestData  = ['form-data'];
         $order        = $this->order;
 
-        $decodedResponse = ['form_inputs' => ['form-inputs'], 'gateway' => 'form-action-url'];
         $this->configureClientResponse(
             $txType,
             'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
             $requestData,
             'request-body',
             'bank-api-html-response',
-            $decodedResponse,
+            $response,
             $order,
             $paymentModel
         );
@@ -209,20 +209,12 @@ class VakifKatilimTest extends TestCase
             )
             ->willReturn($requestData);
 
-        $this->requestMapperMock->expects(self::once())
-            ->method('create3DFormData')
-            ->with(
-                $this->pos->getAccount(),
-                ['form-inputs'],
-                $paymentModel,
-                $txType,
-                'form-action-url',
-                $card
-            )
-            ->willReturn(['3d-form-data']);
+        $this->requestMapperMock->expects(self::never())
+            ->method('create3DFormData');
+
         $result = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
 
-        $this->assertSame(['3d-form-data'], $result);
+        $this->assertSame($response, $result);
     }
 
     /**
@@ -976,7 +968,7 @@ class VakifKatilimTest extends TestCase
         array  $requestData,
         string $encodedRequestData,
         string $responseContent,
-        array  $decodedResponse,
+        $decodedResponse,
         array  $order,
         string $paymentModel
     ): void {
@@ -987,10 +979,12 @@ class VakifKatilimTest extends TestCase
             ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
             ->willReturn($xmlEncodedData);
 
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
+        if (is_array($decodedResponse)) {
+            $this->serializerMock->expects(self::once())
+                ->method('decode')
+                ->with($responseContent, $txType)
+                ->willReturn($decodedResponse);
+        }
 
         $this->prepareClient(
             $this->httpClientMock,

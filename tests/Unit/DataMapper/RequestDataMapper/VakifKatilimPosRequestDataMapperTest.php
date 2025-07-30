@@ -85,15 +85,13 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
         string $paymentModel,
         array  $expected
     ): void {
-        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            $hashCalculationData = $expected['inputs'];
-            unset($hashCalculationData['HashPassword']);
+        $hashCalculationData = $expected['inputs'];
+        unset($hashCalculationData['HashPassword']);
 
-            $this->crypt->expects(self::once())
-                ->method('hashString')
-                ->with($this->account->getStoreKey())
-                ->willReturn($expected['inputs']['HashPassword']);
-        }
+        $this->crypt->expects(self::once())
+            ->method('hashString')
+            ->with($this->account->getStoreKey())
+            ->willReturn($expected['inputs']['HashPassword']);
 
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
@@ -104,6 +102,32 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
         );
 
         $this->assertSame($expected, $actual);
+    }
+
+    public function testGet3DFormDataUnsupportedPaymentModel(): void
+    {
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
+        $gatewayURL = 'https://example.com/3d-gateway';
+        $this->crypt->expects(self::never())
+            ->method('hashString');
+
+        $order = [
+            'id'          => '123',
+            'amount'      => 10.0,
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+        ];
+
+        $this->expectException(\LogicException::class);
+
+        $this->requestDataMapper->create3DFormData(
+            $this->account,
+            $order,
+            $paymentModel,
+            $txType,
+            $gatewayURL,
+        );
     }
 
     /**
@@ -848,42 +872,11 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                         'HashPassword'    => 'h58bUB83xQz2/21SUeOemUgkF5U=',
                         'MerchantId'      => '1',
                         'MerchantOrderId' => 'order222',
-                        'Amount'          => 10025,
+                        'Amount'          => '10025',
                         'FECCurrencyCode' => '0949',
                         'OkUrl'           => 'https://domain.com/success',
                         'FailUrl'         => 'https://domain.com/fail_url',
                         'PaymentType'     => '1',
-                    ],
-                ],
-            ],
-            '3d'      => [
-                'order'        => [
-                    'ResponseCode'    => '00',
-                    'ResponseMessage' => '',
-                    'ProvisionNumber' => 'prov-123',
-                    'MerchantOrderId' => 'order-123',
-                    'OrderId'         => 'bank-123',
-                    'RRN'             => 'rrn-123',
-                    'Stan'            => 'stan-123',
-                    'HashData'        => 'hash-123',
-                    'MD'              => 'ktSVkYJHcHSYM1ibA/nM6nObr8WpWdcw34ziyRQRLv06g7UR2r5LrpLeNvwfBwPz',
-                ],
-                'gatewayUrl'   => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_3D_SECURE,
-                'expected'     => [
-                    'gateway' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
-                    'method'  => 'POST',
-                    'inputs'  => [
-                        'ResponseCode'    => '00',
-                        'ResponseMessage' => '',
-                        'ProvisionNumber' => 'prov-123',
-                        'MerchantOrderId' => 'order-123',
-                        'OrderId'         => 'bank-123',
-                        'RRN'             => 'rrn-123',
-                        'Stan'            => 'stan-123',
-                        'HashData'        => 'hash-123',
-                        'MD'              => 'ktSVkYJHcHSYM1ibA/nM6nObr8WpWdcw34ziyRQRLv06g7UR2r5LrpLeNvwfBwPz',
                     ],
                 ],
             ],
