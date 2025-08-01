@@ -133,10 +133,16 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
 
 		-
-			message: '#^Property Mews\\Pos\\DataMapper\\ResponseDataMapper\\AbstractResponseDataMapper\:\:\$currencyMappings \(array\<string, ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD''\>\) does not accept non\-empty\-array\<392\|643\|826\|840\|949\|978\|string, ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD''\>\.$#'
-			identifier: assign.propertyType
+			message: '#^Parameter \#6 \$httpClient of static method Mews\\Pos\\Factory\\PosFactory\:\:doCreateHttpPosGateway\(\) expects Mews\\Pos\\Client\\HttpClientInterface\|null, Mews\\Pos\\Client\\HttpClientInterface\|Mews\\Pos\\Client\\SoapClientInterface\|null given\.$#'
+			identifier: argument.type
 			count: 1
-			path: src/DataMapper/ResponseDataMapper/PosNetV1PosResponseDataMapper.php
+			path: src/Factory/PosFactory.php
+
+		-
+			message: '#^Parameter \#6 \$soapClient of static method Mews\\Pos\\Factory\\PosFactory\:\:doCreateSoapPosGateway\(\) expects Mews\\Pos\\Client\\SoapClientInterface\|null, Mews\\Pos\\Client\\HttpClientInterface\|Mews\\Pos\\Client\\SoapClientInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Factory/PosFactory.php
 
 		-
 			message: '#^Strict comparison using \=\=\= between ''3d_host'' and ''3d_host'' will always evaluate to true\.$#'

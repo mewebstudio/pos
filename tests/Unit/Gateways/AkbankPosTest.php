@@ -6,7 +6,7 @@
 
 namespace Mews\Pos\Tests\Unit\Gateways;
 
-use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\AkbankPosRequestValueMapper;
@@ -33,6 +33,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\AkbankPos
+ * @covers \Mews\Pos\Gateways\AbstractHttpGateway
  * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class AkbankPosTest extends TestCase
@@ -57,7 +58,7 @@ class AkbankPosTest extends TestCase
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
 
-    /** @var HttpClient & MockObject */
+    /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
 
     /** @var LoggerInterface & MockObject */
@@ -98,7 +99,7 @@ class AkbankPosTest extends TestCase
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClient::class);
+        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
 

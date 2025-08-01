@@ -22,7 +22,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Class PayForPos
  */
-class PayForPos extends AbstractGateway
+class PayForPos extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'PayForPOS';

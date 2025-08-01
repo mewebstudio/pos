@@ -23,7 +23,7 @@ use Mews\Pos\Serializer\EncodedData;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
-class PosNetV1Pos extends AbstractGateway
+class PosNetV1Pos extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'PosNetV1';

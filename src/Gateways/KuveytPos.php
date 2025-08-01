@@ -21,14 +21,12 @@ use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use RuntimeException;
-use SoapClient;
-use SoapFault;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Kuveyt banki desteleyen Gateway
  */
-class KuveytPos extends AbstractGateway
+class KuveytPos extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'KuveytPos';
@@ -50,13 +48,13 @@ class KuveytPos extends AbstractGateway
         ],
         PosInterface::TX_TYPE_PAY_PRE_AUTH   => false,
         PosInterface::TX_TYPE_PAY_POST_AUTH  => false,
-        PosInterface::TX_TYPE_STATUS         => true,
-        PosInterface::TX_TYPE_CANCEL         => true,
-        PosInterface::TX_TYPE_REFUND         => true,
-        PosInterface::TX_TYPE_REFUND_PARTIAL => true,
+        PosInterface::TX_TYPE_STATUS         => false,
+        PosInterface::TX_TYPE_CANCEL         => false,
+        PosInterface::TX_TYPE_REFUND         => false,
+        PosInterface::TX_TYPE_REFUND_PARTIAL => false,
         PosInterface::TX_TYPE_HISTORY        => false,
         PosInterface::TX_TYPE_ORDER_HISTORY  => false,
-        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => false,
     ];
 
     /** @return KuveytPosAccount */
@@ -73,20 +71,6 @@ class KuveytPos extends AbstractGateway
      */
     public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
     {
-        if (\in_array(
-            $txType,
-            [
-                PosInterface::TX_TYPE_REFUND,
-                PosInterface::TX_TYPE_REFUND_PARTIAL,
-                PosInterface::TX_TYPE_STATUS,
-                PosInterface::TX_TYPE_CANCEL,
-                PosInterface::TX_TYPE_CUSTOM_QUERY,
-            ],
-            true
-        )) {
-            return $this->getQueryAPIUrl();
-        }
-
         if (null !== $txType && null !== $paymentModel) {
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
         }
@@ -108,6 +92,30 @@ class KuveytPos extends AbstractGateway
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function status(array $order): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException('Bu işlem için KuveytSoapApiPos gateway kullanılmalıdır!');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function cancel(array $order): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException('Bu işlem için KuveytSoapApiPos gateway kullanılmalıdır!');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function refund(array $order): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException('Bu işlem için KuveytSoapApiPos gateway kullanılmalıdır!');
     }
 
     /**
@@ -158,7 +166,7 @@ class KuveytPos extends AbstractGateway
     }
 
     /**
-     * @inheritDocs
+     * @inheritDoc
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
@@ -216,138 +224,6 @@ class KuveytPos extends AbstractGateway
 
     /**
      * @inheritDoc
-     */
-    public function refund(array $order): PosInterface
-    {
-        $txType = PosInterface::TX_TYPE_REFUND;
-        if (isset($order['order_amount']) && $order['amount'] < $order['order_amount']) {
-            $txType = PosInterface::TX_TYPE_REFUND_PARTIAL;
-        }
-
-        $requestData = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $bankResponse   = $this->sendSoapRequest(
-            $requestData,
-            $txType,
-            $this->getApiURL(
-                $txType,
-                PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            ),
-        );
-        $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function cancel(array $order): PosInterface
-    {
-        $txType      = PosInterface::TX_TYPE_CANCEL;
-        $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $bankResponse   = $this->sendSoapRequest(
-            $requestData,
-            $txType,
-            $this->getApiURL(
-                $txType,
-                PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            ),
-        );
-        $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
-
-        return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function status(array $order): PosInterface
-    {
-        $txType      = PosInterface::TX_TYPE_STATUS;
-        $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
-
-        $event = new RequestDataPreparedEvent(
-            $requestData,
-            $this->account->getBank(),
-            $txType,
-            \get_class($this),
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-        /** @var RequestDataPreparedEvent $event */
-        $event = $this->eventDispatcher->dispatch($event);
-        if ($requestData !== $event->getRequestData()) {
-            $this->logger->debug('Request data is changed via listeners', [
-                'txType'      => $event->getTxType(),
-                'bank'        => $event->getBank(),
-                'initialData' => $requestData,
-                'updatedData' => $event->getRequestData(),
-            ]);
-            $requestData = $event->getRequestData();
-        }
-
-        $bankResponse   = $this->sendSoapRequest(
-            $requestData,
-            $txType,
-            $this->getApiURL(
-                $txType,
-                PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            ),
-        );
-
-        $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
-
-        return $this;
-    }
-
-
-    /**
-     * @inheritDoc
      *
      * @return array<string, mixed>
      */
@@ -364,76 +240,6 @@ class KuveytPos extends AbstractGateway
         $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
 
         return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_STATUS|PosInterface::TX_TYPE_REFUND|PosInterface::TX_TYPE_REFUND_PARTIAL|PosInterface::TX_TYPE_CANCEL|PosInterface::TX_TYPE_CUSTOM_QUERY $txType
-     *
-     * @param array<string, mixed> $contents
-     * @param string               $txType
-     * @param string               $url
-     *
-     * @return array<string, mixed>
-     *
-     * @throws SoapFault
-     * @throws RuntimeException
-     */
-    private function sendSoapRequest(array $contents, string $txType, string $url): array
-    {
-        $this->logger->debug('sending soap request', [
-            'txType' => $txType,
-            'url'    => $url,
-        ]);
-
-        $sslConfig = [
-            'allow_self_signed' => true,
-            'crypto_method'     => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
-        ];
-        if ($this->isTestMode()) {
-            $sslConfig = [
-                'verify_peer'       => false,
-                'verify_peer_name'  => false,
-                'allow_self_signed' => true,
-                'crypto_method'     => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
-            ];
-        }
-
-        $options = [
-            'trace'          => true,
-            'encoding'       => 'UTF-8',
-            'stream_context' => stream_context_create(['ssl' => $sslConfig]),
-            'exceptions'     => true,
-        ];
-
-
-        $client = new SoapClient($url, $options);
-        try {
-            $result = $client->__soapCall(
-                $contents['VPosMessage']['TransactionType'],
-                ['parameters' => ['request' => $contents]]
-            );
-        } catch (SoapFault $soapFault) {
-            $this->logger->error('soap error response', [
-                'message' => $soapFault->getMessage(),
-            ]);
-
-            throw $soapFault;
-        }
-
-        if (null === $result) {
-            $this->logger->error('Bankaya istek başarısız!', [
-                'response' => $result,
-            ]);
-            throw new RuntimeException('Bankaya istek başarısız!');
-        }
-
-        $encodedResult = \json_encode($result);
-
-        if (false === $encodedResult) {
-            return [];
-        }
-
-        return $this->serializer->decode($encodedResult, $txType);
     }
 
     /**

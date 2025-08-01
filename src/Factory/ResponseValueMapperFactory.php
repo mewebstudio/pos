@@ -27,6 +27,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayFlexV4Pos;
@@ -50,20 +51,21 @@ class ResponseValueMapperFactory
     public static function createForGateway(string $gatewayClass, RequestValueMapperInterface $requestValueMapper): ResponseValueMapperInterface
     {
         $classMappings = [
-            AkbankPos::class       => AkbankPosResponseValueMapper::class,
-            EstPos::class          => EstPosResponseValueMapper::class,
-            EstV3Pos::class        => EstPosResponseValueMapper::class,
-            GarantiPos::class      => GarantiPosResponseValueMapper::class,
-            InterPos::class        => InterPosResponseValueMapper::class,
-            KuveytPos::class       => BoaPosResponseValueMapper::class,
-            ParamPos::class        => ParamPosResponseValueMapper::class,
-            PayFlexCPV4Pos::class  => PayFlexCPV4PosResponseValueMapper::class,
-            PayFlexV4Pos::class    => PayFlexV4PosResponseValueMapper::class,
-            PayForPos::class       => PayForPosResponseValueMapper::class,
-            PosNet::class          => PosNetResponseValueMapper::class,
-            PosNetV1Pos::class     => PosNetV1PosResponseValueMapper::class,
-            ToslaPos::class        => ToslaPosResponseValueMapper::class,
-            VakifKatilimPos::class => BoaPosResponseValueMapper::class,
+            AkbankPos::class        => AkbankPosResponseValueMapper::class,
+            EstPos::class           => EstPosResponseValueMapper::class,
+            EstV3Pos::class         => EstPosResponseValueMapper::class,
+            GarantiPos::class       => GarantiPosResponseValueMapper::class,
+            InterPos::class         => InterPosResponseValueMapper::class,
+            KuveytPos::class        => BoaPosResponseValueMapper::class,
+            KuveytSoapApiPos::class => BoaPosResponseValueMapper::class,
+            ParamPos::class         => ParamPosResponseValueMapper::class,
+            PayFlexCPV4Pos::class   => PayFlexCPV4PosResponseValueMapper::class,
+            PayFlexV4Pos::class     => PayFlexV4PosResponseValueMapper::class,
+            PayForPos::class        => PayForPosResponseValueMapper::class,
+            PosNet::class           => PosNetResponseValueMapper::class,
+            PosNetV1Pos::class      => PosNetV1PosResponseValueMapper::class,
+            ToslaPos::class         => ToslaPosResponseValueMapper::class,
+            VakifKatilimPos::class  => BoaPosResponseValueMapper::class,
         ];
 
         if (!isset($classMappings[$gatewayClass])) {
@@ -98,19 +100,20 @@ class ResponseValueMapperFactory
         }
 
         if (\in_array($classMappings[$gatewayClass], [
-            AkbankPos::class       => AkbankPosResponseValueMapper::class,
-            EstPos::class          => EstPosResponseValueMapper::class,
-            EstV3Pos::class        => EstPosResponseValueMapper::class,
-            GarantiPos::class      => GarantiPosResponseValueMapper::class,
-            InterPos::class        => InterPosResponseValueMapper::class,
-            KuveytPos::class       => BoaPosResponseValueMapper::class,
-            PayFlexCPV4Pos::class  => PayFlexCPV4PosResponseValueMapper::class,
-            PayFlexV4Pos::class    => PayFlexV4PosResponseValueMapper::class,
-            PayForPos::class       => PayForPosResponseValueMapper::class,
-            PosNet::class          => PosNetResponseValueMapper::class,
-            PosNetV1Pos::class     => PosNetV1PosResponseValueMapper::class,
-            ToslaPos::class        => ToslaPosResponseValueMapper::class,
-            VakifKatilimPos::class => BoaPosResponseValueMapper::class,
+            AkbankPos::class        => AkbankPosResponseValueMapper::class,
+            EstPos::class           => EstPosResponseValueMapper::class,
+            EstV3Pos::class         => EstPosResponseValueMapper::class,
+            GarantiPos::class       => GarantiPosResponseValueMapper::class,
+            InterPos::class         => InterPosResponseValueMapper::class,
+            KuveytPos::class        => BoaPosResponseValueMapper::class,
+            KuveytSoapApiPos::class => BoaPosResponseValueMapper::class,
+            PayFlexCPV4Pos::class   => PayFlexCPV4PosResponseValueMapper::class,
+            PayFlexV4Pos::class     => PayFlexV4PosResponseValueMapper::class,
+            PayForPos::class        => PayForPosResponseValueMapper::class,
+            PosNet::class           => PosNetResponseValueMapper::class,
+            PosNetV1Pos::class      => PosNetV1PosResponseValueMapper::class,
+            ToslaPos::class         => ToslaPosResponseValueMapper::class,
+            VakifKatilimPos::class  => BoaPosResponseValueMapper::class,
         ], true)) {
             $currencyMappings = $requestValueMapper->getCurrencyMappings();
         }

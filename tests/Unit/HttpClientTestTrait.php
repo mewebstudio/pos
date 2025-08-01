@@ -6,7 +6,7 @@
 
 namespace Mews\Pos\Tests\Unit;
 
-use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
@@ -14,10 +14,10 @@ use Psr\Http\Message\StreamInterface;
 trait HttpClientTestTrait
 {
     /**
-     * @param HttpClient|MockObject $httpClient
+     * @param HttpClientInterface|MockObject $httpClient
      */
     private function prepareClient(
-        HttpClient $httpClient,
+        HttpClientInterface $httpClient,
         string $responseContent,
         string $apiUrl,
         array $requestData,
@@ -32,10 +32,10 @@ trait HttpClientTestTrait
     }
 
     /**
-     * @param HttpClient|MockObject $httpClient
+     * @param HttpClientInterface|MockObject $httpClient
      */
     private function prepareHttpClientRequestMulti(
-        HttpClient $httpClient,
+        HttpClientInterface $httpClient,
         array $responseContents,
         array $apiUrls,
         array $requestData
