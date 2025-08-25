@@ -27,11 +27,8 @@ abstract class AbstractGateway implements PosInterface
      *          disable_3d_hash_check?: bool
      *     },
      *     gateway_endpoints: array{
-     *          payment_api: non-empty-string,
-     *          payment_api_2?: non-empty-string,
      *          gateway_3d: non-empty-string,
-     *          gateway_3d_host?: non-empty-string,
-     *          query_api?: non-empty-string
+     *          gateway_3d_host?: non-empty-string
      *     }
      * }
      */
@@ -96,11 +93,8 @@ abstract class AbstractGateway implements PosInterface
      *           disable_3d_hash_check?: bool
      *      },
      *      gateway_endpoints: array{
-     *           payment_api: non-empty-string,
-     *           payment_api_2?: non-empty-string,
      *           gateway_3d: non-empty-string,
-     *           gateway_3d_host?: non-empty-string,
-     *           query_api?: non-empty-string
+     *           gateway_3d_host?: non-empty-string
      *      }
      *  } $config
      */
@@ -150,11 +144,8 @@ abstract class AbstractGateway implements PosInterface
      *          disable_3d_hash_check?: bool
      *      },
      *      gateway_endpoints: array{
-     *          payment_api: non-empty-string,
-     *          payment_api_2?: non-empty-string,
      *          gateway_3d: non-empty-string,
-     *          gateway_3d_host?: non-empty-string,
-     *          query_api?: non-empty-string
+     *          gateway_3d_host?: non-empty-string
      *      }
      * }
      */
@@ -174,22 +165,6 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @phpstan-param self::TX_TYPE_*     $txType
-     * @phpstan-param self::MODEL_*       $paymentModel
-     * @phpstan-param self::TX_TYPE_PAY_* $orderTxType
-     *
-     * @param string|null $txType
-     * @param string|null $paymentModel
-     * @param string|null $orderTxType
-     *
-     * @return non-empty-string
-     */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        return $this->config['gateway_endpoints']['payment_api'];
-    }
-
-    /**
      * @param PosInterface::MODEL_3D_* $paymentModel
      *
      * @return non-empty-string
@@ -201,32 +176,6 @@ abstract class AbstractGateway implements PosInterface
         }
 
         return $this->config['gateway_endpoints']['gateway_3d'];
-    }
-
-    /**
-     * @phpstan-param self::TX_TYPE_*     $txType
-     * @phpstan-param self::TX_TYPE_PAY_* $orderTxType
-     *
-     * @param string|null $txType
-     * @param string|null $orderTxType transaction type of order when it was made
-     *
-     * @return non-empty-string
-     */
-    public function getQueryAPIUrl(string $txType = null, ?string $orderTxType = null): string
-    {
-        return $this->config['gateway_endpoints']['query_api'] ?? $this->getApiURL(
-            $txType,
-            PosInterface::MODEL_NON_SECURE,
-            $orderTxType
-        );
-    }
-
-    /**
-     * @return bool
-     */
-    public function isTestMode(): bool
-    {
-        return $this->testMode;
     }
 
     /**
@@ -265,6 +214,14 @@ abstract class AbstractGateway implements PosInterface
         }
 
         return $this;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isTestMode(): bool
+    {
+        return $this->testMode;
     }
 
     /**

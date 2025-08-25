@@ -18,7 +18,6 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -69,21 +68,6 @@ class ToslaPos extends AbstractHttpGateway
     public function getAccount(): AbstractPosAccount
     {
         return $this->account;
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @throws UnsupportedTransactionTypeException
-     * @throws \InvalidArgumentException when transaction type or payment model are not provided
-     */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (null !== $txType && null !== $paymentModel) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
-        }
-
-        throw new \InvalidArgumentException('Transaction type and payment model are required to generate API URL');
     }
 
     /**
@@ -186,49 +170,9 @@ class ToslaPos extends AbstractHttpGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
-    {
-        if (null === $apiUrl) {
-            throw new \InvalidArgumentException('API URL is required for custom query');
-        }
-
-        return parent::customQuery($requestData, $apiUrl);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function history(array $data): PosInterface
     {
         throw new UnsupportedTransactionTypeException();
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-            ],
-            'body'    => $encodedData->getData(),
-        ]);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        if ($response->getStatusCode() === 204) {
-            $this->logger->warning('response from api is empty');
-
-            return $this->data = [];
-        }
-
-        $responseContent = $response->getBody()->getContents();
-
-        return $this->data = $this->serializer->decode($responseContent, $txType);
     }
 
     /**
@@ -277,56 +221,11 @@ class ToslaPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $requestData = $this->serializer->encode($requestData, $txType);
-
-        return $this->send(
-            $requestData,
+        return $this->client->request(
             $txType,
             $paymentModel,
-            $this->getApiURL($txType, $paymentModel)
+            $requestData,
+            $order
         );
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     * @phpstan-param PosInterface::MODEL_*   $paymentModel
-     *
-     * @return string
-     *
-     * @throws UnsupportedTransactionTypeException
-     */
-    private function getRequestURIByTransactionType(string $txType, string $paymentModel): string
-    {
-        $arr = [
-            PosInterface::TX_TYPE_PAY_AUTH       => [
-                PosInterface::MODEL_NON_SECURE => 'Payment',
-                PosInterface::MODEL_3D_PAY     => 'threeDPayment',
-                PosInterface::MODEL_3D_HOST    => 'threeDPayment',
-            ],
-            PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
-                PosInterface::MODEL_3D_PAY  => 'threeDPreAuth',
-                PosInterface::MODEL_3D_HOST => 'threeDPreAuth',
-            ],
-            PosInterface::TX_TYPE_PAY_POST_AUTH  => 'postAuth',
-            PosInterface::TX_TYPE_CANCEL         => 'void',
-            PosInterface::TX_TYPE_REFUND         => 'refund',
-            PosInterface::TX_TYPE_REFUND_PARTIAL => 'refund',
-            PosInterface::TX_TYPE_STATUS         => 'inquiry',
-            PosInterface::TX_TYPE_ORDER_HISTORY  => 'history',
-        ];
-
-        if (!isset($arr[$txType])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        if (\is_string($arr[$txType])) {
-            return $arr[$txType];
-        }
-
-        if (!isset($arr[$txType][$paymentModel])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        return $arr[$txType][$paymentModel];
     }
 }

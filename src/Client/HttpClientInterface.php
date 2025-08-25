@@ -6,18 +6,38 @@
 
 namespace Mews\Pos\Client;
 
+use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
-use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
 interface HttpClientInterface
 {
     /**
-     * @param string                                               $path
-     * @param array{body: string, headers?: array<string, string>} $payload
+     * @param class-string<PosInterface> $gatewayClass
      *
-     * @return ResponseInterface
-     *
-     * @throws ClientExceptionInterface
+     * @return bool
      */
-    public function post(string $path, array $payload): ResponseInterface;
+    public static function supports(string $gatewayClass): bool;
+
+    /**
+     * @param PosInterface::TX_TYPE_* $txType
+     * @param PosInterface::MODEL_*   $paymentModel
+     * @param array<string, mixed>    $requestData
+     * @param array<string, mixed>    $order
+     * @param non-empty-string|null   $url
+     * @param AbstractPosAccount|null $account
+     * @param bool                    $encode
+     * @param bool                    $decode
+     *
+     * @return ($decode is true ? array<string, mixed> : string)
+     *
+     * @throws UnsupportedTransactionTypeException
+     * @throws NotEncodableValueException
+     * @throws ClientExceptionInterface
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     */
+    public function request(string $txType, string $paymentModel, array $requestData, array $order, string $url = null, AbstractPosAccount $account = null, bool $encode = true, bool $decode = true);
 }

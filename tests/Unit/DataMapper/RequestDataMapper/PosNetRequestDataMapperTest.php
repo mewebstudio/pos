@@ -311,7 +311,7 @@ class PosNetRequestDataMapperTest extends TestCase
     public static function threeDFormDataDataProvider(): array
     {
         return [
-            [
+            'success1' => [
                 'enrollment_check_response' => [
                     'approved'               => '1', //1:Başarılı
                     'respCode'               => '',

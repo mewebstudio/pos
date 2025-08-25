@@ -17,7 +17,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -62,21 +61,6 @@ class VakifKatilimPos extends AbstractHttpGateway
     public function getAccount(): AbstractPosAccount
     {
         return $this->account;
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @throws UnsupportedTransactionTypeException
-     * @throws \InvalidArgumentException when transaction type or payment model are not provided
-     */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (null !== $txType && null !== $paymentModel) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel, $orderTxType);
-        }
-
-        throw new \InvalidArgumentException('Transaction type and payment model are required to generate API URL');
     }
 
     /**
@@ -134,6 +118,7 @@ class VakifKatilimPos extends AbstractHttpGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $gatewayResponse = $request->request->all();
+        $paymentModel    = self::MODEL_3D_SECURE;
 
         if (!$this->is3DAuthSuccess($gatewayResponse)) {
             $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, null, $txType, $order);
@@ -151,7 +136,7 @@ class VakifKatilimPos extends AbstractHttpGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -165,8 +150,12 @@ class VakifKatilimPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send($contents, $txType, PosInterface::MODEL_3D_SECURE);
+        $bankResponse = $this->client->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order
+        );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
@@ -185,45 +174,6 @@ class VakifKatilimPos extends AbstractHttpGateway
         }
 
         return parent::customQuery($requestData, $apiUrl);
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     *
-     * @throws UnsupportedTransactionTypeException
-     */
-    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url = null): array
-    {
-        $url ??= $this->getApiURL($txType, $paymentModel);
-
-        $this->logger->debug('sending request', ['url' => $url]);
-        $body     = [
-            'body'    => $encodedData->getData(),
-            'headers' => [
-                'Content-Type' => 'text/xml; charset=UTF-8',
-            ],
-        ];
-        $response = $this->client->post($url, $body);
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    private function sendWithoutDecode(EncodedData $encodedData, string $url): string
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-        $body     = [
-            'body'    => $encodedData->getData(),
-            'headers' => [
-                'Content-Type' => 'text/xml; charset=UTF-8',
-            ],
-        ];
-        $response = $this->client->post($url, $body);
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $response->getBody()->getContents();
     }
 
     /**
@@ -265,77 +215,15 @@ class VakifKatilimPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $data = $this->serializer->encode($requestData, $txType);
-
-        /** @var non-empty-string */
-        return $this->sendWithoutDecode($data, $gatewayURL);
-    }
-
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_*     $txType
-     * @phpstan-param PosInterface::MODEL_*       $paymentModel
-     * @phpstan-param PosInterface::TX_TYPE_PAY_* $orderTxType
-     *
-     * @return string
-     *
-     * @throws UnsupportedTransactionTypeException
-     */
-    private function getRequestURIByTransactionType(string $txType, string $paymentModel, ?string $orderTxType = null): string
-    {
-        $orderTxType ??= PosInterface::TX_TYPE_PAY_AUTH;
-
-        $arr = [
-            PosInterface::TX_TYPE_PAY_AUTH       => [
-                PosInterface::MODEL_NON_SECURE => 'Non3DPayGate',
-                PosInterface::MODEL_3D_SECURE  => 'ThreeDModelProvisionGate',
-            ],
-            PosInterface::TX_TYPE_PAY_PRE_AUTH   => [
-                PosInterface::MODEL_NON_SECURE => 'PreAuthorizaten',
-            ],
-            PosInterface::TX_TYPE_PAY_POST_AUTH  => 'PreAuthorizatenClose',
-            PosInterface::TX_TYPE_CANCEL         => [
-                PosInterface::MODEL_NON_SECURE => [
-                    PosInterface::TX_TYPE_PAY_AUTH     => 'SaleReversal',
-                    PosInterface::TX_TYPE_PAY_PRE_AUTH => 'PreAuthorizationReversal',
-                ],
-            ],
-            PosInterface::TX_TYPE_REFUND         => [
-                PosInterface::MODEL_NON_SECURE => [
-                    PosInterface::TX_TYPE_PAY_AUTH     => 'DrawBack',
-                    PosInterface::TX_TYPE_PAY_PRE_AUTH => 'PreAuthorizationDrawBack',
-                ],
-            ],
-            PosInterface::TX_TYPE_REFUND_PARTIAL => [
-                PosInterface::MODEL_NON_SECURE => [
-                    PosInterface::TX_TYPE_PAY_AUTH => 'PartialDrawBack',
-                ],
-            ],
-            PosInterface::TX_TYPE_STATUS         => 'SelectOrderByMerchantOrderId',
-            PosInterface::TX_TYPE_ORDER_HISTORY  => 'SelectOrder',
-            PosInterface::TX_TYPE_HISTORY        => 'SelectOrder',
-        ];
-
-        if (!isset($arr[$txType])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        if (\is_string($arr[$txType])) {
-            return $arr[$txType];
-        }
-
-        if (!isset($arr[$txType][$paymentModel])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        if (\is_string($arr[$txType][$paymentModel])) {
-            return  $arr[$txType][$paymentModel];
-        }
-
-        if (!isset($arr[$txType][$paymentModel][$orderTxType])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        return $arr[$txType][$paymentModel][$orderTxType];
+        return $this->client->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
+            $gatewayURL,
+            null,
+            true,
+            false
+        );
     }
 }

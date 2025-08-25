@@ -21,11 +21,9 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\AkbankPosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\AkbankPosResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -39,8 +37,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class AkbankPosTest extends TestCase
 {
-    use HttpClientTestTrait;
-
     private array $config;
 
     private CreditCardInterface $card;
@@ -81,7 +77,6 @@ class AkbankPosTest extends TestCase
             'name'              => 'AKBANK T.A.S.',
             'class'             => AkbankPos::class,
             'gateway_endpoints' => [
-                'payment_api'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos',
                 'gateway_3d'      => 'https://virtualpospaymentgateway.akbank.com/securepay',
                 'gateway_3d_host' => 'https://virtualpospaymentgateway.akbank.com/payhosting',
             ],
@@ -95,10 +90,10 @@ class AkbankPosTest extends TestCase
             PosInterface::LANG_TR
         );
 
+        $this->serializerMock      = $this->createMock(SerializerInterface::class);
         $this->requestValueMapper  = new AkbankPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
         $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
@@ -135,32 +130,12 @@ class AkbankPosTest extends TestCase
         $this->assertFalse($this->pos->isTestMode());
     }
 
-    /**
-     * @dataProvider getApiUrlDataProvider
-     */
-    public function testGetApiURL(?string $txType, string $paymentModel, string $expected): void
-    {
-        $actual = $this->pos->getApiURL($txType, $paymentModel);
-
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @dataProvider getApiUrlExceptionDataProvider
-     */
-    public function testGetApiURLException(?string $txType, string $exceptionClass): void
-    {
-        $this->expectException($exceptionClass);
-
-        $this->pos->getApiURL($txType);
-    }
-
     public function testGet3DGatewayURL(): void
     {
         $actual = $this->pos->get3DGatewayURL();
 
         $this->assertSame(
-            'https://virtualpospaymentgateway.akbank.com/securepay',
+            $this->config['gateway_endpoints']['gateway_3d'],
             $actual
         );
     }
@@ -170,7 +145,7 @@ class AkbankPosTest extends TestCase
         $actual = $this->pos->get3DGatewayURL(PosInterface::MODEL_3D_HOST);
 
         $this->assertSame(
-            'https://virtualpospaymentgateway.akbank.com/payhosting',
+            $this->config['gateway_endpoints']['gateway_3d_host'],
             $actual
         );
     }
@@ -392,10 +367,7 @@ class AkbankPosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -412,10 +384,6 @@ class AkbankPosTest extends TestCase
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $this->serializerMock->expects(self::never())
-                ->method('decode');
             $this->eventDispatcherMock->expects(self::never())
                 ->method('dispatch');
         }
@@ -472,10 +440,7 @@ class AkbankPosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -588,7 +553,7 @@ class AkbankPosTest extends TestCase
     /**
      * @dataProvider historyRequestDataProvider
      */
-    public function testHistoryRequest(array $order, string $apiUrl): void
+    public function testHistoryRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_HISTORY;
@@ -602,10 +567,7 @@ class AkbankPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
             PosInterface::MODEL_NON_SECURE
@@ -646,10 +608,7 @@ class AkbankPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
             $requestData,
-            $encodedRequest,
-            $responseContent,
             $decodedResponse,
             $order,
             PosInterface::MODEL_NON_SECURE
@@ -665,7 +624,7 @@ class AkbankPosTest extends TestCase
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType): void
     {
         $account = $this->pos->getAccount();
         $card    = $this->card;
@@ -677,10 +636,7 @@ class AkbankPosTest extends TestCase
         $requestData = ['createNonSecurePaymentRequestData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            $apiUrl,
             ['paymentResponse'],
             $order,
             PosInterface::MODEL_NON_SECURE
@@ -697,7 +653,7 @@ class AkbankPosTest extends TestCase
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPaymentBadRequest(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPaymentBadRequest(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $card        = $this->card;
@@ -709,13 +665,11 @@ class AkbankPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            $apiUrl,
             ['code' => 123, 'message' => 'error'],
             $order,
             PosInterface::MODEL_NON_SECURE,
+            null,
             400
         );
 
@@ -726,7 +680,7 @@ class AkbankPosTest extends TestCase
     /**
      * @dataProvider makeRegularPostAuthPaymentDataProvider
      */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPostAuthPayment(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
@@ -739,10 +693,7 @@ class AkbankPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            $apiUrl,
             ['paymentResponse'],
             $order,
             PosInterface::MODEL_NON_SECURE
@@ -765,7 +716,7 @@ class AkbankPosTest extends TestCase
     /**
      * @dataProvider cancelRequestDataProvider
      */
-    public function testCancelRequest(array $order, string $apiUrl): void
+    public function testCancelRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_CANCEL;
@@ -778,10 +729,7 @@ class AkbankPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            $apiUrl,
             ['decodedResponse'],
             $order,
             PosInterface::MODEL_NON_SECURE
@@ -798,7 +746,7 @@ class AkbankPosTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $txType, string $apiUrl): void
+    public function testRefundRequest(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $requestData = ['createRefundRequestData'];
@@ -810,10 +758,7 @@ class AkbankPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             ['createRefundRequestData'],
-            'request-body',
-            $apiUrl,
             ['decodedResponse'],
             $order,
             PosInterface::MODEL_NON_SECURE
@@ -830,10 +775,10 @@ class AkbankPosTest extends TestCase
     /**
      * @dataProvider customQueryRequestDataProvider
      */
-    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
 
         $updatedRequestData = $requestData + [
                 'abc' => 'def',
@@ -845,13 +790,11 @@ class AkbankPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $expectedApiUrl,
             $updatedRequestData,
-            'request-body',
-            'response-body',
             ['decodedResponse'],
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl
         );
 
         $this->pos->customQuery($requestData, $apiUrl);
@@ -861,73 +804,28 @@ class AkbankPosTest extends TestCase
     {
         return [
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => 'https://apipre.akbank.com/api/v1/payment/virtualpos/xxxx',
-                'expected_api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/xxxx',
+                'api_url'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/xxxx',
             ],
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => null,
-                'expected_api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
+                'api_url'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
             ],
         ];
     }
-
-    public static function getApiUrlDataProvider(): array
-    {
-        return [
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_3D_SECURE,
-                'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND_PARTIAL,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_HISTORY,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos/portal/report/transaction',
-            ],
-        ];
-    }
-
-    public static function getApiUrlExceptionDataProvider(): array
-    {
-        return [
-            [
-                'txType'          => null,
-                'exception_class' => \InvalidArgumentException::class,
-            ],
-        ];
-    }
-
 
     public static function makeRegularPaymentDataProvider(): array
     {
         return [
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
+                'txType' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
         ];
     }
@@ -936,10 +834,9 @@ class AkbankPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
             ],
         ];
     }
@@ -948,10 +845,9 @@ class AkbankPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
             ],
         ];
     }
@@ -965,7 +861,6 @@ class AkbankPosTest extends TestCase
                     'amount' => 5,
                 ],
                 'tx_type' => PosInterface::TX_TYPE_REFUND,
-                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
             ],
             'partial_refund' => [
                 'order'   => [
@@ -974,7 +869,6 @@ class AkbankPosTest extends TestCase
                     'order_amount' => 10,
                 ],
                 'tx_type' => PosInterface::TX_TYPE_REFUND_PARTIAL,
-                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/transaction/process',
             ],
         ];
     }
@@ -1203,57 +1097,41 @@ class AkbankPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'batch_num' => 123,
                 ],
-                'api_url' => 'https://apipre.akbank.com/api/v1/payment/virtualpos/portal/report/transaction',
             ],
         ];
     }
 
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        array  $order,
-        string $paymentModel,
-        ?int   $statusCode = null
+        string  $txType,
+        array   $requestData,
+        array   $decodedResponse,
+        array   $order,
+        string  $paymentModel,
+        ?string $apiUrl = null,
+        ?int    $statusCode = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
-        $jsonEncodedData = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_JSON);
-
-        $this->cryptMock->expects(self::once())
-            ->method('hashString')
-            ->with($jsonEncodedData->getData(), $this->account->getStoreKey())
-            ->willReturn('request-body-hash');
-
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($jsonEncodedData);
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'auth-hash'    => 'request-body-hash',
-                ],
-                'body'    => $jsonEncodedData->getData(),
-            ],
-            $statusCode
-        );
+        $invocationMocker = $this->httpClientMock->expects(self::once())
+            ->method('request')
+            ->with(
+                $txType,
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $this->account
+            );
+        if ($statusCode >= 400) {
+            $invocationMocker->willThrowException(new \RuntimeException());
+        } else {
+            $invocationMocker->willReturn($decodedResponse);
+        }
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
@@ -1272,7 +1150,7 @@ class AkbankPosTest extends TestCase
                 )
             ))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 

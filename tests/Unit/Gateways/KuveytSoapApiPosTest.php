@@ -52,9 +52,6 @@ class KuveytSoapApiPosTest extends TestCase
     /** @var ResponseDataMapperInterface & MockObject */
     private MockObject $responseMapperMock;
 
-    /** @var CryptInterface & MockObject */
-    private MockObject $cryptMock;
-
     /** @var SoapClientInterface & MockObject */
     private MockObject $soapClientMock;
 
@@ -78,9 +75,7 @@ class KuveytSoapApiPosTest extends TestCase
         $this->config = [
             'name'              => 'kuveyt-pos',
             'class'             => KuveytSoapApiPos::class,
-            'gateway_endpoints' => [
-                'payment_api' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            ],
+            'gateway_endpoints' => [],
         ];
 
         $this->account = AccountFactory::createKuveytPosAccount(
@@ -105,14 +100,14 @@ class KuveytSoapApiPosTest extends TestCase
         $this->requestValueMapper  = new KuveytPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(KuveytSoapApiPosRequestDataMapper::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $cryptMock                 = $this->createMock(CryptInterface::class);
         $this->soapClientMock      = $this->createMock(SoapClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
 
         $this->requestMapperMock->expects(self::any())
             ->method('getCrypt')
-            ->willReturn($this->cryptMock);
+            ->willReturn($cryptMock);
 
         $this->pos = new KuveytSoapApiPos(
             $this->config,
@@ -157,16 +152,6 @@ class KuveytSoapApiPosTest extends TestCase
         $this->assertFalse($this->pos->isTestMode());
         $this->pos->setTestMode(true);
         $this->assertTrue($this->pos->isTestMode());
-    }
-
-    /**
-     * @dataProvider getApiUrlDataProvider
-     */
-    public function testGetApiURL(?string $txType, ?string $paymentModel, string $expected): void
-    {
-        $actual = $this->pos->getApiURL($txType, $paymentModel);
-
-        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -257,8 +242,7 @@ class KuveytSoapApiPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            $requestData['VPosMessage']['TransactionType'],
+            null,
             $requestData,
             $bankResponse,
             $order,
@@ -291,8 +275,7 @@ class KuveytSoapApiPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            $requestData['VPosMessage']['TransactionType'],
+            null,
             $requestData,
             $bankResponse,
             $order,
@@ -327,8 +310,7 @@ class KuveytSoapApiPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            $requestData['VPosMessage']['TransactionType'],
+            null,
             $requestData,
             $bankResponse,
             $order,
@@ -345,32 +327,6 @@ class KuveytSoapApiPosTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedData, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
-    }
-
-    public static function getApiUrlDataProvider(): array
-    {
-        return [
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND_PARTIAL,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_CANCEL,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_STATUS,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            ],
-        ];
     }
 
     public static function cancelDataProvider(): array
@@ -455,29 +411,30 @@ class KuveytSoapApiPosTest extends TestCase
     }
 
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        string $soapAction,
-        array  $requestData,
-        array  $responseContent,
-        array  $order,
-        string $paymentModel
+        string  $txType,
+        ?string $soapAction,
+        array   $requestData,
+        array   $responseContent,
+        array   $order,
+        string  $paymentModel
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
         $this->soapClientMock->expects(self::once())
             ->method('call')
             ->with(
-                $apiUrl,
-                $soapAction,
+                $txType,
+                $paymentModel,
                 $this->callback(function (array $actualData) use (&$updatedRequestDataPreparedEvent): bool {
                     $this->assertSame(
-                        ['parameters' => ['request' => $updatedRequestDataPreparedEvent->getRequestData()]],
+                        $updatedRequestDataPreparedEvent->getRequestData(),
                         $actualData
                     );
 
                     return true;
                 }),
+                $order,
+                $soapAction,
             )
             ->willReturn($responseContent);
 

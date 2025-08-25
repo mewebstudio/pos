@@ -15,10 +15,8 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
-use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Log\LoggerInterface;
 
 abstract class AbstractHttpGateway extends AbstractGateway
@@ -28,7 +26,12 @@ abstract class AbstractHttpGateway extends AbstractGateway
     protected SerializerInterface $serializer;
 
     /**
-     * @param array{gateway_endpoints: array{payment_api: non-empty-string, gateway_3d: non-empty-string, gateway_3d_host?: non-empty-string, query_api?: non-empty-string}} $config
+     * @param array{
+     *     gateway_endpoints: array{
+     *      gateway_3d: non-empty-string,
+     *      gateway_3d_host?: non-empty-string
+     *      }
+     *     } $config
      */
     public function __construct(
         array                       $config,
@@ -90,12 +93,13 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents       = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $contents,
+        $bankResponse = $this->client->request(
             $txType,
             PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            $requestData,
+            $order,
+            null,
+            $this->account
         );
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
 
@@ -135,13 +139,15 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents       = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $contents,
+        $bankResponse = $this->client->request(
             $txType,
             PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            $requestData,
+            $order,
+            null,
+            $this->account
         );
+
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
 
         return $this;
@@ -179,16 +185,13 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
+        $bankResponse = $this->client->request(
             $txType,
             PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL(
-                $txType,
-                PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            )
+            $requestData,
+            $order,
+            null,
+            $this->account
         );
         $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
 
@@ -223,16 +226,13 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
+        $bankResponse = $this->client->request(
             $txType,
             PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL(
-                $txType,
-                PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            )
+            $requestData,
+            $order,
+            null,
+            $this->account
         );
         $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
 
@@ -267,13 +267,15 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
+        $bankResponse = $this->client->request(
             $txType,
             PosInterface::MODEL_NON_SECURE,
-            $this->getQueryAPIUrl($txType)
+            $requestData,
+            $order,
+            null,
+            $this->account
         );
+
         $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
 
         return $this;
@@ -307,13 +309,15 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $encodedRequestData = $this->serializer->encode($requestData, $txType);
-        $bankResponse       = $this->send(
-            $encodedRequestData,
+        $bankResponse = $this->client->request(
             $txType,
             PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            $requestData,
+            $data,
+            null,
+            $this->account
         );
+
         $this->response     = $this->responseDataMapper->mapHistoryResponse($bankResponse);
 
         return $this;
@@ -347,13 +351,15 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($requestData, $txType);
-        $bankResponse   = $this->send(
-            $data,
+        $bankResponse = $this->client->request(
             $txType,
             PosInterface::MODEL_NON_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            $requestData,
+            $order,
+            null,
+            $this->account
         );
+
         $this->response = $this->responseDataMapper->mapOrderHistoryResponse($bankResponse);
 
         return $this;
@@ -388,32 +394,15 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $updatedRequestData = $event->getRequestData();
         }
 
-        $data           = $this->serializer->encode($updatedRequestData, $txType);
-        $apiUrl         ??= $this->getQueryAPIUrl($txType);
-        $this->response = $this->send(
-            $data,
+        $this->response = $this->client->request(
             $txType,
             PosInterface::MODEL_NON_SECURE,
-            $apiUrl
+            $updatedRequestData,
+            $requestData,
+            $apiUrl,
+            $this->account
         );
 
         return $this;
     }
-
-    /**
-     * Send requests to bank APIs
-     *
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     * @phpstan-param PosInterface::MODEL_*   $paymentModel
-     *
-     * @param EncodedData      $encodedData data to send
-     * @param string           $txType
-     * @param string           $paymentModel
-     * @param non-empty-string $url         URL address of the API
-     *
-     * @return array<string, mixed>
-     *
-     * @throws ClientExceptionInterface
-     */
-    abstract protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array;
 }

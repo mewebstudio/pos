@@ -17,7 +17,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -204,30 +203,6 @@ class PayFlexCPV4Pos extends AbstractHttpGateway
     }
 
     /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Accept'       => 'text/xml',
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
-            'body'    => $encodedData->getData(),
-        ]);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        $responseContent = $response->getBody()->getContents();
-
-        return $this->data = $this->serializer->decode($responseContent, $txType);
-    }
-
-    /**
      *
      * ORTAK ÖDEME SİSTEMİNE İŞLEM KAYDETME
      *
@@ -278,14 +253,13 @@ class PayFlexCPV4Pos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents = $this->serializer->encode($requestData, $txType);
-
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
-        $response = $this->send(
-            $contents,
+        $response = $this->client->request(
             $txType,
             $paymentModel,
-            $this->get3DGatewayURL()
+            $requestData,
+            $order,
+            $this->get3DGatewayURL(),
         );
 
         return $response;
@@ -340,16 +314,11 @@ class PayFlexCPV4Pos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents = $this->serializer->encode($requestData, $txType);
-
-        /**
-         * sending request to make sure that payment was successful
-         */
-        return $this->send(
-            $contents,
+        return $this->client->request(
             $txType,
             $paymentModel,
-            $this->getApiURL()
+            $requestData,
+            $order
         );
     }
 }

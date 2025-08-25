@@ -17,7 +17,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -74,22 +73,6 @@ class ParamPos extends AbstractHttpGateway
     /**
      * @inheritDoc
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            if (!isset($this->config['gateway_endpoints']['payment_api_2'])) {
-                throw new \RuntimeException('3D Host ödemeyi kullanabilmek için "payment_api_2" endpointi tanımlanmalıdır.');
-            }
-
-            return $this->config['gateway_endpoints']['payment_api_2'];
-        }
-
-        return parent::getApiURL($txType, $paymentModel, $orderTxType);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         if ($request->request->get('TURKPOS_RETVAL_Sonuc') !== null) {
@@ -139,12 +122,11 @@ class ParamPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
+        $provisionResponse = $this->client->request(
             $txType,
             PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType)
+            $requestData,
+            $order
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
@@ -240,53 +222,9 @@ class ParamPos extends AbstractHttpGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
-    {
-        $apiUrl ??= $this->getApiURL(PosInterface::TX_TYPE_CUSTOM_QUERY);
-
-        return parent::customQuery($requestData, $apiUrl);
-    }
-
-    /**
-     * @inheritDoc
-     */
     public function orderHistory(array $order): PosInterface
     {
         throw new UnsupportedTransactionTypeException();
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'text/xml',
-            ],
-            'body'    => $encodedData->getData(),
-        ]);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        $responseContent = $response->getBody()->getContents();
-
-        $decodedData = $this->serializer->decode($responseContent, $txType);
-
-        if (isset($decodedData['soap:Fault'])) {
-            $this->logger->error('soap error response', [
-                'status_code' => $response->getStatusCode(),
-                'response' => $decodedData,
-            ]);
-
-            throw new \RuntimeException($decodedData['soap:Fault']['faultstring'] ?? 'Bankaya istek başarısız!');
-        }
-
-        return $this->data = $decodedData;
     }
 
     /**
@@ -329,13 +267,11 @@ class ParamPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $requestData = $this->serializer->encode($requestData, $txType);
-
-        return $this->send(
-            $requestData,
+        return $this->client->request(
             $txType,
             $paymentModel,
-            $this->getApiURL($txType, $paymentModel)
+            $requestData,
+            $order
         );
     }
 }

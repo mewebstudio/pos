@@ -21,10 +21,8 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -38,8 +36,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class GarantiPosTest extends TestCase
 {
-    use HttpClientTestTrait;
-
     private GarantiPosAccount $account;
 
     /** @var RequestDataMapperInterface & MockObject */
@@ -80,7 +76,6 @@ class GarantiPosTest extends TestCase
             'name'              => 'Garanti',
             'class'             => GarantiPos::class,
             'gateway_endpoints' => [
-                'payment_api' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
                 'gateway_3d'  => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
             ],
         ];
@@ -167,7 +162,7 @@ class GarantiPosTest extends TestCase
                 $order,
                 $paymentModel,
                 $txType,
-                'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
+                $this->config['gateway_endpoints']['gateway_3d'],
                 $card
             )
             ->willReturn(['formData']);
@@ -238,10 +233,7 @@ class GarantiPosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -258,10 +250,6 @@ class GarantiPosTest extends TestCase
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $this->serializerMock->expects(self::never())
-                ->method('decode');
             $this->eventDispatcherMock->expects(self::never())
                 ->method('dispatch');
         }
@@ -320,10 +308,7 @@ class GarantiPosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -373,10 +358,6 @@ class GarantiPosTest extends TestCase
             ->method('map3DPaymentData');
         $this->requestMapperMock->expects(self::never())
             ->method('create3DPaymentRequestData');
-        $this->serializerMock->expects(self::never())
-            ->method('encode');
-        $this->serializerMock->expects(self::never())
-            ->method('decode');
         $this->eventDispatcherMock->expects(self::never())
             ->method('dispatch');
 
@@ -422,7 +403,7 @@ class GarantiPosTest extends TestCase
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $card        = $this->card;
@@ -436,13 +417,12 @@ class GarantiPosTest extends TestCase
         $decodedResponse = ['paymentResponse'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -456,7 +436,7 @@ class GarantiPosTest extends TestCase
     /**
      * @dataProvider makeRegularPostAuthPaymentDataProvider
      */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPostAuthPayment(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
@@ -469,13 +449,12 @@ class GarantiPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -489,7 +468,7 @@ class GarantiPosTest extends TestCase
     /**
      * @dataProvider statusRequestDataProvider
      */
-    public function testStatusRequest(array $order, string $apiUrl): void
+    public function testStatusRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_STATUS;
@@ -503,13 +482,12 @@ class GarantiPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -523,7 +501,7 @@ class GarantiPosTest extends TestCase
     /**
      * @dataProvider cancelRequestDataProvider
      */
-    public function testCancelRequest(array $order, string $apiUrl): void
+    public function testCancelRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_CANCEL;
@@ -537,13 +515,12 @@ class GarantiPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -557,7 +534,7 @@ class GarantiPosTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $apiUrl): void
+    public function testRefundRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_REFUND;
@@ -571,13 +548,12 @@ class GarantiPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -591,7 +567,7 @@ class GarantiPosTest extends TestCase
     /**
      * @dataProvider historyRequestDataProvider
      */
-    public function testHistoryRequest(array $order, string $apiUrl): void
+    public function testHistoryRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_HISTORY;
@@ -605,13 +581,12 @@ class GarantiPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -625,7 +600,7 @@ class GarantiPosTest extends TestCase
     /**
      * @dataProvider orderHistoryRequestDataProvider
      */
-    public function testOrderHistoryRequest(array $order, string $apiUrl): void
+    public function testOrderHistoryRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_ORDER_HISTORY;
@@ -639,13 +614,12 @@ class GarantiPosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -659,7 +633,7 @@ class GarantiPosTest extends TestCase
     /**
      * @dataProvider customQueryRequestDataProvider
      */
-    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl): void
     {
         $account = $this->pos->getAccount();
         $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
@@ -674,13 +648,12 @@ class GarantiPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $expectedApiUrl,
             $updatedRequestData,
-            'request-body',
-            'response-body',
             ['decodedResponse'],
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl,
+            $this->account
         );
 
         $this->pos->customQuery($requestData, $apiUrl);
@@ -693,15 +666,13 @@ class GarantiPosTest extends TestCase
                 'requestData'      => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet/xxxx',
-                'expected_api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet/xxxx',
+                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet/xxxx',
             ],
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => null,
-                'expected_api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+                'api_url'     => null,
             ],
         ];
     }
@@ -787,18 +758,16 @@ class GarantiPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+                'txType' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+                'txType' => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             ],
         ];
     }
@@ -807,10 +776,9 @@ class GarantiPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
             ],
         ];
     }
@@ -819,10 +787,9 @@ class GarantiPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
             ],
         ];
     }
@@ -831,10 +798,9 @@ class GarantiPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
             ],
         ];
     }
@@ -843,10 +809,9 @@ class GarantiPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
             ],
         ];
     }
@@ -855,10 +820,9 @@ class GarantiPosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
             ],
         ];
     }
@@ -905,37 +869,43 @@ class GarantiPosTest extends TestCase
         ];
     }
 
+
+    public static function historyRequestDataProvider(): array
+    {
+        return [
+            [
+                'order' => [
+                    'ip'         => '127.0.0.1',
+                    'start_date' => new \DateTimeImmutable(),
+                    'end_date'   => new \DateTimeImmutable(),
+                ],
+            ],
+        ];
+    }
+
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        array  $order,
-        string $paymentModel
+        string              $txType,
+        array               $requestData,
+        array               $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
-        $xmlEncodedData                  = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_XML);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($xmlEncodedData);
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'body' => $xmlEncodedData->getData(),
-            ],
-        );
+        $this->httpClientMock->expects(self::once())
+            ->method('request')
+            ->with(
+                $txType,
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $account
+            )->willReturn($decodedResponse);
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
@@ -960,19 +930,5 @@ class GarantiPosTest extends TestCase
 
                 return $updatedRequestDataPreparedEvent;
             });
-    }
-
-    public static function historyRequestDataProvider(): array
-    {
-        return [
-            [
-                'order'   => [
-                    'ip'         => '127.0.0.1',
-                    'start_date' => new \DateTimeImmutable(),
-                    'end_date'   => new \DateTimeImmutable(),
-                ],
-                'api_url' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            ],
-        ];
     }
 }

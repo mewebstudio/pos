@@ -18,7 +18,6 @@ use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -65,7 +64,8 @@ class PosNet extends AbstractHttpGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $request = $request->request;
+        $request      = $request->request;
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
 
         $this->logger->debug('getting merchant request data');
         $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
@@ -94,12 +94,11 @@ class PosNet extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents           = $this->serializer->encode($requestData, $txType);
-        $userVerifyResponse = $this->send(
-            $contents,
+        $userVerifyResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+            $requestData,
+            $order,
         );
 
         if (!$this->is3DAuthSuccess($userVerifyResponse)) {
@@ -138,12 +137,11 @@ class PosNet extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+        $bankResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+            $requestData,
+            $order,
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse, $txType, $order);
@@ -223,27 +221,6 @@ class PosNet extends AbstractHttpGateway
     }
 
     /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
-            'body'    => \sprintf('xmldata=%s', $encodedData->getData()),
-        ]);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    /**
      * Get OOS transaction data
      * siparis bilgileri ve kart bilgilerinin şifrelendiği adımdır.
      *
@@ -289,13 +266,11 @@ class PosNet extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $xml = $this->serializer->encode($requestData, $txType);
-
-        return $this->send(
-            $xml,
+        return $this->client->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+            $requestData,
+            $order,
         );
     }
 }

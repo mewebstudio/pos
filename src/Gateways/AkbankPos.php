@@ -15,7 +15,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -57,20 +56,6 @@ class AkbankPos extends AbstractHttpGateway
         PosInterface::TX_TYPE_HISTORY        => true,
         PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
     ];
-
-    /**
-     * @inheritDoc
-     *
-     * @throws \InvalidArgumentException when transaction type is not provided
-     */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (null !== $txType) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType);
-        }
-
-        throw new \InvalidArgumentException('Transaction type is required to generate API URL');
-    }
 
     /** @return AkbankPosAccount */
     public function getAccount(): AbstractPosAccount
@@ -125,12 +110,13 @@ class AkbankPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents          = $this->serializer->encode($requestData, $txType);
-        $provisionResponse = $this->send(
-            $contents,
+        $provisionResponse = $this->client->request(
             $txType,
             PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType)
+            $requestData,
+            $order,
+            null,
+            $this->account
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
@@ -205,55 +191,5 @@ class AkbankPos extends AbstractHttpGateway
     public function status(array $order): PosInterface
     {
         throw new UnsupportedTransactionTypeException();
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     *
-     * @throws \RuntimeException thrown when we get HTTP 400 error
-     */
-    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-
-        $hash = $this->requestDataMapper->getCrypt()->hashString($encodedData->getData(), $this->account->getStoreKey());
-
-        $response = $this->client->post($url, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'auth-hash'    => $hash,
-            ],
-            'body'    => $encodedData->getData(),
-        ]);
-
-        if ($response->getStatusCode() === 400) {
-            $this->logger->error('api error', ['status_code' => $response->getStatusCode()]);
-
-            // when the data is sent fails validation checks we get 400 error
-            $data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-            throw new \RuntimeException($data['message'], $data['code']);
-        }
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     *
-     * @param string $txType
-     *
-     * @return string
-     */
-    private function getRequestURIByTransactionType(string $txType): string
-    {
-        $arr = [
-            PosInterface::TX_TYPE_HISTORY => 'portal/report/transaction',
-        ];
-
-        return $arr[$txType] ?? 'transaction/process';
     }
 }

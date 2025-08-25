@@ -25,10 +25,9 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
+use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\PosNetRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\PosNetResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -42,8 +41,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PosNetTest extends TestCase
 {
-    use HttpClientTestTrait;
-
     private PosNetAccount $account;
 
     private array $config;
@@ -73,10 +70,10 @@ class PosNetTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private MockObject $eventDispatcherMock;
 
+    private EstPosRequestValueMapper $requestValueMapper;
+
     /** @var SerializerInterface & MockObject */
     private MockObject $serializerMock;
-
-    private EstPosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void
     {
@@ -86,7 +83,6 @@ class PosNetTest extends TestCase
             'name'              => 'Yapıkredi',
             'class'             => PosNet::class,
             'gateway_endpoints' => [
-                'payment_api' => 'https://setmpos.ykb.com/PosnetWebService/XML',
                 'gateway_3d'  => 'https://setmpos.ykb.com/3DSWebService/YKBPaymentService',
             ],
         ];
@@ -154,6 +150,48 @@ class PosNetTest extends TestCase
         $this->assertFalse($this->pos->isTestMode());
     }
 
+    public function testGet3DFormDataSuccess(): void
+    {
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $requestData  = ['request-data'];
+
+        $responseData = PosNetRequestDataMapperTest::threeDFormDataDataProvider()['success1']['enrollment_check_response'];
+        $formData     = PosNetRequestDataMapperTest::threeDFormDataDataProvider()['success1']['expected'];
+        $order        = PosNetRequestDataMapperTest::threeDFormDataDataProvider()['success1']['order'];
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DEnrollmentCheckRequestData')
+            ->with($this->pos->getAccount(), $order, $txType, $this->card)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $requestData,
+            $responseData,
+            $order,
+            $paymentModel,
+        );
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DFormData')
+            ->with(
+                $this->pos->getAccount(),
+                $order,
+                $paymentModel,
+                $txType,
+                $this->config['gateway_endpoints']['gateway_3d'],
+                null,
+                $responseData['oosRequestDataResponse']
+            )
+            ->willReturn($formData);
+
+        $result = $this->pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $txType, $this->card);
+
+        $this->assertSame($formData, $result);
+    }
+
+
     /**
      * @return void
      *
@@ -178,13 +216,10 @@ class PosNetTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $this->config['gateway_endpoints']['payment_api'],
             $requestData,
-            'request-body',
-            'response-body',
             $responseData,
             $order,
-            PosInterface::MODEL_3D_SECURE
+            PosInterface::MODEL_3D_SECURE,
         );
 
         $this->requestMapperMock->expects(self::never())
@@ -226,6 +261,8 @@ class PosNetTest extends TestCase
         bool    $is3DSuccess,
         bool    $isSuccess
     ): void {
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+
         if ($is3DSuccess) {
             $this->cryptMock->expects(self::once())
                 ->method('check3DHash')
@@ -255,87 +292,49 @@ class PosNetTest extends TestCase
             ->with($this->account, $order, $request->request->all())
             ->willReturn($resolveMerchantRequestData);
 
-
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
                 ->with($this->account, $order, $txType, $request->request->all())
                 ->willReturn($create3DPaymentRequestData);
 
+            $request1UpdatedData = $resolveMerchantRequestData + [
+                    'test-update-request-data-with-event1' => true,
+                ];
+            $request2UpdatedData = $create3DPaymentRequestData + [
+                    'test-update-request-data-with-event2' => true,
+                ];
 
-            $matcher                          = self::exactly(2);
-            $updatedRequestDataPreparedEvent1 = null;
-            $updatedRequestDataPreparedEvent2 = null;
-
-            $this->serializerMock->expects($matcher)
-                ->method('encode')
-                ->with($this->callback(function ($requestData) use ($matcher, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2): bool {
-                    if ($matcher->getInvocationCount() === 1) {
-                        return $updatedRequestDataPreparedEvent1->getRequestData() === $requestData;
-                    }
-
-                    if ($matcher->getInvocationCount() === 2) {
-                        return $updatedRequestDataPreparedEvent2->getRequestData() === $requestData;
-                    }
-
-                    return true;
-                }), $this->callback(fn ($txT): bool => $txT === $txType))
-                ->willReturnCallback(function () use ($matcher): ?EncodedData {
-                    if ($matcher->getInvocationCount() === 1) {
-                        return new EncodedData('resolveMerchantRequestData-body', SerializerInterface::FORMAT_XML);
-                    }
-
-                    if ($matcher->getInvocationCount() === 2) {
-                        return new EncodedData('payment-request-body', SerializerInterface::FORMAT_XML);
-                    }
-
-                    return null;
-                });
-
-            $this->serializerMock->expects(self::exactly(2))
-                ->method('decode')
+            $this->httpClientMock->expects(self::exactly(2))
+                ->method('request')
                 ->willReturnMap([
                     [
-                        'resolveMerchantRequestData-body',
                         $txType,
+                        $paymentModel,
+                        $request1UpdatedData,
+                        $order,
+                        null,
+                        null,
+                        true,
+                        true,
                         $resolveResponse,
                     ],
                     [
-                        'response-body-2',
                         $txType,
+                        $paymentModel,
+                        $request2UpdatedData,
+                        $order,
+                        null,
+                        null,
+                        true,
+                        true,
                         $paymentResponse,
                     ],
                 ]);
 
-            $this->prepareHttpClientRequestMulti(
-                $this->httpClientMock,
-                [
-                    'resolveMerchantRequestData-body',
-                    'response-body-2',
-                ],
-                [
-                    $this->config['gateway_endpoints']['payment_api'],
-                    $this->config['gateway_endpoints']['payment_api'],
-                ],
-                [
-                    [
-                        'headers' => [
-                            'Content-Type' => 'application/x-www-form-urlencoded',
-                        ],
-                        'body'    => 'xmldata=resolveMerchantRequestData-body',
-                    ],
-                    [
-                        'headers' => [
-                            'Content-Type' => 'application/x-www-form-urlencoded',
-                        ],
-                        'body'    => 'xmldata=payment-request-body',
-                    ],
-                ]
-            );
-
-            $paymentModel = PosInterface::MODEL_3D_SECURE;
-
-            $matcher2 = self::exactly(2);
+            $updatedRequestDataPreparedEvent1 = null;
+            $updatedRequestDataPreparedEvent2 = null;
+            $matcher2                         = self::exactly(2);
             $this->eventDispatcherMock->expects($matcher2)
                 ->method('dispatch')
                 ->with($this->logicalAnd(
@@ -375,16 +374,16 @@ class PosNetTest extends TestCase
                 ))
                 ->willReturnCallback(function () use ($matcher2, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2) {
                     if ($matcher2->getInvocationCount() === 1) {
-                        $updatedRequestData                                        = $updatedRequestDataPreparedEvent1->getRequestData();
-                        $updatedRequestData['test-update-request-data-with-event'] = true;
+                        $updatedRequestData                                         = $updatedRequestDataPreparedEvent1->getRequestData();
+                        $updatedRequestData['test-update-request-data-with-event1'] = true;
                         $updatedRequestDataPreparedEvent1->setRequestData($updatedRequestData);
 
                         return $updatedRequestDataPreparedEvent1;
                     }
 
                     if ($matcher2->getInvocationCount() === 2) {
-                        $updatedRequestData                                        = $updatedRequestDataPreparedEvent2->getRequestData();
-                        $updatedRequestData['test-update-request-data-with-event'] = true;
+                        $updatedRequestData                                         = $updatedRequestDataPreparedEvent2->getRequestData();
+                        $updatedRequestData['test-update-request-data-with-event2'] = true;
                         $updatedRequestDataPreparedEvent2->setRequestData($updatedRequestData);
 
                         return $updatedRequestDataPreparedEvent2;
@@ -400,13 +399,10 @@ class PosNetTest extends TestCase
         } else {
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['payment_api'],
                 $resolveMerchantRequestData,
-                'resolveMerchantRequestData-body',
-                'resolveMerchantRequestData-body',
                 $resolveResponse,
                 $order,
-                PosInterface::MODEL_3D_SECURE
+                $paymentModel
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -438,6 +434,8 @@ class PosNetTest extends TestCase
         bool    $is3DSuccess,
         bool    $isSuccess
     ): void {
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+
         $config = $this->config;
         $config += [
             'gateway_configs' => [
@@ -472,87 +470,49 @@ class PosNetTest extends TestCase
             ->with($this->account, $order, $request->request->all())
             ->willReturn($resolveMerchantRequestData);
 
-
         if ($is3DSuccess) {
             $this->requestMapperMock->expects(self::once())
                 ->method('create3DPaymentRequestData')
                 ->with($this->account, $order, $txType, $request->request->all())
                 ->willReturn($create3DPaymentRequestData);
 
+            $request1UpdatedData = $resolveMerchantRequestData + [
+                    'test-update-request-data-with-event1' => true,
+                ];
+            $request2UpdatedData = $create3DPaymentRequestData + [
+                    'test-update-request-data-with-event2' => true,
+                ];
 
-            $matcher                          = self::exactly(2);
-            $updatedRequestDataPreparedEvent1 = null;
-            $updatedRequestDataPreparedEvent2 = null;
-
-            $this->serializerMock->expects($matcher)
-                ->method('encode')
-                ->with($this->callback(function ($requestData) use ($matcher, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2): bool {
-                    if ($matcher->getInvocationCount() === 1) {
-                        return $updatedRequestDataPreparedEvent1->getRequestData() === $requestData;
-                    }
-
-                    if ($matcher->getInvocationCount() === 2) {
-                        return $updatedRequestDataPreparedEvent2->getRequestData() === $requestData;
-                    }
-
-                    return true;
-                }), $this->callback(fn ($txT): bool => $txT === $txType))
-                ->willReturnCallback(function () use ($matcher): ?EncodedData {
-                    if ($matcher->getInvocationCount() === 1) {
-                        return new EncodedData('resolveMerchantRequestData-body', SerializerInterface::FORMAT_XML);
-                    }
-
-                    if ($matcher->getInvocationCount() === 2) {
-                        return new EncodedData('payment-request-body', SerializerInterface::FORMAT_XML);
-                    }
-
-                    return null;
-                });
-
-            $this->serializerMock->expects(self::exactly(2))
-                ->method('decode')
+            $this->httpClientMock->expects(self::exactly(2))
+                ->method('request')
                 ->willReturnMap([
                     [
-                        'resolveMerchantRequestData-body',
                         $txType,
+                        $paymentModel,
+                        $request1UpdatedData,
+                        $order,
+                        null,
+                        null,
+                        true,
+                        true,
                         $resolveResponse,
                     ],
                     [
-                        'response-body-2',
                         $txType,
+                        $paymentModel,
+                        $request2UpdatedData,
+                        $order,
+                        null,
+                        null,
+                        true,
+                        true,
                         $paymentResponse,
                     ],
                 ]);
 
-            $this->prepareHttpClientRequestMulti(
-                $this->httpClientMock,
-                [
-                    'resolveMerchantRequestData-body',
-                    'response-body-2',
-                ],
-                [
-                    $this->config['gateway_endpoints']['payment_api'],
-                    $this->config['gateway_endpoints']['payment_api'],
-                ],
-                [
-                    [
-                        'headers' => [
-                            'Content-Type' => 'application/x-www-form-urlencoded',
-                        ],
-                        'body'    => \sprintf('xmldata=%s', 'resolveMerchantRequestData-body'),
-                    ],
-                    [
-                        'headers' => [
-                            'Content-Type' => 'application/x-www-form-urlencoded',
-                        ],
-                        'body'    => \sprintf('xmldata=%s', 'payment-request-body'),
-                    ],
-                ]
-            );
-
-            $paymentModel = PosInterface::MODEL_3D_SECURE;
-
-            $matcher2 = self::exactly(2);
+            $updatedRequestDataPreparedEvent1 = null;
+            $updatedRequestDataPreparedEvent2 = null;
+            $matcher2                         = self::exactly(2);
             $this->eventDispatcherMock->expects($matcher2)
                 ->method('dispatch')
                 ->with($this->logicalAnd(
@@ -592,16 +552,16 @@ class PosNetTest extends TestCase
                 ))
                 ->willReturnCallback(function () use ($matcher2, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2) {
                     if ($matcher2->getInvocationCount() === 1) {
-                        $updatedRequestData                                        = $updatedRequestDataPreparedEvent1->getRequestData();
-                        $updatedRequestData['test-update-request-data-with-event'] = true;
+                        $updatedRequestData                                         = $updatedRequestDataPreparedEvent1->getRequestData();
+                        $updatedRequestData['test-update-request-data-with-event1'] = true;
                         $updatedRequestDataPreparedEvent1->setRequestData($updatedRequestData);
 
                         return $updatedRequestDataPreparedEvent1;
                     }
 
                     if ($matcher2->getInvocationCount() === 2) {
-                        $updatedRequestData                                        = $updatedRequestDataPreparedEvent2->getRequestData();
-                        $updatedRequestData['test-update-request-data-with-event'] = true;
+                        $updatedRequestData                                         = $updatedRequestDataPreparedEvent2->getRequestData();
+                        $updatedRequestData['test-update-request-data-with-event2'] = true;
                         $updatedRequestDataPreparedEvent2->setRequestData($updatedRequestData);
 
                         return $updatedRequestDataPreparedEvent2;
@@ -617,13 +577,10 @@ class PosNetTest extends TestCase
         } else {
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['payment_api'],
                 $resolveMerchantRequestData,
-                'resolveMerchantRequestData-body',
-                'resolveMerchantRequestData-body',
                 $resolveResponse,
                 $order,
-                PosInterface::MODEL_3D_SECURE
+                $paymentModel
             );
 
             $this->responseMapperMock->expects(self::once())
@@ -671,10 +628,7 @@ class PosNetTest extends TestCase
 
         $this->configureClientResponse(
             PosInterface::TX_TYPE_PAY_AUTH,
-            'https://setmpos.ykb.com/PosnetWebService/XML',
             $resolveMerchantRequestData,
-            'request-body',
-            'response-body',
             $resolveResponse,
             [],
             PosInterface::MODEL_3D_SECURE
@@ -703,7 +657,7 @@ class PosNetTest extends TestCase
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $card        = $this->card;
@@ -716,13 +670,12 @@ class PosNetTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -736,7 +689,7 @@ class PosNetTest extends TestCase
     /**
      * @dataProvider makeRegularPostAuthPaymentDataProvider
      */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPostAuthPayment(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
@@ -750,13 +703,12 @@ class PosNetTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -771,7 +723,7 @@ class PosNetTest extends TestCase
     /**
      * @dataProvider statusRequestDataProvider
      */
-    public function testStatusRequest(array $order, string $apiUrl): void
+    public function testStatusRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_STATUS;
@@ -785,13 +737,12 @@ class PosNetTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -805,7 +756,7 @@ class PosNetTest extends TestCase
     /**
      * @dataProvider cancelRequestDataProvider
      */
-    public function testCancelRequest(array $order, string $apiUrl): void
+    public function testCancelRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_CANCEL;
@@ -819,13 +770,12 @@ class PosNetTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -839,7 +789,7 @@ class PosNetTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $apiUrl): void
+    public function testRefundRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_REFUND;
@@ -853,13 +803,12 @@ class PosNetTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $this->account,
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -885,7 +834,7 @@ class PosNetTest extends TestCase
     /**
      * @dataProvider customQueryRequestDataProvider
      */
-    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl): void
     {
         $account = $this->pos->getAccount();
         $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
@@ -900,13 +849,12 @@ class PosNetTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $expectedApiUrl,
             $updatedRequestData,
-            'request-body',
-            'response-body',
             ['decodedResponse'],
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl,
+            $this->account
         );
 
         $this->pos->customQuery($requestData, $apiUrl);
@@ -920,14 +868,12 @@ class PosNetTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'api_url'          => 'https://setmpos.ykb.com/PosnetWebService/XML/xxxx',
-                'expected_api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML/xxxx',
             ],
             [
                 'requestData'      => [
                     'id' => '2020110828BC',
                 ],
                 'api_url'          => null,
-                'expected_api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
             ],
         ];
     }
@@ -1004,14 +950,12 @@ class PosNetTest extends TestCase
                     'id' => '2020110828BC',
                 ],
                 'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
             ],
             [
                 'order'   => [
                     'id' => '2020110828BC',
                 ],
                 'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
             ],
         ];
     }
@@ -1023,7 +967,6 @@ class PosNetTest extends TestCase
                 'order'   => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
             ],
         ];
     }
@@ -1035,7 +978,6 @@ class PosNetTest extends TestCase
                 'order'   => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
             ],
         ];
     }
@@ -1047,7 +989,6 @@ class PosNetTest extends TestCase
                 'order'   => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
             ],
         ];
     }
@@ -1059,7 +1000,6 @@ class PosNetTest extends TestCase
                 'order'   => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://setmpos.ykb.com/PosnetWebService/XML',
             ],
         ];
     }
@@ -1107,45 +1047,28 @@ class PosNetTest extends TestCase
     }
 
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        array  $order,
-        string $paymentModel
+        string              $txType,
+        array               $requestData,
+        array               $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
     ): void {
-        $updatedRequestDataPreparedEvent                                            = null;
-        $updatedRequestDataPreparedEventData                                        = $requestData;
-        $updatedRequestDataPreparedEventData['test-update-request-data-with-event'] = true;
+        $updatedRequestDataPreparedEvent = null;
 
-        $xmlEncodedData = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_FORM);
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
+        $this->httpClientMock->expects(self::once())
+            ->method('request')
             ->with(
-                $updatedRequestDataPreparedEventData,
                 $txType,
-                null,
-            )
-        ->willReturn($xmlEncodedData);
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'headers' => [
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                ],
-                'body'    => \sprintf('xmldata=%s', $xmlEncodedData->getData()),
-            ],
-        );
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $account
+            )->willReturn($decodedResponse);
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
@@ -1163,8 +1086,10 @@ class PosNetTest extends TestCase
                     }
                 )
             ))
-            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent, $updatedRequestDataPreparedEventData): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestDataPreparedEventData);
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData['test-update-request-data-with-event'] = true;
+                $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 
                 return $updatedRequestDataPreparedEvent;
             });

@@ -120,23 +120,4 @@ class KuveytSoapApiPos extends AbstractSoapGateway
     {
         throw new UnsupportedPaymentModelException('Bu işlem için KuveytPos gateway kullanılmalıdır.');
     }
-
-    /**
-     * @inheritDoc
-     */
-    protected function send(array $data, string $txType, string $url): array
-    {
-        $this->logger->debug('sending soap request', [
-            'txType' => $txType,
-            'url'    => $url,
-        ]);
-
-        $result = $this->client->call(
-            $url,
-            $data['VPosMessage']['TransactionType'],
-            ['parameters' => ['request' => $data]]
-        );
-
-        return $this->data = $result;
-    }
 }
