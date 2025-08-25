@@ -185,3 +185,9 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: src/Gateways/PosNet.php
+
+		-
+			message: '#^Method Mews\\Pos\\Gateways\\VakifKatilimPos\:\:sendEnrollmentRequest\(\) should return non\-empty\-string but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Gateways/VakifKatilimPos.php

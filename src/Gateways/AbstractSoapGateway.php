@@ -82,10 +82,11 @@ abstract class AbstractSoapGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse   = $this->send(
-            $requestData,
+        $bankResponse = $this->client->call(
             $txType,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            PosInterface::MODEL_NON_SECURE,
+            $requestData,
+            $order,
         );
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
 
@@ -125,10 +126,11 @@ abstract class AbstractSoapGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse   = $this->send(
-            $requestData,
+        $bankResponse = $this->client->call(
             $txType,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            PosInterface::MODEL_NON_SECURE,
+            $requestData,
+            $order,
         );
         $this->response = $this->responseDataMapper->mapPaymentResponse($bankResponse, $txType, $order);
 
@@ -167,15 +169,13 @@ abstract class AbstractSoapGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse   = $this->send(
-            $requestData,
+        $bankResponse = $this->client->call(
             $txType,
-            $this->getApiURL(
-                $txType,
-                PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            )
+            PosInterface::MODEL_NON_SECURE,
+            $requestData,
+            $order,
         );
+
         $this->response = $this->responseDataMapper->mapRefundResponse($bankResponse);
 
         return $this;
@@ -209,14 +209,11 @@ abstract class AbstractSoapGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse   = $this->send(
-            $requestData,
+        $bankResponse = $this->client->call(
             $txType,
-            $this->getApiURL(
-                $txType,
-                PosInterface::MODEL_NON_SECURE,
-                $order['transaction_type'] ?? null
-            )
+            PosInterface::MODEL_NON_SECURE,
+            $requestData,
+            $order,
         );
         $this->response = $this->responseDataMapper->mapCancelResponse($bankResponse);
 
@@ -251,11 +248,13 @@ abstract class AbstractSoapGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse   = $this->send(
-            $requestData,
+        $bankResponse = $this->client->call(
             $txType,
-            $this->getQueryAPIUrl($txType)
+            PosInterface::MODEL_NON_SECURE,
+            $requestData,
+            $order,
         );
+
         $this->response = $this->responseDataMapper->mapStatusResponse($bankResponse);
 
         return $this;
@@ -289,10 +288,11 @@ abstract class AbstractSoapGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse   = $this->send(
-            $requestData,
+        $bankResponse = $this->client->call(
             $txType,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            PosInterface::MODEL_NON_SECURE,
+            $requestData,
+            $data,
         );
         $this->response = $this->responseDataMapper->mapHistoryResponse($bankResponse);
 
@@ -327,10 +327,11 @@ abstract class AbstractSoapGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse   = $this->send(
-            $requestData,
+        $bankResponse = $this->client->call(
             $txType,
-            $this->getApiURL($txType, PosInterface::MODEL_NON_SECURE)
+            PosInterface::MODEL_NON_SECURE,
+            $requestData,
+            $order,
         );
         $this->response = $this->responseDataMapper->mapOrderHistoryResponse($bankResponse);
 
@@ -366,11 +367,11 @@ abstract class AbstractSoapGateway extends AbstractGateway
             $updatedRequestData = $event->getRequestData();
         }
 
-        $apiUrl         ??= $this->getQueryAPIUrl($txType);
-        $this->response = $this->send(
-            $updatedRequestData,
+        $this->response = $this->client->call(
             $txType,
-            $apiUrl
+            PosInterface::MODEL_NON_SECURE,
+            $updatedRequestData,
+            [],
         );
 
         return $this;
@@ -385,19 +386,4 @@ abstract class AbstractSoapGateway extends AbstractGateway
 
         return parent::setTestMode($testMode);
     }
-
-
-    /**
-     * Send requests to bank APIs
-     *
-     * @param array<string, mixed>    $data data to send
-     * @param PosInterface::TX_TYPE_* $txType
-     * @param non-empty-string        $url  URL address of the API
-     *
-     * @return array<string, mixed>
-     *
-     * @throws \SoapFault
-     * @throws \RuntimeException
-     */
-    abstract protected function send(array $data, string $txType, string $url): array;
 }

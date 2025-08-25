@@ -7,7 +7,6 @@
 namespace Mews\Pos\Factory;
 
 use Mews\Pos\Client\HttpClientInterface;
-use Mews\Pos\Client\SoapClient;
 use Mews\Pos\Client\SoapClientInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\BankClassNullException;
@@ -24,13 +23,22 @@ use Psr\Log\NullLogger;
 class PosFactory
 {
     /**
-     * @phpstan-param array{banks: array<string, array{name: string, class?: class-string<PosInterface>, gateway_endpoints: array<string, string>}>, currencies?: array<PosInterface::CURRENCY_*, string>} $config
+     * @phpstan-param array{
+     *     banks: array<string, array{
+     *          name: string,
+     *          class?: class-string<PosInterface>,
+     *          gateway_endpoints: array{
+     *              payment_api: non-empty-string,
+     *              payment_api2?: non-empty-string,
+     *              query_api?: non-empty-string}
+     *         }>,
+     *     currencies?: array<PosInterface::CURRENCY_*, string>} $config
      *
-     * @param AbstractPosAccount                           $posAccount
-     * @param array                                        $config
-     * @param EventDispatcherInterface                     $eventDispatcher
-     * @param HttpClientInterface|SoapClientInterface|null $client
-     * @param LoggerInterface|null                         $logger
+     * @param AbstractPosAccount                                 $posAccount
+     * @param array                                              $config
+     * @param EventDispatcherInterface                           $eventDispatcher
+     * @param HttpClientInterface|SoapClientInterface|null       $client
+     * @param LoggerInterface|null                               $logger
      *
      * @return PosInterface
      *
@@ -91,59 +99,14 @@ class PosFactory
     /**
      * @param class-string<PosInterface>                                                          $gatewayClass
      * @param AbstractPosAccount                                                                  $posAccount
-     * @param array{name: string, class?: class-string, gateway_endpoints: array<string, string>} $apiConfig
-     * @param EventDispatcherInterface                                                            $eventDispatcher
-     * @param LoggerInterface                                                                     $logger
-     * @param SoapClientInterface|null                                                            $soapClient
-     *
-     * @return PosInterface
-     */
-    private static function doCreateSoapPosGateway(
-        string                   $gatewayClass,
-        AbstractPosAccount       $posAccount,
-        array                    $apiConfig,
-        EventDispatcherInterface $eventDispatcher,
-        LoggerInterface          $logger,
-        ?SoapClientInterface     $soapClient = null
-    ): PosInterface {
-        if (!$soapClient instanceof \Mews\Pos\Client\SoapClientInterface) {
-            $soapClient = new SoapClient($logger);
-        }
-
-        $logger->debug('creating gateway for bank', ['bank' => $posAccount->getBank()]);
-
-        $crypt                 = CryptFactory::createGatewayCrypt($gatewayClass, $logger);
-        $requestValueMapper    = RequestValueMapperFactory::createForGateway($gatewayClass);
-        $requestValueFormatter = RequestValueFormatterFactory::createForGateway($gatewayClass);
-        $requestDataMapper     = RequestDataMapperFactory::createGatewayRequestMapper(
-            $gatewayClass,
-            $requestValueMapper,
-            $requestValueFormatter,
-            $eventDispatcher,
-            $crypt,
-        );
-
-        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway($gatewayClass);
-        $responseValueMapper    = ResponseValueMapperFactory::createForGateway($gatewayClass, $requestValueMapper);
-        $responseDataMapper     = ResponseDataMapperFactory::createGatewayResponseMapper($gatewayClass, $responseValueFormatter, $responseValueMapper, $logger);
-
-        // Create Bank Class Instance
-        return new $gatewayClass(
-            $apiConfig,
-            $posAccount,
-            $requestValueMapper,
-            $requestDataMapper,
-            $responseDataMapper,
-            $eventDispatcher,
-            $soapClient,
-            $logger
-        );
-    }
-
-    /**
-     * @param class-string<PosInterface>                                                          $gatewayClass
-     * @param AbstractPosAccount                                                                  $posAccount
-     * @param array{name: string, class?: class-string, gateway_endpoints: array<string, string>} $apiConfig
+     * @param array{
+     *           name: string,
+     *           class?: class-string,
+     *           gateway_endpoints: array{
+     *               payment_api: non-empty-string,
+     *               payment_api2?: non-empty-string,
+     *               query_api?: non-empty-string}
+     *          } $apiConfig
      * @param EventDispatcherInterface                                                            $eventDispatcher
      * @param LoggerInterface                                                                     $logger
      * @param HttpClientInterface|null                                                            $httpClient
@@ -159,9 +122,6 @@ class PosFactory
         ?HttpClientInterface     $httpClient = null
     ): PosInterface {
 
-        if (!$httpClient instanceof HttpClientInterface) {
-            $httpClient = HttpClientFactory::createDefaultHttpClient();
-        }
 
         $crypt                 = CryptFactory::createGatewayCrypt($gatewayClass, $logger);
         $requestValueMapper    = RequestValueMapperFactory::createForGateway($gatewayClass);
@@ -179,6 +139,17 @@ class PosFactory
         $responseDataMapper     = ResponseDataMapperFactory::createGatewayResponseMapper($gatewayClass, $responseValueFormatter, $responseValueMapper, $logger);
         $serializer             = SerializerFactory::createGatewaySerializer($gatewayClass);
 
+        if (!$httpClient instanceof HttpClientInterface) {
+            $httpClient = PosHttpClientFactory::createForGateway(
+                $gatewayClass,
+                $apiConfig['gateway_endpoints'],
+                $serializer,
+                $crypt,
+                $requestValueMapper,
+                $logger
+            );
+        }
+
         // Create Bank Class Instance
         return new $gatewayClass(
             $apiConfig,
@@ -189,6 +160,67 @@ class PosFactory
             $serializer,
             $eventDispatcher,
             $httpClient,
+            $logger
+        );
+    }
+
+    /**
+     * @param class-string<PosInterface> $gatewayClass
+     * @param AbstractPosAccount         $posAccount
+     * @param array{
+     *     name: string,
+     *     class?: class-string,
+     *     gateway_endpoints: array{
+     *               payment_api: non-empty-string,
+     *               payment_api2?: non-empty-string,
+     *               query_api?: non-empty-string}
+     *          }                        $apiConfig
+     * @param EventDispatcherInterface   $eventDispatcher
+     * @param LoggerInterface            $logger
+     * @param SoapClientInterface|null   $soapClient
+     *
+     * @return PosInterface
+     */
+    private static function doCreateSoapPosGateway(
+        string                   $gatewayClass,
+        AbstractPosAccount       $posAccount,
+        array                    $apiConfig,
+        EventDispatcherInterface $eventDispatcher,
+        LoggerInterface          $logger,
+        ?SoapClientInterface     $soapClient = null
+    ): PosInterface {
+        $crypt                 = CryptFactory::createGatewayCrypt($gatewayClass, $logger);
+        $requestValueMapper    = RequestValueMapperFactory::createForGateway($gatewayClass);
+        $requestValueFormatter = RequestValueFormatterFactory::createForGateway($gatewayClass);
+        $requestDataMapper     = RequestDataMapperFactory::createGatewayRequestMapper(
+            $gatewayClass,
+            $requestValueMapper,
+            $requestValueFormatter,
+            $eventDispatcher,
+            $crypt,
+        );
+        if (!$soapClient instanceof \Mews\Pos\Client\SoapClientInterface) {
+            $soapClient = PosSoapClientFactory::createForGateway(
+                $gatewayClass,
+                $apiConfig['gateway_endpoints'],
+                $requestValueMapper,
+                $logger
+            );
+        }
+
+        $responseValueFormatter = ResponseValueFormatterFactory::createForGateway($gatewayClass);
+        $responseValueMapper    = ResponseValueMapperFactory::createForGateway($gatewayClass, $requestValueMapper);
+        $responseDataMapper     = ResponseDataMapperFactory::createGatewayResponseMapper($gatewayClass, $responseValueFormatter, $responseValueMapper, $logger);
+
+        // Create Bank Class Instance
+        return new $gatewayClass(
+            $apiConfig,
+            $posAccount,
+            $requestValueMapper,
+            $requestDataMapper,
+            $responseDataMapper,
+            $eventDispatcher,
+            $soapClient,
             $logger
         );
     }
