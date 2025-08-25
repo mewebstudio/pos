@@ -266,7 +266,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'request_data' => [
                 'TransactionType' => 'CampaignSearch',
             ],
-            'expected' => [
+            'expected'     => [
                 'MerchantId'      => '000000000111111',
                 'Password'        => '3XTgER89as',
                 'TerminalNo'      => 'VP999999',
@@ -628,16 +628,17 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         return [
             [
                 'order'    => [
-                    'id'     => 'order123',
-                    'amount' => 1000,
-                    'ip'     => '127.0.0.1',
+                    'id'             => 'order123',
+                    'transaction_id' => 'tx123',
+                    'amount'         => 1000,
+                    'ip'             => '127.0.0.1',
                 ],
                 'expected' => [
                     'MerchantId'             => '000000000111111',
                     'Password'               => '3XTgER89as',
                     'TerminalNo'             => 'VP999999',
                     'TransactionType'        => 'Capture',
-                    'ReferenceTransactionId' => 'order123',
+                    'ReferenceTransactionId' => 'tx123',
                     'CurrencyAmount'         => '1000.00',
                     'CurrencyCode'           => '949',
                     'ClientIp'               => '127.0.0.1',
