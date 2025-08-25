@@ -543,6 +543,40 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
                 'RecurringFrequencyType'    => 'Month',
                 'RecurringInstallmentCount' => '2',
                 'RecurringEndDate'          => '20240414',
+                'TriggerDate'               => '',
+            ],
+        ];
+
+        $order['installment'] = 0;
+        $order['recurring']   = [
+            'frequency'     => 3,
+            'frequencyType' => 'MONTH',
+            'installment'   => 2,
+            'startDate'     => (new \DateTimeImmutable('2024-10-14')),
+            'endDate'       => (new \DateTimeImmutable('2024-10-14'))->modify("+6 MONTH"),
+        ];
+
+        yield 'with_recurrent_payment_with_start_date' => [
+            'order'    => $order,
+            'card'     => $card,
+            'expected' => [
+                'MerchantId'                => '000000000111111',
+                'MerchantPassword'          => '3XTgER89as',
+                'MerchantType'              => 0,
+                'PurchaseAmount'            => '100.00',
+                'VerifyEnrollmentRequestId' => 'rand123',
+                'Currency'                  => '949',
+                'SuccessUrl'                => 'https://domain.com/success',
+                'FailureUrl'                => 'https://domain.com/fail_url',
+                'Pan'                       => '5555444433332222',
+                'ExpiryDate'                => '2112',
+                'BrandName'                 => '100',
+                'IsRecurring'               => 'true',
+                'RecurringFrequency'        => '3',
+                'RecurringFrequencyType'    => 'Month',
+                'RecurringInstallmentCount' => '2',
+                'RecurringEndDate'          => '20250414',
+                'TriggerDate'               => '20241014',
             ],
         ];
     }

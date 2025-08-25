@@ -406,9 +406,22 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param array{frequency: int, installment: int, frequencyType: string, recurringFrequency: int, endDate: DateTimeInterface} $recurringData
+     * @param array{
+     *     frequency: int,
+     *     installment: int,
+     *     frequencyType: string,
+     *     recurringFrequency: int,
+     *     endDate: DateTimeInterface,
+     *     startDate?: DateTimeInterface } $recurringData
      *
-     * @return array{IsRecurring: 'true', RecurringFrequency: string, RecurringFrequencyType: string, RecurringInstallmentCount: string, RecurringEndDate: string}
+     * @return array{
+     *     IsRecurring: 'true',
+     *     RecurringFrequency: string,
+     *     RecurringFrequencyType: string,
+     *     RecurringInstallmentCount: string,
+     *     RecurringEndDate: string,
+     *     TriggerDate: string
+     *     }
      */
     private function createRecurringData(array $recurringData): array
     {
@@ -422,6 +435,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
              * Bu alandaki tarih, kartın son kullanma tarihinden büyükse ACS sunucusu işlemi reddeder.
              */
             'RecurringEndDate'          => $recurringData['endDate']->format('Ymd'),
+            'TriggerDate'               => isset($recurringData['startDate']) ? $recurringData['startDate']->format('Ymd') : '',
         ];
     }
 }
