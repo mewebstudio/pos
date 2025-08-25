@@ -36,6 +36,7 @@
         }
     },
     "require-dev": {
+        "captainhook/captainhook": "^5.18",
         "escapestudios/symfony2-coding-standard": "^3.11",
         "friendsofphp/php-cs-fixer": "^3.65",
         "monolog/monolog": "^2.8",
@@ -57,7 +58,8 @@
     "config": {
         "sort-packages": true,
         "allow-plugins": {
-            "php-http/discovery": true
+            "php-http/discovery": true,
+            "captainhook/captainhook-phar": true
         }
     },
     "scripts": {
