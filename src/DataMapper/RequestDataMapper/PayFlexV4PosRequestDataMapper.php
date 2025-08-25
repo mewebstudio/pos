@@ -177,7 +177,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->getRequestAccountData($posAccount) + [
                 'TransactionType'        => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
-                'ReferenceTransactionId' => (string) $order['id'],
+                'ReferenceTransactionId' => (string) $order['transaction_id'],
                 'CurrencyAmount'         => $this->formatAmount($order['amount']),
                 'CurrencyCode'           => $this->mapCurrency($order['currency']),
                 'ClientIp'               => (string) $order['ip'],
@@ -339,10 +339,11 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     protected function preparePostPaymentOrder(array $order): array
     {
         return [
-            'id'       => $order['id'],
-            'amount'   => $order['amount'],
-            'currency' => $order['currency'] ?? PosInterface::CURRENCY_TRY,
-            'ip'       => $order['ip'],
+            'id'             => $order['id'],
+            'transaction_id' => $order['transaction_id'],
+            'amount'         => $order['amount'],
+            'currency'       => $order['currency'] ?? PosInterface::CURRENCY_TRY,
+            'ip'             => $order['ip'],
         ];
     }
 
@@ -405,9 +406,22 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param array{frequency: int, installment: int, frequencyType: string, recurringFrequency: int, endDate: DateTimeInterface} $recurringData
+     * @param array{
+     *     frequency: int,
+     *     installment: int,
+     *     frequencyType: string,
+     *     recurringFrequency: int,
+     *     endDate: DateTimeInterface,
+     *     startDate?: DateTimeInterface } $recurringData
      *
-     * @return array{IsRecurring: 'true', RecurringFrequency: string, RecurringFrequencyType: string, RecurringInstallmentCount: string, RecurringEndDate: string}
+     * @return array{
+     *     IsRecurring: 'true',
+     *     RecurringFrequency: string,
+     *     RecurringFrequencyType: string,
+     *     RecurringInstallmentCount: string,
+     *     RecurringEndDate: string,
+     *     TriggerDate: string
+     *     }
      */
     private function createRecurringData(array $recurringData): array
     {
@@ -421,6 +435,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
              * Bu alandaki tarih, kartın son kullanma tarihinden büyükse ACS sunucusu işlemi reddeder.
              */
             'RecurringEndDate'          => $recurringData['endDate']->format('Ymd'),
+            'TriggerDate'               => isset($recurringData['startDate']) ? $recurringData['startDate']->format('Ymd') : '',
         ];
     }
 }

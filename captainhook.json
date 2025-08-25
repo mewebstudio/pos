@@ -1,0 +1,49 @@
+{
+    "commit-msg": {
+        "enabled": true,
+        "actions": []
+    },
+    "pre-push": {
+        "enabled": true,
+        "actions": [
+          {
+            "action": "composer do-checks"
+          }
+        ]
+    },
+    "pre-commit": {
+        "enabled": true,
+        "actions": [
+            {
+                "action": "composer cs-check"
+            },
+            {
+                "action": "composer phpstan"
+            }
+        ]
+    },
+    "prepare-commit-msg": {
+        "enabled": false,
+        "actions": []
+    },
+    "post-commit": {
+        "enabled": false,
+        "actions": []
+    },
+    "post-merge": {
+        "enabled": false,
+        "actions": []
+    },
+    "post-checkout": {
+        "enabled": false,
+        "actions": []
+    },
+    "post-rewrite": {
+        "enabled": false,
+        "actions": []
+    },
+    "post-change": {
+        "enabled": false,
+        "actions": []
+    }
+}

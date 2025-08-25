@@ -11,12 +11,11 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
-use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 use Monolog\Test\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
-class ToslaPosTest extends TestCase
+class PayFlexV4PosTest extends TestCase
 {
     use PaymentTestTrait;
 
@@ -24,7 +23,7 @@ class ToslaPosTest extends TestCase
 
     private EventDispatcher $eventDispatcher;
 
-    /** @var ToslaPos */
+    /** @var \Mews\Pos\Gateways\PayFlexV4Pos */
     private PosInterface $pos;
 
     protected function setUp(): void
@@ -33,11 +32,11 @@ class ToslaPosTest extends TestCase
 
         $config = require __DIR__.'/../../config/pos_test.php';
 
-        $account = AccountFactory::createToslaPosAccount(
-            'tosla',
-            '1000000494',
-            'POS_ENT_Test_001',
-            'POS_ENT_Test_001!*!*',
+        $account = AccountFactory::createPayFlexAccount(
+            'vakifbank',
+            '000100000013506',
+            '123456',
+            'VP000579',
         );
 
         $this->eventDispatcher = new EventDispatcher();
@@ -46,13 +45,65 @@ class ToslaPosTest extends TestCase
 
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
-            '4159560047417732',
-            '24',
-            '08',
-            '123',
+            '4938410157705591',
+            '29',
+            '12',
+            '453',
             'John Doe',
             CreditCardInterface::CARD_TYPE_VISA
         );
+    }
+
+    public function testGet3DFormData(): void
+    {
+        $order = $this->createPaymentOrder(PosInterface::MODEL_3D_SECURE);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertCount(12, $requestDataPreparedEvent->getRequestData());
+                $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
+            }
+        );
+        $formData = $this->pos->get3DFormData(
+            $order,
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $this->card
+        );
+        $this->assertCount(3, $formData['inputs']);
+        $this->assertTrue($eventIsThrown);
+    }
+
+    public function testGet3DFormDataRecurringOrder(): void
+    {
+        $order = $this->createPaymentOrder(
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::CURRENCY_TRY,
+            30,
+            3,
+            true,
+        );
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertCount(17, $requestDataPreparedEvent->getRequestData());
+                $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
+            }
+        );
+        $formData = $this->pos->get3DFormData(
+            $order,
+            PosInterface::MODEL_3D_SECURE,
+            PosInterface::TX_TYPE_PAY_AUTH,
+            $this->card
+        );
+        $this->assertCount(3, $formData['inputs']);
+        $this->assertTrue($eventIsThrown);
     }
 
     public function testNonSecurePaymentSuccess(): array
@@ -64,7 +115,7 @@ class ToslaPosTest extends TestCase
             function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(13, $requestDataPreparedEvent->getRequestData());
+                $this->assertCount(12, $requestDataPreparedEvent->getRequestData());
             }
         );
 
@@ -75,9 +126,9 @@ class ToslaPosTest extends TestCase
             $this->card
         );
 
+        $response = $this->pos->getResponse();
         $this->assertTrue($this->pos->isSuccess());
 
-        $response = $this->pos->getResponse();
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
@@ -87,35 +138,6 @@ class ToslaPosTest extends TestCase
 
     /**
      * @depends testNonSecurePaymentSuccess
-     */
-    public function testStatusSuccess(array $lastResponse): array
-    {
-        $statusOrder = $this->createStatusOrder(\get_class($this->pos), $lastResponse);
-
-        $eventIsThrown = false;
-        $this->eventDispatcher->addListener(
-            RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
-                $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_STATUS, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            }
-        );
-
-        $this->pos->status($statusOrder);
-
-        $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
-        $this->assertIsArray($response);
-        $this->assertNotEmpty($response);
-        $this->assertTrue($eventIsThrown);
-
-        return $lastResponse;
-    }
-
-    /**
-     * @depends testNonSecurePaymentSuccess
-     * @depends testStatusSuccess
      */
     public function testCancelSuccess(array $lastResponse): array
     {
@@ -127,7 +149,7 @@ class ToslaPosTest extends TestCase
             function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
+                $this->assertCount(5, $requestDataPreparedEvent->getRequestData());
             }
         );
 
@@ -142,116 +164,99 @@ class ToslaPosTest extends TestCase
         return $lastResponse;
     }
 
-    /**
-     * @depends testCancelSuccess
-     */
-    public function testOrderHistorySuccess(array $lastResponse): void
+    public function testNonSecurePrePaymentSuccess(): array
     {
-        $historyOrder = $this->createOrderHistoryOrder(\get_class($this->pos), $lastResponse);
+        $order = $this->createPaymentOrder(
+            PosInterface::MODEL_NON_SECURE,
+            PosInterface::CURRENCY_TRY,
+            30.0,
+            3
+        );
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
             function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_ORDER_HISTORY, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(9, $requestDataPreparedEvent->getRequestData());
+                $this->assertSame(PosInterface::TX_TYPE_PAY_PRE_AUTH, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(12, $requestDataPreparedEvent->getRequestData());
             }
         );
-
-        $this->pos->orderHistory($historyOrder);
-
-        $this->assertTrue($this->pos->isSuccess());
-        $response = $this->pos->getResponse();
-        $this->assertIsArray($response);
-        $this->assertNotEmpty($response);
-        $this->assertTrue($eventIsThrown);
-    }
-
-    public function testGet3DFormData(): void
-    {
-        $order = $this->createPaymentOrder(PosInterface::MODEL_3D_PAY);
-
-        $eventIsThrown = false;
-        $this->eventDispatcher->addListener(
-            RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
-                $eventIsThrown = true;
-                $this->assertCount(10, $requestDataPreparedEvent->getRequestData());
-                $this->assertSame(PosInterface::TX_TYPE_PAY_AUTH, $requestDataPreparedEvent->getTxType());
-            }
-        );
-        $formData = $this->pos->get3DFormData(
-            $order,
-            PosInterface::MODEL_3D_PAY,
-            PosInterface::TX_TYPE_PAY_AUTH,
-            $this->card
-        );
-        $this->assertCount(5, $formData['inputs']);
-        $this->assertTrue($eventIsThrown);
-    }
-
-    public function testPartialRefundSuccess(): array
-    {
-        $order = $this->createPaymentOrder(PosInterface::MODEL_NON_SECURE);
 
         $this->pos->payment(
             PosInterface::MODEL_NON_SECURE,
             $order,
-            PosInterface::TX_TYPE_PAY_AUTH,
+            PosInterface::TX_TYPE_PAY_PRE_AUTH,
             $this->card
         );
 
+        $response = $this->pos->getResponse();
+
         $this->assertTrue($this->pos->isSuccess());
 
-        $lastResponse = $this->pos->getResponse();
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
 
-        $refundOrder           = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
-        $refundOrder['amount'] = 0.59;
+        return $this->pos->getResponse();
+    }
 
+    /**
+     * @depends testNonSecurePrePaymentSuccess
+     */
+    public function testNonSecurePostPaymentSuccess(array $lastResponse): array
+    {
+        $order         = $this->createPostPayOrder(\get_class($this->pos), $lastResponse);
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
             RequestDataPreparedEvent::class,
             function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_REFUND_PARTIAL, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(7, $requestDataPreparedEvent->getRequestData());
+                $this->assertSame(PosInterface::TX_TYPE_PAY_POST_AUTH, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(8, $requestDataPreparedEvent->getRequestData());
+            }
+        );
+
+        $this->pos->payment(
+            PosInterface::MODEL_NON_SECURE,
+            $order,
+            PosInterface::TX_TYPE_PAY_POST_AUTH
+        );
+
+        $this->assertTrue($this->pos->isSuccess());
+        $response = $this->pos->getResponse();
+
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+
+        return $response;
+    }
+
+    /**
+     * @depends testNonSecurePostPaymentSuccess
+     */
+    public function testRefundSuccess(array $lastResponse): array
+    {
+        $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_REFUND, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
             }
         );
 
         $this->pos->refund($refundOrder);
 
-        $this->assertTrue($this->pos->isSuccess());
         $response = $this->pos->getResponse();
+        $this->assertTrue($this->pos->isSuccess(), $response['error_message'] ?? '');
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);
 
         return $lastResponse;
-    }
-
-    public function testCustomQuery(): void
-    {
-        $customQuery = [
-            'bin' => 415956,
-        ];
-
-        $eventIsThrown = false;
-        $this->eventDispatcher->addListener(
-            RequestDataPreparedEvent::class,
-            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
-                $eventIsThrown = true;
-                $this->assertSame(PosInterface::TX_TYPE_CUSTOM_QUERY, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(6, $requestDataPreparedEvent->getRequestData());
-            }
-        );
-
-        $this->pos->customQuery($customQuery, 'https://prepentegrasyon.tosla.com/api/Payment/GetCommissionAndInstallmentInfo');
-
-        $response = $this->pos->getResponse();
-        $this->assertIsArray($response);
-        $this->assertNotEmpty($response);
-        $this->assertArrayHasKey('BankCode', $response);
-        $this->assertTrue($eventIsThrown);
     }
 }

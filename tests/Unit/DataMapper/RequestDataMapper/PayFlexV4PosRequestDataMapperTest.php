@@ -266,7 +266,7 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             'request_data' => [
                 'TransactionType' => 'CampaignSearch',
             ],
-            'expected' => [
+            'expected'     => [
                 'MerchantId'      => '000000000111111',
                 'Password'        => '3XTgER89as',
                 'TerminalNo'      => 'VP999999',
@@ -543,6 +543,40 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
                 'RecurringFrequencyType'    => 'Month',
                 'RecurringInstallmentCount' => '2',
                 'RecurringEndDate'          => '20240414',
+                'TriggerDate'               => '',
+            ],
+        ];
+
+        $order['installment'] = 0;
+        $order['recurring']   = [
+            'frequency'     => 3,
+            'frequencyType' => 'MONTH',
+            'installment'   => 2,
+            'startDate'     => (new \DateTimeImmutable('2024-10-14')),
+            'endDate'       => (new \DateTimeImmutable('2024-10-14'))->modify("+6 MONTH"),
+        ];
+
+        yield 'with_recurrent_payment_with_start_date' => [
+            'order'    => $order,
+            'card'     => $card,
+            'expected' => [
+                'MerchantId'                => '000000000111111',
+                'MerchantPassword'          => '3XTgER89as',
+                'MerchantType'              => 0,
+                'PurchaseAmount'            => '100.00',
+                'VerifyEnrollmentRequestId' => 'rand123',
+                'Currency'                  => '949',
+                'SuccessUrl'                => 'https://domain.com/success',
+                'FailureUrl'                => 'https://domain.com/fail_url',
+                'Pan'                       => '5555444433332222',
+                'ExpiryDate'                => '2112',
+                'BrandName'                 => '100',
+                'IsRecurring'               => 'true',
+                'RecurringFrequency'        => '3',
+                'RecurringFrequencyType'    => 'Month',
+                'RecurringInstallmentCount' => '2',
+                'RecurringEndDate'          => '20250414',
+                'TriggerDate'               => '20241014',
             ],
         ];
     }
@@ -628,16 +662,17 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
         return [
             [
                 'order'    => [
-                    'id'     => 'order123',
-                    'amount' => 1000,
-                    'ip'     => '127.0.0.1',
+                    'id'             => 'order123',
+                    'transaction_id' => 'tx123',
+                    'amount'         => 1000,
+                    'ip'             => '127.0.0.1',
                 ],
                 'expected' => [
                     'MerchantId'             => '000000000111111',
                     'Password'               => '3XTgER89as',
                     'TerminalNo'             => 'VP999999',
                     'TransactionType'        => 'Capture',
-                    'ReferenceTransactionId' => 'order123',
+                    'ReferenceTransactionId' => 'tx123',
                     'CurrencyAmount'         => '1000.00',
                     'CurrencyCode'           => '949',
                     'ClientIp'               => '127.0.0.1',

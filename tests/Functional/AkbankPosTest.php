@@ -4,13 +4,14 @@
  * @license MIT
  */
 
+namespace Mews\Pos\Tests\Functional;
+
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Factory\PosFactory;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Tests\Functional\PaymentTestTrait;
 use Monolog\Test\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
@@ -324,7 +325,7 @@ class AkbankPosTest extends TestCase
         $this->recurringPos->cancel($statusOrder);
 
         $response = $this->recurringPos->getResponse();
-        $this->assertTrue($this->recurringPos->isSuccess(), $response['error_message'] ?? null);
+        $this->assertTrue($this->recurringPos->isSuccess(), $response['error_message'] ?? '');
 
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);

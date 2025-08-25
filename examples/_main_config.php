@@ -165,7 +165,7 @@ function createPaymentOrder(
             'frequency'     => $recurringFrequency,
             'frequencyType' => $recurringFrequencyType,
             'installment'   => $installment,
-            'startDate'     => new \DateTimeImmutable(), // GarantiPos optional
+            'startDate'     => new \DateTimeImmutable(), // GarantiPos|PayFlexV4 optional
             'endDate'       => (new DateTime())->modify("+$endPeriod $recurringFrequencyType"), // Sadece PayFlexV4'te zorunlu
         ];
     }

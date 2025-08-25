@@ -25,6 +25,9 @@ function createPostPayOrder(string $gatewayClass, array $lastResponse, string $i
         $postAuth['installment'] = $lastResponse['installment_count'];
         $postAuth['ref_ret_num'] = $lastResponse['ref_ret_num'];
     }
+    if (\Mews\Pos\Gateways\PayFlexV4Pos::class === $gatewayClass) {
+        $postAuth['transaction_id'] = $lastResponse['transaction_id'];
+    }
 
     return $postAuth;
 }

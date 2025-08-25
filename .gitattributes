@@ -10,3 +10,4 @@ rector.php              export-ignore
 .github/                export-ignore
 tests/                  export-ignore
 examples/               export-ignore
+captainhook.json        export-ignore

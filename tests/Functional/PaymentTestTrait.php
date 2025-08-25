@@ -45,8 +45,8 @@ trait PaymentTestTrait
                 PosInterface::MODEL_3D_HOST,
                 PosInterface::MODEL_3D_PAY_HOSTING,
             ], true)) {
-            $order['success_url'] = 'http:localhost/response.php';
-            $order['fail_url']    = 'http:localhost/response.php';
+            $order['success_url'] = 'http://localhost/response.php';
+            $order['fail_url']    = 'http://localhost/response.php';
         }
 
         if ($tekrarlanan) {
@@ -87,6 +87,10 @@ trait PaymentTestTrait
         if (\Mews\Pos\Gateways\PosNetV1Pos::class === $gatewayClass || \Mews\Pos\Gateways\PosNet::class === $gatewayClass) {
             $postAuth['installment'] = $lastResponse['installment_count'];
             $postAuth['ref_ret_num'] = $lastResponse['ref_ret_num'];
+        }
+
+        if (\Mews\Pos\Gateways\PayFlexV4Pos::class === $gatewayClass) {
+            $postAuth['transaction_id'] = $lastResponse['transaction_id'];
         }
 
         return $postAuth;
