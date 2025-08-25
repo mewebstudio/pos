@@ -11,6 +11,7 @@ use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\PayForPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
@@ -19,10 +20,8 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\PayForPosResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -36,8 +35,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PayForTest extends TestCase
 {
-    use HttpClientTestTrait;
-
     private PayForAccount $account;
 
     private array $config;
@@ -63,9 +60,6 @@ class PayForTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private MockObject $eventDispatcherMock;
 
-    /** @var SerializerInterface & MockObject */
-    private MockObject $serializerMock;
-
     private CreditCardInterface $card;
 
     private PayForPosRequestValueMapper $requestValueMapper;
@@ -78,7 +72,6 @@ class PayForTest extends TestCase
             'name'              => 'QNBFinansbank-PayFor',
             'class'             => PayForPos::class,
             'gateway_endpoints' => [
-                'payment_api'     => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
                 'gateway_3d'      => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
                 'gateway_3d_host' => 'https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx',
             ],
@@ -96,7 +89,7 @@ class PayForTest extends TestCase
         $this->requestValueMapper  = new PayForPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(RequestDataMapperInterface::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
+        $serializerMock            = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
         $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
@@ -112,7 +105,7 @@ class PayForTest extends TestCase
             $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
-            $this->serializerMock,
+            $serializerMock,
             $this->eventDispatcherMock,
             $this->httpClientMock,
             $this->loggerMock,
@@ -141,7 +134,6 @@ class PayForTest extends TestCase
         $this->assertSame($this->account, $this->pos->getAccount());
         $this->assertSame($this->config['gateway_endpoints']['gateway_3d_host'], $this->pos->get3DGatewayURL(PosInterface::MODEL_3D_HOST));
         $this->assertSame($this->config['gateway_endpoints']['gateway_3d'], $this->pos->get3DGatewayURL());
-        $this->assertSame($this->config['gateway_endpoints']['payment_api'], $this->pos->getApiURL());
     }
 
     /**
@@ -160,12 +152,12 @@ class PayForTest extends TestCase
      * [false, "3d_host", "https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx"]
      */
     public function testGet3DFormData(
-        bool $isWithCard,
+        bool   $isWithCard,
         string $paymentModel,
         string $gatewayUrl
     ): void {
-        $card = $isWithCard ? $this->card : null;
-        $order = ['id' => '124'];
+        $card   = $isWithCard ? $this->card : null;
+        $order  = ['id' => '124'];
         $txType = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->requestMapperMock->expects(self::once())
@@ -247,10 +239,7 @@ class PayForTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -267,10 +256,6 @@ class PayForTest extends TestCase
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $this->serializerMock->expects(self::never())
-                ->method('decode');
             $this->eventDispatcherMock->expects(self::never())
                 ->method('dispatch');
         }
@@ -284,7 +269,7 @@ class PayForTest extends TestCase
 
     public function testMake3DPaymentHashMismatchException(): void
     {
-        $data = PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'];
+        $data    = PayForPosResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'];
         $request = Request::create('', 'POST', $data);
 
         $this->cryptMock->expects(self::once())
@@ -300,10 +285,6 @@ class PayForTest extends TestCase
             ->method('map3DPaymentData');
         $this->requestMapperMock->expects(self::never())
             ->method('create3DPaymentRequestData');
-        $this->serializerMock->expects(self::never())
-            ->method('encode');
-        $this->serializerMock->expects(self::never())
-            ->method('decode');
         $this->eventDispatcherMock->expects(self::never())
             ->method('dispatch');
 
@@ -320,9 +301,9 @@ class PayForTest extends TestCase
             ->method('check3DHash');
 
         $responseData = ['$responseData'];
-        $request  = Request::create('', 'POST', $responseData);
-        $order    = ['id' => '123'];
-        $txType   = PosInterface::TX_TYPE_PAY_AUTH;
+        $request      = Request::create('', 'POST', $responseData);
+        $order        = ['id' => '123'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DPayResponseData')
@@ -347,9 +328,9 @@ class PayForTest extends TestCase
             ->method('check3DHash');
 
         $responseData = ['$responseData'];
-        $request  = Request::create('', 'POST', $responseData);
-        $order    = ['id' => '123'];
-        $txType   = PosInterface::TX_TYPE_PAY_AUTH;
+        $request      = Request::create('', 'POST', $responseData);
+        $order        = ['id' => '123'];
+        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
 
         $this->responseMapperMock->expects(self::once())
             ->method('map3DHostResponseData')
@@ -368,7 +349,7 @@ class PayForTest extends TestCase
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $card        = $this->card;
@@ -381,13 +362,12 @@ class PayForTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -401,7 +381,7 @@ class PayForTest extends TestCase
     /**
      * @dataProvider makeRegularPostAuthPaymentDataProvider
      */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPostAuthPayment(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
@@ -415,13 +395,12 @@ class PayForTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -436,7 +415,7 @@ class PayForTest extends TestCase
     /**
      * @dataProvider statusRequestDataProvider
      */
-    public function testStatusRequest(array $order, string $apiUrl): void
+    public function testStatusRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_STATUS;
@@ -450,13 +429,12 @@ class PayForTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -470,7 +448,7 @@ class PayForTest extends TestCase
     /**
      * @dataProvider cancelRequestDataProvider
      */
-    public function testCancelRequest(array $order, string $apiUrl): void
+    public function testCancelRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_CANCEL;
@@ -484,13 +462,12 @@ class PayForTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -504,7 +481,7 @@ class PayForTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $apiUrl): void
+    public function testRefundRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_REFUND;
@@ -518,13 +495,12 @@ class PayForTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -538,7 +514,7 @@ class PayForTest extends TestCase
     /**
      * @dataProvider historyRequestDataProvider
      */
-    public function testHistoryRequest(array $order, string $apiUrl): void
+    public function testHistoryRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_HISTORY;
@@ -552,13 +528,12 @@ class PayForTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -572,7 +547,7 @@ class PayForTest extends TestCase
     /**
      * @dataProvider orderHistoryRequestDataProvider
      */
-    public function testOrderHistoryRequest(array $order, string $apiUrl): void
+    public function testOrderHistoryRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_ORDER_HISTORY;
@@ -586,13 +561,12 @@ class PayForTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -606,10 +580,10 @@ class PayForTest extends TestCase
     /**
      * @dataProvider customQueryRequestDataProvider
      */
-    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
 
         $updatedRequestData = $requestData + [
                 'abc' => 'def',
@@ -621,13 +595,12 @@ class PayForTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $expectedApiUrl,
             $updatedRequestData,
-            'request-body',
-            'response-body',
             ['decodedResponse'],
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            $apiUrl,
+            $account
         );
 
         $this->pos->customQuery($requestData, $apiUrl);
@@ -637,18 +610,16 @@ class PayForTest extends TestCase
     {
         return [
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx/xxxx',
-                'expected_api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx/xxxx',
+                'api_url'     => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx/xxxx',
             ],
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => null,
-                'expected_api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
+                'api_url'     => null,
             ],
         ];
     }
@@ -702,18 +673,16 @@ class PayForTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
+                'txType' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
+                'txType' => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             ],
         ];
     }
@@ -722,10 +691,9 @@ class PayForTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
             ],
         ];
     }
@@ -734,10 +702,9 @@ class PayForTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
             ],
         ];
     }
@@ -746,10 +713,9 @@ class PayForTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
             ],
         ];
     }
@@ -758,10 +724,9 @@ class PayForTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
             ],
         ];
     }
@@ -770,10 +735,9 @@ class PayForTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
             ],
         ];
     }
@@ -782,10 +746,9 @@ class PayForTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://vpostest.qnbfinansbank.com/Gateway/XMLGate.aspx',
             ],
         ];
     }
@@ -793,7 +756,7 @@ class PayForTest extends TestCase
     public static function threeDFormDataBadInputsProvider(): array
     {
         return [
-            '3d_secure_without_card' => [
+            '3d_secure_without_card'    => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
@@ -802,7 +765,7 @@ class PayForTest extends TestCase
                 'expectedExceptionClass' => \LogicException::class,
                 'expectedExceptionMsg'   => 'Bu ödeme modeli için kart bilgileri zorunlu!',
             ],
-            '3d_pay_without_card'    => [
+            '3d_pay_without_card'       => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
@@ -820,7 +783,7 @@ class PayForTest extends TestCase
                 'expectedExceptionClass' => \LogicException::class,
                 'expectedExceptionMsg'   => 'Mews\Pos\Gateways\PayForPos ödeme altyapıda [pay] işlem tipi [3d, 3d_pay, 3d_host, regular] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay_hosting].',
             ],
-            'non_payment_tx_type'    => [
+            'non_payment_tx_type'       => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_STATUS,
@@ -829,7 +792,7 @@ class PayForTest extends TestCase
                 'expectedExceptionClass' => \LogicException::class,
                 'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay, pre]',
             ],
-            'post_auth_tx_type'      => [
+            'post_auth_tx_type'         => [
                 'order'                  => ['id' => '2020110828BC'],
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_POST_AUTH,
@@ -842,39 +805,28 @@ class PayForTest extends TestCase
     }
 
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        string $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        array  $order,
-        string $paymentModel
+        string              $txType,
+        array               $requestData,
+        array               $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
-        $xmlEncodedData                  = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_XML);
 
-        $this->serializerMock->expects(self::once())
-            ->method('encode')
-            ->with($this->logicalAnd($this->arrayHasKey('test-update-request-data-with-event')), $txType)
-            ->willReturn($xmlEncodedData);
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'headers' => [
-                    'Content-Type' => 'text/xml; charset=UTF-8',
-                ],
-                'body'    => $xmlEncodedData->getData(),
-            ],
-        );
+        $this->httpClientMock->expects(self::once())
+            ->method('request')
+            ->with(
+                $txType,
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $account
+            )->willReturn($decodedResponse);
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')
@@ -891,7 +843,7 @@ class PayForTest extends TestCase
                 })
             ))
             ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent): ?\Mews\Pos\Event\RequestDataPreparedEvent {
-                $updatedRequestData = $updatedRequestDataPreparedEvent->getRequestData();
+                $updatedRequestData                                        = $updatedRequestDataPreparedEvent->getRequestData();
                 $updatedRequestData['test-update-request-data-with-event'] = true;
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestData);
 

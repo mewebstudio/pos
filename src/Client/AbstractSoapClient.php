@@ -6,32 +6,78 @@
 
 namespace Mews\Pos\Client;
 
+use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Psr\Log\LoggerInterface;
 
 /**
  * Soap Client Wrapper
  */
-class SoapClient implements SoapClientInterface
+abstract class AbstractSoapClient implements SoapClientInterface
 {
     private LoggerInterface $logger;
 
     private bool $isTestMode = false;
 
-    public function __construct(LoggerInterface $logger)
+    /**
+     * @var array{
+     *     payment_api: non-empty-string,
+     *     query_api?: non-empty-string
+     * } $config
+     */
+    private array $config;
+
+    private RequestValueMapperInterface $valueMapper;
+
+    /**
+     * @param array{
+     *     payment_api: non-empty-string,
+     *     query_api?: non-empty-string
+     * } $config
+     */
+    public function __construct(
+        array                       $config,
+        RequestValueMapperInterface $valueMapper,
+        LoggerInterface             $logger
+    ) {
+        $this->config      = $config;
+        $this->valueMapper = $valueMapper;
+        $this->logger      = $logger;
+    }
+
+    /**
+     * @return non-empty-string
+     */
+    public function getApiURL(): string
     {
-        $this->logger = $logger;
+        return $this->config['payment_api'];
     }
 
     /**
      * @inheritDoc
      */
-    public function call(string $url, string $soapAction, array $data, array $options = []): array
-    {
+    public function call(
+        string $txType,
+        string $paymentModel,
+        array  $requestData,
+        array  $order,
+        string $soapAction = null,
+        string $url = null,
+        array  $options = []
+    ): array {
+        $url    ??= $this->getApiURL();
         $client = new \SoapClient($url, $this->getClientOptions());
+
+        $soapAction ??= $this->valueMapper->mapTxType($txType, $paymentModel, $order);
+
+        $this->logger->debug('sending request', [
+            'url'     => $url,
+            'options' => $options,
+        ]);
+
         try {
             $result = $client->__soapCall(
                 $soapAction,
-                $data,
+                $this->prepareRequestData($requestData),
                 $options
             );
         } catch (\SoapFault $soapFault) {
@@ -76,6 +122,13 @@ class SoapClient implements SoapClientInterface
     }
 
     /**
+     * @param array<string, mixed> $requestData
+     *
+     * @return array<string, mixed>
+     */
+    abstract protected function prepareRequestData(array $requestData): array;
+
+    /**
      * @return array<string, mixed>
      */
     private function getClientOptions(): array
@@ -86,6 +139,7 @@ class SoapClient implements SoapClientInterface
         ];
 
         if ($this->isTestMode) {
+            // disable ssl errors when try on local without ssl certificate
             $sslConfig = [
                 'verify_peer'       => false,
                 'verify_peer_name'  => false,
@@ -97,7 +151,7 @@ class SoapClient implements SoapClientInterface
         return [
             'trace'          => true,
             'encoding'       => 'UTF-8',
-            'stream_context' => stream_context_create(['ssl' => $sslConfig]),
+            'stream_context' => \stream_context_create(['ssl' => $sslConfig]),
             'exceptions'     => true,
         ];
     }

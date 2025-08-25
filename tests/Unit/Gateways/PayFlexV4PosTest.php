@@ -13,6 +13,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\PayFlexV4PosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
@@ -22,11 +23,9 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapperTest;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapperTest;
-use Mews\Pos\Tests\Unit\HttpClientTestTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -40,8 +39,6 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class PayFlexV4PosTest extends TestCase
 {
-    use HttpClientTestTrait;
-
     private PayFlexAccount $account;
 
     /** @var PayFlexV4Pos */
@@ -71,9 +68,6 @@ class PayFlexV4PosTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private MockObject $eventDispatcherMock;
 
-    /** @var SerializerInterface & MockObject */
-    private MockObject $serializerMock;
-
     private PayFlexV4PosRequestValueMapper $requestValueMapper;
 
     protected function setUp(): void
@@ -84,9 +78,7 @@ class PayFlexV4PosTest extends TestCase
             'name'              => 'VakifBank-VPOS',
             'class'             => PayFlexV4Pos::class,
             'gateway_endpoints' => [
-                'payment_api' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
-                'gateway_3d'  => 'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspxs',
-                'query_api'   => 'https://sanalpos.vakifbank.com.tr/v4/UIWebService/Search.aspx',
+                'gateway_3d' => 'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspxs',
             ],
         ];
 
@@ -112,7 +104,7 @@ class PayFlexV4PosTest extends TestCase
         $this->requestValueMapper  = new PayFlexV4PosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(PayFlexV4PosRequestDataMapper::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
+        $serializerMock            = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
         $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
@@ -128,7 +120,7 @@ class PayFlexV4PosTest extends TestCase
             $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
-            $this->serializerMock,
+            $serializerMock,
             $this->eventDispatcherMock,
             $this->httpClientMock,
             $this->loggerMock,
@@ -173,13 +165,12 @@ class PayFlexV4PosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            'https://3dsecuretest.vakifbank.com.tr:4443/MPIAPI/MPI_Enrollment.aspxs',
             $requestData,
-            $requestData,
-            'response-body',
             $response,
             $order,
-            PosInterface::MODEL_3D_SECURE
+            PosInterface::MODEL_3D_SECURE,
+            false,
+            $this->config['gateway_endpoints']['gateway_3d'],
         );
 
         $this->requestMapperMock->expects(self::never())
@@ -229,13 +220,12 @@ class PayFlexV4PosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $this->config['gateway_endpoints']['gateway_3d'],
             $requestData,
-            $requestData,
-            'response-body',
             $enrollmentResponse,
             $order,
-            $paymentModel
+            $paymentModel,
+            false,
+            $this->config['gateway_endpoints']['gateway_3d']
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -294,10 +284,7 @@ class PayFlexV4PosTest extends TestCase
 
             $this->configureClientResponse(
                 $txType,
-                $this->config['gateway_endpoints']['payment_api'],
                 $create3DPaymentRequestData,
-                'request-body',
-                'response-body',
                 $paymentResponse,
                 $order,
                 PosInterface::MODEL_3D_SECURE
@@ -314,10 +301,6 @@ class PayFlexV4PosTest extends TestCase
                 ->willReturn($expectedResponse);
             $this->requestMapperMock->expects(self::never())
                 ->method('create3DPaymentRequestData');
-            $this->serializerMock->expects(self::never())
-                ->method('encode');
-            $this->serializerMock->expects(self::never())
-                ->method('decode');
             $this->eventDispatcherMock->expects(self::never())
                 ->method('dispatch');
         }
@@ -348,7 +331,7 @@ class PayFlexV4PosTest extends TestCase
     /**
      * @dataProvider makeRegularPaymentDataProvider
      */
-    public function testMakeRegularPayment(array $order, string $txType, string $apiUrl): void
+    public function testMakeRegularPayment(array $order, string $txType): void
     {
         $account     = $this->pos->getAccount();
         $card        = $this->card;
@@ -361,13 +344,13 @@ class PayFlexV4PosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            true,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -381,7 +364,7 @@ class PayFlexV4PosTest extends TestCase
     /**
      * @dataProvider makeRegularPostAuthPaymentDataProvider
      */
-    public function testMakeRegularPostAuthPayment(array $order, string $apiUrl): void
+    public function testMakeRegularPostAuthPayment(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_PAY_POST_AUTH;
@@ -394,13 +377,13 @@ class PayFlexV4PosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            true,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -415,7 +398,7 @@ class PayFlexV4PosTest extends TestCase
     /**
      * @dataProvider statusRequestDataProvider
      */
-    public function testStatusRequest(array $order, string $apiUrl): void
+    public function testStatusRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_STATUS;
@@ -429,13 +412,13 @@ class PayFlexV4PosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            true,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -449,7 +432,7 @@ class PayFlexV4PosTest extends TestCase
     /**
      * @dataProvider cancelRequestDataProvider
      */
-    public function testCancelRequest(array $order, string $apiUrl): void
+    public function testCancelRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_CANCEL;
@@ -463,13 +446,13 @@ class PayFlexV4PosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            true,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -483,7 +466,7 @@ class PayFlexV4PosTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testRefundRequest(array $order, string $apiUrl): void
+    public function testRefundRequest(array $order): void
     {
         $account     = $this->pos->getAccount();
         $txType      = PosInterface::TX_TYPE_REFUND;
@@ -497,13 +480,13 @@ class PayFlexV4PosTest extends TestCase
         $decodedResponse = ['decodedData'];
         $this->configureClientResponse(
             $txType,
-            $apiUrl,
             $requestData,
-            'request-body',
-            'response-body',
             $decodedResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            true,
+            null,
+            $account
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -529,10 +512,10 @@ class PayFlexV4PosTest extends TestCase
     /**
      * @dataProvider customQueryRequestDataProvider
      */
-    public function testCustomQueryRequest(array $requestData, ?string $apiUrl, string $expectedApiUrl): void
+    public function testCustomQueryRequest(array $requestData, ?string $apiUrl): void
     {
-        $account     = $this->pos->getAccount();
-        $txType      = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $account = $this->pos->getAccount();
+        $txType  = PosInterface::TX_TYPE_CUSTOM_QUERY;
 
         $updatedRequestData = $requestData + [
                 'abc' => 'def',
@@ -544,13 +527,13 @@ class PayFlexV4PosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            $expectedApiUrl,
             $updatedRequestData,
-            'request-body',
-            'response-body',
             ['decodedResponse'],
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            true,
+            $apiUrl,
+            $account
         );
 
         $this->pos->customQuery($requestData, $apiUrl);
@@ -560,18 +543,16 @@ class PayFlexV4PosTest extends TestCase
     {
         return [
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx/xxx',
-                'expected_api_url' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx/xxx',
+                'api_url'     => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx/xxx',
             ],
             [
-                'requestData'      => [
+                'requestData' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url'          => null,
-                'expected_api_url' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
+                'api_url'     => null,
             ],
         ];
     }
@@ -598,18 +579,16 @@ class PayFlexV4PosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_AUTH,
-                'api_url' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
+                'txType' => PosInterface::TX_TYPE_PAY_AUTH,
             ],
             [
-                'order'   => [
+                'order'  => [
                     'id' => '2020110828BC',
                 ],
-                'txType'  => PosInterface::TX_TYPE_PAY_PRE_AUTH,
-                'api_url' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
+                'txType' => PosInterface::TX_TYPE_PAY_PRE_AUTH,
             ],
         ];
     }
@@ -618,10 +597,9 @@ class PayFlexV4PosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
             ],
         ];
     }
@@ -630,10 +608,9 @@ class PayFlexV4PosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://sanalpos.vakifbank.com.tr/v4/UIWebService/Search.aspx',
             ],
         ];
     }
@@ -642,10 +619,9 @@ class PayFlexV4PosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
             ],
         ];
     }
@@ -654,10 +630,9 @@ class PayFlexV4PosTest extends TestCase
     {
         return [
             [
-                'order'   => [
+                'order' => [
                     'id' => '2020110828BC',
                 ],
-                'api_url' => 'https://onlineodemetest.vakifbank.com.tr:4443/VposService/v3/Vposreq.aspx',
             ],
         ];
     }
@@ -744,63 +719,32 @@ class PayFlexV4PosTest extends TestCase
     }
 
     private function configureClientResponse(
-        string $txType,
-        string $apiUrl,
-        array  $requestData,
-        $encodedRequestData,
-        string $responseContent,
-        array  $decodedResponse,
-        array  $order,
-        string $paymentModel
+        string              $txType,
+        array               $requestData,
+        array               $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        bool                $encodeResponse = true,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent                                            = null;
         $updatedRequestDataPreparedEventData                                        = $requestData;
         $updatedRequestDataPreparedEventData['test-update-request-data-with-event'] = true;
 
-
-        if ($requestData === $encodedRequestData) {
-            $formEncodedData = new EncodedData('form-encoded-data', SerializerInterface::FORMAT_FORM);
-            $this->serializerMock->expects(self::once())
-                ->method('encode')
-                ->with($updatedRequestDataPreparedEventData, $txType, SerializerInterface::FORMAT_FORM)
-                ->willReturn($formEncodedData);
-        } else {
-            $xmlEncodedData = new EncodedData($encodedRequestData, SerializerInterface::FORMAT_XML);
-            $formEncodedData = new EncodedData('form-encoded-data', SerializerInterface::FORMAT_FORM);
-            $this->serializerMock->expects(self::exactly(2))
-                ->method('encode')
-                ->willReturnMap([
-                    [
-                        $updatedRequestDataPreparedEventData,
-                        $txType,
-                        null,
-                        $xmlEncodedData,
-                    ],
-                    [
-                        ['prmstr' => $xmlEncodedData->getData()],
-                        $txType,
-                        SerializerInterface::FORMAT_FORM,
-                        $formEncodedData,
-                    ],
-                ]);
-        }
-
-        $this->serializerMock->expects(self::once())
-            ->method('decode')
-            ->with($responseContent, $txType)
-            ->willReturn($decodedResponse);
-
-        $this->prepareClient(
-            $this->httpClientMock,
-            $responseContent,
-            $apiUrl,
-            [
-                'headers' => [
-                    'Content-Type' => 'application/x-www-form-urlencoded',
-                ],
-                'body'    => $formEncodedData->getData(),
-            ]
-        );
+        $this->httpClientMock->expects(self::once())
+            ->method('request')
+            ->with(
+                $txType,
+                $paymentModel,
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
+                }),
+                $order,
+                $apiUrl,
+                $account,
+                $encodeResponse
+            )->willReturn($decodedResponse);
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')

@@ -18,7 +18,6 @@ use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Client\ClientExceptionInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
@@ -61,21 +60,6 @@ class KuveytPos extends AbstractHttpGateway
     public function getAccount(): AbstractPosAccount
     {
         return $this->account;
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @throws UnsupportedTransactionTypeException
-     * @throws \InvalidArgumentException when transaction type is not provided
-     */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (null !== $txType && null !== $paymentModel) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
-        }
-
-        throw new \InvalidArgumentException('Transaction type is required to generate API URL');
     }
 
     /**
@@ -208,38 +192,17 @@ class KuveytPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+        $bankResponse = $this->client->request(
             $txType,
             PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL($txType, PosInterface::MODEL_3D_SECURE)
+            $requestData,
+            $order
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, $bankResponse, $txType, $order);
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
         return $this;
-    }
-
-    /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send(EncodedData $encodedData, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-        $body     = [
-            'body'    => $encodedData->getData(),
-            'headers' => [
-                'Content-Type' => 'text/xml; charset=UTF-8',
-            ],
-        ];
-        $response = $this->client->post($url, $body);
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
     }
 
     /**
@@ -289,59 +252,15 @@ class KuveytPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $data = $this->serializer->encode($requestData, $txType);
-
-        return $this->sendWithoutDecode($data, $gatewayURL);
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     * @phpstan-param PosInterface::MODEL_*   $paymentModel
-     *
-     * @return string
-     *
-     * @throws UnsupportedTransactionTypeException
-     */
-    private function getRequestURIByTransactionType(string $txType, string $paymentModel): string
-    {
-        $arr = [
-            PosInterface::TX_TYPE_PAY_AUTH => [
-                PosInterface::MODEL_NON_SECURE => 'Non3DPayGate',
-                PosInterface::MODEL_3D_SECURE  => 'ThreeDModelProvisionGate',
-            ],
-        ];
-
-        if (!isset($arr[$txType])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        if (!isset($arr[$txType][$paymentModel])) {
-            throw new UnsupportedTransactionTypeException();
-        }
-
-        return $arr[$txType][$paymentModel];
-    }
-
-    /**
-     * @param EncodedData $encodedData
-     * @param string      $url
-     *
-     * @return string
-     *
-     * @throws ClientExceptionInterface
-     */
-    private function sendWithoutDecode(EncodedData $encodedData, string $url): string
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-        $body     = [
-            'body'    => $encodedData->getData(),
-            'headers' => [
-                'Content-Type' => 'text/xml; charset=UTF-8',
-            ],
-        ];
-        $response = $this->client->post($url, $body);
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $response->getBody()->getContents();
+        return $this->client->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
+            $gatewayURL,
+            null,
+            true,
+            false
+        );
     }
 }
