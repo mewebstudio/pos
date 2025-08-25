@@ -170,7 +170,7 @@ class ToslaPosTest extends TestCase
 
     public function testGet3DFormData(): void
     {
-        $order = $this->createPaymentOrder(PosInterface::MODEL_3D_SECURE);
+        $order = $this->createPaymentOrder(PosInterface::MODEL_3D_PAY);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(

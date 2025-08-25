@@ -62,6 +62,7 @@
     },
     "scripts": {
         "test": "./vendor/bin/phpunit --testsuite=unit",
+        "test-functional": "./vendor/bin/phpunit --testsuite=functional",
         "coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit",
         "phpstan": "./vendor/bin/phpstan",
         "baseline": "./vendor/bin/phpstan --generate-baseline",

@@ -45,8 +45,8 @@ trait PaymentTestTrait
                 PosInterface::MODEL_3D_HOST,
                 PosInterface::MODEL_3D_PAY_HOSTING,
             ], true)) {
-            $order['success_url'] = 'http:localhost/response.php';
-            $order['fail_url']    = 'http:localhost/response.php';
+            $order['success_url'] = 'http://localhost/response.php';
+            $order['fail_url']    = 'http://localhost/response.php';
         }
 
         if ($tekrarlanan) {
