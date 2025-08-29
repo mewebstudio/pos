@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\Serializer;
 use Generator;
 use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\Serializer\PosNetSerializer;
+use Mews\Pos\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -35,12 +36,13 @@ class PosNetSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $expected): void
+    public function testEncode(array $data, ?string $format, string $expectedFormat, $expected): void
     {
-        $result   = $this->serializer->encode($data);
+        $result   = $this->serializer->encode($data, null, $format);
         $expected = str_replace(["\r"], '', $expected);
 
-        $this->assertSame($expected, $result);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
     /**
@@ -56,23 +58,54 @@ class PosNetSerializerTest extends TestCase
     public static function encodeDataProvider(): Generator
     {
         yield 'test1' => [
-            'input' => [
-                'mid' => '6706598320',
-                'tid' => '67005551',
+            'input'           => [
+                'mid'              => '6706598320',
+                'tid'              => '67005551',
                 'tranDateRequired' => '1',
-                'sale' => [
-                    'orderID' => '0000190620093100_024',
-                    'installment' => '00',
-                    'amount' => 175,
+                'sale'             => [
+                    'orderID'      => '0000190620093100_024',
+                    'installment'  => '00',
+                    'amount'       => 175,
                     'currencyCode' => 'TL',
-                    'ccno' => '5555444433332222',
-                    'expDate' => '2112',
-                    'cvc' => '122',
-                ]
+                    'ccno'         => '5555444433332222',
+                    'expDate'      => '2112',
+                    'cvc'          => '122',
+                ],
             ],
-            'expected' => '<?xml version="1.0" encoding="ISO-8859-9"?>
+            'format'          => null,
+            'expected_format' => SerializerInterface::FORMAT_XML,
+            'expected'        => '<?xml version="1.0" encoding="ISO-8859-9"?>
 <posnetRequest><mid>6706598320</mid><tid>67005551</tid><tranDateRequired>1</tranDateRequired><sale><orderID>0000190620093100_024</orderID><installment>00</installment><amount>175</amount><currencyCode>TL</currencyCode><ccno>5555444433332222</ccno><expDate>2112</expDate><cvc>122</cvc></sale></posnetRequest>
 ',
+        ];
+
+        yield 'test2' => [
+            'input'           => [
+                'mid'              => '6706598320',
+                'tid'              => '67005551',
+                'tranDateRequired' => '1',
+                'sale'             => [
+                    'orderID'      => '0000190620093100_024',
+                    'installment'  => '00',
+                    'amount'       => 175,
+                    'currencyCode' => 'TL',
+                    'ccno'         => '5555444433332222',
+                    'expDate'      => '2112',
+                    'cvc'          => '122',
+                ],
+            ],
+            'format'          => SerializerInterface::FORMAT_XML,
+            'expected_format' => SerializerInterface::FORMAT_XML,
+            'expected'        => '<?xml version="1.0" encoding="ISO-8859-9"?>
+<posnetRequest><mid>6706598320</mid><tid>67005551</tid><tranDateRequired>1</tranDateRequired><sale><orderID>0000190620093100_024</orderID><installment>00</installment><amount>175</amount><currencyCode>TL</currencyCode><ccno>5555444433332222</ccno><expDate>2112</expDate><cvc>122</cvc></sale></posnetRequest>
+',
+        ];
+
+        yield 'test4' => [
+            'input'           => ['xmldata' => '<?xml version="1.0" encoding="ISO-8859-9"?>'],
+            'format'          => SerializerInterface::FORMAT_FORM,
+            'expected_format' => SerializerInterface::FORMAT_FORM,
+            'expected'        => 'xmldata=%3C%3Fxml+version%3D%221.0%22+encoding%3D%22ISO-8859-9%22%3F%3E',
         ];
     }
 

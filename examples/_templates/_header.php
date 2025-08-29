@@ -59,6 +59,9 @@
                             <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\KuveytPos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/kuveytpos/index.php">KuveytPOS</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\KuveytSoapApiPos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/kuveytsoappos/index.php">Kuveyt SOAP API POS</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\VakifKatilimPos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/vakif-katilim/index.php">VakifKatilimPos</a>
                         </li>
                     </ul>

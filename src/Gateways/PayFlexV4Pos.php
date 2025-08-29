@@ -26,7 +26,7 @@ use Symfony\Component\HttpFoundation\Request;
  *
  * VakıfBank VPOS 7/24
  */
-class PayFlexV4Pos extends AbstractGateway
+class PayFlexV4Pos extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'PayFlexV4';
@@ -72,7 +72,7 @@ class PayFlexV4Pos extends AbstractGateway
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
-
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
         if (!$this->is3DAuthSuccess($request->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
 
@@ -90,7 +90,7 @@ class PayFlexV4Pos extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -104,12 +104,11 @@ class PayFlexV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $contents     = $this->serializer->encode($requestData, $txType);
-        $bankResponse = $this->send(
-            $contents,
+        $bankResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
-            $this->getApiURL()
+            $paymentModel,
+            $requestData,
+            $order,
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);
@@ -132,14 +131,6 @@ class PayFlexV4Pos extends AbstractGateway
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
         throw new UnsupportedPaymentModelException();
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
-    {
-        return parent::customQuery($requestData, $apiUrl ?? $this->getApiURL());
     }
 
     /**
@@ -207,25 +198,6 @@ class PayFlexV4Pos extends AbstractGateway
     }
 
     /**
-     * @inheritDoc
-     *
-     * @return array<string, mixed>
-     */
-    protected function send($contents, string $txType, string $paymentModel, string $url): array
-    {
-        $this->logger->debug('sending request', ['url' => $url]);
-
-        $isXML = \is_string($contents);
-
-        $response = $this->client->post($url, [
-            'form_params' => $isXML ? ['prmstr' => $contents] : $contents,
-        ]);
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        return $this->data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-    }
-
-    /**
      * Müşteriden kredi kartı bilgilerini aldıktan sonra GET 7/24 MPI’a kart “Kredi Kartı Kayıt Durumu”nun
      * (Enrollment Status) sorulması, yani kart 3-D Secure programına dâhil mi yoksa değil mi sorgusu
      *
@@ -243,7 +215,11 @@ class PayFlexV4Pos extends AbstractGateway
      */
     private function sendEnrollmentRequest(array $order, CreditCardInterface $creditCard, string $txType, string $paymentModel): array
     {
-        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($this->account, $order, $creditCard);
+        $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
+            $this->account,
+            $order,
+            $creditCard
+        );
 
         $event = new RequestDataPreparedEvent(
             $requestData,
@@ -265,6 +241,14 @@ class PayFlexV4Pos extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->send($requestData, $txType, PosInterface::MODEL_3D_SECURE, $this->get3DGatewayURL());
+        return $this->client->request(
+            $txType,
+            $paymentModel,
+            $requestData,
+            $order,
+            $this->get3DGatewayURL(),
+            null,
+            false
+        );
     }
 }

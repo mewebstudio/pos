@@ -30,31 +30,9 @@ interface CreditCardInterface
     public function getNumber(): string;
 
     /**
-     * returns exp year in 2 digit format
-     *
-     * @param string $format
-     *
-     * @return string
+     * @return \DateTimeImmutable
      */
-    public function getExpireYear(string $format = 'y'): string;
-
-    /**
-     * returns exp year in 2 digit format. i.e '01' '02' '12'
-     *
-     * @param string $format
-     *
-     * @return string
-     */
-    public function getExpireMonth(string $format = 'm'): string;
-
-    /**
-     * returns card exp date month and year combined.
-     *
-     * @param string $format
-     *
-     * @return string
-     */
-    public function getExpirationDate(string $format = 'ym'): string;
+    public function getExpirationDate(): \DateTimeImmutable;
 
     /**
      * @return string
