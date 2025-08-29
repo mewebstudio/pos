@@ -175,12 +175,6 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/PosNetV1PosResponseDataMapper.php
 
 		-
-			message: '#^Method Mews\\Pos\\Factory\\PosFactory\:\:createPosGateway\(\) should return Mews\\Pos\\PosInterface but returns object\.$#'
-			identifier: return.type
-			count: 1
-			path: src/Factory/PosFactory.php
-
-		-
 			message: '#^Strict comparison using \=\=\= between ''3d_host'' and ''3d_host'' will always evaluate to true\.$#'
 			identifier: identical.alwaysTrue
 			count: 1

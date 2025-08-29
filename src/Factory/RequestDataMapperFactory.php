@@ -46,7 +46,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 class RequestDataMapperFactory
 {
     /**
-     * @param class-string                            $gatewayClass
+     * @param class-string<PosInterface>              $gatewayClass
      * @param EventDispatcherInterface                $eventDispatcher
      * @param CryptInterface                          $crypt
      * @param array<PosInterface::CURRENCY_*, string> $currencies

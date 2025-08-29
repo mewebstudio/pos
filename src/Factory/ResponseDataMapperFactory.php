@@ -36,6 +36,7 @@ use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\Gateways\VakifKatilimPos;
+use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -44,7 +45,7 @@ use Psr\Log\LoggerInterface;
 class ResponseDataMapperFactory
 {
     /**
-     * @param class-string               $gatewayClass
+     * @param class-string<PosInterface> $gatewayClass
      * @param RequestDataMapperInterface $requestDataMapper
      * @param LoggerInterface            $logger
      *

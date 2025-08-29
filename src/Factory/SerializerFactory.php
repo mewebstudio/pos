@@ -7,6 +7,7 @@
 namespace Mews\Pos\Factory;
 
 use DomainException;
+use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\AkbankPosSerializer;
 use Mews\Pos\Serializer\EstPosSerializer;
 use Mews\Pos\Serializer\GarantiPosSerializer;
@@ -28,7 +29,7 @@ use Mews\Pos\Serializer\VakifKatilimPosSerializer;
 class SerializerFactory
 {
     /**
-     * @param class-string $gatewayClass
+     * @param class-string<PosInterface> $gatewayClass
      *
      * @return SerializerInterface
      */

@@ -21,7 +21,7 @@ use Psr\Log\NullLogger;
 class PosFactory
 {
     /**
-     * @phpstan-param array{banks: array<string, array{name: string, class?: class-string, gateway_endpoints: array<string, string>}>, currencies?: array<PosInterface::CURRENCY_*, string>} $config
+     * @phpstan-param array{banks: array<string, array{name: string, class?: class-string<PosInterface>, gateway_endpoints: array<string, string>}>, currencies?: array<PosInterface::CURRENCY_*, string>} $config
      *
      * @param AbstractPosAccount       $posAccount
      * @param array                    $config
@@ -54,7 +54,6 @@ class PosFactory
             throw new BankNotFoundException();
         }
 
-        /** @var class-string|null $class Gateway Class */
         $class = $config['banks'][$posAccount->getBank()]['class'] ?? null;
 
         if (null === $class) {

@@ -12,7 +12,7 @@ use Mews\Pos\PosInterface;
 interface SerializerInterface
 {
     /**
-     * @param class-string $gatewayClass
+     * @param class-string<PosInterface> $gatewayClass
      *
      * @return bool
      */
