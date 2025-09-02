@@ -97,13 +97,16 @@ class ToslaPos extends AbstractHttpGateway
      */
     public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
-        $request = $request->request;
+        $postParameters = $request->request;
 
-        if ($this->is3DAuthSuccess($request->all()) && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+        if (
+            $this->is3DAuthSuccess($postParameters->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $postParameters->all())
+        ) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DPayResponseData($request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DPayResponseData($postParameters->all(), $txType, $order);
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 
@@ -115,13 +118,16 @@ class ToslaPos extends AbstractHttpGateway
      */
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        $request = $request->request;
+        $postParameters = $request->request;
 
-        if ($this->is3DAuthSuccess($request->all()) && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+        if (
+            $this->is3DAuthSuccess($postParameters->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $postParameters->all())
+        ) {
             throw new HashMismatchException();
         }
 
-        $this->response = $this->responseDataMapper->map3DHostResponseData($request->all(), $txType, $order);
+        $this->response = $this->responseDataMapper->map3DHostResponseData($postParameters->all(), $txType, $order);
 
         $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
 

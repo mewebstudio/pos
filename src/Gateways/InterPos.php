@@ -72,11 +72,11 @@ class InterPos extends AbstractHttpGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $request      = $request->request;
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $postParameters = $request->request;
+        $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
         /** @var array{"3DStatus": string, MD: string, PayerTxnId: string, Eci: string, PayerAuthenticationCode: string} $gatewayResponse */
-        $gatewayResponse = $request->all();
+        $gatewayResponse = $postParameters->all();
 
         if (!$this->is3DAuthSuccess($gatewayResponse)) {
             $this->response = $this->responseDataMapper->map3DPaymentData($gatewayResponse, null, $txType, $order);
