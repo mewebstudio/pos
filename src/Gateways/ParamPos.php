@@ -75,6 +75,8 @@ class ParamPos extends AbstractHttpGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+
         if ($request->request->get('TURKPOS_RETVAL_Sonuc') !== null) {
             // Doviz ile odeme
             return $this->make3DPayPayment($request, $order, $txType);
@@ -108,7 +110,7 @@ class ParamPos extends AbstractHttpGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -124,7 +126,7 @@ class ParamPos extends AbstractHttpGateway
 
         $provisionResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
+            $paymentModel,
             $requestData,
             $order
         );

@@ -66,7 +66,8 @@ class EstPos extends AbstractHttpGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $request = $request->request;
+        $request      = $request->request;
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
 
         /**
          * TODO hata durumu ele alinmasi gerekiyor
@@ -103,7 +104,7 @@ class EstPos extends AbstractHttpGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -119,7 +120,7 @@ class EstPos extends AbstractHttpGateway
 
         $provisionResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
+            $paymentModel,
             $requestData,
             $order,
         );

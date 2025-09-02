@@ -63,8 +63,9 @@ abstract class AbstractHttpGateway extends AbstractGateway
      */
     public function makeRegularPayment(array $order, CreditCardInterface $creditCard, string $txType): PosInterface
     {
+        $paymentModel = PosInterface::MODEL_NON_SECURE;
         $this->logger->debug('making payment', [
-            'model'   => PosInterface::MODEL_NON_SECURE,
+            'model'   => $paymentModel,
             'tx_type' => $txType,
         ]);
         if (!\in_array($txType, [PosInterface::TX_TYPE_PAY_AUTH, PosInterface::TX_TYPE_PAY_PRE_AUTH], true)) {
@@ -79,7 +80,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_NON_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -95,7 +96,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
 
         $bankResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_NON_SECURE,
+            $paymentModel,
             $requestData,
             $order,
             null,
@@ -111,9 +112,10 @@ abstract class AbstractHttpGateway extends AbstractGateway
      */
     public function makeRegularPostPayment(array $order): PosInterface
     {
-        $txType = PosInterface::TX_TYPE_PAY_POST_AUTH;
+        $txType       = PosInterface::TX_TYPE_PAY_POST_AUTH;
+        $paymentModel = PosInterface::MODEL_NON_SECURE;
         $this->logger->debug('making payment', [
-            'model'   => PosInterface::MODEL_NON_SECURE,
+            'model'   => $paymentModel,
             'tx_type' => $txType,
         ]);
 
@@ -125,7 +127,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_NON_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -141,7 +143,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
 
         $bankResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_NON_SECURE,
+            $paymentModel,
             $requestData,
             $order,
             null,
@@ -158,7 +160,8 @@ abstract class AbstractHttpGateway extends AbstractGateway
      */
     public function refund(array $order): PosInterface
     {
-        $txType = PosInterface::TX_TYPE_REFUND;
+        $txType       = PosInterface::TX_TYPE_REFUND;
+        $paymentModel = PosInterface::MODEL_NON_SECURE;
         if (isset($order['order_amount']) && $order['amount'] < $order['order_amount']) {
             $txType = PosInterface::TX_TYPE_REFUND_PARTIAL;
         }
@@ -171,7 +174,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_NON_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -187,7 +190,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
 
         $bankResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_NON_SECURE,
+            $paymentModel,
             $requestData,
             $order,
             null,
@@ -203,7 +206,8 @@ abstract class AbstractHttpGateway extends AbstractGateway
      */
     public function cancel(array $order): PosInterface
     {
-        $txType      = PosInterface::TX_TYPE_CANCEL;
+        $txType       = PosInterface::TX_TYPE_CANCEL;
+        $paymentModel = PosInterface::MODEL_NON_SECURE;
         $requestData = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
         $event = new RequestDataPreparedEvent(
@@ -212,7 +216,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_NON_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -228,7 +232,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
 
         $bankResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_NON_SECURE,
+            $paymentModel,
             $requestData,
             $order,
             null,
@@ -244,7 +248,8 @@ abstract class AbstractHttpGateway extends AbstractGateway
      */
     public function status(array $order): PosInterface
     {
-        $txType      = PosInterface::TX_TYPE_STATUS;
+        $txType       = PosInterface::TX_TYPE_STATUS;
+        $paymentModel = PosInterface::MODEL_NON_SECURE;
         $requestData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
         $event = new RequestDataPreparedEvent(
@@ -253,7 +258,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_NON_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -269,7 +274,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
 
         $bankResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_NON_SECURE,
+            $paymentModel,
             $requestData,
             $order,
             null,
@@ -286,7 +291,8 @@ abstract class AbstractHttpGateway extends AbstractGateway
      */
     public function history(array $data): PosInterface
     {
-        $txType      = PosInterface::TX_TYPE_HISTORY;
+        $txType       = PosInterface::TX_TYPE_HISTORY;
+        $paymentModel = PosInterface::MODEL_NON_SECURE;
         $requestData = $this->requestDataMapper->createHistoryRequestData($this->account, $data);
 
         $event = new RequestDataPreparedEvent(
@@ -295,7 +301,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $txType,
             \get_class($this),
             $data,
-            PosInterface::MODEL_NON_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -311,7 +317,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
 
         $bankResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_NON_SECURE,
+            $paymentModel,
             $requestData,
             $data,
             null,
@@ -328,7 +334,8 @@ abstract class AbstractHttpGateway extends AbstractGateway
      */
     public function orderHistory(array $order): PosInterface
     {
-        $txType      = PosInterface::TX_TYPE_ORDER_HISTORY;
+        $txType       = PosInterface::TX_TYPE_ORDER_HISTORY;
+        $paymentModel = PosInterface::MODEL_NON_SECURE;
         $requestData = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
 
         $event = new RequestDataPreparedEvent(
@@ -337,7 +344,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_NON_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -353,7 +360,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
 
         $bankResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_NON_SECURE,
+            $paymentModel,
             $requestData,
             $order,
             null,
@@ -370,7 +377,8 @@ abstract class AbstractHttpGateway extends AbstractGateway
      */
     public function customQuery(array $requestData, string $apiUrl = null): PosInterface
     {
-        $txType             = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $txType       = PosInterface::TX_TYPE_CUSTOM_QUERY;
+        $paymentModel = PosInterface::MODEL_NON_SECURE;
         $updatedRequestData = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
 
         $event = new RequestDataPreparedEvent(
@@ -379,7 +387,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $txType,
             \get_class($this),
             $requestData,
-            PosInterface::MODEL_NON_SECURE
+            $paymentModel
         );
 
         /** @var RequestDataPreparedEvent $event */
@@ -396,7 +404,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
 
         $this->response = $this->client->request(
             $txType,
-            PosInterface::MODEL_NON_SECURE,
+            $paymentModel,
             $updatedRequestData,
             $requestData,
             $apiUrl,

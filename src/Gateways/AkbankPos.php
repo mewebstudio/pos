@@ -68,7 +68,8 @@ class AkbankPos extends AbstractHttpGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $request = $request->request;
+        $request      = $request->request;
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
 
         if (!$this->is3DAuthSuccess($request->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData(
@@ -96,7 +97,7 @@ class AkbankPos extends AbstractHttpGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -112,7 +113,7 @@ class AkbankPos extends AbstractHttpGateway
 
         $provisionResponse = $this->client->request(
             $txType,
-            PosInterface::MODEL_3D_SECURE,
+            $paymentModel,
             $requestData,
             $order,
             null,
