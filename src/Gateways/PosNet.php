@@ -80,7 +80,7 @@ class PosNet extends AbstractHttpGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
@@ -120,7 +120,7 @@ class PosNet extends AbstractHttpGateway
             $txType,
             \get_class($this),
             $order,
-            PosInterface::MODEL_3D_SECURE
+            $paymentModel
         );
         /** @var RequestDataPreparedEvent $event */
         $event = $this->eventDispatcher->dispatch($event);
