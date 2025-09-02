@@ -64,14 +64,14 @@ class PosNet extends AbstractHttpGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $request      = $request->request;
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $postParameters = $request->request;
+        $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
         $this->logger->debug('getting merchant request data');
         $requestData = $this->requestDataMapper->create3DResolveMerchantRequestData(
             $this->account,
             $order,
-            $request->all()
+            $postParameters->all()
         );
 
         $event = new RequestDataPreparedEvent(
@@ -115,7 +115,12 @@ class PosNet extends AbstractHttpGateway
             throw new HashMismatchException();
         }
 
-        $requestData  = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+        $requestData  = $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $postParameters->all()
+        );
 
         $event = new RequestDataPreparedEvent(
             $requestData,

@@ -70,24 +70,29 @@ class PayForPos extends AbstractHttpGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $request      = $request->request;
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $postParameters = $request->request;
+        $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
-        if (!$this->is3DAuthSuccess($request->all())) {
-            $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), null, $txType, $order);
+        if (!$this->is3DAuthSuccess($postParameters->all())) {
+            $this->response = $this->responseDataMapper->map3DPaymentData($postParameters->all(), null, $txType, $order);
 
             return $this;
         }
 
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $postParameters->all())
         ) {
             throw new HashMismatchException();
         }
 
         // valid ProcReturnCode is V033 in case of success 3D Authentication
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $postParameters->all()
+        );
 
         $event = new RequestDataPreparedEvent(
             $requestData,
@@ -116,7 +121,7 @@ class PayForPos extends AbstractHttpGateway
             $order
         );
 
-        $this->response = $this->responseDataMapper->map3DPaymentData($request->all(), $bankResponse, $txType, $order);
+        $this->response = $this->responseDataMapper->map3DPaymentData($postParameters->all(), $bankResponse, $txType, $order);
 
         return $this;
     }

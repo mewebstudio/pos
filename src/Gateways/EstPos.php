@@ -66,8 +66,8 @@ class EstPos extends AbstractHttpGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $request      = $request->request;
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $postParameters = $request->request;
+        $paymentModel   = PosInterface::MODEL_3D_SECURE;
 
         /**
          * TODO hata durumu ele alinmasi gerekiyor
@@ -75,9 +75,9 @@ class EstPos extends AbstractHttpGateway
          * ["ProcReturnCode" => "99", "mdStatus" => "7", "mdErrorMsg" => "Isyeri kullanim tipi desteklenmiyor.",
          * "ErrMsg" => "Isyeri kullanim tipi desteklenmiyor.", "Response" => "Error", "ErrCode" => "3D-1007", ...]
          */
-        if (!$this->is3DAuthSuccess($request->all())) {
+        if (!$this->is3DAuthSuccess($postParameters->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData(
-                $request->all(),
+                $postParameters->all(),
                 null,
                 $txType,
                 $order
@@ -88,13 +88,13 @@ class EstPos extends AbstractHttpGateway
 
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $postParameters->all())
         ) {
             throw new HashMismatchException();
         }
 
         /** @var array{md: string, xid: string, eci: string, cavv: string} $bankPostData */
-        $bankPostData = $request->all();
+        $bankPostData = $postParameters->all();
 
         $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $bankPostData);
 
@@ -126,7 +126,7 @@ class EstPos extends AbstractHttpGateway
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
-            $request->all(),
+            $postParameters->all(),
             $provisionResponse,
             $txType,
             $order

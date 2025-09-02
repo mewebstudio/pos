@@ -75,18 +75,18 @@ class ParamPos extends AbstractHttpGateway
      */
     public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
     {
-        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $paymentModel   = PosInterface::MODEL_3D_SECURE;
+        $postParameters = $request->request;
 
-        if ($request->request->get('TURKPOS_RETVAL_Sonuc') !== null) {
+        if ($postParameters->get('TURKPOS_RETVAL_Sonuc') !== null) {
             // Doviz ile odeme
             return $this->make3DPayPayment($request, $order, $txType);
         }
 
-        $request = $request->request;
 
-        if (!$this->is3DAuthSuccess($request->all())) {
+        if (!$this->is3DAuthSuccess($postParameters->all())) {
             $this->response = $this->responseDataMapper->map3DPaymentData(
-                $request->all(),
+                $postParameters->all(),
                 null,
                 $txType,
                 $order
@@ -97,12 +97,17 @@ class ParamPos extends AbstractHttpGateway
 
         if (
             !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $postParameters->all())
         ) {
             throw new HashMismatchException();
         }
 
-        $requestData = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, $txType, $request->all());
+        $requestData = $this->requestDataMapper->create3DPaymentRequestData(
+            $this->account,
+            $order,
+            $txType,
+            $postParameters->all()
+        );
 
         $event = new RequestDataPreparedEvent(
             $requestData,
@@ -132,7 +137,7 @@ class ParamPos extends AbstractHttpGateway
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData(
-            $request->all(),
+            $postParameters->all(),
             $provisionResponse,
             $txType,
             $order
