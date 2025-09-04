@@ -6,10 +6,19 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueFormatter;
 
+use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 
 class GarantiPosResponseValueFormatter extends AbstractResponseValueFormatter
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return GarantiPos::class === $gatewayClass;
+    }
+
     /**
      * @inheritDoc
      */

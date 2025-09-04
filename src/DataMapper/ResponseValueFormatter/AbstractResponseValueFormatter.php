@@ -6,7 +6,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueFormatter;
 
-class AbstractResponseValueFormatter implements ResponseValueFormatterInterface
+abstract class AbstractResponseValueFormatter implements ResponseValueFormatterInterface
 {
     /**
      * @inheritDoc

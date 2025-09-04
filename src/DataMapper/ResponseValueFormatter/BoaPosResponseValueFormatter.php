@@ -6,6 +6,9 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueFormatter;
 
+use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
+use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -13,6 +16,16 @@ use Mews\Pos\PosInterface;
  */
 class BoaPosResponseValueFormatter extends AbstractResponseValueFormatter
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return KuveytPos::class === $gatewayClass
+            || KuveytSoapApiPos::class === $gatewayClass
+            || VakifKatilimPos::class === $gatewayClass;
+    }
+
     /**
      * @inheritDoc
      */

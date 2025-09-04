@@ -14,6 +14,13 @@ use Mews\Pos\PosInterface;
 interface ResponseValueFormatterInterface
 {
     /**
+     * @param class-string<PosInterface> $gatewayClass
+     *
+     * @return bool
+     */
+    public static function supports(string $gatewayClass): bool;
+
+    /**
      * @param string|null             $installment
      * @param PosInterface::TX_TYPE_* $txType transaction type of the API request
      *

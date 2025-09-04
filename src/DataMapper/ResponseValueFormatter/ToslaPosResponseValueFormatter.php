@@ -7,9 +7,18 @@
 namespace Mews\Pos\DataMapper\ResponseValueFormatter;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\ToslaPos;
 
 class ToslaPosResponseValueFormatter extends AbstractResponseValueFormatter
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ToslaPos::class === $gatewayClass;
+    }
+
     /**
      * @inheritDoc
      */
