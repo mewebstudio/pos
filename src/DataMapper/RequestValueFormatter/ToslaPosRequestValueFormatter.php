@@ -6,8 +6,18 @@
 
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
+use Mews\Pos\Gateways\ToslaPos;
+
 class ToslaPosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ToslaPos::class === $gatewayClass;
+    }
+
     /**
      * 0 => '0'
      * 1 => '0'

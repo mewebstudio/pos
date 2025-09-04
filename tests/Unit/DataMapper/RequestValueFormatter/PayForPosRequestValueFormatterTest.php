@@ -7,6 +7,8 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\DataMapper\RequestValueFormatter\PayForPosRequestValueFormatter;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PayForPos;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,6 +22,15 @@ class PayForPosRequestValueFormatterTest extends TestCase
     {
         parent::setUp();
         $this->formatter = new PayForPosRequestValueFormatter();
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(PayForPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

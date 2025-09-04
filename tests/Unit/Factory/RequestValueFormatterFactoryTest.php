@@ -51,6 +51,12 @@ class RequestValueFormatterFactoryTest extends TestCase
         );
     }
 
+    public function testCreateForGatewayInvalidGateway(): void
+    {
+        $this->expectException(\DomainException::class);
+        RequestValueFormatterFactory::createForGateway(\stdClass::class);
+    }
+
     public static function gatewayClassDataProvider(): array
     {
         return [

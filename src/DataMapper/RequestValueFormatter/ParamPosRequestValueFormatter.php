@@ -6,10 +6,19 @@
 
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 
 class ParamPosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ParamPos::class === $gatewayClass;
+    }
+
     /**
      * 0 => '1'
      * 1 => '1'

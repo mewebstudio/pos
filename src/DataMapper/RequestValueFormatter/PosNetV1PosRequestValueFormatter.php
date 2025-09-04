@@ -7,10 +7,19 @@
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 
 class PosNetV1PosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PosNetV1Pos::class === $gatewayClass;
+    }
+
     /**
      * PosNet requires order id with specific length
      * @var int

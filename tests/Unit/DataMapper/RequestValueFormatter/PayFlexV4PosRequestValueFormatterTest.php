@@ -7,6 +7,8 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\DataMapper\RequestValueFormatter\PayFlexV4PosRequestValueFormatter;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PayFlexV4Pos;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,6 +23,16 @@ class PayFlexV4PosRequestValueFormatterTest extends TestCase
         parent::setUp();
         $this->formatter = new PayFlexV4PosRequestValueFormatter();
     }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(PayFlexV4Pos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
+    }
+
 
     /**
      * @testWith [0, "0"]

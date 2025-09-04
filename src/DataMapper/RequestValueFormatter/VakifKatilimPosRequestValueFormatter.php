@@ -6,8 +6,18 @@
 
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
+use Mews\Pos\Gateways\VakifKatilimPos;
+
 class VakifKatilimPosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return VakifKatilimPos::class === $gatewayClass;
+    }
+
     /**
      * 0 => '0'
      * 1 => '0'

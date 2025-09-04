@@ -7,6 +7,8 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\DataMapper\RequestValueFormatter\ToslaPosRequestValueFormatter;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\ToslaPos;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,6 +23,16 @@ class ToslaPosRequestValueFormatterTest extends TestCase
         parent::setUp();
         $this->formatter = new ToslaPosRequestValueFormatter();
     }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(ToslaPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
+    }
+
 
     /**
      * @testWith [0, 0]
