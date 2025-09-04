@@ -9,6 +9,7 @@ namespace Mews\Pos\Crypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\PosNet;
 
 class PosNetCrypt extends AbstractCrypt
 {
@@ -17,6 +18,14 @@ class PosNetCrypt extends AbstractCrypt
 
     /** @var string */
     protected const HASH_SEPARATOR = ';';
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PosNet::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}

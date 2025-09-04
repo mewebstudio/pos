@@ -18,11 +18,11 @@ class CryptFactoryTest extends TestCase
     /**
      * @dataProvider createGatewayCryptDataProvider
      */
-    public function testCreateGatewayCrypt(string $gatewayClass, string $serializerClass): void
+    public function testCreateGatewayCrypt(string $gatewayClass, string $cryptClass): void
     {
         $logger = $this->createMock(LoggerInterface::class);
         $crypt  = CryptFactory::createGatewayCrypt($gatewayClass, $logger);
-        $this->assertInstanceOf($serializerClass, $crypt);
+        $this->assertInstanceOf($cryptClass, $crypt);
     }
 
     public static function createGatewayCryptDataProvider(): array

@@ -11,6 +11,8 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -40,6 +42,15 @@ class PosNetCryptTest extends TestCase
 
         $logger      = $this->createMock(LoggerInterface::class);
         $this->crypt = new PosNetCrypt($logger);
+    }
+
+    public function testSupports(): void
+    {
+        $supports = $this->crypt::supports(PosNet::class);
+        $this->assertTrue($supports);
+
+        $supports = $this->crypt::supports(EstV3Pos::class);
+        $this->assertFalse($supports);
     }
 
     public function testCreate3DHashException(): void
