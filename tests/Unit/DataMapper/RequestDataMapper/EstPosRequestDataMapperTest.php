@@ -17,6 +17,7 @@ use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -75,6 +76,15 @@ class EstPosRequestDataMapperTest extends TestCase
             '123',
             'ahmet',
         );
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->requestDataMapper::supports(EstPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

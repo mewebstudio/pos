@@ -14,6 +14,8 @@ use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -65,6 +67,15 @@ class ToslaPosRequestDataMapperTest extends TestCase
         );
 
         $this->card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->requestDataMapper::supports(ToslaPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

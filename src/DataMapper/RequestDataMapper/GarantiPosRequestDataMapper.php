@@ -35,6 +35,14 @@ class GarantiPosRequestDataMapper extends AbstractRequestDataMapper
     protected CryptInterface $crypt;
 
     /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return GarantiPos::class === $gatewayClass;
+    }
+
+    /**
      * @param GarantiPosAccount $posAccount
      *
      * {@inheritDoc}

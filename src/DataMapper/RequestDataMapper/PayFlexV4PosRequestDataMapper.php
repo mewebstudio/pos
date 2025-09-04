@@ -12,6 +12,7 @@ use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -19,6 +20,14 @@ use Mews\Pos\PosInterface;
  */
 class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayFlexV4Pos::class === $gatewayClass;
+    }
+
     /**
      * @param PayFlexAccount                                                      $posAccount
      * @param array{Eci: string, Cavv: string, VerifyEnrollmentRequestId: string} $responseData

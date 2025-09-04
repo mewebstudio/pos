@@ -13,6 +13,7 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -25,6 +26,14 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
     /** @var KuveytPosCrypt */
     protected CryptInterface $crypt;
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return KuveytPos::class === $gatewayClass;
+    }
 
     /**
      * @param KuveytPosAccount $posAccount

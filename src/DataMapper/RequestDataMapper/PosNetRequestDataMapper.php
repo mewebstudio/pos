@@ -16,6 +16,7 @@ use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Gateways\PosNet;
 use Mews\Pos\PosInterface;
 
 /**
@@ -30,6 +31,14 @@ class PosNetRequestDataMapper extends AbstractRequestDataMapper
 
     /** @var PosNetCrypt */
     protected CryptInterface $crypt;
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PosNet::class === $gatewayClass;
+    }
 
     /**
      * @param PosNetAccount                                                     $posAccount

@@ -23,6 +23,14 @@ class AkbankPosRequestDataMapper extends AbstractRequestDataMapper
     public const API_VERSION = '1.00';
 
     /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return AkbankPos::class === $gatewayClass;
+    }
+
+    /**
      * @param AkbankPosAccount $posAccount
      *
      * {@inheritDoc}

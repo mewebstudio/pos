@@ -10,6 +10,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -17,6 +18,14 @@ use Mews\Pos\PosInterface;
  */
 class ToslaPosRequestDataMapper extends AbstractRequestDataMapper
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ToslaPos::class === $gatewayClass;
+    }
+
     /**
      * @param ToslaPosAccount                      $posAccount
      * @param array<string, int|string|float|null> $order

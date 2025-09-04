@@ -12,6 +12,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -24,6 +25,14 @@ class KuveytSoapApiPosRequestDataMapper extends AbstractRequestDataMapper
 
     /** @var KuveytPosCrypt */
     protected CryptInterface $crypt;
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return KuveytSoapApiPos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}

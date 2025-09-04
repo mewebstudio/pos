@@ -11,6 +11,7 @@ use Mews\Pos\Crypt\KuveytPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -23,6 +24,14 @@ class VakifKatilimPosRequestDataMapper extends AbstractRequestDataMapper
 
     /** @var KuveytPosCrypt */
     protected CryptInterface $crypt;
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return VakifKatilimPos::class === $gatewayClass;
+    }
 
     /**
      * @param KuveytPosAccount $posAccount
