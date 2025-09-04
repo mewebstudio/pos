@@ -10,6 +10,8 @@ use Mews\Pos\Crypt\ParamPosCrypt;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ParamPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\ParamPosRequestDataMapperTest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -35,6 +37,15 @@ class ParamPosCryptTest extends TestCase
         $this->account = $this->createMock(ParamPosAccount::class);
         $logger        = $this->createMock(LoggerInterface::class);
         $this->crypt   = new ParamPosCrypt($logger);
+    }
+
+    public function testSupports(): void
+    {
+        $supports = $this->crypt::supports(ParamPos::class);
+        $this->assertTrue($supports);
+
+        $supports = $this->crypt::supports(EstV3Pos::class);
+        $this->assertFalse($supports);
     }
 
     public function testCreate3DHash(): void

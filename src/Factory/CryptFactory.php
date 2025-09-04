@@ -20,20 +20,6 @@ use Mews\Pos\Crypt\PayForPosCrypt;
 use Mews\Pos\Crypt\PosNetCrypt;
 use Mews\Pos\Crypt\PosNetV1PosCrypt;
 use Mews\Pos\Crypt\ToslaPosCrypt;
-use Mews\Pos\Gateways\AkbankPos;
-use Mews\Pos\Gateways\EstPos;
-use Mews\Pos\Gateways\EstV3Pos;
-use Mews\Pos\Gateways\GarantiPos;
-use Mews\Pos\Gateways\InterPos;
-use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
-use Mews\Pos\Gateways\ParamPos;
-use Mews\Pos\Gateways\PayFlexCPV4Pos;
-use Mews\Pos\Gateways\PayForPos;
-use Mews\Pos\Gateways\PosNet;
-use Mews\Pos\Gateways\PosNetV1Pos;
-use Mews\Pos\Gateways\ToslaPos;
-use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
 
@@ -43,6 +29,24 @@ use Psr\Log\LoggerInterface;
 class CryptFactory
 {
     /**
+     * @var class-string<CryptInterface>[]
+     */
+    private static array $crypts = [
+        AkbankPosCrypt::class,
+        EstPosCrypt::class,
+        EstV3PosCrypt::class,
+        GarantiPosCrypt::class,
+        InterPosCrypt::class,
+        KuveytPosCrypt::class,
+        ParamPosCrypt::class,
+        PayFlexCPV4Crypt::class,
+        PayForPosCrypt::class,
+        PosNetCrypt::class,
+        PosNetV1PosCrypt::class,
+        ToslaPosCrypt::class,
+    ];
+
+    /**
      * @param class-string<PosInterface> $gatewayClass
      * @param LoggerInterface            $logger
      *
@@ -50,25 +54,11 @@ class CryptFactory
      */
     public static function createGatewayCrypt(string $gatewayClass, LoggerInterface $logger): CryptInterface
     {
-        $classMappings = [
-            AkbankPos::class        => AkbankPosCrypt::class,
-            EstPos::class           => EstPosCrypt::class,
-            EstV3Pos::class         => EstV3PosCrypt::class,
-            GarantiPos::class       => GarantiPosCrypt::class,
-            InterPos::class         => InterPosCrypt::class,
-            KuveytPos::class        => KuveytPosCrypt::class,
-            KuveytSoapApiPos::class => KuveytPosCrypt::class,
-            ParamPos::class         => ParamPosCrypt::class,
-            PayFlexCPV4Pos::class   => PayFlexCPV4Crypt::class,
-            PayForPos::class        => PayForPosCrypt::class,
-            PosNet::class           => PosNetCrypt::class,
-            PosNetV1Pos::class      => PosNetV1PosCrypt::class,
-            ToslaPos::class         => ToslaPosCrypt::class,
-            VakifKatilimPos::class  => KuveytPosCrypt::class,
-        ];
-
-        if (isset($classMappings[$gatewayClass])) {
-            return new $classMappings[$gatewayClass]($logger);
+        /** @var class-string<CryptInterface> $crypt */
+        foreach (self::$crypts as $crypt) {
+            if ($crypt::supports($gatewayClass)) {
+                return new $crypt($logger);
+            }
         }
 
         return new NullCrypt($logger);
