@@ -21,21 +21,7 @@ use Mews\Pos\DataMapper\RequestValueFormatter\PosNetV1PosRequestValueFormatter;
 use Mews\Pos\DataMapper\RequestValueFormatter\RequestValueFormatterInterface;
 use Mews\Pos\DataMapper\RequestValueFormatter\ToslaPosRequestValueFormatter;
 use Mews\Pos\DataMapper\RequestValueFormatter\VakifKatilimPosRequestValueFormatter;
-use Mews\Pos\Gateways\AkbankPos;
-use Mews\Pos\Gateways\EstPos;
-use Mews\Pos\Gateways\EstV3Pos;
-use Mews\Pos\Gateways\GarantiPos;
-use Mews\Pos\Gateways\InterPos;
-use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
-use Mews\Pos\Gateways\ParamPos;
-use Mews\Pos\Gateways\PayFlexCPV4Pos;
-use Mews\Pos\Gateways\PayFlexV4Pos;
-use Mews\Pos\Gateways\PayForPos;
-use Mews\Pos\Gateways\PosNet;
-use Mews\Pos\Gateways\PosNetV1Pos;
-use Mews\Pos\Gateways\ToslaPos;
-use Mews\Pos\Gateways\VakifKatilimPos;
+use Mews\Pos\PosInterface;
 
 /**
  * RequestValueFormatterFactory
@@ -43,32 +29,36 @@ use Mews\Pos\Gateways\VakifKatilimPos;
 class RequestValueFormatterFactory
 {
     /**
-     * @param class-string $gatewayClass
+     * @var class-string<RequestValueFormatterInterface>[]
+     */
+    private static array $requestValueFormatterClasses = [
+        ToslaPosRequestValueFormatter::class,
+        AkbankPosRequestValueFormatter::class,
+        EstPosRequestValueFormatter::class,
+        GarantiPosRequestValueFormatter::class,
+        InterPosRequestValueFormatter::class,
+        KuveytPosRequestValueFormatter::class,
+        VakifKatilimPosRequestValueFormatter::class,
+        ParamPosRequestValueFormatter::class,
+        PayForPosRequestValueFormatter::class,
+        PosNetRequestValueFormatter::class,
+        PosNetV1PosRequestValueFormatter::class,
+        PayFlexCPV4PosRequestValueFormatter::class,
+        PayFlexV4PosRequestValueFormatter::class,
+    ];
+
+    /**
+     * @param class-string<PosInterface> $gatewayClass
      *
      * @return RequestValueFormatterInterface
      */
     public static function createForGateway(string $gatewayClass): RequestValueFormatterInterface
     {
-        $classMappings = [
-            ToslaPos::class         => ToslaPosRequestValueFormatter::class,
-            AkbankPos::class        => AkbankPosRequestValueFormatter::class,
-            EstPos::class           => EstPosRequestValueFormatter::class,
-            EstV3Pos::class         => EstPosRequestValueFormatter::class,
-            GarantiPos::class       => GarantiPosRequestValueFormatter::class,
-            InterPos::class         => InterPosRequestValueFormatter::class,
-            KuveytPos::class        => KuveytPosRequestValueFormatter::class,
-            KuveytSoapApiPos::class => KuveytPosRequestValueFormatter::class,
-            VakifKatilimPos::class  => VakifKatilimPosRequestValueFormatter::class,
-            ParamPos::class         => ParamPosRequestValueFormatter::class,
-            PayForPos::class        => PayForPosRequestValueFormatter::class,
-            PosNet::class           => PosNetRequestValueFormatter::class,
-            PosNetV1Pos::class      => PosNetV1PosRequestValueFormatter::class,
-            PayFlexCPV4Pos::class   => PayFlexCPV4PosRequestValueFormatter::class,
-            PayFlexV4Pos::class     => PayFlexV4PosRequestValueFormatter::class,
-        ];
-
-        if (isset($classMappings[$gatewayClass])) {
-            return new $classMappings[$gatewayClass]();
+        /** @var class-string<RequestValueFormatterInterface> $valueFormatterClass */
+        foreach (self::$requestValueFormatterClasses as $valueFormatterClass) {
+            if ($valueFormatterClass::supports($gatewayClass)) {
+                return new $valueFormatterClass();
+            }
         }
 
         throw new DomainException('unsupported gateway');

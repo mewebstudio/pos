@@ -6,8 +6,20 @@
 
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
+use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
+
 class KuveytPosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return KuveytPos::class === $gatewayClass
+            || KuveytSoapApiPos::class === $gatewayClass;
+    }
+
     /**
      * 0 => '0'
      * 1 => '0'

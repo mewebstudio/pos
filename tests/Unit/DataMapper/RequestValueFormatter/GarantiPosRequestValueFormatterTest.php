@@ -7,6 +7,8 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\DataMapper\RequestValueFormatter\GarantiPosRequestValueFormatter;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\GarantiPos;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,6 +22,15 @@ class GarantiPosRequestValueFormatterTest extends TestCase
     {
         parent::setUp();
         $this->formatter = new GarantiPosRequestValueFormatter();
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(GarantiPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

@@ -7,6 +7,9 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\DataMapper\RequestValueFormatter\KuveytPosRequestValueFormatter;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,6 +23,18 @@ class KuveytPosRequestValueFormatterTest extends TestCase
     {
         parent::setUp();
         $this->formatter = new KuveytPosRequestValueFormatter();
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(KuveytPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(KuveytSoapApiPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

@@ -6,8 +6,18 @@
 
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
+use Mews\Pos\Gateways\AkbankPos;
+
 class AkbankPosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return AkbankPos::class === $gatewayClass;
+    }
+
     /**
      * 0 => 1
      * 1 => 1

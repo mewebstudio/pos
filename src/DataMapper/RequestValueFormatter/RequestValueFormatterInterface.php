@@ -14,6 +14,13 @@ use Mews\Pos\PosInterface;
 interface RequestValueFormatterInterface
 {
     /**
+     * @param class-string<PosInterface> $gatewayClass
+     *
+     * @return bool
+     */
+    public static function supports(string $gatewayClass): bool;
+
+    /**
      * @param int<0, max> $installment
      *
      * @return string|int

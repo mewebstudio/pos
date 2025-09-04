@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\DataMapper\RequestValueFormatter\InterPosRequestValueFormatter;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\InterPos;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,6 +23,15 @@ class InterPosRequestValueFormatterTest extends TestCase
     {
         parent::setUp();
         $this->formatter = new InterPosRequestValueFormatter();
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(InterPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

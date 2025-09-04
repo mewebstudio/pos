@@ -7,9 +7,18 @@
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\InterPos;
 
 class InterPosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return InterPos::class === $gatewayClass;
+    }
+
     /**
      * 0 => ''
      * 1 => ''

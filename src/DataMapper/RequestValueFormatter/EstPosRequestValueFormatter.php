@@ -7,9 +7,20 @@
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\Gateways\EstV3Pos;
 
 class EstPosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return EstV3Pos::class === $gatewayClass
+            || EstPos::class === $gatewayClass;
+    }
+
     /**
      * 0 => ''
      * 1 => ''

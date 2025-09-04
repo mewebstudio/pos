@@ -7,9 +7,18 @@
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
 
 class PayFlexCPV4PosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayFlexCPV4Pos::class === $gatewayClass;
+    }
+
     /**
      * 0 => '0'
      * 1 => '0'

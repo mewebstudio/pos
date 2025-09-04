@@ -6,8 +6,18 @@
 
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
+use Mews\Pos\Gateways\PayForPos;
+
 class PayForPosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayForPos::class === $gatewayClass;
+    }
+
     /**
      * 0 => '0'
      * 1 => '0'

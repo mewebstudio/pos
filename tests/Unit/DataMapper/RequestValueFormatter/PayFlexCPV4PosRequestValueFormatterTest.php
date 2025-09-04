@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\DataMapper\RequestValueFormatter\PayFlexCPV4PosRequestValueFormatter;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -21,6 +23,15 @@ class PayFlexCPV4PosRequestValueFormatterTest extends TestCase
     {
         parent::setUp();
         $this->formatter = new PayFlexCPV4PosRequestValueFormatter();
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(PayFlexCPV4Pos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

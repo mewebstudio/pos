@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\DataMapper\RequestValueFormatter\PosNetV1PosRequestValueFormatter;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -23,6 +25,16 @@ class PosNetV1PosRequestValueFormatterTest extends TestCase
         parent::setUp();
         $this->formatter = new PosNetV1PosRequestValueFormatter();
     }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(PosNetV1Pos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
+    }
+
 
     /**
      * @testWith [0, "0"]

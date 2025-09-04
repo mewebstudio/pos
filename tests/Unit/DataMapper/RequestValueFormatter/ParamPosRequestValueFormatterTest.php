@@ -7,6 +7,8 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\DataMapper\RequestValueFormatter\ParamPosRequestValueFormatter;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -21,6 +23,15 @@ class ParamPosRequestValueFormatterTest extends TestCase
     {
         parent::setUp();
         $this->formatter = new ParamPosRequestValueFormatter();
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(ParamPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

@@ -7,6 +7,8 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueFormatter;
 
 use Mews\Pos\DataMapper\RequestValueFormatter\AkbankPosRequestValueFormatter;
+use Mews\Pos\Gateways\AkbankPos;
+use Mews\Pos\Gateways\EstV3Pos;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -20,6 +22,15 @@ class AkbankPosRequestValueFormatterTest extends TestCase
     {
         parent::setUp();
         $this->formatter = new AkbankPosRequestValueFormatter();
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(AkbankPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

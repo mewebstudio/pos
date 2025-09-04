@@ -6,8 +6,18 @@
 
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
+use Mews\Pos\Gateways\GarantiPos;
+
 class GarantiPosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return GarantiPos::class === $gatewayClass;
+    }
+
     /**
      * 0 => ''
      * 1 => ''

@@ -6,8 +6,18 @@
 
 namespace Mews\Pos\DataMapper\RequestValueFormatter;
 
+use Mews\Pos\Gateways\PayFlexV4Pos;
+
 class PayFlexV4PosRequestValueFormatter implements RequestValueFormatterInterface
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayFlexV4Pos::class === $gatewayClass;
+    }
+
     /**
      * 0 => '0'
      * 1 => '0'
