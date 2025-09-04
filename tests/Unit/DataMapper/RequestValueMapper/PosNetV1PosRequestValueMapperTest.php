@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueMapper;
 
 use Mews\Pos\DataMapper\RequestValueMapper\PosNetV1PosRequestValueMapper;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -23,6 +25,15 @@ class PosNetV1PosRequestValueMapperTest extends TestCase
     {
         parent::setUp();
         $this->valueMapper = new PosNetV1PosRequestValueMapper();
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->valueMapper::supports(PosNetV1Pos::class);
+        $this->assertTrue($result);
+
+        $result = $this->valueMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 
 class ToslaPosRequestValueMapper extends AbstractRequestValueMapper
@@ -21,6 +22,14 @@ class ToslaPosRequestValueMapper extends AbstractRequestValueMapper
         PosInterface::TX_TYPE_REFUND         => '5',
         PosInterface::TX_TYPE_REFUND_PARTIAL => '5',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ToslaPos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

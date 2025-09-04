@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
 
 class PayFlexV4PosRequestValueMapper extends AbstractRequestValueMapper
@@ -42,6 +43,14 @@ class PayFlexV4PosRequestValueMapper extends AbstractRequestValueMapper
         'MONTH' => 'Month',
         'YEAR'  => 'Year',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayFlexV4Pos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
+use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 
 class GarantiPosRequestValueMapper extends AbstractRequestValueMapper
@@ -41,4 +42,12 @@ class GarantiPosRequestValueMapper extends AbstractRequestValueMapper
         PosInterface::MODEL_3D_SECURE => '3D',
         PosInterface::MODEL_3D_PAY    => '3D_PAY',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return GarantiPos::class === $gatewayClass;
+    }
 }

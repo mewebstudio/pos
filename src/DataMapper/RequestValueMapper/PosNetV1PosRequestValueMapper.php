@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
+use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 
 class PosNetV1PosRequestValueMapper extends AbstractRequestValueMapper
@@ -42,4 +43,12 @@ class PosNetV1PosRequestValueMapper extends AbstractRequestValueMapper
         PosInterface::CURRENCY_JPY => 'JP',
         PosInterface::CURRENCY_RUB => 'RU',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PosNetV1Pos::class === $gatewayClass;
+    }
 }

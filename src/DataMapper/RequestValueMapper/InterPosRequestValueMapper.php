@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 
 class InterPosRequestValueMapper extends AbstractRequestValueMapper
@@ -51,6 +52,14 @@ class InterPosRequestValueMapper extends AbstractRequestValueMapper
         PosInterface::MODEL_3D_HOST    => '3DHost',
         PosInterface::MODEL_NON_SECURE => 'NonSecure',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return InterPos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

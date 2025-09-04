@@ -6,6 +6,8 @@
 
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
+use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 
 class EstPosRequestValueMapper extends AbstractRequestValueMapper
@@ -52,6 +54,15 @@ class EstPosRequestValueMapper extends AbstractRequestValueMapper
         PosInterface::MODEL_3D_HOST        => '3d_host',
         PosInterface::MODEL_NON_SECURE     => 'regular',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return EstV3Pos::class === $gatewayClass
+            || EstPos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

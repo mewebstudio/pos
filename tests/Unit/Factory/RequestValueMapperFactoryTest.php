@@ -53,6 +53,12 @@ class RequestValueMapperFactoryTest extends TestCase
         );
     }
 
+    public function testCreateForGatewayInvalidGateway(): void
+    {
+        $this->expectException(\DomainException::class);
+        RequestValueMapperFactory::createForGateway(\stdClass::class);
+    }
+
     public static function gatewayClassDataProvider(): array
     {
         return [
