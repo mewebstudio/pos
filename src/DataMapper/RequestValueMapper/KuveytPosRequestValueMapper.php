@@ -7,6 +7,8 @@
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
 use Mews\Pos\Entity\Card\CreditCardInterface;
+use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\PosInterface;
 
 class KuveytPosRequestValueMapper extends AbstractRequestValueMapper
@@ -49,6 +51,15 @@ class KuveytPosRequestValueMapper extends AbstractRequestValueMapper
         PosInterface::MODEL_3D_SECURE  => '3',
         PosInterface::MODEL_NON_SECURE => '0',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return KuveytPos::class === $gatewayClass
+            || KuveytSoapApiPos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

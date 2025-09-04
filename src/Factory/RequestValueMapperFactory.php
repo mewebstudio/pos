@@ -21,21 +21,7 @@ use Mews\Pos\DataMapper\RequestValueMapper\PosNetV1PosRequestValueMapper;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\ToslaPosRequestValueMapper;
 use Mews\Pos\DataMapper\RequestValueMapper\VakifKatilimPosRequestValueMapper;
-use Mews\Pos\Gateways\AkbankPos;
-use Mews\Pos\Gateways\EstPos;
-use Mews\Pos\Gateways\EstV3Pos;
-use Mews\Pos\Gateways\GarantiPos;
-use Mews\Pos\Gateways\InterPos;
-use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
-use Mews\Pos\Gateways\ParamPos;
-use Mews\Pos\Gateways\PayFlexCPV4Pos;
-use Mews\Pos\Gateways\PayFlexV4Pos;
-use Mews\Pos\Gateways\PayForPos;
-use Mews\Pos\Gateways\PosNet;
-use Mews\Pos\Gateways\PosNetV1Pos;
-use Mews\Pos\Gateways\ToslaPos;
-use Mews\Pos\Gateways\VakifKatilimPos;
+use Mews\Pos\PosInterface;
 
 /**
  * RequestValueMapperFactory
@@ -43,32 +29,39 @@ use Mews\Pos\Gateways\VakifKatilimPos;
 class RequestValueMapperFactory
 {
     /**
-     * @param class-string $gatewayClass
+     * @var class-string<RequestValueMapperInterface>[]
+     */
+    private static array $requestValueMapperClasses = [
+        ToslaPosRequestValueMapper::class,
+        AkbankPosRequestValueMapper::class,
+        EstPosRequestValueMapper::class,
+        EstPosRequestValueMapper::class,
+        GarantiPosRequestValueMapper::class,
+        InterPosRequestValueMapper::class,
+        KuveytPosRequestValueMapper::class,
+        KuveytPosRequestValueMapper::class,
+        VakifKatilimPosRequestValueMapper::class,
+        PayForPosRequestValueMapper::class,
+        PosNetRequestValueMapper::class,
+        PosNetV1PosRequestValueMapper::class,
+        ParamPosRequestValueMapper::class,
+        PayFlexCPV4PosRequestValueMapper::class,
+        PayFlexV4PosRequestValueMapper::class,
+    ];
+
+    /**
+     * @param class-string<PosInterface> $gatewayClass
      *
      * @return RequestValueMapperInterface
      */
     public static function createForGateway(string $gatewayClass): RequestValueMapperInterface
     {
-        $classMappings = [
-            ToslaPos::class         => ToslaPosRequestValueMapper::class,
-            AkbankPos::class        => AkbankPosRequestValueMapper::class,
-            EstPos::class           => EstPosRequestValueMapper::class,
-            EstV3Pos::class         => EstPosRequestValueMapper::class,
-            GarantiPos::class       => GarantiPosRequestValueMapper::class,
-            InterPos::class         => InterPosRequestValueMapper::class,
-            KuveytPos::class        => KuveytPosRequestValueMapper::class,
-            KuveytSoapApiPos::class => KuveytPosRequestValueMapper::class,
-            VakifKatilimPos::class  => VakifKatilimPosRequestValueMapper::class,
-            PayForPos::class        => PayForPosRequestValueMapper::class,
-            PosNet::class           => PosNetRequestValueMapper::class,
-            PosNetV1Pos::class      => PosNetV1PosRequestValueMapper::class,
-            ParamPos::class         => ParamPosRequestValueMapper::class,
-            PayFlexCPV4Pos::class   => PayFlexCPV4PosRequestValueMapper::class,
-            PayFlexV4Pos::class     => PayFlexV4PosRequestValueMapper::class,
-        ];
 
-        if (isset($classMappings[$gatewayClass])) {
-            return new $classMappings[$gatewayClass]();
+        /** @var class-string<RequestValueMapperInterface> $valueMapperClass */
+        foreach (self::$requestValueMapperClasses as $valueMapperClass) {
+            if ($valueMapperClass::supports($gatewayClass)) {
+                return new $valueMapperClass();
+            }
         }
 
         throw new DomainException('unsupported gateway');

@@ -6,10 +6,19 @@
 
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
+use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
 
 class AkbankPosRequestValueMapper extends AbstractRequestValueMapper
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return AkbankPos::class === $gatewayClass;
+    }
+
     /**
      * {@inheritDoc}
      */

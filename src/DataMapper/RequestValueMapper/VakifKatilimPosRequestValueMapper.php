@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
+use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 
 class VakifKatilimPosRequestValueMapper extends AbstractRequestValueMapper
@@ -31,4 +32,12 @@ class VakifKatilimPosRequestValueMapper extends AbstractRequestValueMapper
         PosInterface::MODEL_3D_SECURE  => '3',
         PosInterface::MODEL_NON_SECURE => '5',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return VakifKatilimPos::class === $gatewayClass;
+    }
 }

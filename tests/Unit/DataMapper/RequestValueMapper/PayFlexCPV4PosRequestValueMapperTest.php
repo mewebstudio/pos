@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestValueMapper;
 
 use Mews\Pos\DataMapper\RequestValueMapper\PayFlexCPV4PosRequestValueMapper;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -23,6 +25,15 @@ class PayFlexCPV4PosRequestValueMapperTest extends TestCase
     {
         parent::setUp();
         $this->valueMapper = new PayFlexCPV4PosRequestValueMapper();
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->valueMapper::supports(PayFlexCPV4Pos::class);
+        $this->assertTrue($result);
+
+        $result = $this->valueMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

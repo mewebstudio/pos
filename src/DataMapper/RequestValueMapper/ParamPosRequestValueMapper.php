@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 
 class ParamPosRequestValueMapper extends AbstractRequestValueMapper
@@ -50,6 +51,14 @@ class ParamPosRequestValueMapper extends AbstractRequestValueMapper
         PosInterface::MODEL_3D_PAY     => '3D',
         PosInterface::MODEL_NON_SECURE => 'NS',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ParamPos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

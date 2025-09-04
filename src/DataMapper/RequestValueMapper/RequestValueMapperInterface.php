@@ -16,6 +16,13 @@ use Mews\Pos\PosInterface;
 interface RequestValueMapperInterface
 {
     /**
+     * @param class-string<PosInterface> $gatewayClass
+     *
+     * @return bool
+     */
+    public static function supports(string $gatewayClass): bool;
+
+    /**
      * @return array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>>
      */
     public function getTxTypeMappings(): array;
