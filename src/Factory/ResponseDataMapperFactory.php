@@ -24,21 +24,6 @@ use Mews\Pos\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\VakifKatilimPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
 use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
-use Mews\Pos\Gateways\AkbankPos;
-use Mews\Pos\Gateways\EstPos;
-use Mews\Pos\Gateways\EstV3Pos;
-use Mews\Pos\Gateways\GarantiPos;
-use Mews\Pos\Gateways\InterPos;
-use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
-use Mews\Pos\Gateways\ParamPos;
-use Mews\Pos\Gateways\PayFlexCPV4Pos;
-use Mews\Pos\Gateways\PayFlexV4Pos;
-use Mews\Pos\Gateways\PayForPos;
-use Mews\Pos\Gateways\PosNet;
-use Mews\Pos\Gateways\PosNetV1Pos;
-use Mews\Pos\Gateways\ToslaPos;
-use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
 
@@ -47,6 +32,26 @@ use Psr\Log\LoggerInterface;
  */
 class ResponseDataMapperFactory
 {
+    /**
+     * @var class-string<ResponseDataMapperInterface>[]
+     */
+    private static array $responseDataMapperClasses = [
+        AkbankPosResponseDataMapper::class,
+        EstPosResponseDataMapper::class,
+        GarantiPosResponseDataMapper::class,
+        InterPosResponseDataMapper::class,
+        KuveytPosResponseDataMapper::class,
+        KuveytSoapApiPosResponseDataMapper::class,
+        ParamPosResponseDataMapper::class,
+        PayFlexCPV4PosResponseDataMapper::class,
+        PayFlexV4PosResponseDataMapper::class,
+        PayForPosResponseDataMapper::class,
+        PosNetResponseDataMapper::class,
+        PosNetV1PosResponseDataMapper::class,
+        ToslaPosResponseDataMapper::class,
+        VakifKatilimPosResponseDataMapper::class,
+    ];
+
     /**
      * @param class-string<PosInterface>      $gatewayClass
      * @param ResponseValueFormatterInterface $valueFormatter
@@ -61,30 +66,16 @@ class ResponseDataMapperFactory
         ResponseValueMapperInterface    $valueMapper,
         LoggerInterface                 $logger
     ): ResponseDataMapperInterface {
-        $classMappings = [
-            AkbankPos::class        => AkbankPosResponseDataMapper::class,
-            EstPos::class           => EstPosResponseDataMapper::class,
-            EstV3Pos::class         => EstPosResponseDataMapper::class,
-            GarantiPos::class       => GarantiPosResponseDataMapper::class,
-            InterPos::class         => InterPosResponseDataMapper::class,
-            KuveytPos::class        => KuveytPosResponseDataMapper::class,
-            KuveytSoapApiPos::class => KuveytSoapApiPosResponseDataMapper::class,
-            ParamPos::class         => ParamPosResponseDataMapper::class,
-            PayFlexCPV4Pos::class   => PayFlexCPV4PosResponseDataMapper::class,
-            PayFlexV4Pos::class     => PayFlexV4PosResponseDataMapper::class,
-            PayForPos::class        => PayForPosResponseDataMapper::class,
-            PosNet::class           => PosNetResponseDataMapper::class,
-            PosNetV1Pos::class      => PosNetV1PosResponseDataMapper::class,
-            ToslaPos::class         => ToslaPosResponseDataMapper::class,
-            VakifKatilimPos::class  => VakifKatilimPosResponseDataMapper::class,
-        ];
 
-        if (isset($classMappings[$gatewayClass])) {
-            return new $classMappings[$gatewayClass](
-                $valueFormatter,
-                $valueMapper,
-                $logger
-            );
+        /** @var class-string<ResponseDataMapperInterface> $responseDataMapperClass */
+        foreach (self::$responseDataMapperClasses as $responseDataMapperClass) {
+            if ($responseDataMapperClass::supports($gatewayClass)) {
+                return new $responseDataMapperClass(
+                    $valueFormatter,
+                    $valueMapper,
+                    $logger
+                );
+            }
         }
 
         throw new DomainException(\sprintf('Response data mapper not found for the gateway %s', $gatewayClass));

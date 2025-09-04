@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 
 class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
@@ -21,6 +22,14 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         'CardNotEnrolled'            => 'reject',
         '51'                         => 'reject',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return VakifKatilimPos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}

@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
 
 class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
@@ -27,6 +28,14 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         '9039'                       => 'invalid_credentials',
         '9065'                       => 'invalid_credentials',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayFlexV4Pos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritdoc}

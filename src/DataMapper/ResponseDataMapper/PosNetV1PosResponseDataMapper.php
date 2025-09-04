@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 
 class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
@@ -42,6 +43,14 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
         '0123'                       => 'transaction_not_found',
         '0444'                       => 'bank_call',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PosNetV1Pos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}

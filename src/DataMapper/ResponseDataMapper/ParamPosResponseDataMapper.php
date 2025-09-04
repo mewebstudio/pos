@@ -7,10 +7,19 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 
 class ParamPosResponseDataMapper extends AbstractResponseDataMapper
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ParamPos::class === $gatewayClass;
+    }
+
     /**
      * {@inheritDoc}
      */

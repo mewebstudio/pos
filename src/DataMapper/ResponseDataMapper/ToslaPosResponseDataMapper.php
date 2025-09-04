@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -28,6 +29,14 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
         998                          => 'invalid_transaction',
         999                          => 'general_error',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ToslaPos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}

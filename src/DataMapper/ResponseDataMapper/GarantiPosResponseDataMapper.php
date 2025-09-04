@@ -9,6 +9,7 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseValueMapper\GarantiPosResponseValueMapper;
 use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -44,6 +45,14 @@ class GarantiPosResponseDataMapper extends AbstractResponseDataMapper
         '92' => 'invalid_transaction',
         '99' => 'general_error',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return GarantiPos::class === $gatewayClass;
+    }
 
     /**
      * @param PaymentStatusModel $rawPaymentResponseData

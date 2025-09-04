@@ -9,6 +9,7 @@ namespace Mews\Pos\DataMapper\ResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseValueMapper\AkbankPosResponseValueMapper;
 use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -32,6 +33,14 @@ class AkbankPosResponseDataMapper extends AbstractResponseDataMapper
      * @var AkbankPosResponseValueMapper
      */
     protected ResponseValueMapperInterface $valueMapper;
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return AkbankPos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}

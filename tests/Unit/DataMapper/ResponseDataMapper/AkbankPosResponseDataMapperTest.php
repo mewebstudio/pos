@@ -13,6 +13,7 @@ use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueFormatterFactory;
 use Mews\Pos\Factory\ResponseValueMapperFactory;
 use Mews\Pos\Gateways\AkbankPos;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -49,6 +50,15 @@ class AkbankPosResponseDataMapperTest extends TestCase
             $this->responseValueMapper,
             $this->logger
         );
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->responseDataMapper::supports(AkbankPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->responseDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

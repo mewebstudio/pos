@@ -6,10 +6,19 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 
 class PayForPosResponseDataMapper extends AbstractResponseDataMapper
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayForPos::class === $gatewayClass;
+    }
+
     /**
      * Response Codes
      *

@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 
 class InterPosResponseDataMapper extends AbstractResponseDataMapper
@@ -22,6 +23,14 @@ class InterPosResponseDataMapper extends AbstractResponseDataMapper
         'E31'                        => 'invalid_transaction',
         'E39'                        => 'invalid_transaction',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return InterPos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}

@@ -10,6 +10,8 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
 use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\AkbankPos;
+use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -47,6 +49,16 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
             $this->logger
         );
     }
+
+    public function testSupports(): void
+    {
+        $result = $this->responseDataMapper::supports(PayFlexV4Pos::class);
+        $this->assertTrue($result);
+
+        $result = $this->responseDataMapper::supports(AkbankPos::class);
+        $this->assertFalse($result);
+    }
+
 
     /**
      * @testWith [null, false]

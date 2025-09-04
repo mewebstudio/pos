@@ -13,6 +13,7 @@ use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueFormatterFactory;
 use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -54,6 +55,15 @@ class VakifKatilimPosResponseDataMapperTest extends TestCase
             $this->responseValueMapperMock,
             $this->logger
         );
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->responseDataMapper::supports(VakifKatilimPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->responseDataMapper::supports(AkbankPos::class);
+        $this->assertFalse($result);
     }
 
     /**
