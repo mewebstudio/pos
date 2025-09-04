@@ -25,6 +25,14 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     private const MOTO = '0';
 
     /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayForPos::class === $gatewayClass;
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @param string $txType kullanilmiyor

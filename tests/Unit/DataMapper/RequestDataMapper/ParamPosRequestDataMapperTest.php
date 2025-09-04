@@ -15,6 +15,8 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\ParamPosResponseDataMapperTest;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -71,6 +73,15 @@ class ParamPosRequestDataMapperTest extends TestCase
             $this->dispatcher,
             $this->crypt,
         );
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->requestDataMapper::supports(ParamPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

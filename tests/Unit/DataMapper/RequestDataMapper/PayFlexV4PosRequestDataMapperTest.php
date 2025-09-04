@@ -16,6 +16,8 @@ use Mews\Pos\Entity\Card\CreditCard;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -64,6 +66,15 @@ class PayFlexV4PosRequestDataMapperTest extends TestCase
             $this->dispatcher,
             $this->crypt,
         );
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->requestDataMapper::supports(PayFlexV4Pos::class);
+        $this->assertTrue($result);
+
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

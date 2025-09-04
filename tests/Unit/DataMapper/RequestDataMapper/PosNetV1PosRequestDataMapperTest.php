@@ -15,6 +15,7 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -69,6 +70,15 @@ class PosNetV1PosRequestDataMapperTest extends TestCase
         );
 
         $this->card = CreditCardFactory::create('5400619360964581', '20', '01', '056', 'ahmet');
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->requestDataMapper::supports(PosNetV1Pos::class);
+        $this->assertTrue($result);
+
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

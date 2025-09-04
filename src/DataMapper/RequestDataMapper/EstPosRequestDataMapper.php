@@ -20,6 +20,14 @@ use Mews\Pos\PosInterface;
 class EstPosRequestDataMapper extends AbstractRequestDataMapper
 {
     /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return EstPos::class === $gatewayClass;
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @param array{md: string, xid: string, eci: string, cavv: string} $responseData

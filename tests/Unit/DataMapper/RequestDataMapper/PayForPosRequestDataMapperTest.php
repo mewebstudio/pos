@@ -15,6 +15,7 @@ use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -84,6 +85,15 @@ class PayForPosRequestDataMapperTest extends TestCase
         );
 
         $this->card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet');
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->requestDataMapper::supports(PayForPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

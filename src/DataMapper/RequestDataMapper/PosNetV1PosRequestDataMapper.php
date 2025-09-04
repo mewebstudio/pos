@@ -30,6 +30,14 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
     protected RequestValueFormatterInterface $valueFormatter;
 
     /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PosNetV1Pos::class === $gatewayClass;
+    }
+
+    /**
      * @param PosNetAccount $posAccount
      *
      * {@inheritDoc}

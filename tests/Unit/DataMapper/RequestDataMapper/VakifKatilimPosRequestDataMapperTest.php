@@ -15,6 +15,8 @@ use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -73,6 +75,15 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
             $this->dispatcher,
             $this->crypt,
         );
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->requestDataMapper::supports(VakifKatilimPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

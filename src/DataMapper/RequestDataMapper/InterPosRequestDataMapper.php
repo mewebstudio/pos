@@ -25,6 +25,14 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
     protected const MOTO = '0';
 
     /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return InterPos::class === $gatewayClass;
+    }
+
+    /**
      *  TODO tekrarlanan odemeler icin daha fazla bilgi lazim, Deniz bank dokumantasyonunda hic bir aciklama yok
      *  ornek kodlarda ise sadece bu alttaki 2 veriyi gondermis.
      * 'MaturityPeriod' => 1,

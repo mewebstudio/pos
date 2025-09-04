@@ -15,6 +15,13 @@ use Mews\Pos\PosInterface;
 interface RequestDataMapperInterface
 {
     /**
+     * @param class-string<PosInterface> $gatewayClass
+     *
+     * @return bool
+     */
+    public static function supports(string $gatewayClass): bool;
+
+    /**
      * @return bool
      */
     public function isTestMode(): bool;

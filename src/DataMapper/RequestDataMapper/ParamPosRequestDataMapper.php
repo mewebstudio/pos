@@ -14,6 +14,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ParamPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -30,6 +31,14 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
      * @var ParamPosRequestValueFormatter
      */
     protected RequestValueFormatterInterface $valueFormatter;
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ParamPos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}
