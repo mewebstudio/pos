@@ -7,6 +7,11 @@
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseValueFormatter;
 
 use Mews\Pos\DataMapper\ResponseValueFormatter\BasicResponseValueFormatter;
+use Mews\Pos\Gateways\AkbankPos;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
+use Mews\Pos\Gateways\PayFlexV4Pos;
+use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -22,6 +27,21 @@ class BasicResponseValueFormatterTest extends TestCase
     {
         parent::setUp();
         $this->formatter = new BasicResponseValueFormatter();
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->formatter::supports(AkbankPos::class);
+        $this->assertTrue($result);
+        $result = $this->formatter::supports(PayFlexCPV4Pos::class);
+        $this->assertTrue($result);
+        $result = $this->formatter::supports(PayFlexV4Pos::class);
+        $this->assertTrue($result);
+        $result = $this->formatter::supports(PayForPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->formatter::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**

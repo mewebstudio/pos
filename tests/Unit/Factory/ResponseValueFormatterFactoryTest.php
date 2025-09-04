@@ -46,6 +46,12 @@ class ResponseValueFormatterFactoryTest extends TestCase
         $this->assertInstanceOf($expectedFormatterClass, $formatter);
     }
 
+    public function testCreateForGatewayInvalidGateway(): void
+    {
+        $this->expectException(\DomainException::class);
+        ResponseValueFormatterFactory::createForGateway(\stdClass::class);
+    }
+
     public static function createForGatewayProvider(): array
     {
         return [

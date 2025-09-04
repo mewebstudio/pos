@@ -6,10 +6,19 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueFormatter;
 
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 
 class ParamPosResponseValueFormatter extends AbstractResponseValueFormatter
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ParamPos::class === $gatewayClass;
+    }
+
     /**
      * @inheritDoc
      */
