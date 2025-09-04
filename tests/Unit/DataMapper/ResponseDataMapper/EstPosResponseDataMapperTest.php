@@ -14,6 +14,8 @@ use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueFormatterFactory;
 use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\AkbankPos;
+use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -51,6 +53,18 @@ class EstPosResponseDataMapperTest extends TestCase
             $this->responseValueMapper,
             $this->logger
         );
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->responseDataMapper::supports(EstPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->responseDataMapper::supports(EstV3Pos::class);
+        $this->assertTrue($result);
+
+        $result = $this->responseDataMapper::supports(AkbankPos::class);
+        $this->assertFalse($result);
     }
 
     /**

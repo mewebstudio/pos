@@ -12,6 +12,7 @@ use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueFormatterFactory;
 use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\Gateways\PayForPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -50,6 +51,16 @@ class PayForPosResponseDataMapperTest extends TestCase
             $this->logger
         );
     }
+
+    public function testSupports(): void
+    {
+        $result = $this->responseDataMapper::supports(PayForPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->responseDataMapper::supports(AkbankPos::class);
+        $this->assertFalse($result);
+    }
+
 
     /**
      * @testWith [null, false]

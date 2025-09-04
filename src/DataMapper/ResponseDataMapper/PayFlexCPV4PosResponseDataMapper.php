@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 
 class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
@@ -22,6 +23,14 @@ class PayFlexCPV4PosResponseDataMapper extends AbstractResponseDataMapper
     protected array $codes = [
         self::PROCEDURE_SUCCESS_CODE => self::TX_APPROVED,
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PayFlexCPV4Pos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritdoc}

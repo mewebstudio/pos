@@ -7,6 +7,8 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -35,6 +37,14 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         '77' => 'request_rejected',
         '99' => 'general_error',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return EstV3Pos::class === $gatewayClass || EstPos::class === $gatewayClass;
+    }
 
     /**
      * @param PaymentStatusModel $rawPaymentResponseData

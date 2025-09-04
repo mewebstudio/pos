@@ -11,6 +11,8 @@ use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
 use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\AkbankPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -48,6 +50,16 @@ class KuveytSoapApiPosResponseDataMapperTest extends TestCase
             $this->logger
         );
     }
+
+    public function testSupports(): void
+    {
+        $result = $this->responseDataMapper::supports(KuveytSoapApiPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->responseDataMapper::supports(AkbankPos::class);
+        $this->assertFalse($result);
+    }
+
 
     /**
      * @testWith [null, false]

@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 
 class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
@@ -22,6 +23,14 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
         'EmptyMDException'           => 'invalid_transaction',
         'HashDataError'              => 'invalid_transaction',
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return KuveytPos::class === $gatewayClass;
+    }
 
     /**
      * {@inheritDoc}
