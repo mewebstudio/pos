@@ -162,6 +162,7 @@ class PosFactoryTest extends TestCase
             \Mews\Pos\Gateways\GarantiPos::class      => false,
             \Mews\Pos\Gateways\InterPos::class        => true,
             \Mews\Pos\Gateways\KuveytPos::class       => true,
+            \Mews\Pos\Gateways\ParamPos::class        => false,
             \Mews\Pos\Gateways\PayFlexCPV4Pos::class  => true,
             \Mews\Pos\Gateways\PayFlexV4Pos::class    => true,
             \Mews\Pos\Gateways\PayForPos::class       => false,
