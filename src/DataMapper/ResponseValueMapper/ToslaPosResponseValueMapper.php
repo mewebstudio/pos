@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueMapper;
 
+use Mews\Pos\Gateways\ToslaPos;
 use Mews\Pos\PosInterface;
 
 class ToslaPosResponseValueMapper extends AbstractResponseValueMapper
@@ -21,6 +22,14 @@ class ToslaPosResponseValueMapper extends AbstractResponseValueMapper
         4 => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
         5 => PosInterface::PAYMENT_STATUS_PRE_AUTH_COMPLETED,
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ToslaPos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

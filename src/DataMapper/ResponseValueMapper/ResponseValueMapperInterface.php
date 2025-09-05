@@ -14,6 +14,13 @@ use Mews\Pos\PosInterface;
 interface ResponseValueMapperInterface
 {
     /**
+     * @param class-string<PosInterface> $gatewayClass
+     *
+     * @return bool
+     */
+    public static function supports(string $gatewayClass): bool;
+
+    /**
      * @param string|int $txType
      *
      * @return PosInterface::TX_TYPE_*|null

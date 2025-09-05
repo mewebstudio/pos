@@ -6,6 +6,9 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueMapper;
 
+use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
+use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 
 /**
@@ -24,6 +27,16 @@ class BoaPosResponseValueMapper extends AbstractResponseValueMapper
         5 => PosInterface::PAYMENT_STATUS_PARTIALLY_REFUNDED,
         6 => PosInterface::PAYMENT_STATUS_CANCELED,
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return KuveytPos::class === $gatewayClass
+            || KuveytSoapApiPos::class === $gatewayClass
+            || VakifKatilimPos::class === $gatewayClass;
+    }
 
     /**
      * in '0949' or '949' formats

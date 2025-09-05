@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueMapper;
 
+use Mews\Pos\Gateways\PosNetV1Pos;
 use Mews\Pos\PosInterface;
 
 class PosNetV1PosResponseValueMapper extends AbstractResponseValueMapper
@@ -30,6 +31,14 @@ class PosNetV1PosResponseValueMapper extends AbstractResponseValueMapper
         PosInterface::TX_TYPE_CANCEL   => PosInterface::PAYMENT_STATUS_CANCELED,
         PosInterface::TX_TYPE_REFUND   => PosInterface::PAYMENT_STATUS_FULLY_REFUNDED,
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return PosNetV1Pos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

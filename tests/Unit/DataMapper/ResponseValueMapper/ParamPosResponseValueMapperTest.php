@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseValueMapper;
 use Mews\Pos\DataMapper\ResponseValueMapper\ParamPosResponseValueMapper;
 use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +29,15 @@ class ParamPosResponseValueMapperTest extends TestCase
             ParamPos::class,
             RequestValueMapperFactory::createForGateway(ParamPos::class)
         );
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->mapper::supports(ParamPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->mapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     public function testMapTxType(): void
