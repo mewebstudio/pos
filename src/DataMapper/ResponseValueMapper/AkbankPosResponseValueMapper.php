@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueMapper;
 
+use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
 
 class AkbankPosResponseValueMapper extends AbstractResponseValueMapper
@@ -40,6 +41,14 @@ class AkbankPosResponseValueMapper extends AbstractResponseValueMapper
         // when unfulfilled payment is canceled
         'C' => PosInterface::PAYMENT_STATUS_CANCELED,
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return AkbankPos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

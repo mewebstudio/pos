@@ -9,6 +9,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseValueMapper;
 use Mews\Pos\DataMapper\ResponseValueMapper\InterPosResponseValueMapper;
 use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueMapperFactory;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +29,15 @@ class InterPosResponseValueMapperTest extends TestCase
             InterPos::class,
             RequestValueMapperFactory::createForGateway(InterPos::class)
         );
+    }
+
+    public function testSupports(): void
+    {
+        $result = $this->mapper::supports(InterPos::class);
+        $this->assertTrue($result);
+
+        $result = $this->mapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     public function testMapTxType(): void

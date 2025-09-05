@@ -6,6 +6,8 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueMapper;
 
+use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 
 class EstPosResponseValueMapper extends AbstractResponseValueMapper
@@ -44,6 +46,15 @@ class EstPosResponseValueMapper extends AbstractResponseValueMapper
         'CNCL' => PosInterface::PAYMENT_STATUS_CANCELED,
         'V'    => PosInterface::PAYMENT_STATUS_CANCELED,
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return EstV3Pos::class === $gatewayClass
+            || EstPos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

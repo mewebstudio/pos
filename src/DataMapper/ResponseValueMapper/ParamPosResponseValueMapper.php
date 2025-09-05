@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueMapper;
 
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 
 class ParamPosResponseValueMapper extends AbstractResponseValueMapper
@@ -53,6 +54,14 @@ class ParamPosResponseValueMapper extends AbstractResponseValueMapper
         'İptal' => PosInterface::TX_TYPE_CANCEL,
         'İade'  => PosInterface::TX_TYPE_REFUND,
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ParamPos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

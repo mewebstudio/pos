@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\ResponseValueMapper;
 
+use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\PosInterface;
 
 class GarantiPosResponseValueMapper extends AbstractResponseValueMapper
@@ -33,6 +34,14 @@ class GarantiPosResponseValueMapper extends AbstractResponseValueMapper
         'Iptal'                 => PosInterface::TX_TYPE_CANCEL,
         // ... Odul Sorgulama
     ];
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return GarantiPos::class === $gatewayClass;
+    }
 
     /**
      * @inheritDoc

@@ -21,21 +21,7 @@ use Mews\Pos\DataMapper\ResponseValueMapper\PosNetResponseValueMapper;
 use Mews\Pos\DataMapper\ResponseValueMapper\PosNetV1PosResponseValueMapper;
 use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\DataMapper\ResponseValueMapper\ToslaPosResponseValueMapper;
-use Mews\Pos\Gateways\AkbankPos;
-use Mews\Pos\Gateways\EstPos;
-use Mews\Pos\Gateways\EstV3Pos;
-use Mews\Pos\Gateways\GarantiPos;
-use Mews\Pos\Gateways\InterPos;
-use Mews\Pos\Gateways\KuveytPos;
-use Mews\Pos\Gateways\KuveytSoapApiPos;
-use Mews\Pos\Gateways\ParamPos;
-use Mews\Pos\Gateways\PayFlexCPV4Pos;
-use Mews\Pos\Gateways\PayFlexV4Pos;
-use Mews\Pos\Gateways\PayForPos;
-use Mews\Pos\Gateways\PosNet;
-use Mews\Pos\Gateways\PosNetV1Pos;
-use Mews\Pos\Gateways\ToslaPos;
-use Mews\Pos\Gateways\VakifKatilimPos;
+use Mews\Pos\PosInterface;
 
 /**
  * ResponseValueMapperFactory
@@ -43,40 +29,66 @@ use Mews\Pos\Gateways\VakifKatilimPos;
 class ResponseValueMapperFactory
 {
     /**
-     * @param class-string                $gatewayClass
+     * @var class-string<ResponseValueMapperInterface>[]
+     */
+    private static array $responseValueMapperClasses = [
+        AkbankPosResponseValueMapper::class,
+        BoaPosResponseValueMapper::class,
+        EstPosResponseValueMapper::class,
+        GarantiPosResponseValueMapper::class,
+        InterPosResponseValueMapper::class,
+        ParamPosResponseValueMapper::class,
+        PayFlexCPV4PosResponseValueMapper::class,
+        PayFlexV4PosResponseValueMapper::class,
+        PayForPosResponseValueMapper::class,
+        PosNetResponseValueMapper::class,
+        PosNetV1PosResponseValueMapper::class,
+        ToslaPosResponseValueMapper::class,
+    ];
+
+    /**
+     * @param class-string<PosInterface>  $gatewayClass
      * @param RequestValueMapperInterface $requestValueMapper
      *
      * @return ResponseValueMapperInterface
      */
     public static function createForGateway(string $gatewayClass, RequestValueMapperInterface $requestValueMapper): ResponseValueMapperInterface
     {
-        $classMappings = [
-            AkbankPos::class        => AkbankPosResponseValueMapper::class,
-            EstPos::class           => EstPosResponseValueMapper::class,
-            EstV3Pos::class         => EstPosResponseValueMapper::class,
-            GarantiPos::class       => GarantiPosResponseValueMapper::class,
-            InterPos::class         => InterPosResponseValueMapper::class,
-            KuveytPos::class        => BoaPosResponseValueMapper::class,
-            KuveytSoapApiPos::class => BoaPosResponseValueMapper::class,
-            ParamPos::class         => ParamPosResponseValueMapper::class,
-            PayFlexCPV4Pos::class   => PayFlexCPV4PosResponseValueMapper::class,
-            PayFlexV4Pos::class     => PayFlexV4PosResponseValueMapper::class,
-            PayForPos::class        => PayForPosResponseValueMapper::class,
-            PosNet::class           => PosNetResponseValueMapper::class,
-            PosNetV1Pos::class      => PosNetV1PosResponseValueMapper::class,
-            ToslaPos::class         => ToslaPosResponseValueMapper::class,
-            VakifKatilimPos::class  => BoaPosResponseValueMapper::class,
-        ];
+        /** @var class-string<ResponseValueMapperInterface> $valueMapperClass */
+        foreach (self::$responseValueMapperClasses as $valueMapperClass) {
+            if (!$valueMapperClass::supports($gatewayClass)) {
+                continue;
+            }
 
-        if (!isset($classMappings[$gatewayClass])) {
-            throw new DomainException('unsupported gateway');
+            $secureTypeMappings = [];
+            $txTypeMappings     = [];
+            $currencyMappings   = [];
+
+            if (self::areTxMappingsRequired($valueMapperClass)) {
+                $txTypeMappings = $requestValueMapper->getTxTypeMappings();
+            }
+
+            if (self::areSecurityTypeMappingsRequired($valueMapperClass)) {
+                $secureTypeMappings = $requestValueMapper->getSecureTypeMappings();
+            }
+
+            if (self::areCurrencyMappingsRequired($valueMapperClass)) {
+                $currencyMappings = $requestValueMapper->getCurrencyMappings();
+            }
+
+            return new $valueMapperClass(
+                $currencyMappings,
+                $txTypeMappings,
+                $secureTypeMappings,
+            );
         }
 
-        $secureTypeMappings = [];
-        $txTypeMappings     = [];
-        $currencyMappings   = [];
+        throw new DomainException('unsupported gateway');
+    }
 
-        if (\in_array($classMappings[$gatewayClass], [
+    private static function areTxMappingsRequired(string $valueMapperClass): bool
+    {
+        return \in_array($valueMapperClass, [
             AkbankPosResponseValueMapper::class,
             GarantiPosResponseValueMapper::class,
             BoaPosResponseValueMapper::class,
@@ -86,42 +98,33 @@ class ResponseValueMapperFactory
             PosNetResponseValueMapper::class,
             PosNetV1PosResponseValueMapper::class,
             ToslaPosResponseValueMapper::class,
-        ])) {
-            $txTypeMappings = $requestValueMapper->getTxTypeMappings();
-        }
+        ], true);
+    }
 
-        if (\in_array($classMappings[$gatewayClass], [
+    private static function areCurrencyMappingsRequired(string $valueMapperClass): bool
+    {
+        return \in_array($valueMapperClass, [
+            AkbankPosResponseValueMapper::class,
+            BoaPosResponseValueMapper::class,
+            EstPosResponseValueMapper::class,
+            GarantiPosResponseValueMapper::class,
+            InterPosResponseValueMapper::class,
+            PayFlexCPV4PosResponseValueMapper::class,
+            PayFlexV4PosResponseValueMapper::class,
+            PayForPosResponseValueMapper::class,
+            PosNetResponseValueMapper::class,
+            PosNetV1PosResponseValueMapper::class,
+            ToslaPosResponseValueMapper::class,
+        ], true);
+    }
+
+    private static function areSecurityTypeMappingsRequired(string $valueMapperClass): bool
+    {
+        return \in_array($valueMapperClass, [
             EstPosResponseValueMapper::class,
             GarantiPosResponseValueMapper::class,
             BoaPosResponseValueMapper::class,
             PayForPosResponseValueMapper::class,
-        ], true)) {
-            $secureTypeMappings = $requestValueMapper->getSecureTypeMappings();
-        }
-
-        if (\in_array($classMappings[$gatewayClass], [
-            AkbankPos::class        => AkbankPosResponseValueMapper::class,
-            EstPos::class           => EstPosResponseValueMapper::class,
-            EstV3Pos::class         => EstPosResponseValueMapper::class,
-            GarantiPos::class       => GarantiPosResponseValueMapper::class,
-            InterPos::class         => InterPosResponseValueMapper::class,
-            KuveytPos::class        => BoaPosResponseValueMapper::class,
-            KuveytSoapApiPos::class => BoaPosResponseValueMapper::class,
-            PayFlexCPV4Pos::class   => PayFlexCPV4PosResponseValueMapper::class,
-            PayFlexV4Pos::class     => PayFlexV4PosResponseValueMapper::class,
-            PayForPos::class        => PayForPosResponseValueMapper::class,
-            PosNet::class           => PosNetResponseValueMapper::class,
-            PosNetV1Pos::class      => PosNetV1PosResponseValueMapper::class,
-            ToslaPos::class         => ToslaPosResponseValueMapper::class,
-            VakifKatilimPos::class  => BoaPosResponseValueMapper::class,
-        ], true)) {
-            $currencyMappings = $requestValueMapper->getCurrencyMappings();
-        }
-
-        return new $classMappings[$gatewayClass](
-            $currencyMappings,
-            $txTypeMappings,
-            $secureTypeMappings,
-        );
+        ], true);
     }
 }
