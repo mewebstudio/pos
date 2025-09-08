@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Serializer;
 
+use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Serializer;
@@ -28,7 +29,8 @@ class ParamPosSerializer implements SerializerInterface
      */
     public static function supports(string $gatewayClass): bool
     {
-        return $gatewayClass === ParamPos::class;
+        return $gatewayClass === ParamPos::class
+            || $gatewayClass === Param3DHostPos::class;
     }
 
     /**

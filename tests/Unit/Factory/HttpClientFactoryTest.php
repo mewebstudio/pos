@@ -27,6 +27,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayFlexV4Pos;
@@ -80,6 +81,7 @@ class HttpClientFactoryTest extends TestCase
             [InterPos::class, InterPosHttpClient::class],
             [KuveytPos::class, KuveytPosHttpClient::class],
             [ParamPos::class, ParamPosHttpClient::class],
+            [Param3DHostPos::class, ParamPosHttpClient::class],
             [PayFlexCPV4Pos::class, PayFlexCPV4PosHttpClient::class],
             [PayFlexV4Pos::class, PayFlexV4PosHttpClient::class],
             [PayForPos::class, PayForPosHttpClient::class],

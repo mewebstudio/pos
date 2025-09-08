@@ -7,6 +7,8 @@
 namespace Mews\Pos\Tests\Unit\Serializer;
 
 use Generator;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\ParamPosSerializer;
@@ -30,8 +32,12 @@ class ParamPosSerializerTest extends TestCase
     public function testSupports(): void
     {
         $supports = $this->serializer::supports(ParamPos::class);
-
         $this->assertTrue($supports);
+        $supports = $this->serializer::supports(Param3DHostPos::class);
+        $this->assertTrue($supports);
+
+        $supports = $this->serializer::supports(EstV3Pos::class);
+        $this->assertFalse($supports);
     }
 
     /**

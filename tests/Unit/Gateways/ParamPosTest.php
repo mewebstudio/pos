@@ -17,6 +17,7 @@ use Mews\Pos\Entity\Account\ParamPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -79,9 +80,7 @@ class ParamPosTest extends TestCase
         $this->config = [
             'name'              => 'param-pos',
             'class'             => ParamPos::class,
-            'gateway_endpoints' => [
-                'gateway_3d_host' => 'https://test-pos.param.com.tr/default.aspx',
-            ],
+            'gateway_endpoints' => [],
         ];
 
         $this->account = AccountFactory::createParamPosAccount(
@@ -552,93 +551,12 @@ class ParamPosTest extends TestCase
         $this->pos->make3DPayPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
-    public function testMake3DHostPaymentHashMismatchException(): void
-    {
-        $request = Request::create(
-            '',
-            'POST',
-            ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData']
-        );
-        $this->cryptMock->expects(self::once())
-            ->method('check3DHash')
-            ->with($this->account, $request->request->all())
-            ->willReturn(false);
-
-        $this->expectException(HashMismatchException::class);
-
-        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
-    }
-
-    /**
-     * @return void
-     */
     public function testMake3DHostPayment(): void
     {
-        $responseData = ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
-        $request      = Request::create(
-            '',
-            'POST',
-            $responseData
-        );
-        $this->cryptMock->expects(self::once())
-            ->method('check3DHash')
-            ->with($this->account, $request->request->all())
-            ->willReturn(true);
+        $request = Request::create('', 'POST');
 
-        $order  = ['id' => '123'];
-        $txType = PosInterface::TX_TYPE_PAY_AUTH;
-
-        $this->responseMapperMock->expects(self::once())
-            ->method('map3DHostResponseData')
-            ->with($request->request->all(), $txType, $order)
-            ->willReturn(['status' => 'approved']);
-
-        $pos = $this->pos;
-
-        $pos->make3DHostPayment($request, $order, $txType);
-
-        $result = $pos->getResponse();
-        $this->assertSame(['status' => 'approved'], $result);
-        $this->assertTrue($pos->isSuccess());
-    }
-
-    /**
-     * @return void
-     */
-    public function testMake3DHostPaymentWithoutHashCheck(): void
-    {
-        $config = $this->config;
-        $config += [
-            'gateway_configs' => [
-                'disable_3d_hash_check' => true,
-            ],
-        ];
-
-        $pos = $this->createGateway($config);
-
-        $this->cryptMock->expects(self::never())
-            ->method('check3DHash');
-
-        $responseData = ParamPosResponseDataMapperTest::threeDPayPaymentDataProvider()['success1']['paymentData'];
-        $request = Request::create(
-            '',
-            'POST',
-            $responseData
-        );
-
-        $order        = ['id' => '123'];
-        $txType       = PosInterface::TX_TYPE_PAY_AUTH;
-
-        $this->responseMapperMock->expects(self::once())
-            ->method('map3DHostResponseData')
-            ->with($request->request->all(), $txType, $order)
-            ->willReturn(['status' => 'approved']);
-
-        $pos->make3DHostPayment($request, $order, $txType);
-
-        $result = $pos->getResponse();
-        $this->assertSame(['status' => 'approved'], $result);
-        $this->assertTrue($pos->isSuccess());
+        $this->expectException(UnsupportedPaymentModelException::class);
+        $this->pos->make3DHostPayment($request, [], PosInterface::TX_TYPE_PAY_AUTH);
     }
 
     /**
@@ -1049,7 +967,7 @@ class ParamPosTest extends TestCase
                 'isWithCard'             => false,
                 'create_without_card'    => false,
                 'expectedExceptionClass' => \LogicException::class,
-                'expectedExceptionMsg'   => 'Mews\Pos\Gateways\ParamPos ödeme altyapıda [pay] işlem tipi [3d, 3d_pay, 3d_host, regular] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay_hosting].',
+                'expectedExceptionMsg'   => 'Mews\Pos\Gateways\ParamPos ödeme altyapıda [pay] işlem tipi [3d, 3d_pay, regular] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay_hosting].',
             ],
             '3d_pay_without_card'       => [
                 'order'                  => ['id' => '2020110828BC'],
@@ -1155,20 +1073,6 @@ class ParamPosTest extends TestCase
             'formData'            => $responseTestData['3d_form_success']['expected']['TP_WMD_UCDResponse']['TP_WMD_UCDResult']['UCD_HTML'],
 
         ];
-
-        yield '3d_host' => [
-            'order'               => ParamPosRequestDataMapperTest::threeDFormDataProvider()['3d_host_form_data']['order'],
-            'paymentModel'        => PosInterface::MODEL_3D_HOST,
-            'txType'              => PosInterface::TX_TYPE_PAY_AUTH,
-            'isWithCard'          => false,
-            'requestData'         => ['request-data'],
-            'gateway_url'         => 'https://test-pos.param.com.tr/default.aspx',
-            'encodedRequestData'  => '<encoded-request-data>',
-            'responseData'        => '<response-data>',
-            'decodedResponseData' => ParamPosRequestDataMapperTest::threeDFormDataProvider()['3d_host_form_data']['extra_data'],
-            'formData'            => ParamPosRequestDataMapperTest::threeDFormDataProvider()['3d_host_form_data']['expected'],
-        ];
-
 
         yield '3d_pay' => [
             'order'               => ParamPosRequestDataMapperTest::threeDFormDataProvider()['3d_pay']['order'],

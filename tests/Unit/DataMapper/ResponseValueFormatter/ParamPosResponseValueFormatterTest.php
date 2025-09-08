@@ -8,6 +8,7 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseValueFormatter;
 
 use Mews\Pos\DataMapper\ResponseValueFormatter\ParamPosResponseValueFormatter;
 use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +29,8 @@ class ParamPosResponseValueFormatterTest extends TestCase
     public function testSupports(): void
     {
         $result = $this->formatter::supports(ParamPos::class);
+        $this->assertTrue($result);
+        $result = $this->formatter::supports(Param3DHostPos::class);
         $this->assertTrue($result);
 
         $result = $this->formatter::supports(EstV3Pos::class);

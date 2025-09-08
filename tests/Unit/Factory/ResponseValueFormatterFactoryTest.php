@@ -22,6 +22,7 @@ use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\Gateways\KuveytSoapApiPos;
+use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayFlexV4Pos;
@@ -63,6 +64,7 @@ class ResponseValueFormatterFactoryTest extends TestCase
             [KuveytPos::class, BoaPosResponseValueFormatter::class],
             [KuveytSoapApiPos::class, BoaPosResponseValueFormatter::class],
             [ParamPos::class, ParamPosResponseValueFormatter::class],
+            [Param3DHostPos::class, ParamPosResponseValueFormatter::class],
             [PayFlexCPV4Pos::class, BasicResponseValueFormatter::class],
             [PayFlexV4Pos::class, BasicResponseValueFormatter::class],
             [PayForPos::class, BasicResponseValueFormatter::class],

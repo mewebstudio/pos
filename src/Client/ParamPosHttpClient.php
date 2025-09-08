@@ -7,8 +7,8 @@
 namespace Mews\Pos\Client;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
-use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EncodedData;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -20,23 +20,8 @@ class ParamPosHttpClient extends AbstractHttpClient
      */
     public static function supports(string $gatewayClass): bool
     {
-        return ParamPos::class === $gatewayClass;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
-    {
-        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            if (!isset($this->config['payment_api_2'])) {
-                throw new \RuntimeException('3D Host ödemeyi kullanabilmek için "payment_api_2" endpointi tanımlanmalıdır.');
-            }
-
-            return $this->config['payment_api_2'];
-        }
-
-        return parent::getApiURL($txType, $paymentModel, $orderTxType);
+        return ParamPos::class === $gatewayClass
+            || Param3DHostPos::class === $gatewayClass;
     }
 
     /**

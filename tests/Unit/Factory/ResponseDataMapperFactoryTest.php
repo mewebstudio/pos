@@ -59,6 +59,7 @@ class ResponseDataMapperFactoryTest extends TestCase
             [\Mews\Pos\Gateways\KuveytPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper::class],
             [\Mews\Pos\Gateways\KuveytSoapApiPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\KuveytSoapApiPosResponseDataMapper::class],
             [\Mews\Pos\Gateways\ParamPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\ParamPosResponseDataMapper::class],
+            [\Mews\Pos\Gateways\Param3DHostPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\ParamPosResponseDataMapper::class],
             [\Mews\Pos\Gateways\PayFlexCPV4Pos::class, \Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper::class],
             [\Mews\Pos\Gateways\PayFlexV4Pos::class, \Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper::class],
             [\Mews\Pos\Gateways\PayForPos::class, \Mews\Pos\DataMapper\ResponseDataMapper\PayForPosResponseDataMapper::class],

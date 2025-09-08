@@ -15,6 +15,7 @@ use Mews\Pos\Entity\Account\ParamPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\HashMismatchException;
+use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
@@ -44,7 +45,6 @@ class ParamPos extends AbstractHttpGateway
         PosInterface::TX_TYPE_PAY_AUTH     => [
             PosInterface::MODEL_3D_SECURE,
             PosInterface::MODEL_3D_PAY,
-            PosInterface::MODEL_3D_HOST,
             PosInterface::MODEL_NON_SECURE,
         ],
         PosInterface::TX_TYPE_PAY_PRE_AUTH => [
@@ -169,18 +169,9 @@ class ParamPos extends AbstractHttpGateway
      */
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        if (
-            !$this->is3DHashCheckDisabled()
-            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())
-        ) {
-            throw new HashMismatchException();
-        }
-
-        $this->response = $this->responseDataMapper->map3DHostResponseData($request->request->all(), $txType, $order);
-
-        $this->logger->debug('finished 3D payment', ['mapped_response' => $this->response]);
-
-        return $this;
+        throw new UnsupportedPaymentModelException(
+            \sprintf('Bu işlem için %s gateway kullanılmalıdır.', Param3DHostPos::class)
+        );
     }
 
     /**
@@ -191,18 +182,6 @@ class ParamPos extends AbstractHttpGateway
         $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
         $data = $this->registerPayment($order, $paymentModel, $txType, $creditCard);
-
-        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            return $this->requestDataMapper->create3DFormData(
-                $this->account,
-                $order,
-                $paymentModel,
-                $txType,
-                $this->get3DGatewayURL($paymentModel),
-                null,
-                $data
-            );
-        }
 
         $result = $data['TP_WMD_UCDResponse']['TP_WMD_UCDResult']
             ?? $data['TP_Islem_Odeme_WDResponse']['TP_Islem_Odeme_WDResult']
