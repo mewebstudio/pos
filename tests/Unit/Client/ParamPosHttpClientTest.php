@@ -11,6 +11,7 @@ use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Factory\PosHttpClientFactory;
 use Mews\Pos\Gateways\AkbankPos;
+use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EncodedData;
@@ -61,8 +62,6 @@ class ParamPosHttpClientTest extends TestCase
     {
         $endpoints = [
             'payment_api'   => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
-            // API URL for 3D host payment
-            'payment_api_2' => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
         ];
 
         $this->serializer         = $this->createMock(SerializerInterface::class);
@@ -90,6 +89,7 @@ class ParamPosHttpClientTest extends TestCase
     public function testSupports(): void
     {
         $this->assertTrue(ParamPosHttpClient::supports(ParamPos::class));
+        $this->assertTrue(ParamPosHttpClient::supports(Param3DHostPos::class));
         $this->assertFalse(ParamPosHttpClient::supports(AkbankPos::class));
     }
 
@@ -220,26 +220,6 @@ class ParamPosHttpClientTest extends TestCase
         );
     }
 
-    public function testMissingUrlInConfig(): void
-    {
-        $client = PosHttpClientFactory::createForGateway(
-            ParamPos::class,
-            [
-                'payment_api' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
-            ],
-            $this->serializer,
-            $this->crypt,
-            $this->requestValueMapper,
-            $this->logger,
-            $this->psrClient,
-            $this->requestFactory,
-            $this->streamFactory
-        );
-
-        $this->expectException(\RuntimeException::class);
-        $client->getApiURL(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_HOST);
-    }
-
     public function testRequestBadRequest(): void
     {
         $txType         = PosInterface::TX_TYPE_PAY_AUTH;
@@ -299,42 +279,9 @@ class ParamPosHttpClientTest extends TestCase
         );
     }
 
-    public function testRequestApiUrlNotFound(): void
-    {
-        $client = PosHttpClientFactory::createForGateway(
-            ParamPos::class,
-            [
-                'payment_api' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
-            ],
-            $this->serializer,
-            $this->crypt,
-            $this->requestValueMapper,
-            $this->logger,
-            $this->psrClient,
-            $this->requestFactory,
-            $this->streamFactory
-        );
-
-        $this->psrClient->expects($this->never())
-            ->method('sendRequest');
-
-        $this->expectException(\RuntimeException::class);
-        $client->request(
-            PosInterface::TX_TYPE_PAY_POST_AUTH,
-            PosInterface::MODEL_3D_HOST,
-            ['request-data'],
-            ['id' => 123]
-        );
-    }
-
     public static function getApiUrlDataProvider(): array
     {
         return [
-            [
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_3D_HOST,
-                'expected'     => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
-            ],
             [
                 'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_3D_SECURE,

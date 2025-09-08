@@ -11,6 +11,7 @@ use Mews\Pos\DataMapper\ResponseValueFormatter\ParamPosResponseValueFormatter;
 use Mews\Pos\DataMapper\ResponseValueMapper\ParamPosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Gateways\AkbankPos;
+use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -51,6 +52,8 @@ class ParamPosResponseDataMapperTest extends TestCase
     public function testSupports(): void
     {
         $result = $this->responseDataMapper::supports(ParamPos::class);
+        $this->assertTrue($result);
+        $result = $this->responseDataMapper::supports(Param3DHostPos::class);
         $this->assertTrue($result);
 
         $result = $this->responseDataMapper::supports(AkbankPos::class);

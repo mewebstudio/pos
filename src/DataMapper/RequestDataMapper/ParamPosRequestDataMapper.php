@@ -18,7 +18,7 @@ use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 
 /**
- * Creates request data for ParamPoss Gateway requests
+ * Creates request data for ParamPos Gateway requests
  */
 class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 {
@@ -54,7 +54,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
                 'Siparis_ID' => (string) $responseData['orderId'],
             ];
 
-        return $this->wrapSoapEnvelope(['TP_WMD_Pay' => $requestData], $posAccount);
+        return $this->wrapSoapEnvelope(['TP_WMD_Pay' => $requestData]);
     }
 
     /**
@@ -69,7 +69,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
     public function create3DEnrollmentCheckRequestData(AbstractPosAccount $posAccount, array $order, ?CreditCardInterface $creditCard, string $txType, string $paymentModel): array
     {
         if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            return $this->create3DHostEnrollmentCheckRequestData($posAccount, $order, $txType);
+            throw new \InvalidArgumentException();
         }
 
         if (!$creditCard instanceof \Mews\Pos\Entity\Card\CreditCardInterface) {
@@ -107,46 +107,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData[$soapAction]['Islem_Hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->wrapSoapEnvelope($requestData, $posAccount);
-    }
-
-    /**
-     * @param AbstractPosAccount          $posAccount
-     * @param array<string, mixed>        $order
-     * @param PosInterface::TX_TYPE_PAY_* $txType
-     *
-     * @return array<string, mixed>
-     *
-     * @throws \Mews\Pos\Exceptions\UnsupportedTransactionTypeException
-     */
-    public function create3DHostEnrollmentCheckRequestData(AbstractPosAccount $posAccount, array $order, string $txType): array
-    {
-        $order = $this->preparePaymentOrder($order);
-
-        $requestData = [
-            '@xmlns'           => 'https://turkodeme.com.tr/',
-            // Bu alan editable olsun istiyorsanız başına “e|”,
-            // readonly olsun istiyorsanız başına “r|” eklemelisiniz.
-            'Borclu_Tutar'     => 'r|'.$this->valueFormatter->formatAmount($order['amount'], $txType),
-            'Borclu_Odeme_Tip' => 'r|Diğer',
-            'Borclu_AdSoyad'   => 'r|',
-            'Borclu_Aciklama'  => 'r|',
-            'Return_URL'       => 'r|'.$order['success_url'],
-            'Islem_ID'         => $this->crypt->generateRandomString(),
-            'Borclu_Kisi_TC'   => '',
-            'Terminal_ID'      => $posAccount->getClientId(),
-            'Borclu_GSM'       => 'r|',
-            // = 0 ise tüm taksitler listelenir. > 0 ise sadece o taksit seçeneği listelenir.
-            'Taksit'           => $this->valueFormatter->formatInstallment((int) $order['installment']),
-        ];
-
-        if (PosInterface::CURRENCY_TRY !== $order['currency']) {
-            $requestData['Doviz_Kodu'] = $this->valueMapper->mapCurrency($order['currency']);
-        }
-
-        $soapAction = $this->valueMapper->mapTxType($txType, PosInterface::MODEL_3D_HOST);
-
-        return $this->wrapSoapEnvelope([$soapAction => $requestData], $posAccount);
+        return $this->wrapSoapEnvelope($requestData);
     }
 
     /**
@@ -190,7 +151,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
         $requestData[$soapAction]['Islem_Hash'] = $this->crypt->createHash($posAccount, $requestData);
 
-        return $this->wrapSoapEnvelope($requestData, $posAccount);
+        return $this->wrapSoapEnvelope($requestData);
     }
 
     /**
@@ -209,7 +170,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->wrapSoapEnvelope([
             $this->valueMapper->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH) => $requestData,
-        ], $posAccount);
+        ]);
     }
 
     /**
@@ -226,7 +187,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->wrapSoapEnvelope([
             $this->valueMapper->mapTxType(PosInterface::TX_TYPE_STATUS) => $requestData,
-        ], $posAccount);
+        ]);
     }
 
     /**
@@ -253,7 +214,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->wrapSoapEnvelope([
             $this->valueMapper->mapTxType(PosInterface::TX_TYPE_CANCEL, null, $order) => $requestData,
-        ], $posAccount);
+        ]);
     }
 
 
@@ -273,7 +234,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->wrapSoapEnvelope([
             $this->valueMapper->mapTxType($refundTxType) => $requestData,
-        ], $posAccount);
+        ]);
     }
 
     /**
@@ -314,7 +275,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
         return $this->wrapSoapEnvelope([
             $this->valueMapper->mapTxType(PosInterface::TX_TYPE_HISTORY) => $requestData,
-        ], $posAccount);
+        ]);
     }
 
     /**
@@ -332,24 +293,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
         array                $extraData = []
     ) {
         if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            if (null === $gatewayURL) {
-                throw new \InvalidArgumentException('Please provide $gatewayURL');
-            }
-
-            $decoded = \base64_decode($extraData['TO_Pre_Encrypting_OOSResponse']['TO_Pre_Encrypting_OOSResult'], true);
-            if (false === $decoded) {
-                throw new \RuntimeException($extraData['TO_Pre_Encrypting_OOSResponse']['TO_Pre_Encrypting_OOSResult']);
-            }
-
-            $inputs = [
-                's' => (string) $extraData['TO_Pre_Encrypting_OOSResponse']['TO_Pre_Encrypting_OOSResult'],
-            ];
-
-            return [
-                'gateway' => $gatewayURL,
-                'method'  => 'GET',
-                'inputs'  => $inputs,
-            ];
+            throw new \InvalidArgumentException();
         }
 
         if (PosInterface::MODEL_3D_PAY === $paymentModel) {
@@ -395,7 +339,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
         $soapAction               = \array_key_first($requestData);
         $requestData[$soapAction] += $this->getRequestAccountData($posAccount);
 
-        return $this->wrapSoapEnvelope($requestData, $posAccount);
+        return $this->wrapSoapEnvelope($requestData);
     }
 
     /**
@@ -466,26 +410,11 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * @param array<string, mixed> $data
-     * @param AbstractPosAccount   $posAccount
      *
-     * @return array{"soap:Body": array<string, mixed>, "soap:Header"?: array<string, mixed>}
+     * @return array{"soap:Body": array<string, mixed>}
      */
-    private function wrapSoapEnvelope(array $data, AbstractPosAccount $posAccount): array
+    private function wrapSoapEnvelope(array $data): array
     {
-        if (isset($data['TO_Pre_Encrypting_OOS'])) {
-            return [
-                'soap:Header' => [
-                    'ServiceSecuritySoapHeader' => [
-                        '@xmlns'          => 'https://turkodeme.com.tr/',
-                        'CLIENT_CODE'     => $posAccount->getClientId(),
-                        'CLIENT_USERNAME' => $posAccount->getUsername(),
-                        'CLIENT_PASSWORD' => $posAccount->getPassword(),
-                    ],
-                ],
-                'soap:Body'   => $data,
-            ];
-        }
-
         return [
             'soap:Body' => $data,
         ];

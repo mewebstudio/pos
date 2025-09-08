@@ -10,6 +10,7 @@ use Mews\Pos\DataMapper\ResponseValueMapper\ParamPosResponseValueMapper;
 use Mews\Pos\Factory\RequestValueMapperFactory;
 use Mews\Pos\Factory\ResponseValueMapperFactory;
 use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
@@ -34,6 +35,8 @@ class ParamPosResponseValueMapperTest extends TestCase
     public function testSupports(): void
     {
         $result = $this->mapper::supports(ParamPos::class);
+        $this->assertTrue($result);
+        $result = $this->mapper::supports(Param3DHostPos::class);
         $this->assertTrue($result);
 
         $result = $this->mapper::supports(EstV3Pos::class);

@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\DataMapper\RequestValueMapper;
 
+use Mews\Pos\Gateways\Param3DHostPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 
@@ -57,7 +58,8 @@ class ParamPosRequestValueMapper extends AbstractRequestValueMapper
      */
     public static function supports(string $gatewayClass): bool
     {
-        return ParamPos::class === $gatewayClass;
+        return ParamPos::class === $gatewayClass
+            || Param3DHostPos::class === $gatewayClass;
     }
 
     /**

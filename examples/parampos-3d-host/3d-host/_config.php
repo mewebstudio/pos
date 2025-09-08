@@ -7,7 +7,7 @@ require '../_payment_config.php';
 $baseUrl = $bankTestsUrl.'/3d-host/';
 //account bilgileri kendi account bilgilerinizle degistiriniz
 $account = \Mews\Pos\Factory\AccountFactory::createParamPosAccount(
-    'param-pos',
+    'param-3d-host-pos',
     10738,
     'Test',
     'Test',
