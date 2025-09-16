@@ -388,7 +388,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
      */
     protected function mapCurrency(string $currency): string
     {
-        return (string) $this->currencyMappings[$currency] ?? $currency;
+        return (string) ($this->currencyMappings[$currency] ?? $currency);
     }
 
     /**

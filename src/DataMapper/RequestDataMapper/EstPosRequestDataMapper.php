@@ -387,7 +387,7 @@ class EstPosRequestDataMapper extends AbstractRequestDataMapper
      */
     protected function mapCurrency(string $currency): string
     {
-        return (string) $this->currencyMappings[$currency] ?? $currency;
+        return (string) ($this->currencyMappings[$currency] ?? $currency);
     }
 
     /**

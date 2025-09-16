@@ -31,28 +31,10 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/AkbankPosRequestDataMapper.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
-			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
-
-		-
 			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestDataMapper\\EstPosRequestDataMapper\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', string given\.$#'
 			identifier: argument.type
 			count: 1
 			path: src/DataMapper/RequestDataMapper/EstPosRequestDataMapper.php
-
-		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
-			path: src/DataMapper/RequestDataMapper/GarantiPosRequestDataMapper.php
-
-		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
-			path: src/DataMapper/RequestDataMapper/InterPosRequestDataMapper.php
 
 		-
 			message: '#^Default value of the parameter \#7 \$extraData \(array\{\}\) of method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayFlexCPV4PosRequestDataMapper\:\:create3DFormData\(\) is incompatible with type array\{CommonPaymentUrl\: string, PaymentToken\: string\}\.$#'
@@ -67,12 +49,6 @@ parameters:
 			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
 
 		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
-			path: src/DataMapper/RequestDataMapper/PayFlexV4PosRequestDataMapper.php
-
-		-
 			message: '#^Method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayFlexV4PosRequestDataMapper\:\:create3DEnrollmentCheckRequestData\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -81,12 +57,6 @@ parameters:
 		-
 			message: '#^Default value of the parameter \#2 \$data \(array\{\}\) of method Mews\\Pos\\DataMapper\\RequestDataMapper\\PayForPosRequestDataMapper\:\:createHistoryRequestData\(\) is incompatible with type array\{transaction_date\: DateTimeInterface\}\.$#'
 			identifier: parameter.defaultValue
-			count: 1
-			path: src/DataMapper/RequestDataMapper/PayForPosRequestDataMapper.php
-
-		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
 			count: 1
 			path: src/DataMapper/RequestDataMapper/PayForPosRequestDataMapper.php
 
