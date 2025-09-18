@@ -21,16 +21,16 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      * Kurum kodudur. (Banka tarafından verilir)
      * @var string
      */
-    public const MBR_ID = '5';
+    private const MBR_ID = '5';
 
     /**
      * MOTO (Mail Order Telephone Order) 0 for false, 1 for true
      * @var string
      */
-    public const MOTO = '0';
+    private const MOTO = '0';
 
     /** @var string */
-    public const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
+    private const CREDIT_CARD_EXP_DATE_FORMAT = 'my';
 
     /** {@inheritdoc} */
     protected array $secureTypeMappings = [
@@ -83,7 +83,6 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'MbrId'            => self::MBR_ID,
                 'MOTO'             => self::MOTO,
                 'OrderId'          => (string) $order['id'],
                 'SecureType'       => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
@@ -108,7 +107,6 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePostPaymentOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'MbrId'       => self::MBR_ID,
                 'OrgOrderId'  => (string) $order['id'],
                 'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'TxnType'     => $this->mapTxType(PosInterface::TX_TYPE_PAY_POST_AUTH),
@@ -127,7 +125,6 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareStatusOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'MbrId'      => self::MBR_ID,
                 'OrgOrderId' => (string) $order['id'],
                 'SecureType' => 'Inquiry',
                 'Lang'       => $this->getLang($posAccount, $order),
@@ -144,7 +141,6 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareCancelOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'MbrId'      => self::MBR_ID,
                 'OrgOrderId' => (string) $order['id'],
                 'SecureType' => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'TxnType'    => $this->mapTxType(PosInterface::TX_TYPE_CANCEL),
@@ -162,7 +158,6 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareRefundOrder($order);
 
         return $this->getRequestAccountData($posAccount) + [
-                'MbrId'       => self::MBR_ID,
                 'SecureType'  => $this->secureTypeMappings[PosInterface::MODEL_NON_SECURE],
                 'Lang'        => $this->getLang($posAccount, $order),
                 'OrgOrderId'  => (string) $order['id'],
@@ -180,7 +175,6 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareOrderHistoryOrder($order);
 
         $requestData = [
-            'MbrId'      => self::MBR_ID,
             'SecureType' => 'Report',
             'OrderId'    => $order['id'],
             'TxnType'    => $this->mapTxType(PosInterface::TX_TYPE_HISTORY),
@@ -200,7 +194,6 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->prepareHistoryOrder($data);
 
         $requestData = [
-            'MbrId'      => self::MBR_ID,
             'SecureType' => 'Report',
             'ReqDate'    => $data['transaction_date']->format('Ymd'),
             'TxnType'    => $this->mapTxType(PosInterface::TX_TYPE_HISTORY),
@@ -215,9 +208,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
     {
-        return $requestData + ($this->getRequestAccountData($posAccount) + [
-                'MbrId' => self::MBR_ID,
-            ]);
+        return $requestData + $this->getRequestAccountData($posAccount);
     }
 
     /**
@@ -338,7 +329,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * @param AbstractPosAccount $posAccount
      *
-     * @return array{MerchantId: string, UserCode: string, UserPass: string}
+     * @return array{MerchantId: string, UserCode: string, UserPass: string, MbrId: string}
      */
     private function getRequestAccountData(AbstractPosAccount $posAccount): array
     {
@@ -346,6 +337,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId' => $posAccount->getClientId(),
             'UserCode'   => $posAccount->getUsername(),
             'UserPass'   => $posAccount->getPassword(),
+            'MbrId'      => self::MBR_ID,
         ];
     }
 }
