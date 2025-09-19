@@ -25,6 +25,12 @@ parameters:
 			path: src/Crypt/PosNetV1PosCrypt.php
 
 		-
+			message: '#^Offset ''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular''\|null might not exist on array\<''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular'', string\>\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/DataMapper/RequestDataMapper/AbstractRequestDataMapper.php
+
+		-
 			message: '#^Parameter \#1 \$currency of method Mews\\Pos\\DataMapper\\RequestDataMapper\\AkbankPosRequestDataMapper\:\:mapCurrency\(\) expects ''EUR''\|''GBP''\|''JPY''\|''RUB''\|''TRY''\|''USD'', string given\.$#'
 			identifier: argument.type
 			count: 5

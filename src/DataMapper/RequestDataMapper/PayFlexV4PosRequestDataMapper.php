@@ -117,7 +117,7 @@ class PayFlexV4PosRequestDataMapper extends AbstractRequestDataMapper
             'FailureUrl'                => $order['fail_url'],
             'Pan'                       => $creditCard->getNumber(),
             'ExpiryDate'                => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
-            'BrandName'                 => $this->cardTypeMapping[$creditCard->getType()],
+            'BrandName'                 => $creditCard->getType() !== null ? $this->cardTypeMapping[$creditCard->getType()] : null,
             'IsRecurring'               => 'false',
         ];
         if ($order['installment']) {

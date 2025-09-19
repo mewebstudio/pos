@@ -55,7 +55,7 @@ class VakifKatilimPos extends AbstractGateway
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_HISTORY        => true,
         PosInterface::TX_TYPE_ORDER_HISTORY  => true,
-        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => false,
     ];
 
     /** @return KuveytPosAccount */
@@ -315,6 +315,10 @@ class VakifKatilimPos extends AbstractGateway
             PosInterface::TX_TYPE_HISTORY        => 'SelectOrder',
         ];
 
+        if (!isset($arr[$txType])) {
+            throw new UnsupportedTransactionTypeException();
+        }
+
         if (\is_string($arr[$txType])) {
             return $arr[$txType];
         }
@@ -323,10 +327,14 @@ class VakifKatilimPos extends AbstractGateway
             throw new UnsupportedTransactionTypeException();
         }
 
-        if (\is_array($arr[$txType][$paymentModel])) {
-            return $arr[$txType][$paymentModel][$orderTxType];
+        if (\is_string($arr[$txType][$paymentModel])) {
+            return  $arr[$txType][$paymentModel];
         }
 
-        return $arr[$txType][$paymentModel];
+        if (!isset($arr[$txType][$paymentModel][$orderTxType])) {
+            throw new UnsupportedTransactionTypeException();
+        }
+
+        return $arr[$txType][$paymentModel][$orderTxType];
     }
 }

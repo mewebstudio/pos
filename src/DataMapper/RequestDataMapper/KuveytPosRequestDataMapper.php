@@ -142,7 +142,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
         if ($creditCard instanceof CreditCardInterface) {
             $requestData['CardHolderName']      = (string) $creditCard->getHolderName();
-            $requestData['CardType']            = $this->cardTypeMapping[$creditCard->getType()];
+            $requestData['CardType']            = $creditCard->getType() !== null ? $this->cardTypeMapping[$creditCard->getType()] : '';
             $requestData['CardNumber']          = $creditCard->getNumber();
             $requestData['CardExpireDateYear']  = $creditCard->getExpireYear(self::CREDIT_CARD_EXP_YEAR_FORMAT);
             $requestData['CardExpireDateMonth'] = $creditCard->getExpireMonth(self::CREDIT_CARD_EXP_MONTH_FORMAT);

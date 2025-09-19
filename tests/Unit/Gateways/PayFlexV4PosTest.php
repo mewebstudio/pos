@@ -252,6 +252,55 @@ class PayFlexV4PosTest extends TestCase
         $this->assertSame(['3d-form-data'], $result);
     }
 
+
+    /**
+     * @return void
+     *
+     * @throws Exception
+     */
+    public function testGet3DFormDataSubMerchantSuccess(): void
+    {
+        $enrollmentResponse = PayFlexV4PosRequestDataMapperTest::getSampleEnrollmentSuccessResponseDataProvider();
+        $txType             = PosInterface::TX_TYPE_PAY_AUTH;
+        $paymentModel       = PosInterface::MODEL_3D_SECURE;
+        $card               = $this->card;
+        $order              = $this->order;
+        $requestData        = ['request-data'];
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DEnrollmentCheckRequestData')
+            ->with($this->pos->getAccount(), $order, $card)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $this->config['gateway_endpoints']['gateway_3d'],
+            $requestData,
+            $requestData,
+            'response-body',
+            $enrollmentResponse,
+            $order,
+            $paymentModel
+        );
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DFormData')
+            ->with(
+                $this->pos->getAccount(),
+                null,
+                $paymentModel,
+                $txType,
+                '',
+                null,
+                $enrollmentResponse['Message']['VERes']
+            )
+            ->willReturn(['3d-form-data']);
+
+        $result = $this->pos->get3DFormData($order, $paymentModel, $txType, $card);
+
+        $this->assertSame(['3d-form-data'], $result);
+    }
+
     /**
      * @dataProvider make3DPaymentDataProvider
      */

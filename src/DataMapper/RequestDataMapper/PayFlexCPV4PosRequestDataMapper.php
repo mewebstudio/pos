@@ -127,7 +127,7 @@ class PayFlexCPV4PosRequestDataMapper extends AbstractRequestDataMapper
 
         if ($creditCard instanceof CreditCardInterface) {
             $requestData += [
-                'BrandNumber'     => $this->cardTypeMapping[$creditCard->getType()],
+                'BrandNumber'     => $creditCard->getType() !== null ? $this->cardTypeMapping[$creditCard->getType()] : '',
                 'CVV'             => $creditCard->getCvv(),
                 'PAN'             => $creditCard->getNumber(),
                 'ExpireMonth'     => $creditCard->getExpireMonth(),
