@@ -146,6 +146,7 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
      * @return string
      *
      * @throws UnsupportedTransactionTypeException
+     * @throws \InvalidArgumentException
      */
     public function mapTxType(string $txType, ?string $paymentModel = null): string
     {
@@ -158,32 +159,6 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
         }
 
         return $this->txTypeMappings[$txType][$paymentModel];
-    }
-
-    /**
-     * @phpstan-param PosInterface::TX_TYPE_*    $txType
-     * @phpstan-param PosInterface::MODEL_*|null $paymentModel
-     *
-     * @param string      $txType
-     * @param string|null $paymentModel
-     *
-     * @return bool
-     */
-    public function isSupportedTxType(string $txType, ?string $paymentModel = null): bool
-    {
-        if (!isset($this->txTypeMappings[$txType])) {
-            return false;
-        }
-
-        if (\is_array($this->txTypeMappings[$txType])) {
-            if (null === $paymentModel) {
-                return false;
-            }
-
-            return isset($this->txTypeMappings[$txType][$paymentModel]);
-        }
-
-        return true;
     }
 
     /**
@@ -334,5 +309,35 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
     protected function prepareOrderHistoryOrder(array $order): array
     {
         return $order;
+    }
+
+    /**
+     * @phpstan-param PosInterface::TX_TYPE_*    $txType
+     * @phpstan-param PosInterface::MODEL_*|null $paymentModel
+     *
+     * @param string      $txType
+     * @param string|null $paymentModel
+     *
+     * @return bool
+     *
+     * @throws \InvalidArgumentException
+     */
+    private function isSupportedTxType(string $txType, ?string $paymentModel = null): bool
+    {
+        if (!isset($this->txTypeMappings[$txType])) {
+            return false;
+        }
+
+        if (\is_array($this->txTypeMappings[$txType])) {
+            if (null === $paymentModel) {
+                throw new \InvalidArgumentException(
+                    sprintf('$paymentModel must be provided for the transaction type %s', $txType)
+                );
+            }
+
+            return isset($this->txTypeMappings[$txType][$paymentModel]);
+        }
+
+        return true;
     }
 }

@@ -108,7 +108,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
                 'InstallmentCount' => $this->mapInstallment((int) $order['installment']),
                 'MOTO'             => self::MOTO,
                 'Lang'             => $this->getLang($posAccount, $order),
-                'CardType'         => $this->cardTypeMapping[$creditCard->getType()],
+                'CardType'         => $creditCard->getType() !== null ? $this->cardTypeMapping[$creditCard->getType()] : null,
                 'Pan'              => $creditCard->getNumber(),
                 'Expiry'           => $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT),
                 'Cvv2'             => $creditCard->getCvv(),
@@ -227,7 +227,7 @@ class InterPosRequestDataMapper extends AbstractRequestDataMapper
         ];
 
         if ($creditCard instanceof CreditCardInterface) {
-            $inputs['CardType'] = $this->cardTypeMapping[$creditCard->getType()];
+            $inputs['CardType'] = $creditCard->getType() !== null ? $this->cardTypeMapping[$creditCard->getType()] : '';
             $inputs['Pan']      = $creditCard->getNumber();
             $inputs['Expiry']   = $creditCard->getExpirationDate(self::CREDIT_CARD_EXP_DATE_FORMAT);
             $inputs['Cvv2']     = $creditCard->getCvv();

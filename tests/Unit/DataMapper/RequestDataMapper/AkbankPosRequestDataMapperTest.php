@@ -99,6 +99,15 @@ class AkbankPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->mapTxType($txType);
     }
 
+    /**
+     * @testWith ["pre", null]
+     */
+    public function testMapTxTypeInvArgException(string $txType, ?string $paymentModel): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->requestDataMapper->mapTxType($txType, $paymentModel);
+    }
+
 
     /**
      * @return void
