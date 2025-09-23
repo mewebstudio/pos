@@ -28,6 +28,7 @@ interface RequestValueMapperInterface
      * @return string
      *
      * @throws UnsupportedTransactionTypeException
+     * @throws \InvalidArgumentException
      */
     public function mapTxType(string $txType, ?string $paymentModel = null, ?array $order = []): string;
 

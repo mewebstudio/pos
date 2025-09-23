@@ -179,6 +179,8 @@ abstract class AbstractRequestValueMapper implements RequestValueMapperInterface
      * @param string|null $paymentModel
      *
      * @return bool
+     *
+     * @throws \InvalidArgumentException
      */
     protected function isSupportedTxType(string $txType, ?string $paymentModel = null): bool
     {
@@ -188,7 +190,9 @@ abstract class AbstractRequestValueMapper implements RequestValueMapperInterface
 
         if (\is_array($this->txTypeMappings[$txType])) {
             if (null === $paymentModel) {
-                return false;
+                throw new \InvalidArgumentException(
+                    sprintf('$paymentModel must be provided for the transaction type %s', $txType)
+                );
             }
 
             return isset($this->txTypeMappings[$txType][$paymentModel]);
