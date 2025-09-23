@@ -34,7 +34,9 @@ class PayForPosCryptTest extends TestCase
             'QNB_API_KULLANICI_3DPAY',
             'UcBN0',
             PosInterface::MODEL_3D_SECURE,
-            '12345678'
+            '12345678',
+            PosInterface::LANG_TR,
+            PayForAccount::MBR_ID_ZIRAAT_KATILIM
         );
 
         $logger      = $this->createMock(LoggerInterface::class);

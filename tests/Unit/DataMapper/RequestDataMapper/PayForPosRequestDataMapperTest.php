@@ -25,7 +25,10 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  */
 class PayForPosRequestDataMapperTest extends TestCase
 {
-    private PayForAccount $account;
+    /**
+     * @var PayForAccount[]
+     */
+    private array $accounts;
 
     private CreditCardInterface $card;
 
@@ -41,13 +44,26 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         parent::setUp();
 
-        $this->account = AccountFactory::createPayForAccount(
+        $this->accounts['finansbank'] = AccountFactory::createPayForAccount(
             'qnbfinansbank-payfor',
             '085300000009704',
             'QNB_API_KULLANICI_3DPAY',
             'UcBN0',
             PosInterface::MODEL_3D_SECURE,
-            '12345678'
+            '12345678',
+            PosInterface::LANG_TR,
+            PayForAccount::MBR_ID_FINANSBANK
+        );
+
+        $this->accounts['ziraat_katilim'] = AccountFactory::createPayForAccount(
+            'ziraat-katilim',
+            '085300000009704',
+            'ZIRAATKATILIM_API_KULLANICI_3DPAY',
+            'UcBN0',
+            PosInterface::MODEL_3D_SECURE,
+            '12345678',
+            PosInterface::LANG_TR,
+            PayForAccount::MBR_ID_ZIRAAT_KATILIM
         );
 
         $this->crypt      = $this->createMock(CryptInterface::class);
@@ -110,9 +126,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createNonSecurePostAuthPaymentRequestDataDataProvider
      */
-    public function testCreateNonSecurePostAuthPaymentRequestData(array $order, array $expected): void
+    public function testCreateNonSecurePostAuthPaymentRequestData(string $account, array $order, array $expected): void
     {
-        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->account, $order);
+        $actual = $this->requestDataMapper->createNonSecurePostAuthPaymentRequestData($this->accounts[$account], $order);
 
         $this->assertSame($expected, $actual);
     }
@@ -120,10 +136,10 @@ class PayForPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider nonSecurePaymentRequestDataProvider
      */
-    public function testCreateNonSecurePaymentRequestData(array $order, string $txType, array $expected): void
+    public function testCreateNonSecurePaymentRequestData(string $account, array $order, string $txType, array $expected): void
     {
         $actual = $this->requestDataMapper->createNonSecurePaymentRequestData(
-            $this->account,
+            $this->accounts[$account],
             $order,
             $txType,
             $this->card
@@ -135,9 +151,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createCancelRequestDataDataProvider
      */
-    public function testCreateCancelRequestData(array $order, array $expected): void
+    public function testCreateCancelRequestData(string $account, array $order, array $expected): void
     {
-        $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
+        $actual = $this->requestDataMapper->createCancelRequestData($this->accounts[$account], $order);
 
         $this->assertSame($expected, $actual);
     }
@@ -145,9 +161,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider orderHistoryRequestDataProvider
      */
-    public function testOrderCreateHistoryRequestData(array $order, array $expectedData): void
+    public function testOrderCreateHistoryRequestData(string $account, array $order, array $expectedData): void
     {
-        $actualData = $this->requestDataMapper->createOrderHistoryRequestData($this->account, $order);
+        $actualData = $this->requestDataMapper->createOrderHistoryRequestData($this->accounts[$account], $order);
 
         \ksort($expectedData);
         \ksort($actualData);
@@ -157,9 +173,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider historyRequestDataProvider
      */
-    public function testCreateHistoryRequestData(array $data, array $expectedData): void
+    public function testCreateHistoryRequestData(string $account, array $data, array $expectedData): void
     {
-        $actualData = $this->requestDataMapper->createHistoryRequestData($this->account, $data);
+        $actualData = $this->requestDataMapper->createHistoryRequestData($this->accounts[$account], $data);
 
         \ksort($expectedData);
         \ksort($actualData);
@@ -170,9 +186,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider create3DPaymentRequestDataDataProvider
      */
-    public function testCreate3DPaymentRequestData(array $order, array $responseData, array $expected): void
+    public function testCreate3DPaymentRequestData(string $account, array $order, array $responseData, array $expected): void
     {
-        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->account, $order, '', $responseData);
+        $actual = $this->requestDataMapper->create3DPaymentRequestData($this->accounts[$account], $order, '', $responseData);
 
         $this->assertSame($expected, $actual);
     }
@@ -181,6 +197,7 @@ class PayForPosRequestDataMapperTest extends TestCase
      * @dataProvider threeDFormDataProvider
      */
     public function testGet3DFormData(
+        string $account,
         array  $order,
         string $gatewayURL,
         string $txType,
@@ -207,7 +224,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                 && count($dispatchedEvent->getFormInputs()) > 3));
 
         $actual = $this->requestDataMapper->create3DFormData(
-            $this->account,
+            $this->accounts[$account],
             $order,
             $paymentModel,
             $txType,
@@ -221,9 +238,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createStatusRequestDataDataProvider
      */
-    public function testCreateStatusRequestData(array $order, array $expected): void
+    public function testCreateStatusRequestData(string $account, array $order, array $expected): void
     {
-        $actualData = $this->requestDataMapper->createStatusRequestData($this->account, $order);
+        $actualData = $this->requestDataMapper->createStatusRequestData($this->accounts[$account], $order);
 
         $this->assertSame($expected, $actualData);
     }
@@ -231,9 +248,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider refundRequestDataProvider
      */
-    public function testCreateRefundRequestData(array $order, string $txType, array $expectedData): void
+    public function testCreateRefundRequestData(string $account, array $order, string $txType, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
+        $actual = $this->requestDataMapper->createRefundRequestData($this->accounts[$account], $order, $txType);
 
         \ksort($expectedData);
         \ksort($actual);
@@ -243,9 +260,9 @@ class PayForPosRequestDataMapperTest extends TestCase
     /**
      * @dataProvider createCustomQueryRequestDataDataProvider
      */
-    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    public function testCreateCustomQueryRequestData(string $account, array $requestData, array $expectedData): void
     {
-        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
+        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->accounts[$account], $requestData);
 
         \ksort($actual);
         \ksort($expectedData);
@@ -255,6 +272,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     public static function createCustomQueryRequestDataDataProvider(): \Generator
     {
         yield 'without_account_data_point_inquiry' => [
+            'account'      => 'finansbank',
             'request_data' => [
                 'SecureType'     => 'Inquiry',
                 'TxnType'        => 'ParaPuanInquiry',
@@ -276,6 +294,7 @@ class PayForPosRequestDataMapperTest extends TestCase
         ];
 
         yield 'with_account_data_point_inquiry' => [
+            'account'      => 'finansbank',
             'request_data' => [
                 'Cvv2'           => '123',
                 'Expiry'         => '0125',
@@ -299,12 +318,35 @@ class PayForPosRequestDataMapperTest extends TestCase
                 'UserPass'       => 'UcBN0xxx',
             ],
         ];
+
+        yield 'without_account_data_point_inquiry_ziraat_katilim' => [
+            'account'      => 'ziraat_katilim',
+            'request_data' => [
+                'SecureType'     => 'Inquiry',
+                'TxnType'        => 'ParaPuanInquiry',
+                'Pan'            => '4155650100416111',
+                'Expiry'         => '0125',
+                'Cvv2'           => '123',
+            ],
+            'expected'     => [
+                'Cvv2'           => '123',
+                'Expiry'         => '0125',
+                'MbrId'          => '12',
+                'MerchantId'     => '085300000009704',
+                'Pan'            => '4155650100416111',
+                'SecureType'     => 'Inquiry',
+                'TxnType'        => 'ParaPuanInquiry',
+                'UserCode'       => 'ZIRAATKATILIM_API_KULLANICI_3DPAY',
+                'UserPass'       => 'UcBN0',
+            ],
+        ];
     }
 
     public static function create3DPaymentRequestDataDataProvider(): array
     {
         return [
             [
+                'account'       => 'finansbank',
                 'order'         => [
                     'id' => '2020110828BC',
 
@@ -327,6 +369,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         return [
             [
+                'account'  => 'finansbank',
                 'order'    => [
                     'id'       => '2020110828BC',
                     'currency' => PosInterface::CURRENCY_TRY,
@@ -343,6 +386,24 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'Lang'       => 'tr',
                 ],
             ],
+            [
+                'account'  => 'ziraat_katilim',
+                'order'    => [
+                    'id'       => '2020110828BC',
+                    'currency' => PosInterface::CURRENCY_TRY,
+                ],
+                'expected' => [
+                    'MerchantId' => '085300000009704',
+                    'UserCode'   => 'ZIRAATKATILIM_API_KULLANICI_3DPAY',
+                    'UserPass'   => 'UcBN0',
+                    'MbrId'      => '12',
+                    'OrgOrderId' => '2020110828BC',
+                    'SecureType' => 'NonSecure',
+                    'TxnType'    => 'Void',
+                    'Currency'   => '949',
+                    'Lang'       => 'tr',
+                ],
+            ],
         ];
     }
 
@@ -350,6 +411,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         return [
             [
+                'account'   => 'finansbank',
                 'order'    => [
                     'id'     => '2020110828BC',
                     'amount' => 100.01,
@@ -374,25 +436,70 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'Cvv2'             => '123',
                 ],
             ],
+            [
+                'account'   => 'ziraat_katilim',
+                'order'    => [
+                    'id'     => '2020110828BC',
+                    'amount' => 100.01,
+                ],
+                'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
+                'expected' => [
+                    'MerchantId'       => '085300000009704',
+                    'UserCode'         => 'ZIRAATKATILIM_API_KULLANICI_3DPAY',
+                    'UserPass'         => 'UcBN0',
+                    'MbrId'            => '12',
+                    'MOTO'             => '0',
+                    'OrderId'          => '2020110828BC',
+                    'SecureType'       => 'NonSecure',
+                    'TxnType'          => 'Auth',
+                    'PurchAmount'      => '100.01',
+                    'Currency'         => '949',
+                    'InstallmentCount' => '0',
+                    'Lang'             => 'tr',
+                    'CardHolderName'   => 'ahmet',
+                    'Pan'              => '5555444433332222',
+                    'Expiry'           => '0122',
+                    'Cvv2'             => '123',
+                ],
+            ],
         ];
     }
 
     public static function createNonSecurePostAuthPaymentRequestDataDataProvider(): array
     {
+        $order = [
+            'id'          => '2020110828BC',
+            'amount'      => 100.01,
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+            'lang'        => PosInterface::LANG_TR,
+        ];
+
         return [
             [
-                'order'    => [
-                    'id'          => '2020110828BC',
-                    'amount'      => 100.01,
-                    'installment' => 0,
-                    'currency'    => PosInterface::CURRENCY_TRY,
-                    'lang'        => PosInterface::LANG_TR,
-                ],
+                'account'  => 'finansbank',
+                'order'    => $order,
                 'expected' => [
                     'MerchantId'  => '085300000009704',
                     'UserCode'    => 'QNB_API_KULLANICI_3DPAY',
                     'UserPass'    => 'UcBN0',
                     'MbrId'       => '5',
+                    'OrgOrderId'  => '2020110828BC',
+                    'SecureType'  => 'NonSecure',
+                    'TxnType'     => 'PostAuth',
+                    'PurchAmount' => '100.01',
+                    'Currency'    => '949',
+                    'Lang'        => 'tr',
+                ],
+            ],
+            [
+                'account'  => 'ziraat_katilim',
+                'order'    => $order,
+                'expected' => [
+                    'MerchantId'  => '085300000009704',
+                    'UserCode'    => 'ZIRAATKATILIM_API_KULLANICI_3DPAY',
+                    'UserPass'    => 'UcBN0',
+                    'MbrId'       => '12',
                     'OrgOrderId'  => '2020110828BC',
                     'SecureType'  => 'NonSecure',
                     'TxnType'     => 'PostAuth',
@@ -409,6 +516,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         return [
             [
+                'account'  => 'finansbank',
                 'order'    => [
                     'id' => '2020110828BC',
                 ],
@@ -423,7 +531,22 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'TxnType'    => 'OrderInquiry',
                 ],
             ],
-
+            [
+                'account'  => 'ziraat_katilim',
+                'order'    => [
+                    'id' => '2020110828BC',
+                ],
+                'expected' => [
+                    'MerchantId' => '085300000009704',
+                    'UserCode'   => 'ZIRAATKATILIM_API_KULLANICI_3DPAY',
+                    'UserPass'   => 'UcBN0',
+                    'MbrId'      => '12',
+                    'OrgOrderId' => '2020110828BC',
+                    'SecureType' => 'Inquiry',
+                    'Lang'       => 'tr',
+                    'TxnType'    => 'OrderInquiry',
+                ],
+            ],
         ];
     }
 
@@ -431,6 +554,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         return [
             [
+                'account'  => 'finansbank',
                 'order'    => [
                     'id' => '2020110828BC',
                 ],
@@ -445,6 +569,22 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'OrderId'    => '2020110828BC',
                 ],
             ],
+            [
+                'account'  => 'ziraat_katilim',
+                'order'    => [
+                    'id' => '2020110828BC',
+                ],
+                'expected' => [
+                    'MerchantId' => '085300000009704',
+                    'UserCode'   => 'ZIRAATKATILIM_API_KULLANICI_3DPAY',
+                    'UserPass'   => 'UcBN0',
+                    'MbrId'      => '12',
+                    'SecureType' => 'Report',
+                    'TxnType'    => 'TxnHistory',
+                    'Lang'       => 'tr',
+                    'OrderId'    => '2020110828BC',
+                ],
+            ],
         ];
     }
 
@@ -452,6 +592,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         return [
             [
+                'account'  => 'finansbank',
                 'data'     => [
                     'transaction_date' => new \DateTime('2022-05-18'),
                 ],
@@ -460,6 +601,22 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'UserCode'   => 'QNB_API_KULLANICI_3DPAY',
                     'UserPass'   => 'UcBN0',
                     'MbrId'      => '5',
+                    'SecureType' => 'Report',
+                    'TxnType'    => 'TxnHistory',
+                    'Lang'       => 'tr',
+                    'ReqDate'    => '20220518',
+                ],
+            ],
+            [
+                'account'  => 'ziraat_katilim',
+                'data'     => [
+                    'transaction_date' => new \DateTime('2022-05-18'),
+                ],
+                'expected' => [
+                    'MerchantId' => '085300000009704',
+                    'UserCode'   => 'ZIRAATKATILIM_API_KULLANICI_3DPAY',
+                    'UserPass'   => 'UcBN0',
+                    'MbrId'      => '12',
                     'SecureType' => 'Report',
                     'TxnType'    => 'TxnHistory',
                     'Lang'       => 'tr',
@@ -483,6 +640,7 @@ class PayForPosRequestDataMapperTest extends TestCase
 
         return [
             'without_card' => [
+                'account'      => 'finansbank',
                 'order'        => $order,
                 'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
                 'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
@@ -510,6 +668,7 @@ class PayForPosRequestDataMapperTest extends TestCase
                 ],
             ],
             'with_card'    => [
+                'account'      => 'finansbank',
                 'order'        => $order,
                 'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
                 'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
@@ -540,7 +699,40 @@ class PayForPosRequestDataMapperTest extends TestCase
                     ],
                 ],
             ],
+            'with_card_ziraat_katilim'    => [
+                'account'      => 'ziraat_katilim',
+                'order'        => $order,
+                'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
+                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
+                'paymentModel' => PosInterface::MODEL_3D_SECURE,
+                'isWithCard'   => true,
+                'expected'     => [
+                    'gateway' => 'https://vpostest.qnbfinansbank.com/Gateway/Default.aspx',
+                    'method'  => 'POST',
+                    'inputs'  => [
+                        'MbrId'            => '12',
+                        'MerchantID'       => '085300000009704',
+                        'UserCode'         => 'ZIRAATKATILIM_API_KULLANICI_3DPAY',
+                        'OrderId'          => '2020110828BC',
+                        'Lang'             => 'tr',
+                        'SecureType'       => '3DModel',
+                        'TxnType'          => 'Auth',
+                        'PurchAmount'      => '100.01',
+                        'InstallmentCount' => '0',
+                        'Currency'         => '949',
+                        'OkUrl'            => 'http://localhost/finansbank-payfor/3d/success.php',
+                        'FailUrl'          => 'http://localhost/finansbank-payfor/3d/fail.php',
+                        'Rnd'              => '1deda47050cd38112cbf91f4',
+                        'CardHolderName'   => 'ahmet',
+                        'Pan'              => '5555444433332222',
+                        'Expiry'           => '0122',
+                        'Cvv2'             => '123',
+                        'Hash'             => 'BSj3xu8dYQbdw5YM4JvTS+vmyUI=',
+                    ],
+                ],
+            ],
             '3d_host'      => [
+                'account'      => 'finansbank',
                 'order'        => $order,
                 'gatewayUrl'   => 'https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx',
                 'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
@@ -574,6 +766,7 @@ class PayForPosRequestDataMapperTest extends TestCase
     {
         return [
             'full_refund'    => [
+                'account'  => 'finansbank',
                 'order'    => [
                     'id'       => '7022b92e-3aa1-44fb-86d4-33658c700c80',
                     'currency' => PosInterface::CURRENCY_TRY,
@@ -593,7 +786,29 @@ class PayForPosRequestDataMapperTest extends TestCase
                     'UserPass'    => 'UcBN0',
                 ],
             ],
+            'full_refund_ziraat_katilim'    => [
+                'account'  => 'ziraat_katilim',
+                'order'    => [
+                    'id'       => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'currency' => PosInterface::CURRENCY_TRY,
+                    'amount'   => 5,
+                ],
+                'txType'   => PosInterface::TX_TYPE_REFUND,
+                'expected' => [
+                    'Currency'    => '949',
+                    'Lang'        => 'tr',
+                    'MbrId'       => '12',
+                    'MerchantId'  => '085300000009704',
+                    'OrgOrderId'  => '7022b92e-3aa1-44fb-86d4-33658c700c80',
+                    'PurchAmount' => '5',
+                    'SecureType'  => 'NonSecure',
+                    'TxnType'     => 'Refund',
+                    'UserCode'    => 'ZIRAATKATILIM_API_KULLANICI_3DPAY',
+                    'UserPass'    => 'UcBN0',
+                ],
+            ],
             'partial_refund' => [
+                'account'  => 'finansbank',
                 'order'    => [
                     'id'       => '7022b92e-3aa1-44fb-86d4-33658c700c80',
                     'currency' => PosInterface::CURRENCY_TRY,

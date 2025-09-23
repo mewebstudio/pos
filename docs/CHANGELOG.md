@@ -1,4 +1,18 @@
 # Changelog
+## [1.7.0] - 2025-09-25
+
+### New Features
+- **PayForPos** - `MbrId` (Kurum kodu) Account oluştururken tanımlanabilinir.
+  (issue #274 Ziraat Katılım bankası desteği).
+
+### Changed
+- **PayFlexV4Pos** - tekrarlanan ödeme için `startDate` parametresi eklendi.
+
+### Fixed
+- **PayFlexV4Pos** - provizyon kapatma işlemi çalışmıyor.
+
+
+# Changelog
 ## [1.6.0] - 2025-02-19
 
 ### New Features

@@ -78,26 +78,44 @@ class AccountFactory
     }
 
     /**
-     * @phpstan-param PosInterface::LANG_* $lang
-     * @phpstan-param PosInterface::MODEL_* $model
+     * @phpstan-param PosInterface::LANG_*    $lang
+     * @phpstan-param PosInterface::MODEL_*   $model
+     * @phpstan-param PayForAccount::MBR_ID_* $mbrId
      *
      * @param non-empty-string      $bank
-     * @param non-empty-string      $merchantId
-     * @param non-empty-string      $userCode
-     * @param non-empty-string      $userPassword
+     * @param non-empty-string      $merchantId   Üye işyeri numarası.
+     * @param non-empty-string      $userCode     Otorizasyon sistemi kullanıcı kodu.
+     * @param non-empty-string      $userPassword Otorizasyon sistemi kullanıcı şifresi.
      * @param non-empty-string      $model
-     * @param non-empty-string|null $merchantPass
+     * @param non-empty-string|null $merchantPass 3D Secure şifresidir.
      * @param non-empty-string      $lang
+     * @param non-empty-string      $mbrId        Kurum kodudur.
      *
      * @return PayForAccount
      *
      * @throws MissingAccountInfoException
      */
-    public static function createPayForAccount(string $bank, string $merchantId, string $userCode, string $userPassword, string $model = PosInterface::MODEL_NON_SECURE, ?string $merchantPass = null, string $lang = PosInterface::LANG_TR): PayForAccount
-    {
+    public static function createPayForAccount(
+        string  $bank,
+        string  $merchantId,
+        string  $userCode,
+        string  $userPassword,
+        string  $model = PosInterface::MODEL_NON_SECURE,
+        ?string $merchantPass = null,
+        string  $lang = PosInterface::LANG_TR,
+        string  $mbrId = PayForAccount::MBR_ID_FINANSBANK
+    ): PayForAccount {
         self::checkParameters($model, $merchantPass);
 
-        return new PayForAccount($bank, $merchantId, $userCode, $userPassword, $lang, $merchantPass);
+        return new PayForAccount(
+            $bank,
+            $merchantId,
+            $userCode,
+            $userPassword,
+            $lang,
+            $merchantPass,
+            $mbrId
+        );
     }
 
     /**

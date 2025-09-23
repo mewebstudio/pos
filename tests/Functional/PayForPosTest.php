@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Tests\Functional;
 
+use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Event\RequestDataPreparedEvent;
@@ -40,7 +41,9 @@ class PayForPosTest extends TestCase
             'QNB_API_KULLANICI_3DPAY',
             'UcBN0',
             PosInterface::MODEL_3D_SECURE,
-            '12345678'
+            '12345678',
+            PosInterface::LANG_TR,
+            PayForAccount::MBR_ID_FINANSBANK
         );
         $this->eventDispatcher = new EventDispatcher();
 
