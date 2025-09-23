@@ -86,7 +86,7 @@ class KuveytPosRequestValueMapperTest extends TestCase
 
     public function testGetCurrencyMappings(): void
     {
-        $this->assertCount(6, $this->valueMapper->getCurrencyMappings());
+        $this->assertCount(3, $this->valueMapper->getCurrencyMappings());
     }
 
     public function testGetTxTypeMappings(): void

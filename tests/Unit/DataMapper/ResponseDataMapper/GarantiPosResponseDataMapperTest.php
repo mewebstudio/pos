@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestValueMapper\GarantiPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\GarantiPosResponseValueFormatter;
+use Mews\Pos\DataMapper\ResponseValueMapper\GarantiPosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -31,12 +33,17 @@ class GarantiPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper = new GarantiPosRequestValueMapper();
-
-        $this->responseDataMapper = new GarantiPosResponseDataMapper(
+        $requestValueMapper     = new GarantiPosRequestValueMapper();
+        $responseValueFormatter = new GarantiPosResponseValueFormatter();
+        $responseValueMapper    = new GarantiPosResponseValueMapper(
             $requestValueMapper->getCurrencyMappings(),
             $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings(),
+            $requestValueMapper->getSecureTypeMappings()
+        );
+
+        $this->responseDataMapper = new GarantiPosResponseDataMapper(
+            $responseValueFormatter,
+            $responseValueMapper,
             $this->logger
         );
     }

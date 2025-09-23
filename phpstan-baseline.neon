@@ -127,12 +127,6 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
 
 		-
-			message: '#^Property Mews\\Pos\\DataMapper\\ResponseDataMapper\\AbstractResponseDataMapper\:\:\$secureTypeMappings \(array\<string, ''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular''\>\) does not accept non\-empty\-array\<1\|2\|3\|string, ''3d''\|''3d_host''\|''3d_pay''\|''3d_pay_hosting''\|''regular''\>\.$#'
-			identifier: assign.propertyType
-			count: 1
-			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
-
-		-
 			message: '#^Strict comparison using \=\=\= between ''3d_host'' and ''3d_host'' will always evaluate to true\.$#'
 			identifier: identical.alwaysTrue
 			count: 1

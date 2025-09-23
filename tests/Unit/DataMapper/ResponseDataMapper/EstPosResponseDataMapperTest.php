@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestValueMapper\EstPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\EstPosResponseValueFormatter;
+use Mews\Pos\DataMapper\ResponseValueMapper\EstPosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -31,12 +33,17 @@ class EstPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper = new EstPosRequestValueMapper();
-
-        $this->responseDataMapper = new EstPosResponseDataMapper(
+        $requestValueMapper     = new EstPosRequestValueMapper();
+        $responseValueFormatter = new EstPosResponseValueFormatter();
+        $responseValueMapper    = new EstPosResponseValueMapper(
             $requestValueMapper->getCurrencyMappings(),
             $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings(),
+            $requestValueMapper->getSecureTypeMappings()
+        );
+
+        $this->responseDataMapper = new EstPosResponseDataMapper(
+            $responseValueFormatter,
+            $responseValueMapper,
             $this->logger
         );
     }
