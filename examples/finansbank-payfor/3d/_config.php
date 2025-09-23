@@ -12,7 +12,9 @@ $account = \Mews\Pos\Factory\AccountFactory::createPayForAccount(
     'QNB_API_KULLANICI_3DPAY',
     'UcBN0',
     PosInterface::MODEL_3D_SECURE,
-    '12345678'
+    '12345678',
+    PosInterface::LANG_TR,
+    \Mews\Pos\Entity\Account\PayForAccount::MBR_ID_FINANSBANK // ya da PayForAccount::MBR_ID_ZIRAAT_KATILIM
 );
 
 $pos = getGateway($account, $eventDispatcher);

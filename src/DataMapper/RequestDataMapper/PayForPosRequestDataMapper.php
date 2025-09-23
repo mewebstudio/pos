@@ -7,6 +7,7 @@
 namespace Mews\Pos\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Entity\Account\PayForAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
 use Mews\Pos\Gateways\PayForPos;
@@ -17,12 +18,6 @@ use Mews\Pos\PosInterface;
  */
 class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 {
-    /**
-     * Kurum kodudur. (Banka tarafından verilir)
-     * @var string
-     */
-    private const MBR_ID = '5';
-
     /**
      * MOTO (Mail Order Telephone Order) 0 for false, 1 for true
      * @var string
@@ -76,6 +71,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     *
+     * @param PayForAccount $posAccount
+     *
      * @return array{MbrId: string, MOTO: string, OrderId: string, SecureType: string, TxnType: string, PurchAmount: string, Currency: string, InstallmentCount: string, Lang: string, CardHolderName: string|null, Pan: string, Expiry: string, Cvv2: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createNonSecurePaymentRequestData(AbstractPosAccount $posAccount, array $order, string $txType, CreditCardInterface $creditCard): array
@@ -100,6 +98,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     *
+     * @param PayForAccount $posAccount
+     *
      * @return array{MbrId: string, OrgOrderId: string, SecureType: string, TxnType: string, PurchAmount: string, Currency: string, Lang: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createNonSecurePostAuthPaymentRequestData(AbstractPosAccount $posAccount, array $order): array
@@ -118,6 +119,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     *
+     * @param PayForAccount $posAccount
+     *
      * @return array{MbrId: string, OrgOrderId: string, SecureType: string, Lang: string, TxnType: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createStatusRequestData(AbstractPosAccount $posAccount, array $order): array
@@ -134,6 +138,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     *
+     * @param PayForAccount $posAccount
+     *
      * @return array{MbrId: string, OrgOrderId: string, SecureType: string, TxnType: string, Currency: string, Lang: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createCancelRequestData(AbstractPosAccount $posAccount, array $order): array
@@ -151,6 +158,9 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     *
+     * @param PayForAccount $posAccount
+     *
      * @return array{MbrId: string, SecureType: string, Lang: string, OrgOrderId: string, TxnType: string, PurchAmount: string, Currency: string, MerchantId: string, UserCode: string, UserPass: string}
      */
     public function createRefundRequestData(AbstractPosAccount $posAccount, array $order, string $refundTxType): array
@@ -169,6 +179,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
 
     /**
      * {@inheritDoc}
+     *
+     * @param PayForAccount $posAccount
      */
     public function createOrderHistoryRequestData(AbstractPosAccount $posAccount, array $order): array
     {
@@ -185,6 +197,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param PayForAccount                               $posAccount
      * @param array{transaction_date: \DateTimeInterface} $data
      *
      * {@inheritDoc}
@@ -204,6 +217,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
+     * @param PayForAccount $posAccount
+     *
      * @inheritDoc
      */
     public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
@@ -214,6 +229,8 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     /**
      * {@inheritDoc}
      *
+     * @param PayForAccount $posAccount
+     *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
      */
     public function create3DFormData(AbstractPosAccount $posAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array
@@ -221,7 +238,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
         $order = $this->preparePaymentOrder($order);
 
         $inputs = [
-            'MbrId'            => self::MBR_ID,
+            'MbrId'            => $posAccount->getMbrId(),
             'MerchantID'       => $posAccount->getClientId(),
             'UserCode'         => $posAccount->getUsername(),
             'OrderId'          => (string) $order['id'],
@@ -327,7 +344,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
     }
 
     /**
-     * @param AbstractPosAccount $posAccount
+     * @param PayForAccount $posAccount
      *
      * @return array{MerchantId: string, UserCode: string, UserPass: string, MbrId: string}
      */
@@ -337,7 +354,7 @@ class PayForPosRequestDataMapper extends AbstractRequestDataMapper
             'MerchantId' => $posAccount->getClientId(),
             'UserCode'   => $posAccount->getUsername(),
             'UserPass'   => $posAccount->getPassword(),
-            'MbrId'      => self::MBR_ID,
+            'MbrId'      => $posAccount->getMbrId(),
         ];
     }
 }
