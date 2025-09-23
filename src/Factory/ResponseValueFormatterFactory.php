@@ -22,6 +22,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayFlexV4Pos;
@@ -44,20 +45,21 @@ class ResponseValueFormatterFactory
     public static function createForGateway(string $gatewayClass): ResponseValueFormatterInterface
     {
         $classMappings = [
-            AkbankPos::class       => BasicResponseValueFormatter::class,
-            EstPos::class          => EstPosResponseValueFormatter::class,
-            EstV3Pos::class        => EstPosResponseValueFormatter::class,
-            GarantiPos::class      => GarantiPosResponseValueFormatter::class,
-            InterPos::class        => InterPosResponseValueFormatter::class,
-            KuveytPos::class       => BoaPosResponseValueFormatter::class,
-            ParamPos::class        => ParamPosResponseValueFormatter::class,
-            PayFlexCPV4Pos::class  => BasicResponseValueFormatter::class,
-            PayFlexV4Pos::class    => BasicResponseValueFormatter::class,
-            PayForPos::class       => BasicResponseValueFormatter::class,
-            PosNet::class          => PosNetResponseValueFormatter::class,
-            PosNetV1Pos::class     => PosNetResponseValueFormatter::class,
-            ToslaPos::class        => ToslaPosResponseValueFormatter::class,
-            VakifKatilimPos::class => BoaPosResponseValueFormatter::class,
+            AkbankPos::class        => BasicResponseValueFormatter::class,
+            EstPos::class           => EstPosResponseValueFormatter::class,
+            EstV3Pos::class         => EstPosResponseValueFormatter::class,
+            GarantiPos::class       => GarantiPosResponseValueFormatter::class,
+            InterPos::class         => InterPosResponseValueFormatter::class,
+            KuveytPos::class        => BoaPosResponseValueFormatter::class,
+            KuveytSoapApiPos::class => BoaPosResponseValueFormatter::class,
+            ParamPos::class         => ParamPosResponseValueFormatter::class,
+            PayFlexCPV4Pos::class   => BasicResponseValueFormatter::class,
+            PayFlexV4Pos::class     => BasicResponseValueFormatter::class,
+            PayForPos::class        => BasicResponseValueFormatter::class,
+            PosNet::class           => PosNetResponseValueFormatter::class,
+            PosNetV1Pos::class      => PosNetResponseValueFormatter::class,
+            ToslaPos::class         => ToslaPosResponseValueFormatter::class,
+            VakifKatilimPos::class  => BoaPosResponseValueFormatter::class,
         ];
 
         if (isset($classMappings[$gatewayClass])) {

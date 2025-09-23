@@ -24,7 +24,7 @@ use Symfony\Component\HttpFoundation\Request;
  * @deprecated use Mews\Pos\Gateways\EstV3Pos.
  * For security reasons this class which uses sha1 hashing algorithm is not recommended to use.
  */
-class EstPos extends AbstractGateway
+class EstPos extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'EstPos';

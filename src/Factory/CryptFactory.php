@@ -26,6 +26,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayForPos;
@@ -50,19 +51,20 @@ class CryptFactory
     public static function createGatewayCrypt(string $gatewayClass, LoggerInterface $logger): CryptInterface
     {
         $classMappings = [
-            AkbankPos::class       => AkbankPosCrypt::class,
-            EstPos::class          => EstPosCrypt::class,
-            EstV3Pos::class        => EstV3PosCrypt::class,
-            GarantiPos::class      => GarantiPosCrypt::class,
-            InterPos::class        => InterPosCrypt::class,
-            KuveytPos::class       => KuveytPosCrypt::class,
-            ParamPos::class        => ParamPosCrypt::class,
-            PayFlexCPV4Pos::class  => PayFlexCPV4Crypt::class,
-            PayForPos::class       => PayForPosCrypt::class,
-            PosNet::class          => PosNetCrypt::class,
-            PosNetV1Pos::class     => PosNetV1PosCrypt::class,
-            ToslaPos::class        => ToslaPosCrypt::class,
-            VakifKatilimPos::class => KuveytPosCrypt::class,
+            AkbankPos::class        => AkbankPosCrypt::class,
+            EstPos::class           => EstPosCrypt::class,
+            EstV3Pos::class         => EstV3PosCrypt::class,
+            GarantiPos::class       => GarantiPosCrypt::class,
+            InterPos::class         => InterPosCrypt::class,
+            KuveytPos::class        => KuveytPosCrypt::class,
+            KuveytSoapApiPos::class => KuveytPosCrypt::class,
+            ParamPos::class         => ParamPosCrypt::class,
+            PayFlexCPV4Pos::class   => PayFlexCPV4Crypt::class,
+            PayForPos::class        => PayForPosCrypt::class,
+            PosNet::class           => PosNetCrypt::class,
+            PosNetV1Pos::class      => PosNetV1PosCrypt::class,
+            ToslaPos::class         => ToslaPosCrypt::class,
+            VakifKatilimPos::class  => KuveytPosCrypt::class,
         ];
 
         if (isset($classMappings[$gatewayClass])) {

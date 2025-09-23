@@ -7,6 +7,9 @@ function getCustomRequestData(): array
     return [
         [
             'abc' => 'abc',
+            'VPosMessage' => [
+                'TransactionType' => 'CustomQuery',
+            ]
         ],
         null,
     ];

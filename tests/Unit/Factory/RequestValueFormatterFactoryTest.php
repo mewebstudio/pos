@@ -25,6 +25,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayForPos;
@@ -60,6 +61,7 @@ class RequestValueFormatterFactoryTest extends TestCase
             [GarantiPos::class, GarantiPosRequestValueFormatter::class],
             [InterPos::class, InterPosRequestValueFormatter::class],
             [KuveytPos::class, KuveytPosRequestValueFormatter::class],
+            [KuveytSoapApiPos::class, KuveytPosRequestValueFormatter::class],
             [VakifKatilimPos::class, VakifKatilimPosRequestValueFormatter::class],
             [ParamPos::class, ParamPosRequestValueFormatter::class],
             [PayForPos::class, PayForPosRequestValueFormatter::class],

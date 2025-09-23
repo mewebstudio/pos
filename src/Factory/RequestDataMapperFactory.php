@@ -14,6 +14,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\EstV3PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestDataMapper\KuveytSoapApiPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\ParamPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
@@ -31,6 +32,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayFlexV4Pos;
@@ -64,20 +66,21 @@ class RequestDataMapperFactory
         CryptInterface                 $crypt
     ): RequestDataMapperInterface {
         $classMappings = [
-            AkbankPos::class       => AkbankPosRequestDataMapper::class,
-            EstPos::class          => EstPosRequestDataMapper::class,
-            EstV3Pos::class        => EstV3PosRequestDataMapper::class,
-            GarantiPos::class      => GarantiPosRequestDataMapper::class,
-            InterPos::class        => InterPosRequestDataMapper::class,
-            KuveytPos::class       => KuveytPosRequestDataMapper::class,
-            ParamPos::class        => ParamPosRequestDataMapper::class,
-            PayFlexCPV4Pos::class  => PayFlexCPV4PosRequestDataMapper::class,
-            PayFlexV4Pos::class    => PayFlexV4PosRequestDataMapper::class,
-            PayForPos::class       => PayForPosRequestDataMapper::class,
-            PosNet::class          => PosNetRequestDataMapper::class,
-            PosNetV1Pos::class     => PosNetV1PosRequestDataMapper::class,
-            ToslaPos::class        => ToslaPosRequestDataMapper::class,
-            VakifKatilimPos::class => VakifKatilimPosRequestDataMapper::class,
+            AkbankPos::class        => AkbankPosRequestDataMapper::class,
+            EstPos::class           => EstPosRequestDataMapper::class,
+            EstV3Pos::class         => EstV3PosRequestDataMapper::class,
+            GarantiPos::class       => GarantiPosRequestDataMapper::class,
+            InterPos::class         => InterPosRequestDataMapper::class,
+            KuveytPos::class        => KuveytPosRequestDataMapper::class,
+            KuveytSoapApiPos::class => KuveytSoapApiPosRequestDataMapper::class,
+            ParamPos::class         => ParamPosRequestDataMapper::class,
+            PayFlexCPV4Pos::class   => PayFlexCPV4PosRequestDataMapper::class,
+            PayFlexV4Pos::class     => PayFlexV4PosRequestDataMapper::class,
+            PayForPos::class        => PayForPosRequestDataMapper::class,
+            PosNet::class           => PosNetRequestDataMapper::class,
+            PosNetV1Pos::class      => PosNetV1PosRequestDataMapper::class,
+            ToslaPos::class         => ToslaPosRequestDataMapper::class,
+            VakifKatilimPos::class  => VakifKatilimPosRequestDataMapper::class,
         ];
         if (isset($classMappings[$gatewayClass])) {
             return new $classMappings[$gatewayClass]($valueMapper, $valueFormatter, $eventDispatcher, $crypt);

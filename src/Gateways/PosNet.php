@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Class PosNet
  */
-class PosNet extends AbstractGateway
+class PosNet extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'PosNet';

@@ -53,7 +53,7 @@ function createCancelOrder(string $gatewayClass, array $lastResponse, string $ip
 
     if (\Mews\Pos\Gateways\GarantiPos::class === $gatewayClass) {
         $cancelOrder['amount'] = $lastResponse['amount'];
-    } elseif (\Mews\Pos\Gateways\KuveytPos::class === $gatewayClass) {
+    } elseif (\Mews\Pos\Gateways\KuveytSoapApiPos::class === $gatewayClass) {
         $cancelOrder['remote_order_id'] = $lastResponse['remote_order_id']; // banka tarafındaki order id
         $cancelOrder['auth_code']       = $lastResponse['auth_code'];
         $cancelOrder['transaction_id']  = $lastResponse['transaction_id'];

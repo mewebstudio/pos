@@ -141,7 +141,13 @@ return [
             'gateway_endpoints' => [
                 'payment_api' => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home',
                 'gateway_3d'  => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelPayGate',
-                'query_api'   => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
+            ],
+        ],
+        'kuveytsoappos'            => [
+            'name'              => 'KuveytSoapApiPos',
+            'class'             => Mews\Pos\Gateways\KuveytSoapApiPos::class,
+            'gateway_endpoints' => [
+                'payment_api' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
             ],
         ],
         'vakif-katilim'        => [

@@ -6,7 +6,7 @@
 
 namespace Mews\Pos\Tests\Unit\Gateways;
 
-use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestValueMapper\KuveytPosRequestValueMapper;
@@ -31,8 +31,9 @@ use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
- * @covers  \Mews\Pos\Gateways\KuveytPos
- * @covers  \Mews\Pos\Gateways\AbstractGateway
+ * @covers \Mews\Pos\Gateways\KuveytPos
+ * @covers \Mews\Pos\Gateways\AbstractHttpGateway
+ * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class KuveytPosTest extends TestCase
 {
@@ -58,7 +59,7 @@ class KuveytPosTest extends TestCase
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
 
-    /** @var HttpClient & MockObject */
+    /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
 
     /** @var LoggerInterface & MockObject */
@@ -115,7 +116,7 @@ class KuveytPosTest extends TestCase
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClient::class);
+        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
 
@@ -436,6 +437,24 @@ class KuveytPosTest extends TestCase
         $this->pos->makeRegularPostPayment([]);
     }
 
+    public function testStatusRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->status([]);
+    }
+
+    public function testRefundRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->refund([]);
+    }
+
+    public function testCancelRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->cancel([]);
+    }
+
     public function testHistoryRequest(): void
     {
         $this->expectException(UnsupportedTransactionTypeException::class);
@@ -538,26 +557,6 @@ class KuveytPosTest extends TestCase
                 'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel' => PosInterface::MODEL_NON_SECURE,
                 'expected'     => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/Non3DPayGate',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_REFUND_PARTIAL,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_CANCEL,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
-            ],
-            [
-                'txType'       => PosInterface::TX_TYPE_STATUS,
-                'paymentModel' => PosInterface::MODEL_NON_SECURE,
-                'expected'     => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
             ],
         ];
     }
