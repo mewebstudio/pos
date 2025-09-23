@@ -8,9 +8,20 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\Param3DHostPos;
+use Mews\Pos\Gateways\ParamPos;
 
 class ParamPosCrypt extends AbstractCrypt
 {
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return ParamPos::class === $gatewayClass
+            || Param3DHostPos::class === $gatewayClass;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -104,6 +115,7 @@ class ParamPosCrypt extends AbstractCrypt
         }
 
         $hashStr = \implode(static::HASH_SEPARATOR, $map);
+        /** @var string $hashStr */
         $hashStr = \mb_convert_encoding($hashStr, 'ISO-8859-9');
 
         return $this->hashString($hashStr, self::HASH_ALGORITHM);

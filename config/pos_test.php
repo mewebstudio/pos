@@ -16,8 +16,13 @@ return [
             'class'             => Mews\Pos\Gateways\ParamPos::class,
             'gateway_endpoints' => [
                 'payment_api'     => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
-                // API URL for 3D host payment
-                'payment_api_2'   => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
+            ],
+        ],
+        'param-3d-host-pos' => [
+            'name'              => 'TURK Elektronik Para A.Ş',
+            'class'             => Mews\Pos\Gateways\Param3DHostPos::class,
+            'gateway_endpoints' => [
+                'payment_api'     => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
                 'gateway_3d_host' => 'https://test-pos.param.com.tr/default.aspx',
             ],
         ],
@@ -120,7 +125,13 @@ return [
             'gateway_endpoints' => [
                 'payment_api' => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home',
                 'gateway_3d'  => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelPayGate',
-                'query_api'   => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
+            ],
+        ],
+        'kuveytsoappos'            => [
+            'name'              => 'KuveytSoapApiPos',
+            'class'             => Mews\Pos\Gateways\KuveytSoapApiPos::class,
+            'gateway_endpoints' => [
+                'payment_api' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
             ],
         ],
         'vakif-katilim'        => [

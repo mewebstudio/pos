@@ -9,10 +9,14 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 use Generator;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\VakifKatilimPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\VakifKatilimPosRequestValueMapper;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\VakifKatilimPos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -36,6 +40,10 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
     /** @var CryptInterface & MockObject */
     private CryptInterface $crypt;
 
+    private VakifKatilimPosRequestValueFormatter $valueFormatter;
+
+    private VakifKatilimPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -56,54 +64,26 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
             'John Doe',
         );
 
-        $this->dispatcher        = $this->createMock(EventDispatcherInterface::class);
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new VakifKatilimPosRequestDataMapper($this->dispatcher, $this->crypt);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new VakifKatilimPosRequestValueFormatter();
+        $this->valueMapper    = new VakifKatilimPosRequestValueMapper();
+
+        $this->requestDataMapper = new VakifKatilimPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
     }
 
-    /**
-     * @return void
-     */
-    public function testFormatAmount(): void
+    public function testSupports(): void
     {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('formatAmount');
-        $method->setAccessible(true);
-        $this->assertSame(0, $method->invokeArgs($this->requestDataMapper, [0]));
-        $this->assertSame(0, $method->invokeArgs($this->requestDataMapper, [0.0]));
-        $this->assertSame(1025, $method->invokeArgs($this->requestDataMapper, [10.25]));
-        $this->assertSame(1000, $method->invokeArgs($this->requestDataMapper, [10.00]));
-    }
+        $result = $this->requestDataMapper::supports(VakifKatilimPos::class);
+        $this->assertTrue($result);
 
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('0949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('0978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", "0"]
-     *           ["1", "0"]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**
@@ -116,15 +96,13 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
         string $paymentModel,
         array  $expected
     ): void {
-        if (PosInterface::MODEL_3D_HOST === $paymentModel) {
-            $hashCalculationData = $expected['inputs'];
-            unset($hashCalculationData['HashPassword']);
+        $hashCalculationData = $expected['inputs'];
+        unset($hashCalculationData['HashPassword']);
 
-            $this->crypt->expects(self::once())
-                ->method('hashString')
-                ->with($this->account->getStoreKey())
-                ->willReturn($expected['inputs']['HashPassword']);
-        }
+        $this->crypt->expects(self::once())
+            ->method('hashString')
+            ->with($this->account->getStoreKey())
+            ->willReturn($expected['inputs']['HashPassword']);
 
         $actual = $this->requestDataMapper->create3DFormData(
             $this->account,
@@ -135,6 +113,32 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
         );
 
         $this->assertSame($expected, $actual);
+    }
+
+    public function testGet3DFormDataUnsupportedPaymentModel(): void
+    {
+        $paymentModel = PosInterface::MODEL_3D_SECURE;
+        $txType = PosInterface::TX_TYPE_PAY_AUTH;
+        $gatewayURL = 'https://example.com/3d-gateway';
+        $this->crypt->expects(self::never())
+            ->method('hashString');
+
+        $order = [
+            'id'          => '123',
+            'amount'      => 10.0,
+            'installment' => 0,
+            'currency'    => PosInterface::CURRENCY_TRY,
+        ];
+
+        $this->expectException(\LogicException::class);
+
+        $this->requestDataMapper->create3DFormData(
+            $this->account,
+            $order,
+            $paymentModel,
+            $txType,
+            $gatewayURL,
+        );
     }
 
     /**
@@ -879,42 +883,11 @@ class VakifKatilimPosRequestDataMapperTest extends TestCase
                         'HashPassword'    => 'h58bUB83xQz2/21SUeOemUgkF5U=',
                         'MerchantId'      => '1',
                         'MerchantOrderId' => 'order222',
-                        'Amount'          => 10025,
+                        'Amount'          => '10025',
                         'FECCurrencyCode' => '0949',
                         'OkUrl'           => 'https://domain.com/success',
                         'FailUrl'         => 'https://domain.com/fail_url',
                         'PaymentType'     => '1',
-                    ],
-                ],
-            ],
-            '3d'      => [
-                'order'        => [
-                    'ResponseCode'    => '00',
-                    'ResponseMessage' => '',
-                    'ProvisionNumber' => 'prov-123',
-                    'MerchantOrderId' => 'order-123',
-                    'OrderId'         => 'bank-123',
-                    'RRN'             => 'rrn-123',
-                    'Stan'            => 'stan-123',
-                    'HashData'        => 'hash-123',
-                    'MD'              => 'ktSVkYJHcHSYM1ibA/nM6nObr8WpWdcw34ziyRQRLv06g7UR2r5LrpLeNvwfBwPz',
-                ],
-                'gatewayUrl'   => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'paymentModel' => PosInterface::MODEL_3D_SECURE,
-                'expected'     => [
-                    'gateway' => 'https://boa.vakifkatilim.com.tr/VirtualPOS.Gateway/Home/ThreeDModelPayGate',
-                    'method'  => 'POST',
-                    'inputs'  => [
-                        'ResponseCode'    => '00',
-                        'ResponseMessage' => '',
-                        'ProvisionNumber' => 'prov-123',
-                        'MerchantOrderId' => 'order-123',
-                        'OrderId'         => 'bank-123',
-                        'RRN'             => 'rrn-123',
-                        'Stan'            => 'stan-123',
-                        'HashData'        => 'hash-123',
-                        'MD'              => 'ktSVkYJHcHSYM1ibA/nM6nObr8WpWdcw34ziyRQRLv06g7UR2r5LrpLeNvwfBwPz',
                     ],
                 ],
             ],

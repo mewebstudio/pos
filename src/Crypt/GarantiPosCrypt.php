@@ -8,11 +8,20 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\GarantiPosAccount;
+use Mews\Pos\Gateways\GarantiPos;
 
 class GarantiPosCrypt extends AbstractCrypt
 {
     /** @var string */
     protected const HASH_ALGORITHM = 'sha512';
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return GarantiPos::class === $gatewayClass;
+    }
 
     /**
      * @param GarantiPosAccount $posAccount
@@ -30,7 +39,11 @@ class GarantiPosCrypt extends AbstractCrypt
             $formInputs['txntype'],
             $formInputs['txninstallmentcount'],
             $posAccount->getStoreKey(),
-            $this->createSecurityData($posAccount, $formInputs['terminalid'], $formInputs['txntype']),
+            $this->createSecurityData(
+                $posAccount,
+                (string) $formInputs['terminalid'],
+                (string) $formInputs['txntype']
+            ),
         ];
 
         return $this->hashStringUpperCase(\implode(static::HASH_SEPARATOR, $map), self::HASH_ALGORITHM);
