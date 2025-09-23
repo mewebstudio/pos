@@ -115,6 +115,18 @@ parameters:
 			path: src/DataMapper/ResponseDataMapper/PayFlexV4PosResponseDataMapper.php
 
 		-
+			message: '#^Parameter \#6 \$httpClient of static method Mews\\Pos\\Factory\\PosFactory\:\:doCreateHttpPosGateway\(\) expects Mews\\Pos\\Client\\HttpClientInterface\|null, Mews\\Pos\\Client\\HttpClientInterface\|Mews\\Pos\\Client\\SoapClientInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Factory/PosFactory.php
+
+		-
+			message: '#^Parameter \#6 \$soapClient of static method Mews\\Pos\\Factory\\PosFactory\:\:doCreateSoapPosGateway\(\) expects Mews\\Pos\\Client\\SoapClientInterface\|null, Mews\\Pos\\Client\\HttpClientInterface\|Mews\\Pos\\Client\\SoapClientInterface\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Factory/PosFactory.php
+
+		-
 			message: '#^Strict comparison using \=\=\= between ''3d_host'' and ''3d_host'' will always evaluate to true\.$#'
 			identifier: identical.alwaysTrue
 			count: 1

@@ -60,6 +60,7 @@ class RequestDataMapperFactoryTest extends TestCase
             [\Mews\Pos\Gateways\GarantiPos::class, \Mews\Pos\DataMapper\RequestDataMapper\GarantiPosRequestDataMapper::class],
             [\Mews\Pos\Gateways\InterPos::class, \Mews\Pos\DataMapper\RequestDataMapper\InterPosRequestDataMapper::class],
             [\Mews\Pos\Gateways\KuveytPos::class, \Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper::class],
+            [\Mews\Pos\Gateways\KuveytSoapApiPos::class, \Mews\Pos\DataMapper\RequestDataMapper\KuveytSoapApiPosRequestDataMapper::class],
             [\Mews\Pos\Gateways\ParamPos::class, \Mews\Pos\DataMapper\RequestDataMapper\ParamPosRequestDataMapper::class],
             [\Mews\Pos\Gateways\PayFlexCPV4Pos::class, \Mews\Pos\DataMapper\RequestDataMapper\PayFlexCPV4PosRequestDataMapper::class],
             [\Mews\Pos\Gateways\PayForPos::class, \Mews\Pos\DataMapper\RequestDataMapper\PayForPosRequestDataMapper::class],

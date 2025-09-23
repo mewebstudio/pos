@@ -7,7 +7,6 @@
 namespace Mews\Pos\Tests\Unit\Serializer;
 
 use Generator;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\KuveytPosSerializer;
@@ -48,25 +47,6 @@ class KuveytPosSerializerTest extends TestCase
 
         $this->assertSame($expected, $result->getData());
         $this->assertSame($expectedFormat, $result->getFormat());
-    }
-
-    public function testEncodeException(): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->serializer->encode(['abc' => 1], PosInterface::TX_TYPE_HISTORY);
-
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->serializer->encode(['abc' => 1], PosInterface::TX_TYPE_ORDER_HISTORY);
-    }
-
-    /**
-     * @dataProvider decodeJsonDataProvider
-     */
-    public function testDecodeJson(string $input, string $txType, array $expected): void
-    {
-        $actual = $this->serializer->decode($input, $txType);
-
-        $this->assertSame($expected, $actual);
     }
 
     /**
@@ -156,30 +136,6 @@ class KuveytPosSerializerTest extends TestCase
                 'AuthenticationPacket' => 'WYGDgSIrSHDtYwF/WEN+nfwX63sppA=',
                 'ACSURL'               => 'https://acs.bkm.com.tr/mdpayacs/pareq',
             ],
-        ];
-    }
-
-    public static function decodeJsonDataProvider(): Generator
-    {
-        yield 'test_cancel' => [
-            'input'    => '{"abc": 1}',
-            'txType'   => PosInterface::TX_TYPE_CANCEL,
-            'expected' => ['abc' => 1],
-        ];
-        yield 'test_refund' => [
-            'input'    => '{"abc": 1}',
-            'txType'   => PosInterface::TX_TYPE_REFUND,
-            'expected' => ['abc' => 1],
-        ];
-        yield 'test_status' => [
-            'input'    => '{"abc": 1}',
-            'txType'   => PosInterface::TX_TYPE_STATUS,
-            'expected' => ['abc' => 1],
-        ];
-        yield 'test_custom_query' => [
-            'input'    => '{"abc": 1}',
-            'txType'   => PosInterface::TX_TYPE_CUSTOM_QUERY,
-            'expected' => ['abc' => 1],
         ];
     }
 

@@ -12,6 +12,7 @@ use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\InterPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\KuveytPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseDataMapper\KuveytSoapApiPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ParamPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexCPV4PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
@@ -29,6 +30,7 @@ use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\GarantiPos;
 use Mews\Pos\Gateways\InterPos;
 use Mews\Pos\Gateways\KuveytPos;
+use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\Gateways\PayFlexV4Pos;
@@ -60,20 +62,21 @@ class ResponseDataMapperFactory
         LoggerInterface                 $logger
     ): ResponseDataMapperInterface {
         $classMappings = [
-            AkbankPos::class       => AkbankPosResponseDataMapper::class,
-            EstPos::class          => EstPosResponseDataMapper::class,
-            EstV3Pos::class        => EstPosResponseDataMapper::class,
-            GarantiPos::class      => GarantiPosResponseDataMapper::class,
-            InterPos::class        => InterPosResponseDataMapper::class,
-            KuveytPos::class       => KuveytPosResponseDataMapper::class,
-            ParamPos::class        => ParamPosResponseDataMapper::class,
-            PayFlexCPV4Pos::class  => PayFlexCPV4PosResponseDataMapper::class,
-            PayFlexV4Pos::class    => PayFlexV4PosResponseDataMapper::class,
-            PayForPos::class       => PayForPosResponseDataMapper::class,
-            PosNet::class          => PosNetResponseDataMapper::class,
-            PosNetV1Pos::class     => PosNetV1PosResponseDataMapper::class,
-            ToslaPos::class        => ToslaPosResponseDataMapper::class,
-            VakifKatilimPos::class => VakifKatilimPosResponseDataMapper::class,
+            AkbankPos::class        => AkbankPosResponseDataMapper::class,
+            EstPos::class           => EstPosResponseDataMapper::class,
+            EstV3Pos::class         => EstPosResponseDataMapper::class,
+            GarantiPos::class       => GarantiPosResponseDataMapper::class,
+            InterPos::class         => InterPosResponseDataMapper::class,
+            KuveytPos::class        => KuveytPosResponseDataMapper::class,
+            KuveytSoapApiPos::class => KuveytSoapApiPosResponseDataMapper::class,
+            ParamPos::class         => ParamPosResponseDataMapper::class,
+            PayFlexCPV4Pos::class   => PayFlexCPV4PosResponseDataMapper::class,
+            PayFlexV4Pos::class     => PayFlexV4PosResponseDataMapper::class,
+            PayForPos::class        => PayForPosResponseDataMapper::class,
+            PosNet::class           => PosNetResponseDataMapper::class,
+            PosNetV1Pos::class      => PosNetV1PosResponseDataMapper::class,
+            ToslaPos::class         => ToslaPosResponseDataMapper::class,
+            VakifKatilimPos::class  => VakifKatilimPosResponseDataMapper::class,
         ];
 
         if (isset($classMappings[$gatewayClass])) {

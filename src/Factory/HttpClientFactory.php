@@ -9,6 +9,7 @@ namespace Mews\Pos\Factory;
 use Http\Discovery\Psr17FactoryDiscovery;
 use Http\Discovery\Psr18ClientDiscovery;
 use Mews\Pos\Client\HttpClient;
+use Mews\Pos\Client\HttpClientInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\StreamFactoryInterface;
@@ -20,9 +21,9 @@ class HttpClientFactory
      * @param RequestFactoryInterface|null $requestFactory
      * @param StreamFactoryInterface|null  $streamFactory
      *
-     * @return HttpClient
+     * @return HttpClientInterface
      */
-    public static function createHttpClient(ClientInterface $client = null, RequestFactoryInterface $requestFactory = null, StreamFactoryInterface $streamFactory = null): HttpClient
+    public static function createHttpClient(ClientInterface $client = null, RequestFactoryInterface $requestFactory = null, StreamFactoryInterface $streamFactory = null): HttpClientInterface
     {
         $client ??= Psr18ClientDiscovery::find();
         $requestFactory ??= Psr17FactoryDiscovery::findRequestFactory();
@@ -36,9 +37,9 @@ class HttpClientFactory
     }
 
     /**
-     * @return HttpClient
+     * @return HttpClientInterface
      */
-    public static function createDefaultHttpClient(): HttpClient
+    public static function createDefaultHttpClient(): HttpClientInterface
     {
         return self::createHttpClient(
             Psr18ClientDiscovery::find(),

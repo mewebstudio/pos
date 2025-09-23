@@ -14,10 +14,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamFactoryInterface;
 
 /**
- * @phpstan-type PostPayload array{body: string, headers?: array<string, string>}
  * PSR18 HTTP Client wrapper
  */
-class HttpClient
+class HttpClient implements HttpClientInterface
 {
     protected ClientInterface $client;
 
@@ -41,10 +40,8 @@ class HttpClient
     }
 
     /**
-     * @phpstan-param PostPayload $payload
-     *
-     * @param string $path
-     * @param array  $payload
+     * @param string                                               $path
+     * @param array{body: string, headers?: array<string, string>} $payload
      *
      * @return ResponseInterface
      *
@@ -56,11 +53,9 @@ class HttpClient
     }
 
     /**
-     * @phpstan-param PostPayload $payload
-     *
-     * @param string $method
-     * @param string $path
-     * @param array  $payload
+     * @param string                                               $method
+     * @param string                                               $path
+     * @param array{body: string, headers?: array<string, string>} $payload
      *
      * @return ResponseInterface
      *
@@ -74,9 +69,7 @@ class HttpClient
     }
 
     /**
-     * @phpstan-param PostPayload $payload
-     *
-     * @param array $payload
+     * @param array{body: string, headers?: array<string, string>} $payload
      *
      * @return RequestInterface
      */
