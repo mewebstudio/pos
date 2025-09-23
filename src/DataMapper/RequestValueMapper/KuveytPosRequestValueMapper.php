@@ -20,9 +20,6 @@ class KuveytPosRequestValueMapper extends AbstractRequestValueMapper
         PosInterface::CURRENCY_TRY => '0949',
         PosInterface::CURRENCY_USD => '0840',
         PosInterface::CURRENCY_EUR => '0978',
-        PosInterface::CURRENCY_GBP => '0826',
-        PosInterface::CURRENCY_JPY => '0392',
-        PosInterface::CURRENCY_RUB => '0810',
     ];
 
     /**

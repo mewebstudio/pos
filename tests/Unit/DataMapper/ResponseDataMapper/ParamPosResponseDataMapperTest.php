@@ -6,8 +6,9 @@
 
 namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
-use Mews\Pos\DataMapper\RequestValueMapper\ParamPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ParamPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ParamPosResponseValueFormatter;
+use Mews\Pos\DataMapper\ResponseValueMapper\ParamPosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -21,6 +22,8 @@ use Psr\Log\LoggerInterface;
 class ParamPosResponseDataMapperTest extends TestCase
 {
     private ParamPosResponseDataMapper $responseDataMapper;
+    private ParamPosResponseValueFormatter $responseValueFormatter;
+    private ParamPosResponseValueMapper $responseValueMapper;
 
     /** @var LoggerInterface&MockObject */
     private LoggerInterface $logger;
@@ -31,13 +34,13 @@ class ParamPosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper = new ParamPosRequestValueMapper();
+        $this->responseValueFormatter = new ParamPosResponseValueFormatter();
+        $this->responseValueMapper    = new ParamPosResponseValueMapper([], [], []);
 
         $this->responseDataMapper = new ParamPosResponseDataMapper(
-            $requestValueMapper->getCurrencyMappings(),
-            $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings(),
-            $this->logger,
+            $this->responseValueFormatter,
+            $this->responseValueMapper,
+            $this->logger
         );
     }
 

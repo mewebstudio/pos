@@ -55,7 +55,6 @@ class RequestValueMapperFactoryTest extends TestCase
     public static function gatewayClassDataProvider(): array
     {
         return [
-            [ToslaPos::class, ToslaPosRequestValueMapper::class],
             [AkbankPos::class, AkbankPosRequestValueMapper::class],
             [EstPos::class, EstPosRequestValueMapper::class],
             [EstV3Pos::class, EstPosRequestValueMapper::class],

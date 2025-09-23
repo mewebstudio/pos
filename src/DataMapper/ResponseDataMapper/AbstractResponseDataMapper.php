@@ -6,6 +6,8 @@
 
 namespace Mews\Pos\DataMapper\ResponseDataMapper;
 
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\PosInterface;
 use Psr\Log\LoggerInterface;
 
@@ -14,98 +16,25 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     /** @var string */
     public const PROCEDURE_SUCCESS_CODE = '00';
 
+    protected ResponseValueFormatterInterface $valueFormatter;
+
+    protected ResponseValueMapperInterface $valueMapper;
+
     protected LoggerInterface $logger;
 
-    /** @var array<string|int, PosInterface::CURRENCY_*> */
-    protected array $currencyMappings;
-
-    /** @var array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>> */
-    protected array $txTypeMappings;
-
-    /** @var array<string, PosInterface::MODEL_*> */
-    protected array $secureTypeMappings;
-
     /**
-     * @param array<PosInterface::CURRENCY_*, string|int>                                 $currencyMappings
-     * @param array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>> $txTypeMappings
-     * @param array<PosInterface::MODEL_*, string>                                        $secureTypeMappings
-     * @param LoggerInterface                                                             $logger
+     * @param ResponseValueFormatterInterface $valueFormatter
+     * @param ResponseValueMapperInterface    $valueMapper
+     * @param LoggerInterface                 $logger
      */
-    public function __construct(array $currencyMappings, array $txTypeMappings, array $secureTypeMappings, LoggerInterface $logger)
-    {
+    public function __construct(
+        ResponseValueFormatterInterface $valueFormatter,
+        ResponseValueMapperInterface    $valueMapper,
+        LoggerInterface                 $logger
+    ) {
         $this->logger             = $logger;
-        $this->currencyMappings   = \array_flip($currencyMappings);
-        $this->txTypeMappings     = $txTypeMappings;
-        $this->secureTypeMappings = \array_flip($secureTypeMappings);
-    }
-
-    /**
-     * @return array<PosInterface::TX_TYPE_*, string|array<PosInterface::MODEL_*, string>>
-     */
-    public function getTxTypeMappings(): array
-    {
-        return $this->txTypeMappings;
-    }
-
-    /**
-     * @param string|int $txType
-     *
-     * @return PosInterface::TX_*|null
-     */
-    public function mapTxType($txType): ?string
-    {
-        foreach ($this->txTypeMappings as $mappedTxType => $mapping) {
-            if (\is_array($mapping) && \in_array($txType, $mapping, true)) {
-                return $mappedTxType;
-            }
-
-            if ($mapping === $txType) {
-                return $mappedTxType;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * @param string|int $securityType
-     *
-     * @return PosInterface::MODEL_*|null
-     */
-    public function mapSecurityType($securityType): ?string
-    {
-        return $this->secureTypeMappings[$securityType] ?? null;
-    }
-
-    /**
-     * "1000.01" => 1000.01
-     * @param string $amount
-     *
-     * @return float
-     */
-    protected function formatAmount(string $amount): float
-    {
-        return (float) $amount;
-    }
-
-    /**
-     * @param string $currency currency code that is accepted by bank
-     *
-     * @return PosInterface::CURRENCY_*|string
-     */
-    protected function mapCurrency(string $currency): string
-    {
-        return $this->currencyMappings[$currency] ?? $currency;
-    }
-
-    /**
-     * @param string|null $installment
-     *
-     * @return int
-     */
-    protected function mapInstallment(?string $installment): int
-    {
-        return (int) $installment;
+        $this->valueFormatter     = $valueFormatter;
+        $this->valueMapper        = $valueMapper;
     }
 
     /**
@@ -224,7 +153,7 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
 
     /**
      * bankadan gelen response'da bos string degerler var.
-     * bu metod ile bos string'leri null deger olarak degistiriyoruz
+     * bu method ile bos string'leri null deger olarak degistiriyoruz
      *
      * @param mixed $data
      *

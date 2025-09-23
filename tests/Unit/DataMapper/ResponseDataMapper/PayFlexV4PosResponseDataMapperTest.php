@@ -8,6 +8,8 @@ namespace Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper;
 
 use Mews\Pos\DataMapper\RequestValueMapper\PayFlexV4PosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\PayFlexV4PosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\BasicResponseValueFormatter;
+use Mews\Pos\DataMapper\ResponseValueMapper\PayFlexV4PosResponseValueMapper;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -31,12 +33,17 @@ class PayFlexV4PosResponseDataMapperTest extends TestCase
 
         $this->logger = $this->createMock(LoggerInterface::class);
 
-        $requestValueMapper = new PayFlexV4PosRequestValueMapper();
-
-        $this->responseDataMapper = new PayFlexV4PosResponseDataMapper(
+        $requestValueMapper     = new PayFlexV4PosRequestValueMapper();
+        $responseValueFormatter = new BasicResponseValueFormatter();
+        $responseValueMapper    = new PayFlexV4PosResponseValueMapper(
             $requestValueMapper->getCurrencyMappings(),
             $requestValueMapper->getTxTypeMappings(),
-            $requestValueMapper->getSecureTypeMappings(),
+            $requestValueMapper->getSecureTypeMappings()
+        );
+
+        $this->responseDataMapper = new PayFlexV4PosResponseDataMapper(
+            $responseValueFormatter,
+            $responseValueMapper,
             $this->logger
         );
     }

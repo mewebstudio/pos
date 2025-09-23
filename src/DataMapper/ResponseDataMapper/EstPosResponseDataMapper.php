@@ -37,29 +37,6 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
     ];
 
     /**
-     * D : Başarısız işlem
-     * A : Otorizasyon, gün sonu kapanmadan
-     * C : Ön otorizasyon kapama, gün sonu kapanmadan
-     * PN : Bekleyen İşlem
-     * CNCL : İptal Edilmiş İşlem
-     * ERR : Hata Almış İşlem
-     * S : Satış
-     * R : Teknik İptal gerekiyor
-     * V : İptal
-     * @var array<string, string>
-     */
-    protected array $orderStatusMappings = [
-        'D'    => PosInterface::PAYMENT_STATUS_ERROR,
-        'ERR'  => PosInterface::PAYMENT_STATUS_ERROR,
-        'A'    => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        'C'    => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        'S'    => PosInterface::PAYMENT_STATUS_PAYMENT_COMPLETED,
-        'PN'   => PosInterface::PAYMENT_STATUS_PAYMENT_PENDING,
-        'CNCL' => PosInterface::PAYMENT_STATUS_CANCELED,
-        'V'    => PosInterface::PAYMENT_STATUS_CANCELED,
-    ];
-
-    /**
      * @param PaymentStatusModel $rawPaymentResponseData
      * {@inheritDoc}
      */
@@ -88,7 +65,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'amount'           => $order['amount'],
             'group_id'         => $rawPaymentResponseData['GroupId'],
             'transaction_id'   => $rawPaymentResponseData['TransId'],
-            'transaction_time' => self::TX_APPROVED === $status ? new \DateTimeImmutable($extra['TRXDATE']) : null,
+            'transaction_time' => self::TX_APPROVED === $status ? $this->valueFormatter->formatDateTime($extra['TRXDATE'], $txType) : null,
             'auth_code'        => $rawPaymentResponseData['AuthCode'] ?? null,
             'ref_ret_num'      => $rawPaymentResponseData['HostRefNum'],
             'proc_return_code' => $procReturnCode,
@@ -116,7 +93,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'provision_response' => $rawPaymentResponseData,
         ]);
         $raw3DAuthResponseData = $this->emptyStringsToNull($raw3DAuthResponseData);
-        $paymentModel          = $this->mapSecurityType($raw3DAuthResponseData['storetype']);
+        $paymentModel          = $this->valueMapper->mapSecureType($raw3DAuthResponseData['storetype'], $txType);
         $paymentResponseData   = $this->getDefaultPaymentResponse($txType, $paymentModel);
         $mdStatus              = $this->extractMdStatus($raw3DAuthResponseData);
         if (null !== $rawPaymentResponseData) {
@@ -130,9 +107,9 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
-            'amount'               => null !== $raw3DAuthResponseData['amount'] ? $this->formatAmount($raw3DAuthResponseData['amount']) : null,
-            'currency'             => '*' === $raw3DAuthResponseData['currency'] ? null : $this->mapCurrency($raw3DAuthResponseData['currency']),
-            'installment_count'    => $this->mapInstallment($raw3DAuthResponseData['taksit']),
+            'amount'               => null !== $raw3DAuthResponseData['amount'] ? $this->valueFormatter->formatAmount($raw3DAuthResponseData['amount'], $txType) : null,
+            'currency'             => $this->valueMapper->mapCurrency($raw3DAuthResponseData['currency'], $txType),
+            'installment_count'    => $this->valueFormatter->formatInstallment($raw3DAuthResponseData['taksit'], $txType),
             'eci'                  => null,
             'tx_status'            => null,
             'cavv'                 => null,
@@ -174,7 +151,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $paymentModel    = $this->mapSecurityType($raw3DAuthResponseData['storetype']);
+        $paymentModel    = $this->valueMapper->mapSecureType($raw3DAuthResponseData['storetype'], $txType);
         $defaultResponse = $this->getDefaultPaymentResponse($txType, $paymentModel);
 
         $response = [
@@ -186,9 +163,9 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'masked_number'        => $raw3DAuthResponseData['maskedCreditCard'],
             'month'                => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Month'],
             'year'                 => $raw3DAuthResponseData['Ecom_Payment_Card_ExpDate_Year'],
-            'amount'               => $this->formatAmount($raw3DAuthResponseData['amount']),
-            'currency'             => $this->mapCurrency($raw3DAuthResponseData['currency']),
-            'installment_count'    => $this->mapInstallment($raw3DAuthResponseData['taksit']),
+            'amount'               => $this->valueFormatter->formatAmount($raw3DAuthResponseData['amount'], $txType),
+            'currency'             => $this->valueMapper->mapCurrency($raw3DAuthResponseData['currency'], $txType),
+            'installment_count'    => $this->valueFormatter->formatInstallment($raw3DAuthResponseData['taksit'], $txType),
             'tx_status'            => null,
             'eci'                  => null,
             'cavv'                 => null,
@@ -201,7 +178,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $response['eci']              = $raw3DAuthResponseData['eci'];
             $response['cavv']             = $raw3DAuthResponseData['cavv'];
             $response['transaction_id']   = $raw3DAuthResponseData['TransId'];
-            $response['transaction_time'] = new \DateTimeImmutable($raw3DAuthResponseData['EXTRA_TRXDATE']);
+            $response['transaction_time'] = $this->valueFormatter->formatDateTime($raw3DAuthResponseData['EXTRA_TRXDATE'], $txType);
             $response['ref_ret_num']      = $raw3DAuthResponseData['HostRefNum'];
             $response['status_detail']    = $this->getStatusDetail($procReturnCode);
             $response['error_message']    = $raw3DAuthResponseData['ErrMsg'];
@@ -223,7 +200,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $paymentModel    = $this->mapSecurityType($raw3DAuthResponseData['storetype']);
+        $paymentModel    = $this->valueMapper->mapSecureType($raw3DAuthResponseData['storetype'], $txType);
         $defaultResponse = $this->getDefaultPaymentResponse($txType, $paymentModel);
 
         $response = [
@@ -231,9 +208,9 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             'transaction_security' => null === $mdStatus ? null : $this->mapResponseTransactionSecurity($mdStatus),
             'md_status'            => $mdStatus,
             'status'               => $status,
-            'amount'               => $this->formatAmount($raw3DAuthResponseData['amount']),
-            'currency'             => $this->mapCurrency($raw3DAuthResponseData['currency']),
-            'installment_count'    => $this->mapInstallment($raw3DAuthResponseData['taksit']),
+            'amount'               => $this->valueFormatter->formatAmount($raw3DAuthResponseData['amount'], $txType),
+            'currency'             => $this->valueMapper->mapCurrency($raw3DAuthResponseData['currency'], $txType),
+            'installment_count'    => $this->valueFormatter->formatInstallment($raw3DAuthResponseData['taksit'], $txType),
             'tx_status'            => null,
             'masked_number'        => null,
             'month'                => null,
@@ -251,7 +228,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             if (self::TX_APPROVED === $status) {
                 $response['eci']              = $raw3DAuthResponseData['eci'];
                 $response['cavv']             = $raw3DAuthResponseData['cavv'];
-                $response['transaction_time'] = new \DateTimeImmutable();
+                $response['transaction_time'] = $this->valueFormatter->formatDateTime('now', $txType);
             }
         }
 
@@ -357,6 +334,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      */
     public function mapStatusResponse(array $rawResponseData): array
     {
+        $txType          = PosInterface::TX_TYPE_STATUS;
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $procReturnCode  = $this->getProcReturnCode($rawResponseData);
         $status          = self::TX_DECLINED;
@@ -383,17 +361,16 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
         if (self::TX_APPROVED === $status) {
             $result['auth_code']        = $extra['AUTH_CODE'];
             $result['ref_ret_num']      = $extra['HOST_REF_NUM'];
-            $result['first_amount']     = $this->formatAmount($extra['ORIG_TRANS_AMT']);
-            $result['capture_amount']   = null !== $extra['CAPTURE_AMT'] ? $this->formatAmount($extra['CAPTURE_AMT']) : null;
+            $result['first_amount']     = $this->valueFormatter->formatAmount($extra['ORIG_TRANS_AMT'], $txType);
+            $result['capture_amount']   = null !== $extra['CAPTURE_AMT'] ? $this->valueFormatter->formatAmount($extra['CAPTURE_AMT'], $txType) : null;
             $result['masked_number']    = $extra['PAN'];
             $result['num_code']         = $extra['NUMCODE'];
             $result['capture']          = $result['first_amount'] === $result['capture_amount'];
-            $txType                     = 'S' === $extra['CHARGE_TYPE_CD'] ? PosInterface::TX_TYPE_PAY_AUTH : PosInterface::TX_TYPE_REFUND;
-            $result['transaction_type'] = $txType;
-            $result['order_status']     = $this->orderStatusMappings[$extra['TRANS_STAT']] ?? null;
-            $result['transaction_time'] = isset($extra['AUTH_DTTM']) ? new \DateTimeImmutable($extra['AUTH_DTTM']) : null;
-            $result['capture_time']     = isset($extra['CAPTURE_DTTM']) ? new \DateTimeImmutable($extra['CAPTURE_DTTM']) : null;
-            $result['cancel_time']      = isset($extra['VOID_DTTM']) ? new \DateTimeImmutable($extra['VOID_DTTM']) : null;
+            $result['transaction_type'] = $this->valueMapper->mapTxType($extra['CHARGE_TYPE_CD']);
+            $result['order_status']     = $this->valueMapper->mapOrderStatus($extra['TRANS_STAT']);
+            $result['transaction_time'] = isset($extra['AUTH_DTTM']) ? $this->valueFormatter->formatDateTime($extra['AUTH_DTTM'], $txType) : null;
+            $result['capture_time']     = isset($extra['CAPTURE_DTTM']) ? $this->valueFormatter->formatDateTime($extra['CAPTURE_DTTM'], $txType) : null;
+            $result['cancel_time']      = isset($extra['VOID_DTTM']) ? $this->valueFormatter->formatDateTime($extra['VOID_DTTM'], $txType) : null;
         }
 
         return $result;
@@ -533,25 +510,13 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * "100001" => 1000.01 odeme durum sorgulandiginda gelen amount format
-     * "1000.01" => 1000.01 odeme yapildiginda gelen amount format
-     *
-     * @param string $amount
-     *
-     * @return float
-     */
-    protected function formatAmount(string $amount): float
-    {
-        return ((float) \str_replace('.', '', $amount)) / 100;
-    }
-
-    /**
      * @param array<int, string> $rawTx
      *
      * @return array<string, string|int|float|null>
      */
     private function mapSingleOrderHistoryTransaction(array $rawTx): array
     {
+        $txType                          = PosInterface::TX_TYPE_ORDER_HISTORY;
         $rawTx                           = $this->emptyStringsToNull($rawTx);
         $transaction                     = $this->getDefaultOrderHistoryTxResponse();
         $transaction['auth_code']        = $rawTx[8];
@@ -562,15 +527,12 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
 
         $transaction['status_detail']  = $this->getStatusDetail($transaction['proc_return_code']);
         $transaction['transaction_id'] = $rawTx[10];
-        /**
-         * S: Auth/PreAuth/PostAuth
-         * C: Refund
-         */
-        $transaction['transaction_type'] = 'S' === $rawTx[0] ? PosInterface::TX_TYPE_PAY_AUTH : PosInterface::TX_TYPE_REFUND;
-        $transaction['order_status']     = $this->orderStatusMappings[$rawTx[1]] ?? null;
-        $transaction['transaction_time'] = new \DateTimeImmutable($rawTx[4]);
-        $transaction['first_amount']     = null === $rawTx[2] ? null : $this->formatAmount($rawTx[2]);
-        $transaction['capture_amount']   = null === $rawTx[3] ? null : $this->formatAmount($rawTx[3]);
+
+        $transaction['transaction_type'] = $this->valueMapper->mapTxType($rawTx[0]);
+        $transaction['order_status']     = $this->valueMapper->mapOrderStatus($rawTx[1]);
+        $transaction['transaction_time'] = $this->valueFormatter->formatDateTime($rawTx[4], $txType);
+        $transaction['first_amount']     = null === $rawTx[2] ? null : $this->valueFormatter->formatAmount($rawTx[2], PosInterface::TX_TYPE_ORDER_HISTORY);
+        $transaction['capture_amount']   = null === $rawTx[3] ? null : $this->valueFormatter->formatAmount($rawTx[3], PosInterface::TX_TYPE_ORDER_HISTORY);
         $transaction['capture']          = self::TX_APPROVED === $transaction['status'] && $transaction['first_amount'] === $transaction['capture_amount'];
         $transaction['ref_ret_num']      = $rawTx[7];
 
@@ -585,6 +547,7 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
      */
     private function mapSingleRecurringOrderStatus(array $extra, int $i): array
     {
+        $txType         = PosInterface::TX_TYPE_STATUS;
         $procReturnCode = $extra[\sprintf('PROC_RET_CD_%d', $i)] ?? null;
         $status         = self::TX_DECLINED;
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
@@ -593,23 +556,32 @@ class EstPosResponseDataMapper extends AbstractResponseDataMapper
             $status = null;
         }
 
+        $transStat = $extra[\sprintf('TRANS_STAT_%d', $i)];
+        $chargeType = $extra[\sprintf('CHARGE_TYPE_CD_%d', $i)];
+
         $recurringOrder = [
             'order_id'         => $extra[\sprintf('ORD_ID_%d', $i)],
             'masked_number'    => $extra[\sprintf('PAN_%d', $i)],
-            'order_status'     => $this->orderStatusMappings[$extra[\sprintf('TRANS_STAT_%d', $i)]] ?? null,
+            'order_status'     => null === $transStat ? null : $this->valueMapper->mapOrderStatus($transStat),
 
             // following fields are null until transaction is done for respective installment:
             'auth_code'        => $extra[\sprintf('AUTH_CODE_%d', $i)] ?? null,
             'proc_return_code' => $procReturnCode,
-            'transaction_type' => 'S' === $extra[\sprintf('CHARGE_TYPE_CD_%d', $i)] ? PosInterface::TX_TYPE_PAY_AUTH : PosInterface::TX_TYPE_REFUND,
+            'transaction_type' => null === $chargeType ? null : $this->valueMapper->mapTxType($chargeType),
             'status'           => $status,
             'status_detail'    => $this->getStatusDetail($procReturnCode),
-            'transaction_time' => isset($extra[\sprintf('AUTH_DTTM_%d', $i)]) ? new \DateTimeImmutable($extra[\sprintf('AUTH_DTTM_%d', $i)]) : null,
-            'capture_time'     => isset($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) ? new \DateTimeImmutable($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) : null,
+            'transaction_time' => isset($extra[\sprintf('AUTH_DTTM_%d', $i)]) ? $this->valueFormatter->formatDateTime($extra[\sprintf('AUTH_DTTM_%d', $i)], $txType) : null,
+            'capture_time'     => isset($extra[\sprintf('CAPTURE_DTTM_%d', $i)]) ? $this->valueFormatter->formatDateTime($extra[\sprintf('CAPTURE_DTTM_%d', $i)], $txType) : null,
             'transaction_id'   => $extra[\sprintf('TRANS_ID_%d', $i)] ?? null,
             'ref_ret_num'      => $extra[\sprintf('HOST_REF_NUM_%d', $i)] ?? null,
-            'first_amount'     => isset($extra[\sprintf('ORIG_TRANS_AMT_%d', $i)]) ? $this->formatAmount($extra[\sprintf('ORIG_TRANS_AMT_%d', $i)]) : null,
-            'capture_amount'   => isset($extra[\sprintf('CAPTURE_AMT_%d', $i)]) ? $this->formatAmount($extra[\sprintf('CAPTURE_AMT_%d', $i)]) : null,
+            'first_amount'     => isset($extra[\sprintf('ORIG_TRANS_AMT_%d', $i)]) ? $this->valueFormatter->formatAmount(
+                $extra[\sprintf('ORIG_TRANS_AMT_%d', $i)],
+                $txType
+            ) : null,
+            'capture_amount'   => isset($extra[\sprintf('CAPTURE_AMT_%d', $i)]) ? $this->valueFormatter->formatAmount(
+                $extra[\sprintf('CAPTURE_AMT_%d', $i)],
+                $txType
+            ) : null,
         ];
 
 

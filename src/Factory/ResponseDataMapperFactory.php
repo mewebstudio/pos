@@ -7,7 +7,6 @@
 namespace Mews\Pos\Factory;
 
 use DomainException;
-use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\AkbankPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\EstPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\GarantiPosResponseDataMapper;
@@ -22,6 +21,8 @@ use Mews\Pos\DataMapper\ResponseDataMapper\PosNetV1PosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ToslaPosResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\VakifKatilimPosResponseDataMapper;
+use Mews\Pos\DataMapper\ResponseValueFormatter\ResponseValueFormatterInterface;
+use Mews\Pos\DataMapper\ResponseValueMapper\ResponseValueMapperInterface;
 use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\Gateways\EstPos;
 use Mews\Pos\Gateways\EstV3Pos;
@@ -45,16 +46,18 @@ use Psr\Log\LoggerInterface;
 class ResponseDataMapperFactory
 {
     /**
-     * @param class-string<PosInterface>  $gatewayClass
-     * @param RequestValueMapperInterface $valueMapper
-     * @param LoggerInterface             $logger
+     * @param class-string<PosInterface>      $gatewayClass
+     * @param ResponseValueFormatterInterface $valueFormatter
+     * @param ResponseValueMapperInterface    $valueMapper
+     * @param LoggerInterface                 $logger
      *
      * @return ResponseDataMapperInterface
      */
     public static function createGatewayResponseMapper(
-        string $gatewayClass,
-        RequestValueMapperInterface $valueMapper,
-        LoggerInterface $logger
+        string                          $gatewayClass,
+        ResponseValueFormatterInterface $valueFormatter,
+        ResponseValueMapperInterface    $valueMapper,
+        LoggerInterface                 $logger
     ): ResponseDataMapperInterface {
         $classMappings = [
             AkbankPos::class       => AkbankPosResponseDataMapper::class,
@@ -75,9 +78,8 @@ class ResponseDataMapperFactory
 
         if (isset($classMappings[$gatewayClass])) {
             return new $classMappings[$gatewayClass](
-                $valueMapper->getCurrencyMappings(),
-                $valueMapper->getTxTypeMappings(),
-                $valueMapper->getSecureTypeMappings(),
+                $valueFormatter,
+                $valueMapper,
                 $logger
             );
         }
