@@ -37,10 +37,10 @@ class ParamPosRequestValueMapperTest extends TestCase
     /**
      * @dataProvider mapTxTypeUnsupportedDataProvider
      */
-    public function testMapTxTypeException(string $txType): void
+    public function testMapTxTypeException(string $txType, ?string $paymentModel, string $exceptionClass): void
     {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->valueMapper->mapTxType($txType);
+        $this->expectException($exceptionClass);
+        $this->valueMapper->mapTxType($txType, $paymentModel);
     }
 
     /**
@@ -139,8 +139,8 @@ class ParamPosRequestValueMapperTest extends TestCase
     public static function mapTxTypeUnsupportedDataProvider(): array
     {
         return [
-            ['3000', null],
-            [PosInterface::TX_TYPE_PAY_AUTH, null],
+            ['3000', null, UnsupportedTransactionTypeException::class],
+            [PosInterface::TX_TYPE_PAY_AUTH, null, \InvalidArgumentException::class],
         ];
     }
 }

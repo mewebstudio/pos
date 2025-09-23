@@ -104,6 +104,7 @@ class ParamPosCrypt extends AbstractCrypt
         }
 
         $hashStr = \implode(static::HASH_SEPARATOR, $map);
+        /** @var string $hashStr */
         $hashStr = \mb_convert_encoding($hashStr, 'ISO-8859-9');
 
         return $this->hashString($hashStr, self::HASH_ALGORITHM);
