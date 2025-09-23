@@ -94,6 +94,10 @@ class VakifKatilimPosHttpClient extends AbstractHttpClient
             PosInterface::TX_TYPE_HISTORY        => 'SelectOrder',
         ];
 
+        if (!isset($arr[$txType])) {
+            throw new UnsupportedTransactionTypeException();
+        }
+
         if (\is_string($arr[$txType])) {
             return $arr[$txType];
         }
@@ -102,10 +106,14 @@ class VakifKatilimPosHttpClient extends AbstractHttpClient
             throw new UnsupportedTransactionTypeException();
         }
 
-        if (\is_array($arr[$txType][$paymentModel])) {
-            return $arr[$txType][$paymentModel][$orderTxType];
+        if (\is_string($arr[$txType][$paymentModel])) {
+            return  $arr[$txType][$paymentModel];
         }
 
-        return $arr[$txType][$paymentModel];
+        if (!isset($arr[$txType][$paymentModel][$orderTxType])) {
+            throw new UnsupportedTransactionTypeException();
+        }
+
+        return $arr[$txType][$paymentModel][$orderTxType];
     }
 }

@@ -102,10 +102,14 @@ class VakifKatilimPosHttpClientTest extends TestCase
     /**
      * @dataProvider getApiUrlDataFailProvider
      */
-    public function testGetApiUrlUnsupportedTxType(?string $txType, ?string $paymentModel, string $expectedException): void
-    {
+    public function testGetApiUrlUnsupportedTxType(
+        ?string $txType,
+        ?string $paymentModel,
+        ?string $orderTxType,
+        string $expectedException
+    ): void {
         $this->expectException($expectedException);
-        $this->client->getApiURL($txType, $paymentModel);
+        $this->client->getApiURL($txType, $paymentModel, $orderTxType);
     }
 
     /**
@@ -385,22 +389,38 @@ class VakifKatilimPosHttpClientTest extends TestCase
             [
                 'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel'    => PosInterface::MODEL_3D_PAY,
+                'orderTxType'     => null,
                 'exception_class' => UnsupportedTransactionTypeException::class,
             ],
             [
                 'txType'          => null,
                 'paymentModel'    => null,
+                'orderTxType'     => null,
                 'exception_class' => \InvalidArgumentException::class,
             ],
             [
                 'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
                 'paymentModel'    => null,
+                'orderTxType'     => null,
                 'exception_class' => \InvalidArgumentException::class,
             ],
             [
                 'txType'          => null,
                 'paymentModel'    => PosInterface::MODEL_3D_PAY,
+                'orderTxType'     => null,
                 'exception_class' => \InvalidArgumentException::class,
+            ],
+            [
+                'txType'          => 'abc',
+                'paymentModel'    => PosInterface::MODEL_3D_PAY,
+                'orderTxType'     => null,
+                'exception_class' => UnsupportedTransactionTypeException::class,
+            ],
+            [
+                'txType'          => PosInterface::TX_TYPE_CANCEL,
+                'paymentModel'    => PosInterface::MODEL_NON_SECURE,
+                'orderTxType'     => PosInterface::TX_TYPE_PAY_POST_AUTH,
+                'exception_class' => UnsupportedTransactionTypeException::class,
             ],
         ];
     }
