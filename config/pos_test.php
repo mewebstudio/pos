@@ -79,6 +79,15 @@ return [
                 'gateway_3d_host' => 'https://vpostest.qnbfinansbank.com/Gateway/3DHost.aspx',
             ],
         ],
+        'ziraat-katilim-payfor' => [
+            'name'              => 'ZiraatKatilim-PayFor',
+            'class'             => Mews\Pos\Gateways\PayForPos::class,
+            'gateway_endpoints' => [
+                'payment_api'     => 'https://payfortestziraatkatilim.cordisnetwork.com/Mpi/XMLGate.aspx',
+                'gateway_3d'      => 'https://payfortestziraatkatilim.cordisnetwork.com/Mpi/Default.aspx',
+                'gateway_3d_host' => 'https://payfortestziraatkatilim.cordisnetwork.com/Mpi/3DHost.aspx',
+            ],
+        ],
         'vakifbank'            => [
             'name'              => 'VakifBank-VPOS',
             'class'             => Mews\Pos\Gateways\PayFlexV4Pos::class,
