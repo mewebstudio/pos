@@ -126,8 +126,6 @@ class VakifKatilimTest extends TestCase
             $this->loggerMock,
         );
 
-        $this->pos->setTestMode(true);
-
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
             '4155650100416111',

@@ -114,8 +114,6 @@ class GarantiPosTest extends TestCase
             $this->loggerMock,
         );
 
-        $this->pos->setTestMode(true);
-
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
             '5555444433332222',

@@ -127,8 +127,6 @@ class PayFlexV4PosTest extends TestCase
             $this->loggerMock,
         );
 
-        $this->pos->setTestMode(true);
-
         $this->card = CreditCardFactory::create(
             '5555444433332222',
             '2021',

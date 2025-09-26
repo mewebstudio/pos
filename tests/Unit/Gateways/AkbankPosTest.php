@@ -112,8 +112,6 @@ class AkbankPosTest extends TestCase
             $this->loggerMock,
         );
 
-        $this->pos->setTestMode(true);
-
         $this->card = CreditCardFactory::create('5555444433332222', '21', '12', '122', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
     }
 
