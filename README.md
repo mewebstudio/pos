@@ -238,12 +238,6 @@ gerekiyor. [çözüm](https://stackoverflow.com/a/51128675/4896948).
   gerekmekte.
   Bu hatayı alırsanız hosting firmanın verdiği IP adrese'de banka gateway'i
   tarafından izin verilmesini sağlayın.
-- kütüphane ortam değerini de kontrol etmeyi unutmayınız.
-    - test ortamı için `$pos->setTestMode(true);`
-    - canlı ortam için `$pos->setTestMode(false);` (default olarak `false`)
-
-  _ortam değeri hem bankaya istek gönderirken hem de gelen isteği işlerken doğru
-  deger olması gerekiyor._
 
 ### Debugging
 
