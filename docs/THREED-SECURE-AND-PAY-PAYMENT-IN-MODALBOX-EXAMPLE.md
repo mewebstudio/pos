@@ -48,9 +48,6 @@ try {
     $config = require __DIR__.'/pos_test_ayarlar.php';
 
     $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher);
-
-    // GarantiPos'u test ortamda test edebilmek için zorunlu.
-    $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
     var_dump($e));
     exit;
@@ -298,6 +295,13 @@ try  {
     // Sonuç çıktısı
     $response = $pos->getResponse();
 } catch (Mews\Pos\Exceptions\HashMismatchException $e) {
+    /**
+     * Bankadan gelen verilerin bankaya ait olmadığında bu exception oluşur.
+     * Veya Banka API bilgileriniz hatalı ise de oluşur.
+     * Eğer kütühaneden dolayı hash doğrulama hatası alıyorsanız, issue oluşturunuz.
+     * Issue çözülene kadar geçici olarak disable_3d_hash_check: true ayarla hash doğrulamasını devre dışı bırakabilirsiniz.
+     * Güvenlik açısından disable_3d_hash_check: false olarak kullanılması tavsiye edilmez.
+     */
 }
 ?>
 

@@ -49,7 +49,6 @@ class GarantiPosTest extends TestCase
         $this->eventDispatcher = new EventDispatcher();
 
         $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
-        $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,

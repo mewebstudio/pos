@@ -78,7 +78,10 @@ class GarantiPos extends AbstractGateway
             return $this;
         }
 
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+        if (
+            !$this->is3DHashCheckDisabled()
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+        ) {
             throw new HashMismatchException();
         }
 

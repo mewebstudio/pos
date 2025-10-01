@@ -117,6 +117,10 @@ return [
         'ziraat-katilim-payfor' => [
             'name'              => 'ZiraatKatilim-PayFor',
             'class'             => Mews\Pos\Gateways\PayForPos::class,
+            'gateway_configs'   => [
+                // Ziraat Katilim için hash kontrolü çalışmıyor. O yüzden devre dışı bırakıyoruz.
+                'disable_3d_hash_check' => true,
+            ],
             'gateway_endpoints' => [
                 'payment_api'     => 'https://vpos.ziraatkatilim.com.tr/Mpi/XMLGate.aspx',
                 'gateway_3d'      => 'https://vpos.ziraatkatilim.com.tr/Mpi/Default.aspx',

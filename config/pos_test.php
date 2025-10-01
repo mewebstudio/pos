@@ -65,6 +65,10 @@ return [
         'garanti'              => [
             'name'              => 'Garanti',
             'class'             => Mews\Pos\Gateways\GarantiPos::class,
+            'gateway_configs' => [
+                // GarantiPos'u test ortamda test edebilmek için zorunlu.
+                'test_mode' => true,
+            ],
             'gateway_endpoints' => [
                 'payment_api' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
                 'gateway_3d'  => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
@@ -82,6 +86,10 @@ return [
         'ziraat-katilim-payfor' => [
             'name'              => 'ZiraatKatilim-PayFor',
             'class'             => Mews\Pos\Gateways\PayForPos::class,
+            'gateway_configs'   => [
+                // Ziraat Katilim için hash kontrolü çalışmıyor. O yüzden devre dışı bırakıyoruz.
+                'disable_3d_hash_check' => true,
+            ],
             'gateway_endpoints' => [
                 'payment_api'     => 'https://payfortestziraatkatilim.cordisnetwork.com/Mpi/XMLGate.aspx',
                 'gateway_3d'      => 'https://payfortestziraatkatilim.cordisnetwork.com/Mpi/Default.aspx',
@@ -126,6 +134,10 @@ return [
         'kuveytpos'            => [
             'name'              => 'kuveyt-pos',
             'class'             => Mews\Pos\Gateways\KuveytPos::class,
+            'gateway_configs' => [
+                // testinizi SSL olmayan ortamda yapıyorsanız bu değeri true yapmanız gerekir.
+                'test_mode' => true,
+            ],
             'gateway_endpoints' => [
                 'payment_api' => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home',
                 'gateway_3d'  => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home/ThreeDModelPayGate',

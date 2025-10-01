@@ -80,7 +80,6 @@ function getGateway(\Mews\Pos\Entity\Account\AbstractPosAccount $account, \Psr\E
         global $logger;
 
         $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher, null, $logger);
-        $pos->setTestMode(true);
 
         return $pos;
     } catch (Exception $e) {

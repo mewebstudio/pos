@@ -89,6 +89,13 @@ if (get_class($pos) === \Mews\Pos\Gateways\PayFlexV4Pos::class) {
 try {
     doPayment($pos, $paymentModel, $transaction, $order, $card);
 } catch (HashMismatchException $e) {
+    /**
+     * Bankadan gelen verilerin bankaya ait olmadığında bu exception oluşur.
+     * Veya Banka API bilgileriniz hatalı ise de oluşur.
+     * Eğer kütühaneden dolayı hash doğrulama hatası alıyorsanız, issue oluşturunuz.
+     * Issue çözülene kadar geçici olarak disable_3d_hash_check: true ayarla hash doğrulamasını devre dışı bırakabilirsiniz.
+     * Güvenlik açısından disable_3d_hash_check: false olarak kullanılması tavsiye edilmez.
+     */
     dd($e);
 } catch (\Exception|\Error $e) {
     dd($e);

@@ -329,6 +329,8 @@ interface PosInterface
      * @param bool $testMode
      *
      * @return PosInterface
+     *
+     * @deprecated set via configuration file instead.
      */
     public function setTestMode(bool $testMode): PosInterface;
 

@@ -83,7 +83,10 @@ class InterPos extends AbstractGateway
             return $this;
         }
 
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)) {
+        if (
+            !$this->is3DHashCheckDisabled()
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $gatewayResponse)
+        ) {
             throw new HashMismatchException();
         }
 

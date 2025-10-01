@@ -114,7 +114,11 @@ class ToslaPos extends AbstractGateway
     {
         $request = $request->request;
 
-        if ($this->is3DAuthSuccess($request->all()) && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+        if (
+            $this->is3DAuthSuccess($request->all())
+            && !$this->is3DHashCheckDisabled()
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+        ) {
             throw new HashMismatchException();
         }
 
@@ -132,7 +136,11 @@ class ToslaPos extends AbstractGateway
     {
         $request = $request->request;
 
-        if ($this->is3DAuthSuccess($request->all()) && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+        if (
+            $this->is3DAuthSuccess($request->all())
+            && !$this->is3DHashCheckDisabled()
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+        ) {
             throw new HashMismatchException();
         }
 

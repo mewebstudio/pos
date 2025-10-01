@@ -13,6 +13,7 @@ use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\PosNetResponseDataMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
@@ -116,9 +117,16 @@ class PosNetTest extends TestCase
             ->method('getCrypt')
             ->willReturn($this->cryptMock);
 
-        $this->pos = new PosNet(
-            $this->config,
-            $this->account,
+        $this->pos = $this->createGateway($this->config);
+
+        $this->card = CreditCardFactory::createForGateway($this->pos, '5555444433332222', '21', '12', '122', 'ahmet');
+    }
+
+    private function createGateway(array $config, ?AbstractPosAccount $account = null): PosInterface
+    {
+        return new PosNet(
+            $config,
+            $account ?? $this->account,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
@@ -126,8 +134,6 @@ class PosNetTest extends TestCase
             $this->httpClientMock,
             $this->loggerMock,
         );
-
-        $this->card = CreditCardFactory::createForGateway($this->pos, '5555444433332222', '21', '12', '122', 'ahmet');
     }
 
     /**
@@ -141,6 +147,7 @@ class PosNetTest extends TestCase
         $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
+        $this->assertFalse($this->pos->isTestMode());
     }
 
     /**
@@ -412,6 +419,223 @@ class PosNetTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    /**
+     * @dataProvider make3DPaymentWithoutHashCheckDataProvider
+     */
+    public function testMake3DPaymentWithoutHashCheck(
+        array   $order,
+        string  $txType,
+        Request $request,
+        array   $resolveResponse,
+        array   $paymentResponse,
+        array   $expectedResponse,
+        bool    $is3DSuccess,
+        bool    $isSuccess
+    ): void {
+        $config = $this->config;
+        $config += [
+            'gateway_configs' => [
+                'disable_3d_hash_check' => true,
+            ],
+        ];
+
+        $pos = $this->createGateway($config);
+
+        $this->cryptMock->expects(self::never())
+            ->method('check3DHash');
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('extractMdStatus')
+            ->with($resolveResponse)
+            ->willReturn('3d-status');
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->with('3d-status')
+            ->willReturn($is3DSuccess);
+
+
+        $resolveMerchantRequestData = [
+            'resolveMerchantRequestData',
+        ];
+        $create3DPaymentRequestData = [
+            'create3DPaymentRequestData',
+        ];
+        $this->requestMapperMock->expects(self::once())
+            ->method('create3DResolveMerchantRequestData')
+            ->with($this->account, $order, $request->request->all())
+            ->willReturn($resolveMerchantRequestData);
+
+
+        if ($is3DSuccess) {
+            $this->requestMapperMock->expects(self::once())
+                ->method('create3DPaymentRequestData')
+                ->with($this->account, $order, $txType, $request->request->all())
+                ->willReturn($create3DPaymentRequestData);
+
+
+            $matcher = self::exactly(2);
+            $updatedRequestDataPreparedEvent1 = null;
+            $updatedRequestDataPreparedEvent2 = null;
+
+            $this->serializerMock->expects($matcher)
+                ->method('encode')
+                ->with($this->callback(function ($requestData) use ($matcher, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2): bool {
+                    if ($matcher->getInvocationCount() === 1) {
+                        return $updatedRequestDataPreparedEvent1->getRequestData() === $requestData;
+                    }
+
+                    if ($matcher->getInvocationCount() === 2) {
+                        return $updatedRequestDataPreparedEvent2->getRequestData() === $requestData;
+                    }
+
+                    return true;
+                }), $this->callback(fn ($txT): bool => $txT === $txType))
+                ->willReturnCallback(function () use ($matcher): ?string {
+                    if ($matcher->getInvocationCount() === 1) {
+                        return 'resolveMerchantRequestData-body';
+                    }
+
+                    if ($matcher->getInvocationCount() === 2) {
+                        return 'payment-request-body';
+                    }
+
+                    return null;
+                });
+
+            $this->serializerMock->expects(self::exactly(2))
+                ->method('decode')
+                ->willReturnMap([
+                    [
+                        'resolveMerchantRequestData-body',
+                        $txType,
+                        $resolveResponse,
+                    ],
+                    [
+                        'response-body-2',
+                        $txType,
+                        $paymentResponse,
+                    ],
+                ]);
+
+            $this->prepareHttpClientRequestMulti(
+                $this->httpClientMock,
+                [
+                    'resolveMerchantRequestData-body',
+                    'response-body-2',
+                ],
+                [
+                    $this->config['gateway_endpoints']['payment_api'],
+                    $this->config['gateway_endpoints']['payment_api'],
+                ],
+                [
+                    [
+                        'headers' => [
+                            'Content-Type' => 'application/x-www-form-urlencoded',
+                        ],
+                        'body'    => \sprintf('xmldata=%s', 'resolveMerchantRequestData-body'),
+                    ],
+                    [
+                        'headers' => [
+                            'Content-Type' => 'application/x-www-form-urlencoded',
+                        ],
+                        'body'    => \sprintf('xmldata=%s', 'payment-request-body'),
+                    ],
+                ]
+            );
+
+            $paymentModel = PosInterface::MODEL_3D_SECURE;
+
+            $matcher2 = self::exactly(2);
+            $this->eventDispatcherMock->expects($matcher2)
+                ->method('dispatch')
+                ->with($this->logicalAnd(
+                    $this->isInstanceOf(RequestDataPreparedEvent::class),
+                    $this->callback(function ($dispatchedEvent) use (
+                        $resolveMerchantRequestData,
+                        $create3DPaymentRequestData,
+                        $txType,
+                        $order,
+                        $paymentModel,
+                        $matcher2,
+                        &$updatedRequestDataPreparedEvent1,
+                        &$updatedRequestDataPreparedEvent2
+                    ): bool {
+                        if ($matcher2->getInvocationCount() === 1) {
+                            $updatedRequestDataPreparedEvent1 = $dispatchedEvent;
+
+                            return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                                && $txType === $dispatchedEvent->getTxType()
+                                && $resolveMerchantRequestData === $dispatchedEvent->getRequestData()
+                                && $order === $dispatchedEvent->getOrder()
+                                && $paymentModel === $dispatchedEvent->getPaymentModel();
+                        }
+
+                        if ($matcher2->getInvocationCount() === 2) {
+                            $updatedRequestDataPreparedEvent2 = $dispatchedEvent;
+
+                            return get_class($this->pos) === $dispatchedEvent->getGatewayClass()
+                                && $txType === $dispatchedEvent->getTxType()
+                                && $create3DPaymentRequestData === $dispatchedEvent->getRequestData()
+                                && $order === $dispatchedEvent->getOrder()
+                                && $paymentModel === $dispatchedEvent->getPaymentModel();
+                        }
+
+                        return false;
+                    })
+                ))
+                ->willReturnCallback(function () use ($matcher2, &$updatedRequestDataPreparedEvent1, &$updatedRequestDataPreparedEvent2) {
+                    if ($matcher2->getInvocationCount() === 1) {
+                        $updatedRequestData = $updatedRequestDataPreparedEvent1->getRequestData();
+                        $updatedRequestData['test-update-request-data-with-event'] = true;
+                        $updatedRequestDataPreparedEvent1->setRequestData($updatedRequestData);
+
+                        return $updatedRequestDataPreparedEvent1;
+                    }
+
+                    if ($matcher2->getInvocationCount() === 2) {
+                        $updatedRequestData = $updatedRequestDataPreparedEvent2->getRequestData();
+                        $updatedRequestData['test-update-request-data-with-event'] = true;
+                        $updatedRequestDataPreparedEvent2->setRequestData($updatedRequestData);
+
+                        return $updatedRequestDataPreparedEvent2;
+                    }
+
+                    return false;
+                });
+
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DPaymentData')
+                ->with($resolveResponse, $paymentResponse, $txType, $order)
+                ->willReturn($expectedResponse);
+        } else {
+            $this->configureClientResponse(
+                $txType,
+                $this->config['gateway_endpoints']['payment_api'],
+                $resolveMerchantRequestData,
+                'resolveMerchantRequestData-body',
+                'resolveMerchantRequestData-body',
+                $resolveResponse,
+                $order,
+                PosInterface::MODEL_3D_SECURE
+            );
+
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DPaymentData')
+                ->with($resolveResponse, null, $txType, $order)
+                ->willReturn($expectedResponse);
+
+            $this->requestMapperMock->expects(self::never())
+                ->method('create3DPaymentRequestData');
+        }
+
+        $pos->make3DPayment($request, $order, $txType);
+
+        $result = $pos->getResponse();
+        $this->assertSame($expectedResponse, $result);
+        $this->assertSame($isSuccess, $pos->isSuccess());
     }
 
     public function testMake3DPaymentHashMismatchException(): void
@@ -733,6 +957,28 @@ class PosNetTest extends TestCase
                 'is3DSuccess'     => false,
                 'isSuccess'       => false,
             ],
+            'success'        => [
+                'order'           => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
+                'txType'          => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],
+                'request'         => Request::create('', 'POST', $resolveMerchantResponseData),
+                'resolveResponse' => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['threeDResponseData'],
+                'paymentResponse' => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['paymentData'],
+                'expected'        => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['expectedData'],
+                'is3DSuccess'     => true,
+                'isSuccess'       => true,
+            ],
+        ];
+    }
+
+    public static function make3DPaymentWithoutHashCheckDataProvider(): array
+    {
+        $resolveMerchantResponseData = [
+            'MerchantPacket' => '',
+            'BankPacket'     => '',
+            'Sign'           => '',
+        ];
+
+        return [
             'success'        => [
                 'order'           => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['order'],
                 'txType'          => PosNetResponseDataMapperTest::threeDPaymentDataProvider()['success1']['txType'],

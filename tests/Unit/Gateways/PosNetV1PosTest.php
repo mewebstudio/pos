@@ -10,6 +10,7 @@ use Mews\Pos\Client\HttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\PosNetAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
@@ -101,9 +102,16 @@ class PosNetV1PosTest extends TestCase
             ->method('getCrypt')
             ->willReturn($this->cryptMock);
 
-        $this->pos = new PosNetV1Pos(
-            $this->config,
-            $this->account,
+        $this->pos = $this->createGateway($this->config);
+
+        $this->card = CreditCardFactory::createForGateway($this->pos, '5555444433332222', '21', '12', '122', 'ahmet');
+    }
+
+    private function createGateway(array $config, ?AbstractPosAccount $account = null): PosInterface
+    {
+        return new PosNetV1Pos(
+            $config,
+            $account ?? $this->account,
             $this->requestMapperMock,
             $this->responseMapperMock,
             $this->serializerMock,
@@ -111,8 +119,6 @@ class PosNetV1PosTest extends TestCase
             $this->httpClientMock,
             $this->loggerMock,
         );
-
-        $this->card = CreditCardFactory::createForGateway($this->pos, '5555444433332222', '21', '12', '122', 'ahmet');
     }
 
     /**
@@ -126,6 +132,7 @@ class PosNetV1PosTest extends TestCase
         $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
+        $this->assertFalse($this->pos->isTestMode());
     }
 
     /**
@@ -275,6 +282,90 @@ class PosNetV1PosTest extends TestCase
         $result = $this->pos->getResponse();
         $this->assertSame($expectedResponse, $result);
         $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+
+    /**
+     * @dataProvider make3DPaymentWithoutHashCheckDataProvider
+     */
+    public function testMake3DPaymentWithoutHashCheck(
+        array   $order,
+        string  $txType,
+        Request $request,
+        array   $paymentResponse,
+        array   $expectedResponse,
+        bool    $is3DSuccess,
+        bool    $isSuccess
+    ): void {
+        $config = $this->config;
+        $config += [
+            'gateway_configs' => [
+                'disable_3d_hash_check' => true,
+            ],
+        ];
+
+        $pos = $this->createGateway($config);
+
+        $this->cryptMock->expects(self::never())
+            ->method('check3DHash');
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('extractMdStatus')
+            ->with($request->request->all())
+            ->willReturn('3d-status');
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('is3dAuthSuccess')
+            ->with('3d-status')
+            ->willReturn($is3DSuccess);
+
+        $create3DPaymentRequestData = [
+            'create3DPaymentRequestData',
+        ];
+        if ($is3DSuccess) {
+            $this->requestMapperMock->expects(self::once())
+                ->method('mapTxType')
+                ->with($txType)
+                ->willReturn('Sale');
+            $this->requestMapperMock->expects(self::once())
+                ->method('create3DPaymentRequestData')
+                ->with($this->account, $order, $txType, $request->request->all())
+                ->willReturn($create3DPaymentRequestData);
+
+            $this->configureClientResponse(
+                $txType,
+                'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
+                $create3DPaymentRequestData,
+                'request-body',
+                'response-body',
+                $paymentResponse,
+                $order,
+                PosInterface::MODEL_3D_SECURE
+            );
+
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DPaymentData')
+                ->with($request->request->all(), $paymentResponse, $txType, $order)
+                ->willReturn($expectedResponse);
+        } else {
+            $this->responseMapperMock->expects(self::once())
+                ->method('map3DPaymentData')
+                ->with($request->request->all(), null, $txType, $order)
+                ->willReturn($expectedResponse);
+            $this->requestMapperMock->expects(self::never())
+                ->method('create3DPaymentRequestData');
+            $this->serializerMock->expects(self::never())
+                ->method('encode');
+            $this->serializerMock->expects(self::never())
+                ->method('decode');
+            $this->eventDispatcherMock->expects(self::never())
+                ->method('dispatch');
+        }
+
+        $pos->make3DPayment($request, $order, $txType);
+
+        $result = $pos->getResponse();
+        $this->assertSame($expectedResponse, $result);
+        $this->assertSame($isSuccess, $pos->isSuccess());
     }
 
     public function testMake3DPaymentHashMismatchException(): void
@@ -615,6 +706,36 @@ class PosNetV1PosTest extends TestCase
                 'is3DSuccess'     => false,
                 'isSuccess'       => false,
             ],
+            '3d_auth_success_payment_fail' => [
+                'order'           => $dataSamples['3d_auth_success_payment_fail']['order'],
+                'txType'          => $dataSamples['3d_auth_success_payment_fail']['txType'],
+                'request'         => Request::create(
+                    '',
+                    'POST',
+                    $dataSamples['3d_auth_success_payment_fail']['threeDResponseData']
+                ),
+                'paymentResponse' => $dataSamples['3d_auth_success_payment_fail']['paymentData'],
+                'expected'        => $dataSamples['3d_auth_success_payment_fail']['expectedData'],
+                'is3DSuccess'     => true,
+                'isSuccess'       => false,
+            ],
+            'success'                      => [
+                'order'           => $dataSamples['success1']['order'],
+                'txType'          => $dataSamples['success1']['txType'],
+                'request'         => Request::create('', 'POST', $dataSamples['success1']['threeDResponseData']),
+                'paymentResponse' => $dataSamples['success1']['paymentData'],
+                'expected'        => $dataSamples['success1']['expectedData'],
+                'is3DSuccess'     => true,
+                'isSuccess'       => true,
+            ],
+        ];
+    }
+
+    public static function make3DPaymentWithoutHashCheckDataProvider(): array
+    {
+        $dataSamples = iterator_to_array(PosNetV1PosResponseDataMapperTest::threeDPaymentDataProvider());
+
+        return [
             '3d_auth_success_payment_fail' => [
                 'order'           => $dataSamples['3d_auth_success_payment_fail']['order'],
                 'txType'          => $dataSamples['3d_auth_success_payment_fail']['txType'],

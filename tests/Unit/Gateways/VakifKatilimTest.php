@@ -148,6 +148,7 @@ class VakifKatilimTest extends TestCase
         $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
+        $this->assertFalse($this->pos->isTestMode());
     }
 
     /**
