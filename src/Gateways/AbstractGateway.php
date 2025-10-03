@@ -23,7 +23,21 @@ use Symfony\Component\HttpFoundation\Request;
 
 abstract class AbstractGateway implements PosInterface
 {
-    /** @var array{gateway_endpoints: array{payment_api: non-empty-string, payment_api_2?: non-empty-string, gateway_3d: non-empty-string, gateway_3d_host?: non-empty-string, query_api?: non-empty-string}} */
+    /**
+     * @var array{
+     *     gateway_configs?: array{
+     *          test_mode?: bool,
+     *          disable_3d_hash_check?: bool
+     *     },
+     *     gateway_endpoints: array{
+     *          payment_api: non-empty-string,
+     *          payment_api_2?: non-empty-string,
+     *          gateway_3d: non-empty-string,
+     *          gateway_3d_host?: non-empty-string,
+     *          query_api?: non-empty-string
+     *     }
+     * }
+     */
     protected array $config;
 
     protected AbstractPosAccount $account;
@@ -81,7 +95,19 @@ abstract class AbstractGateway implements PosInterface
     private bool $testMode = false;
 
     /**
-     * @param array{gateway_endpoints: array{payment_api: non-empty-string, gateway_3d: non-empty-string, gateway_3d_host?: non-empty-string, query_api?: non-empty-string}} $config
+     * @param array{
+     *      gateway_configs?: array{
+     *           test_mode?: bool,
+     *           disable_3d_hash_check?: bool
+     *      },
+     *      gateway_endpoints: array{
+     *           payment_api: non-empty-string,
+     *           payment_api_2?: non-empty-string,
+     *           gateway_3d: non-empty-string,
+     *           gateway_3d_host?: non-empty-string,
+     *           query_api?: non-empty-string
+     *      }
+     *  } $config
      */
     public function __construct(
         array                          $config,
@@ -102,6 +128,10 @@ abstract class AbstractGateway implements PosInterface
         $this->account = $posAccount;
         $this->client  = $httpClient;
         $this->logger  = $logger;
+
+        if (isset($this->config['gateway_configs']['test_mode'])) {
+            $this->setTestMode($this->config['gateway_configs']['test_mode']);
+        }
     }
 
     /**
@@ -121,7 +151,19 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @return array{gateway_endpoints: array{payment_api: string, gateway_3d: string, gateway_3d_host?: string, query_api?: string}}
+     * @return array{
+     *      gateway_configs?: array{
+     *          test_mode?: bool,
+     *          disable_3d_hash_check?: bool
+     *      },
+     *      gateway_endpoints: array{
+     *          payment_api: non-empty-string,
+     *          payment_api_2?: non-empty-string,
+     *          gateway_3d: non-empty-string,
+     *          gateway_3d_host?: non-empty-string,
+     *          query_api?: non-empty-string
+     *      }
+     * }
      */
     public function getConfig(): array
     {
@@ -587,9 +629,7 @@ abstract class AbstractGateway implements PosInterface
     }
 
     /**
-     * @param bool $testMode
-     *
-     * @return $this
+     * @inheritDoc
      */
     public function setTestMode(bool $testMode): PosInterface
     {
@@ -707,6 +747,14 @@ abstract class AbstractGateway implements PosInterface
         ) {
             throw new \LogicException('Bu ödeme modeli için kart bilgileri zorunlu!');
         }
+    }
+
+    /**
+     * @return bool
+     */
+    protected function is3DHashCheckDisabled(): bool
+    {
+        return $this->config['gateway_configs']['disable_3d_hash_check'] ?? false;
     }
 
     /**

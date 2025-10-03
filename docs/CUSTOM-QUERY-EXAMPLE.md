@@ -28,9 +28,6 @@ try {
     $config = require __DIR__.'/pos_test_ayarlar.php';
 
     $pos = \Mews\Pos\Factory\PosFactory::createPosGateway($account, $config, $eventDispatcher);
-
-    // GarantiPos'u test ortamda test edebilmek için zorunlu.
-    $pos->setTestMode(true);
 } catch (\Mews\Pos\Exceptions\BankNotFoundException | \Mews\Pos\Exceptions\BankClassNullException $e) {
     var_dump($e));
     exit;

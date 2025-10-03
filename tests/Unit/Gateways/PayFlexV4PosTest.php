@@ -127,8 +127,6 @@ class PayFlexV4PosTest extends TestCase
             $this->loggerMock,
         );
 
-        $this->pos->setTestMode(true);
-
         $this->card = CreditCardFactory::create(
             '5555444433332222',
             '2021',
@@ -150,6 +148,7 @@ class PayFlexV4PosTest extends TestCase
         $this->assertSame([PosInterface::CURRENCY_TRY], $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
+        $this->assertFalse($this->pos->isTestMode());
     }
 
     /**

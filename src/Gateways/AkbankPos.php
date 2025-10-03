@@ -95,7 +95,10 @@ class AkbankPos extends AbstractGateway
             return $this;
         }
 
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())) {
+        if (
+            !$this->is3DHashCheckDisabled()
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->all())
+        ) {
             throw new HashMismatchException();
         }
 
@@ -145,7 +148,10 @@ class AkbankPos extends AbstractGateway
      */
     public function make3DPayPayment(Request $request, array $order, string $txType): PosInterface
     {
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())) {
+        if (
+            !$this->is3DHashCheckDisabled()
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())
+        ) {
             throw new HashMismatchException();
         }
 
@@ -159,7 +165,10 @@ class AkbankPos extends AbstractGateway
      */
     public function make3DHostPayment(Request $request, array $order, string $txType): PosInterface
     {
-        if (!$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())) {
+        if (
+            !$this->is3DHashCheckDisabled()
+            && !$this->requestDataMapper->getCrypt()->check3DHash($this->account, $request->request->all())
+        ) {
             throw new HashMismatchException();
         }
 

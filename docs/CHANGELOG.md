@@ -1,12 +1,33 @@
 # Changelog
-## [1.7.0] - 2025-09-25
+## [1.7.0] - 2025-10-04
 
 ### New Features
 - **PayForPos** - `MbrId` (Kurum kodu) Account oluştururken tanımlanabilinir.
   (issue #274 Ziraat Katılım bankası desteği).
-
+- Kütüphane config dosyasına yeni `test_mode` ve `disable_3d_hash_check` ayarlar desteği eklendi.
+  Örnek:
+    ```php
+    [
+        'banks' => [
+          'garanti' => [
+            'name'              => 'Garanti',
+            'class'             => Mews\Pos\Gateways\GarantiPos::class,
+            'gateway_configs' => [
+                'test_mode'             => true, // default: false
+                // 3D hash kontrolü çalışmadığında geçici olarak kullanılabilir.
+                'disable_3d_hash_check' => true, // default: false
+             ],
+             'gateway_endpoints' => [
+                'payment_api' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
+                'gateway_3d'  => 'https://sanalposprovtest.garantibbva.com.tr/servlet/gt3dengine',
+             ],
+          ],
+        ]
+    ]
+    ```
 ### Changed
 - **PayFlexV4Pos** - tekrarlanan ödeme için `startDate` parametresi eklendi.
+- **PosInterface::setTestMode()** deprecated. Yerine config dosyasına `test_mode` ekleyebilirsiniz.
 
 ### Fixed
 - **PayFlexV4Pos** - provizyon kapatma işlemi çalışmıyor.
