@@ -216,15 +216,15 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
      * @param AbstractPosAccount   $posAccount
      * @param array<string, mixed> $order
      *
-     * @return string
+     * @return string if language mapping is not available it returns default LANG_TR or as is.
      */
     protected function getLang(AbstractPosAccount $posAccount, array $order): string
     {
-        if (isset($order['lang'])) {
-            return $this->langMappings[$order['lang']];
-        }
+        $lang = $order['lang'] ?? $posAccount->getLang();
 
-        return $this->langMappings[$posAccount->getLang()];
+        return $this->langMappings[$lang]
+            ?? $this->langMappings[PosInterface::LANG_TR]
+            ?? $lang;
     }
 
     /**
