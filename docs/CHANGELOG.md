@@ -1,5 +1,5 @@
 # Changelog
-## [1.7.0] - 2025-10-04
+## [1.7.0] - 2025-10-06
 
 ### New Features
 - **PayForPos** - `MbrId` (Kurum kodu) Account oluştururken tanımlanabilinir.
@@ -31,6 +31,8 @@
 
 ### Fixed
 - **PayFlexV4Pos** - provizyon kapatma işlemi çalışmıyor.
+- Desteklenmeyen bir dil kodu işlem yapılmaya çalışıldığında oluşan hata
+  düzeltildi (issue #279).
 
 
 # Changelog
