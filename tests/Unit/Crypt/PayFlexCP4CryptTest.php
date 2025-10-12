@@ -10,6 +10,8 @@ use Mews\Pos\Crypt\PayFlexCPV4Crypt;
 use Mews\Pos\Entity\Account\PayFlexAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\PayFlexCPV4Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -40,6 +42,14 @@ class PayFlexCP4CryptTest extends TestCase
         $this->crypt = new PayFlexCPV4Crypt($logger);
     }
 
+    public function testSupports(): void
+    {
+        $supports = $this->crypt::supports(PayFlexCPV4Pos::class);
+        $this->assertTrue($supports);
+
+        $supports = $this->crypt::supports(EstV3Pos::class);
+        $this->assertFalse($supports);
+    }
 
     public function testCreate3DHash(): void
     {

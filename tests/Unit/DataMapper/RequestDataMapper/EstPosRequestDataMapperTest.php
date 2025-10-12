@@ -8,14 +8,16 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\EstPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\EstPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\EstPosRequestValueMapper;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\EstPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\Before3DFormHashCalculatedEvent;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\EstPos;
+use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\PosInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -39,6 +41,10 @@ class EstPosRequestDataMapperTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
+    private EstPosRequestValueFormatter $valueFormatter;
+
+    private EstPosRequestValueMapper $valueMapper;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -52,10 +58,17 @@ class EstPosRequestDataMapperTest extends TestCase
             'TRPS0200'
         );
 
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
-        $this->crypt      = $this->createMock(CryptInterface::class);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new EstPosRequestValueFormatter();
+        $this->valueMapper    = new EstPosRequestValueMapper();
 
-        $this->requestDataMapper = new EstPosRequestDataMapper($this->dispatcher, $this->crypt);
+        $this->requestDataMapper = new EstPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
         $this->card              = CreditCardFactory::create(
             '5555444433332222',
             '22',
@@ -65,66 +78,13 @@ class EstPosRequestDataMapperTest extends TestCase
         );
     }
 
-    /**
-     * @testWith ["MONTH", "M"]
-     *            ["M", "M"]
-     */
-    public function testMapRecurringFrequency(string $frequency, string $expected): void
+    public function testSupports(): void
     {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapRecurringFrequency');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$frequency]));
-    }
+        $result = $this->requestDataMapper::supports(EstPos::class);
+        $this->assertTrue($result);
 
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('949', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('978', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @testWith ["pay", "Auth"]
-     * ["pre", "PreAuth"]
-     */
-    public function testMapTxType(string $txType, string $expected): void
-    {
-        $actual = $this->requestDataMapper->mapTxType($txType);
-        $this->assertSame($expected, $actual);
-    }
-
-    /**
-     * @testWith ["Auth"]
-     */
-    public function testMapTxTypeException(string $txType): void
-    {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", ""]
-     *           ["1", ""]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**
@@ -555,7 +515,7 @@ class EstPosRequestDataMapperTest extends TestCase
                     'ClientId' => '700655000200',
                     'Type'     => 'PostAuth',
                     'OrderId'  => '2020110828BC',
-                    'Total'    => 1.0,
+                    'Total'    => '1',
                 ],
             ],
             'with_pre_auth_amount' => [
@@ -570,9 +530,9 @@ class EstPosRequestDataMapperTest extends TestCase
                     'ClientId' => '700655000200',
                     'Type'     => 'PostAuth',
                     'OrderId'  => '2020110828BC',
-                    'Total'    => 1.1,
+                    'Total'    => '1.1',
                     'Extra'    => [
-                        'PREAMT' => 1.0,
+                        'PREAMT' => '1',
                     ],
                 ],
             ],

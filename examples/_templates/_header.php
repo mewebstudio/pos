@@ -32,6 +32,9 @@
                             <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\ParamPos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/parampos/index.php">Param POS</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\Param3DHostPos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/parampos-3d-host/index.php">Param POS (3D Host)</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\EstV3Pos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/payten/index.php">Payten V3</a>
                         </li>
                         <li class="nav-item">
@@ -57,6 +60,9 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\KuveytPos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/kuveytpos/index.php">KuveytPOS</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\KuveytSoapApiPos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/kuveytsoappos/index.php">Kuveyt SOAP API POS</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= $posClass === \Mews\Pos\Gateways\VakifKatilimPos::class ? 'active' : ''; ?>" href="<?= $hostUrl ?>/vakif-katilim/index.php">VakifKatilimPos</a>

@@ -8,11 +8,20 @@ namespace Mews\Pos\Crypt;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
+use Mews\Pos\Gateways\AkbankPos;
 
 class AkbankPosCrypt extends AbstractCrypt
 {
     /** @var string */
     protected const HASH_ALGORITHM = 'sha512';
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass): bool
+    {
+        return AkbankPos::class === $gatewayClass;
+    }
 
     /**
      * returns base16 string

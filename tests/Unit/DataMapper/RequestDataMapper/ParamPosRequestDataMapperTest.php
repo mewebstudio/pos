@@ -8,12 +8,15 @@ namespace Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper;
 
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\ParamPosRequestDataMapper;
+use Mews\Pos\DataMapper\RequestValueFormatter\ParamPosRequestValueFormatter;
+use Mews\Pos\DataMapper\RequestValueMapper\ParamPosRequestValueMapper;
 use Mews\Pos\Entity\Account\ParamPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Exceptions\NotImplementedException;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\ParamPos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\ParamPosResponseDataMapperTest;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -36,6 +39,10 @@ class ParamPosRequestDataMapperTest extends TestCase
     /** @var EventDispatcherInterface & MockObject */
     private EventDispatcherInterface $dispatcher;
 
+    private ParamPosRequestValueFormatter $valueFormatter;
+
+    private ParamPosRequestValueMapper $valueMapper;
+
     private ParamPosRequestDataMapper $requestDataMapper;
 
     public static function setUpBeforeClass(): void
@@ -55,73 +62,26 @@ class ParamPosRequestDataMapperTest extends TestCase
             '0c13d406-873b-403b-9c09-a5766840d98c'
         );
 
-        $this->dispatcher = $this->createMock(EventDispatcherInterface::class);
+        $this->dispatcher     = $this->createMock(EventDispatcherInterface::class);
+        $this->crypt          = $this->createMock(CryptInterface::class);
+        $this->valueFormatter = new ParamPosRequestValueFormatter();
+        $this->valueMapper    = new ParamPosRequestValueMapper();
 
-        $this->crypt             = $this->createMock(CryptInterface::class);
-        $this->requestDataMapper = new ParamPosRequestDataMapper($this->dispatcher, $this->crypt);
+        $this->requestDataMapper = new ParamPosRequestDataMapper(
+            $this->valueMapper,
+            $this->valueFormatter,
+            $this->dispatcher,
+            $this->crypt,
+        );
     }
 
-    /**
-     * @testWith ["1"]
-     */
-    public function testMapTxTypeException(string $txType): void
+    public function testSupports(): void
     {
-        $this->expectException(UnsupportedTransactionTypeException::class);
-        $this->requestDataMapper->mapTxType($txType);
-    }
+        $result = $this->requestDataMapper::supports(ParamPos::class);
+        $this->assertTrue($result);
 
-    /**
-     * @testWith ["pre", null]
-     */
-    public function testMapTxTypeInvArgException(string $txType, ?string $paymentModel): void
-    {
-        $this->expectException(\InvalidArgumentException::class);
-        $this->requestDataMapper->mapTxType($txType, $paymentModel);
-    }
-
-    /**
-     * @return void
-     */
-    public function testMapCurrency(): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapCurrency');
-        $method->setAccessible(true);
-        $this->assertSame('1000', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_TRY]));
-        $this->assertSame('1001', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_USD]));
-        $this->assertSame('1002', $method->invokeArgs($this->requestDataMapper, [PosInterface::CURRENCY_EUR]));
-    }
-
-    /**
-     * @param string|int|null $installment
-     * @param string|int      $expected
-     *
-     * @testWith ["0", "1"]
-     *           ["1", "1"]
-     *           ["2", "2"]
-     *           [2, "2"]
-     *
-     * @return void
-     */
-    public function testMapInstallment($installment, $expected): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('mapInstallment');
-        $method->setAccessible(true);
-        $this->assertSame($expected, $method->invokeArgs($this->requestDataMapper, [$installment]));
-    }
-
-    /**
-     * @testWith [10.0, "10,00"]
-     *            [1000.0, "1000,00"]
-     *            [1000.5, "1000,50"]
-     */
-    public function testFormatAmount(float $amount, string $formattedAmount): void
-    {
-        $class  = new \ReflectionObject($this->requestDataMapper);
-        $method = $class->getMethod('formatAmount');
-        $method->setAccessible(true);
-        $this->assertSame($formattedAmount, $method->invokeArgs($this->requestDataMapper, [$amount]));
+        $result = $this->requestDataMapper::supports(EstV3Pos::class);
+        $this->assertFalse($result);
     }
 
     /**
@@ -138,27 +98,25 @@ class ParamPosRequestDataMapperTest extends TestCase
      */
     public function testCreate3DEnrollmentCheckRequestData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $card, string $soapAction, array $expected): void
     {
-
         $requestDataWithoutHash = $expected;
         $soapBody               = $expected['soap:Body'];
         $this->crypt->expects(self::once())
             ->method('generateRandomString')
             ->willReturn($soapBody[$soapAction]['Islem_ID']);
 
-        if (PosInterface::MODEL_3D_HOST !== $paymentModel) {
-            unset($requestDataWithoutHash['soap:Body'][$soapAction]['Islem_Hash']);
-            $this->crypt->expects(self::once())
-                ->method('createHash')
-                ->with($this->account, $this->callback(function (array $actual) use ($requestDataWithoutHash, $soapAction): bool {
-                    $expected = $requestDataWithoutHash['soap:Body'];
-                    ksort($actual[$soapAction]);
-                    ksort($expected[$soapAction]);
-                    $this->assertSame($expected, $actual);
 
-                    return true;
-                }))
-                ->willReturn($soapBody[$soapAction]['Islem_Hash']);
-        }
+        unset($requestDataWithoutHash['soap:Body'][$soapAction]['Islem_Hash']);
+        $this->crypt->expects(self::once())
+            ->method('createHash')
+            ->with($this->account, $this->callback(function (array $actual) use ($requestDataWithoutHash, $soapAction): bool {
+                $expected = $requestDataWithoutHash['soap:Body'];
+                ksort($actual[$soapAction]);
+                ksort($expected[$soapAction]);
+                $this->assertSame($expected, $actual);
+
+                return true;
+            }))
+            ->willReturn($soapBody[$soapAction]['Islem_Hash']);
 
         $actual = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $this->account,
@@ -292,13 +250,13 @@ class ParamPosRequestDataMapperTest extends TestCase
      * @dataProvider threeDFormDataProviderFail
      */
     public function testGet3DFormDataFail(
-        array  $order,
-        string $txType,
-        string $paymentModel,
-        bool   $withCard,
+        array   $order,
+        string  $txType,
+        string  $paymentModel,
+        bool    $withCard,
         ?string $gatewayURL,
-        array  $extraData,
-        string $expectedException
+        array   $extraData,
+        string  $expectedException
     ): void {
         $card = $withCard ? self::$card : null;
 
@@ -586,7 +544,7 @@ class ParamPosRequestDataMapperTest extends TestCase
                             '@xmlns'     => 'https://turkpos.com.tr/',
                             'Durum'      => 'IPTAL',
                             'Siparis_ID' => 'id-12',
-                            'Tutar'      => 10.0,
+                            'Tutar'      => '10.00',
                         ],
                     ],
                 ],
@@ -639,7 +597,7 @@ class ParamPosRequestDataMapperTest extends TestCase
                             '@xmlns'     => 'https://turkpos.com.tr/',
                             'Durum'      => 'IADE',
                             'Siparis_ID' => 'id-12',
-                            'Tutar'      => 1.02,
+                            'Tutar'      => '1.02',
                         ],
                     ],
                 ],
@@ -662,79 +620,6 @@ class ParamPosRequestDataMapperTest extends TestCase
         $card = CreditCardFactory::create('5555444433332222', '22', '01', '123', 'ahmet', CreditCardInterface::CARD_TYPE_VISA);
 
         return [
-            '3d_host'                    => [
-                'order'        => $order,
-                'paymentModel' => PosInterface::MODEL_3D_HOST,
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'card'         => null,
-                'soapAction'   => 'TO_Pre_Encrypting_OOS',
-                'expected'     => [
-                    'soap:Body'   => [
-                        'TO_Pre_Encrypting_OOS' => [
-                            '@xmlns'           => 'https://turkodeme.com.tr/',
-                            'Borclu_Aciklama'  => 'r|',
-                            'Borclu_AdSoyad'   => 'r|',
-                            'Borclu_GSM'       => 'r|',
-                            'Borclu_Kisi_TC'   => '',
-                            'Borclu_Odeme_Tip' => 'r|Diğer',
-                            'Borclu_Tutar'     => 'r|1000,25',
-                            'Islem_ID'         => 'rand',
-                            'Return_URL'       => 'r|https://domain.com/success',
-                            'Taksit'           => '1',
-                            'Terminal_ID'      => '10738',
-                        ],
-                    ],
-                    'soap:Header' => [
-                        'ServiceSecuritySoapHeader' => [
-                            '@xmlns'          => 'https://turkodeme.com.tr/',
-                            'CLIENT_CODE'     => '10738',
-                            'CLIENT_USERNAME' => 'Test1',
-                            'CLIENT_PASSWORD' => 'Test2',
-                        ],
-                    ],
-                ],
-            ],
-            '3d_host_foreign_currency'   => [
-                'order'        => [
-                    'id'          => 'order222',
-                    'amount'      => 1000.25,
-                    'installment' => 0,
-                    'currency'    => PosInterface::CURRENCY_EUR,
-                    'ip'          => '127.0.0.1',
-                    'success_url' => 'https://domain.com/success',
-                    'fail_url'    => 'https://domain.com/fail',
-                ],
-                'paymentModel' => PosInterface::MODEL_3D_HOST,
-                'txType'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'card'         => null,
-                'soapAction'   => 'TO_Pre_Encrypting_OOS',
-                'expected'     => [
-                    'soap:Body'   => [
-                        'TO_Pre_Encrypting_OOS' => [
-                            '@xmlns'           => 'https://turkodeme.com.tr/',
-                            'Borclu_Aciklama'  => 'r|',
-                            'Borclu_AdSoyad'   => 'r|',
-                            'Borclu_GSM'       => 'r|',
-                            'Borclu_Kisi_TC'   => '',
-                            'Borclu_Odeme_Tip' => 'r|Diğer',
-                            'Borclu_Tutar'     => 'r|1000,25',
-                            'Doviz_Kodu'       => '1002',
-                            'Islem_ID'         => 'rand',
-                            'Return_URL'       => 'r|https://domain.com/success',
-                            'Taksit'           => '1',
-                            'Terminal_ID'      => '10738',
-                        ],
-                    ],
-                    'soap:Header' => [
-                        'ServiceSecuritySoapHeader' => [
-                            '@xmlns'          => 'https://turkodeme.com.tr/',
-                            'CLIENT_CODE'     => '10738',
-                            'CLIENT_USERNAME' => 'Test1',
-                            'CLIENT_PASSWORD' => 'Test2',
-                        ],
-                    ],
-                ],
-            ],
             [
                 'order'        => $order,
                 'paymentModel' => PosInterface::MODEL_3D_SECURE,
@@ -964,10 +849,16 @@ class ParamPosRequestDataMapperTest extends TestCase
         ];
 
         return [
-
             '3d_secure_without_card' => [
                 'order'                    => $order,
                 'paymentModel'             => PosInterface::MODEL_3D_SECURE,
+                'txType'                   => PosInterface::TX_TYPE_PAY_AUTH,
+                'card'                     => null,
+                'expected_exception_class' => \InvalidArgumentException::class,
+            ],
+            '3d_host'                => [
+                'order'                    => $order,
+                'paymentModel'             => PosInterface::MODEL_3D_HOST,
                 'txType'                   => PosInterface::TX_TYPE_PAY_AUTH,
                 'card'                     => null,
                 'expected_exception_class' => \InvalidArgumentException::class,
@@ -1128,25 +1019,6 @@ class ParamPosRequestDataMapperTest extends TestCase
     public static function threeDFormDataProvider(): array
     {
         return [
-            '3d_host_form_data'                    => [
-                'order'         => [],
-                'tx_type'       => PosInterface::TX_TYPE_PAY_AUTH,
-                'payment_model' => PosInterface::MODEL_3D_HOST,
-                'is_with_card'  => false,
-                'gateway'       => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
-                'extra_data'    => [
-                    'TO_Pre_Encrypting_OOSResponse' => [
-                        'TO_Pre_Encrypting_OOSResult' => 'JHnDLmT5yierHIqsHNRU2SR7HLxOpi8o7Eb/oVSiIf35v+Z1uzteqid4wop8SAuykWNFElYyAxGWcIGvTxmhSljuLTcJ3xDMkS3O0jUboNpl5ad6roy/92lDftpV535KmpbxMxStRa+qGT7Tk4BdEIf+Jobr2o1Yl1+ZakWZ+parsTgnodyWl432Hsv2FUNLhuU7H6folMwleaZFPYdFZ+bO1T95opw5pnDWcFkrIuPfAmVRg4cg+al22FQSN/58AXxWBb8jEPrqn+/ojZ+WqncGvw+NB/Mtv9iCDuF+SNQqRig2dRILzWYwcvNxzj/OxcYuNuvO8wYI/iF1kNBBNtaExIunWZyj1tntGeb7UUaDmHD4LmSMUMpgZGugRfUpxm8WL/EE+PnUkLXE7SOG3g==',
-                    ],
-                ],
-                'expected'      => [
-                    'gateway' => 'https://test-pos.param.com.tr/to.ws/Service_Odeme.asmx',
-                    'method'  => 'GET',
-                    'inputs'  => [
-                        's' => 'JHnDLmT5yierHIqsHNRU2SR7HLxOpi8o7Eb/oVSiIf35v+Z1uzteqid4wop8SAuykWNFElYyAxGWcIGvTxmhSljuLTcJ3xDMkS3O0jUboNpl5ad6roy/92lDftpV535KmpbxMxStRa+qGT7Tk4BdEIf+Jobr2o1Yl1+ZakWZ+parsTgnodyWl432Hsv2FUNLhuU7H6folMwleaZFPYdFZ+bO1T95opw5pnDWcFkrIuPfAmVRg4cg+al22FQSN/58AXxWBb8jEPrqn+/ojZ+WqncGvw+NB/Mtv9iCDuF+SNQqRig2dRILzWYwcvNxzj/OxcYuNuvO8wYI/iF1kNBBNtaExIunWZyj1tntGeb7UUaDmHD4LmSMUMpgZGugRfUpxm8WL/EE+PnUkLXE7SOG3g==',
-                    ],
-                ],
-            ],
             '3d_secure_form_data'                  => [
                 'order'         => [
                     'currency' => PosInterface::CURRENCY_TRY,
@@ -1253,7 +1125,7 @@ class ParamPosRequestDataMapperTest extends TestCase
                     ],
                 ],
             ],
-            '3d_pay_with_port_in_url'                               => [
+            '3d_pay_with_port_in_url'              => [
                 'order'         => [
                     'currency' => PosInterface::CURRENCY_TRY,
                 ],
@@ -1299,28 +1171,15 @@ class ParamPosRequestDataMapperTest extends TestCase
                         'TO_Pre_Encrypting_OOSResult' => 'SOAP Güvenlik Hatası.192.168.190.2',
                     ],
                 ],
-                'expected_exception' => \RuntimeException::class,
-            ],
-            '3d_host_without_gateway_url'                   => [
-                'order'              => [],
-                'tx_type'            => PosInterface::TX_TYPE_PAY_AUTH,
-                'payment_model'      => PosInterface::MODEL_3D_HOST,
-                'is_with_card'       => false,
-                'gateway'            => null,
-                'extra_data'         => [
-                    'TO_Pre_Encrypting_OOSResponse' => [
-                        'TO_Pre_Encrypting_OOSResult' => 'SOAP Güvenlik Hatası.192.168.190.2',
-                    ],
-                ],
                 'expected_exception' => \InvalidArgumentException::class,
             ],
-            '3d_pay_invalid_url'                   => [
+            '3d_pay_invalid_url'                  => [
                 'order'              => [],
                 'tx_type'            => PosInterface::TX_TYPE_PAY_AUTH,
                 'payment_model'      => PosInterface::MODEL_3D_PAY,
                 'is_with_card'       => false,
                 'gateway'            => null,
-                'extra_data' => [
+                'extra_data'         => [
                     'Pos_OdemeResponse' => [
                         'Pos_OdemeResult' => [
                             'UCD_URL' => 'SOAP Güvenlik Hatası.192.168.190.2',
@@ -1329,13 +1188,13 @@ class ParamPosRequestDataMapperTest extends TestCase
                 ],
                 'expected_exception' => \InvalidArgumentException::class,
             ],
-            '3d_pay_no_query_params_in_url'                   => [
+            '3d_pay_no_query_params_in_url'       => [
                 'order'              => [],
                 'tx_type'            => PosInterface::TX_TYPE_PAY_AUTH,
                 'payment_model'      => PosInterface::MODEL_3D_PAY,
                 'is_with_card'       => false,
                 'gateway'            => null,
-                'extra_data' => [
+                'extra_data'         => [
                     'Pos_OdemeResponse' => [
                         'Pos_OdemeResult' => [
                             'UCD_URL' => 'https://test-pos.param.com.tr/3D_Secure/AkilliKart_3DPay_PFO.aspx',

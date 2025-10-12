@@ -65,25 +65,9 @@ abstract class AbstractCreditCard implements CreditCardInterface
     /**
      * @inheritDoc
      */
-    public function getExpireYear(string $format = 'y'): string
+    public function getExpirationDate(): \DateTimeImmutable
     {
-        return $this->expDate->format($format);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getExpireMonth(string $format = 'm'): string
-    {
-        return $this->expDate->format($format);
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function getExpirationDate(string $format = 'ym'): string
-    {
-        return $this->expDate->format($format);
+        return $this->expDate;
     }
 
     /**
