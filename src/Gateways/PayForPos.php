@@ -30,7 +30,7 @@ class PayForPos extends AbstractGateway
     protected AbstractPosAccount $account;
 
     /** @var PayForPosRequestDataMapper */
-    protected RequestDataMapperInterface$requestDataMapper;
+    protected RequestDataMapperInterface $requestDataMapper;
 
     /** @var PayForPosResponseDataMapper */
     protected ResponseDataMapperInterface $responseDataMapper;
@@ -181,7 +181,11 @@ class PayForPos extends AbstractGateway
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
-        $this->logger->debug('preparing 3D form data');
+        $this->logger->debug('preparing 3D form data', [
+            'payment_model' => $paymentModel,
+            'tx_type'       => $txType,
+            'order'         => $order,
+        ]);
 
         return $this->requestDataMapper->create3DFormData(
             $this->account,
