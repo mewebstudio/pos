@@ -39,6 +39,7 @@ class SerializerFactoryTest extends TestCase
             [\Mews\Pos\Gateways\InterPos::class, \Mews\Pos\Serializer\InterPosSerializer::class],
             [\Mews\Pos\Gateways\KuveytPos::class, \Mews\Pos\Serializer\KuveytPosSerializer::class],
             [\Mews\Pos\Gateways\ParamPos::class, \Mews\Pos\Serializer\ParamPosSerializer::class],
+            [\Mews\Pos\Gateways\Param3DHostPos::class, \Mews\Pos\Serializer\ParamPosSerializer::class],
             [\Mews\Pos\Gateways\PayFlexCPV4Pos::class, \Mews\Pos\Serializer\PayFlexCPV4PosSerializer::class],
             [\Mews\Pos\Gateways\PayFlexV4Pos::class, \Mews\Pos\Serializer\PayFlexV4PosSerializer::class],
             [\Mews\Pos\Gateways\PayForPos::class, \Mews\Pos\Serializer\PayForPosSerializer::class],

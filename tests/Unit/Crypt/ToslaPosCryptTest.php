@@ -11,6 +11,8 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\ToslaPosAccount;
 use Mews\Pos\Exceptions\NotImplementedException;
 use Mews\Pos\Factory\AccountFactory;
+use Mews\Pos\Gateways\EstV3Pos;
+use Mews\Pos\Gateways\ToslaPos;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
@@ -37,6 +39,15 @@ class ToslaPosCryptTest extends TestCase
 
         $logger      = $this->createMock(LoggerInterface::class);
         $this->crypt = new ToslaPosCrypt($logger);
+    }
+
+    public function testSupports(): void
+    {
+        $supports = $this->crypt::supports(ToslaPos::class);
+        $this->assertTrue($supports);
+
+        $supports = $this->crypt::supports(EstV3Pos::class);
+        $this->assertFalse($supports);
     }
 
     public function testCreate3DHash(): void

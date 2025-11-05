@@ -36,9 +36,14 @@ class EstPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null): string
+    public function encode(array $data, ?string $txType = null, ?string $format = self::FORMAT_XML): EncodedData
     {
-        return $this->serializer->encode($data, XmlEncoder::FORMAT);
+        $format ??= self::FORMAT_XML;
+
+        return new EncodedData(
+            $this->serializer->encode($data, $format),
+            $format
+        );
     }
 
     /**

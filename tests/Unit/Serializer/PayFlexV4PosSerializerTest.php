@@ -11,6 +11,7 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\PayFlexV4Pos;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\PayFlexV4PosSerializer;
+use Mews\Pos\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 
@@ -38,12 +39,13 @@ class PayFlexV4PosSerializerTest extends TestCase
     /**
      * @dataProvider encodeDataProvider
      */
-    public function testEncode(array $data, string $txType, string $expected): void
+    public function testEncode(array $data, string $txType, ?string $format, string $expectedFormat, $expected): void
     {
-        $result   = $this->serializer->encode($data, $txType);
+        $result   = $this->serializer->encode($data, $txType, $format);
         $expected = str_replace(["\r"], '', $expected);
 
-        $this->assertSame($expected, $result);
+        $this->assertSame($expected, $result->getData());
+        $this->assertSame($expectedFormat, $result->getFormat());
     }
 
     /**
@@ -93,11 +95,11 @@ class PayFlexV4PosSerializerTest extends TestCase
     public static function decodeExceptionDataProvider(): Generator
     {
         yield 'test1' => [
-            'input'    => "<html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>Your support ID is: 11795445874629392419<br><br><a href='javascript:history.back();'>[Go Back]</a></body></html>",
+            'input'                    => "<html><head><title>Request Rejected</title></head><body>The requested URL was rejected. Please consult with your administrator.<br><br>Your support ID is: 11795445874629392419<br><br><a href='javascript:history.back();'>[Go Back]</a></body></html>",
             'expected_exception_class' => \Exception::class,
         ];
         yield 'test2' => [
-            'input'    => '',
+            'input'                    => '',
             'expected_exception_class' => NotEncodableValueException::class,
         ];
     }
@@ -105,7 +107,7 @@ class PayFlexV4PosSerializerTest extends TestCase
     public static function encodeDataProvider(): Generator
     {
         yield 'test1' => [
-            'input'    => [
+            'input'           => [
                 'MerchantId'              => '000000000111111',
                 'Password'                => '3XTgER89as',
                 'TerminalNo'              => 'VP999999',
@@ -119,12 +121,14 @@ class PayFlexV4PosSerializerTest extends TestCase
                 'Expiry'                  => '202112',
                 'Cvv'                     => '122',
             ],
-            'txType'   => PosInterface::TX_TYPE_PAY_AUTH,
-            'expected' => '<VposRequest><MerchantId>000000000111111</MerchantId><Password>3XTgER89as</Password><TerminalNo>VP999999</TerminalNo><TransactionType>Sale</TransactionType><OrderId>order222</OrderId><CurrencyAmount>100.00</CurrencyAmount><CurrencyCode>949</CurrencyCode><ClientIp>127.0.0.1</ClientIp><TransactionDeviceSource>0</TransactionDeviceSource><Pan>5555444433332222</Pan><Expiry>202112</Expiry><Cvv>122</Cvv></VposRequest>',
+            'txType'          => PosInterface::TX_TYPE_PAY_AUTH,
+            'format'          => null,
+            'expected_format' => SerializerInterface::FORMAT_XML,
+            'expected'        => '<VposRequest><MerchantId>000000000111111</MerchantId><Password>3XTgER89as</Password><TerminalNo>VP999999</TerminalNo><TransactionType>Sale</TransactionType><OrderId>order222</OrderId><CurrencyAmount>100.00</CurrencyAmount><CurrencyCode>949</CurrencyCode><ClientIp>127.0.0.1</ClientIp><TransactionDeviceSource>0</TransactionDeviceSource><Pan>5555444433332222</Pan><Expiry>202112</Expiry><Cvv>122</Cvv></VposRequest>',
         ];
 
         yield 'test_status' => [
-            'input'    => [
+            'input'           => [
                 'MerchantCriteria'    => [
                     'HostMerchantId'   => '000000000111111',
                     'MerchantPassword' => '3XTgER89as',
@@ -135,10 +139,23 @@ class PayFlexV4PosSerializerTest extends TestCase
                     'AuthCode'      => '',
                 ],
             ],
-            'txType'   => PosInterface::TX_TYPE_STATUS,
-            'expected' => '<?xml version="1.0" encoding="UTF-8"?>
+            'txType'          => PosInterface::TX_TYPE_STATUS,
+            'format'          => SerializerInterface::FORMAT_XML,
+            'expected_format' => SerializerInterface::FORMAT_XML,
+            'expected'        => '<?xml version="1.0" encoding="UTF-8"?>
 <SearchRequest><MerchantCriteria><HostMerchantId>000000000111111</HostMerchantId><MerchantPassword>3XTgER89as</MerchantPassword></MerchantCriteria><TransactionCriteria><TransactionId></TransactionId><OrderId>order222</OrderId><AuthCode></AuthCode></TransactionCriteria></SearchRequest>
 ',
+        ];
+
+        yield 'test_form_format' => [
+            'input'           => [
+                'HostMerchantId'   => '000000000111111',
+                'MerchantPassword' => '3XTgER89as',
+            ],
+            'txType'          => PosInterface::TX_TYPE_STATUS,
+            'format'          => SerializerInterface::FORMAT_FORM,
+            'expected_format' => SerializerInterface::FORMAT_FORM,
+            'expected'        => 'HostMerchantId=000000000111111&MerchantPassword=3XTgER89as',
         ];
     }
 
