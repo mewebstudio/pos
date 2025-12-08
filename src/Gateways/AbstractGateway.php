@@ -590,7 +590,7 @@ abstract class AbstractGateway implements PosInterface
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
     {
         $txType             = PosInterface::TX_TYPE_CUSTOM_QUERY;
         $updatedRequestData = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);

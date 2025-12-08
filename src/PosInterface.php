@@ -177,7 +177,7 @@ interface PosInterface
      * @throws UnsupportedPaymentModelException
      * @throws ClientExceptionInterface
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface;
+    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface;
 
     /**
      * Just returns formatted data of 3d_pay payment response
@@ -307,7 +307,7 @@ interface PosInterface
      *
      * @throws ClientExceptionInterface
      */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface;
+    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface;
 
     /**
      * Is success

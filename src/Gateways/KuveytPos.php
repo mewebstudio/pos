@@ -164,7 +164,7 @@ class KuveytPos extends AbstractGateway
      *
      * @throws SoapFault
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         $gatewayResponse = $request->request->get('AuthenticationResponse');
         if (!\is_string($gatewayResponse)) {

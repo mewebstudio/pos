@@ -89,7 +89,7 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         if ($request->request->get('TURKPOS_RETVAL_Sonuc') !== null) {
             // Doviz ile odeme
@@ -239,7 +239,7 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
     {
         $apiUrl ??= $this->getApiURL(PosInterface::TX_TYPE_CUSTOM_QUERY);
 

@@ -102,7 +102,7 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         throw new UnsupportedPaymentModelException();
     }
@@ -185,7 +185,7 @@ class ToslaPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
     {
         if (null === $apiUrl) {
             throw new \InvalidArgumentException('API URL is required for custom query');

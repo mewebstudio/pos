@@ -69,7 +69,7 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         $request = $request->request;
 
@@ -137,7 +137,7 @@ class PayFlexV4Pos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
     {
         return parent::customQuery($requestData, $apiUrl ?? $this->getApiURL());
     }
