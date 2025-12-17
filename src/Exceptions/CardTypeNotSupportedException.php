@@ -24,7 +24,7 @@ class CardTypeNotSupportedException extends DomainException
      * @param int            $code
      * @param Throwable|null $previous
      */
-    public function __construct(string $type, string $message = 'Card type is not supported by this gateway!', int $code = 74, Throwable $previous = null)
+    public function __construct(string $type, string $message = 'Card type is not supported by this gateway!', int $code = 74, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
         $this->type = $type;

@@ -30,7 +30,7 @@ class ToslaPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, string $txType = null): string
+    public function encode(array $data, ?string $txType = null): string
     {
         return $this->serializer->encode($data, JsonEncoder::FORMAT);
     }

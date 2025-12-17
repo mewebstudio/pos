@@ -71,7 +71,7 @@ class KuveytPos extends AbstractGateway
      * @throws UnsupportedTransactionTypeException
      * @throws \InvalidArgumentException when transaction type is not provided
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
+    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (\in_array(
             $txType,
@@ -135,7 +135,7 @@ class KuveytPos extends AbstractGateway
      *
      * @throws SoapFault
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 

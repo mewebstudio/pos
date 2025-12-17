@@ -177,7 +177,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
@@ -250,7 +250,7 @@ class PayFlexCPV4Pos extends AbstractGateway
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    private function registerPayment(array $order, string $txType, string $paymentModel, CreditCardInterface $creditCard = null): array
+    private function registerPayment(array $order, string $txType, string $paymentModel, ?CreditCardInterface $creditCard = null): array
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $this->account,

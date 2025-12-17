@@ -465,7 +465,7 @@ class PosNetV1PosRequestDataMapper extends AbstractRequestDataMapper
      *
      * @return string
      */
-    public static function formatOrderId(string $orderId, int $padLength = null): string
+    public static function formatOrderId(string $orderId, ?int $padLength = null): string
     {
         if (null === $padLength) {
             $padLength = self::ORDER_ID_LENGTH;

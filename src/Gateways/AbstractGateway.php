@@ -191,7 +191,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return non-empty-string
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
+    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         return $this->config['gateway_endpoints']['payment_api'];
     }
@@ -229,7 +229,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @return non-empty-string
      */
-    public function getQueryAPIUrl(string $txType = null, ?string $orderTxType = null): string
+    public function getQueryAPIUrl(?string $txType = null, ?string $orderTxType = null): string
     {
         return $this->config['gateway_endpoints']['query_api'] ?? $this->getApiURL(
             $txType,
@@ -717,7 +717,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @throws \LogicException when inputs are not valid
      */
-    protected function check3DFormInputs(string $paymentModel, string $txType, CreditCardInterface $card = null, bool $createWithoutCard = false): void
+    protected function check3DFormInputs(string $paymentModel, string $txType, ?CreditCardInterface $card = null, bool $createWithoutCard = false): void
     {
         $paymentModels = self::getSupported3DPaymentModelsForPaymentTransaction($txType);
         if (!self::isSupportedTransaction($txType, $paymentModel)) {

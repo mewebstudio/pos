@@ -22,7 +22,7 @@ class HttpClientFactory
      *
      * @return HttpClient
      */
-    public static function createHttpClient(ClientInterface $client = null, RequestFactoryInterface $requestFactory = null, StreamFactoryInterface $streamFactory = null): HttpClient
+    public static function createHttpClient(?ClientInterface $client = null, ?RequestFactoryInterface $requestFactory = null, ?StreamFactoryInterface $streamFactory = null): HttpClient
     {
         $client ??= Psr18ClientDiscovery::find();
         $requestFactory ??= Psr17FactoryDiscovery::findRequestFactory();

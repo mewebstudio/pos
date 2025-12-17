@@ -73,7 +73,7 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
+    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (PosInterface::MODEL_3D_HOST === $paymentModel) {
             if (!isset($this->config['gateway_endpoints']['payment_api_2'])) {
@@ -196,7 +196,7 @@ class ParamPos extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true)
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true)
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 

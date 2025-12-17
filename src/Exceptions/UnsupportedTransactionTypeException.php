@@ -21,7 +21,7 @@ class UnsupportedTransactionTypeException extends Exception
      * @param int            $code
      * @param Throwable|null $previous
      */
-    public function __construct(string $message = 'Unsupported transaction type!', int $code = 332, Throwable $previous = null)
+    public function __construct(string $message = 'Unsupported transaction type!', int $code = 332, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
     }

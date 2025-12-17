@@ -70,7 +70,7 @@ class VakifKatilimPos extends AbstractGateway
      * @throws UnsupportedTransactionTypeException
      * @throws \InvalidArgumentException when transaction type or payment model are not provided
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
+    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType && null !== $paymentModel) {
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel, $orderTxType);
@@ -102,7 +102,7 @@ class VakifKatilimPos extends AbstractGateway
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
@@ -203,7 +203,7 @@ class VakifKatilimPos extends AbstractGateway
      *
      * @throws UnsupportedTransactionTypeException
      */
-    protected function send($contents, string $txType, string $paymentModel, string $url = null): array
+    protected function send($contents, string $txType, string $paymentModel, ?string $url = null): array
     {
         $url ??= $this->getApiURL($txType, $paymentModel);
 
