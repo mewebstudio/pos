@@ -1,8 +1,20 @@
 {
     "name": "mews/pos",
     "description": "Türk bankaları için sanal pos kütüphanesi",
-	"keywords": ["pos", "sanal pos", "est", "est pos", "akbank", "posnet", "payfor", "vakifbankpos", "InterVPos", "DenizBank Sanal Pos", "kuveytpos"],
-	"homepage": "https://github.com/mewebstudio/pos",
+    "keywords": [
+        "pos",
+        "sanal pos",
+        "est",
+        "est pos",
+        "akbank",
+        "posnet",
+        "payfor",
+        "vakifbankpos",
+        "InterVPos",
+        "DenizBank Sanal Pos",
+        "kuveytpos"
+    ],
+    "homepage": "https://github.com/mewebstudio/pos",
     "license": "MIT",
     "authors": [
         {
@@ -22,14 +34,14 @@
         "psr/event-dispatcher-implementation": "*",
         "psr/http-client-implementation": "*",
         "psr/log": "^1.1 || ^2.0 || ^3.0",
-        "symfony/http-foundation": "^4.0 || ^5.0 || ^6.0 || ^7.0",
-        "symfony/serializer": "^4.0 || ^5.0 || ^6.0 || ^7.0"
+        "symfony/http-foundation": "^4.0 || ^5.0 || ^6.0 || ^7.0 || ^8.0",
+        "symfony/serializer": "^4.0 || ^5.0 || ^6.0 || ^7.0 || ^8.0"
     },
-	"autoload": {
-		"psr-4": {
-			"Mews\\Pos\\": "src/"
-		}
-	},
+    "autoload": {
+        "psr-4": {
+            "Mews\\Pos\\": "src/"
+        }
+    },
     "autoload-dev": {
         "psr-4": {
             "Mews\\Pos\\Tests\\": "tests/"
@@ -45,6 +57,7 @@
         "phpstan/phpstan-strict-rules": "^2.0",
         "phpunit/phpunit": "^9",
         "rector/rector": "^2.0",
+        "roave/security-advisories": "dev-latest",
         "slim/psr7": "^1.4",
         "squizlabs/php_codesniffer": "^3.5",
         "symfony/dotenv": "^5.4",
@@ -67,7 +80,7 @@
         "test": "./vendor/bin/phpunit --testsuite=unit",
         "test-functional": "./vendor/bin/phpunit --testsuite=functional",
         "coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit",
-        "phpstan": "./vendor/bin/phpstan",
+        "phpstan": "php -d memory_limit=256M ./vendor/bin/phpstan",
         "baseline": "./vendor/bin/phpstan --generate-baseline",
         "rector": "./vendor/bin/rector",
         "cs-fix": "./vendor/bin/php-cs-fixer fix",
