@@ -170,13 +170,13 @@ return [
                 'gateway_3d_host' => 'https://inter-vpos.com.tr/mpi/3DHost.aspx',
             ],
         ],
-        'kuveytpos'            => [
-            'name'  => 'kuveyt-pos',
-            'class' => Mews\Pos\Gateways\KuveytPos::class,
-            'gateway_endpoints'  => [
+        'kuveytpos'             => [
+            'name'              => 'kuveyt-pos',
+            'class'             => Mews\Pos\Gateways\KuveytPos::class,
+            'gateway_endpoints' => [
                 'payment_api' => 'https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home',
                 'gateway_3d'  => 'https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home/ThreeDModelPayGate',
-                'query_api'   => 'https://boa.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc?wsdl',
+                'query_api'   => 'https://boa.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc',
             ],
         ],
         'vakif-katilim' => [
