@@ -14,7 +14,6 @@ use DOMNodeList;
 use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
-use Symfony\Component\Serializer\Encoder\JsonEncoder;
 use Symfony\Component\Serializer\Encoder\XmlEncoder;
 use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 use Symfony\Component\Serializer\Serializer;
@@ -29,7 +28,6 @@ class KuveytPosSerializer implements SerializerInterface
         PosInterface::TX_TYPE_REFUND_PARTIAL,
         PosInterface::TX_TYPE_STATUS,
         PosInterface::TX_TYPE_CANCEL,
-        PosInterface::TX_TYPE_CUSTOM_QUERY,
     ];
 
     private Serializer $serializer;
@@ -41,7 +39,7 @@ class KuveytPosSerializer implements SerializerInterface
             XmlEncoder::ENCODING       => 'ISO-8859-1',
         ]);
 
-        $this->serializer = new Serializer([], [$encoder, new JsonEncoder()]);
+        $this->serializer = new Serializer([new XmlPrefixNormalizer()], [$encoder]);
     }
 
     /**
@@ -63,11 +61,25 @@ class KuveytPosSerializer implements SerializerInterface
             );
         }
 
-        if (\in_array($txType, $this->nonPaymentTransactions, true)) {
-            return $data;
+        if (!\in_array($txType, $this->nonPaymentTransactions, true)) {
+            return $this->serializer->encode($data, XmlEncoder::FORMAT);
         }
 
-        return $this->serializer->encode($data, XmlEncoder::FORMAT);
+        /** @var array<string, mixed> $data */
+        $data = $this->serializer->normalize($data, XmlEncoder::FORMAT, ['xml_prefix' => 'ser']);
+
+        $context = [
+            XmlEncoder::ROOT_NODE_NAME => 'soapenv:Envelope',
+            XmlEncoder::ENCODER_IGNORED_NODE_TYPES => [
+                XML_PI_NODE,
+            ],
+        ];
+
+        $serializeData['soapenv:Body']   = $data;
+        $serializeData['@xmlns:soapenv'] = 'http://schemas.xmlsoap.org/soap/envelope/';
+        $serializeData['@xmlns:ser']     = 'http://boa.net/BOA.Integration.VirtualPos/Service';
+
+        return $this->serializer->serialize($serializeData, XmlEncoder::FORMAT, $context);
     }
 
     /**
@@ -75,12 +87,14 @@ class KuveytPosSerializer implements SerializerInterface
      */
     public function decode(string $data, string $txType): array
     {
-        if (\in_array($txType, $this->nonPaymentTransactions, true)) {
-            return $this->serializer->decode($data, JsonEncoder::FORMAT);
-        }
-
         try {
-            return $this->serializer->decode($data, XmlEncoder::FORMAT);
+            $decodedData = $this->serializer->decode($data, XmlEncoder::FORMAT);
+            if (\in_array($txType, $this->nonPaymentTransactions, true)) {
+                // soap response
+                return $decodedData['s:Body'];
+            }
+
+            return $decodedData;
         } catch (NotEncodableValueException $notEncodableValueException) {
             if ($this->isHTML($data)) {
                 // 3D form data icin enrollment istegi gonderiyoruz, o istegin cevabi icinde form olan HTML donuyor.

@@ -14,6 +14,7 @@ use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Exceptions\UnsupportedPaymentModelException;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\SerializerInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -686,6 +687,7 @@ abstract class AbstractGateway implements PosInterface
      * @return array<string, mixed>
      *
      * @throws ClientExceptionInterface
+     * @throws UnsupportedTransactionTypeException
      */
     abstract protected function send($contents, string $txType, string $paymentModel, string $url): array;
 

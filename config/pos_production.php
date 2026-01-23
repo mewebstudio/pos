@@ -176,7 +176,7 @@ return [
             'gateway_endpoints' => [
                 'payment_api' => 'https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home',
                 'gateway_3d'  => 'https://sanalpos.kuveytturk.com.tr/ServiceGateWay/Home/ThreeDModelPayGate',
-                'query_api'   => 'https://boa.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc',
+                'query_api'   => 'https://boa.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
             ],
         ],
         'vakif-katilim' => [

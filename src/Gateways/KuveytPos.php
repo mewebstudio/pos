@@ -6,7 +6,6 @@
 
 namespace Mews\Pos\Gateways;
 
-use InvalidArgumentException;
 use LogicException;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
@@ -21,8 +20,6 @@ use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Psr\Http\Client\ClientExceptionInterface;
 use RuntimeException;
-use SoapClient;
-use SoapFault;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -56,7 +53,7 @@ class KuveytPos extends AbstractGateway
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_HISTORY        => false,
         PosInterface::TX_TYPE_ORDER_HISTORY  => false,
-        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => false,
     ];
 
     /** @return KuveytPosAccount */
@@ -80,7 +77,6 @@ class KuveytPos extends AbstractGateway
                 PosInterface::TX_TYPE_REFUND_PARTIAL,
                 PosInterface::TX_TYPE_STATUS,
                 PosInterface::TX_TYPE_CANCEL,
-                PosInterface::TX_TYPE_CUSTOM_QUERY,
             ],
             true
         )) {
@@ -132,8 +128,6 @@ class KuveytPos extends AbstractGateway
      * @inheritDoc
      *
      * @return array{gateway: string, method: 'POST', inputs: array<string, string>}
-     *
-     * @throws SoapFault
      */
     public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {
@@ -161,8 +155,6 @@ class KuveytPos extends AbstractGateway
 
     /**
      * @inheritDoc
-     *
-     * @throws SoapFault
      */
     public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
@@ -223,22 +215,19 @@ class KuveytPos extends AbstractGateway
      * @inheritDoc
      *
      * @return array<string, mixed>
-     *
-     * @throws SoapFault
      */
     protected function send($contents, string $txType, string $paymentModel, string $url): array
     {
+        if (!\is_string($contents)) {
+            throw new \InvalidArgumentException(\sprintf('Argument type must be string, %s provided.', \gettype($contents)));
+        }
+
         if (\in_array($txType, [
             PosInterface::TX_TYPE_REFUND,
             PosInterface::TX_TYPE_REFUND_PARTIAL,
             PosInterface::TX_TYPE_STATUS,
             PosInterface::TX_TYPE_CANCEL,
-            PosInterface::TX_TYPE_CUSTOM_QUERY,
         ], true)) {
-            if (!\is_array($contents)) {
-                throw new InvalidArgumentException(\sprintf('Invalid data type provided for %s transaction!', $txType));
-            }
-
             return $this->data = $this->sendSoapRequest($contents, $txType, $url);
         }
 
@@ -258,71 +247,55 @@ class KuveytPos extends AbstractGateway
     /**
      * @phpstan-param PosInterface::TX_TYPE_STATUS|PosInterface::TX_TYPE_REFUND|PosInterface::TX_TYPE_REFUND_PARTIAL|PosInterface::TX_TYPE_CANCEL|PosInterface::TX_TYPE_CUSTOM_QUERY $txType
      *
-     * @param array<string, mixed> $contents
-     * @param string               $txType
-     * @param string               $url
+     * @param string $contents
+     * @param string $txType
+     * @param string $url
      *
      * @return array<string, mixed>
      *
-     * @throws SoapFault
-     * @throws RuntimeException
+     * @throws ClientExceptionInterface
+     * @throws UnsupportedTransactionTypeException
      */
-    private function sendSoapRequest(array $contents, string $txType, string $url): array
+    private function sendSoapRequest(string $contents, string $txType, string $url): array
     {
+        $soapActionHeader = 'http://boa.net/BOA.Integration.VirtualPos/Service/IVirtualPosService/'.$this->requestDataMapper->mapTxType($txType);
         $this->logger->debug('sending soap request', [
             'txType' => $txType,
             'url'    => $url,
+            'action' => $soapActionHeader,
         ]);
 
-        $sslConfig = [
-            'allow_self_signed' => true,
-            'crypto_method'     => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
-        ];
-        if ($this->isTestMode()) {
-            $sslConfig = [
-                'verify_peer'       => false,
-                'verify_peer_name'  => false,
-                'allow_self_signed' => true,
-                'crypto_method'     => STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT,
-            ];
-        }
-
-        $options = [
-            'trace'          => true,
-            'encoding'       => 'UTF-8',
-            'stream_context' => stream_context_create(['ssl' => $sslConfig]),
-            'exceptions'     => true,
+        $body = [
+            'body'    => $contents,
+            'headers' => [
+                'Content-Type' => 'text/xml; charset=UTF-8',
+                'SOAPAction'   => $soapActionHeader,
+            ],
         ];
 
-
-        $client = new SoapClient($url, $options);
-        try {
-            $result = $client->__soapCall(
-                $contents['VPosMessage']['TransactionType'],
-                ['parameters' => ['request' => $contents]]
-            );
-        } catch (SoapFault $soapFault) {
+        $response = $this->client->post($url, $body);
+        $responseContent = $response->getBody()->getContents();
+        if ('' === $responseContent) {
             $this->logger->error('soap error response', [
-                'message' => $soapFault->getMessage(),
+                'status_code' => $response->getStatusCode(),
             ]);
 
-            throw $soapFault;
+            throw new \RuntimeException('Bankaya istek başarısız!', 9303);
         }
 
-        if (null === $result) {
-            $this->logger->error('Bankaya istek başarısız!', [
-                'response' => $result,
+        $this->logger->debug('soap request completed', ['status_code' => $response->getStatusCode()]);
+        $decodedData = $this->serializer->decode($responseContent, $txType);
+
+        if (isset($decodedData['s:Fault'])) {
+            $this->logger->error('soap error response', [
+                'status_code' => $response->getStatusCode(),
+                'response'    => $decodedData,
             ]);
-            throw new RuntimeException('Bankaya istek başarısız!');
+
+            throw new \RuntimeException($decodedData['s:Fault']['faultstring']['#'] ?? 'Bankaya istek başarısız!');
         }
 
-        $encodedResult = \json_encode($result);
-
-        if (false === $encodedResult) {
-            return [];
-        }
-
-        return $this->serializer->decode($encodedResult, $txType);
+        return $this->data = $decodedData;
     }
 
     /**
@@ -340,7 +313,6 @@ class KuveytPos extends AbstractGateway
      *
      * @throws RuntimeException
      * @throws UnsupportedTransactionTypeException
-     * @throws SoapFault
      * @throws ClientExceptionInterface
      */
     private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): array

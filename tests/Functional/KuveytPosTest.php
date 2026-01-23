@@ -45,9 +45,9 @@ class KuveytPosTest extends TestCase
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
             '5188961939192544',
-            '25',
+            '29',
             '06',
-            '929',
+            '588',
             'John Doe',
             CreditCardInterface::CARD_TYPE_MASTERCARD
         );
