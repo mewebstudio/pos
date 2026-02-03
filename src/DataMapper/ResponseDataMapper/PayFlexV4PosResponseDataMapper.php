@@ -283,15 +283,6 @@ class PayFlexV4PosResponseDataMapper extends AbstractResponseDataMapper
         return $response['ResultCode'] ?? null;
     }
 
-    /**
-     * @param string|null $procReturnCode
-     *
-     * @return string|null
-     */
-    protected function getStatusDetail(?string $procReturnCode): ?string
-    {
-        return $this->codes[$procReturnCode] ?? null;
-    }
 
     /**
      * @phpstan-param PosInterface::TX_TYPE_PAY_* $txType

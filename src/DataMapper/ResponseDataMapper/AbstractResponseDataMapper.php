@@ -16,6 +16,9 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
 
     protected LoggerInterface $logger;
 
+    /** @var array<int|string, string> */
+    protected array $codes = [];
+
     /** @var array<string, PosInterface::CURRENCY_*> */
     protected array $currencyMappings;
 
@@ -220,6 +223,16 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             'currency'         => null,
             'masked_number'    => null,
         ];
+    }
+
+    /**
+     * @param string|null $procReturnCode
+     *
+     * @return string|null
+     */
+    protected function getStatusDetail(?string $procReturnCode): ?string
+    {
+        return null !== $procReturnCode ? $this->codes[$procReturnCode] ?? null : null;
     }
 
     /**

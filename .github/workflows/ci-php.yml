@@ -7,12 +7,19 @@ jobs:
 
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: true
       matrix:
-        php: ['7.4', '8.5']
+        php: ['8.5']
         dependency-version: [prefer-stable]
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v6
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+
+      - name: Show PHP version
+        run: php -v
 
       - name: Install dependencies
         run: composer install --no-progress --no-suggest

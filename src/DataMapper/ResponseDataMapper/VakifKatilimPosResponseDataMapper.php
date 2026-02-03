@@ -400,17 +400,6 @@ class VakifKatilimPosResponseDataMapper extends AbstractResponseDataMapper
         return parent::mapCurrency($currencyNormalized);
     }
 
-    /**
-     * Get Status Detail Text
-     *
-     * @param string|null $procReturnCode
-     *
-     * @return string|null
-     */
-    protected function getStatusDetail(?string $procReturnCode): ?string
-    {
-        return $this->codes[$procReturnCode] ?? $procReturnCode;
-    }
 
     /**
      * @param string $mdStatus
