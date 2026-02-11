@@ -158,6 +158,12 @@ abstract class AbstractRequestDataMapper implements RequestDataMapperInterface
             return $this->txTypeMappings[$txType];
         }
 
+        if (null === $paymentModel) {
+            throw new \InvalidArgumentException(
+                sprintf('$paymentModel must be provided for the transaction type %s', $txType)
+            );
+        }
+
         return $this->txTypeMappings[$txType][$paymentModel];
     }
 

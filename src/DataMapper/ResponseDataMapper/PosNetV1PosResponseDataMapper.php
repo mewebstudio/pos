@@ -328,17 +328,6 @@ class PosNetV1PosResponseDataMapper extends AbstractResponseDataMapper
         return $transactionSecurity;
     }
 
-    /**
-     * Get Status Detail Text
-     *
-     * @param string|null $procReturnCode
-     *
-     * @return string|null
-     */
-    protected function getStatusDetail(?string $procReturnCode): ?string
-    {
-        return $this->codes[$procReturnCode] ?? null;
-    }
 
     /**
      * Get ProcReturnCode
