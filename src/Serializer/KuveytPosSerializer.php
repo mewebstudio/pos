@@ -75,11 +75,11 @@ class KuveytPosSerializer implements SerializerInterface
             ],
         ];
 
-        $serializeData['soapenv:Body']   = $data;
-        $serializeData['@xmlns:soapenv'] = 'http://schemas.xmlsoap.org/soap/envelope/';
-        $serializeData['@xmlns:ser']     = 'http://boa.net/BOA.Integration.VirtualPos/Service';
+        $soapEnvelope['soapenv:Body']   = $data;
+        $soapEnvelope['@xmlns:soapenv'] = 'http://schemas.xmlsoap.org/soap/envelope/';
+        $soapEnvelope['@xmlns:ser']     = 'http://boa.net/BOA.Integration.VirtualPos/Service';
 
-        return $this->serializer->serialize($serializeData, XmlEncoder::FORMAT, $context);
+        return $this->serializer->serialize($soapEnvelope, XmlEncoder::FORMAT, $context);
     }
 
     /**
