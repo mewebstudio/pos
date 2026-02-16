@@ -47,9 +47,9 @@ class AkbankPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      *
-     * @throws \InvalidArgumentException when transaction type is not provided
+     * @throws \InvalidArgumentException when a transaction type is not provided
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
+    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType) {
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType);
@@ -61,7 +61,7 @@ class AkbankPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    protected function createRequest(string $url, EncodedData $content, AbstractPosAccount $account = null): RequestInterface
+    protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface
     {
         if (!$account instanceof AbstractPosAccount) {
             throw new \InvalidArgumentException('Account is required to create request hash');

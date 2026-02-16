@@ -62,7 +62,7 @@ class PayFlexV4PosRequestValueFormatter implements RequestValueFormatterInterfac
      *
      * @inheritdoc
      */
-    public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null, string $txType = null): string
+    public function formatDateTime(\DateTimeInterface $dateTime, ?string $fieldName = null, ?string $txType = null): string
     {
         return $dateTime->format('Ymd');
     }

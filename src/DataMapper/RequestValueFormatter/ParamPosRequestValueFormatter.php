@@ -37,7 +37,7 @@ class ParamPosRequestValueFormatter implements RequestValueFormatterInterface
      *
      * @return string
      */
-    public function formatAmount(float $amount, string $txType = null): string
+    public function formatAmount(float $amount, ?string $txType = null): string
     {
         $txTypes = [
            PosInterface::TX_TYPE_CANCEL,
@@ -73,7 +73,7 @@ class ParamPosRequestValueFormatter implements RequestValueFormatterInterface
      *
      * @inheritdoc
      */
-    public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null): string
+    public function formatDateTime(\DateTimeInterface $dateTime, ?string $fieldName = null): string
     {
         return $dateTime->format('d.m.Y H:i:s');
     }

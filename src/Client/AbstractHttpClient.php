@@ -7,7 +7,6 @@
 namespace Mews\Pos\Client;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
-use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
@@ -77,10 +76,9 @@ abstract class AbstractHttpClient implements HttpClientInterface
      *
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
-     * @throws UnsupportedTransactionTypeException
      *
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
+    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (isset($this->config['query_api']) && \in_array($txType, [
                 PosInterface::TX_TYPE_STATUS,
@@ -96,14 +94,14 @@ abstract class AbstractHttpClient implements HttpClientInterface
      * @inheritDoc
      */
     public function request(
-        string             $txType,
-        string             $paymentModel,
-        array              $requestData,
-        array              $order,
-        string             $url = null,
-        AbstractPosAccount $account = null,
-        bool               $encode = true,
-        bool               $decode = true
+        string              $txType,
+        string              $paymentModel,
+        array               $requestData,
+        array               $order,
+        ?string             $url = null,
+        ?AbstractPosAccount $account = null,
+        bool                $encode = true,
+        bool                $decode = true
     ) {
 
         try {
@@ -123,7 +121,7 @@ abstract class AbstractHttpClient implements HttpClientInterface
 
         $content = $this->serializer->encode($requestData, $txType);
 
-        $request = $this->createRequest($url, $content, $account);
+        $request = $this->createRequest($url, $content, $txType, $account);
 
         $this->logger->debug('sending request', ['url' => $url]);
 
@@ -163,13 +161,14 @@ abstract class AbstractHttpClient implements HttpClientInterface
     }
 
     /**
-     * @param non-empty-string        $url
-     * @param EncodedData             $content
-     * @param AbstractPosAccount|null $account
+     * @param non-empty-string             $url
+     * @param EncodedData                  $content
+     * @param PosInterface::TX_TYPE_*|null $txType
+     * @param AbstractPosAccount|null      $account
      *
      * @return RequestInterface
      */
-    abstract protected function createRequest(string $url, EncodedData $content, AbstractPosAccount $account = null): RequestInterface;
+    abstract protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface;
 
     /**
      * @param PosInterface::TX_TYPE_* $txType

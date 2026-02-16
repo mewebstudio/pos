@@ -39,5 +39,5 @@ interface HttpClientInterface
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
      */
-    public function request(string $txType, string $paymentModel, array $requestData, array $order, string $url = null, AbstractPosAccount $account = null, bool $encode = true, bool $decode = true);
+    public function request(string $txType, string $paymentModel, array $requestData, array $order, ?string $url = null, ?AbstractPosAccount $account = null, bool $encode = true, bool $decode = true);
 }

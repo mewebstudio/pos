@@ -30,7 +30,7 @@ class PayForPos extends AbstractHttpGateway
     protected AbstractPosAccount $account;
 
     /** @var PayForPosRequestDataMapper */
-    protected RequestDataMapperInterface$requestDataMapper;
+    protected RequestDataMapperInterface $requestDataMapper;
 
     /** @var PayForPosResponseDataMapper */
     protected ResponseDataMapperInterface $responseDataMapper;
@@ -68,7 +68,7 @@ class PayForPos extends AbstractHttpGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         $postParameters = $request->request;
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
@@ -182,11 +182,15 @@ class PayForPos extends AbstractHttpGateway
      *
      * @return array{gateway: string, method: 'POST'|'GET', inputs: array<string, string>}
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true): array
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
-        $this->logger->debug('preparing 3D form data');
+        $this->logger->debug('preparing 3D form data', [
+            'payment_model' => $paymentModel,
+            'tx_type'       => $txType,
+            'order'         => $order,
+        ]);
 
         return $this->requestDataMapper->create3DFormData(
             $this->account,

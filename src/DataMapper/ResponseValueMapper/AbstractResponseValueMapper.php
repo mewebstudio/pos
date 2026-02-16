@@ -72,7 +72,7 @@ abstract class AbstractResponseValueMapper implements ResponseValueMapperInterfa
     /**
      * @inheritDoc
      */
-    public function mapSecureType(string $securityType, string $apiRequestTxType = null): ?string
+    public function mapSecureType(string $securityType, ?string $apiRequestTxType = null): ?string
     {
         if ([] === $this->secureTypeMappings) {
             throw new \LogicException('Secure type mapping is not supported');
@@ -84,7 +84,7 @@ abstract class AbstractResponseValueMapper implements ResponseValueMapperInterfa
     /**
      * @inheritDoc
      */
-    public function mapCurrency($currency, string $apiRequestTxType = null): ?string
+    public function mapCurrency($currency, ?string $apiRequestTxType = null): ?string
     {
         return $this->currencyMappings[$currency] ?? null;
     }

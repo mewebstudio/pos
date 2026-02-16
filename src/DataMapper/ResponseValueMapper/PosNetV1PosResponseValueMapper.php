@@ -43,7 +43,7 @@ class PosNetV1PosResponseValueMapper extends AbstractResponseValueMapper
     /**
      * @inheritDoc
      */
-    public function mapCurrency($currency, string $apiRequestTxType = null): ?string
+    public function mapCurrency($currency, ?string $apiRequestTxType = null): ?string
     {
         if (PosInterface::TX_TYPE_STATUS !== $apiRequestTxType) {
             return $this->orderStatusCurrencyMappings[$currency] ?? null;

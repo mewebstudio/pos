@@ -79,7 +79,7 @@ class PosNetV1PosRequestValueFormatter implements RequestValueFormatterInterface
     /**
      * @inheritDoc
      */
-    public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null): string
+    public function formatDateTime(\DateTimeInterface $dateTime, ?string $fieldName = null): string
     {
         throw new NotImplementedException();
     }

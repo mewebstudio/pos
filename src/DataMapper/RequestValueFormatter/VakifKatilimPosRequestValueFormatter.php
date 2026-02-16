@@ -60,7 +60,7 @@ class VakifKatilimPosRequestValueFormatter implements RequestValueFormatterInter
     /**
      * @inheritDoc
      */
-    public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null): string
+    public function formatDateTime(\DateTimeInterface $dateTime, ?string $fieldName = null): string
     {
         if ('StartDate' === $fieldName || 'EndDate' === $fieldName) {
             return $dateTime->format('Y-m-d');

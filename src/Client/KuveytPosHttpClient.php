@@ -27,9 +27,9 @@ class KuveytPosHttpClient extends AbstractHttpClient
      * @inheritDoc
      *
      * @throws UnsupportedTransactionTypeException
-     * @throws \InvalidArgumentException when transaction type is not provided
+     * @throws \InvalidArgumentException when a transaction type is not provided
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
+    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType && null !== $paymentModel) {
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
@@ -41,7 +41,7 @@ class KuveytPosHttpClient extends AbstractHttpClient
     /**
      * @return RequestInterface
      */
-    protected function createRequest(string $url, EncodedData $content, AbstractPosAccount $account = null): RequestInterface
+    protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface
     {
         $body    = $this->streamFactory->createStream($content->getData());
         $request = $this->requestFactory->createRequest('POST', $url);

@@ -25,7 +25,7 @@ class PayFlexV4PosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public function request(string $txType, string $paymentModel, array $requestData, array $order, string $url = null, AbstractPosAccount $account = null, bool $encode = true, bool $decode = true)
+    public function request(string $txType, string $paymentModel, array $requestData, array $order, ?string $url = null, ?AbstractPosAccount $account = null, bool $encode = true, bool $decode = true)
     {
         if ($encode) {
             $content = $this->serializer->encode($requestData, $txType);
@@ -63,7 +63,7 @@ class PayFlexV4PosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    protected function createRequest(string $url, EncodedData $content, AbstractPosAccount $account = null): RequestInterface
+    protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface
     {
         $body    = $this->streamFactory->createStream($content->getData());
         $request = $this->requestFactory->createRequest('POST', $url);

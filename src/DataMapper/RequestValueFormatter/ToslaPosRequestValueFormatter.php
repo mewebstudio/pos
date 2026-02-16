@@ -60,7 +60,7 @@ class ToslaPosRequestValueFormatter implements RequestValueFormatterInterface
     /**
      * @inheritDoc
      */
-    public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null): string
+    public function formatDateTime(\DateTimeInterface $dateTime, ?string $fieldName = null): string
     {
         if ('timeSpan' === $fieldName) {
             return $dateTime->format('YmdHis');

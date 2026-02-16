@@ -18,6 +18,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Tests\TestUtil\TestUtilTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -28,6 +29,8 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  */
 class KuveytSoapApiPosRequestDataMapperTest extends TestCase
 {
+    use TestUtilTrait;
+
     private KuveytPosAccount $account;
 
     private KuveytSoapApiPosRequestDataMapper $requestDataMapper;
@@ -87,20 +90,8 @@ class KuveytSoapApiPosRequestDataMapperTest extends TestCase
 
         $actual = $this->requestDataMapper->createCancelRequestData($this->account, $order);
 
-        foreach ($actual as &$item) {
-            if (is_array($item)) {
-                ksort($item);
-            }
-        }
-
-        foreach ($expected as &$item) {
-            if (is_array($item)) {
-                ksort($item);
-            }
-        }
-
-        \ksort($actual);
-        \ksort($expected);
+        self::recursiveKsort($actual);
+        self::recursiveKsort($expected);
 
         $this->assertSame($expected, $actual);
     }
@@ -116,20 +107,8 @@ class KuveytSoapApiPosRequestDataMapperTest extends TestCase
 
         $actual = $this->requestDataMapper->createRefundRequestData($this->account, $order, $txType);
 
-        foreach ($actual as &$item) {
-            if (is_array($item)) {
-                ksort($item);
-            }
-        }
-
-        foreach ($expected as &$item) {
-            if (is_array($item)) {
-                ksort($item);
-            }
-        }
-
-        \ksort($actual);
-        \ksort($expected);
+        self::recursiveKsort($actual);
+        self::recursiveKsort($expected);
 
         $this->assertSame($expected, $actual);
     }
@@ -145,20 +124,8 @@ class KuveytSoapApiPosRequestDataMapperTest extends TestCase
 
         $actual = $this->requestDataMapper->createStatusRequestData($this->account, $order);
 
-        foreach ($actual as &$item) {
-            if (is_array($item)) {
-                ksort($item);
-            }
-        }
-
-        foreach ($expected as &$item) {
-            if (is_array($item)) {
-                ksort($item);
-            }
-        }
-
-        \ksort($actual);
-        \ksort($expected);
+        self::recursiveKsort($actual);
+        self::recursiveKsort($expected);
 
         $this->assertSame($expected, $actual);
     }
@@ -220,70 +187,10 @@ class KuveytSoapApiPosRequestDataMapperTest extends TestCase
         $this->requestDataMapper->createHistoryRequestData($this->account, []);
     }
 
-    /**
-     * @dataProvider createCustomQueryRequestDataDataProvider
-     */
-    public function testCreateCustomQueryRequestData(array $requestData, array $expectedData): void
+    public function testCreateCustomQueryRequestData(): void
     {
-        if (!isset($requestData['VPosMessage']['HashData'])) {
-            $this->crypt->expects(self::once())
-                ->method('createHash')
-                ->willReturn($expectedData['VPosMessage']['HashData']);
-        }
-
-        $actual = $this->requestDataMapper->createCustomQueryRequestData($this->account, $requestData);
-
-        \ksort($actual);
-        \ksort($expectedData);
-        $this->assertSame($expectedData, $actual);
-    }
-
-    public static function createCustomQueryRequestDataDataProvider(): \Generator
-    {
-        yield 'without_account_data' => [
-            'request_data' => [
-                'abc'         => 'abc',
-                'VPosMessage' => [
-                    'TransactionType' => 'GetMerchantOrderDetail',
-                ],
-            ],
-            'expected'     => [
-                'abc'         => 'abc',
-                'VPosMessage' => [
-                    'TransactionType' => 'GetMerchantOrderDetail',
-                    'MerchantId'      => '80',
-                    'CustomerId'      => '400235',
-                    'UserName'        => 'apiuser',
-                    'APIVersion'      => 'TDV2.0.0',
-                    'HashData'        => 'hasshhh',
-                ],
-            ],
-        ];
-
-        yield 'with_account_data' => [
-            'request_data' => [
-                'abc'         => 'abc',
-                'VPosMessage' => [
-                    'MerchantId'      => '802',
-                    'CustomerId'      => '4002352',
-                    'UserName'        => 'apiuser2',
-                    'APIVersion'      => 'TDV1.0.0',
-                    'HashData'        => 'hasshhh22',
-                    'TransactionType' => 'GetMerchantOrderDetail',
-                ],
-            ],
-            'expected'     => [
-                'abc'         => 'abc',
-                'VPosMessage' => [
-                    'MerchantId'      => '802',
-                    'CustomerId'      => '4002352',
-                    'UserName'        => 'apiuser2',
-                    'APIVersion'      => 'TDV1.0.0',
-                    'HashData'        => 'hasshhh22',
-                    'TransactionType' => 'GetMerchantOrderDetail',
-                ],
-            ],
-        ];
+        $this->expectException(\Mews\Pos\Exceptions\NotImplementedException::class);
+        $this->requestDataMapper->createCustomQueryRequestData($this->account, []);
     }
 
 
@@ -300,42 +207,46 @@ class KuveytSoapApiPosRequestDataMapperTest extends TestCase
                 'currency'        => PosInterface::CURRENCY_TRY,
             ],
             'expected' => [
-                'IsFromExternalNetwork' => true,
-                'BusinessKey'           => 0,
-                'ResourceId'            => 0,
-                'ActionId'              => 0,
-                'LanguageId'            => 0,
-                'CustomerId'            => '400235',
-                'MailOrTelephoneOrder'  => true,
-                'Amount'                => 101,
-                'MerchantId'            => '80',
-                'OrderId'               => '114293600',
-                'RRN'                   => '318923298433',
-                'Stan'                  => '298433',
-                'ProvisionNumber'       => '241839',
-                'VPosMessage'           => [
-                    'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
-                    'InstallmentMaturityCommisionFlag' => 0,
-                    'HashData'                         => 'request-hash',
-                    'MerchantId'                       => '80',
-                    'SubMerchantId'                    => 0,
-                    'CustomerId'                       => '400235',
-                    'UserName'                         => 'apiuser',
-                    'CardType'                         => 'Visa',
-                    'BatchID'                          => 0,
-                    'TransactionType'                  => 'SaleReversal',
-                    'InstallmentCount'                 => 0,
-                    'Amount'                           => 101,
-                    'DisplayAmount'                    => 101,
-                    'CancelAmount'                     => 101,
-                    'MerchantOrderId'                  => '2023070849CD',
-                    'FECAmount'                        => 0,
-                    'CurrencyCode'                     => '0949',
-                    'QeryId'                           => 0,
-                    'DebtId'                           => 0,
-                    'SurchargeAmount'                  => 0,
-                    'SGKDebtAmount'                    => 0,
-                    'TransactionSecurity'              => 1,
+                'SaleReversal' => [
+                    'request' => [
+                        'IsFromExternalNetwork' => true,
+                        'BusinessKey'           => 0,
+                        'ResourceId'            => 0,
+                        'ActionId'              => 0,
+                        'LanguageId'            => 0,
+                        'CustomerId'            => '400235',
+                        'MailOrTelephoneOrder'  => true,
+                        'Amount'                => 101,
+                        'MerchantId'            => '80',
+                        'OrderId'               => '114293600',
+                        'RRN'                   => '318923298433',
+                        'Stan'                  => '298433',
+                        'ProvisionNumber'       => '241839',
+                        'VPosMessage'           => [
+                            'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
+                            'InstallmentMaturityCommisionFlag' => 0,
+                            'HashData'                         => 'request-hash',
+                            'MerchantId'                       => '80',
+                            'SubMerchantId'                    => 0,
+                            'CustomerId'                       => '400235',
+                            'UserName'                         => 'apiuser',
+                            'CardType'                         => 'Visa',
+                            'BatchID'                          => 0,
+                            'TransactionType'                  => 'SaleReversal',
+                            'InstallmentCount'                 => 0,
+                            'Amount'                           => 101,
+                            'DisplayAmount'                    => 101,
+                            'CancelAmount'                     => 101,
+                            'MerchantOrderId'                  => '2023070849CD',
+                            'FECAmount'                        => 0,
+                            'CurrencyCode'                     => '0949',
+                            'QeryId'                           => 0,
+                            'DebtId'                           => 0,
+                            'SurchargeAmount'                  => 0,
+                            'SGKDebtAmount'                    => 0,
+                            'TransactionSecurity'              => 1,
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -355,42 +266,46 @@ class KuveytSoapApiPosRequestDataMapperTest extends TestCase
             ],
             'tx_type'     => PosInterface::TX_TYPE_REFUND,
             'expected'    => [
-                'IsFromExternalNetwork' => true,
-                'BusinessKey'           => 0,
-                'ResourceId'            => 0,
-                'ActionId'              => 0,
-                'LanguageId'            => 0,
-                'CustomerId'            => '400235',
-                'MailOrTelephoneOrder'  => true,
-                'Amount'                => 101,
-                'MerchantId'            => '80',
-                'OrderId'               => '114293600',
-                'RRN'                   => '318923298433',
-                'Stan'                  => '298433',
-                'ProvisionNumber'       => '241839',
-                'VPosMessage'           => [
-                    'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
-                    'InstallmentMaturityCommisionFlag' => 0,
-                    'HashData'                         => 'request-hash',
-                    'MerchantId'                       => '80',
-                    'SubMerchantId'                    => 0,
-                    'CustomerId'                       => '400235',
-                    'UserName'                         => 'apiuser',
-                    'CardType'                         => 'Visa',
-                    'BatchID'                          => 0,
-                    'TransactionType'                  => 'Drawback',
-                    'InstallmentCount'                 => 0,
-                    'Amount'                           => 101,
-                    'DisplayAmount'                    => 0,
-                    'CancelAmount'                     => 101,
-                    'MerchantOrderId'                  => '2023070849CD',
-                    'FECAmount'                        => 0,
-                    'CurrencyCode'                     => '0949',
-                    'QeryId'                           => 0,
-                    'DebtId'                           => 0,
-                    'SurchargeAmount'                  => 0,
-                    'SGKDebtAmount'                    => 0,
-                    'TransactionSecurity'              => 1,
+                'DrawBack' => [
+                    'request' => [
+                        'IsFromExternalNetwork' => true,
+                        'BusinessKey'           => 0,
+                        'ResourceId'            => 0,
+                        'ActionId'              => 0,
+                        'LanguageId'            => 0,
+                        'CustomerId'            => '400235',
+                        'MailOrTelephoneOrder'  => true,
+                        'Amount'                => 101,
+                        'MerchantId'            => '80',
+                        'OrderId'               => '114293600',
+                        'RRN'                   => '318923298433',
+                        'Stan'                  => '298433',
+                        'ProvisionNumber'       => '241839',
+                        'VPosMessage'           => [
+                            'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
+                            'InstallmentMaturityCommisionFlag' => 0,
+                            'HashData'                         => 'request-hash',
+                            'MerchantId'                       => '80',
+                            'SubMerchantId'                    => 0,
+                            'CustomerId'                       => '400235',
+                            'UserName'                         => 'apiuser',
+                            'CardType'                         => 'Visa',
+                            'BatchID'                          => 0,
+                            'TransactionType'                  => 'DrawBack',
+                            'InstallmentCount'                 => 0,
+                            'Amount'                           => 101,
+                            'DisplayAmount'                    => 0,
+                            'CancelAmount'                     => 101,
+                            'MerchantOrderId'                  => '2023070849CD',
+                            'FECAmount'                        => 0,
+                            'CurrencyCode'                     => '0949',
+                            'QeryId'                           => 0,
+                            'DebtId'                           => 0,
+                            'SurchargeAmount'                  => 0,
+                            'SGKDebtAmount'                    => 0,
+                            'TransactionSecurity'              => 1,
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -408,42 +323,46 @@ class KuveytSoapApiPosRequestDataMapperTest extends TestCase
             ],
             'tx_type'        => PosInterface::TX_TYPE_REFUND_PARTIAL,
             'expected'       => [
-                'IsFromExternalNetwork' => true,
-                'BusinessKey'           => 0,
-                'ResourceId'            => 0,
-                'ActionId'              => 0,
-                'LanguageId'            => 0,
-                'CustomerId'            => '400235',
-                'MailOrTelephoneOrder'  => true,
-                'Amount'                => 901,
-                'MerchantId'            => '80',
-                'OrderId'               => '114293600',
-                'RRN'                   => '318923298433',
-                'Stan'                  => '298433',
-                'ProvisionNumber'       => '241839',
-                'VPosMessage'           => [
-                    'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
-                    'InstallmentMaturityCommisionFlag' => 0,
-                    'HashData'                         => 'request-hash',
-                    'MerchantId'                       => '80',
-                    'SubMerchantId'                    => 0,
-                    'CustomerId'                       => '400235',
-                    'UserName'                         => 'apiuser',
-                    'CardType'                         => 'Visa',
-                    'BatchID'                          => 0,
-                    'TransactionType'                  => 'PartialDrawback',
-                    'InstallmentCount'                 => 0,
-                    'Amount'                           => 901,
-                    'DisplayAmount'                    => 0,
-                    'CancelAmount'                     => 901,
-                    'MerchantOrderId'                  => '2023070849CD',
-                    'FECAmount'                        => 0,
-                    'CurrencyCode'                     => '0949',
-                    'QeryId'                           => 0,
-                    'DebtId'                           => 0,
-                    'SurchargeAmount'                  => 0,
-                    'SGKDebtAmount'                    => 0,
-                    'TransactionSecurity'              => 1,
+                'PartialDrawback' => [
+                    'request' => [
+                        'IsFromExternalNetwork' => true,
+                        'BusinessKey'           => 0,
+                        'ResourceId'            => 0,
+                        'ActionId'              => 0,
+                        'LanguageId'            => 0,
+                        'CustomerId'            => '400235',
+                        'MailOrTelephoneOrder'  => true,
+                        'Amount'                => 901,
+                        'MerchantId'            => '80',
+                        'OrderId'               => '114293600',
+                        'RRN'                   => '318923298433',
+                        'Stan'                  => '298433',
+                        'ProvisionNumber'       => '241839',
+                        'VPosMessage'           => [
+                            'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
+                            'InstallmentMaturityCommisionFlag' => 0,
+                            'HashData'                         => 'request-hash',
+                            'MerchantId'                       => '80',
+                            'SubMerchantId'                    => 0,
+                            'CustomerId'                       => '400235',
+                            'UserName'                         => 'apiuser',
+                            'CardType'                         => 'Visa',
+                            'BatchID'                          => 0,
+                            'TransactionType'                  => 'PartialDrawback',
+                            'InstallmentCount'                 => 0,
+                            'Amount'                           => 901,
+                            'DisplayAmount'                    => 0,
+                            'CancelAmount'                     => 901,
+                            'MerchantOrderId'                  => '2023070849CD',
+                            'FECAmount'                        => 0,
+                            'CurrencyCode'                     => '0949',
+                            'QeryId'                           => 0,
+                            'DebtId'                           => 0,
+                            'SurchargeAmount'                  => 0,
+                            'SGKDebtAmount'                    => 0,
+                            'TransactionSecurity'              => 1,
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -461,44 +380,48 @@ class KuveytSoapApiPosRequestDataMapperTest extends TestCase
                 'end_date'   => $endDate,
             ],
             'expected' => [
-                'IsFromExternalNetwork' => true,
-                'BusinessKey'           => 0,
-                'ResourceId'            => 0,
-                'ActionId'              => 0,
-                'LanguageId'            => 0,
-                'CustomerId'            => null,
-                'MailOrTelephoneOrder'  => true,
-                'Amount'                => 0,
-                'MerchantId'            => '80',
-                'OrderId'               => 0,
-                'TransactionType'       => 0,
-                'VPosMessage'           => [
-                    'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
-                    'InstallmentMaturityCommisionFlag' => 0,
-                    'HashData'                         => 'request-hash',
-                    'MerchantId'                       => '80',
-                    'SubMerchantId'                    => 0,
-                    'CustomerId'                       => '400235',
-                    'UserName'                         => 'apiuser',
-                    'CardType'                         => 'Visa',
-                    'BatchID'                          => 0,
-                    'TransactionType'                  => 'GetMerchantOrderDetail',
-                    'InstallmentCount'                 => 0,
-                    'Amount'                           => 0,
-                    'DisplayAmount'                    => 0,
-                    'CancelAmount'                     => 0,
-                    'MerchantOrderId'                  => '2023070849CD',
-                    'FECAmount'                        => 0,
-                    'CurrencyCode'                     => '0949',
-                    'QeryId'                           => 0,
-                    'DebtId'                           => 0,
-                    'SurchargeAmount'                  => 0,
-                    'SGKDebtAmount'                    => 0,
-                    'TransactionSecurity'              => 1,
+                'GetMerchantOrderDetail' => [
+                    'request' => [
+                        'IsFromExternalNetwork' => true,
+                        'BusinessKey'           => 0,
+                        'ResourceId'            => 0,
+                        'ActionId'              => 0,
+                        'LanguageId'            => 0,
+                        'CustomerId'            => '400235',
+                        'MailOrTelephoneOrder'  => true,
+                        'Amount'                => 0,
+                        'MerchantId'            => '80',
+                        'OrderId'               => 0,
+                        'TransactionType'       => 0,
+                        'VPosMessage'           => [
+                            'APIVersion'                       => KuveytPosRequestDataMapper::API_VERSION,
+                            'InstallmentMaturityCommisionFlag' => 0,
+                            'HashData'                         => 'request-hash',
+                            'MerchantId'                       => '80',
+                            'SubMerchantId'                    => 0,
+                            'CustomerId'                       => '400235',
+                            'UserName'                         => 'apiuser',
+                            'CardType'                         => 'Visa',
+                            'BatchID'                          => 0,
+                            'TransactionType'                  => 'GetMerchantOrderDetail',
+                            'InstallmentCount'                 => 0,
+                            'Amount'                           => 0,
+                            'DisplayAmount'                    => 0,
+                            'CancelAmount'                     => 0,
+                            'MerchantOrderId'                  => '2023070849CD',
+                            'FECAmount'                        => 0,
+                            'CurrencyCode'                     => '0949',
+                            'QeryId'                           => 0,
+                            'DebtId'                           => 0,
+                            'SurchargeAmount'                  => 0,
+                            'SGKDebtAmount'                    => 0,
+                            'TransactionSecurity'              => 1,
+                        ],
+                        'MerchantOrderId'       => '2023070849CD',
+                        'StartDate'             => '2022-07-08T22:44:31',
+                        'EndDate'               => '2023-07-08T22:44:31',
+                    ],
                 ],
-                'MerchantOrderId'       => '2023070849CD',
-                'StartDate'             => '2022-07-08T22:44:31',
-                'EndDate'               => '2023-07-08T22:44:31',
             ],
         ];
     }

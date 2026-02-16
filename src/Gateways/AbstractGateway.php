@@ -296,7 +296,7 @@ abstract class AbstractGateway implements PosInterface
      *
      * @throws \LogicException when inputs are not valid
      */
-    protected function check3DFormInputs(string $paymentModel, string $txType, CreditCardInterface $card = null, bool $createWithoutCard = false): void
+    protected function check3DFormInputs(string $paymentModel, string $txType, ?CreditCardInterface $card = null, bool $createWithoutCard = false): void
     {
         $paymentModels = $this->getSupported3DPaymentModelsForPaymentTransaction($txType);
         if (!self::isSupportedTransaction($txType, $paymentModel)) {

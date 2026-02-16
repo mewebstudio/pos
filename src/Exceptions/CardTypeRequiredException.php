@@ -24,7 +24,7 @@ class CardTypeRequiredException extends DomainException
      * @param int            $code
      * @param Throwable|null $previous
      */
-    public function __construct(string $gatewayName, string $message = 'Card type is required for this gateway!', int $code = 73, Throwable $previous = null)
+    public function __construct(string $gatewayName, string $message = 'Card type is required for this gateway!', int $code = 73, ?Throwable $previous = null)
     {
         parent::__construct($message, $code, $previous);
         $this->gatewayName = $gatewayName;

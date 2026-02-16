@@ -1,5 +1,5 @@
 # Use image which contains apache with php
-FROM php:7.4.33-apache
+FROM php:8.5-apache
 
 RUN apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y
 
@@ -11,7 +11,7 @@ RUN docker-php-ext-install zip
 RUN docker-php-ext-install soap
 
 # Install XDEBUG
-RUN pecl install xdebug-3.1.0 && docker-php-ext-enable xdebug
+RUN pecl install xdebug-3.5.0 && docker-php-ext-enable xdebug
 
 # Install composer command
 RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer

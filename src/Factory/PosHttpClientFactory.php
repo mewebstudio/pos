@@ -14,6 +14,7 @@ use Mews\Pos\Client\GarantiPosHttpClient;
 use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Client\InterPosHttpClient;
 use Mews\Pos\Client\KuveytPosHttpClient;
+use Mews\Pos\Client\KuveytSoapApiPosHttpClient;
 use Mews\Pos\Client\ParamPosHttpClient;
 use Mews\Pos\Client\PayFlexCPV4PosHttpClient;
 use Mews\Pos\Client\PayFlexV4PosHttpClient;
@@ -42,6 +43,7 @@ class PosHttpClientFactory
         GarantiPosHttpClient::class,
         InterPosHttpClient::class,
         KuveytPosHttpClient::class,
+        KuveytSoapApiPosHttpClient::class,
         ParamPosHttpClient::class,
         PayFlexCPV4PosHttpClient::class,
         PayFlexV4PosHttpClient::class,
@@ -75,9 +77,9 @@ class PosHttpClientFactory
         CryptInterface              $crypt,
         RequestValueMapperInterface $requestValueMapper,
         LoggerInterface             $logger,
-        ClientInterface             $psr18client = null,
-        RequestFactoryInterface     $requestFactory = null,
-        StreamFactoryInterface      $streamFactory = null
+        ?ClientInterface            $psr18client = null,
+        ?RequestFactoryInterface    $requestFactory = null,
+        ?StreamFactoryInterface     $streamFactory = null
     ): HttpClientInterface {
 
         $psr18client    ??= Psr18ClientDiscovery::find();
@@ -102,7 +104,7 @@ class PosHttpClientFactory
                     $crypt
                 );
             }
-            if (PosNetV1PosHttpClient::class === $clientClass) {
+            if (PosNetV1PosHttpClient::class === $clientClass || KuveytSoapApiPosHttpClient::class === $clientClass) {
                 return new $clientClass(
                     $psr18client,
                     $requestFactory,

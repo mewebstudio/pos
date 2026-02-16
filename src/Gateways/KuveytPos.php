@@ -125,7 +125,7 @@ class KuveytPos extends AbstractHttpGateway
      *
      * @return string
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true): string
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true): string
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
@@ -152,7 +152,7 @@ class KuveytPos extends AbstractHttpGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         $paymentModel    = PosInterface::MODEL_3D_SECURE;
         $gatewayResponse = $request->request->get('AuthenticationResponse');

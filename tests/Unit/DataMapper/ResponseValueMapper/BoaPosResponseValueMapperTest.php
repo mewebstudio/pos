@@ -105,7 +105,7 @@ class BoaPosResponseValueMapperTest extends TestCase
             ['Sale', PosInterface::TX_TYPE_PAY_AUTH],
             ['SaleReversal', PosInterface::TX_TYPE_CANCEL],
             ['GetMerchantOrderDetail', PosInterface::TX_TYPE_STATUS],
-            ['Drawback', PosInterface::TX_TYPE_REFUND],
+            ['DrawBack', PosInterface::TX_TYPE_REFUND],
             ['PartialDrawback', PosInterface::TX_TYPE_REFUND_PARTIAL],
             ['', null],
         ];

@@ -24,7 +24,7 @@ class ParamPosResponseValueFormatter extends AbstractResponseValueFormatter
     /**
      * @inheritDoc
      */
-    public function formatAmount($amount, string $txType = null): float
+    public function formatAmount($amount, ?string $txType = null): float
     {
         if (PosInterface::TX_TYPE_STATUS === $txType) {
             return (float) $amount;

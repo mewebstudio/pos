@@ -38,6 +38,7 @@ sistemlerinin kullanılabilmesidir.
 - [Ornek Kodlar](#ornek-kodlar)
     - [3DSecure, 3DPay ve 3DHost Ödeme Örneği](./docs/THREED-PAYMENT-EXAMPLE.md)
     - [3DSecure, 3DPay ve 3DHost Modal Box ile Ödeme Örneği](./docs/THREED-SECURE-AND-PAY-PAYMENT-IN-MODALBOX-EXAMPLE.md)
+    - [QR Code ile Ödeme Örneği](./docs/QR-CODE-PAYMENT-EXAMPLE.md)
     - [Non Secure Ödeme Örneği](./docs/NON-SECURE-PAYMENT-EXAMPLE.md)
     - [Ön otorizasyon ve Ön otorizasyon kapama](./docs/PRE-AUTH-POST-EXAMPLE.md)
     - [Ödeme İptal](./docs/CANCEL-EXAMPLE.md)

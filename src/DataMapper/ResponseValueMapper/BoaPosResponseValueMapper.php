@@ -42,7 +42,7 @@ class BoaPosResponseValueMapper extends AbstractResponseValueMapper
      * in '0949' or '949' formats
      * @inheritDoc
      */
-    public function mapCurrency($currency, string $apiRequestTxType = null): ?string
+    public function mapCurrency($currency, ?string $apiRequestTxType = null): ?string
     {
         // 949 => 0949; for the request gateway wants 0949 code, but in response they send 949 code.
         $currencyNormalized = \str_pad((string) $currency, 4, '0', STR_PAD_LEFT);

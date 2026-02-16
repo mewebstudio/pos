@@ -62,7 +62,7 @@ class PosNetV1PosHttpClient extends AbstractHttpClient
      * @throws UnsupportedTransactionTypeException
      * @throws \InvalidArgumentException when transaction type is not provided
      */
-    public function getApiURL(string $txType = null, string $paymentModel = null, ?string $orderTxType = null): string
+    public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType) {
             return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType);
@@ -75,7 +75,7 @@ class PosNetV1PosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    protected function createRequest(string $url, EncodedData $content, AbstractPosAccount $account = null): RequestInterface
+    protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface
     {
         $body    = $this->streamFactory->createStream($content->getData());
         $request = $this->requestFactory->createRequest('POST', $url);

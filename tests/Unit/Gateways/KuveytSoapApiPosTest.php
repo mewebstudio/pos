@@ -6,11 +6,12 @@
 
 namespace Mews\Pos\Tests\Unit\Gateways;
 
-use Mews\Pos\Client\SoapClientInterface;
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytSoapApiPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestValueMapper\KuveytPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
+use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
@@ -20,7 +21,7 @@ use Mews\Pos\Factory\AccountFactory;
 use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\KuveytSoapApiPos;
 use Mews\Pos\PosInterface;
-use Mews\Pos\Tests\Unit\DataMapper\RequestDataMapper\KuveytSoapApiPosRequestDataMapperTest;
+use Mews\Pos\Serializer\SerializerInterface;
 use Mews\Pos\Tests\Unit\DataMapper\ResponseDataMapper\KuveytSoapApiPosResponseDataMapperTest;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -30,7 +31,7 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * @covers \Mews\Pos\Gateways\KuveytSoapApiPos
- * @covers \Mews\Pos\Gateways\AbstractSoapGateway
+ * @covers \Mews\Pos\Gateways\AbstractHttpGateway
  * @covers \Mews\Pos\Gateways\AbstractGateway
  */
 class KuveytSoapApiPosTest extends TestCase
@@ -52,14 +53,20 @@ class KuveytSoapApiPosTest extends TestCase
     /** @var ResponseDataMapperInterface & MockObject */
     private MockObject $responseMapperMock;
 
-    /** @var SoapClientInterface & MockObject */
-    private MockObject $soapClientMock;
+    /** @var CryptInterface & MockObject */
+    private MockObject $cryptMock;
+
+    /** @var HttpClientInterface & MockObject */
+    private MockObject $httpClientMock;
 
     /** @var LoggerInterface & MockObject */
     private MockObject $loggerMock;
 
     /** @var EventDispatcherInterface & MockObject */
     private MockObject $eventDispatcherMock;
+
+    /** @var SerializerInterface & MockObject */
+    private MockObject $serializerMock;
 
     private KuveytPosRequestValueMapper $requestValueMapper;
 
@@ -75,7 +82,9 @@ class KuveytSoapApiPosTest extends TestCase
         $this->config = [
             'name'              => 'kuveyt-pos',
             'class'             => KuveytSoapApiPos::class,
-            'gateway_endpoints' => [],
+            'gateway_endpoints' => [
+                'payment_api' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
+            ],
         ];
 
         $this->account = AccountFactory::createKuveytPosAccount(
@@ -100,14 +109,15 @@ class KuveytSoapApiPosTest extends TestCase
         $this->requestValueMapper  = new KuveytPosRequestValueMapper();
         $this->requestMapperMock   = $this->createMock(KuveytSoapApiPosRequestDataMapper::class);
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $cryptMock                 = $this->createMock(CryptInterface::class);
-        $this->soapClientMock      = $this->createMock(SoapClientInterface::class);
+        $this->serializerMock      = $this->createMock(SerializerInterface::class);
+        $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
 
         $this->requestMapperMock->expects(self::any())
             ->method('getCrypt')
-            ->willReturn($cryptMock);
+            ->willReturn($this->cryptMock);
 
         $this->pos = new KuveytSoapApiPos(
             $this->config,
@@ -115,12 +125,11 @@ class KuveytSoapApiPosTest extends TestCase
             $this->requestValueMapper,
             $this->requestMapperMock,
             $this->responseMapperMock,
+            $this->serializerMock,
             $this->eventDispatcherMock,
-            $this->soapClientMock,
+            $this->httpClientMock,
             $this->loggerMock,
         );
-
-        $this->pos->setTestMode(true);
 
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
@@ -141,6 +150,7 @@ class KuveytSoapApiPosTest extends TestCase
         $this->assertCount(count($this->requestValueMapper->getCurrencyMappings()), $this->pos->getCurrencies());
         $this->assertSame($this->config, $this->pos->getConfig());
         $this->assertSame($this->account, $this->pos->getAccount());
+        $this->assertFalse($this->pos->isTestMode());
     }
 
     /**
@@ -227,13 +237,50 @@ class KuveytSoapApiPosTest extends TestCase
     }
 
     /**
+     * @dataProvider statusDataProvider
+     */
+    public function testStatus(array $bankResponse, array $expectedData, bool $isSuccess): void
+    {
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_STATUS;
+        $requestData = ['createStatusRequestData'];
+        $order       = $this->order;
+
+        $this->requestMapperMock->expects(self::once())
+            ->method('createStatusRequestData')
+            ->with($account, $order)
+            ->willReturn($requestData);
+
+        $this->configureClientResponse(
+            $txType,
+            $requestData,
+            $bankResponse,
+            $order,
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account,
+        );
+
+        $this->responseMapperMock->expects(self::once())
+            ->method('mapStatusResponse')
+            ->with($bankResponse)
+            ->willReturn($expectedData);
+
+        $this->pos->status($order);
+
+        $result = $this->pos->getResponse();
+        $this->assertSame($expectedData, $result);
+        $this->assertSame($isSuccess, $this->pos->isSuccess());
+    }
+    /**
      * @dataProvider cancelDataProvider
      */
-    public function testCancel(array $requestData, array $bankResponse, array $expectedData, bool $isSuccess): void
+    public function testCancel(array $bankResponse, array $expectedData, bool $isSuccess): void
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_CANCEL;
-        $order   = $this->order;
+        $account     = $this->pos->getAccount();
+        $txType      = PosInterface::TX_TYPE_CANCEL;
+        $requestData = ['createCancelRequestData'];
+        $order       = $this->order;
 
         $this->requestMapperMock->expects(self::once())
             ->method('createCancelRequestData')
@@ -242,11 +289,12 @@ class KuveytSoapApiPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            null,
             $requestData,
             $bankResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account,
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -264,9 +312,12 @@ class KuveytSoapApiPosTest extends TestCase
     /**
      * @dataProvider refundDataProvider
      */
-    public function testRefund(array $order, string $txType, array $requestData, array $bankResponse, array $expectedData, bool $isSuccess): void
+    public function testRefund(array $bankResponse, array $expectedData, bool $isSuccess): void
     {
-        $account = $this->pos->getAccount();
+        $account            = $this->pos->getAccount();
+        $txType             = PosInterface::TX_TYPE_REFUND;
+        $requestData        = ['createRefundRequestData'];
+        $order              = $this->order;
 
         $this->requestMapperMock->expects(self::once())
             ->method('createRefundRequestData')
@@ -275,11 +326,12 @@ class KuveytSoapApiPosTest extends TestCase
 
         $this->configureClientResponse(
             $txType,
-            null,
             $requestData,
             $bankResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE
+            PosInterface::MODEL_NON_SECURE,
+            null,
+            $account,
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -294,56 +346,34 @@ class KuveytSoapApiPosTest extends TestCase
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
-    /**
-     * @dataProvider statusDataProvider
-     */
-    public function testStatus(array $requestData, array $bankResponse, array $expectedData, bool $isSuccess): void
+    public static function statusDataProvider(): iterable
     {
-        $account = $this->pos->getAccount();
-        $txType  = PosInterface::TX_TYPE_STATUS;
-        $order   = $this->order;
-
-        $this->requestMapperMock->expects(self::once())
-            ->method('createStatusRequestData')
-            ->with($account, $order)
-            ->willReturn($requestData);
-
-        $this->configureClientResponse(
-            $txType,
-            null,
-            $requestData,
-            $bankResponse,
-            $order,
-            PosInterface::MODEL_NON_SECURE
-        );
-
-        $this->responseMapperMock->expects(self::once())
-            ->method('mapStatusResponse')
-            ->with($bankResponse)
-            ->willReturn($expectedData);
-
-        $this->pos->status($order);
-
-        $result = $this->pos->getResponse();
-        $this->assertSame($expectedData, $result);
-        $this->assertSame($isSuccess, $this->pos->isSuccess());
+        $testData = iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::statusTestDataProvider());
+        yield [
+            'bank_response' => $testData['fail1']['responseData'],
+            'expected_data' => $testData['fail1']['expectedData'],
+            'isSuccess'     => false,
+        ];
+        yield [
+            'bank_response' => $testData['success1']['responseData'],
+            'expected_data' => $testData['success1']['expectedData'],
+            'isSuccess'     => true,
+        ];
     }
 
     public static function cancelDataProvider(): array
     {
-        $requestData = \iterator_to_array(KuveytSoapApiPosRequestDataMapperTest::createCancelRequestDataProvider());
-        $responses   = \iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::cancelTestDataProvider());
+        $testData = iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::cancelTestDataProvider());
+
         return [
             'fail_1'    => [
-                'request_data'  => $requestData[0]['expected'],
-                'bank_response' => $responses['fail1']['responseData'],
-                'expected_data' => $responses['fail1']['expectedData'],
+                'bank_response' => $testData['fail1']['responseData'],
+                'expected_data' => $testData['fail1']['expectedData'],
                 'isSuccess'     => false,
             ],
             'success_1' => [
-                'request_data'  => $requestData[0]['expected'],
-                'bank_response' => $responses['success1']['responseData'],
-                'expected_data' => $responses['success1']['expectedData'],
+                'bank_response' => $testData['success1']['responseData'],
+                'expected_data' => $testData['success1']['expectedData'],
                 'isSuccess'     => true,
             ],
         ];
@@ -351,92 +381,45 @@ class KuveytSoapApiPosTest extends TestCase
 
     public static function refundDataProvider(): array
     {
-        $requestData = \iterator_to_array(KuveytSoapApiPosRequestDataMapperTest::createRefundRequestDataProvider());
-        $responses   = \iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::refundTestDataProvider());
-
+        $testData = iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::refundTestDataProvider());
         return [
-            'fail_1' => [
-                'order'         => [
-                    'id'              => '2023070849CD',
-                    'remote_order_id' => '114293600',
-                    'ref_ret_num'     => '318923298433',
-                    'auth_code'       => '241839',
-                    'transaction_id'  => '298433',
-                    'amount'          => 1.01,
-                    'currency'        => PosInterface::CURRENCY_TRY,
-                ],
-                'txType'        => PosInterface::TX_TYPE_REFUND,
-                'request_data'  => $requestData[0]['expected'],
-                'bank_response' => $responses['fail1']['responseData'],
-                'expected_data' => $responses['fail1']['expectedData'],
+            'fail_1'    => [
+                'bank_response' => $testData['fail1']['responseData'],
+                'expected_data' => $testData['fail1']['expectedData'],
                 'isSuccess'     => false,
             ],
-            'fail_2' => [
-                'order'         => [
-                    'id'              => '2023070849CD',
-                    'remote_order_id' => '114293600',
-                    'ref_ret_num'     => '318923298433',
-                    'auth_code'       => '241839',
-                    'transaction_id'  => '298433',
-                    'amount'          => 1.01,
-                    'order_amount'    => 2.01,
-                    'currency'        => PosInterface::CURRENCY_TRY,
-                ],
-                'txType'        => PosInterface::TX_TYPE_REFUND_PARTIAL,
-                'request_data'  => $requestData[0]['expected'],
-                'bank_response' => $responses['fail1']['responseData'],
-                'expected_data' => $responses['fail1']['expectedData'],
-                'isSuccess'     => false,
+            'success_1' => [
+                'bank_response' => $testData['success1']['responseData'],
+                'expected_data' => $testData['success1']['expectedData'],
+                'isSuccess'     => true,
             ],
-        ];
-    }
-
-    public static function statusDataProvider(): iterable
-    {
-        $requestData = \iterator_to_array(KuveytSoapApiPosRequestDataMapperTest::createStatusRequestDataProvider())[0];
-        $responses   = \iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::statusTestDataProvider());
-
-        yield [
-            'request_data'  => $requestData['expected'],
-            'bank_response' => $responses['fail1']['responseData'],
-            'expected_data' => $responses['fail1']['expectedData'],
-            'isSuccess'     => false,
-        ];
-        yield [
-            'request_data'  => $requestData['expected'],
-            'bank_response' => $responses['success1']['responseData'],
-            'expected_data' => $responses['success1']['expectedData'],
-            'isSuccess'     => true,
         ];
     }
 
     private function configureClientResponse(
-        string  $txType,
-        ?string $soapAction,
-        array   $requestData,
-        array   $responseContent,
-        array   $order,
-        string  $paymentModel
+        string              $txType,
+        array               $requestData,
+        array               $decodedResponse,
+        array               $order,
+        string              $paymentModel,
+        ?string             $apiUrl = null,
+        ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
 
-        $this->soapClientMock->expects(self::once())
-            ->method('call')
+        $this->httpClientMock->expects(self::once())
+            ->method('request')
             ->with(
                 $txType,
                 $paymentModel,
-                $this->callback(function (array $actualData) use (&$updatedRequestDataPreparedEvent): bool {
-                    $this->assertSame(
-                        $updatedRequestDataPreparedEvent->getRequestData(),
-                        $actualData
-                    );
-
-                    return true;
+                $this->callback(function (array $requestData) {
+                    return $requestData['test-update-request-data-with-event'] === true;
                 }),
                 $order,
-                $soapAction,
-            )
-            ->willReturn($responseContent);
+                $apiUrl,
+                $account
+            )->willReturn($decodedResponse);
+
 
         $this->eventDispatcherMock->expects(self::once())
             ->method('dispatch')

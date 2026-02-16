@@ -147,6 +147,11 @@
                                     <a class="nav-link <?= $transaction === \Mews\Pos\PosInterface::TX_TYPE_CUSTOM_QUERY ? 'active' : ''; ?>" href="<?= $bankTestsUrl ?>/regular/custom_query.php">Custom Query</a>
                                 </li>
                             <?php endif; ?>
+                            <?php if ($posClass === \Mews\Pos\Gateways\PayForPos::class): ?>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="<?= $bankTestsUrl ?>/qr/index.php">QR Payment</a>
+                                </li>
+                            <?php endif; ?>
                         </ul>
                     </div>
                 </div>

@@ -54,7 +54,7 @@ class GarantiPosResponseValueMapper extends AbstractResponseValueMapper
     /**
      * @inheritDoc
      */
-    public function mapSecureType(string $securityType, string $apiRequestTxType = null): ?string
+    public function mapSecureType(string $securityType, ?string $apiRequestTxType = null): ?string
     {
         if (PosInterface::TX_TYPE_HISTORY === $apiRequestTxType) {
             // mappings for the field SafeType of history response
@@ -78,7 +78,7 @@ class GarantiPosResponseValueMapper extends AbstractResponseValueMapper
     /**
      * @inheritDoc
      */
-    public function mapCurrency($currency, string $apiRequestTxType = null): ?string
+    public function mapCurrency($currency, ?string $apiRequestTxType = null): ?string
     {
         if (PosInterface::TX_TYPE_HISTORY === $apiRequestTxType) {
             return $this->historyResponseCurrencyMapping[$currency] ?? null;
@@ -93,7 +93,7 @@ class GarantiPosResponseValueMapper extends AbstractResponseValueMapper
      *
      * @inheritDoc
      */
-    public function mapOrderStatus($orderStatus, string $requestTxType = null, string $txType = null)
+    public function mapOrderStatus($orderStatus, ?string $requestTxType = null, ?string $txType = null)
     {
         if (PosInterface::TX_TYPE_STATUS === $requestTxType) {
             // todo ChargeType degere gore belki daha duzgun mapping edebiliriz.

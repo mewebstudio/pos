@@ -54,7 +54,7 @@ class PayForPosRequestValueFormatter implements RequestValueFormatterInterface
      *
      * @inheritdoc
      */
-    public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null): string
+    public function formatDateTime(\DateTimeInterface $dateTime, ?string $fieldName = null): string
     {
         return $dateTime->format('Ymd');
     }

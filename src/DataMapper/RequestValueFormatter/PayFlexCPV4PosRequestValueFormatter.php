@@ -65,7 +65,7 @@ class PayFlexCPV4PosRequestValueFormatter implements RequestValueFormatterInterf
     /**
      * @inheritDoc
      */
-    public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null): string
+    public function formatDateTime(\DateTimeInterface $dateTime, ?string $fieldName = null): string
     {
         throw new NotImplementedException();
     }

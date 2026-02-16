@@ -329,17 +329,6 @@ class ToslaPosResponseDataMapper extends AbstractResponseDataMapper
         return $transactionSecurity;
     }
 
-    /**
-     * Get Status Detail Text
-     *
-     * @param string|null $code
-     *
-     * @return string|null
-     */
-    protected function getStatusDetail(?string $code): ?string
-    {
-        return $this->codes[$code] ?? null;
-    }
 
     /**
      * Get ProcReturnCode

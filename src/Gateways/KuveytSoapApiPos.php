@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Request;
 /**
  * Kuveyt bankın SOAP API'nı desteleyen Gateway
  */
-class KuveytSoapApiPos extends AbstractSoapGateway
+class KuveytSoapApiPos extends AbstractHttpGateway
 {
     /** @var string */
     public const NAME = 'KuveytSoapApiPos';
@@ -92,7 +92,7 @@ class KuveytSoapApiPos extends AbstractSoapGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true)
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true)
     {
         throw new UnsupportedPaymentModelException('Bu işlem için KuveytPos gateway kullanılmalıdır.');
     }
@@ -116,7 +116,7 @@ class KuveytSoapApiPos extends AbstractSoapGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         throw new UnsupportedPaymentModelException('Bu işlem için KuveytPos gateway kullanılmalıdır.');
     }

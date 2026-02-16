@@ -375,7 +375,7 @@ abstract class AbstractHttpGateway extends AbstractGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
     {
         $txType       = PosInterface::TX_TYPE_CUSTOM_QUERY;
         $paymentModel = PosInterface::MODEL_NON_SECURE;

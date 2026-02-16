@@ -52,7 +52,7 @@ class AkbankPosRequestValueFormatter implements RequestValueFormatterInterface
      *
      * @inheritdoc
      */
-    public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null): string
+    public function formatDateTime(\DateTimeInterface $dateTime, ?string $fieldName = null): string
     {
         return $dateTime->format('Y-m-d\TH:i:s').'.000';
     }

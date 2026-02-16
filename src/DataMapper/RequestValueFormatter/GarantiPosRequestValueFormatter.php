@@ -65,7 +65,7 @@ class GarantiPosRequestValueFormatter implements RequestValueFormatterInterface
     /**
      * @inheritDoc
      */
-    public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null): string
+    public function formatDateTime(\DateTimeInterface $dateTime, ?string $fieldName = null): string
     {
         return $dateTime->format('d/m/Y H:i');
     }

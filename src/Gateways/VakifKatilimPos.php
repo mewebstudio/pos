@@ -86,7 +86,7 @@ class VakifKatilimPos extends AbstractHttpGateway
      * 3D Model'de ise HTML form içeren string döner.
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true)
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true)
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard, $createWithoutCard);
 
@@ -115,7 +115,7 @@ class VakifKatilimPos extends AbstractHttpGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         $gatewayResponse = $request->request->all();
         $paymentModel    = self::MODEL_3D_SECURE;
@@ -167,7 +167,7 @@ class VakifKatilimPos extends AbstractHttpGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
     {
         if (null === $apiUrl) {
             throw new \InvalidArgumentException('API URL is required for custom query');

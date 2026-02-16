@@ -62,7 +62,7 @@ class KuveytPosRequestValueFormatter implements RequestValueFormatterInterface
     /**
      * @inheritDoc
      */
-    public function formatDateTime(\DateTimeInterface $dateTime, string $fieldName = null): string
+    public function formatDateTime(\DateTimeInterface $dateTime, ?string $fieldName = null): string
     {
         return $dateTime->format('Y-m-d\TH:i:s');
     }

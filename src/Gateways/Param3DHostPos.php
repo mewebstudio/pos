@@ -66,7 +66,7 @@ class Param3DHostPos extends AbstractHttpGateway
     /**
      * @inheritDoc
      */
-    public function make3DPayment(Request $request, array $order, string $txType, CreditCardInterface $creditCard = null): PosInterface
+    public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         throw new UnsupportedPaymentModelException(
             \sprintf('Bu işlem için %s gateway kullanılmalıdır.', ParamPos::class)
@@ -125,7 +125,7 @@ class Param3DHostPos extends AbstractHttpGateway
     /**
      * @inheritDoc
      */
-    public function get3DFormData(array $order, string $paymentModel, string $txType, CreditCardInterface $creditCard = null, bool $createWithoutCard = true)
+    public function get3DFormData(array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null, bool $createWithoutCard = true)
     {
         $this->check3DFormInputs($paymentModel, $txType, $creditCard);
 
@@ -193,7 +193,7 @@ class Param3DHostPos extends AbstractHttpGateway
     /**
      * @inheritDoc
      */
-    public function customQuery(array $requestData, string $apiUrl = null): PosInterface
+    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
     {
         throw new UnsupportedTransactionTypeException(
             \sprintf('Bu işlem için %s gateway kullanılmalıdır.', ParamPos::class)

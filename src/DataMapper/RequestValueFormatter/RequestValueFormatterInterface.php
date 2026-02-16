@@ -36,7 +36,7 @@ interface RequestValueFormatterInterface
      *
      * @return string|int|float
      */
-    public function formatAmount(float $amount, string $txType = null);
+    public function formatAmount(float $amount, ?string $txType = null);
 
     /**
      * @param \DateTimeInterface $expDate

@@ -17,6 +17,7 @@ use Mews\Pos\Factory\CreditCardFactory;
 use Mews\Pos\Gateways\EstV3Pos;
 use Mews\Pos\Gateways\KuveytPos;
 use Mews\Pos\PosInterface;
+use Mews\Pos\Tests\TestUtil\TestUtilTrait;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
@@ -27,6 +28,8 @@ use Psr\EventDispatcher\EventDispatcherInterface;
  */
 class KuveytPosRequestDataMapperTest extends TestCase
 {
+    use TestUtilTrait;
+
     private KuveytPosAccount $account;
 
     private CreditCardInterface $card;

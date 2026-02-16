@@ -74,7 +74,7 @@ class KuveytSoapApiPosRequestDataMapper extends AbstractRequestDataMapper
             'ResourceId'            => 0,
             'ActionId'              => 0,
             'LanguageId'            => 0,
-            'CustomerId'            => null,
+            'CustomerId'            => $posAccount->getCustomerId(),
             'MailOrTelephoneOrder'  => true,
             'Amount'                => 0,
             'MerchantId'            => $posAccount->getClientId(),
@@ -118,7 +118,7 @@ class KuveytSoapApiPosRequestDataMapper extends AbstractRequestDataMapper
 
         $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
-        return $result;
+        return [$result['VPosMessage']['TransactionType'] => ['request' => $result]];
     }
 
     /**
@@ -168,7 +168,7 @@ class KuveytSoapApiPosRequestDataMapper extends AbstractRequestDataMapper
 
         $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
-        return $result;
+        return [$result['VPosMessage']['TransactionType'] => ['request' => $result]];
     }
 
     /**
@@ -218,25 +218,15 @@ class KuveytSoapApiPosRequestDataMapper extends AbstractRequestDataMapper
 
         $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
-        return $result;
+        return [$result['VPosMessage']['TransactionType'] => ['request' => $result]];
     }
 
     /**
-     * @param KuveytPosAccount $posAccount
-     *
      * @inheritDoc
      */
     public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
     {
-        $requestData['VPosMessage'] += $this->getRequestAccountData($posAccount) + [
-                'APIVersion' => self::API_VERSION,
-            ];
-
-        if (!isset($requestData['VPosMessage']['HashData'])) {
-            $requestData['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $requestData['VPosMessage']);
-        }
-
-        return $requestData;
+        throw new NotImplementedException();
     }
 
     /**

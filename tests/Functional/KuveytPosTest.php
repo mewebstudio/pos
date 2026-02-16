@@ -4,6 +4,8 @@
  * @license MIT
  */
 
+namespace Mews\Pos\Tests\Functional;
+
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
 use Mews\Pos\Factory\CreditCardFactory;
@@ -12,6 +14,9 @@ use Mews\Pos\PosInterface;
 use Monolog\Test\TestCase;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
+/**
+ * NOT: sadece Turkiye IPsiyle istek gonderince cevap alabiliyoruz.
+ */
 class KuveytPosTest extends TestCase
 {
     use \Mews\Pos\Tests\Functional\PaymentTestTrait;
@@ -51,22 +56,25 @@ class KuveytPosTest extends TestCase
 
         $this->eventDispatcher = new EventDispatcher();
 
-        $this->pos = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
-        $this->soapApipos = PosFactory::createPosGateway($soapApiAccount, $config, $this->eventDispatcher);
+        $this->pos        = PosFactory::createPosGateway($account, $config, $this->eventDispatcher);
+        $this->soapApiPos = PosFactory::createPosGateway(
+            $soapApiAccount,
+            $config,
+            $this->eventDispatcher
+        );
 
         $this->card = CreditCardFactory::createForGateway(
             $this->pos,
             '5188961939192544',
-            '25',
+            '29',
             '06',
-            '929',
+            '588',
             'John Doe',
             CreditCardInterface::CARD_TYPE_MASTERCARD
         );
     }
 
     /**
-     * NOT: sadece Turkiye IPsiyle istek gonderince cevap alabiliyoruz.
      * @return void
      */
     public function testCreate3DFormData(): void
@@ -194,7 +202,7 @@ class KuveytPosTest extends TestCase
             function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_CANCEL, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(14, $requestDataPreparedEvent->getRequestData());
+                $this->assertCount(1, $requestDataPreparedEvent->getRequestData());
             }
         );
 
@@ -222,7 +230,7 @@ class KuveytPosTest extends TestCase
             function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_STATUS, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(15, $requestDataPreparedEvent->getRequestData());
+                $this->assertCount(1, $requestDataPreparedEvent->getRequestData());
             }
         );
 
@@ -253,36 +261,37 @@ class KuveytPosTest extends TestCase
         return $this->pos->getResponse();
     }
 
-    //    /**
-    //     * @depends testNonSecurePaymentSuccessForRefundTest
-    //     */
-    //    public function testFullRefundFail(array $lastResponse): array
-    //    {
-    //        $refundOrder           = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
-    //
-    //        $eventIsThrown = false;
-    //        $this->eventDispatcher->addListener(
-    //            RequestDataPreparedEvent::class,
-    //            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
-    //                $eventIsThrown = true;
-    //                $this->assertSame(PosInterface::TX_TYPE_REFUND, $requestDataPreparedEvent->getTxType());
-    //                $this->assertCount(14, $requestDataPreparedEvent->getRequestData());
-    //            });
-    //
-    //        $this->pos->refund($refundOrder);
-    //
-    //        $this->assertFalse($this->pos->isSuccess());
-    //        $response = $this->pos->getResponse();
-    //        $this->assertIsArray($response);
-    //        $this->assertNotEmpty($response);
-    //        $this->assertTrue($eventIsThrown);
-    //        $this->assertSame(
-    //            'İade işlemi, satışla aynı gün içerisinde yapılamaz. İptal işlemi yapabilirsiniz.',
-    //            $response['error_message']
-    //        );
-    //
-    //        return $lastResponse;
-    //    }
+    /**
+     * @depends testNonSecurePaymentSuccessForRefundTest
+     */
+    public function testFullRefundFail(array $lastResponse): array
+    {
+        $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+
+        $eventIsThrown = false;
+        $this->eventDispatcher->addListener(
+            RequestDataPreparedEvent::class,
+            function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
+                $eventIsThrown = true;
+                $this->assertSame(PosInterface::TX_TYPE_REFUND, $requestDataPreparedEvent->getTxType());
+                $this->assertCount(1, $requestDataPreparedEvent->getRequestData());
+            }
+        );
+
+        $this->pos->refund($refundOrder);
+        $response = $this->pos->getResponse();
+
+        $this->assertFalse($this->pos->isSuccess());
+        $this->assertIsArray($response);
+        $this->assertNotEmpty($response);
+        $this->assertTrue($eventIsThrown);
+        $this->assertSame(
+            'İade işlemi, satışla aynı gün içerisinde yapılamaz. İptal işlemi yapabilirsiniz.',
+            $response['error_message']
+        );
+
+        return $lastResponse;
+    }
 
     /**
      * @depends testNonSecurePaymentSuccessForRefundTest
@@ -301,7 +310,7 @@ class KuveytPosTest extends TestCase
             function (RequestDataPreparedEvent $requestDataPreparedEvent) use (&$eventIsThrown): void {
                 $eventIsThrown = true;
                 $this->assertSame(PosInterface::TX_TYPE_REFUND_PARTIAL, $requestDataPreparedEvent->getTxType());
-                $this->assertCount(14, $requestDataPreparedEvent->getRequestData());
+                $this->assertCount(1, $requestDataPreparedEvent->getRequestData());
             }
         );
 

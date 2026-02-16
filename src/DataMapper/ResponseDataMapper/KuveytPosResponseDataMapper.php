@@ -200,18 +200,6 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
     }
 
     /**
-     * Get Status Detail Text
-     *
-     * @param string|null $procReturnCode
-     *
-     * @return string|null
-     */
-    protected function getStatusDetail(?string $procReturnCode): ?string
-    {
-        return $this->codes[$procReturnCode] ?? $procReturnCode;
-    }
-
-    /**
      * @param string $mdStatus
      *
      * @return string
@@ -257,7 +245,7 @@ class KuveytPosResponseDataMapper extends AbstractResponseDataMapper
             'md_status'            => null,
             'payment_model'        => null,
             'status'               => $status,
-            'status_detail'        => $this->getStatusDetail($procReturnCode),
+            'status_detail'        => self::TX_APPROVED !== $status ? $this->getStatusDetail($procReturnCode) : null,
             'amount'               => null,
             'currency'             => null,
             'masked_number'        => null,

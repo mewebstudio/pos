@@ -16,6 +16,9 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
     /** @var string */
     public const PROCEDURE_SUCCESS_CODE = '00';
 
+    /** @var array<int|string, string> */
+    protected array $codes = [];
+
     protected ResponseValueFormatterInterface $valueFormatter;
 
     protected ResponseValueMapperInterface $valueMapper;
@@ -149,6 +152,16 @@ abstract class AbstractResponseDataMapper implements ResponseDataMapperInterface
             'currency'         => null,
             'masked_number'    => null,
         ];
+    }
+
+    /**
+     * @param string|null $procReturnCode
+     *
+     * @return string|null
+     */
+    protected function getStatusDetail(?string $procReturnCode): ?string
+    {
+        return null !== $procReturnCode ? $this->codes[$procReturnCode] ?? null : null;
     }
 
     /**

@@ -336,6 +336,7 @@ class ParamPosRequestDataMapper extends AbstractRequestDataMapper
      */
     public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
     {
+        /** @var string $soapAction */
         $soapAction               = \array_key_first($requestData);
         $requestData[$soapAction] += $this->getRequestAccountData($posAccount);
 
