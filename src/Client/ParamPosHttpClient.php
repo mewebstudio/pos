@@ -27,7 +27,7 @@ class ParamPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface
+    protected function createRequest(string $url, EncodedData $content, string $txType, ?AbstractPosAccount $account = null): RequestInterface
     {
         $body    = $this->streamFactory->createStream($content->getData());
         $request = $this->requestFactory->createRequest('POST', $url);
@@ -39,18 +39,17 @@ class ParamPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    protected function checkFailResponse(string $txType, ResponseInterface $response, array $order): void
+    protected function checkFailResponseData(string $txType, ResponseInterface $response, array $responseData, array $order): void
     {
-        $decodedData = $this->serializer->decode($response->getBody()->getContents(), $txType);
-        if (isset($decodedData['soap:Fault'])) {
+        if (isset($responseData['soap:Fault'])) {
             $this->logger->error('soap error response', [
                 'status_code' => $response->getStatusCode(),
-                'response'    => $decodedData,
+                'response'    => $responseData,
                 'order'       => $order,
                 'tx_type'     => $txType,
             ]);
 
-            throw new \RuntimeException($decodedData['soap:Fault']['faultstring'] ?? 'Bankaya istek başarısız!');
+            throw new \RuntimeException($responseData['soap:Fault']['faultstring'] ?? 'Bankaya istek başarısız!');
         }
     }
 }

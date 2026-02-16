@@ -46,7 +46,7 @@ class KuveytSoapApiPos extends AbstractHttpGateway
         PosInterface::TX_TYPE_REFUND_PARTIAL => true,
         PosInterface::TX_TYPE_HISTORY        => false,
         PosInterface::TX_TYPE_ORDER_HISTORY  => false,
-        PosInterface::TX_TYPE_CUSTOM_QUERY   => true,
+        PosInterface::TX_TYPE_CUSTOM_QUERY   => false,
     ];
 
     /** @return KuveytPosAccount */
@@ -119,5 +119,13 @@ class KuveytSoapApiPos extends AbstractHttpGateway
     public function make3DPayment(Request $request, array $order, string $txType, ?CreditCardInterface $creditCard = null): PosInterface
     {
         throw new UnsupportedPaymentModelException('Bu işlem için KuveytPos gateway kullanılmalıdır.');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function customQuery(array $requestData, ?string $apiUrl = null): PosInterface
+    {
+        throw new UnsupportedTransactionTypeException();
     }
 }

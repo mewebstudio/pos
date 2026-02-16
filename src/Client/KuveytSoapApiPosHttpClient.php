@@ -58,12 +58,8 @@ class KuveytSoapApiPosHttpClient extends AbstractHttpClient
     /**
      * @return RequestInterface
      */
-    protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface
+    protected function createRequest(string $url, EncodedData $content, string $txType, ?AbstractPosAccount $account = null): RequestInterface
     {
-        if (null === $txType) {
-            throw new \InvalidArgumentException('Transaction type is required to generate API URL');
-        }
-
         $body    = $this->streamFactory->createStream($content->getData());
         $request = $this->requestFactory->createRequest('POST', $url);
 
@@ -89,18 +85,26 @@ class KuveytSoapApiPosHttpClient extends AbstractHttpClient
 
             throw new \RuntimeException('Bankaya istek başarısız!', $response->getStatusCode());
         }
+    }
 
-        $decodedData = $this->serializer->decode($responseContent, $txType);
 
-        if (isset($decodedData['s:Fault'])) {
+    /**
+     * @inheritDoc
+     */
+    protected function checkFailResponseData(string $txType, ResponseInterface $response, array $responseData, array $order): void
+    {
+        if (isset($responseData['s:Fault'])) {
             $this->logger->error('soap error response', [
                 'status_code' => $response->getStatusCode(),
-                'response'    => $decodedData,
+                'response'    => $responseData,
                 'tx_type'     => $txType,
                 'order'       => $order,
             ]);
 
-            throw new \RuntimeException($decodedData['s:Fault']['faultstring']['#'] ?? 'Bankaya istek başarısız!');
+            throw new \RuntimeException(
+                $responseData['s:Fault']['faultstring']['#'] ?? 'Bankaya istek başarısız!',
+                $response->getStatusCode()
+            );
         }
     }
 }

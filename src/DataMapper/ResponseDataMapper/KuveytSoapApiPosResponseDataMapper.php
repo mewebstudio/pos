@@ -72,13 +72,13 @@ class KuveytSoapApiPosResponseDataMapper extends AbstractResponseDataMapper
         $txType          = PosInterface::TX_TYPE_STATUS;
         $rawResponseData = $this->emptyStringsToNull($rawResponseData);
         $status          = self::TX_DECLINED;
-        $data            = $rawResponseData['GetMerchantOrderDetailResult']['Value'];
+        $data            = $rawResponseData['GetMerchantOrderDetailResponse']['GetMerchantOrderDetailResult']['Value'];
 
         $defaultResponse = $this->getDefaultStatusResponse($rawResponseData);
 
         if (!isset($data['OrderContract'])) {
-            if (isset($rawResponseData['GetMerchantOrderDetailResult']['Results']['Result'])) {
-                $rawResult                        = $rawResponseData['GetMerchantOrderDetailResult']['Results']['Result'];
+            if (isset($rawResponseData['GetMerchantOrderDetailResponse']['GetMerchantOrderDetailResult']['Results']['Result'])) {
+                $rawResult                        = $rawResponseData['GetMerchantOrderDetailResponse']['GetMerchantOrderDetailResult']['Results']['Result'];
                 $defaultResponse['error_code']    = $rawResult['ErrorCode'];
                 $defaultResponse['error_message'] = $rawResult['ErrorMessage'];
             }
@@ -86,7 +86,7 @@ class KuveytSoapApiPosResponseDataMapper extends AbstractResponseDataMapper
             return $defaultResponse;
         }
 
-        $orderContract  = $rawResponseData['GetMerchantOrderDetailResult']['Value']['OrderContract'];
+        $orderContract  = $rawResponseData['GetMerchantOrderDetailResponse']['GetMerchantOrderDetailResult']['Value']['OrderContract'];
         $procReturnCode = $this->getProcReturnCode($orderContract);
 
         if (self::PROCEDURE_SUCCESS_CODE === $procReturnCode) {
@@ -147,7 +147,8 @@ class KuveytSoapApiPosResponseDataMapper extends AbstractResponseDataMapper
             'all'              => $rawResponseData,
         ];
 
-        $drawbackResult = $rawResponseData['PartialDrawbackResult'] ?? $rawResponseData['DrawBackResult'];
+        $drawbackResult = $rawResponseData['PartialDrawbackResponse']['PartialDrawbackResult']
+            ?? $rawResponseData['DrawBackResponse']['DrawBackResult'];
         $value          = $drawbackResult['Value'];
 
         $procReturnCode = $this->getProcReturnCode($value);
@@ -207,7 +208,7 @@ class KuveytSoapApiPosResponseDataMapper extends AbstractResponseDataMapper
             'all'              => $rawResponseData,
         ];
 
-        $value          = $rawResponseData['SaleReversalResult']['Value'];
+        $value          = $rawResponseData['SaleReversalResponse']['SaleReversalResult']['Value'];
         $procReturnCode = $this->getProcReturnCode($value);
 
         if (null === $procReturnCode) {
@@ -218,7 +219,7 @@ class KuveytSoapApiPosResponseDataMapper extends AbstractResponseDataMapper
             $status = self::TX_APPROVED;
         }
 
-        $responseResults = $rawResponseData['SaleReversalResult']['Results'];
+        $responseResults = $rawResponseData['SaleReversalResponse']['SaleReversalResult']['Results'];
         if (self::TX_APPROVED !== $status && isset($responseResults['Result']) && [] !== $responseResults['Result']) {
             $responseResult             = $responseResults['Result'][0] ?? $responseResults['Result'];
             $result['proc_return_code'] = $procReturnCode;

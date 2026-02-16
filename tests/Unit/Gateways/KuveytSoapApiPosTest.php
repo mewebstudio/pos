@@ -346,6 +346,12 @@ class KuveytSoapApiPosTest extends TestCase
         $this->assertSame($isSuccess, $this->pos->isSuccess());
     }
 
+    public function testCustomQueryRequest(): void
+    {
+        $this->expectException(UnsupportedTransactionTypeException::class);
+        $this->pos->customQuery([]);
+    }
+
     public static function statusDataProvider(): iterable
     {
         $testData = iterator_to_array(KuveytSoapApiPosResponseDataMapperTest::statusTestDataProvider());

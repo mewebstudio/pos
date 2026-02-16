@@ -266,7 +266,7 @@ class KuveytPosTest extends TestCase
      */
     public function testFullRefundFail(array $lastResponse): array
     {
-        $refundOrder = $this->createRefundOrder(\get_class($this->pos), $lastResponse);
+        $refundOrder = $this->createRefundOrder(\get_class($this->soapApiPos), $lastResponse);
 
         $eventIsThrown = false;
         $this->eventDispatcher->addListener(
@@ -278,10 +278,10 @@ class KuveytPosTest extends TestCase
             }
         );
 
-        $this->pos->refund($refundOrder);
-        $response = $this->pos->getResponse();
+        $this->soapApiPos->refund($refundOrder);
+        $response = $this->soapApiPos->getResponse();
 
-        $this->assertFalse($this->pos->isSuccess());
+        $this->assertFalse($this->soapApiPos->isSuccess());
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);
         $this->assertTrue($eventIsThrown);

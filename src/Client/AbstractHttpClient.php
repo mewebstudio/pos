@@ -140,11 +140,10 @@ abstract class AbstractHttpClient implements HttpClientInterface
         }
 
         $this->checkFailResponse($txType, $response, $order);
-        $response->getBody()->rewind();
 
         if ($decode) {
             try {
-                return $this->serializer->decode($response->getBody()->getContents(), $txType);
+                $decodedData = $this->serializer->decode($response->getBody()->getContents(), $txType);
             } catch (NotEncodableValueException $notEncodableValueException) {
                 $response->getBody()->rewind();
                 $this->logger->error('parsing bank response failed', [
@@ -155,22 +154,27 @@ abstract class AbstractHttpClient implements HttpClientInterface
 
                 throw $notEncodableValueException;
             }
+            $this->checkFailResponseData($txType, $response, $decodedData, $order);
+
+            return $decodedData;
         }
 
         return $response->getBody()->getContents();
     }
 
     /**
-     * @param non-empty-string             $url
-     * @param EncodedData                  $content
-     * @param PosInterface::TX_TYPE_*|null $txType
-     * @param AbstractPosAccount|null      $account
+     * @param non-empty-string        $url
+     * @param EncodedData             $content
+     * @param PosInterface::TX_TYPE_* $txType
+     * @param AbstractPosAccount|null $account
      *
      * @return RequestInterface
      */
-    abstract protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface;
+    abstract protected function createRequest(string $url, EncodedData $content, string $txType, ?AbstractPosAccount $account = null): RequestInterface;
 
     /**
+     * Checks API response before decoding it.
+     *
      * @param PosInterface::TX_TYPE_* $txType
      * @param ResponseInterface       $response
      * @param array<string, mixed>    $order
@@ -188,5 +192,20 @@ abstract class AbstractHttpClient implements HttpClientInterface
             ]);
             throw new \RuntimeException('İstek Başarısız!', $response->getStatusCode());
         }
+    }
+
+
+    /**
+     * Checks API response data after decoding it.
+     *
+     * @param PosInterface::TX_TYPE_* $txType
+     * @param ResponseInterface       $response
+     * @param array<string, mixed>    $responseData
+     * @param array<string, mixed>    $order
+     *
+     * @throws \RuntimeException when response is not successful
+     */
+    protected function checkFailResponseData(string $txType, ResponseInterface $response, array $responseData, array $order): void
+    {
     }
 }
