@@ -24,7 +24,7 @@ class PayForPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface
+    protected function createRequest(string $url, EncodedData $content, string $txType, ?AbstractPosAccount $account = null): RequestInterface
     {
         $body = $this->streamFactory->createStream($content->getData());
 

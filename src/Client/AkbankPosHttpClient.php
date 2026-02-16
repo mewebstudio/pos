@@ -61,7 +61,7 @@ class AkbankPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface
+    protected function createRequest(string $url, EncodedData $content, string $txType, ?AbstractPosAccount $account = null): RequestInterface
     {
         if (!$account instanceof AbstractPosAccount) {
             throw new \InvalidArgumentException('Account is required to create request hash');
@@ -80,8 +80,9 @@ class AkbankPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    protected function checkFailResponse(string $txType, ResponseInterface $response, array $order): void
+    protected function checkFailResponseData(string $txType, ResponseInterface $response, array $responseData, array $order): void
     {
+        // when the data is sent fails validation checks we get 400 error
         if ($response->getStatusCode() >= 400) {
             $this->logger->error('api error', [
                 'status_code' => $response->getStatusCode(),
@@ -91,9 +92,8 @@ class AkbankPosHttpClient extends AbstractHttpClient
             ]);
 
             $response->getBody()->rewind();
-            // when the data is sent fails validation checks we get 400 error
-            $data = $this->serializer->decode($response->getBody()->getContents(), $txType);
-            throw new \RuntimeException($data['message'], $data['code']);
+
+            throw new \RuntimeException($responseData['message'], $responseData['code']);
         }
     }
 

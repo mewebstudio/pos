@@ -44,7 +44,7 @@ class PayFlexV4PosHttpClient extends AbstractHttpClient
 
         $url ??= $this->getApiURL($txType, $paymentModel, $order['transaction_type'] ?? null);
 
-        $request = $this->createRequest($url, $content);
+        $request = $this->createRequest($url, $content, $txType, $account);
 
         $this->logger->debug('sending request', ['url' => $url]);
 
@@ -63,7 +63,7 @@ class PayFlexV4PosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    protected function createRequest(string $url, EncodedData $content, ?string $txType = null, ?AbstractPosAccount $account = null): RequestInterface
+    protected function createRequest(string $url, EncodedData $content, string $txType, ?AbstractPosAccount $account = null): RequestInterface
     {
         $body    = $this->streamFactory->createStream($content->getData());
         $request = $this->requestFactory->createRequest('POST', $url);

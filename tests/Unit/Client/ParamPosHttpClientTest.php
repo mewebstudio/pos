@@ -145,12 +145,12 @@ class ParamPosHttpClientTest extends TestCase
 
         $decodedResponse = ['decoded-response'];
         if ($decodeResponse) {
-            $this->serializer->expects($this->exactly(2))
+            $this->serializer->expects($this->once())
                 ->method('decode')
                 ->with($responseContent, $txType)
                 ->willReturn($decodedResponse);
         } else {
-            $this->serializer->expects($this->once())
+            $this->serializer->expects($this->never())
                 ->method('decode')
                 ->with($responseContent, $txType)
                 ->willReturn($decodedResponse);
