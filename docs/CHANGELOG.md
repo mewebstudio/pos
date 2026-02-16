@@ -1,4 +1,15 @@
 # Changelog
+## [1.8.0] - 2026-02-16
+
+### Changed
+- reponse veride yer alan `status_detail` değerinin tutarlı olması için hafif değişikler yapıldı.
+- **KuveytPos** - `TX_TYPE_CUSTOM_QUERY` desteği kaldırıldı.
+
+### Fixed
+- **KuveytPos** - SoapAPI URL değişmesi sonucu oluşan API sorunlar giderildi. (issue #289)
+- Bazı PHP 8.x deprecation uyarılar giderildi.
+
+# Changelog
 ## [1.7.0] - 2025-10-06
 
 ### New Features
