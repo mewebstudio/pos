@@ -44,7 +44,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
         PosInterface::TX_TYPE_PAY_AUTH       => 'Sale',
         PosInterface::TX_TYPE_CANCEL         => 'SaleReversal',
         PosInterface::TX_TYPE_STATUS         => 'GetMerchantOrderDetail',
-        PosInterface::TX_TYPE_REFUND         => 'Drawback',
+        PosInterface::TX_TYPE_REFUND         => 'DrawBack',
         PosInterface::TX_TYPE_REFUND_PARTIAL => 'PartialDrawback',
     ];
 
@@ -207,7 +207,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
             'ResourceId'            => 0,
             'ActionId'              => 0,
             'LanguageId'            => 0,
-            'CustomerId'            => null,
+            'CustomerId'            => $posAccount->getCustomerId(),
             'MailOrTelephoneOrder'  => true,
             'Amount'                => 0,
             'MerchantId'            => $posAccount->getClientId(),
@@ -251,7 +251,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
         $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
-        return $result;
+        return [$this->mapTxType(PosInterface::TX_TYPE_STATUS) => ['request' => $result]];
     }
 
     /**
@@ -301,7 +301,7 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
         $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
-        return $result;
+        return [$this->mapTxType(PosInterface::TX_TYPE_CANCEL) => ['request' => $result]];
     }
 
     /**
@@ -351,27 +351,15 @@ class KuveytPosRequestDataMapper extends AbstractRequestDataMapper
 
         $result['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $result['VPosMessage']);
 
-        return $result;
+        return [$this->mapTxType($refundTxType) => ['request' => $result]];
     }
 
     /**
-     * @param KuveytPosAccount $posAccount
-     *
      * @inheritDoc
      */
     public function createCustomQueryRequestData(AbstractPosAccount $posAccount, array $requestData): array
     {
-        $requestData += [
-            'VPosMessage' => $this->getRequestAccountData($posAccount) + [
-                    'APIVersion' => self::API_VERSION,
-                ],
-        ];
-
-        if (!isset($requestData['VPosMessage']['HashData'])) {
-            $requestData['VPosMessage']['HashData'] = $this->crypt->createHash($posAccount, $requestData['VPosMessage']);
-        }
-
-        return $requestData;
+        throw new NotImplementedException();
     }
 
     /**
