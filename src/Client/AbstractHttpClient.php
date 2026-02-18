@@ -140,6 +140,7 @@ abstract class AbstractHttpClient implements HttpClientInterface
         }
 
         $this->checkFailResponse($txType, $response, $order);
+        $response->getBody()->rewind();
 
         if ($decode) {
             try {
