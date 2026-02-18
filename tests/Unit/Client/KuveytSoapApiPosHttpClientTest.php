@@ -83,6 +83,12 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
         $this->assertTrue($this->client::supports(KuveytSoapApiPos::class));
     }
 
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_STATUS, PosInterface::MODEL_NON_SECURE));
+        $this->assertFalse($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_NON_SECURE));
+    }
+
     /**
      * @dataProvider getApiUrlDataProvider
      */
@@ -222,7 +228,10 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
         );
     }
 
-    public function testCheckFailResponseThrowsExceptionOnSoapFault(): void
+    /**
+     * @dataProvider failResponseDataProvider
+     */
+    public function testCheckFailResponseThrowsExceptionOnSoapFault(array $decodedResponse, string $expectedExpMsg): void
     {
         $paymentModel    = PosInterface::MODEL_NON_SECURE;
         $txType          = PosInterface::TX_TYPE_CANCEL;
@@ -260,19 +269,12 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
             ->method('sendRequest')
             ->willReturn($response);
 
-        $decodedResponse = [
-            's:Fault' => [
-                'faultstring' => [
-                    '#' => 'Some SOAP Fault',
-                ],
-            ],
-        ];
         $this->serializer->expects($this->once())
             ->method('decode')
             ->willReturn($decodedResponse);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Some SOAP Fault');
+        $this->expectExceptionMessage($expectedExpMsg);
         $this->expectExceptionCode(400);
         $this->client->request(
             $txType,
@@ -339,6 +341,30 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
             'order'          => ['id' => 123],
             'expectedApiUrl' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
             'decodeResponse' => false,
+        ];
+    }
+
+    public static function failResponseDataProvider(): array
+    {
+        return [
+            [
+                'decodedResponse' => [
+                    's:Fault' => [
+                        'faultstring' => [
+                            '#' => 'Some SOAP Fault',
+                        ],
+                    ],
+                ],
+                'expectedExpMsg'  => 'Some SOAP Fault',
+            ],
+            [
+                'decodedResponse' => [
+                    's:Fault' => [
+                        'some_other_key' => 'bla',
+                    ],
+                ],
+                'expectedExpMsg'  => 'Bankaya istek başarısız!',
+            ],
         ];
     }
 }

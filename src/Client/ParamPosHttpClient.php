@@ -18,10 +18,18 @@ class ParamPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return ParamPos::class === $gatewayClass
             || Param3DHostPos::class === $gatewayClass;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
+    {
+        return true;
     }
 
     /**

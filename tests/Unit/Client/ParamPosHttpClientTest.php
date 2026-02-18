@@ -93,6 +93,11 @@ class ParamPosHttpClientTest extends TestCase
         $this->assertFalse(ParamPosHttpClient::supports(AkbankPos::class));
     }
 
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
+    }
+
     /**
      * @dataProvider getApiUrlDataProvider
      */
@@ -220,7 +225,10 @@ class ParamPosHttpClientTest extends TestCase
         );
     }
 
-    public function testRequestBadRequest(): void
+    /**
+     * @dataProvider failResponseDataProvider
+     */
+    public function testRequestBadRequest(array $decodedResponse, string $expectedExpMsg): void
     {
         $txType         = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
@@ -257,18 +265,13 @@ class ParamPosHttpClientTest extends TestCase
             ->with($request)
             ->willReturn($response);
 
-        $decodedResponse = [
-            'soap:Fault' => [
-                'faultstring' => 'Error message',
-            ],
-        ];
         $this->serializer->expects($this->once())
             ->method('decode')
             ->with($responseContent, $txType)
             ->willReturn($decodedResponse);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Error message');
+        $this->expectExceptionMessage($expectedExpMsg);
 
         $this->client->request(
             $txType,
@@ -333,6 +336,28 @@ class ParamPosHttpClientTest extends TestCase
             'order'          => ['id' => 123],
             'expectedApiUrl' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
             'decodeResponse' => false,
+        ];
+    }
+
+    public static function failResponseDataProvider(): array
+    {
+        return [
+            [
+                'decodedResponse' => [
+                    'soap:Fault' => [
+                        'faultstring' => 'Error message',
+                    ],
+                ],
+                'expectedExpMsg'  => 'Error message',
+            ],
+            [
+                'decodedResponse' => [
+                    'soap:Fault' => [
+                        'some_other_key' => 'bla',
+                    ],
+                ],
+                'expectedExpMsg'  => 'Bankaya istek başarısız!',
+            ],
         ];
     }
 }

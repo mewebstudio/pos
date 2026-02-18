@@ -115,7 +115,10 @@ class InterPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,

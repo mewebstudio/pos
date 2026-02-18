@@ -52,12 +52,13 @@ abstract class AbstractHttpClient implements HttpClientInterface
      *     query_api?: non-empty-string} $config
      */
     public function __construct(
+        //string                  $apiUrl,
         ClientInterface         $psrClient,
         RequestFactoryInterface $requestFactory,
         StreamFactoryInterface  $streamFactory,
         SerializerInterface     $serializer,
         LoggerInterface         $logger,
-        array                   $config
+        array                   $config //todo remove
     ) {
         $this->psrClient      = $psrClient;
         $this->requestFactory = $requestFactory;

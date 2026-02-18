@@ -15,11 +15,23 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
 interface HttpClientInterface
 {
     /**
-     * @param class-string<PosInterface> $gatewayClass
+     * todo should it be static?
+     * @param PosInterface::TX_TYPE_*      $txType
+     * @param PosInterface::MODEL_*        $paymentModel
+     * @param PosInterface::TX_TYPE_*|null $orderTxType
      *
      * @return bool
      */
-    public static function supports(string $gatewayClass): bool;
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool;
+
+    /**
+     * todo rename to supports gateway?
+     * @param class-string<PosInterface> $gatewayClass
+     * @param string|null $apiName todo concrete type
+     *
+     * @return bool
+     */
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool;
 
     /**
      * @param PosInterface::TX_TYPE_* $txType

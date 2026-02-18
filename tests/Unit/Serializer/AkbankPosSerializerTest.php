@@ -29,9 +29,21 @@ class AkbankPosSerializerTest extends TestCase
 
     public function testSupports(): void
     {
-        $supports = $this->serializer::supports(AkbankPos::class);
+        $this->assertTrue(AkbankPosSerializer::supports(AkbankPos::class));
+        $this->assertTrue(AkbankPosSerializer::supports(AkbankPos::class, 'payment_api'));
+        $this->assertFalse(AkbankPosSerializer::supports(AkbankPos::class, 'query_api'));
+        $this->assertFalse(AkbankPosSerializer::supports(\Mews\Pos\Gateways\EstPos::class));
+    }
 
-        $this->assertTrue($supports);
+    public function testDecodeEmpty(): void
+    {
+        $this->assertSame([], $this->serializer->decode(''));
+    }
+
+    public function testDecodeWithInvalidBase64HistoryData(): void
+    {
+        $input = '{"data": "INVALID_BASE64_!!!!"}';
+        $this->assertSame(['data' => null], $this->serializer->decode($input, PosInterface::TX_TYPE_HISTORY));
     }
 
 

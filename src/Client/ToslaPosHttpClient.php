@@ -18,9 +18,23 @@ class ToslaPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return ToslaPos::class === $gatewayClass;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
+    {
+        try {
+            $this->getRequestURIByTransactionType($txType, $paymentModel);
+        } catch (UnsupportedTransactionTypeException $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

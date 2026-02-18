@@ -24,6 +24,7 @@ class AkbankPosHttpClient extends AbstractHttpClient
     private CryptInterface $crypt;
 
     public function __construct(
+        //string                  $apiUrl,
         ClientInterface         $client,
         RequestFactoryInterface $requestFactory,
         StreamFactoryInterface  $streamFactory,
@@ -32,15 +33,35 @@ class AkbankPosHttpClient extends AbstractHttpClient
         array                   $config,
         CryptInterface          $crypt
     ) {
-        parent::__construct($client, $requestFactory, $streamFactory, $serializer, $logger, $config);
+        parent::__construct(
+            //$apiUrl,
+            $client,
+            $requestFactory,
+            $streamFactory,
+            $serializer,
+            $logger,
+            $config
+        );
         $this->crypt = $crypt;
     }
 
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
     {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
+    {
+        if (null !== $apiName && 'payment_api' !== $apiName) {
+            return false;
+        }
+
         return AkbankPos::class === $gatewayClass;
     }
 

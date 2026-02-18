@@ -89,6 +89,16 @@ class VakifKatilimPosHttpClientTest extends TestCase
         $this->assertFalse(VakifKatilimPosHttpClient::supports(AkbankPos::class));
     }
 
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
+    }
+
+    public function testSupportsTxWithUnsupportedTx(): void
+    {
+        $this->assertFalse($this->client->supportsTx('unsupported', PosInterface::MODEL_3D_SECURE));
+    }
+
     /**
      * @dataProvider getApiUrlDataProvider
      */

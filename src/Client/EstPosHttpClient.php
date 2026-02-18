@@ -17,7 +17,15 @@ class EstPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
+    {
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return EstPos::class === $gatewayClass || EstV3Pos::class === $gatewayClass;
     }

@@ -238,7 +238,10 @@ class Param3DHostPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->client->request(
+        return $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,

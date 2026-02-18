@@ -18,9 +18,23 @@ class VakifKatilimPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return VakifKatilimPos::class === $gatewayClass;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
+    {
+        try {
+            $this->getRequestURIByTransactionType($txType, $paymentModel);
+        } catch (UnsupportedTransactionTypeException $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

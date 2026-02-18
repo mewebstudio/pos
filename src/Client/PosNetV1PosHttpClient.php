@@ -24,14 +24,6 @@ class PosNetV1PosHttpClient extends AbstractHttpClient
     private RequestValueMapperInterface $requestValueMapper;
 
     /**
-     * @inheritDoc
-     */
-    public static function supports(string $gatewayClass): bool
-    {
-        return PosNetV1Pos::class === $gatewayClass;
-    }
-
-    /**
      * @param ClientInterface         $psrClient
      * @param RequestFactoryInterface $requestFactory
      * @param StreamFactoryInterface  $streamFactory
@@ -54,6 +46,28 @@ class PosNetV1PosHttpClient extends AbstractHttpClient
             $config
         );
         $this->requestValueMapper = $requestValueMapper;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
+    {
+        return PosNetV1Pos::class === $gatewayClass;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
+    {
+        try {
+            $this->getRequestURIByTransactionType($txType);
+        } catch (UnsupportedTransactionTypeException $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**

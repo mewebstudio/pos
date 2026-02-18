@@ -31,11 +31,14 @@ class SerializerFactory
 {
     /**
      * @param class-string<PosInterface> $gatewayClass
+     * @param string $apiName todo sticter type
      *
      * @return SerializerInterface
      */
-    public static function createGatewaySerializer(string $gatewayClass): SerializerInterface
-    {
+    public static function createGatewaySerializer(
+        string $gatewayClass,
+        ?string $apiName = null
+    ): SerializerInterface {
         $serializers = [
             AkbankPosSerializer::class,
             EstPosSerializer::class,
@@ -55,7 +58,7 @@ class SerializerFactory
 
         /** @var class-string<SerializerInterface> $serializer */
         foreach ($serializers as $serializer) {
-            if ($serializer::supports($gatewayClass)) {
+            if ($serializer::supports($gatewayClass, $apiName)) {
                 return new $serializer();
             }
         }

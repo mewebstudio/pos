@@ -27,7 +27,7 @@ class GarantiPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return GarantiPos::class === $gatewayClass;
     }

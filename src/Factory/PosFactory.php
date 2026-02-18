@@ -6,7 +6,7 @@
 
 namespace Mews\Pos\Factory;
 
-use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Exceptions\BankClassNullException;
 use Mews\Pos\Exceptions\BankNotFoundException;
@@ -32,11 +32,11 @@ class PosFactory
      *         }>,
      *     currencies?: array<PosInterface::CURRENCY_*, string>} $config
      *
-     * @param AbstractPosAccount       $posAccount
-     * @param array                    $config
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param HttpClientInterface|null $client
-     * @param LoggerInterface|null     $logger
+     * @param AbstractPosAccount                                 $posAccount
+     * @param array                                              $config
+     * @param EventDispatcherInterface                           $eventDispatcher
+     * @param HttpClientStrategyInterface|null                   $httpClientStrategy
+     * @param LoggerInterface|null                               $logger
      *
      * @return PosInterface
      *
@@ -47,7 +47,7 @@ class PosFactory
         AbstractPosAccount       $posAccount,
         array                    $config,
         EventDispatcherInterface $eventDispatcher,
-        $client = null,
+        ?HttpClientStrategyInterface                         $httpClientStrategy = null,
         ?LoggerInterface         $logger = null
     ): PosInterface {
         if (!$logger instanceof \Psr\Log\LoggerInterface) {
@@ -79,7 +79,7 @@ class PosFactory
             $config['banks'][$posAccount->getBank()],
             $eventDispatcher,
             $logger,
-            $client
+            $httpClientStrategy
         );
     }
 
@@ -93,10 +93,10 @@ class PosFactory
      *               payment_api: non-empty-string,
      *               payment_api2?: non-empty-string,
      *               query_api?: non-empty-string}
-     *          }                        $apiConfig
-     * @param EventDispatcherInterface   $eventDispatcher
-     * @param LoggerInterface            $logger
-     * @param HttpClientInterface|null   $httpClient
+     *          }                      $apiConfig
+     * @param EventDispatcherInterface $eventDispatcher
+     * @param LoggerInterface          $logger
+     * @param HttpClientStrategyInterface|null $httpClientStrategy
      *
      * @return PosInterface
      */
@@ -106,7 +106,7 @@ class PosFactory
         array                    $apiConfig,
         EventDispatcherInterface $eventDispatcher,
         LoggerInterface          $logger,
-        ?HttpClientInterface     $httpClient = null
+        ?HttpClientStrategyInterface $httpClientStrategy = null
     ): PosInterface {
 
 
@@ -126,11 +126,10 @@ class PosFactory
         $responseDataMapper     = ResponseDataMapperFactory::createGatewayResponseMapper($gatewayClass, $responseValueFormatter, $responseValueMapper, $logger);
         $serializer             = SerializerFactory::createGatewaySerializer($gatewayClass);
 
-        if (!$httpClient instanceof HttpClientInterface) {
-            $httpClient = PosHttpClientFactory::createForGateway(
+        if (!$httpClientStrategy instanceof HttpClientStrategyInterface) {
+            $httpClientStrategy = PosHttpClientStrategyFactory::createForGateway(
                 $gatewayClass,
                 $apiConfig['gateway_endpoints'],
-                $serializer,
                 $crypt,
                 $requestValueMapper,
                 $logger
@@ -146,7 +145,7 @@ class PosFactory
             $responseDataMapper,
             $serializer,
             $eventDispatcher,
-            $httpClient,
+            $httpClientStrategy,
             $logger
         );
     }

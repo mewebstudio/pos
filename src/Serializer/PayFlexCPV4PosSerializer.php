@@ -27,7 +27,7 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return PayFlexCPV4Pos::class === $gatewayClass;
     }

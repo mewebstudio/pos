@@ -94,6 +94,11 @@ class PayFlexV4PosHttpClientTest extends TestCase
         $this->assertFalse(PayFlexV4PosHttpClient::supports(AkbankPos::class));
     }
 
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
+    }
+
     /**
      * @dataProvider getApiUrlDataProvider
      */

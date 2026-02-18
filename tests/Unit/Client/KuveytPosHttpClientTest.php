@@ -89,6 +89,12 @@ class KuveytPosHttpClientTest extends TestCase
         $this->assertTrue(KuveytPosHttpClient::supports(KuveytPos::class));
     }
 
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
+        $this->assertFalse($this->client->supportsTx(PosInterface::TX_TYPE_PAY_PRE_AUTH, PosInterface::MODEL_3D_SECURE));
+    }
+
     /**
      * @dataProvider getApiUrlDataProvider
      */

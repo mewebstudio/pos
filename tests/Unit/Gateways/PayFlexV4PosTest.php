@@ -8,6 +8,7 @@ namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Exception;
 use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
@@ -59,6 +60,9 @@ class PayFlexV4PosTest extends TestCase
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
 
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
+
     /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
 
@@ -106,6 +110,7 @@ class PayFlexV4PosTest extends TestCase
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $serializerMock            = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
         $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
@@ -122,7 +127,7 @@ class PayFlexV4PosTest extends TestCase
             $this->responseMapperMock,
             $serializerMock,
             $this->eventDispatcherMock,
-            $this->httpClientMock,
+            $this->httpClientStrategyMock,
             $this->loggerMock,
         );
 
@@ -778,6 +783,11 @@ class PayFlexV4PosTest extends TestCase
         $updatedRequestDataPreparedEvent                                            = null;
         $updatedRequestDataPreparedEventData                                        = $requestData;
         $updatedRequestDataPreparedEventData['test-update-request-data-with-event'] = true;
+
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($txType, $paymentModel)
+            ->willReturn($this->httpClientMock);
 
         $this->httpClientMock->expects(self::once())
             ->method('request')

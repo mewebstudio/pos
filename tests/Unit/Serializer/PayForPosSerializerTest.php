@@ -29,9 +29,9 @@ class PayForPosSerializerTest extends TestCase
 
     public function testSupports(): void
     {
-        $supports = $this->serializer::supports(PayForPos::class);
-
-        $this->assertTrue($supports);
+        $this->assertTrue(PayForPosSerializer::supports(PayForPos::class));
+        $this->assertTrue(PayForPosSerializer::supports(PayForPos::class, 'payment_api'));
+        $this->assertFalse(PayForPosSerializer::supports(\Mews\Pos\Gateways\AkbankPos::class));
     }
 
     /**
@@ -1459,6 +1459,13 @@ class PayForPosSerializerTest extends TestCase
                 ],
                 '@xmlns:xsi'                     => 'http://www.w3.org/2001/XMLSchema-instance',
             ],
+        ];
+
+        yield 'test_with_redundant_whitespaces' => [
+
+            'input' => "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<PayforResponse>\r\n  <AuthCode>S31432</AuthCode>\r\n</PayforResponse>",
+            'txType' => PosInterface::TX_TYPE_PAY_AUTH,
+            'expected' => ['AuthCode' => 'S31432'],
         ];
     }
 }

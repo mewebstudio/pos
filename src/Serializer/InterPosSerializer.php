@@ -14,7 +14,7 @@ class InterPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return InterPos::class === $gatewayClass;
     }

@@ -28,9 +28,9 @@ class InterPosSerializerTest extends TestCase
 
     public function testSupports(): void
     {
-        $supports = $this->serializer::supports(InterPos::class);
-
-        $this->assertTrue($supports);
+        $this->assertTrue(InterPosSerializer::supports(InterPos::class));
+        $this->assertTrue(InterPosSerializer::supports(InterPos::class, 'payment_api'));
+        $this->assertFalse(InterPosSerializer::supports(\Mews\Pos\Gateways\AkbankPos::class));
     }
 
     /**

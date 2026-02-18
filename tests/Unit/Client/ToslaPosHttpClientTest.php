@@ -109,6 +109,16 @@ class ToslaPosHttpClientTest extends TestCase
         $this->assertFalse(ToslaPosHttpClient::supports(PosNet::class));
     }
 
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_NON_SECURE));
+    }
+
+    public function testSupportsTxWithUnsupportedTx(): void
+    {
+        $this->assertFalse($this->client->supportsTx(PosInterface::TX_TYPE_HISTORY, PosInterface::MODEL_NON_SECURE));
+    }
+
     /**
      * @dataProvider requestDataProvider
      */

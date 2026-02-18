@@ -129,7 +129,10 @@ class ParamPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $provisionResponse = $this->client->request(
+        $provisionResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -253,7 +256,10 @@ class ParamPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->client->request(
+        return $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,

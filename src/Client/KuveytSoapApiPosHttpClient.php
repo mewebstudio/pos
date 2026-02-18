@@ -9,6 +9,7 @@ namespace Mews\Pos\Client;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Gateways\KuveytSoapApiPos;
+use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Psr\Http\Client\ClientInterface;
@@ -50,7 +51,20 @@ class KuveytSoapApiPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
+    {
+        return \in_array($txType, [
+            PosInterface::TX_TYPE_STATUS,
+            PosInterface::TX_TYPE_CANCEL,
+            PosInterface::TX_TYPE_REFUND,
+            PosInterface::TX_TYPE_REFUND_PARTIAL,
+        ], true);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return KuveytSoapApiPos::class === $gatewayClass;
     }

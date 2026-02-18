@@ -116,7 +116,10 @@ class AkbankPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $provisionResponse = $this->client->request(
+        $provisionResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,

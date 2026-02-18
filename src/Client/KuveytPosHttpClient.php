@@ -18,7 +18,21 @@ class KuveytPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
+    {
+        try {
+            $this->getRequestURIByTransactionType($txType, $paymentModel);
+        } catch (UnsupportedTransactionTypeException $e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return KuveytPos::class === $gatewayClass;
     }

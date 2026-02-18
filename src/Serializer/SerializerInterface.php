@@ -21,10 +21,11 @@ interface SerializerInterface
 
     /**
      * @param class-string<PosInterface> $gatewayClass
+     * @param string|null                $apiName todo strict type
      *
      * @return bool
      */
-    public static function supports(string $gatewayClass): bool;
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool;
 
     /**
      * @phpstan-param PosInterface::TX_TYPE_* $txType

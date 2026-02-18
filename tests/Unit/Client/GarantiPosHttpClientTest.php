@@ -91,6 +91,11 @@ class GarantiPosHttpClientTest extends TestCase
         $this->assertTrue(GarantiPosHttpClient::supports(GarantiPos::class));
     }
 
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
+    }
+
     /**
      * @dataProvider getApiUrlDataProvider
      */

@@ -7,7 +7,7 @@
 namespace Mews\Pos\Gateways;
 
 use LogicException;
-use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
@@ -21,7 +21,7 @@ use Psr\Log\LoggerInterface;
 
 abstract class AbstractHttpGateway extends AbstractGateway
 {
-    protected HttpClientInterface $client;
+    protected HttpClientStrategyInterface $clientStrategy;
 
     protected SerializerInterface $serializer;
 
@@ -41,11 +41,11 @@ abstract class AbstractHttpGateway extends AbstractGateway
         ResponseDataMapperInterface $responseDataMapper,
         SerializerInterface         $serializer,
         EventDispatcherInterface    $eventDispatcher,
-        HttpClientInterface         $httpClient,
+        HttpClientStrategyInterface         $httpClientStrategy,
         LoggerInterface             $logger
     ) {
-        $this->client     = $httpClient;
-        $this->serializer = $serializer;
+        $this->clientStrategy = $httpClientStrategy;
+        $this->serializer     = $serializer;
 
         parent::__construct(
             $config,
@@ -94,7 +94,10 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -141,7 +144,10 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -188,7 +194,10 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -230,7 +239,10 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -272,7 +284,10 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -315,7 +330,10 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -358,7 +376,10 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -402,7 +423,10 @@ abstract class AbstractHttpGateway extends AbstractGateway
             $updatedRequestData = $event->getRequestData();
         }
 
-        $this->response = $this->client->request(
+        $this->response = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $updatedRequestData,

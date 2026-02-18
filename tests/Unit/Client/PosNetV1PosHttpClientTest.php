@@ -111,6 +111,26 @@ class PosNetV1PosHttpClientTest extends TestCase
         $this->assertFalse(PosNetV1PosHttpClient::supports(PosNet::class));
     }
 
+    public function testSupportsTx(): void
+    {
+        $this->requestValueMapper->expects($this->once())
+            ->method('mapTxType')
+            ->with(PosInterface::TX_TYPE_PAY_AUTH)
+            ->willReturn('Sale');
+
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
+    }
+
+    public function testSupportsTxWithUnsupportedTx(): void
+    {
+        $this->requestValueMapper->expects($this->once())
+            ->method('mapTxType')
+            ->with('unsupported')
+            ->willThrowException(new UnsupportedTransactionTypeException());
+
+        $this->assertFalse($this->client->supportsTx('unsupported', PosInterface::MODEL_3D_SECURE));
+    }
+
     /**
      * @dataProvider requestDataProvider
      */

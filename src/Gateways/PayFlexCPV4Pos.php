@@ -254,7 +254,10 @@ class PayFlexCPV4Pos extends AbstractHttpGateway
         }
 
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
-        $response = $this->client->request(
+        $response = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -314,7 +317,10 @@ class PayFlexCPV4Pos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->client->request(
+        return $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,

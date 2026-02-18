@@ -100,6 +100,11 @@ class PosNetPosHttpClientTest extends TestCase
         $this->assertFalse(PosNetPosHttpClient::supports(AkbankPos::class));
     }
 
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
+    }
+
     /**
      * @dataProvider requestDataProvider
      */

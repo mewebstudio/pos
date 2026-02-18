@@ -93,7 +93,14 @@ class AkbankPosHttpClientTest extends TestCase
     public function testSupports(): void
     {
         $this->assertTrue(AkbankPosHttpClient::supports(AkbankPos::class));
+        $this->assertTrue(AkbankPosHttpClient::supports(AkbankPos::class, 'payment_api'));
+        $this->assertFalse(AkbankPosHttpClient::supports(AkbankPos::class, 'query_api'));
         $this->assertFalse(AkbankPosHttpClient::supports(EstV3Pos::class));
+    }
+
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
     }
 
     /**

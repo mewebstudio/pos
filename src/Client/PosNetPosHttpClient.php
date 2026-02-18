@@ -16,9 +16,17 @@ class PosNetPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return PosNet::class === $gatewayClass;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
+    {
+        return true;
     }
 
     /**

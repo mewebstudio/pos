@@ -7,6 +7,7 @@
 namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\VakifKatilimPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestValueMapper\VakifKatilimPosRequestValueMapper;
@@ -54,6 +55,9 @@ class VakifKatilimTest extends TestCase
 
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
+
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
 
     /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
@@ -105,6 +109,7 @@ class VakifKatilimTest extends TestCase
         $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
         $serializerMock            = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
         $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
@@ -121,7 +126,7 @@ class VakifKatilimTest extends TestCase
             $this->responseMapperMock,
             $serializerMock,
             $this->eventDispatcherMock,
-            $this->httpClientMock,
+            $this->httpClientStrategyMock,
             $this->loggerMock,
         );
 
@@ -817,6 +822,11 @@ class VakifKatilimTest extends TestCase
         ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
+
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($txType, $paymentModel)
+            ->willReturn($this->httpClientMock);
 
         $this->httpClientMock->expects(self::once())
             ->method('request')
