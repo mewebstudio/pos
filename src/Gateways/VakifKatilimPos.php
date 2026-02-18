@@ -107,7 +107,6 @@ class VakifKatilimPos extends AbstractHttpGateway
             $order,
             $paymentModel,
             $txType,
-            $this->get3DGatewayURL($paymentModel),
             $creditCard
         );
     }
@@ -150,7 +149,11 @@ class VakifKatilimPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        /** @var array<string, mixed> $bankResponse */
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -184,14 +187,13 @@ class VakifKatilimPos extends AbstractHttpGateway
      * @param array<string, int|string|float|null> $order
      * @param string                               $paymentModel
      * @param string                               $txType
-     * @param non-empty-string                     $gatewayURL
      * @param CreditCardInterface|null             $creditCard
      *
      * @return non-empty-string HTML string containing form inputs to be submitted to the bank
      *
      * @throws UnsupportedTransactionTypeException
      */
-    private function sendEnrollmentRequest(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): string
+    private function sendEnrollmentRequest(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null): string
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData($kuveytPosAccount, $order, $paymentModel, $txType, $creditCard);
 
@@ -215,15 +217,17 @@ class VakifKatilimPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->client->request(
+        /** @var non-empty-string $result */
+        $result = $this->clientStrategy->getClient(
+            PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
-            $order,
-            $gatewayURL,
-            null,
-            true,
-            false
+            $order
         );
+
+        return $result;
     }
 }

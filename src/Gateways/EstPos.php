@@ -118,7 +118,11 @@ class EstPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $provisionResponse = $this->client->request(
+        /** @var array<string, mixed> $provisionResponse */
+        $provisionResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,

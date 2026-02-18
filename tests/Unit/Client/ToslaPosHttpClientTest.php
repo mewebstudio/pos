@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Tests\Unit\Client;
 
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Client\ToslaPosHttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
@@ -60,20 +61,17 @@ class ToslaPosHttpClientTest extends TestCase
 
     protected function setUp(): void
     {
-        $endpoints                = [
-            'payment_api' => 'https://ent.akodepos.com/api/Payment',
-        ];
         $this->serializer         = $this->createMock(SerializerInterface::class);
         $this->logger             = $this->createMock(LoggerInterface::class);
-        $crypt = $this->createMock(CryptInterface::class);
+        $crypt                    = $this->createMock(CryptInterface::class);
         $this->requestValueMapper = $this->createMock(RequestValueMapperInterface::class);
         $this->psrClient          = $this->createMock(ClientInterface::class);
         $this->requestFactory     = $this->createMock(RequestFactoryInterface::class);
         $this->streamFactory      = $this->createMock(StreamFactoryInterface::class);
 
-        $this->client = PosHttpClientFactory::createForGateway(
-            ToslaPos::class,
-            $endpoints,
+        $this->client = PosHttpClientFactory::create(
+            ToslaPosHttpClient::class,
+            'https://ent.akodepos.com/api/Payment',
             $this->serializer,
             $crypt,
             $this->requestValueMapper,
@@ -105,8 +103,18 @@ class ToslaPosHttpClientTest extends TestCase
 
     public function testSupports(): void
     {
-        $this->assertTrue(ToslaPosHttpClient::supports(ToslaPos::class));
-        $this->assertFalse(ToslaPosHttpClient::supports(PosNet::class));
+        $this->assertTrue($this->client::supports(ToslaPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+        $this->assertFalse($this->client::supports(PosNet::class, HttpClientInterface::API_NAME_PAYMENT_API));
+    }
+
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_NON_SECURE));
+    }
+
+    public function testSupportsTxWithUnsupportedTx(): void
+    {
+        $this->assertFalse($this->client->supportsTx(PosInterface::TX_TYPE_HISTORY, PosInterface::MODEL_NON_SECURE));
     }
 
     /**
@@ -117,8 +125,7 @@ class ToslaPosHttpClientTest extends TestCase
         string $paymentModel,
         array  $requestData,
         array  $order,
-        string $expectedApiUrl,
-        bool   $decodeResponse
+        string $expectedApiUrl
     ): void {
         $encodedData = new EncodedData(
             '{"a": "b"}',
@@ -149,33 +156,21 @@ class ToslaPosHttpClientTest extends TestCase
             ->with($request)
             ->willReturn($response);
 
-        if ($decodeResponse) {
-            $decodedResponse = ['decoded-response'];
-            $this->serializer->expects($this->once())
-                ->method('decode')
-                ->with($responseContent, $txType)
-                ->willReturn($decodedResponse);
-        } else {
-            $this->serializer->expects($this->never())
-                ->method('decode');
-        }
+        $decodedResponse = ['decoded-response'];
+        $this->serializer->expects($this->once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
 
         $actual = $this->client->request(
             $txType,
             $paymentModel,
             $requestData,
             $order,
-            $expectedApiUrl,
-            null,
-            true,
-            $decodeResponse,
+            $expectedApiUrl
         );
 
-        if ($decodeResponse) {
-            $this->assertSame($decodedResponse, $actual);
-        } else {
-            $this->assertSame($responseContent, $actual);
-        }
+        $this->assertSame($decodedResponse, $actual);
     }
 
     public function testRequestEmptyResponse(): void
@@ -431,20 +426,10 @@ class ToslaPosHttpClientTest extends TestCase
     {
         yield [
             'txType'         => PosInterface::TX_TYPE_PAY_AUTH,
-            'paymentModel'   => PosInterface::MODEL_3D_SECURE,
+            'paymentModel'   => PosInterface::MODEL_3D_PAY,
             'requestData'    => ['request-data'],
             'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
-            'decodeResponse' => true,
-        ];
-
-        yield [
-            'txType'         => PosInterface::TX_TYPE_PAY_AUTH,
-            'paymentModel'   => PosInterface::MODEL_3D_SECURE,
-            'requestData'    => ['request-data'],
-            'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
-            'decodeResponse' => false,
+            'expectedApiUrl' => 'https://ent.akodepos.com/api/Payment/threeDPayment',
         ];
     }
 }

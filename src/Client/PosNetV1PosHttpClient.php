@@ -24,48 +24,63 @@ class PosNetV1PosHttpClient extends AbstractHttpClient
     private RequestValueMapperInterface $requestValueMapper;
 
     /**
-     * @inheritDoc
-     */
-    public static function supports(string $gatewayClass): bool
-    {
-        return PosNetV1Pos::class === $gatewayClass;
-    }
-
-    /**
+     * @param non-empty-string        $apiBaseUrl
      * @param ClientInterface         $psrClient
      * @param RequestFactoryInterface $requestFactory
      * @param StreamFactoryInterface  $streamFactory
      */
     public function __construct(
+        string                      $apiBaseUrl,
         ClientInterface             $psrClient,
         RequestFactoryInterface     $requestFactory,
         StreamFactoryInterface      $streamFactory,
         SerializerInterface         $serializer,
         LoggerInterface             $logger,
-        array                       $config,
         RequestValueMapperInterface $requestValueMapper
     ) {
         parent::__construct(
+            $apiBaseUrl,
             $psrClient,
             $requestFactory,
             $streamFactory,
             $serializer,
             $logger,
-            $config
         );
         $this->requestValueMapper = $requestValueMapper;
     }
 
     /**
      * @inheritDoc
+     */
+    public static function supports(string $gatewayClass, string $apiName): bool
+    {
+        return PosNetV1Pos::class === $gatewayClass && HttpClientInterface::API_NAME_PAYMENT_API === $apiName;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
+    {
+        try {
+            $this->getRequestURIByTransactionType($txType);
+        } catch (UnsupportedTransactionTypeException $e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @inheritDoc
      *
      * @throws UnsupportedTransactionTypeException
-     * @throws \InvalidArgumentException when transaction type is not provided
+     * @throws \InvalidArgumentException when a transaction type is not provided
      */
     public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType);
+            return $this->baseApiUrl.'/'.$this->getRequestURIByTransactionType($txType);
         }
 
         throw new \InvalidArgumentException('Transaction type is required to generate API URL');

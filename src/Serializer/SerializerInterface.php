@@ -21,23 +21,21 @@ interface SerializerInterface
 
     /**
      * @param class-string<PosInterface> $gatewayClass
+     * @param string|null                $apiName todo strict type
      *
      * @return bool
      */
-    public static function supports(string $gatewayClass): bool;
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool;
 
     /**
-     * @phpstan-param PosInterface::TX_TYPE_* $txType
-     *
-     * @param array<string, mixed>          $data
-     * @param string                        $txType
-     * @param SerializerInterface::FORMAT_* $format encoding format
+     * @param array<string, mixed>    $data
+     * @param PosInterface::TX_TYPE_* $txType
      *
      * @return EncodedData
      *
      * @throws UnsupportedTransactionTypeException
      */
-    public function encode(array $data, string $txType, ?string $format = null): EncodedData;
+    public function encode(array $data, string $txType): EncodedData;
 
     /**
      * @phpstan-param PosInterface::TX_TYPE_* $txType

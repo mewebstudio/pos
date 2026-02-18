@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Tests\Unit\Client;
 
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Client\KuveytSoapApiPosHttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
@@ -51,10 +52,6 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
 
     protected function setUp(): void
     {
-        $endpoints = [
-            'payment_api' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
-        ];
-
         $this->serializer         = $this->createMock(SerializerInterface::class);
         $this->logger             = $this->createMock(LoggerInterface::class);
         $crypt                    = $this->createMock(CryptInterface::class);
@@ -64,9 +61,9 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
         $this->streamFactory      = $this->createMock(StreamFactoryInterface::class);
 
 
-        $this->client = PosHttpClientFactory::createForGateway(
-            KuveytSoapApiPos::class,
-            $endpoints,
+        $this->client = PosHttpClientFactory::create(
+            KuveytSoapApiPosHttpClient::class,
+            'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
             $this->serializer,
             $crypt,
             $this->requestValueMapper,
@@ -79,8 +76,15 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
 
     public function testSupports(): void
     {
-        $this->assertFalse($this->client::supports(AkbankPos::class));
-        $this->assertTrue($this->client::supports(KuveytSoapApiPos::class));
+        $this->assertFalse($this->client::supports(AkbankPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+        $this->assertFalse($this->client::supports(KuveytSoapApiPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+        $this->assertTrue($this->client::supports(KuveytSoapApiPos::class, HttpClientInterface::API_NAME_QUERY_API));
+    }
+
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_STATUS, PosInterface::MODEL_NON_SECURE));
+        $this->assertFalse($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_NON_SECURE));
     }
 
     /**
@@ -101,8 +105,7 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
         string $paymentModel,
         array  $requestData,
         array  $order,
-        string $expectedApiUrl,
-        bool   $decodeResponse
+        string $expectedApiUrl
     ): void {
         $requestData     = ['foo' => 'bar'];
         $order           = ['id' => 123];
@@ -141,33 +144,21 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
             ->with($request)
             ->willReturn($response);
 
-        if ($decodeResponse) {
-            $decodedResponse = ['decoded-response'];
-            $this->serializer->expects($this->once())
-                ->method('decode')
-                ->with($responseContent, $txType)
-                ->willReturn($decodedResponse);
-        } else {
-            $this->serializer->expects($this->never())
-                ->method('decode');
-        }
+        $decodedResponse = ['decoded-response'];
+        $this->serializer->expects($this->once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
 
         $actual = $this->client->request(
             $txType,
             $paymentModel,
             $requestData,
             $order,
-            $expectedApiUrl,
-            null,
-            true,
-            $decodeResponse,
+            $expectedApiUrl
         );
 
-        if ($decodeResponse) {
-            $this->assertSame($decodedResponse, $actual);
-        } else {
-            $this->assertSame($responseContent, $actual);
-        }
+        $this->assertSame($decodedResponse, $actual);
     }
 
     public function testCheckFailResponseThrowsExceptionOnEmptyBody(): void
@@ -222,7 +213,10 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
         );
     }
 
-    public function testCheckFailResponseThrowsExceptionOnSoapFault(): void
+    /**
+     * @dataProvider failResponseDataProvider
+     */
+    public function testCheckFailResponseThrowsExceptionOnSoapFault(array $decodedResponse, string $expectedExpMsg): void
     {
         $paymentModel    = PosInterface::MODEL_NON_SECURE;
         $txType          = PosInterface::TX_TYPE_CANCEL;
@@ -260,19 +254,12 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
             ->method('sendRequest')
             ->willReturn($response);
 
-        $decodedResponse = [
-            's:Fault' => [
-                'faultstring' => [
-                    '#' => 'Some SOAP Fault',
-                ],
-            ],
-        ];
         $this->serializer->expects($this->once())
             ->method('decode')
             ->willReturn($decodedResponse);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Some SOAP Fault');
+        $this->expectExceptionMessage($expectedExpMsg);
         $this->expectExceptionCode(400);
         $this->client->request(
             $txType,
@@ -329,16 +316,30 @@ class KuveytSoapApiPosHttpClientTest extends TestCase
             'requestData'    => ['request-data'],
             'order'          => ['id' => 123],
             'expectedApiUrl' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
-            'decodeResponse' => true,
         ];
+    }
 
-        yield [
-            'txType'         => PosInterface::TX_TYPE_PAY_AUTH,
-            'paymentModel'   => PosInterface::MODEL_3D_SECURE,
-            'requestData'    => ['request-data'],
-            'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
-            'decodeResponse' => false,
+    public static function failResponseDataProvider(): array
+    {
+        return [
+            [
+                'decodedResponse' => [
+                    's:Fault' => [
+                        'faultstring' => [
+                            '#' => 'Some SOAP Fault',
+                        ],
+                    ],
+                ],
+                'expectedExpMsg'  => 'Some SOAP Fault',
+            ],
+            [
+                'decodedResponse' => [
+                    's:Fault' => [
+                        'some_other_key' => 'bla',
+                    ],
+                ],
+                'expectedExpMsg'  => 'Bankaya istek başarısız!',
+            ],
         ];
     }
 }

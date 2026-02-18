@@ -136,7 +136,6 @@ class KuveytPos extends AbstractHttpGateway
             $order,
             $paymentModel,
             $txType,
-            $this->get3DGatewayURL($paymentModel),
             $creditCard
         );
     }
@@ -193,7 +192,11 @@ class KuveytPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        /** @var array<string, mixed> $bankResponse */
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -214,7 +217,6 @@ class KuveytPos extends AbstractHttpGateway
      * @param array<string, int|string|float|null> $order
      * @param string                               $paymentModel
      * @param string                               $txType
-     * @param non-empty-string                     $gatewayURL
      * @param CreditCardInterface|null             $creditCard
      *
      * @return string HTML form
@@ -223,7 +225,7 @@ class KuveytPos extends AbstractHttpGateway
      * @throws UnsupportedTransactionTypeException
      * @throws ClientExceptionInterface
      */
-    private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, string $gatewayURL, ?CreditCardInterface $creditCard = null): string
+    private function getCommon3DFormData(KuveytPosAccount $kuveytPosAccount, array $order, string $paymentModel, string $txType, ?CreditCardInterface $creditCard = null): string
     {
         $requestData = $this->requestDataMapper->create3DEnrollmentCheckRequestData(
             $kuveytPosAccount,
@@ -253,15 +255,17 @@ class KuveytPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->client->request(
+        /** @var string $result */
+        $result = $this->clientStrategy->getClient(
+            PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
             $order,
-            $gatewayURL,
-            null,
-            true,
-            false
         );
+
+        return $result;
     }
 }

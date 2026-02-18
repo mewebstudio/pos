@@ -7,9 +7,11 @@
 namespace Mews\Pos\Client;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
+use Mews\Pos\Exceptions\UnsupportedTransactionTypeException;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\RequestFactoryInterface;
 use Psr\Http\Message\RequestInterface;
@@ -23,46 +25,41 @@ use Symfony\Component\Serializer\Exception\NotEncodableValueException;
  */
 abstract class AbstractHttpClient implements HttpClientInterface
 {
+    /**
+     * @var non-empty-string
+     */
+    protected string $baseApiUrl;
+
     protected ClientInterface $psrClient;
 
     protected RequestFactoryInterface $requestFactory;
 
     protected StreamFactoryInterface $streamFactory;
+
     protected SerializerInterface $serializer;
-    /**
-     * @var array{
-     *     payment_api: non-empty-string,
-     *     payment_api_2?: non-empty-string,
-     *     query_api?: non-empty-string
-     * }
-     */
-    protected array $config;
 
     protected LoggerInterface $logger;
 
     /**
+     * @param non-empty-string           $baseApiUrl
      * @param ClientInterface            $psrClient
      * @param RequestFactoryInterface    $requestFactory
      * @param StreamFactoryInterface     $streamFactory
      * @param SerializerInterface        $serializer
      * @param LoggerInterface            $logger
-     * @param array{
-     *     payment_api: non-empty-string,
-     *     payment_api_2?: non-empty-string,
-     *     query_api?: non-empty-string} $config
      */
     public function __construct(
+        string                  $baseApiUrl,
         ClientInterface         $psrClient,
         RequestFactoryInterface $requestFactory,
         StreamFactoryInterface  $streamFactory,
         SerializerInterface     $serializer,
-        LoggerInterface         $logger,
-        array                   $config
+        LoggerInterface         $logger
     ) {
+        $this->baseApiUrl     = $baseApiUrl;
         $this->psrClient      = $psrClient;
         $this->requestFactory = $requestFactory;
         $this->streamFactory  = $streamFactory;
-        $this->config         = $config;
         $this->serializer     = $serializer;
         $this->logger         = $logger;
     }
@@ -76,22 +73,16 @@ abstract class AbstractHttpClient implements HttpClientInterface
      *
      * @throws \InvalidArgumentException
      * @throws \RuntimeException
-     *
      */
     public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
-        if (isset($this->config['query_api']) && \in_array($txType, [
-                PosInterface::TX_TYPE_STATUS,
-                PosInterface::TX_TYPE_CUSTOM_QUERY,
-            ], true)) {
-            return $this->config['query_api'];
-        }
-
-        return $this->config['payment_api'];
+        return $this->baseApiUrl;
     }
 
     /**
      * @inheritDoc
+     *
+     * @throws \Exception
      */
     public function request(
         string              $txType,
@@ -99,8 +90,43 @@ abstract class AbstractHttpClient implements HttpClientInterface
         array               $requestData,
         array               $order,
         ?string             $url = null,
+        ?AbstractPosAccount $account = null
+    ) {
+        $content = $this->serializer->encode($requestData, $txType);
+
+        return $this->doRequest(
+            $txType,
+            $paymentModel,
+            $content,
+            $order,
+            $url,
+            $account
+        );
+    }
+
+    /**
+     * @param PosInterface::TX_TYPE_* $txType
+     * @param PosInterface::MODEL_*   $paymentModel
+     * @param EncodedData             $content
+     * @param array<string, mixed>    $order
+     * @param non-empty-string|null   $url
+     * @param AbstractPosAccount|null $account
+     *
+     * @return ($decode is true ? array<string, mixed> : string)
+     *
+     * @throws UnsupportedTransactionTypeException
+     * @throws NotEncodableValueException
+     * @throws ClientExceptionInterface
+     * @throws \InvalidArgumentException
+     * @throws \RuntimeException
+     */
+    public function doRequest(
+        string              $txType,
+        string              $paymentModel,
+        EncodedData         $content,
+        array               $order,
+        ?string             $url = null,
         ?AbstractPosAccount $account = null,
-        bool                $encode = true,
         bool                $decode = true
     ) {
 
@@ -109,7 +135,7 @@ abstract class AbstractHttpClient implements HttpClientInterface
         } catch (\Exception $e) {
             $msg = \sprintf('%s işlemi için API URL oluşturulamadı! API URL sağlayıp deneyiniz.', $txType);
             $this->logger->error($msg, [
-                'config'       => $this->config,
+                'api_url'       => $url,
                 'txType'       => $txType,
                 'paymentModel' => $paymentModel,
                 'orderTxType'  => $order['transaction_type'] ?? null,
@@ -118,8 +144,6 @@ abstract class AbstractHttpClient implements HttpClientInterface
 
             throw $e;
         }
-
-        $content = $this->serializer->encode($requestData, $txType);
 
         $request = $this->createRequest($url, $content, $txType, $account);
 

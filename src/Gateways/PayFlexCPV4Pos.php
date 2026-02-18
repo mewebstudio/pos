@@ -254,19 +254,21 @@ class PayFlexCPV4Pos extends AbstractHttpGateway
         }
 
         /** @var array{CommonPaymentUrl: string|null, PaymentToken: string|null, ErrorCode: string|null, ResponseMessage: string|null} $response */
-        $response = $this->client->request(
+        $response = $this->clientStrategy->getClient(
+            PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
-            $order,
-            $this->get3DGatewayURL(),
+            $order
         );
 
         return $response;
     }
 
     /**
-     * get 3D Payment status  to make sure that payment was successful
+     * get 3D Payment status to make sure that payment was successful
      * @param Request              $request
      * @param array<string, mixed> $order
      *
@@ -314,11 +316,17 @@ class PayFlexCPV4Pos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->client->request(
+        /** @var array<string, mixed> $result */
+        $result = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
             $order
         );
+
+        return $result;
     }
 }

@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Tests\Unit\Client;
 
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Client\PayFlexCPV4PosHttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
@@ -59,10 +60,6 @@ class PayFlexCPV4PosHttpClientTest extends TestCase
 
     protected function setUp(): void
     {
-        $endpoints = [
-            'payment_api' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
-        ];
-
         $this->serializer         = $this->createMock(SerializerInterface::class);
         $this->logger             = $this->createMock(LoggerInterface::class);
         $this->crypt              = $this->createMock(CryptInterface::class);
@@ -72,9 +69,9 @@ class PayFlexCPV4PosHttpClientTest extends TestCase
         $this->streamFactory      = $this->createMock(StreamFactoryInterface::class);
 
 
-        $this->client = PosHttpClientFactory::createForGateway(
-            PayFlexCPV4Pos::class,
-            $endpoints,
+        $this->client = PosHttpClientFactory::create(
+            PayFlexCPV4PosHttpClient::class,
+            'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
             $this->serializer,
             $this->crypt,
             $this->requestValueMapper,
@@ -87,8 +84,14 @@ class PayFlexCPV4PosHttpClientTest extends TestCase
 
     public function testSupports(): void
     {
-        $this->assertTrue(PayFlexCPV4PosHttpClient::supports(PayFlexCPV4Pos::class));
-        $this->assertFalse(PayFlexCPV4PosHttpClient::supports(AkbankPos::class));
+        $this->assertTrue($this->client::supports(PayFlexCPV4Pos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+        $this->assertFalse($this->client::supports(PayFlexCPV4Pos::class, HttpClientInterface::API_NAME_GATEWAY_3D_API));
+        $this->assertFalse($this->client::supports(AkbankPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+    }
+
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
     }
 
     /**
@@ -109,8 +112,7 @@ class PayFlexCPV4PosHttpClientTest extends TestCase
         string $paymentModel,
         array  $requestData,
         array  $order,
-        string $expectedApiUrl,
-        bool   $decodeResponse
+        string $expectedApiUrl
     ): void {
         $encodedData = new EncodedData(
             'abc=1&sa=aa',
@@ -145,33 +147,21 @@ class PayFlexCPV4PosHttpClientTest extends TestCase
             ->with($request)
             ->willReturn($response);
 
-        if ($decodeResponse) {
-            $decodedResponse = ['decoded-response'];
-            $this->serializer->expects($this->once())
-                ->method('decode')
-                ->with($responseContent, $txType)
-                ->willReturn($decodedResponse);
-        } else {
-            $this->serializer->expects($this->never())
-                ->method('decode');
-        }
+        $decodedResponse = ['decoded-response'];
+        $this->serializer->expects($this->once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
 
         $actual = $this->client->request(
             $txType,
             $paymentModel,
             $requestData,
             $order,
-            $expectedApiUrl,
-            null,
-            true,
-            $decodeResponse,
+            $expectedApiUrl
         );
 
-        if ($decodeResponse) {
-            $this->assertSame($decodedResponse, $actual);
-        } else {
-            $this->assertSame($responseContent, $actual);
-        }
+        $this->assertSame($decodedResponse, $actual);
     }
 
     public function testRequestUndecodableResponse(): void
@@ -307,17 +297,7 @@ class PayFlexCPV4PosHttpClientTest extends TestCase
             'paymentModel'   => PosInterface::MODEL_3D_SECURE,
             'requestData'    => ['request-data'],
             'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            'decodeResponse' => true,
-        ];
-
-        yield [
-            'txType'         => PosInterface::TX_TYPE_PAY_AUTH,
-            'paymentModel'   => PosInterface::MODEL_3D_SECURE,
-            'requestData'    => ['request-data'],
-            'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            'decodeResponse' => false,
+            'expectedApiUrl' => 'https://cptest.vakifbank.com.tr/CommonPayment/api/VposTransaction',
         ];
     }
 }

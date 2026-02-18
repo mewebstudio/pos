@@ -32,7 +32,7 @@ class KuveytSoapApiPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return KuveytSoapApiPos::class === $gatewayClass;
     }
@@ -40,9 +40,9 @@ class KuveytSoapApiPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, string $txType, ?string $format = self::FORMAT_XML): EncodedData
+    public function encode(array $data, string $txType): EncodedData
     {
-        $format ??= self::FORMAT_XML;
+        $format = self::FORMAT_XML;
 
         /** @var array<string, mixed> $data */
         $data = $this->serializer->normalize($data, $format, ['xml_prefix' => 'ser']);
@@ -52,7 +52,7 @@ class KuveytSoapApiPosSerializer implements SerializerInterface
         $serializeData['@xmlns:ser']     = 'http://boa.net/BOA.Integration.VirtualPos/Service';
 
         return new EncodedData(
-            $this->serializer->serialize($serializeData, XmlEncoder::FORMAT),
+            $this->serializer->serialize($serializeData, $format),
             $format
         );
     }

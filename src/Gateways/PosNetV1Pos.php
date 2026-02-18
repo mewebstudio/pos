@@ -109,11 +109,15 @@ class PosNetV1Pos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $provisionResponse = $this->client->request(
+        /** @var array<string, mixed> $provisionResponse */
+        $provisionResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
-            $order,
+            $order
         );
         $this->logger->debug('send $provisionResponse', ['$provisionResponse' => $provisionResponse]);
 

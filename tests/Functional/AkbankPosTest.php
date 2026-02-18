@@ -293,7 +293,7 @@ class AkbankPosTest extends TestCase
 
         $response = $this->recurringPos->getResponse();
 
-        $this->assertTrue($this->recurringPos->isSuccess());
+        $this->assertTrue($this->recurringPos->isSuccess(), $response['error_message'] ?? '');
 
         $this->assertIsArray($response);
         $this->assertNotEmpty($response);

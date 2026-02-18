@@ -18,21 +18,35 @@ class ToslaPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, string $apiName): bool
     {
-        return ToslaPos::class === $gatewayClass;
+        return ToslaPos::class === $gatewayClass && HttpClientInterface::API_NAME_PAYMENT_API === $apiName;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
+    {
+        try {
+            $this->getRequestURIByTransactionType($txType, $paymentModel);
+        } catch (UnsupportedTransactionTypeException $e) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
      * @inheritDoc
      *
      * @throws UnsupportedTransactionTypeException
-     * @throws \InvalidArgumentException when transaction type or payment model are not provided
+     * @throws \InvalidArgumentException when a transaction type or payment model are not provided
      */
     public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType && null !== $paymentModel) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
+            return $this->baseApiUrl.'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
         }
 
         throw new \InvalidArgumentException('Transaction type and payment model are required to generate API URL');

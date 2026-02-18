@@ -28,7 +28,7 @@ class PayForPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return PayForPos::class === $gatewayClass;
     }
@@ -36,9 +36,9 @@ class PayForPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null, ?string $format = self::FORMAT_XML): EncodedData
+    public function encode(array $data, ?string $txType = null): EncodedData
     {
-        $format ??= self::FORMAT_XML;
+        $format = self::FORMAT_XML;
 
         return new EncodedData(
             $this->serializer->encode($data, $format),

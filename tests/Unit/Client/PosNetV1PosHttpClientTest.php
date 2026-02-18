@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Tests\Unit\Client;
 
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Client\PosNetV1PosHttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
@@ -60,20 +61,17 @@ class PosNetV1PosHttpClientTest extends TestCase
 
     protected function setUp(): void
     {
-        $endpoints                = [
-            'payment_api' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
-        ];
         $this->serializer         = $this->createMock(SerializerInterface::class);
         $this->logger             = $this->createMock(LoggerInterface::class);
-        $crypt = $this->createMock(CryptInterface::class);
+        $crypt                    = $this->createMock(CryptInterface::class);
         $this->requestValueMapper = $this->createMock(RequestValueMapperInterface::class);
         $this->psrClient          = $this->createMock(ClientInterface::class);
         $this->requestFactory     = $this->createMock(RequestFactoryInterface::class);
         $this->streamFactory      = $this->createMock(StreamFactoryInterface::class);
 
-        $this->client = PosHttpClientFactory::createForGateway(
-            PosNetV1Pos::class,
-            $endpoints,
+        $this->client = PosHttpClientFactory::create(
+            PosNetV1PosHttpClient::class,
+            'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc',
             $this->serializer,
             $crypt,
             $this->requestValueMapper,
@@ -107,8 +105,28 @@ class PosNetV1PosHttpClientTest extends TestCase
 
     public function testSupports(): void
     {
-        $this->assertTrue(PosNetV1PosHttpClient::supports(PosNetV1Pos::class));
-        $this->assertFalse(PosNetV1PosHttpClient::supports(PosNet::class));
+        $this->assertTrue($this->client::supports(PosNetV1Pos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+        $this->assertFalse($this->client::supports(PosNet::class, HttpClientInterface::API_NAME_PAYMENT_API));
+    }
+
+    public function testSupportsTx(): void
+    {
+        $this->requestValueMapper->expects($this->once())
+            ->method('mapTxType')
+            ->with(PosInterface::TX_TYPE_PAY_AUTH)
+            ->willReturn('Sale');
+
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
+    }
+
+    public function testSupportsTxWithUnsupportedTx(): void
+    {
+        $this->requestValueMapper->expects($this->once())
+            ->method('mapTxType')
+            ->with('unsupported')
+            ->willThrowException(new UnsupportedTransactionTypeException());
+
+        $this->assertFalse($this->client->supportsTx('unsupported', PosInterface::MODEL_3D_SECURE));
     }
 
     /**
@@ -119,8 +137,7 @@ class PosNetV1PosHttpClientTest extends TestCase
         string $paymentModel,
         array  $requestData,
         array  $order,
-        string $expectedApiUrl,
-        bool   $decodeResponse
+        string $expectedApiUrl
     ): void {
         $encodedData = new EncodedData(
             '{"a": "b"}',
@@ -151,33 +168,21 @@ class PosNetV1PosHttpClientTest extends TestCase
             ->with($request)
             ->willReturn($response);
 
-        if ($decodeResponse) {
-            $decodedResponse = ['decoded-response'];
-            $this->serializer->expects($this->once())
-                ->method('decode')
-                ->with($responseContent, $txType)
-                ->willReturn($decodedResponse);
-        } else {
-            $this->serializer->expects($this->never())
-                ->method('decode');
-        }
+        $decodedResponse = ['decoded-response'];
+        $this->serializer->expects($this->once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
 
         $actual = $this->client->request(
             $txType,
             $paymentModel,
             $requestData,
             $order,
-            $expectedApiUrl,
-            null,
-            true,
-            $decodeResponse,
+            $expectedApiUrl
         );
 
-        if ($decodeResponse) {
-            $this->assertSame($decodedResponse, $actual);
-        } else {
-            $this->assertSame($responseContent, $actual);
-        }
+        $this->assertSame($decodedResponse, $actual);
     }
 
     public function testRequestBadRequest(): void
@@ -315,17 +320,7 @@ class PosNetV1PosHttpClientTest extends TestCase
             'paymentModel'   => PosInterface::MODEL_3D_SECURE,
             'requestData'    => ['request-data'],
             'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
-            'decodeResponse' => true,
-        ];
-
-        yield [
-            'txType'         => PosInterface::TX_TYPE_PAY_AUTH,
-            'paymentModel'   => PosInterface::MODEL_3D_SECURE,
-            'requestData'    => ['request-data'],
-            'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://entegrasyon.asseco-see.com.tr/fim/api',
-            'decodeResponse' => false,
+            'expectedApiUrl' => 'https://epostest.albarakaturk.com.tr/ALBMerchantService/MerchantJSONAPI.svc/Sale',
         ];
     }
 }

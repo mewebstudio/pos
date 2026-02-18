@@ -8,6 +8,7 @@ namespace Mews\Pos\Client;
 
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Gateways\PayFlexV4Pos;
+use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Psr\Http\Message\RequestInterface;
@@ -17,47 +18,44 @@ class PayFlexV4PosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, string $apiName): bool
     {
-        return PayFlexV4Pos::class === $gatewayClass;
+        return PayFlexV4Pos::class === $gatewayClass && HttpClientInterface::API_NAME_PAYMENT_API === $apiName;
     }
 
     /**
      * @inheritDoc
      */
-    public function request(string $txType, string $paymentModel, array $requestData, array $order, ?string $url = null, ?AbstractPosAccount $account = null, bool $encode = true, bool $decode = true)
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
     {
-        if ($encode) {
-            $content = $this->serializer->encode($requestData, $txType);
-            $content = $this->serializer->encode(
-                ['prmstr' => $content->getData()],
-                $txType,
-                SerializerInterface::FORMAT_FORM
-            );
-        } else {
-            $content = $this->serializer->encode(
-                $requestData,
-                $txType,
-                SerializerInterface::FORMAT_FORM
-            );
-        }
+        return $txType !== PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD && PosInterface::TX_TYPE_STATUS !== $txType;
+    }
 
-        $url ??= $this->getApiURL($txType, $paymentModel, $order['transaction_type'] ?? null);
+    /**
+     * @inheritDoc
+     */
+    public function request(
+        string              $txType,
+        string              $paymentModel,
+        array               $requestData,
+        array               $order,
+        ?string             $url = null,
+        ?AbstractPosAccount $account = null
+    ): array {
+        $content = $this->serializer->encode($requestData, $txType);
+        $content = new EncodedData(
+            \http_build_query(['prmstr' => $content->getData()]),
+            SerializerInterface::FORMAT_FORM
+        );
 
-        $request = $this->createRequest($url, $content, $txType, $account);
-
-        $this->logger->debug('sending request', ['url' => $url]);
-
-        $response = $this->psrClient->sendRequest($request);
-
-        $this->logger->debug('request completed', ['status_code' => $response->getStatusCode()]);
-
-        $this->checkFailResponse($txType, $response, $order);
-        $response->getBody()->rewind();
-
-        return $decode
-            ? $this->serializer->decode($response->getBody()->getContents(), $txType)
-            : $response->getBody()->getContents();
+        return $this->doRequest(
+            $txType,
+            $paymentModel,
+            $content,
+            $order,
+            $url,
+            $account
+        );
     }
 
     /**

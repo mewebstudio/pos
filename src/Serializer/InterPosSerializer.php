@@ -14,7 +14,7 @@ class InterPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return InterPos::class === $gatewayClass;
     }
@@ -22,9 +22,9 @@ class InterPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null, ?string $format = self::FORMAT_FORM): EncodedData
+    public function encode(array $data, ?string $txType = null): EncodedData
     {
-        $format ??= self::FORMAT_FORM;
+        $format = self::FORMAT_FORM;
 
         return new EncodedData(
             \http_build_query($data),

@@ -105,7 +105,11 @@ class PayFlexV4Pos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $bankResponse = $this->client->request(
+        /** @var array<string, mixed> $bankResponse */
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
@@ -242,14 +246,17 @@ class PayFlexV4Pos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->client->request(
+        /** @var array<string, mixed> $result */
+        $result = $this->clientStrategy->getClient(
+            PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
-            $order,
-            $this->get3DGatewayURL(),
-            null,
-            false
+            $order
         );
+
+        return $result;
     }
 }

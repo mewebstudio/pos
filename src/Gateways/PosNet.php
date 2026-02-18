@@ -94,11 +94,15 @@ class PosNet extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        $userVerifyResponse = $this->client->request(
+        /** @var array<string, mixed> $userVerifyResponse */
+        $userVerifyResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
-            $order,
+            $order
         );
 
         if (!$this->is3DAuthSuccess($userVerifyResponse)) {
@@ -141,12 +145,15 @@ class PosNet extends AbstractHttpGateway
             ]);
             $requestData = $event->getRequestData();
         }
-
-        $bankResponse = $this->client->request(
+        /** @var array<string, mixed> $bankResponse */
+        $bankResponse = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
-            $order,
+            $order
         );
 
         $this->response = $this->responseDataMapper->map3DPaymentData($userVerifyResponse, $bankResponse, $txType, $order);
@@ -271,11 +278,17 @@ class PosNet extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->client->request(
+        /** @var array<string, mixed> $result */
+        $result = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
-            $order,
+            $order
         );
+
+        return $result;
     }
 }

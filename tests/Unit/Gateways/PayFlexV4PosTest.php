@@ -7,7 +7,9 @@
 namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Exception;
+use LogicException;
 use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PayFlexV4PosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
@@ -30,6 +32,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -58,6 +61,9 @@ class PayFlexV4PosTest extends TestCase
 
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
+
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
 
     /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
@@ -101,14 +107,15 @@ class PayFlexV4PosTest extends TestCase
             'ip'          => '127.0.0.1',
         ];
 
-        $this->requestValueMapper  = new PayFlexV4PosRequestValueMapper();
-        $this->requestMapperMock   = $this->createMock(PayFlexV4PosRequestDataMapper::class);
-        $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $serializerMock            = $this->createMock(SerializerInterface::class);
-        $this->cryptMock           = $this->createMock(CryptInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
-        $this->loggerMock          = $this->createMock(LoggerInterface::class);
-        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+        $this->requestValueMapper     = new PayFlexV4PosRequestValueMapper();
+        $this->requestMapperMock      = $this->createMock(PayFlexV4PosRequestDataMapper::class);
+        $this->responseMapperMock     = $this->createMock(ResponseDataMapperInterface::class);
+        $serializerMock               = $this->createMock(SerializerInterface::class);
+        $this->cryptMock              = $this->createMock(CryptInterface::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
+        $this->httpClientMock         = $this->createMock(HttpClientInterface::class);
+        $this->loggerMock             = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock    = $this->createMock(EventDispatcherInterface::class);
 
         $this->requestMapperMock->expects(self::any())
             ->method('getCrypt')
@@ -122,7 +129,7 @@ class PayFlexV4PosTest extends TestCase
             $this->responseMapperMock,
             $serializerMock,
             $this->eventDispatcherMock,
-            $this->httpClientMock,
+            $this->httpClientStrategyMock,
             $this->loggerMock,
         );
 
@@ -168,14 +175,15 @@ class PayFlexV4PosTest extends TestCase
             $response,
             $order,
             PosInterface::MODEL_3D_SECURE,
-            false,
-            $this->config['gateway_endpoints']['gateway_3d'],
+            null,
+            null,
+            PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD
         );
 
         $this->requestMapperMock->expects(self::never())
             ->method('create3DFormData');
 
-        $this->expectException(\RuntimeException::class);
+        $this->expectException(RuntimeException::class);
         $this->pos->get3DFormData($order, PosInterface::MODEL_3D_SECURE, $txType, $this->card);
     }
 
@@ -223,8 +231,9 @@ class PayFlexV4PosTest extends TestCase
             $enrollmentResponse,
             $order,
             $paymentModel,
-            false,
-            $this->config['gateway_endpoints']['gateway_3d']
+            null,
+            null,
+            PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -271,8 +280,9 @@ class PayFlexV4PosTest extends TestCase
             $enrollmentResponse,
             $order,
             $paymentModel,
-            false,
-            $this->config['gateway_endpoints']['gateway_3d']
+            null,
+            null,
+            PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -395,7 +405,6 @@ class PayFlexV4PosTest extends TestCase
             $decodedResponse,
             $order,
             PosInterface::MODEL_NON_SECURE,
-            true,
             null,
             $account
         );
@@ -428,7 +437,6 @@ class PayFlexV4PosTest extends TestCase
             $decodedResponse,
             $order,
             PosInterface::MODEL_NON_SECURE,
-            true,
             null,
             $account
         );
@@ -463,7 +471,6 @@ class PayFlexV4PosTest extends TestCase
             $decodedResponse,
             $order,
             PosInterface::MODEL_NON_SECURE,
-            true,
             null,
             $account
         );
@@ -497,7 +504,6 @@ class PayFlexV4PosTest extends TestCase
             $decodedResponse,
             $order,
             PosInterface::MODEL_NON_SECURE,
-            true,
             null,
             $account
         );
@@ -531,7 +537,6 @@ class PayFlexV4PosTest extends TestCase
             $decodedResponse,
             $order,
             PosInterface::MODEL_NON_SECURE,
-            true,
             null,
             $account
         );
@@ -578,7 +583,6 @@ class PayFlexV4PosTest extends TestCase
             ['decodedResponse'],
             $requestData,
             PosInterface::MODEL_NON_SECURE,
-            true,
             $apiUrl,
             $account
         );
@@ -735,7 +739,7 @@ class PayFlexV4PosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
-                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionClass' => LogicException::class,
                 'expectedExceptionMsg'   => 'Bu ödeme modeli için kart bilgileri zorunlu!',
             ],
             'unsupported_payment_model' => [
@@ -743,7 +747,7 @@ class PayFlexV4PosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_AUTH,
                 'isWithCard'             => false,
-                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionClass' => LogicException::class,
                 'expectedExceptionMsg'   => 'Mews\Pos\Gateways\PayFlexV4Pos ödeme altyapıda [pay] işlem tipi [3d, regular] ödeme model(ler) desteklemektedir. Sağlanan ödeme model: [3d_pay].',
             ],
             'non_payment_tx_type'       => [
@@ -751,7 +755,7 @@ class PayFlexV4PosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_SECURE,
                 'txType'                 => PosInterface::TX_TYPE_STATUS,
                 'isWithCard'             => false,
-                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionClass' => LogicException::class,
                 'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay, pre]',
             ],
             'post_auth_tx_type'         => [
@@ -759,7 +763,7 @@ class PayFlexV4PosTest extends TestCase
                 'paymentModel'           => PosInterface::MODEL_3D_PAY,
                 'txType'                 => PosInterface::TX_TYPE_PAY_POST_AUTH,
                 'isWithCard'             => true,
-                'expectedExceptionClass' => \LogicException::class,
+                'expectedExceptionClass' => LogicException::class,
                 'expectedExceptionMsg'   => 'Hatalı işlem tipi! Desteklenen işlem tipleri: [pay, pre]',
             ],
         ];
@@ -771,13 +775,20 @@ class PayFlexV4PosTest extends TestCase
         array               $decodedResponse,
         array               $order,
         string              $paymentModel,
-        bool                $encodeResponse = true,
         ?string             $apiUrl = null,
-        ?AbstractPosAccount $account = null
+        ?AbstractPosAccount $account = null,
+        ?string             $clientTxType = null
     ): void {
         $updatedRequestDataPreparedEvent                                            = null;
         $updatedRequestDataPreparedEventData                                        = $requestData;
         $updatedRequestDataPreparedEventData['test-update-request-data-with-event'] = true;
+
+        $clientTxType ??= $txType;
+
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($clientTxType, $paymentModel)
+            ->willReturn($this->httpClientMock);
 
         $this->httpClientMock->expects(self::once())
             ->method('request')
@@ -789,8 +800,7 @@ class PayFlexV4PosTest extends TestCase
                 }),
                 $order,
                 $apiUrl,
-                $account,
-                $encodeResponse
+                $account
             )->willReturn($decodedResponse);
 
         $this->eventDispatcherMock->expects(self::once())
@@ -809,7 +819,7 @@ class PayFlexV4PosTest extends TestCase
                     }
                 )
             ))
-            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent, $updatedRequestDataPreparedEventData): ?\Mews\Pos\Event\RequestDataPreparedEvent {
+            ->willReturnCallback(function () use (&$updatedRequestDataPreparedEvent, $updatedRequestDataPreparedEventData): ?RequestDataPreparedEvent {
                 $updatedRequestDataPreparedEvent->setRequestData($updatedRequestDataPreparedEventData);
 
                 return $updatedRequestDataPreparedEvent;

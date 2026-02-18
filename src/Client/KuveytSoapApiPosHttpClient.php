@@ -9,6 +9,7 @@ namespace Mews\Pos\Client;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
 use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Gateways\KuveytSoapApiPos;
+use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\EncodedData;
 use Mews\Pos\Serializer\SerializerInterface;
 use Psr\Http\Client\ClientInterface;
@@ -23,26 +24,27 @@ class KuveytSoapApiPosHttpClient extends AbstractHttpClient
     private RequestValueMapperInterface $requestValueMapper;
 
     /**
+     * @param non-empty-string        $baseApiUrl
      * @param ClientInterface         $psrClient
      * @param RequestFactoryInterface $requestFactory
      * @param StreamFactoryInterface  $streamFactory
      */
     public function __construct(
+        string                      $baseApiUrl,
         ClientInterface             $psrClient,
         RequestFactoryInterface     $requestFactory,
         StreamFactoryInterface      $streamFactory,
         SerializerInterface         $serializer,
         LoggerInterface             $logger,
-        array                       $config,
         RequestValueMapperInterface $requestValueMapper
     ) {
         parent::__construct(
+            $baseApiUrl,
             $psrClient,
             $requestFactory,
             $streamFactory,
             $serializer,
-            $logger,
-            $config
+            $logger
         );
         $this->requestValueMapper = $requestValueMapper;
     }
@@ -50,9 +52,22 @@ class KuveytSoapApiPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
     {
-        return KuveytSoapApiPos::class === $gatewayClass;
+        return \in_array($txType, [
+            PosInterface::TX_TYPE_STATUS,
+            PosInterface::TX_TYPE_CANCEL,
+            PosInterface::TX_TYPE_REFUND,
+            PosInterface::TX_TYPE_REFUND_PARTIAL,
+        ], true);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass, string $apiName): bool
+    {
+        return KuveytSoapApiPos::class === $gatewayClass && HttpClientInterface::API_NAME_QUERY_API === $apiName;
     }
 
     /**

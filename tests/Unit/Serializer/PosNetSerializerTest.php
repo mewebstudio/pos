@@ -100,13 +100,6 @@ class PosNetSerializerTest extends TestCase
 <posnetRequest><mid>6706598320</mid><tid>67005551</tid><tranDateRequired>1</tranDateRequired><sale><orderID>0000190620093100_024</orderID><installment>00</installment><amount>175</amount><currencyCode>TL</currencyCode><ccno>5555444433332222</ccno><expDate>2112</expDate><cvc>122</cvc></sale></posnetRequest>
 ',
         ];
-
-        yield 'test4' => [
-            'input'           => ['xmldata' => '<?xml version="1.0" encoding="ISO-8859-9"?>'],
-            'format'          => SerializerInterface::FORMAT_FORM,
-            'expected_format' => SerializerInterface::FORMAT_FORM,
-            'expected'        => 'xmldata=%3C%3Fxml+version%3D%221.0%22+encoding%3D%22ISO-8859-9%22%3F%3E',
-        ];
     }
 
     public static function decodeXmlDataProvider(): iterable

@@ -152,7 +152,7 @@ return [
             'name'              => 'KuveytSoapApiPos',
             'class'             => Mews\Pos\Gateways\KuveytSoapApiPos::class,
             'gateway_endpoints' => [
-                'payment_api' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
+                'query_api' => 'https://boatest.kuveytturk.com.tr/BOA.Integration.WCFService/BOA.Integration.VirtualPos/VirtualPosService.svc/Basic',
             ],
         ],
         'vakif-katilim'        => [

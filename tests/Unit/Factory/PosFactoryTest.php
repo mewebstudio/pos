@@ -137,21 +137,33 @@ class PosFactoryTest extends TestCase
             'expected_exception_class' => \InvalidArgumentException::class,
         ];
 
-        yield 'non_existing_config_key' => [
+        yield 'serializer_not_found' => [
             'config'                   => [
                 'banks' => [
-                    'estpos' => [
+                    'akbank' => [
                         'name'              => 'Akbank',
-                        'class'             => \stdClass::class,
+                        'class'             => \Mews\Pos\Gateways\AkbankPos::class,
                         'gateway_endpoints' => [
-                            'payment_api'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos',
-                            'gateway_3d'      => 'https://virtualpospaymentgatewaypre.akbank.com/securepay',
-                            'gateway_3d_host' => 'https://virtualpospaymentgatewaypre.akbank.com/payhosting',
                         ],
                     ],
                 ],
             ],
             'config_key'               => 'akbank',
+            'expected_exception_class' => \DomainException::class,
+        ];
+
+        yield 'bank_not_found' => [
+            'config'                   => [
+                'banks' => [
+                    'akbank' => [
+                        'name'              => 'Akbank',
+                        'class'             => \Mews\Pos\Gateways\AkbankPos::class,
+                        'gateway_endpoints' => [
+                        ],
+                    ],
+                ],
+            ],
+            'config_key'               => 'akbank2',
             'expected_exception_class' => BankNotFoundException::class,
         ];
     }
@@ -166,6 +178,7 @@ class PosFactoryTest extends TestCase
             \Mews\Pos\Gateways\InterPos::class         => true,
             \Mews\Pos\Gateways\KuveytPos::class        => true,
             \Mews\Pos\Gateways\KuveytSoapApiPos::class => true,
+            \Mews\Pos\Gateways\Param3DHostPos::class   => false,
             \Mews\Pos\Gateways\ParamPos::class         => false,
             \Mews\Pos\Gateways\PayFlexCPV4Pos::class   => true,
             \Mews\Pos\Gateways\PayFlexV4Pos::class     => true,
@@ -178,16 +191,22 @@ class PosFactoryTest extends TestCase
 
         foreach ($gatewayClasses as $gatewayClass => $cardTypeMapping) {
             $configKey = 'abcdse';
+            $gatewayEndpoints = [
+                'payment_api'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos',
+                'gateway_3d'      => 'https://virtualpospaymentgatewaypre.akbank.com/securepay',
+                'gateway_3d_host' => 'https://virtualpospaymentgatewaypre.akbank.com/payhosting',
+            ];
+
+            if (\Mews\Pos\Gateways\KuveytSoapApiPos::class === $gatewayClass) {
+                $gatewayEndpoints['query_api'] = 'https://apipre.akbank.com/api/v1/payment/virtualpos';
+            }
+
             $config    = [
                 'banks' => [
                     $configKey => [
                         'name'              => 'Akbank',
                         'class'             => $gatewayClass,
-                        'gateway_endpoints' => [
-                            'payment_api'     => 'https://apipre.akbank.com/api/v1/payment/virtualpos',
-                            'gateway_3d'      => 'https://virtualpospaymentgatewaypre.akbank.com/securepay',
-                            'gateway_3d_host' => 'https://virtualpospaymentgatewaypre.akbank.com/payhosting',
-                        ],
+                        'gateway_endpoints' => $gatewayEndpoints,
                     ],
                 ],
             ];

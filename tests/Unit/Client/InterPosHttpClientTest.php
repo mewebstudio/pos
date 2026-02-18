@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Tests\Unit\Client;
 
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Client\InterPosHttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
@@ -59,22 +60,18 @@ class InterPosHttpClientTest extends TestCase
 
     protected function setUp(): void
     {
-        $endpoints = [
-            'payment_api' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
-        ];
-
         $this->serializer         = $this->createMock(SerializerInterface::class);
         $this->logger             = $this->createMock(LoggerInterface::class);
-        $crypt = $this->createMock(CryptInterface::class);
+        $crypt                    = $this->createMock(CryptInterface::class);
         $this->requestValueMapper = $this->createMock(RequestValueMapperInterface::class);
         $this->psrClient          = $this->createMock(ClientInterface::class);
         $this->requestFactory     = $this->createMock(RequestFactoryInterface::class);
         $this->streamFactory      = $this->createMock(StreamFactoryInterface::class);
 
 
-        $this->client = PosHttpClientFactory::createForGateway(
-            InterPos::class,
-            $endpoints,
+        $this->client = PosHttpClientFactory::create(
+            InterPosHttpClient::class,
+            'https://test.inter-vpos.com.tr/mpi/Default.aspx',
             $this->serializer,
             $crypt,
             $this->requestValueMapper,
@@ -87,8 +84,13 @@ class InterPosHttpClientTest extends TestCase
 
     public function testSupports(): void
     {
-        $this->assertFalse(InterPosHttpClient::supports(AkbankPos::class));
-        $this->assertTrue(InterPosHttpClient::supports(InterPos::class));
+        $this->assertFalse($this->client::supports(AkbankPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+        $this->assertTrue($this->client::supports(InterPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+    }
+
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
     }
 
     /**
@@ -109,8 +111,7 @@ class InterPosHttpClientTest extends TestCase
         string $paymentModel,
         array  $requestData,
         array  $order,
-        string $expectedApiUrl,
-        bool   $decodeResponse
+        string $expectedApiUrl
     ): void {
         $encodedData = new EncodedData(
             'abc=1&sa=aa',
@@ -142,33 +143,21 @@ class InterPosHttpClientTest extends TestCase
             ->with($request)
             ->willReturn($response);
 
-        if ($decodeResponse) {
-            $decodedResponse = ['decoded-response'];
-            $this->serializer->expects($this->once())
-                ->method('decode')
-                ->with($responseContent, $txType)
-                ->willReturn($decodedResponse);
-        } else {
-            $this->serializer->expects($this->never())
-                ->method('decode');
-        }
+        $decodedResponse = ['decoded-response'];
+        $this->serializer->expects($this->once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
 
         $actual = $this->client->request(
             $txType,
             $paymentModel,
             $requestData,
             $order,
-            $expectedApiUrl,
-            null,
-            true,
-            $decodeResponse,
+            $expectedApiUrl
         );
 
-        if ($decodeResponse) {
-            $this->assertSame($decodedResponse, $actual);
-        } else {
-            $this->assertSame($responseContent, $actual);
-        }
+        $this->assertSame($decodedResponse, $actual);
     }
 
     public function testRequestUndecodableResponse(): void
@@ -301,17 +290,7 @@ class InterPosHttpClientTest extends TestCase
             'paymentModel'   => PosInterface::MODEL_3D_SECURE,
             'requestData'    => ['request-data'],
             'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            'decodeResponse' => true,
-        ];
-
-        yield [
-            'txType'         => PosInterface::TX_TYPE_PAY_AUTH,
-            'paymentModel'   => PosInterface::MODEL_3D_SECURE,
-            'requestData'    => ['request-data'],
-            'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            'decodeResponse' => false,
+            'expectedApiUrl' => 'https://test.inter-vpos.com.tr/mpi/Default.aspx',
         ];
     }
 }

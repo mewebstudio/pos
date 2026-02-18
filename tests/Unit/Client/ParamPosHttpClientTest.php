@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Tests\Unit\Client;
 
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Client\ParamPosHttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
@@ -60,10 +61,6 @@ class ParamPosHttpClientTest extends TestCase
 
     protected function setUp(): void
     {
-        $endpoints = [
-            'payment_api'   => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
-        ];
-
         $this->serializer         = $this->createMock(SerializerInterface::class);
         $this->logger             = $this->createMock(LoggerInterface::class);
         $this->crypt              = $this->createMock(CryptInterface::class);
@@ -73,9 +70,9 @@ class ParamPosHttpClientTest extends TestCase
         $this->streamFactory      = $this->createMock(StreamFactoryInterface::class);
 
 
-        $this->client = PosHttpClientFactory::createForGateway(
-            ParamPos::class,
-            $endpoints,
+        $this->client = PosHttpClientFactory::create(
+            ParamPosHttpClient::class,
+            'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
             $this->serializer,
             $this->crypt,
             $this->requestValueMapper,
@@ -88,9 +85,14 @@ class ParamPosHttpClientTest extends TestCase
 
     public function testSupports(): void
     {
-        $this->assertTrue(ParamPosHttpClient::supports(ParamPos::class));
-        $this->assertTrue(ParamPosHttpClient::supports(Param3DHostPos::class));
-        $this->assertFalse(ParamPosHttpClient::supports(AkbankPos::class));
+        $this->assertTrue($this->client::supports(ParamPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+        $this->assertTrue($this->client::supports(Param3DHostPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+        $this->assertFalse($this->client::supports(AkbankPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+    }
+
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
     }
 
     /**
@@ -111,8 +113,7 @@ class ParamPosHttpClientTest extends TestCase
         string $paymentModel,
         array  $requestData,
         array  $order,
-        string $expectedApiUrl,
-        bool   $decodeResponse
+        string $expectedApiUrl
     ): void {
         $encodedData = new EncodedData(
             '<?xml version="1.0" encoding="" ?><request>data</request>',
@@ -144,34 +145,20 @@ class ParamPosHttpClientTest extends TestCase
             ->willReturn($response);
 
         $decodedResponse = ['decoded-response'];
-        if ($decodeResponse) {
-            $this->serializer->expects($this->once())
-                ->method('decode')
-                ->with($responseContent, $txType)
-                ->willReturn($decodedResponse);
-        } else {
-            $this->serializer->expects($this->never())
-                ->method('decode')
-                ->with($responseContent, $txType)
-                ->willReturn($decodedResponse);
-        }
+        $this->serializer->expects($this->once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
 
         $actual = $this->client->request(
             $txType,
             $paymentModel,
             $requestData,
             $order,
-            $expectedApiUrl,
-            null,
-            true,
-            $decodeResponse,
+            $expectedApiUrl
         );
 
-        if ($decodeResponse) {
-            $this->assertSame($decodedResponse, $actual);
-        } else {
-            $this->assertSame($responseContent, $actual);
-        }
+        $this->assertSame($decodedResponse, $actual);
     }
 
     public function testRequestUndecodableResponse(): void
@@ -220,7 +207,10 @@ class ParamPosHttpClientTest extends TestCase
         );
     }
 
-    public function testRequestBadRequest(): void
+    /**
+     * @dataProvider failResponseDataProvider
+     */
+    public function testRequestBadRequest(array $decodedResponse, string $expectedExpMsg): void
     {
         $txType         = PosInterface::TX_TYPE_PAY_AUTH;
         $paymentModel   = PosInterface::MODEL_3D_SECURE;
@@ -257,18 +247,13 @@ class ParamPosHttpClientTest extends TestCase
             ->with($request)
             ->willReturn($response);
 
-        $decodedResponse = [
-            'soap:Fault' => [
-                'faultstring' => 'Error message',
-            ],
-        ];
         $this->serializer->expects($this->once())
             ->method('decode')
             ->with($responseContent, $txType)
             ->willReturn($decodedResponse);
 
         $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Error message');
+        $this->expectExceptionMessage($expectedExpMsg);
 
         $this->client->request(
             $txType,
@@ -322,17 +307,29 @@ class ParamPosHttpClientTest extends TestCase
             'paymentModel'   => PosInterface::MODEL_3D_SECURE,
             'requestData'    => ['request-data'],
             'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            'decodeResponse' => true,
+            'expectedApiUrl' => 'https://test-dmz.param.com.tr/turkpos.ws/service_turkpos_test.asmx',
         ];
+    }
 
-        yield [
-            'txType'         => PosInterface::TX_TYPE_PAY_AUTH,
-            'paymentModel'   => PosInterface::MODEL_3D_SECURE,
-            'requestData'    => ['request-data'],
-            'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            'decodeResponse' => false,
+    public static function failResponseDataProvider(): array
+    {
+        return [
+            [
+                'decodedResponse' => [
+                    'soap:Fault' => [
+                        'faultstring' => 'Error message',
+                    ],
+                ],
+                'expectedExpMsg'  => 'Error message',
+            ],
+            [
+                'decodedResponse' => [
+                    'soap:Fault' => [
+                        'some_other_key' => 'bla',
+                    ],
+                ],
+                'expectedExpMsg'  => 'Bankaya istek başarısız!',
+            ],
         ];
     }
 }

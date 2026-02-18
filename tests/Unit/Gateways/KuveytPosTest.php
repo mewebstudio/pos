@@ -7,11 +7,11 @@
 namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\KuveytPosRequestDataMapper;
 use Mews\Pos\DataMapper\RequestValueMapper\KuveytPosRequestValueMapper;
 use Mews\Pos\DataMapper\ResponseDataMapper\ResponseDataMapperInterface;
-use Mews\Pos\Entity\Account\AbstractPosAccount;
 use Mews\Pos\Entity\Account\KuveytPosAccount;
 use Mews\Pos\Entity\Card\CreditCardInterface;
 use Mews\Pos\Event\RequestDataPreparedEvent;
@@ -55,6 +55,9 @@ class KuveytPosTest extends TestCase
 
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
+
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
 
     /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
@@ -106,14 +109,15 @@ class KuveytPosTest extends TestCase
             'lang'        => PosInterface::LANG_TR,
         ];
 
-        $this->requestValueMapper  = new KuveytPosRequestValueMapper();
-        $this->requestMapperMock   = $this->createMock(KuveytPosRequestDataMapper::class);
-        $this->responseMapperMock  = $this->createMock(ResponseDataMapperInterface::class);
-        $this->serializerMock      = $this->createMock(SerializerInterface::class);
-        $this->cryptMock           = $this->createMock(CryptInterface::class);
-        $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
-        $this->loggerMock          = $this->createMock(LoggerInterface::class);
-        $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
+        $this->requestValueMapper     = new KuveytPosRequestValueMapper();
+        $this->requestMapperMock      = $this->createMock(KuveytPosRequestDataMapper::class);
+        $this->responseMapperMock     = $this->createMock(ResponseDataMapperInterface::class);
+        $this->serializerMock         = $this->createMock(SerializerInterface::class);
+        $this->cryptMock              = $this->createMock(CryptInterface::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
+        $this->httpClientMock         = $this->createMock(HttpClientInterface::class);
+        $this->loggerMock             = $this->createMock(LoggerInterface::class);
+        $this->eventDispatcherMock    = $this->createMock(EventDispatcherInterface::class);
 
         $this->requestMapperMock->expects(self::any())
             ->method('getCrypt')
@@ -127,7 +131,7 @@ class KuveytPosTest extends TestCase
             $this->responseMapperMock,
             $this->serializerMock,
             $this->eventDispatcherMock,
-            $this->httpClientMock,
+            $this->httpClientStrategyMock,
             $this->loggerMock,
         );
 
@@ -181,8 +185,7 @@ class KuveytPosTest extends TestCase
             $response,
             $order,
             $paymentModel,
-            false,
-            $this->config['gateway_endpoints']['gateway_3d']
+            PosInterface::TX_TYPE_INTERNAL_3D_FORM_BUILD
         );
 
         $this->requestMapperMock->expects(self::once())
@@ -342,10 +345,7 @@ class KuveytPosTest extends TestCase
             $requestData,
             $paymentResponse,
             $order,
-            PosInterface::MODEL_NON_SECURE,
-            true,
-            null,
-            $this->account
+            PosInterface::MODEL_NON_SECURE
         );
 
         $this->responseMapperMock->expects(self::once())
@@ -526,11 +526,16 @@ class KuveytPosTest extends TestCase
         $decodedResponse,
         array               $order,
         string              $paymentModel,
-        bool                $isDecodeResponse = true,
-        ?string             $apiUrl = null,
-        ?AbstractPosAccount $account = null
+        ?string             $clientTxType = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
+
+        $clientTxType ??= $txType;
+
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($clientTxType, $paymentModel)
+            ->willReturn($this->httpClientMock);
 
         $this->httpClientMock->expects(self::once())
             ->method('request')
@@ -540,11 +545,7 @@ class KuveytPosTest extends TestCase
                 $this->callback(function (array $requestData) {
                     return $requestData['test-update-request-data-with-event'] === true;
                 }),
-                $order,
-                $apiUrl,
-                $account,
-                true,
-                $isDecodeResponse
+                $order
             )->willReturn($decodedResponse);
 
         $this->eventDispatcherMock->expects(self::once())

@@ -16,9 +16,17 @@ class InterPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
     {
-        return InterPos::class === $gatewayClass;
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass, string $apiName): bool
+    {
+        return InterPos::class === $gatewayClass && HttpClientInterface::API_NAME_PAYMENT_API === $apiName;
     }
 
     /**

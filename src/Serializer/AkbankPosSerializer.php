@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Serializer;
 
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Gateways\AkbankPos;
 use Mews\Pos\PosInterface;
 use Symfony\Component\Serializer\Encoder\JsonEncoder;
@@ -23,17 +24,21 @@ class AkbankPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
+        if (null !== $apiName && HttpClientInterface::API_NAME_PAYMENT_API !== $apiName) {
+            return false;
+        }
+
         return AkbankPos::class === $gatewayClass;
     }
 
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null, ?string $format = self::FORMAT_JSON): EncodedData
+    public function encode(array $data, ?string $txType = null): EncodedData
     {
-        $format ??= self::FORMAT_JSON;
+        $format = self::FORMAT_JSON;
 
         return new EncodedData(
             $this->serializer->encode($data, $format),

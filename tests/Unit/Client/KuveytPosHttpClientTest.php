@@ -6,6 +6,7 @@
 
 namespace Mews\Pos\Tests\Unit\Client;
 
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\Client\KuveytPosHttpClient;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestValueMapper\RequestValueMapperInterface;
@@ -57,10 +58,6 @@ class KuveytPosHttpClientTest extends TestCase
 
     protected function setUp(): void
     {
-        $endpoints = [
-            'payment_api' => 'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home',
-        ];
-
         $this->serializer         = $this->createMock(SerializerInterface::class);
         $this->logger             = $this->createMock(LoggerInterface::class);
         $crypt                    = $this->createMock(CryptInterface::class);
@@ -70,9 +67,9 @@ class KuveytPosHttpClientTest extends TestCase
         $this->streamFactory      = $this->createMock(StreamFactoryInterface::class);
 
 
-        $this->client = PosHttpClientFactory::createForGateway(
-            KuveytPos::class,
-            $endpoints,
+        $this->client = PosHttpClientFactory::create(
+            KuveytPosHttpClient::class,
+            'https://boatest.kuveytturk.com.tr/boa.virtualpos.services/Home',
             $this->serializer,
             $crypt,
             $this->requestValueMapper,
@@ -85,8 +82,16 @@ class KuveytPosHttpClientTest extends TestCase
 
     public function testSupports(): void
     {
-        $this->assertFalse(KuveytPosHttpClient::supports(AkbankPos::class));
-        $this->assertTrue(KuveytPosHttpClient::supports(KuveytPos::class));
+        $this->assertFalse($this->client::supports(AkbankPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+        $this->assertFalse($this->client::supports(KuveytPos::class, HttpClientInterface::API_NAME_QUERY_API));
+        $this->assertFalse($this->client::supports(KuveytPos::class, HttpClientInterface::API_NAME_GATEWAY_3D_API));
+        $this->assertTrue($this->client::supports(KuveytPos::class, HttpClientInterface::API_NAME_PAYMENT_API));
+    }
+
+    public function testSupportsTx(): void
+    {
+        $this->assertTrue($this->client->supportsTx(PosInterface::TX_TYPE_PAY_AUTH, PosInterface::MODEL_3D_SECURE));
+        $this->assertFalse($this->client->supportsTx(PosInterface::TX_TYPE_PAY_PRE_AUTH, PosInterface::MODEL_3D_SECURE));
     }
 
     /**
@@ -116,8 +121,7 @@ class KuveytPosHttpClientTest extends TestCase
         string $paymentModel,
         array  $requestData,
         array  $order,
-        string $expectedApiUrl,
-        bool   $decodeResponse
+        string $expectedApiUrl
     ): void {
         $encodedData = new EncodedData(
             '<?xml version="1.0" encoding="" ?><request>data</request>',
@@ -149,33 +153,21 @@ class KuveytPosHttpClientTest extends TestCase
             ->with($request)
             ->willReturn($response);
 
-        if ($decodeResponse) {
-            $decodedResponse = ['decoded-response'];
-            $this->serializer->expects($this->once())
-                ->method('decode')
-                ->with($responseContent, $txType)
-                ->willReturn($decodedResponse);
-        } else {
-            $this->serializer->expects($this->never())
-                ->method('decode');
-        }
+        $decodedResponse = ['decoded-response'];
+        $this->serializer->expects($this->once())
+            ->method('decode')
+            ->with($responseContent, $txType)
+            ->willReturn($decodedResponse);
 
         $actual = $this->client->request(
             $txType,
             $paymentModel,
             $requestData,
             $order,
-            $expectedApiUrl,
-            null,
-            true,
-            $decodeResponse,
+            $expectedApiUrl
         );
 
-        if ($decodeResponse) {
-            $this->assertSame($decodedResponse, $actual);
-        } else {
-            $this->assertSame($responseContent, $actual);
-        }
+        $this->assertSame($decodedResponse, $actual);
     }
 
     public function testRequestUndecodableResponse(): void
@@ -292,16 +284,6 @@ class KuveytPosHttpClientTest extends TestCase
             'requestData'    => ['request-data'],
             'order'          => ['id' => 123],
             'expectedApiUrl' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            'decodeResponse' => true,
-        ];
-
-        yield [
-            'txType'         => PosInterface::TX_TYPE_PAY_AUTH,
-            'paymentModel'   => PosInterface::MODEL_3D_SECURE,
-            'requestData'    => ['request-data'],
-            'order'          => ['id' => 123],
-            'expectedApiUrl' => 'https://sanalposprovtest.garantibbva.com.tr/VPServlet',
-            'decodeResponse' => false,
         ];
     }
 

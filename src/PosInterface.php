@@ -53,6 +53,9 @@ interface PosInterface
     public const TX_TYPE_HISTORY = 'history';
 
     /** @var string */
+    public const TX_TYPE_INTERNAL_3D_FORM_BUILD = '3d_form_build';
+
+    /** @var string */
     public const TX_TYPE_CUSTOM_QUERY = 'custom_query';
 
     /** @var string */

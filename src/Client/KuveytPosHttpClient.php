@@ -18,9 +18,23 @@ class KuveytPosHttpClient extends AbstractHttpClient
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
     {
-        return KuveytPos::class === $gatewayClass;
+        try {
+            $this->getRequestURIByTransactionType($txType, $paymentModel);
+        } catch (UnsupportedTransactionTypeException $e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass, string $apiName): bool
+    {
+        return KuveytPos::class === $gatewayClass && HttpClientInterface::API_NAME_PAYMENT_API === $apiName;
     }
 
     /**
@@ -32,7 +46,7 @@ class KuveytPosHttpClient extends AbstractHttpClient
     public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType && null !== $paymentModel) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
+            return $this->baseApiUrl.'/'.$this->getRequestURIByTransactionType($txType, $paymentModel);
         }
 
         throw new \InvalidArgumentException('Transaction type is required to generate API URL');

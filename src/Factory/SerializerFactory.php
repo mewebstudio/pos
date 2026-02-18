@@ -7,6 +7,7 @@
 namespace Mews\Pos\Factory;
 
 use DomainException;
+use Mews\Pos\Client\HttpClientInterface;
 use Mews\Pos\PosInterface;
 use Mews\Pos\Serializer\AkbankPosSerializer;
 use Mews\Pos\Serializer\EstPosSerializer;
@@ -16,6 +17,7 @@ use Mews\Pos\Serializer\KuveytPosSerializer;
 use Mews\Pos\Serializer\KuveytSoapApiPosSerializer;
 use Mews\Pos\Serializer\ParamPosSerializer;
 use Mews\Pos\Serializer\PayFlexCPV4PosSerializer;
+use Mews\Pos\Serializer\PayFlexV4PosSearchApiSerializer;
 use Mews\Pos\Serializer\PayFlexV4PosSerializer;
 use Mews\Pos\Serializer\PayForPosSerializer;
 use Mews\Pos\Serializer\PosNetSerializer;
@@ -30,12 +32,15 @@ use Mews\Pos\Serializer\VakifKatilimPosSerializer;
 class SerializerFactory
 {
     /**
-     * @param class-string<PosInterface> $gatewayClass
+     * @param class-string<PosInterface>      $gatewayClass
+     * @param HttpClientInterface::API_NAME_* $apiName
      *
      * @return SerializerInterface
      */
-    public static function createGatewaySerializer(string $gatewayClass): SerializerInterface
-    {
+    public static function createGatewaySerializer(
+        string $gatewayClass,
+        ?string $apiName = null
+    ): SerializerInterface {
         $serializers = [
             AkbankPosSerializer::class,
             EstPosSerializer::class,
@@ -45,6 +50,7 @@ class SerializerFactory
             KuveytSoapApiPosSerializer::class,
             ParamPosSerializer::class,
             PayFlexCPV4PosSerializer::class,
+            PayFlexV4PosSearchApiSerializer::class,
             PayFlexV4PosSerializer::class,
             PayForPosSerializer::class,
             PosNetSerializer::class,
@@ -55,7 +61,7 @@ class SerializerFactory
 
         /** @var class-string<SerializerInterface> $serializer */
         foreach ($serializers as $serializer) {
-            if ($serializer::supports($gatewayClass)) {
+            if ($serializer::supports($gatewayClass, $apiName)) {
                 return new $serializer();
             }
         }

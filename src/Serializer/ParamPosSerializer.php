@@ -27,7 +27,7 @@ class ParamPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return $gatewayClass === ParamPos::class
             || $gatewayClass === Param3DHostPos::class;
@@ -36,13 +36,13 @@ class ParamPosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, ?string $txType = null, ?string $format = self::FORMAT_XML): EncodedData
+    public function encode(array $data, ?string $txType = null): EncodedData
     {
         $data['@xmlns:xsi']  = 'http://www.w3.org/2001/XMLSchema-instance';
         $data['@xmlns:xsd']  = 'http://www.w3.org/2001/XMLSchema';
         $data['@xmlns:soap'] = 'http://schemas.xmlsoap.org/soap/envelope/';
 
-        $format ??= self::FORMAT_XML;
+        $format = self::FORMAT_XML;
 
         return new EncodedData(
             $this->serializer->encode($data, $format),

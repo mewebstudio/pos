@@ -24,24 +24,39 @@ class AkbankPosHttpClient extends AbstractHttpClient
     private CryptInterface $crypt;
 
     public function __construct(
+        string                  $baseApiUrl,
         ClientInterface         $client,
         RequestFactoryInterface $requestFactory,
         StreamFactoryInterface  $streamFactory,
         SerializerInterface     $serializer,
         LoggerInterface         $logger,
-        array                   $config,
         CryptInterface          $crypt
     ) {
-        parent::__construct($client, $requestFactory, $streamFactory, $serializer, $logger, $config);
+        parent::__construct(
+            $baseApiUrl,
+            $client,
+            $requestFactory,
+            $streamFactory,
+            $serializer,
+            $logger
+        );
         $this->crypt = $crypt;
     }
 
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public function supportsTx(string $txType, string $paymentModel, ?string $orderTxType = null): bool
     {
-        return AkbankPos::class === $gatewayClass;
+        return true;
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public static function supports(string $gatewayClass, string $apiName): bool
+    {
+        return AkbankPos::class === $gatewayClass && HttpClientInterface::API_NAME_PAYMENT_API === $apiName;
     }
 
     /**
@@ -52,7 +67,7 @@ class AkbankPosHttpClient extends AbstractHttpClient
     public function getApiURL(?string $txType = null, ?string $paymentModel = null, ?string $orderTxType = null): string
     {
         if (null !== $txType) {
-            return parent::getApiURL().'/'.$this->getRequestURIByTransactionType($txType);
+            return $this->baseApiUrl.'/'.$this->getRequestURIByTransactionType($txType);
         }
 
         throw new \InvalidArgumentException('Transaction type is required to generate API URL');

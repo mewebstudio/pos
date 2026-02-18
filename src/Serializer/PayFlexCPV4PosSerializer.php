@@ -27,7 +27,7 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public static function supports(string $gatewayClass): bool
+    public static function supports(string $gatewayClass, ?string $apiName = null): bool
     {
         return PayFlexCPV4Pos::class === $gatewayClass;
     }
@@ -35,9 +35,9 @@ class PayFlexCPV4PosSerializer implements SerializerInterface
     /**
      * @inheritDoc
      */
-    public function encode(array $data, string $txType, ?string $format = self::FORMAT_FORM): EncodedData
+    public function encode(array $data, string $txType): EncodedData
     {
-        $format ??= self::FORMAT_FORM;
+        $format = self::FORMAT_FORM;
 
         return new EncodedData(
             \http_build_query($data),

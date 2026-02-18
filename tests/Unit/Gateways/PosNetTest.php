@@ -8,6 +8,7 @@ namespace Mews\Pos\Tests\Unit\Gateways;
 
 use Exception;
 use Mews\Pos\Client\HttpClientInterface;
+use Mews\Pos\Client\HttpClientStrategyInterface;
 use Mews\Pos\Crypt\CryptInterface;
 use Mews\Pos\DataMapper\RequestDataMapper\PosNetRequestDataMapper;
 use Mews\Pos\DataMapper\RequestDataMapper\RequestDataMapperInterface;
@@ -61,6 +62,9 @@ class PosNetTest extends TestCase
     /** @var CryptInterface & MockObject */
     private MockObject $cryptMock;
 
+    /** @var HttpClientStrategyInterface & MockObject */
+    private MockObject $httpClientStrategyMock;
+
     /** @var HttpClientInterface & MockObject */
     private MockObject $httpClientMock;
 
@@ -111,6 +115,7 @@ class PosNetTest extends TestCase
         $this->responseMapperMock  = $this->createMock(PosNetResponseDataMapper::class);
         $this->serializerMock      = $this->createMock(SerializerInterface::class);
         $this->cryptMock           = $this->createMock(CryptInterface::class);
+        $this->httpClientStrategyMock = $this->createMock(HttpClientStrategyInterface::class);
         $this->httpClientMock      = $this->createMock(HttpClientInterface::class);
         $this->loggerMock          = $this->createMock(LoggerInterface::class);
         $this->eventDispatcherMock = $this->createMock(EventDispatcherInterface::class);
@@ -134,7 +139,7 @@ class PosNetTest extends TestCase
             $this->responseMapperMock,
             $this->serializerMock,
             $this->eventDispatcherMock,
-            $this->httpClientMock,
+            $this->httpClientStrategyMock,
             $this->loggerMock,
         );
     }
@@ -305,6 +310,11 @@ class PosNetTest extends TestCase
                     'test-update-request-data-with-event2' => true,
                 ];
 
+            $this->httpClientStrategyMock->expects(self::exactly(2))
+                ->method('getClient')
+                ->with($txType, $paymentModel)
+                ->willReturn($this->httpClientMock);
+
             $this->httpClientMock->expects(self::exactly(2))
                 ->method('request')
                 ->willReturnMap([
@@ -315,8 +325,6 @@ class PosNetTest extends TestCase
                         $order,
                         null,
                         null,
-                        true,
-                        true,
                         $resolveResponse,
                     ],
                     [
@@ -326,8 +334,6 @@ class PosNetTest extends TestCase
                         $order,
                         null,
                         null,
-                        true,
-                        true,
                         $paymentResponse,
                     ],
                 ]);
@@ -483,6 +489,11 @@ class PosNetTest extends TestCase
                     'test-update-request-data-with-event2' => true,
                 ];
 
+            $this->httpClientStrategyMock->expects(self::exactly(2))
+                ->method('getClient')
+                ->with($txType, $paymentModel)
+                ->willReturn($this->httpClientMock);
+
             $this->httpClientMock->expects(self::exactly(2))
                 ->method('request')
                 ->willReturnMap([
@@ -493,8 +504,6 @@ class PosNetTest extends TestCase
                         $order,
                         null,
                         null,
-                        true,
-                        true,
                         $resolveResponse,
                     ],
                     [
@@ -504,8 +513,6 @@ class PosNetTest extends TestCase
                         $order,
                         null,
                         null,
-                        true,
-                        true,
                         $paymentResponse,
                     ],
                 ]);
@@ -1056,6 +1063,11 @@ class PosNetTest extends TestCase
         ?AbstractPosAccount $account = null
     ): void {
         $updatedRequestDataPreparedEvent = null;
+
+        $this->httpClientStrategyMock->expects(self::once())
+            ->method('getClient')
+            ->with($txType, $paymentModel)
+            ->willReturn($this->httpClientMock);
 
         $this->httpClientMock->expects(self::once())
             ->method('request')

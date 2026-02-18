@@ -221,11 +221,17 @@ class ToslaPos extends AbstractHttpGateway
             $requestData = $event->getRequestData();
         }
 
-        return $this->client->request(
+        /** @var array<string, mixed> $result */
+        $result = $this->clientStrategy->getClient(
+            $txType,
+            $paymentModel,
+        )->request(
             $txType,
             $paymentModel,
             $requestData,
             $order
         );
+
+        return $result;
     }
 }
